@@ -1,0 +1,55 @@
+﻿@model IEnumerable<Couche_SysIntegFO.Models.Products>
+@{
+    ViewData["Title"] = "Home";
+}
+
+
+<!-- Hero Section -->
+<div class="container-fluid text-white text-center py-5 mb-5"
+     style="background: url('https://images.unsplash.com/photo-1578854955076-970394ef2512?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') center 44% / cover no-repeat; min-height: 500px; display: flex; align-items: center; justify-content: center;">
+
+    <div style="width: 130%; margin-left: -15%; margin-right: -15%;">
+        <h1 class="display-1" style="font-family: 'DM Serif Display', serif; letter-spacing: -5px;">Couché Co.</h1>
+        <p class="lead" style="font-family: 'Rubik', serif; letter-spacing: -1.2px; font-weight: 400;">Home of Authentic Masterclass Clothing</p>
+        <a href="#products" class="btn btn-primary btn-lg mt-3">Shop Now</a>
+    </div>
+</div>
+
+
+
+<div class="container" id="products">
+    <h2 class="text-center mb-4">Featured Products</h2>
+    <div class="row">
+        @foreach (var product in Model)
+        {
+            <div class="col-md-3 mb-4">
+                <div class="card h-100 shadow-sm overflow-hidden">
+                    <a href="/Products/Details/@product.ProductID" class="zoom-wrapper">
+                        <img src="@product.ImageUrl" class="card-img-top zoom-img" alt="@product.ProductName">
+                    </a>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">@product.ProductName</h5>
+                            <p class="card-text mb-0">$@product.ProductPrice</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+
+
+<!-- About Section -->
+<div class="container mt-5">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <img src="https://iili.io/3kSZ2p4.jpg" class="img-fluid rounded" alt="About">
+        </div>
+        <div class="col-md-6">
+            <h3>About Us</h3>
+            <p>We offer top-quality merchandise for fans of all ages — from T-shirts and hoodies to collectibles and accessories. Every piece is designed with passion and authenticity.</p>
+        </div>
+    </div>
+</div>

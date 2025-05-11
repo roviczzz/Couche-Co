@@ -1,0 +1,23 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Couche_SysIntegFO.Models
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+
+@if (SignInManager.IsSignedIn(User))
+{
+    <form asp-area="Identity" asp-page="/Account/Logout" method="post" class="d-inline">
+        <button type="submit" class="btn btn-link text-dark" title="Logout">
+            <i class="bi bi-box-arrow-right fs-4" style="font-weight: 600;"></i>
+        </button>
+    </form>
+}
+else
+{
+    <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-link text-dark" title="Login">
+        <i class="bi bi-box-arrow-in-right fs-4" style="font-weight: 600;"></i>
+    </a>
+    <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-link text-dark" title="Register">
+        <i class="bi bi-person-plus fs-4" style="font-weight: 600;"></i>
+    </a>
+}
+

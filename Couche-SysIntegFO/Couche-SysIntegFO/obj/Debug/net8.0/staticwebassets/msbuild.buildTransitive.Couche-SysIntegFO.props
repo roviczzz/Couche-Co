@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\buildMultiTargeting\Couche-SysIntegFO.props" />
+</Project>

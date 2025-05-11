@@ -1,0 +1,70 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+    margin-bottom: 60px;
+    font-family: "Rubik", sans-serif;
+}
+
+.dm-serif-display-regular {
+    font-family: "DM Serif Display", serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+.dm-serif-display-regular-italic {
+    font-family: "DM Serif Display", serif;
+    font-weight: 400;
+    font-style: italic;
+}
+
+
+.rubik-normal {
+    font-family: "Rubik", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 300;
+    font-style: normal;
+}
+
+.zoom-wrapper {
+    display: block;
+    overflow: hidden;
+    border-radius: 0.25rem;
+}
+
+.zoom-img {
+    transition: transform 0.3s ease;
+}
+
+.zoom-wrapper:hover .zoom-img {
+    transform: scale(1.05);
+}
+
+.brand-display {
+    font-family: "DM Serif Display", serif;
+    font-size: 2.3rem; /* Matches Bootstrap's display-1 */
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: -2px;
+}
+
+/* Adjust the weight of Bootstrap icons */
+.bi {
+    font-weight: 600; /* You can experiment with values like 500, 600, 700 for more weight */
+}
