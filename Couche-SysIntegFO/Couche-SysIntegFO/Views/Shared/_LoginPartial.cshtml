@@ -5,6 +5,7 @@
 
 @if (SignInManager.IsSignedIn(User))
 {
+    <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello @User.Identity?.Name!</a>
     <form asp-area="Identity" asp-page="/Account/Logout" method="post" class="d-inline">
         <button type="submit" class="btn btn-link text-dark" title="Logout">
             <i class="bi bi-box-arrow-right fs-4" style="font-weight: 600;"></i>
@@ -14,10 +15,8 @@
 else
 {
     <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-link text-dark" title="Login">
-        <i class="bi bi-box-arrow-in-right fs-4" style="font-weight: 600;"></i>
+        <i class="bi bi-person fs-4" style="font-weight: 600;"></i>
     </a>
-    <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-link text-dark" title="Register">
-        <i class="bi bi-person-plus fs-4" style="font-weight: 600;"></i>
-    </a>
+
 }
 

@@ -24,9 +24,17 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                    </ul>
-                    <partial name="_LoginPartial" />
+                    <ul class="navbar-nav flex-grow-1"></ul>
+
+                    <!-- Cart Icon -->
+                    <div class="d-flex align-items-center">
+                        <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-link text-dark nav-link px-3" title="Login">
+                            <i class="bi bi-cart-fill fs-5" style="color: #333;"></i> <!-- Mono-color style -->
+                        </a>
+
+                        <!-- Login/Register Partial -->
+                        <partial name="_LoginPartial" />
+                    </div>
                 </div>
             </div>
         </nav>

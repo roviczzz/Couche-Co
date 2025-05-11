@@ -1,3 +1,6 @@
-﻿@{
-    Layout = ViewBag.Layout ?? "_Layout";
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+
+@{
+    Layout = SignInManager.IsSignedIn(User) ? "/Views/Shared/_LayoutUser.cshtml" : "/Views/Shared/_Layout.cshtml";
 }

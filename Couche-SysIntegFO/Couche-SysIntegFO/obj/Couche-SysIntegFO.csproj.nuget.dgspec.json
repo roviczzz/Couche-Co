@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\rovic\\source\\repos\\Couche-SysIntegFO\\Couche-SysIntegFO\\Couche-SysIntegFO.csproj": {}
+    "C:\\Users\\rovic\\OneDrive\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\Couche-SysIntegFO.csproj": {}
   },
   "projects": {
-    "C:\\Users\\rovic\\source\\repos\\Couche-SysIntegFO\\Couche-SysIntegFO\\Couche-SysIntegFO.csproj": {
+    "C:\\Users\\rovic\\OneDrive\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\Couche-SysIntegFO.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\rovic\\source\\repos\\Couche-SysIntegFO\\Couche-SysIntegFO\\Couche-SysIntegFO.csproj",
+        "projectUniqueName": "C:\\Users\\rovic\\OneDrive\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\Couche-SysIntegFO.csproj",
         "projectName": "Couche-SysIntegFO",
-        "projectPath": "C:\\Users\\rovic\\source\\repos\\Couche-SysIntegFO\\Couche-SysIntegFO\\Couche-SysIntegFO.csproj",
+        "projectPath": "C:\\Users\\rovic\\OneDrive\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\Couche-SysIntegFO.csproj",
         "packagesPath": "C:\\Users\\rovic\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\rovic\\source\\repos\\Couche-SysIntegFO\\Couche-SysIntegFO\\obj\\",
+        "outputPath": "C:\\Users\\rovic\\OneDrive\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\rovic\\AppData\\Roaming\\NuGet\\NuGet.Config",
