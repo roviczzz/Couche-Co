@@ -153,5 +153,24 @@ namespace Couche_SysIntegFO.Controllers
         {
             return _context.Products.Any(e => e.ProductID == id);
         }
+
+        public async Task<IActionResult> DetailsU(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var product = await _context.Products
+                .FirstOrDefaultAsync(m => m.ProductID == id);
+
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            return View(product); // This will map to Views/Products/DetailsU.cshtml
+        }
+
     }
 }

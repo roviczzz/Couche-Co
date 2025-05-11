@@ -1,0 +1,31 @@
+﻿@model Couche_SysIntegFO.Models.Products
+
+@{
+    ViewData["Title"] = "Product Details";
+}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6">
+            <img src="@Model.ImageUrl" class="img-fluid rounded" alt="@Model.ProductName" />
+        </div>
+        <div class="col-md-6">
+            <h2>@Model.ProductName</h2>
+            <h4 class="text-success">$@Model.ProductPrice</h4>
+            <p class="mt-3">@Model.ProductDescription</p>
+            <p><strong>In Stock:</strong> @Model.ProductStock</p>
+
+            <form method="post" action="/Cart/AddToCart">
+                <input type="hidden" name="productId" value="@Model.ProductID" />
+                <button type="submit" class="btn btn-primary mt-3">Add to Cart</button>
+            </form>
+
+            <a href="/" class="btn btn-secondary mt-2">Back to Store</a>
+        </div>
+    </div>
+</div>
+
+<div>
+    <br />
+    <a asp-action="Index">Back to List</a>
+</div>

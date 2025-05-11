@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Couche_SysIntegFO.Models
 {
-    public class User
+    public class AppUser
     {
         [Key]
         public int UserId { get; set; }
