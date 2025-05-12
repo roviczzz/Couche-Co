@@ -13,7 +13,7 @@ public class CartController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> AddToCart(int productId, int userId)
+    public async Task<IActionResult> AddToCart(int productId, string userId)
     {
         var existingCartItem = await _context.Carts
             .FirstOrDefaultAsync(c => c.ProductId == productId && c.UserId == userId);
@@ -33,7 +33,7 @@ public class CartController : Controller
         return RedirectToAction("Index", "Products"); // Redirect or change as needed
     }
 
-    public async Task<IActionResult> ViewCart(int userId)
+    public async Task<IActionResult> ViewCart(string userId)
     {
         var cartItems = await _context.Carts
             .Where(c => c.UserId == userId)

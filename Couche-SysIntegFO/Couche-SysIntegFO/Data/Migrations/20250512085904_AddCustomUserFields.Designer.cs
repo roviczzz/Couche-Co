@@ -9,11 +9,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Couche_SysIntegFO.Migrations.ApplicationDb
+namespace Couche_SysIntegFO.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250512080748_attribs")]
-    partial class attribs
+    [Migration("20250512085904_AddCustomUserFields")]
+    partial class AddCustomUserFields
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -244,10 +244,12 @@ namespace Couche_SysIntegFO.Migrations.ApplicationDb
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("ProviderKey")
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("ProviderDisplayName")
                         .HasColumnType("nvarchar(max)");
@@ -284,10 +286,12 @@ namespace Couche_SysIntegFO.Migrations.ApplicationDb
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("Name")
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("Value")
                         .HasColumnType("nvarchar(max)");
@@ -306,7 +310,7 @@ namespace Couche_SysIntegFO.Migrations.ApplicationDb
                         .IsRequired();
 
                     b.HasOne("Couche_SysIntegFO.Models.ApplicationUser", "User")
-                        .WithMany("Carts")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -365,11 +369,6 @@ namespace Couche_SysIntegFO.Migrations.ApplicationDb
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("Couche_SysIntegFO.Models.ApplicationUser", b =>
-                {
-                    b.Navigation("Carts");
                 });
 
             modelBuilder.Entity("Couche_SysIntegFO.Models.Products", b =>

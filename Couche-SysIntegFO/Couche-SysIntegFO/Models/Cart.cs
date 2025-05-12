@@ -8,10 +8,10 @@ namespace Couche_SysIntegFO.Models
         [Key]
         public int CartId { get; set; }
 
-        public int UserId { get; set; }
-        public AppUser User { get; set; }
+        public string? UserId { get; set; }
+        public ApplicationUser? User { get; set; }
 
         public int ProductId { get; set; }
-        public Products Product { get; set; }
+        public Products? Product { get; set; }
     }
 }

@@ -12,10 +12,10 @@ namespace Couche_SysIntegFO.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly ProductDbContext _context;
 
-        public HomeController(ILogger<HomeController> logger, UserManager<IdentityUser> userManager, ProductDbContext context)
+        public HomeController(ILogger<HomeController> logger, UserManager<ApplicationUser> userManager, ProductDbContext context)
         {
             _logger = logger;
             _userManager = userManager;

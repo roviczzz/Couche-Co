@@ -16,7 +16,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Couche-SysIntegFO")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+28d720469b1d17bd25bb24e50b8f654806de4bfa")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+349e954246955c784ea97ed41403cc528489d141")]
 [assembly: System.Reflection.AssemblyProductAttribute("Couche-SysIntegFO")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Couche-SysIntegFO")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
