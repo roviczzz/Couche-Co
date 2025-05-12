@@ -1,6 +1,30 @@
 ﻿@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Http
 @inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+@inject IHttpContextAccessor HttpContextAccessor
 
 @{
-    Layout = SignInManager.IsSignedIn(User) ? "/Views/Shared/_LayoutUser.cshtml" : "/Views/Shared/_Layout.cshtml";
+    Layout = "/Views/Shared/_Layout.cshtml"; // Default layout
+
+    if (SignInManager.IsSignedIn(User))
+    {
+        // Get the currently logged-in user
+        var currentUser = await UserManager.GetUserAsync(HttpContextAccessor.HttpContext.User);
+
+        if (currentUser != null)
+        {
+            // Check the roles of the current user
+            var roles = await UserManager.GetRolesAsync(currentUser);
+
+            if (roles.Contains("Admin"))
+            {
+                Layout = "/Views/Shared/_LayoutAdmin.cshtml";
+            }
+            else
+            {
+                Layout = "/Views/Shared/_LayoutUser.cshtml";
+            }
+        }
+    }
 }

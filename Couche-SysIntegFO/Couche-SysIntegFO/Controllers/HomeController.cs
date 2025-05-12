@@ -33,11 +33,13 @@ namespace Couche_SysIntegFO.Controllers
                     if (roles.Contains("Admin"))
                     {
                         ViewBag.Layout = "_LayoutAdmin";
+                        _logger.LogInformation("Admin layout set for user: {User}", user.UserName);
                         return;
                     }
                     else
                     {
                         ViewBag.Layout = "_LayoutUser";
+                        _logger.LogInformation("User layout set for user: {User}", user.UserName);
                         return;
                     }
                 }
@@ -45,6 +47,7 @@ namespace Couche_SysIntegFO.Controllers
 
             // Fallback layout
             ViewBag.Layout = "_Layout";
+            _logger.LogInformation("Fallback layout set.");
         }
 
         public async Task<IActionResult> Index()
