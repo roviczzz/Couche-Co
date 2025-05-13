@@ -27,7 +27,7 @@
     @if (!Model.Any())
     {
         <div class="alert alert-info">
-            Your cart is empty. <a asp-controller="Products" asp-action="Index">Continue Shopping</a>
+            Your cart is empty. <a asp-controller="Home" asp-action="Index">Continue Shopping</a>
         </div>
     }
     else
@@ -89,7 +89,7 @@
         </div>
 
         <div class="d-flex justify-content-between mt-4">
-            <a asp-controller="Products" asp-action="Index" class="btn btn-secondary">
+            <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Continue Shopping
             </a>
             <a asp-controller="Order" asp-action="Checkout" class="btn btn-primary">
