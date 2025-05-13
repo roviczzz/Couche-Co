@@ -7,8 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Couche_SysIntegFO.Models; // Adjust the namespace if necessary
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddDbContext<ProductDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("ProductDbContext") ?? throw new InvalidOperationException("Connection string 'ProductDbContext' not found.")));
 
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");

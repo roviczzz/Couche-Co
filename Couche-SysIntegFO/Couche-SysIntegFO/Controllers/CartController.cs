@@ -1,155 +1,106 @@
-﻿using Couche_SysIntegFO.Data;
-using Couche_SysIntegFO.Models;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
+using Couche_SysIntegFO.Models;
+using Couche_SysIntegFO.Data;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
+using System.Threading.Tasks;
 
-[Authorize]
-public class CartController : Controller
+namespace Couche_SysIntegFO.Controllers
 {
-    private readonly ApplicationDbContext _context;
-
-    public CartController(ApplicationDbContext context)
+    [Authorize] // Requires user to be logged in
+    public class CartController : Controller
     {
-        _context = context;
-    }
+        private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-    // GET: Cart - View Cart Items
-    public async Task<IActionResult> Index()
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (string.IsNullOrEmpty(userId))
+        public CartController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
-            return RedirectToAction("Login", "Account");
+            _context = context;
+            _userManager = userManager;
         }
 
-        var cartItems = await _context.Carts
-            .Where(c => c.UserId == userId)
-            .Include(c => c.Product)
-            .ToListAsync();
-
-        return View(cartItems);
-    }
-
-    // GET: Cart/ViewCart
-    public async Task<IActionResult> ViewCart(string userId)
-    {
-        if (string.IsNullOrEmpty(userId))
+        public async Task<IActionResult> ViewCart()
         {
-            return RedirectToAction("Index", "Home");
-        }
+            var user = await _userManager.GetUserAsync(User);
 
-        var cartItems = await _context.Carts
-            .Where(c => c.UserId == userId)
-            .Include(c => c.Product)
-            .ToListAsync();
-
-        return View("Index", cartItems);
-    }
-
-    // POST: Cart/AddToCart
-    [HttpPost]
-    public async Task<IActionResult> AddToCart(int productId)
-    {
-        // Get the current user's ID
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        // Add debug logging
-        System.Diagnostics.Debug.WriteLine($"Adding to cart - UserID: {userId}, ProductID: {productId}");
-
-
-        if (string.IsNullOrEmpty(userId))
-        {
-            TempData["Error"] = "Please log in to add items to cart.";
-            return RedirectToAction("Login", "Account");
-        }
-
-        // Validate product exists and is in stock
-        var product = await _context.Products.FindAsync(productId);
-        if (product == null)
-        {
-            TempData["Error"] = "Product not found!";
-            return RedirectToAction("Index", "Cart");
-        }
-
-        if (product.ProductStock <= 0)
-        {
-            TempData["Error"] = "Product is out of stock!";
-            return RedirectToAction("Index", "Cart");
-        }
-
-        // Check if product is already in cart
-        var existingCartItem = await _context.Carts
-            .FirstOrDefaultAsync(c => c.ProductId == productId && c.UserId == userId);
-
-        if (existingCartItem == null)
-        {
-            var cartItem = new Cart
+            if (user == null)
             {
-                ProductId = productId,
-                UserId = userId // Use the userId from the current user
-            };
+                return Unauthorized(); // Or handle if user is not logged in
+            }
 
-            _context.Carts.Add(cartItem);
+            var cartItems = await _context.Carts
+                .Where(c => c.UserId == user.Id)
+                .Include(c => c.Product)
+                .ToListAsync();
+
+            return View(cartItems);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddToCart(int productId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+            {
+                return Unauthorized(); // Or handle the case where the user is not logged in
+            }
+
+            var product = await _context.Products.FindAsync(productId);
+
+            if (product == null)
+            {
+                return NotFound(); // Or handle the case where the product doesn't exist
+            }
+
+            var cartItem = await _context.Carts.FirstOrDefaultAsync(c => c.UserId == user.Id && c.ProductId == productId);
+
+            if (cartItem == null)
+            {
+                // Add new item to cart
+                cartItem = new Cart
+                {
+                    UserId = user.Id,
+                    ProductId = productId,
+                    Quantity = 1
+                };
+                _context.Carts.Add(cartItem);
+            }
+            else
+            {
+                // Increment quantity if item already exists
+                cartItem.Quantity++;
+            }
+
             await _context.SaveChangesAsync();
-            TempData["Success"] = "Product added to cart successfully!";
+
+            return RedirectToAction("ViewCart");
         }
-        else
+
+        [HttpPost]
+        public async Task<IActionResult> RemoveFromCart(int productId)
         {
-            TempData["Info"] = "Product is already in your cart!";
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            var cartItem = await _context.Carts
+                .FirstOrDefaultAsync(c => c.UserId == user.Id && c.ProductId == productId);
+
+            if (cartItem == null)
+            {
+                return NotFound();
+            }
+
+            _context.Carts.Remove(cartItem);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("ViewCart");
         }
-
-        return RedirectToAction("Index", "Cart");
-    }
-
-    // POST: Cart/RemoveFromCart
-    [HttpPost]
-    public async Task<IActionResult> RemoveFromCart(int cartId)
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var cartItem = await _context.Carts.FindAsync(cartId);
-
-        if (cartItem == null)
-        {
-            TempData["Error"] = "Cart item not found!";
-            return RedirectToAction(nameof(Index));
-        }
-
-        if (cartItem.UserId != userId)
-        {
-            TempData["Error"] = "Unauthorized access!";
-            return RedirectToAction(nameof(Index));
-        }
-
-        _context.Carts.Remove(cartItem);
-        await _context.SaveChangesAsync();
-
-        TempData["Success"] = "Product removed from cart successfully!";
-        return RedirectToAction(nameof(Index));
-    }
-
-    // GET: Cart/GetCartCount
-    [HttpGet]
-    public async Task<JsonResult> GetCartCount()
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var count = await _context.Carts.CountAsync(c => c.UserId == userId);
-        return Json(new { count });
-    }
-
-    // POST: Cart/ClearCart
-    [HttpPost]
-    public async Task<IActionResult> ClearCart()
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var cartItems = await _context.Carts.Where(c => c.UserId == userId).ToListAsync();
-
-        _context.Carts.RemoveRange(cartItems);
-        await _context.SaveChangesAsync();
-
-        TempData["Success"] = "Cart cleared successfully!";
-        return RedirectToAction(nameof(Index));
     }
 }

@@ -34,11 +34,12 @@
     <a asp-controller="Home" asp-action="Index">Back to List</a>
 </div>
 
-@* Add this script section at the bottom of your view *@
-<script>
-    document.querySelector('form[asp-action="AddToCart"]').addEventListener('submit', function (e) {
-        const button = this.querySelector('button[type="submit"]');
-        button.disabled = true;
-        button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Adding...';
-    });
-</script>
+@section Scripts {
+    <script>
+        document.querySelector('form[asp-action="AddToCart"]').addEventListener('submit', function (e) {
+            const button = this.querySelector('button[type="submit"]');
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Adding...';
+        });
+    </script>
+}

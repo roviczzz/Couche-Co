@@ -16,24 +16,6 @@ namespace Couche_SysIntegFO.Data
         public DbSet<Cart> Carts { get; set; }
         public DbSet<Products> Products { get; set; }
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            base.OnModelCreating(modelBuilder);
-
-            modelBuilder.Entity<Cart>(entity =>
-            {
-                entity.HasKey(e => e.CartId);
-
-                entity.HasOne(d => d.User)
-                    .WithMany()
-                    .HasForeignKey(d => d.UserId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasOne(d => d.Product)
-                    .WithMany(p => p.Carts)
-                    .HasForeignKey(d => d.ProductId)
-                    .OnDelete(DeleteBehavior.Cascade);
-            });
-        }
+        
     }
 }

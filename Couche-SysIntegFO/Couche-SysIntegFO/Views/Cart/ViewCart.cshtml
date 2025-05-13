@@ -1,0 +1,45 @@
+﻿ @model List<Couche_SysIntegFO.Models.Cart>
+
+@{
+    ViewData["Title"] = "View Cart";
+}
+
+<h1>Your Shopping Cart</h1>
+
+@if (Model != null && Model.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Product Name</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Total</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Product.ProductName</td>
+                    <td>@item.Quantity</td>
+                    <td>@item.Product.ProductPrice</td>
+                    <td>@(item.Product.ProductPrice * item.Quantity)</td>
+                    <td>
+                        <form asp-controller="Cart" asp-action="RemoveFromCart" method="post" asp-route-productId="@item.ProductId">
+                            <button type="submit" class="btn btn-danger">Remove</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>Your cart is empty.</p>
+}
+
+<a asp-controller="Products" asp-action="Index" class="btn btn-primary">Continue Shopping</a>
+ ```

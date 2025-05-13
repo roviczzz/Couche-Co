@@ -1,20 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Couche_SysIntegFO.Data;
 using Couche_SysIntegFO.Models;
+using Couche_SysIntegFO.Data; // Assuming you've kept the default ApplicationDbContext
 
 namespace Couche_SysIntegFO.Controllers
 {
     public class ProductsController : Controller
     {
-        private readonly ProductDbContext _context;
+        private readonly ApplicationDbContext _context;
 
-        public ProductsController(ProductDbContext context)
+        public ProductsController(ApplicationDbContext context)
         {
             _context = context;
         }
@@ -33,14 +28,14 @@ namespace Couche_SysIntegFO.Controllers
                 return NotFound();
             }
 
-            var products = await _context.Products
+            var product = await _context.Products
                 .FirstOrDefaultAsync(m => m.ProductID == id);
-            if (products == null)
+            if (product == null)
             {
                 return NotFound();
             }
 
-            return View(products);
+            return View(product);
         }
 
         // GET: Products/Create
@@ -50,19 +45,17 @@ namespace Couche_SysIntegFO.Controllers
         }
 
         // POST: Products/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ProductID,ProductPrice,ProductName,ProductDescription,ProductStock,ImageUrl")] Products products)
+        public async Task<IActionResult> Create([Bind("ProductID,ProductPrice,ProductName,ProductDescription,ProductStock,ImageUrl")] Products product)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(products);
+                _context.Add(product);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(products);
+            return View(product);
         }
 
         // GET: Products/Edit/5
@@ -73,22 +66,20 @@ namespace Couche_SysIntegFO.Controllers
                 return NotFound();
             }
 
-            var products = await _context.Products.FindAsync(id);
-            if (products == null)
+            var product = await _context.Products.FindAsync(id);
+            if (product == null)
             {
                 return NotFound();
             }
-            return View(products);
+            return View(product);
         }
 
         // POST: Products/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ProductID,ProductPrice,ProductName,ProductDescription,ProductStock,ImageUrl")] Products products)
+        public async Task<IActionResult> Edit(int id, [Bind("ProductID,ProductPrice,ProductName,ProductDescription,ProductStock,ImageUrl")] Products product)
         {
-            if (id != products.ProductID)
+            if (id != product.ProductID)
             {
                 return NotFound();
             }
@@ -97,12 +88,12 @@ namespace Couche_SysIntegFO.Controllers
             {
                 try
                 {
-                    _context.Update(products);
+                    _context.Update(product);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ProductsExists(products.ProductID))
+                    if (!ProductExists(product.ProductID))
                     {
                         return NotFound();
                     }
@@ -113,7 +104,7 @@ namespace Couche_SysIntegFO.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(products);
+            return View(product);
         }
 
         // GET: Products/Delete/5
@@ -124,14 +115,14 @@ namespace Couche_SysIntegFO.Controllers
                 return NotFound();
             }
 
-            var products = await _context.Products
+            var product = await _context.Products
                 .FirstOrDefaultAsync(m => m.ProductID == id);
-            if (products == null)
+            if (product == null)
             {
                 return NotFound();
             }
 
-            return View(products);
+            return View(product);
         }
 
         // POST: Products/Delete/5
@@ -139,21 +130,20 @@ namespace Couche_SysIntegFO.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var products = await _context.Products.FindAsync(id);
-            if (products != null)
+            var product = await _context.Products.FindAsync(id);
+            if (product != null)
             {
-                _context.Products.Remove(products);
+                _context.Products.Remove(product);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool ProductsExists(int id)
+        private bool ProductExists(int id)
         {
             return _context.Products.Any(e => e.ProductID == id);
         }
-
         public async Task<IActionResult> DetailsU(int? id)
         {
             if (id == null)
@@ -171,6 +161,5 @@ namespace Couche_SysIntegFO.Controllers
 
             return View(product); // This will map to Views/Products/DetailsU.cshtml
         }
-
     }
 }

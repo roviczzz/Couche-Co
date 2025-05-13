@@ -13,13 +13,13 @@ namespace Couche_SysIntegFO.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly ProductDbContext _context;
+        private readonly ApplicationDbContext _context; // Add this
 
-        public HomeController(ILogger<HomeController> logger, UserManager<ApplicationUser> userManager, ProductDbContext context)
+        public HomeController(ILogger<HomeController> logger, UserManager<ApplicationUser> userManager, ApplicationDbContext context) // Update constructor
         {
             _logger = logger;
             _userManager = userManager;
-            _context = context;
+            _context = context; // Initialize the context
         }
 
         private async Task SetLayoutAsync()
@@ -44,7 +44,6 @@ namespace Couche_SysIntegFO.Controllers
                     }
                 }
             }
-
             // Fallback layout
             ViewBag.Layout = "_Layout";
             _logger.LogInformation("Fallback layout set.");
@@ -53,8 +52,11 @@ namespace Couche_SysIntegFO.Controllers
         public async Task<IActionResult> Index()
         {
             await SetLayoutAsync();
+
+            // Example: Get some products to display on the homepage
             var products = await _context.Products.ToListAsync();
-            return View(products);
+
+            return View(products); // Pass the products to the view
         }
 
         public async Task<IActionResult> Privacy()
