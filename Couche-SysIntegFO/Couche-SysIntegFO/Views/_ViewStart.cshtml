@@ -5,27 +5,21 @@
 @inject UserManager<ApplicationUser> UserManager
 @inject IHttpContextAccessor HttpContextAccessor
 
+
 @{
-    Layout = "/Views/Shared/_Layout.cshtml"; // Default layout
-
-    if (SignInManager.IsSignedIn(User))
+    if (User.Identity is not null && User.Identity.IsAuthenticated)
     {
-        // Get the currently logged-in user
-        var currentUser = await UserManager.GetUserAsync(HttpContextAccessor.HttpContext.User);
-
-        if (currentUser != null)
+        if (User.IsInRole("Admin"))
         {
-            // Check the roles of the current user
-            var roles = await UserManager.GetRolesAsync(currentUser);
-
-            if (roles.Contains("Admin"))
-            {
-                Layout = "/Views/Shared/_LayoutAdmin.cshtml";
-            }
-            else
-            {
-                Layout = "/Views/Shared/_LayoutUser.cshtml";
-            }
+            Layout = "_LayoutAdmin";
         }
+        else
+        {
+            Layout = "_LayoutUser";
+        }
+    }
+    else
+    {
+        Layout = "_Layout";
     }
 }

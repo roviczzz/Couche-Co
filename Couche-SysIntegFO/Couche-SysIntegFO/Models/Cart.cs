@@ -1,5 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Couche_SysIntegFO.Models
 {
@@ -8,10 +8,15 @@ namespace Couche_SysIntegFO.Models
         [Key]
         public int CartId { get; set; }
 
+        [Required]
         public string? UserId { get; set; }
-        public ApplicationUser? User { get; set; }
 
+        [ForeignKey("UserId")]
+        public ApplicationUser? User { get; set; }
+        [Required]
         public int ProductId { get; set; }
+
+        [ForeignKey("ProductId")]
         public Products? Product { get; set; }
     }
 }

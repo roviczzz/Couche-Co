@@ -1,4 +1,5 @@
-﻿@model Couche_SysIntegFO.Models.Products
+﻿@using System.Security.Claims
+@model Couche_SysIntegFO.Models.Products
 
 @{
     ViewData["Title"] = "Product Details";
@@ -15,9 +16,12 @@
             <p class="mt-3">@Model.ProductDescription</p>
             <p><strong>In Stock:</strong> @Model.ProductStock</p>
 
-            <form method="post" action="/Cart/AddToCart">
+            <form asp-controller="Cart" asp-action="AddToCart" method="post">
                 <input type="hidden" name="productId" value="@Model.ProductID" />
-                <button type="submit" class="btn btn-primary mt-3">Add to Cart</button>
+                <button type="submit" class="btn btn-primary d-flex align-items-center gap-2 mt-3">
+                    <i class="fas fa-cart-plus"></i>
+                    <span>Add to Cart</span>
+                </button>
             </form>
 
             <a href="/" class="btn btn-secondary mt-2">Back to Store</a>
@@ -29,3 +33,12 @@
     <br />
     <a asp-controller="Home" asp-action="Index">Back to List</a>
 </div>
+
+@* Add this script section at the bottom of your view *@
+<script>
+    document.querySelector('form[asp-action="AddToCart"]').addEventListener('submit', function (e) {
+        const button = this.querySelector('button[type="submit"]');
+        button.disabled = true;
+        button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Adding...';
+    });
+</script>

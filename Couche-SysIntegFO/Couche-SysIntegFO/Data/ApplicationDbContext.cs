@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Couche_SysIntegFO.Models;
 using Microsoft.AspNetCore.Identity;
+using System.Reflection.Emit;
 
 namespace Couche_SysIntegFO.Data
 {
@@ -12,12 +13,27 @@ namespace Couche_SysIntegFO.Data
         {
         }
 
-        public DbSet<Products> Products { get; set; }
         public DbSet<Cart> Carts { get; set; }
+        public DbSet<Products> Products { get; set; }
 
-        protected override void OnModelCreating(ModelBuilder builder)
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(builder);
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Cart>(entity =>
+            {
+                entity.HasKey(e => e.CartId);
+
+                entity.HasOne(d => d.User)
+                    .WithMany()
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(d => d.Product)
+                    .WithMany(p => p.Carts)
+                    .HasForeignKey(d => d.ProductId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
         }
     }
 }

@@ -110,31 +110,28 @@ namespace Couche_SysIntegFO.Areas.Identity.Pages.Account
 
             if (ModelState.IsValid)
             {
-                // This doesn't count login failures towards account lockout
-                // To enable password failures to trigger account lockout, set lockoutOnFailure: true
                 var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
+                    var user = await _signInManager.UserManager.FindByEmailAsync(Input.Email);
                     _logger.LogInformation("User logged in.");
-                    return LocalRedirect(returnUrl);
-                }
-                if (result.RequiresTwoFactor)
-                {
-                    return RedirectToPage("./LoginWith2fa", new { ReturnUrl = returnUrl, RememberMe = Input.RememberMe });
-                }
-                if (result.IsLockedOut)
-                {
-                    _logger.LogWarning("User account locked out.");
-                    return RedirectToPage("./Lockout");
-                }
-                else
-                {
-                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                    return Page();
-                }
-            }
 
-            // If we got this far, something failed, redisplay form
+                    // Set TempData to force layout refresh
+                    TempData["IsAuthenticated"] = true;
+
+                    if (await _signInManager.UserManager.IsInRoleAsync(user, "Admin"))
+                    {
+                        TempData["Layout"] = "_LayoutAdmin";
+                        return LocalRedirect("~/Home/Index");
+                    }
+                    else
+                    {
+                        TempData["Layout"] = "_LayoutUser";
+                        return LocalRedirect("~/Home/Index");
+                    }
+                }
+                // ... rest of your existing code
+            }
             return Page();
         }
     }
