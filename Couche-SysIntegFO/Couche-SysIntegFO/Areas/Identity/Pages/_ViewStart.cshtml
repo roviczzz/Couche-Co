@@ -1,4 +1,18 @@
 ﻿
 @{
-    Layout = "/Views/Shared/_Layout.cshtml";
+    if (User.Identity is not null && User.Identity.IsAuthenticated)
+    {
+        if (User.IsInRole("Admin"))
+        {
+            Layout = "_LayoutAdmin";
+        }
+        else
+        {
+            Layout = "_LayoutUser";
+        }
+    }
+    else
+    {
+        Layout = "_LayoutNeutral";
+    }
 }

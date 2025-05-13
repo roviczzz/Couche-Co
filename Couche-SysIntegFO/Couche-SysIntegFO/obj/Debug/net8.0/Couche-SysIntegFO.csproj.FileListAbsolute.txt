@@ -607,3 +607,4 @@ C:\Users\rovic\OneDrive\Documents\GitHub\Couche-Co\Couche-SysIntegFO\Couche-SysI
 C:\Users\rovic\OneDrive\Documents\GitHub\Couche-Co\Couche-SysIntegFO\Couche-SysIntegFO\obj\Debug\net8.0\Couche-SysIntegFO.pdb
 C:\Users\rovic\OneDrive\Documents\GitHub\Couche-Co\Couche-SysIntegFO\Couche-SysIntegFO\obj\Debug\net8.0\Couche-SysIntegFO.genruntimeconfig.cache
 C:\Users\rovic\OneDrive\Documents\GitHub\Couche-Co\Couche-SysIntegFO\Couche-SysIntegFO\obj\Debug\net8.0\ref\Couche-SysIntegFO.dll
+C:\Users\rovic\OneDrive\Documents\GitHub\Couche-Co\Couche-SysIntegFO\Couche-SysIntegFO\obj\Debug\net8.0\scopedcss\Views\Shared\_LayoutNeutral.cshtml.rz.scp.css

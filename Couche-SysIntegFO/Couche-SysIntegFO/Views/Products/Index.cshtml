@@ -1,7 +1,7 @@
 ﻿@model IEnumerable<Couche_SysIntegFO.Models.Products>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Product Master List";
 }
 
 <h1>Index</h1>
@@ -13,19 +13,19 @@
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.ProductPrice)
+                Product Image
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.ProductName)
+                Product Price
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.ProductDescription)
+                Product Name
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.ProductStock)
+                Product Description
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.ImageUrl)
+                No. of Stock
             </th>
             <th></th>
         </tr>
@@ -34,7 +34,10 @@
 @foreach (var item in Model) {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.ProductPrice)
+               <img src="@item.ImageUrl" alt="@item.ProductName" style="width: 50px; height: auto;" />
+            </td>
+            <td>
+               <a>₱</a>@Html.DisplayFor(modelItem => item.ProductPrice)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.ProductName)
@@ -44,9 +47,6 @@
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.ProductStock)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ImageUrl)
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.ProductID">Edit</a> |

@@ -11,10 +11,10 @@
     <table class="table">
         <thead>
             <tr>
+                <th>Product Image</th>
                 <th>Product Name</th>
                 <th>Quantity</th>
                 <th>Price</th>
-                <th>Total</th>
                 <th></th>
             </tr>
         </thead>
@@ -22,10 +22,12 @@
             @foreach (var item in Model)
             {
                 <tr>
+                    <td>
+                        <img src="@item.Product.ImageUrl" alt="@item.Product.ProductName" style="width: 50px; height: auto;" />
+                    </td>
                     <td>@item.Product.ProductName</td>
                     <td>@item.Quantity</td>
-                    <td>@item.Product.ProductPrice</td>
-                    <td>@(item.Product.ProductPrice * item.Quantity)</td>
+                    <td>₱@item.Product.ProductPrice</td>
                     <td>
                         <form asp-controller="Cart" asp-action="RemoveFromCart" method="post" asp-route-productId="@item.ProductId">
                             <button type="submit" class="btn btn-danger">Remove</button>
@@ -41,5 +43,4 @@ else
     <p>Your cart is empty.</p>
 }
 
-<a asp-controller="Products" asp-action="Index" class="btn btn-primary">Continue Shopping</a>
- ```
+<a asp-controller="Home" asp-action="Index" class="btn btn-primary">Continue Shopping</a>
