@@ -98,6 +98,26 @@ namespace Couche_SysIntegFO.Areas.Identity.Pages.Account
             [Display(Name = "Confirm password")]
             [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
             public string ConfirmPassword { get; set; }
+
+            [Required]
+            [Display(Name = "First Name")]
+            public string? FirstName { get; set; }
+
+            [Required]
+            [Display(Name = "Last Name")]
+            public string? LastName { get; set; }
+
+            [Required]
+            [Display(Name = "Contact Number")]
+            public string? ContactNo { get; set; }
+
+            [Required]
+            [Display(Name = "Address")]
+            public string? Address { get; set; }
+
+            [Required]
+            [Display(Name = "Payment Method")]
+            public string? PaymentMethod { get; set; }
         }
 
 
@@ -114,6 +134,12 @@ namespace Couche_SysIntegFO.Areas.Identity.Pages.Account
             if (ModelState.IsValid)
             {
                 var user = CreateUser();
+
+                user.FirstName = Input.FirstName;
+                user.LastName = Input.LastName;
+                user.ContactNo = int.Parse(Input.ContactNo); // Convert to int
+                user.Address = Input.Address;
+                user.PaymentMethod = Input.PaymentMethod;
 
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);

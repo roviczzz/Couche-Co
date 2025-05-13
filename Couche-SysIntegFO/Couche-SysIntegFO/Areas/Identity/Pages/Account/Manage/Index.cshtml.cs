@@ -50,15 +50,29 @@ namespace Couche_SysIntegFO.Areas.Identity.Pages.Account.Manage
         ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
+        ///
         public class InputModel
         {
             /// <summary>
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
+
+            [Display(Name = "First Name")]
+            public string? FirstName { get; set; }
+
+            [Display(Name = "Last Name")]
+            public string? LastName { get; set; }
+
             [Phone]
-            [Display(Name = "Phone number")]
-            public string PhoneNumber { get; set; }
+            [Display(Name = "Contact Number")]
+            public string? ContactNo { get; set; }
+
+            [Display(Name = "Address")]
+            public string? Address { get; set; }
+
+            [Display(Name = "Payment Method")]
+            public string? PaymentMethod { get; set; }
         }
 
         private async Task LoadAsync(ApplicationUser user)
@@ -70,7 +84,11 @@ namespace Couche_SysIntegFO.Areas.Identity.Pages.Account.Manage
 
             Input = new InputModel
             {
-                PhoneNumber = phoneNumber
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                ContactNo = user.ContactNo.ToString(),
+                Address = user.Address,
+                PaymentMethod = user.PaymentMethod
             };
         }
 
@@ -96,19 +114,36 @@ namespace Couche_SysIntegFO.Areas.Identity.Pages.Account.Manage
 
             if (!ModelState.IsValid)
             {
-                await LoadAsync(user);
+                await LoadAsync(user); // Reload the user data if validation fails
                 return Page();
             }
 
-            var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
-            if (Input.PhoneNumber != phoneNumber)
+            // Update the user's properties
+            user.FirstName = Input.FirstName;
+            user.LastName = Input.LastName;
+            // Safely parse ContactNo, handling potential errors
+            if (int.TryParse(Input.ContactNo, out int contactNo))
             {
-                var setPhoneResult = await _userManager.SetPhoneNumberAsync(user, Input.PhoneNumber);
-                if (!setPhoneResult.Succeeded)
+                user.ContactNo = contactNo;
+            }
+            else
+            {
+                ModelState.AddModelError("Input.ContactNo", "Invalid Contact Number.");
+                await LoadAsync(user);
+                return Page();
+            }
+            user.Address = Input.Address;
+            user.PaymentMethod = Input.PaymentMethod;
+
+            var updateResult = await _userManager.UpdateAsync(user);
+            if (!updateResult.Succeeded)
+            {
+                foreach (var error in updateResult.Errors)
                 {
-                    StatusMessage = "Unexpected error when trying to set phone number.";
-                    return RedirectToPage();
+                    ModelState.AddModelError(string.Empty, error.Description);
                 }
+                await LoadAsync(user);
+                return Page();
             }
 
             await _signInManager.RefreshSignInAsync(user);
