@@ -40,7 +40,11 @@
             </div>
 
             <div class="form-floating mb-3">
-                <input asp-for="Input.PaymentMethod" class="form-control" placeholder="@Model.Input.PaymentMethod" />
+                <select asp-for="Input.PaymentMethod" class="form-control">
+                    <option value="Credit Card" selected="@(Model.Input.PaymentMethod == "Credit Card")">Credit Card</option>
+                    <option value="E-wallet" selected="@(Model.Input.PaymentMethod == "E-wallet")">E-wallet</option>
+                    <option value="Cash on Delivery" selected="@(Model.Input.PaymentMethod == "Cash on Delivery")">Cash on Delivery</option>
+                </select>
                 <label asp-for="Input.PaymentMethod" class="form-label"></label>
                 <span asp-validation-for="Input.PaymentMethod" class="text-danger"></span>
             </div>
