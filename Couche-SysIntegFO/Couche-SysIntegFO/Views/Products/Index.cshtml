@@ -4,12 +4,73 @@
     ViewData["Title"] = "Product Master List";
 }
 
-<h1>Index</h1>
+<style>
+    .black-table {
+        width: 100%;
+        background-color: skyblue;
+        color: black;
+        border-collapse: collapse;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+        .black-table thead {
+            background-color: #1a3d6c;
+            color: white;
+        }
+
+        .black-table th, .black-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid skyblue;
+        }
+
+        .black-table tr:hover {
+            background-color: grey;
+            color: white;
+        }
+
+    .btn-action a {
+        color: black; /* changed to black */
+        text-decoration: none;
+        margin-right: 8px;
+    }
+
+        .btn-action a:hover {
+            color: gray; /* subtle hover color */
+            text-decoration: underline;
+            color: white;
+        }
+
+    .create-btn {
+        display: inline-block;
+        margin-bottom: 16px;
+        padding: 10px 20px;
+        background-color: green;
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+        .create-btn:hover {
+            background-color: white;
+            color: black;
+            border: 1px solid black;
+        }
+
+    h1 {
+        font-weight: 600;
+        margin-bottom: 24px;
+    }
+</style>
+
+
+<h1 class="text-dark">Index</h1>
 
 <p>
     <a asp-action="Create">Create New</a>
 </p>
-<table class="table">
+<table class="black-table">
     <thead>
         <tr>
             <th>

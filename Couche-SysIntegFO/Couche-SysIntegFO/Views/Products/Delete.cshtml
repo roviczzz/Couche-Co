@@ -4,9 +4,92 @@
     ViewData["Title"] = "Delete";
 }
 
-<h1>Delete</h1>
+<style>
+    .action-btn {
+        display: inline-block;
+        background-color: black;
+        color: white;
+        padding: 6px 16px;
+        margin-right: 8px;
+        border: none;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: 0.3s ease;
+        font-size: 0.9rem;
+    }
 
-<h3>Are you sure you want to delete this?</h3>
+        .action-btn:hover {
+            background-color: white;
+            color: black;
+            border: 1px solid black;
+            text-decoration: none;
+        }
+
+    .btn-primary {
+        background-color: black;
+        border: none;
+        border-radius: 8px;
+        padding-left: 24px;
+        padding-right: 24px;
+    }
+
+        .btn-primary:hover {
+            background-color: white;
+            color: black;
+            border: 1px solid black;
+        }
+
+    .btn-secondary {
+        border-radius: 8px;
+        padding-left: 24px;
+        padding-right: 24px;
+    }
+</style>
+
+
+<style>
+    .minimal-card {
+        background-color: #f9f9f9;
+        border: 1px solid #e0e0e0;
+        border-radius: 16px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        padding: 24px;
+    }
+
+    .btn-primary {
+        border-radius: 8px;
+        padding-left: 24px;
+        padding-right: 24px;
+        background-color: black;
+        border-style: none;
+    }
+
+        .btn-primary:hover {
+            background-color: white;
+            color: black;
+            border-style: none;
+        }
+
+    .btn-danger {
+        border-radius: 8px;
+        padding-left: 24px;
+        padding-right: 24px;
+    }
+
+    .btn-link {
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    h1, h3, h4 {
+        font-weight: 600;
+    }
+</style>
+
+
+<h1 class="text-dark">Delete</h1>
+
+<h3 class="text-muted">Are you sure you want to delete this?</h3>
 <div>
     <h4>Products</h4>
     <hr />

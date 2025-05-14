@@ -4,9 +4,46 @@
     ViewData["Title"] = "Edit";
 }
 
-<h1>Edit</h1>
+<style>
+    .minimal-card {
+        background-color: #f9f9f9;
+        border: 1px solid #e0e0e0;
+        border-radius: 16px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        padding: 24px;
+    }
 
-<h4>Products</h4>
+    .form-control {
+        border-radius: 8px;
+    }
+
+    .btn-primary {
+        border-radius: 8px;
+        padding-left: 24px;
+        padding-right: 24px;
+        background-color: green;
+        border-style: none;
+    }
+
+        .btn-primary:hover {
+            background-color: white;
+            color: black;
+        }
+
+    .btn-link {
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    h1, h4 {
+        font-weight: 600;
+    }
+</style>
+
+
+<h1 class="text-dark">Edit</h1>
+
+<h4 class="text-muted">Products</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
