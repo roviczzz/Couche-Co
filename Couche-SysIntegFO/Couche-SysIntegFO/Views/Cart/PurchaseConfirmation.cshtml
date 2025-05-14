@@ -1,0 +1,21 @@
+﻿@model Couche_SysIntegFO.Models.Order 
+
+@{
+    ViewData["Title"] = "Purchase Confirmation";
+}
+
+<h1>Purchase Confirmation</h1>
+
+<p>Thank you for your order!</p>
+
+@if (Model != null)
+{
+    <p>Your order ID is: @Model.OrderId</p>
+    <p>Order Date: @Model.OrderDate</p>
+    <p>Total Amount: @Model.TotalAmount</p>
+    // Display other order details as needed
+}
+else
+{
+    <p>Order details not found.</p>
+}

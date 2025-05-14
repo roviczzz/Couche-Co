@@ -1,7 +1,11 @@
-﻿ @model List<Couche_SysIntegFO.Models.Cart>
+﻿@using Microsoft.AspNetCore.Identity
+@model List<Couche_SysIntegFO.Models.Cart>
+@inject UserManager<ApplicationUser> UserManager
 
 @{
     ViewData["Title"] = "View Cart";
+    var user = await UserManager.GetUserAsync(User);
+    var userId = user?.Id;
 }
 
 <h1>Your Shopping Cart</h1>
@@ -37,6 +41,12 @@
             }
         </tbody>
     </table>
+
+    <!-- Proceed to Checkout Button -->
+    @if (Model.Any() && userId != null)
+    {
+        <a asp-controller="Checkout" asp-action="Checkout" asp-route-userId="@userId" class="btn btn-success">Proceed to Checkout</a>
+    }
 }
 else
 {

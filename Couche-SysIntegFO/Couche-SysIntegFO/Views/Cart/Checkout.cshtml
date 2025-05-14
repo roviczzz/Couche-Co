@@ -1,0 +1,91 @@
+﻿@model Couche_SysIntegFO.Controllers.CheckoutViewModel
+@{
+    ViewData["Title"] = "Checkout";
+}
+
+<h1>Checkout</h1>
+
+<h2>User Information</h2>
+<p>Name: @Model.FirstName @Model.LastName</p>
+
+<h2>Your Cart</h2>
+@if (Model.CartItems != null && Model.CartItems.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Product Image</th>
+                <th>Product Name</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.CartItems)
+            {
+                <tr>
+                    <td>
+                        <img src="@item.Product.ImageUrl" alt="@item.Product.ProductName" style="width: 50px; height: auto;" />
+                    </td>
+                    <td>@item.Product.ProductName</td>
+                    <td>@item.Quantity</td>
+                    <td>@item.Product.ProductPrice</td>
+                    <td>₱@(item.Product.ProductPrice * item.Quantity)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>Your cart is empty.</p>
+}
+
+<h2>Order Summary</h2>
+<p>Total Quantity: @Model.TotalQuantity</p>
+<p><b>Total Price: ₱@Model.TotalPrice </b></p>
+
+<form asp-action="ProcessCheckout" asp-controller="Checkout" method="post">
+    <input type="hidden" asp-for="UserId" />
+    <input type="hidden" asp-for="FirstName" /> 
+    <input type="hidden" asp-for="LastName" />
+    <input type="hidden" asp-for="TotalQuantity" />
+    <input type="hidden" asp-for="TotalPrice" />
+
+    @* Hidden fields for CartItems *@
+    @for (int i = 0; i < Model.CartItems.Count; i++)
+    {
+        <input type="hidden" asp-for="CartItems[i].UserId" />
+        <input type="hidden" asp-for="CartItems[i].ProductId" />
+        <input type="hidden" asp-for="CartItems[i].Quantity" />
+        <input type="hidden" asp-for="CartItems[i].Product.ProductPrice" />
+        <input type="hidden" asp-for="CartItems[i].Product.ProductName" />
+        <input type="hidden" asp-for="CartItems[i].Product.ImageUrl" />
+    }
+
+    <div class="form-group">
+        <label asp-for="PaymentMethod">Payment Method</label>
+        <select asp-for="PaymentMethod" class="form-control">
+            <option value="Credit Card">Credit Card</option>
+            <option value="E-wallet">E-wallet</option>
+            <option value="Cash on Delivery">Cash on Delivery</option>
+        </select>
+        <span asp-validation-for="PaymentMethod" class="text-danger"></span>
+    </div>
+    <br />
+
+    <div class="form-group">
+        <label asp-for="Address">Shipping Address</label>
+        <input asp-for="Address" class="form-control" />
+        <span asp-validation-for="Address" class="text-danger">
+        </span>
+        <br />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Purchase</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

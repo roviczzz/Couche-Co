@@ -1,9 +1,0 @@
-﻿@model int
-
-<form asp-controller="Cart" asp-action="AddToCart" method="post">
-    <input type="hidden" name="productId" value="@Model" />
-    <div class="form-group">
-        <input type="number" name="quantity" value="1" min="1" class="form-control" style="width: 100px;" />
-    </div>
-    <button type="submit" class="btn btn-primary">Add to Cart</button>
-</form>
