@@ -8654,19 +8654,24 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\rovic\\.nuget\\packages\\": {}
+    "C:\\Users\\HUAWEI Matebook D15\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\rovic\\OneDrive\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\Couche-SysIntegFO.csproj",
+      "projectUniqueName": "C:\\Users\\HUAWEI Matebook D15\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\Couche-SysIntegFO.csproj",
       "projectName": "Couche-SysIntegFO",
-      "projectPath": "C:\\Users\\rovic\\OneDrive\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\Couche-SysIntegFO.csproj",
-      "packagesPath": "C:\\Users\\rovic\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\rovic\\OneDrive\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\obj\\",
+      "projectPath": "C:\\Users\\HUAWEI Matebook D15\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\Couche-SysIntegFO.csproj",
+      "packagesPath": "C:\\Users\\HUAWEI Matebook D15\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\HUAWEI Matebook D15\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\obj\\",
       "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+      ],
       "configFilePaths": [
-        "C:\\Users\\rovic\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\HUAWEI Matebook D15\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -8686,7 +8691,13 @@
         "warnAsError": [
           "NU1605"
         ]
-      }
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
+      },
+      "SdkAnalysisLevel": "9.0.200"
     },
     "frameworks": {
       "net8.0": {
@@ -8746,7 +8757,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.101/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.200/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

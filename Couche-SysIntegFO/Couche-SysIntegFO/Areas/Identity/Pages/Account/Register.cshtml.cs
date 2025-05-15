@@ -137,7 +137,7 @@ namespace Couche_SysIntegFO.Areas.Identity.Pages.Account
 
                 user.FirstName = Input.FirstName;
                 user.LastName = Input.LastName;
-                user.ContactNo = int.Parse(Input.ContactNo); // Convert to int
+                user.ContactNo = Input.ContactNo; // Convert to int
                 user.Address = Input.Address;
                 user.PaymentMethod = Input.PaymentMethod;
 

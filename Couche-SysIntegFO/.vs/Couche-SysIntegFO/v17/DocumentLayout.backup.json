@@ -1,0 +1,228 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\HUAWEI Matebook D15\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{071D4375-FD78-4D55-B189-B85580C7F192}|Couche-SysIntegFO\\Couche-SysIntegFO.csproj|c:\\users\\huawei matebook d15\\documents\\github\\couche-co\\couche-sysintegfo\\couche-sysintegfo\\views\\products\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{071D4375-FD78-4D55-B189-B85580C7F192}|Couche-SysIntegFO\\Couche-SysIntegFO.csproj|solutionrelative:couche-sysintegfo\\views\\products\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\HUAWEI Matebook D15\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\Migrations\\ApplicationDb\\20250515022723_aguy.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Couche-SysIntegFO\\Migrations\\ApplicationDb\\20250515022723_aguy.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{071D4375-FD78-4D55-B189-B85580C7F192}|Couche-SysIntegFO\\Couche-SysIntegFO.csproj|c:\\users\\huawei matebook d15\\documents\\github\\couche-co\\couche-sysintegfo\\couche-sysintegfo\\areas\\identity\\pages\\account\\manage\\index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{071D4375-FD78-4D55-B189-B85580C7F192}|Couche-SysIntegFO\\Couche-SysIntegFO.csproj|solutionrelative:couche-sysintegfo\\areas\\identity\\pages\\account\\manage\\index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{071D4375-FD78-4D55-B189-B85580C7F192}|Couche-SysIntegFO\\Couche-SysIntegFO.csproj|c:\\users\\huawei matebook d15\\documents\\github\\couche-co\\couche-sysintegfo\\couche-sysintegfo\\areas\\identity\\pages\\account\\register.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{071D4375-FD78-4D55-B189-B85580C7F192}|Couche-SysIntegFO\\Couche-SysIntegFO.csproj|solutionrelative:couche-sysintegfo\\areas\\identity\\pages\\account\\register.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{071D4375-FD78-4D55-B189-B85580C7F192}|Couche-SysIntegFO\\Couche-SysIntegFO.csproj|c:\\users\\huawei matebook d15\\documents\\github\\couche-co\\couche-sysintegfo\\couche-sysintegfo\\models\\models.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{071D4375-FD78-4D55-B189-B85580C7F192}|Couche-SysIntegFO\\Couche-SysIntegFO.csproj|solutionrelative:couche-sysintegfo\\models\\models.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{071D4375-FD78-4D55-B189-B85580C7F192}|Couche-SysIntegFO\\Couche-SysIntegFO.csproj|c:\\users\\huawei matebook d15\\documents\\github\\couche-co\\couche-sysintegfo\\couche-sysintegfo\\areas\\identity\\pages\\account\\register.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{071D4375-FD78-4D55-B189-B85580C7F192}|Couche-SysIntegFO\\Couche-SysIntegFO.csproj|solutionrelative:couche-sysintegfo\\areas\\identity\\pages\\account\\register.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{071D4375-FD78-4D55-B189-B85580C7F192}|Couche-SysIntegFO\\Couche-SysIntegFO.csproj|c:\\users\\huawei matebook d15\\documents\\github\\couche-co\\couche-sysintegfo\\couche-sysintegfo\\views\\products\\edit.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{071D4375-FD78-4D55-B189-B85580C7F192}|Couche-SysIntegFO\\Couche-SysIntegFO.csproj|solutionrelative:couche-sysintegfo\\views\\products\\edit.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{071D4375-FD78-4D55-B189-B85580C7F192}|Couche-SysIntegFO\\Couche-SysIntegFO.csproj|c:\\users\\huawei matebook d15\\documents\\github\\couche-co\\couche-sysintegfo\\couche-sysintegfo\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{071D4375-FD78-4D55-B189-B85580C7F192}|Couche-SysIntegFO\\Couche-SysIntegFO.csproj|solutionrelative:couche-sysintegfo\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{071D4375-FD78-4D55-B189-B85580C7F192}|Couche-SysIntegFO\\Couche-SysIntegFO.csproj|c:\\users\\huawei matebook d15\\documents\\github\\couche-co\\couche-sysintegfo\\couche-sysintegfo\\views\\products\\details.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{071D4375-FD78-4D55-B189-B85580C7F192}|Couche-SysIntegFO\\Couche-SysIntegFO.csproj|solutionrelative:couche-sysintegfo\\views\\products\\details.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{071D4375-FD78-4D55-B189-B85580C7F192}|Couche-SysIntegFO\\Couche-SysIntegFO.csproj|c:\\users\\huawei matebook d15\\documents\\github\\couche-co\\couche-sysintegfo\\couche-sysintegfo\\views\\products\\detailsu.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{071D4375-FD78-4D55-B189-B85580C7F192}|Couche-SysIntegFO\\Couche-SysIntegFO.csproj|solutionrelative:couche-sysintegfo\\views\\products\\detailsu.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{071D4375-FD78-4D55-B189-B85580C7F192}|Couche-SysIntegFO\\Couche-SysIntegFO.csproj|c:\\users\\huawei matebook d15\\documents\\github\\couche-co\\couche-sysintegfo\\couche-sysintegfo\\views\\products\\delete.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{071D4375-FD78-4D55-B189-B85580C7F192}|Couche-SysIntegFO\\Couche-SysIntegFO.csproj|solutionrelative:couche-sysintegfo\\views\\products\\delete.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{071D4375-FD78-4D55-B189-B85580C7F192}|Couche-SysIntegFO\\Couche-SysIntegFO.csproj|c:\\users\\huawei matebook d15\\documents\\github\\couche-co\\couche-sysintegfo\\couche-sysintegfo\\views\\products\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{071D4375-FD78-4D55-B189-B85580C7F192}|Couche-SysIntegFO\\Couche-SysIntegFO.csproj|solutionrelative:couche-sysintegfo\\views\\products\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 9,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{40ea2e6b-2121-4bb8-a43e-c83c04b51041}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Register.cshtml.cs",
+              "DocumentMoniker": "C:\\Users\\HUAWEI Matebook D15\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\Areas\\Identity\\Pages\\Account\\Register.cshtml.cs",
+              "RelativeDocumentMoniker": "Couche-SysIntegFO\\Areas\\Identity\\Pages\\Account\\Register.cshtml.cs",
+              "ToolTip": "C:\\Users\\HUAWEI Matebook D15\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\Areas\\Identity\\Pages\\Account\\Register.cshtml.cs",
+              "RelativeToolTip": "Couche-SysIntegFO\\Areas\\Identity\\Pages\\Account\\Register.cshtml.cs",
+              "ViewState": "AgIAAHgAAAAAAAAAAAAiwIsAAAAtAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-15T02:23:19.459Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Register.cshtml",
+              "DocumentMoniker": "C:\\Users\\HUAWEI Matebook D15\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\Areas\\Identity\\Pages\\Account\\Register.cshtml",
+              "RelativeDocumentMoniker": "Couche-SysIntegFO\\Areas\\Identity\\Pages\\Account\\Register.cshtml",
+              "ToolTip": "C:\\Users\\HUAWEI Matebook D15\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\Areas\\Identity\\Pages\\Account\\Register.cshtml",
+              "RelativeToolTip": "Couche-SysIntegFO\\Areas\\Identity\\Pages\\Account\\Register.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-05-15T02:23:14.109Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Models.cs",
+              "DocumentMoniker": "C:\\Users\\HUAWEI Matebook D15\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\Models\\Models.cs",
+              "RelativeDocumentMoniker": "Couche-SysIntegFO\\Models\\Models.cs",
+              "ToolTip": "C:\\Users\\HUAWEI Matebook D15\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\Models\\Models.cs",
+              "RelativeToolTip": "Couche-SysIntegFO\\Models\\Models.cs",
+              "ViewState": "AgIAAAQAAAAAAAAAAAAmwBUAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-15T02:22:32.234Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\HUAWEI Matebook D15\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\Program.cs",
+              "RelativeDocumentMoniker": "Couche-SysIntegFO\\Program.cs",
+              "ToolTip": "C:\\Users\\HUAWEI Matebook D15\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\Program.cs",
+              "RelativeToolTip": "Couche-SysIntegFO\\Program.cs",
+              "ViewState": "AgIAACEAAAAAAAAAAAAAACsAAAAkAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-14T13:15:34.788Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "DetailsU.cshtml",
+              "DocumentMoniker": "C:\\Users\\HUAWEI Matebook D15\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\Views\\Products\\DetailsU.cshtml",
+              "RelativeDocumentMoniker": "Couche-SysIntegFO\\Views\\Products\\DetailsU.cshtml",
+              "ToolTip": "C:\\Users\\HUAWEI Matebook D15\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\Views\\Products\\DetailsU.cshtml",
+              "RelativeToolTip": "Couche-SysIntegFO\\Views\\Products\\DetailsU.cshtml",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-05-14T13:13:25.244Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "Details.cshtml",
+              "DocumentMoniker": "C:\\Users\\HUAWEI Matebook D15\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\Views\\Products\\Details.cshtml",
+              "RelativeDocumentMoniker": "Couche-SysIntegFO\\Views\\Products\\Details.cshtml",
+              "ToolTip": "C:\\Users\\HUAWEI Matebook D15\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\Views\\Products\\Details.cshtml",
+              "RelativeToolTip": "Couche-SysIntegFO\\Views\\Products\\Details.cshtml",
+              "ViewState": "AgIAABsAAAAAAAAAAAAAABQAAAAeAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-05-14T13:13:25.394Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "Delete.cshtml",
+              "DocumentMoniker": "C:\\Users\\HUAWEI Matebook D15\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\Views\\Products\\Delete.cshtml",
+              "RelativeDocumentMoniker": "Couche-SysIntegFO\\Views\\Products\\Delete.cshtml",
+              "ToolTip": "C:\\Users\\HUAWEI Matebook D15\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\Views\\Products\\Delete.cshtml",
+              "RelativeToolTip": "Couche-SysIntegFO\\Views\\Products\\Delete.cshtml",
+              "ViewState": "AQIAABsAAAAAAAAAAAAiwCYAAAAkAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-05-14T13:13:25.397Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "C:\\Users\\HUAWEI Matebook D15\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\Views\\Products\\Index.cshtml",
+              "RelativeDocumentMoniker": "Couche-SysIntegFO\\Views\\Products\\Index.cshtml",
+              "ToolTip": "C:\\Users\\HUAWEI Matebook D15\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\Views\\Products\\Index.cshtml",
+              "RelativeToolTip": "Couche-SysIntegFO\\Views\\Products\\Index.cshtml",
+              "ViewState": "AgIAAD0AAAAAAAAAAAAqwEUAAAADAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-05-14T13:13:25.402Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "20250515022723_aguy.cs",
+              "DocumentMoniker": "C:\\Users\\HUAWEI Matebook D15\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\Migrations\\ApplicationDb\\20250515022723_aguy.cs",
+              "RelativeDocumentMoniker": "Couche-SysIntegFO\\Migrations\\ApplicationDb\\20250515022723_aguy.cs",
+              "ToolTip": "C:\\Users\\HUAWEI Matebook D15\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\Migrations\\ApplicationDb\\20250515022723_aguy.cs",
+              "RelativeToolTip": "Couche-SysIntegFO\\Migrations\\ApplicationDb\\20250515022723_aguy.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-15T02:27:23.797Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Index.cshtml.cs",
+              "DocumentMoniker": "C:\\Users\\HUAWEI Matebook D15\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\Areas\\Identity\\Pages\\Account\\Manage\\Index.cshtml.cs",
+              "RelativeDocumentMoniker": "Couche-SysIntegFO\\Areas\\Identity\\Pages\\Account\\Manage\\Index.cshtml.cs",
+              "ToolTip": "C:\\Users\\HUAWEI Matebook D15\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\Areas\\Identity\\Pages\\Account\\Manage\\Index.cshtml.cs",
+              "RelativeToolTip": "Couche-SysIntegFO\\Areas\\Identity\\Pages\\Account\\Manage\\Index.cshtml.cs",
+              "ViewState": "AgIAAGoAAAAAAAAAAIAywHsAAAAtAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-15T02:25:47.554Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "Edit.cshtml",
+              "DocumentMoniker": "C:\\Users\\HUAWEI Matebook D15\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\Views\\Products\\Edit.cshtml",
+              "RelativeDocumentMoniker": "Couche-SysIntegFO\\Views\\Products\\Edit.cshtml",
+              "ToolTip": "C:\\Users\\HUAWEI Matebook D15\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\Views\\Products\\Edit.cshtml",
+              "RelativeToolTip": "Couche-SysIntegFO\\Views\\Products\\Edit.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAHAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-05-14T13:13:25.4Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "Create.cshtml",
+              "DocumentMoniker": "C:\\Users\\HUAWEI Matebook D15\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\Views\\Products\\Create.cshtml",
+              "RelativeDocumentMoniker": "Couche-SysIntegFO\\Views\\Products\\Create.cshtml",
+              "ToolTip": "C:\\Users\\HUAWEI Matebook D15\\Documents\\GitHub\\Couche-Co\\Couche-SysIntegFO\\Couche-SysIntegFO\\Views\\Products\\Create.cshtml",
+              "RelativeToolTip": "Couche-SysIntegFO\\Views\\Products\\Create.cshtml",
+              "ViewState": "AQIAABoAAAAAAAAAAAAiwCoAAAAGAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-05-14T13:13:25.405Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
