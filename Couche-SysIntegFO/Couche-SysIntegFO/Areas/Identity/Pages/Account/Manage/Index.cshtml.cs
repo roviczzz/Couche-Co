@@ -121,17 +121,13 @@ namespace Couche_SysIntegFO.Areas.Identity.Pages.Account.Manage
             // Update the user's properties
             user.FirstName = Input.FirstName;
             user.LastName = Input.LastName;
+            user.ContactNo = Input.ContactNo;
             // Safely parse ContactNo, handling potential errors
-            if (int.TryParse(Input.ContactNo, out int contactNo))
-            {
-                user.ContactNo = contactNo;
-            }
-            else
-            {
-                ModelState.AddModelError("Input.ContactNo", "Invalid Contact Number.");
+      
+            
                 await LoadAsync(user);
                 return Page();
-            }
+            
             user.Address = Input.Address;
             user.PaymentMethod = Input.PaymentMethod;
 
