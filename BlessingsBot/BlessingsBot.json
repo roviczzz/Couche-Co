@@ -1,0 +1,448 @@
+{
+  "name": "BlessingsBot",
+  "nodes": [
+    {
+      "parameters": {
+        "respondWith": "noData",
+        "options": {
+          "responseCode": 403
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -580,
+        20
+      ],
+      "id": "16c99dbe-b19d-4ab8-8060-b3e6db6f4b3a",
+      "name": "403"
+    },
+    {
+      "parameters": {
+        "multipleMethods": true,
+        "path": "facebook-webhook",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1020,
+        200
+      ],
+      "id": "aa8774c3-caff-4831-93e2-3a04167fbecc",
+      "name": "Webhook",
+      "webhookId": "d22a95ca-f2db-48a6-81a9-e6936e01b0e9"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "1d6a0b58-ea4a-4b35-911c-8bba18f046cc",
+              "leftValue": "={{ $json.query['hub.mode'] }}",
+              "rightValue": "subscribe",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "0c752a75-947d-4153-972b-ed671827cda6",
+              "leftValue": "={{ $json.query['hub.verify_token'] }}",
+              "rightValue": "fb-blessingsbot-secret-token",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -800,
+        -60
+      ],
+      "id": "d4305810-5d3a-432d-bc84-8733382293e4",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{$json.senderId}}\"\n  },\n  \"message\": {\n    \"text\": \"Blessed Day! 👋 I’m BBot your virtual barista. I can help you with everything you need here at Blessings Cafe, please enter \\\"Get started\\\" to start ordering. Thank you!\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -80,
+        420
+      ],
+      "id": "e1c555a3-8f8a-446e-bd4d-6f710c9f996e",
+      "name": "Greeting"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.query['hub.challenge'] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -580,
+        -160
+      ],
+      "id": "f13e8c69-30a0-4ccb-9873-96d522dcd3ac",
+      "name": "Return Challenge"
+    },
+    {
+      "parameters": {
+        "content": "## BlessingsBot Workflow\nGet Method = Webhook verification\nPost Method = Chatbot integration",
+        "height": 100,
+        "width": 300
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1220,
+        60
+      ],
+      "id": "b71423f9-3f38-4124-950f-f6475c8d9a20",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $('Listen').item.json.senderId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"button\",\n        \"text\": \"Blessings Cafe requires your consent to collect and use the personal information you provide via this chat. Our process complies with the Data Privacy Act of 2012 and the Blessings Cafe Privacy Policy. Please confirm your agreement:\\n\\nPrivacy Policy: https://blessingscafe-web.onrender.com/privacy\\nData Privacy Act: https://www.privacy.gov.ph/data-privacy-act/\",\n        \"buttons\": [\n          {\n            \"type\": \"postback\",\n            \"title\": \"Yes, I agree\",\n            \"payload\": \"USER_AGREES\"\n          }\n        ]\n      }\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        140,
+        420
+      ],
+      "id": "eb8789bf-5f7f-4948-a5b1-c007b636a7a8",
+      "name": "Data Privacy Notice1"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "=Get started",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "34660f01-5dda-4c09-8e2d-b7fe1d7740ea"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "GET_STARTED"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "baec8468-aee7-4d39-8eda-69d3df7ff336",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "=postback",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "USER_AGREES"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -580,
+        580
+      ],
+      "id": "3c10a93e-8ca8-4ccb-a897-4e83139e1cfb",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.all()[0].json.body;\nconst entry = body?.entry?.[0]?.messaging?.[0];\nconst text = entry?.message?.text;\nconst senderId = entry?.sender?.id;\nconst postback = entry?.postback?.payload;\n\nif (\n  body?.object === 'page' &&\n  senderId\n) {\n  // Handle \"Get Started\" text\n  if (text && text.trim().toLowerCase() === 'get started') {\n    return [{ json: { type: 'text', text, senderId } }];\n  }\n  // Handle postback button like \"Yes, I agree\"\n  if (postback) {\n    return [{ json: { type: 'postback', postback, senderId } }];\n  }\n  // Ignore other messages (optional)\n  return [];\n} else {\n  return [{ json: { error: 'Invalid payload or missing sender' } }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -820,
+        580
+      ],
+      "id": "acb78e74-b07a-4c5f-bbd4-75b2b71e20b0",
+      "name": "Listen"
+    },
+    {
+      "parameters": {
+        "content": "## Switch\nGet_Started = Greeting message\nUSER_AGREES = Postback direct to main system",
+        "width": 210,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -630,
+        380
+      ],
+      "id": "a7d3ed37-a7a2-47c2-89a2-a2f83508f408",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{$json.senderId}}\"\n  },\n  \"message\": {\n    \"text\": \"Blessings! 👋 What shall we get you for today?\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -80,
+        680
+      ],
+      "id": "f9f6fb4d-e72f-4a3f-95d3-bd4a0e312638",
+      "name": "Order"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{$json.senderId}}\"\n  },\n  \"message\": {\n    \"text\": \"Blessings! 👋 What shall we get you for today?\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -80,
+        880
+      ],
+      "id": "4c864da5-e7be-4561-8ade-acbd4834f8bd",
+      "name": "Order1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Option 1\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"Description for option 1\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Choose Option 1\",\n                \"payload\": \"OPTION_1\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Option 2\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"Description for option 2\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Choose Option 2\",\n                \"payload\": \"OPTION_2\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Option 3\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+3\",\n            \"subtitle\": \"Description for option 3\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Choose Option 3\",\n                \"payload\": \"OPTION_3\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Option 4\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"Description for option 4\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Choose Option 4\",\n                \"payload\": \"OPTION_4\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        140,
+        680
+      ],
+      "id": "5f8483d0-8d83-4b70-911d-6d735d44bb0b",
+      "name": "Menu Gallery"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Listen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Return Challenge",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "403",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Greeting": {
+      "main": [
+        [
+          {
+            "node": "Data Privacy Notice1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Listen": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Greeting",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Order": {
+      "main": [
+        [
+          {
+            "node": "Menu Gallery",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Menu Gallery": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "b988cdee-244f-4a47-a319-915a973df62f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e55ad63998dbff63a27e8a719a0f75ec990732ee36c99c049c4be96c65a0b3c2"
+  },
+  "id": "25ZZiVoHSztSfOCp",
+  "tags": []
+}
