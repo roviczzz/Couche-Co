@@ -177,8 +177,8 @@
                 },
                 "conditions": [
                   {
-                    "leftValue": "={{ $json.type }}",
-                    "rightValue": "=Get started",
+                    "leftValue": "={{ $json.text }}",
+                    "rightValue": "=get started",
                     "operator": {
                       "type": "string",
                       "operation": "equals"
@@ -230,7 +230,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const body = $input.all()[0].json.body;\nconst entry = body?.entry?.[0]?.messaging?.[0];\nconst text = entry?.message?.text;\nconst senderId = entry?.sender?.id;\nconst postback = entry?.postback?.payload;\n\nif (\n  body?.object === 'page' &&\n  senderId\n) {\n  // Handle \"Get Started\" text\n  if (text && text.trim().toLowerCase() === 'get started') {\n    return [{ json: { type: 'text', text, senderId } }];\n  }\n  // Handle postback button like \"Yes, I agree\"\n  if (postback) {\n    return [{ json: { type: 'postback', postback, senderId } }];\n  }\n  // Ignore other messages (optional)\n  return [];\n} else {\n  return [{ json: { error: 'Invalid payload or missing sender' } }];\n}"
+        "jsCode": "const body = $input.all()[0].json.body;\nconst entry = body?.entry?.[0]?.messaging?.[0];\nconst text = entry?.message?.text;\nconst senderId = entry?.sender?.id;\nconst postback = entry?.postback?.payload;\n\nif (\n  body?.object === 'page' &&\n  senderId\n) {\n  // Handle \"Get Started\" text\n  if (text && text.trim().toLowerCase() === 'get started') {\n    return [{ json: { type: 'text', text: 'get started', senderId } }];\n  }\n  // Handle postback button like \"Yes, I agree\"\n  if (postback) {\n    return [{ json: { type: 'postback', postback, senderId } }];\n  }\n  // Ignore other messages (optional)\n  return [];\n} else {\n  return [{ json: { error: 'Invalid payload or missing sender' } }];\n}"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -438,7 +438,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "b988cdee-244f-4a47-a319-915a973df62f",
+  "versionId": "32f06868-6713-40d3-abdb-f8ee631c9495",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "e55ad63998dbff63a27e8a719a0f75ec990732ee36c99c049c4be96c65a0b3c2"
