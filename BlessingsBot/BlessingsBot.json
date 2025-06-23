@@ -137,34 +137,6 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            },
-            {}
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $('Listen').item.json.senderId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"button\",\n        \"text\": \"Blessings Cafe requires your consent to collect and use the personal information you provide via this chat. Our process complies with the Data Privacy Act of 2012 and the Blessings Cafe Privacy Policy. Please confirm your agreement:\\n\\nPrivacy Policy: https://blessingscafe-web.onrender.com/privacy\\nData Privacy Act: https://www.privacy.gov.ph/data-privacy-act/\",\n        \"buttons\": [\n          {\n            \"type\": \"postback\",\n            \"title\": \"Yes, I agree\",\n            \"payload\": \"USER_AGREES\"\n          }\n        ]\n      }\n    }\n  }\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        140,
-        420
-      ],
-      "id": "eb8789bf-5f7f-4948-a5b1-c007b636a7a8",
-      "name": "Data Privacy Notice1"
-    },
-    {
-      "parameters": {
         "rules": {
           "values": [
             {
@@ -326,7 +298,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Option 1\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"Description for option 1\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Choose Option 1\",\n                \"payload\": \"OPTION_1\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Option 2\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"Description for option 2\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Choose Option 2\",\n                \"payload\": \"OPTION_2\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Option 3\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+3\",\n            \"subtitle\": \"Description for option 3\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Choose Option 3\",\n                \"payload\": \"OPTION_3\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Option 4\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"Description for option 4\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Choose Option 4\",\n                \"payload\": \"OPTION_4\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Popular\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"Most ordered right now.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Popular\",\n                \"payload\": \"OPTION_1\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Must Try! Fruit Teas\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"This is FRUIT TEAS category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View FRUIT TEAS category\",\n                \"payload\": \"OPTION_2\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Must Try! Signatures (Iced)\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+3\",\n            \"subtitle\": \"This is SIGNATURES (ICED) category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Signatures IC\",\n                \"payload\": \"OPTION_3\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Must Try! Signatures (Hot)\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"This is SIGNATURES (HOT) category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Signatures HT\",\n                \"payload\": \"OPTION_4\"\n              }\n            ]\n          },\n{\n            \"title\": \"Bites\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"This is BITES category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Bites\",\n                \"payload\": \"OPTION_5\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -337,6 +309,34 @@
       ],
       "id": "5f8483d0-8d83-4b70-911d-6d735d44bb0b",
       "name": "Menu Gallery"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $('Listen').item.json.senderId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"button\",\n        \"text\": \"Blessings Cafe requires your consent to collect and use the personal information you provide via this chat. Our process complies with the Data Privacy Act of 2012 and the Blessings Cafe Privacy Policy. Please confirm your agreement:\\n\\nPrivacy Policy: https://blessingscafe-web.onrender.com/privacy\\nData Privacy Act: https://www.privacy.gov.ph/data-privacy-act/\",\n        \"buttons\": [\n          {\n            \"type\": \"postback\",\n            \"title\": \"Yes, I agree\",\n            \"payload\": \"USER_AGREES\"\n          }\n        ]\n      }\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        140,
+        420
+      ],
+      "id": "eb8789bf-5f7f-4948-a5b1-c007b636a7a8",
+      "name": "Data Privacy Notice"
     }
   ],
   "pinData": {},
@@ -381,7 +381,7 @@
       "main": [
         [
           {
-            "node": "Data Privacy Notice1",
+            "node": "Data Privacy Notice",
             "type": "main",
             "index": 0
           }
@@ -438,7 +438,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "32f06868-6713-40d3-abdb-f8ee631c9495",
+  "versionId": "475ca7ee-dbc7-42e8-84f1-c50af2df63b7",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "e55ad63998dbff63a27e8a719a0f75ec990732ee36c99c049c4be96c65a0b3c2"
