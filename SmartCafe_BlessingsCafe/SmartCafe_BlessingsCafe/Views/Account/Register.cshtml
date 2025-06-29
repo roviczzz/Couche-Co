@@ -1,0 +1,138 @@
+﻿@model SmartCafe_BlessingsCafe.Models.RegisterViewModel
+@{
+    ViewData["Title"] = "Register";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Register - Blessings Cafe</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #fff8f1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .form-box {
+            background-color: #ffe4c4;
+            padding: 40px;
+            border-radius: 25px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            width: 360px;
+            text-align: center;
+            position: relative;
+        }
+
+            .form-box img {
+                width: 80px;
+                position: absolute;
+                top: -40px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #fff6f0;
+                border-radius: 50%;
+                padding: 10px;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            }
+
+            .form-box h2 {
+                margin-top: 50px;
+                margin-bottom: 25px;
+                color: #5a3e2b;
+                font-weight: 600;
+            }
+
+        label {
+            display: block;
+            text-align: left;
+            margin-top: 12px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        button {
+            width: 100%;
+            background-color: #a05c2f;
+            color: white;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            margin-top: 25px;
+            cursor: pointer;
+        }
+
+            button:hover {
+                background-color: #7a3f1c;
+            }
+
+        .error {
+            color: red;
+            font-size: 13px;
+        }
+
+        .link {
+            margin-top: 15px;
+            font-size: 13px;
+        }
+
+            .link a {
+                color: #5a3e2b;
+                text-decoration: none;
+                font-weight: 500;
+            }
+    </style>
+</head>
+<body>
+    <div class="form-box">
+        <img src="https://iili.io/F5oAbt9.png" alt="Blessings Cafe Logo" />
+        <h2>Register Admin</h2>
+        <form asp-action="Register" method="post">
+            <label asp-for="Username"></label>
+            <input asp-for="Username" />
+            <span asp-validation-for="Username" class="error"></span>
+
+            <label asp-for="Email"></label>
+            <input asp-for="Email" />
+            <span asp-validation-for="Email" class="error"></span>
+
+            <label asp-for="Password"></label>
+            <input asp-for="Password" type="password" />
+            <span asp-validation-for="Password" class="error"></span>
+
+            <label asp-for="ConfirmPassword"></label>
+            <input asp-for="ConfirmPassword" type="password" />
+            <span asp-validation-for="ConfirmPassword" class="error"></span>
+
+            @if (ViewBag.Error != null)
+            {
+                <div class="error">@ViewBag.Error</div>
+            }
+
+            <button type="submit">Register</button>
+
+            <div class="link">
+                Already have an account? <a asp-action="Login">Log in here</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

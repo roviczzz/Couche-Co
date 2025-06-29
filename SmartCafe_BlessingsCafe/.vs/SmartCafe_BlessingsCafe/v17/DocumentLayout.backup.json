@@ -3,36 +3,51 @@
   "WorkspaceRootPath": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|d:\\blessingscafe\\smartcafe_blessingscafe\\smartcafe_blessingscafe\\views\\account\\login.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|solutionrelative:smartcafe_blessingscafe\\views\\account\\login.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|d:\\blessingscafe\\smartcafe_blessingscafe\\smartcafe_blessingscafe\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|solutionrelative:smartcafe_blessingscafe\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|ViewDataWindow_MSSQL__/_localdb__MSSQLLocalDB/SmartCafe_BlessingsCafeContext_6a65386a_8e47_4282_b9db_5287d083896e/True/SqlTable/dbo.Admin.sql||{0058A1F7-65F3-4DB9-B3D0-CA7E64DD73CD}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|d:\\blessingscafe\\smartcafe_blessingscafe\\smartcafe_blessingscafe\\controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|solutionrelative:smartcafe_blessingscafe\\controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|d:\\blessingscafe\\smartcafe_blessingscafe\\smartcafe_blessingscafe\\controllers\\adminscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|solutionrelative:smartcafe_blessingscafe\\controllers\\adminscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|d:\\blessingscafe\\smartcafe_blessingscafe\\smartcafe_blessingscafe\\views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|solutionrelative:smartcafe_blessingscafe\\views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|d:\\blessingscafe\\smartcafe_blessingscafe\\smartcafe_blessingscafe\\models\\loginviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|solutionrelative:smartcafe_blessingscafe\\models\\loginviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|d:\\blessingscafe\\smartcafe_blessingscafe\\smartcafe_blessingscafe\\migrations\\20250629140510_addemailtoadmin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|solutionrelative:smartcafe_blessingscafe\\migrations\\20250629140510_addemailtoadmin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|d:\\blessingscafe\\smartcafe_blessingscafe\\smartcafe_blessingscafe\\models\\admin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|solutionrelative:smartcafe_blessingscafe\\models\\admin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|d:\\blessingscafe\\smartcafe_blessingscafe\\smartcafe_blessingscafe\\models\\errorviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|solutionrelative:smartcafe_blessingscafe\\models\\errorviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|d:\\blessingscafe\\smartcafe_blessingscafe\\smartcafe_blessingscafe\\controllers\\adminscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|solutionrelative:smartcafe_blessingscafe\\controllers\\adminscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|d:\\blessingscafe\\smartcafe_blessingscafe\\smartcafe_blessingscafe\\models\\registerviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|solutionrelative:smartcafe_blessingscafe\\models\\registerviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|d:\\blessingscafe\\smartcafe_blessingscafe\\smartcafe_blessingscafe\\models\\loginviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|solutionrelative:smartcafe_blessingscafe\\models\\loginviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|d:\\blessingscafe\\smartcafe_blessingscafe\\smartcafe_blessingscafe\\views\\admins\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
       "RelativeMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|solutionrelative:smartcafe_blessingscafe\\views\\admins\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|d:\\blessingscafe\\smartcafe_blessingscafe\\smartcafe_blessingscafe\\views\\account\\login.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|solutionrelative:smartcafe_blessingscafe\\views\\account\\login.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|d:\\blessingscafe\\smartcafe_blessingscafe\\smartcafe_blessingscafe\\models\\errorviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|solutionrelative:smartcafe_blessingscafe\\models\\errorviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|d:\\blessingscafe\\smartcafe_blessingscafe\\smartcafe_blessingscafe\\views\\home\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
@@ -43,12 +58,12 @@
       "RelativeMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|solutionrelative:smartcafe_blessingscafe\\views\\shared\\_layout.cshtml.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|d:\\blessingscafe\\smartcafe_blessingscafe\\smartcafe_blessingscafe\\views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|solutionrelative:smartcafe_blessingscafe\\views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|d:\\blessingscafe\\smartcafe_blessingscafe\\smartcafe_blessingscafe\\wwwroot\\css\\site.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}",
       "RelativeMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|solutionrelative:smartcafe_blessingscafe\\wwwroot\\css\\site.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|d:\\blessingscafe\\smartcafe_blessingscafe\\smartcafe_blessingscafe\\migrations\\20250629135650_createadmintable.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1B64706B-29E1-4698-8186-12D4C04943CE}|SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe.csproj|solutionrelative:smartcafe_blessingscafe\\migrations\\20250629135650_createadmintable.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -58,7 +73,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 6,
           "Children": [
             {
               "$type": "Bookmark",
@@ -66,29 +81,27 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "Program.cs",
-              "DocumentMoniker": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Program.cs",
-              "RelativeDocumentMoniker": "SmartCafe_BlessingsCafe\\Program.cs",
-              "ToolTip": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Program.cs",
-              "RelativeToolTip": "SmartCafe_BlessingsCafe\\Program.cs",
-              "ViewState": "AgIAAAoAAAAAAAAAAAAUwA8AAAAaAAAAAAAAAA==",
+              "DocumentIndex": 15,
+              "Title": "20250629135650_CreateAdminTable.cs",
+              "DocumentMoniker": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Migrations\\20250629135650_CreateAdminTable.cs",
+              "RelativeDocumentMoniker": "SmartCafe_BlessingsCafe\\Migrations\\20250629135650_CreateAdminTable.cs",
+              "ToolTip": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Migrations\\20250629135650_CreateAdminTable.cs",
+              "RelativeToolTip": "SmartCafe_BlessingsCafe\\Migrations\\20250629135650_CreateAdminTable.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-29T12:06:48.293Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-29T13:56:50.602Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "Login.cshtml",
-              "DocumentMoniker": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Views\\Account\\Login.cshtml",
-              "RelativeDocumentMoniker": "SmartCafe_BlessingsCafe\\Views\\Account\\Login.cshtml",
-              "ToolTip": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Views\\Account\\Login.cshtml*",
-              "RelativeToolTip": "SmartCafe_BlessingsCafe\\Views\\Account\\Login.cshtml*",
-              "ViewState": "AgIAAGMAAAAAAAAAAAAAAGkAAAAXAAAAAAAAAA==",
+              "DocumentIndex": 9,
+              "Title": "Create.cshtml",
+              "DocumentMoniker": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Views\\Admins\\Create.cshtml",
+              "RelativeDocumentMoniker": "SmartCafe_BlessingsCafe\\Views\\Admins\\Create.cshtml",
+              "ToolTip": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Views\\Admins\\Create.cshtml",
+              "RelativeToolTip": "SmartCafe_BlessingsCafe\\Views\\Admins\\Create.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAABBAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-06-29T12:03:11.08Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-29T11:32:43.795Z"
             },
             {
               "$type": "Document",
@@ -98,62 +111,91 @@
               "RelativeDocumentMoniker": "SmartCafe_BlessingsCafe\\Controllers\\AccountController.cs",
               "ToolTip": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Controllers\\AccountController.cs",
               "RelativeToolTip": "SmartCafe_BlessingsCafe\\Controllers\\AccountController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAADEAAAAAAAAAAAAQwFIAAAAyAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-29T11:59:34.061Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-29T11:59:34.061Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "ErrorViewModel.cs",
-              "DocumentMoniker": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Models\\ErrorViewModel.cs",
-              "RelativeDocumentMoniker": "SmartCafe_BlessingsCafe\\Models\\ErrorViewModel.cs",
-              "ToolTip": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Models\\ErrorViewModel.cs",
-              "RelativeToolTip": "SmartCafe_BlessingsCafe\\Models\\ErrorViewModel.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-29T11:56:39.697Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 8,
               "Title": "LoginViewModel.cs",
               "DocumentMoniker": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Models\\LoginViewModel.cs",
               "RelativeDocumentMoniker": "SmartCafe_BlessingsCafe\\Models\\LoginViewModel.cs",
               "ToolTip": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Models\\LoginViewModel.cs",
               "RelativeToolTip": "SmartCafe_BlessingsCafe\\Models\\LoginViewModel.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAsAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-29T11:56:26.013Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "Create.cshtml",
-              "DocumentMoniker": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Views\\Admins\\Create.cshtml",
-              "RelativeDocumentMoniker": "SmartCafe_BlessingsCafe\\Views\\Admins\\Create.cshtml",
-              "ToolTip": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Views\\Admins\\Create.cshtml",
-              "RelativeToolTip": "SmartCafe_BlessingsCafe\\Views\\Admins\\Create.cshtml",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAyAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-06-29T11:32:43.795Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-29T11:56:26.013Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 3,
+              "Title": "_Layout.cshtml",
+              "DocumentMoniker": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Views\\Shared\\_Layout.cshtml",
+              "RelativeDocumentMoniker": "SmartCafe_BlessingsCafe\\Views\\Shared\\_Layout.cshtml",
+              "ToolTip": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Views\\Shared\\_Layout.cshtml",
+              "RelativeToolTip": "SmartCafe_BlessingsCafe\\Views\\Shared\\_Layout.cshtml",
+              "ViewState": "AgIAADwAAAAAAAAAAAAIwFQAAAAdAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-06-26T15:28:58.242Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Program.cs",
+              "RelativeDocumentMoniker": "SmartCafe_BlessingsCafe\\Program.cs",
+              "ToolTip": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Program.cs",
+              "RelativeToolTip": "SmartCafe_BlessingsCafe\\Program.cs",
+              "ViewState": "AgIAABgAAAAAAAAAAAAUwCUAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-29T12:06:48.293Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "dbo.Admin.sql",
+              "DocumentMoniker": "ViewDataWindow_MSSQL__/_localdb__MSSQLLocalDB/SmartCafe_BlessingsCafeContext_6a65386a_8e47_4282_b9db_5287d083896e/True/SqlTable/dbo.Admin.sql",
+              "ToolTip": "ViewDataWindow_MSSQL__/_localdb__MSSQLLocalDB/SmartCafe_BlessingsCafeContext_6a65386a_8e47_4282_b9db_5287d083896e/True/SqlTable/dbo.Admin.sql",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000826|",
+              "WhenOpened": "2025-06-29T14:50:36.635Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "20250629140510_AddEmailToAdmin.cs",
+              "DocumentMoniker": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Migrations\\20250629140510_AddEmailToAdmin.cs",
+              "RelativeDocumentMoniker": "SmartCafe_BlessingsCafe\\Migrations\\20250629140510_AddEmailToAdmin.cs",
+              "ToolTip": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Migrations\\20250629140510_AddEmailToAdmin.cs",
+              "RelativeToolTip": "SmartCafe_BlessingsCafe\\Migrations\\20250629140510_AddEmailToAdmin.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-29T14:05:11.005Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "RegisterViewModel.cs",
+              "DocumentMoniker": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Models\\RegisterViewModel.cs",
+              "RelativeDocumentMoniker": "SmartCafe_BlessingsCafe\\Models\\RegisterViewModel.cs",
+              "ToolTip": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Models\\RegisterViewModel.cs",
+              "RelativeToolTip": "SmartCafe_BlessingsCafe\\Models\\RegisterViewModel.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAvAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-29T14:00:30.923Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
               "Title": "AdminsController.cs",
               "DocumentMoniker": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Controllers\\AdminsController.cs",
               "RelativeDocumentMoniker": "SmartCafe_BlessingsCafe\\Controllers\\AdminsController.cs",
               "ToolTip": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Controllers\\AdminsController.cs",
               "RelativeToolTip": "SmartCafe_BlessingsCafe\\Controllers\\AdminsController.cs",
-              "ViewState": "AgIAAH4AAAAAAAAAAAAUwJ0AAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAJ0AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-29T07:31:10.143Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-29T07:31:10.143Z"
             },
             {
               "$type": "Document",
@@ -163,14 +205,37 @@
               "RelativeDocumentMoniker": "SmartCafe_BlessingsCafe\\Models\\Admin.cs",
               "ToolTip": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Models\\Admin.cs",
               "RelativeToolTip": "SmartCafe_BlessingsCafe\\Models\\Admin.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAjAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAASAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-29T07:22:40.915Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-29T07:22:40.915Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 11,
+              "Title": "ErrorViewModel.cs",
+              "DocumentMoniker": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Models\\ErrorViewModel.cs",
+              "RelativeDocumentMoniker": "SmartCafe_BlessingsCafe\\Models\\ErrorViewModel.cs",
+              "ToolTip": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Models\\ErrorViewModel.cs",
+              "RelativeToolTip": "SmartCafe_BlessingsCafe\\Models\\ErrorViewModel.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-29T11:56:39.697Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "Login.cshtml",
+              "DocumentMoniker": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Views\\Account\\Login.cshtml",
+              "RelativeDocumentMoniker": "SmartCafe_BlessingsCafe\\Views\\Account\\Login.cshtml",
+              "ToolTip": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Views\\Account\\Login.cshtml",
+              "RelativeToolTip": "SmartCafe_BlessingsCafe\\Views\\Account\\Login.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAaAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-06-29T12:03:11.08Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
               "Title": "Index.cshtml",
               "DocumentMoniker": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Views\\Home\\Index.cshtml",
               "RelativeDocumentMoniker": "SmartCafe_BlessingsCafe\\Views\\Home\\Index.cshtml",
@@ -182,7 +247,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 13,
               "Title": "_Layout.cshtml.css",
               "DocumentMoniker": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Views\\Shared\\_Layout.cshtml.css",
               "RelativeDocumentMoniker": "SmartCafe_BlessingsCafe\\Views\\Shared\\_Layout.cshtml.css",
@@ -194,7 +259,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 14,
               "Title": "site.css",
               "DocumentMoniker": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\wwwroot\\css\\site.css",
               "RelativeDocumentMoniker": "SmartCafe_BlessingsCafe\\wwwroot\\css\\site.css",
@@ -203,18 +268,6 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAEEAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
               "WhenOpened": "2025-06-26T15:33:19.448Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
-              "Title": "_Layout.cshtml",
-              "DocumentMoniker": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Views\\Shared\\_Layout.cshtml",
-              "RelativeDocumentMoniker": "SmartCafe_BlessingsCafe\\Views\\Shared\\_Layout.cshtml",
-              "ToolTip": "D:\\BlessingsCafe\\SmartCafe_BlessingsCafe\\SmartCafe_BlessingsCafe\\Views\\Shared\\_Layout.cshtml",
-              "RelativeToolTip": "SmartCafe_BlessingsCafe\\Views\\Shared\\_Layout.cshtml",
-              "ViewState": "AgIAABcAAAAAAAAAAAAAABoAAAAOAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-06-26T15:28:58.242Z"
             }
           ]
         }
