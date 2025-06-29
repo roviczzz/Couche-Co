@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\SmartCafe_BlessingsCafe.props" />
+</Project>
