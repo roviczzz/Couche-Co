@@ -110,13 +110,13 @@
     },
     {
       "parameters": {
-        "jsCode": "const body = $input.all()[0].json.body;\nconst entry = body?.entry?.[0]?.messaging?.[0];\nconst text = entry?.message?.text;\nconst senderId = entry?.sender?.id;\nconst postback = entry?.postback?.payload;\n\nif (\n  body?.object === 'page' &&\n  senderId\n) {\n  // Handle \"Get Started\" text\n  if (text && text.trim().toLowerCase() === 'get started') {\n    return [{ json: { type: 'text', text: 'get started', senderId } }];\n  }\n  // Handle postback button like \"Yes, I agree\"\n  if (postback) {\n    return [{ json: { type: 'postback', postback, senderId } }];\n  }\n  // Ignore other messages (optional)\n  return [];\n} else {\n  return [{ json: { error: 'Invalid payload or missing sender' } }];\n}"
+        "jsCode": "// n8n Function node (mode: Run Once for All Items)\n// Adds storage for previous postback before the latest. Minimal edits for compatibility.\n\nconst items = $input.all();\nconst body = items[0]?.json?.body;\nconst entry = body?.entry?.[0]?.messaging?.[0];\nconst text = entry?.message?.text;\nconst senderId = entry?.sender?.id;\nconst postback = entry?.postback?.payload;\n\n// Use n8n's staticData to persist across executions (per workflow run)\nconst staticData = $getWorkflowStaticData('global');\nconst senderKey = `user_${senderId}`;\n\n// Get previous postback for this sender (if any)\nconst previous = staticData[senderKey]?.previousPostback || null;\nconst latest = staticData[senderKey]?.latestPostback || null;\n\nif (\n  body?.object === 'page' &&\n  senderId\n) {\n  // Handle \"Get Started\" text\n  if (text && text.trim().toLowerCase() === 'get started') {\n    return [{\n      json: {\n        type: 'text',\n        text: 'get started',\n        senderId,\n        previousPostback: previous,\n        latestPostback: latest\n      }\n    }];\n  }\n  // Handle postback button\n  if (postback) {\n    // Update staticData: shift latest to previous, store new postback as latest\n    staticData[senderKey] = {\n      previousPostback: latest,\n      latestPostback: postback\n    };\n    return [{\n      json: {\n        type: 'postback',\n        postback,\n        senderId,\n        previousPostback: latest,\n        latestPostback: postback\n      }\n    }];\n  }\n  // Ignore other messages (optional)\n  return [];\n} else {\n  return [{\n    json: { error: 'Invalid payload or missing sender' }\n  }];\n}"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         -820,
-        580
+        600
       ],
       "id": "acb78e74-b07a-4c5f-bbd4-75b2b71e20b0",
       "name": "Listen"
@@ -130,8 +130,8 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -640,
-        280
+        -940,
+        800
       ],
       "id": "a7d3ed37-a7a2-47c2-89a2-a2f83508f408",
       "name": "Sticky Note1"
@@ -158,8 +158,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        20,
-        340
+        80,
+        -240
       ],
       "id": "5f8483d0-8d83-4b70-911d-6d735d44bb0b",
       "name": "Menu Gallery"
@@ -186,8 +186,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        20,
-        180
+        80,
+        -400
       ],
       "id": "eb8789bf-5f7f-4948-a5b1-c007b636a7a8",
       "name": "Data Privacy Notice"
@@ -207,14 +207,14 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.senderId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Spanish Latte Coffee\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_CF-SPL\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Salted Caramel Coffee\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_CF-SCA\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Green Apple Fruit Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_FT-GAP\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Matcha Milk Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-MAT\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Okinawa Milktea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+3\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-OKI\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Wintermelon Milktea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-WIN\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.senderId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Spanish Latte Coffee\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_CF-SPL\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Salted Caramel Coffee\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_CF-SCA\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Green Apple Fruit Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_FT-GAP\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Matcha Milk Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-MAT\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Okinawa Milktea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+3\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-OKI\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Wintermelon Milktea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-WIN\"\n              }\n            ]\n          },\n{\n            \"title\": \"Main Menu\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Go Back\",\n                \"payload\": \"REVIEW_MENU\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -220,
-        500
+        -160,
+        80
       ],
       "id": "4c864da5-e7be-4561-8ade-acbd4834f8bd",
       "name": "Popular Menu"
@@ -234,14 +234,14 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.senderId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Strawberry Fruit Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_FT-STR\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Mango Fruit Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_FT-MAN\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Green Apple Fruit Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_FT-GAP\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Passion Fruit Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_FT-PAF\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.senderId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Strawberry Fruit Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_FT-STR\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Mango Fruit Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_FT-MAN\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Green Apple Fruit Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_FT-GAP\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Passion Fruit Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_FT-PAF\"\n              }\n            ]\n          },\n{\n            \"title\": \"Main Menu\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Go Back\",\n                \"payload\": \"REVIEW_MENU\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -220,
-        660
+        -160,
+        240
       ],
       "id": "cf2d8d23-477e-4404-8279-60d00c48991c",
       "name": "Fruit Teas Menu"
@@ -261,14 +261,14 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.senderId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Cupcake\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_BK-CUP\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Crinkles\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_BK-CRN\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Cookies\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_BK-COO\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Waffles\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_BK-WAF\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.senderId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Cupcake\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_BK-CUP\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Crinkles\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_BK-CRN\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Cookies\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_BK-COO\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Waffles\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_BK-WAF\"\n              }\n            ]\n          },\n{\n            \"title\": \"Main Menu\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Go Back\",\n                \"payload\": \"REVIEW_MENU\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -220,
-        1140
+        -160,
+        720
       ],
       "id": "4b9cf7ca-b1ef-496e-b6cb-d5dfe950156a",
       "name": "Bites Menu"
@@ -294,8 +294,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -220,
-        180
+        -160,
+        -400
       ],
       "id": "e1c555a3-8f8a-446e-bd4d-6f710c9f996e",
       "name": "Greeting Message"
@@ -321,8 +321,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -220,
-        340
+        -160,
+        -240
       ],
       "id": "f9f6fb4d-e72f-4a3f-95d3-bd4a0e312638",
       "name": "Order Intro Message"
@@ -342,14 +342,14 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.senderId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Taro Milk Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-TAR\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Matcha Milk Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-MAT\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Okinawa Milk Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-OKI\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Dalgona Milk Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-DAL\"\n              }\n            ]\n          },\n{\n            \"title\": \"Hershey's Milk Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-HER\"\n              }\n            ]\n          },\n{\n            \"title\": \"Wintermelon Milk Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-WIN\"\n              }\n            ]\n          },\n{\n            \"title\": \"Salted Caramel Milk Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-SCA\"\n              }\n            ]\n          },\n{\n            \"title\": \"Cookies 'N Cream Milk Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-CNC\"\n              }\n            ]\n          },\n{\n            \"title\": \"Black Forest Milk Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-BFO\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.senderId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Taro Milk Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-TAR\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Matcha Milk Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-MAT\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Okinawa Milk Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-OKI\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Dalgona Milk Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-DAL\"\n              }\n            ]\n          },\n{\n            \"title\": \"Hershey's Milk Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-HER\"\n              }\n            ]\n          },\n{\n            \"title\": \"Wintermelon Milk Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-WIN\"\n              }\n            ]\n          },\n{\n            \"title\": \"Salted Caramel Milk Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-SCA\"\n              }\n            ]\n          },\n{\n            \"title\": \"Cookies 'N Cream Milk Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-CNC\"\n              }\n            ]\n          },\n{\n            \"title\": \"Black Forest Milk Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-BFO\"\n              }\n            ]\n          },\n{\n            \"title\": \"Main Menu\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Go Back\",\n                \"payload\": \"REVIEW_MENU\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -220,
-        820
+        -160,
+        400
       ],
       "id": "8360fcb6-b1fd-41e6-bc7f-b2379bfddca5",
       "name": "Milk Teas Menu"
@@ -369,130 +369,17 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.senderId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Caramel Coffee\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_CF-CAR\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Hazelnut Coffee\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_CF-HAZ\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Toffee Nut Coffee\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_CF-TON\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Macademia Nut Coffee\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_CF-MAC\"\n              }\n            ]\n          },\n{\n            \"title\": \"Spanish Latte Coffee\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_CF-SPL\"\n              }\n            ]\n          },\n{\n            \"title\": \"Salted Caramel Coffee\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_CF-SCA\"\n              }\n            ]\n          },\n{\n            \"title\": \"White Chocolate Coffee\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_CF-WCH\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.senderId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Caramel Coffee\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_CF-CAR\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Hazelnut Coffee\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_CF-HAZ\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Toffee Nut Coffee\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_CF-TON\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Macademia Nut Coffee\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_CF-MAC\"\n              }\n            ]\n          },\n{\n            \"title\": \"Spanish Latte Coffee\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_CF-SPL\"\n              }\n            ]\n          },\n{\n            \"title\": \"Salted Caramel Coffee\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_CF-SCA\"\n              }\n            ]\n          },\n{\n            \"title\": \"White Chocolate Coffee\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_CF-WCH\"\n              }\n            ]\n          },\n{\n            \"title\": \"Main Menu\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Go Back\",\n                \"payload\": \"REVIEW_MENU\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -220,
-        980
+        -160,
+        560
       ],
       "id": "87976d9f-b703-4e4e-92c1-397cf33de3be",
       "name": "Signatures Menu"
-    },
-    {
-      "parameters": {
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.postback }}",
-                    "rightValue": "ADD_MT",
-                    "operator": {
-                      "type": "string",
-                      "operation": "contains"
-                    },
-                    "id": "5d16f0c2-2edc-4fe4-b538-88b84b55bca0"
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "Milktea"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "id": "88dacd76-b8e9-4b2f-8c69-85af0da14775",
-                    "leftValue": "={{ $json.postback }}",
-                    "rightValue": "ADD_CF",
-                    "operator": {
-                      "type": "string",
-                      "operation": "contains"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "Coffee"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "id": "efa5336b-2aff-4f36-a2d6-bb5040b8e45f",
-                    "leftValue": "={{ $json.postback }}",
-                    "rightValue": "ADD_FT",
-                    "operator": {
-                      "type": "string",
-                      "operation": "contains"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "Fruit Teas"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "id": "d171d6ab-c082-42ea-be74-1a0bcd0b7312",
-                    "leftValue": "={{ $json.postback }}",
-                    "rightValue": "ADD_BK",
-                    "operator": {
-                      "type": "string",
-                      "operation": "contains"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "Baked Goods"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.2,
-      "position": [
-        -1880,
-        1260
-      ],
-      "id": "8325ea7c-fd2b-4b0d-a82e-7e26a17bc46a",
-      "name": "Switch1"
     },
     {
       "parameters": {
@@ -545,6 +432,31 @@
               },
               "renameOutput": true,
               "outputKey": "USER_AGREES"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "2ab06b25-f53f-4ce8-b8be-6925f1c10792",
+                    "leftValue": "={{ $json.postback }}",
+                    "rightValue": "REVIEW_MENU",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "REVIEW_MENU"
             },
             {
               "conditions": {
@@ -681,13 +593,36 @@
                 },
                 "conditions": [
                   {
+                    "id": "101da682-cd8c-4b85-a6d4-c5e3d2debc5b",
+                    "leftValue": "={{ $json.postback }}",
+                    "rightValue": "ADD_ON",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ADD_ON"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
                     "id": "209f67ce-2454-4997-bb33-bd767e2ee798",
                     "leftValue": "={{ $json.type }}",
                     "rightValue": "postback",
                     "operator": {
                       "type": "string",
-                      "operation": "equals",
-                      "name": "filter.operator.equals"
+                      "operation": "equals"
                     }
                   }
                 ],
@@ -703,8 +638,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        -580,
-        500
+        -540,
+        460
       ],
       "id": "3c10a93e-8ca8-4ccb-a897-4e83139e1cfb",
       "name": "Main Switch"
@@ -730,8 +665,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -1260,
-        1040
+        140,
+        800
       ],
       "id": "9afb48f7-fdce-4b38-9c61-20e9e697d1ad",
       "name": "Select Add-ons Milktea Message"
@@ -757,8 +692,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -1260,
-        1220
+        140,
+        980
       ],
       "id": "51aac8ef-611d-4439-8adc-a51b7c24190b",
       "name": "Select Add-ons Coffee Message"
@@ -784,8 +719,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -1260,
-        1380
+        140,
+        1160
       ],
       "id": "df59f71a-091c-4df3-af12-d26dd102da08",
       "name": "Select Add-ons Fruit Tea Message"
@@ -805,14 +740,14 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Boba\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱00.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"ADD_ON|AD-BOB|{{ $('Switch1').item.json.postback }}\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Coffee Jelly\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱00.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"ADD_ON|AD-CJL|{{ $('Switch1').item.json.postback }}\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Nata De Coco\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder additional ₱00.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"ADD_ON|AD-NDC|{{ $('Switch1').item.json.postback }}\"\n              }\n            ]\n          },\n          {\n            \"title\": \"None Add-ons\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"No additional fees.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Proceed\",\n                \"payload\": \"ADD_ON|NONE|{{ $('Switch1').item.json.postback }}\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Boba\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱00.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"ADD_ON|AD-BOB|{{ $('Add-Ons Switch').item.json.postback }}\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Coffee Jelly\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱00.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"ADD_ON|AD-CJL|{{ $('Add-Ons Switch').item.json.postback }}\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Nata De Coco\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder additional ₱00.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"ADD_ON|AD-NDC|{{ $('Add-Ons Switch').item.json.postback }}\"\n              }\n            ]\n          },\n          {\n            \"title\": \"None Add-ons\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"No additional fees.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Proceed\",\n                \"payload\": \"ADD_ON|NONE|{{ $('Add-Ons Switch').item.json.postback }}\"\n              }\n            ]\n          },\n{\n            \"title\": \"Cancel Item\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Go Back\",\n                \"payload\": \"VIEW_MT\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -1020,
-        1040
+        380,
+        800
       ],
       "id": "8d651e29-c931-461e-9c53-1d374fc12835",
       "name": "Add-ons Milktea"
@@ -832,14 +767,14 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Boba\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱00.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"ADD_ON|AD-BOB|{{ $('Switch1').item.json.postback }}\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Coffee Jelly\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱00.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"ADD_ON|AD-CJL|{{ $('Switch1').item.json.postback }}\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Nata De Coco\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder additional ₱00.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"ADD_ON|AD-NDC|{{ $('Switch1').item.json.postback }}\"\n              }\n            ]\n          },\n          {\n            \"title\": \"None Add-ons\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"No additional fees.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Proceed\",\n                \"payload\": \"ADD_ON|NONE|{{ $('Switch1').item.json.postback }}\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Boba\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱00.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"ADD_ON|AD-BOB|{{ $('Add-Ons Switch').item.json.postback }}\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Coffee Jelly\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱00.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"ADD_ON|AD-CJL|{{ $('Add-Ons Switch').item.json.postback }}\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Nata De Coco\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder additional ₱00.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"ADD_ON|AD-NDC|{{ $('Add-Ons Switch').item.json.postback }}\"\n              }\n            ]\n          },\n          {\n            \"title\": \"None Add-ons\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"No additional fees.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Proceed\",\n                \"payload\": \"ADD_ON|NONE|{{ $('Add-Ons Switch').item.json.postback }}\"\n              }\n            ]\n          },\n{\n            \"title\": \"Cancel Item\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Go Back\",\n                \"payload\": \"VIEW_SIGNATURES\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -1020,
-        1220
+        380,
+        980
       ],
       "id": "488b6806-ef64-4c96-98c5-f89e634a96a0",
       "name": "Add-ons Coffee"
@@ -859,30 +794,330 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Boba\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱00.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"ADD_ON|AD-BOB|{{ $('Switch1').item.json.postback }}\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Coffee Jelly\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱00.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"ADD_ON|AD-CJL|{{ $('Switch1').item.json.postback }}\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Nata De Coco\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder additional ₱00.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"ADD_ON|AD-NDC|{{ $('Switch1').item.json.postback }}\"\n              }\n            ]\n          },\n          {\n            \"title\": \"None Add-ons\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"No additional fees.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Proceed\",\n                \"payload\": \"ADD_ON|NONE|{{ $('Switch1').item.json.postback }}\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Boba\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱00.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"ADD_ON|AD-BOB|{{ $('Add-Ons Switch').item.json.postback }}\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Coffee Jelly\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱00.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"ADD_ON|AD-CJL|{{ $('Add-Ons Switch').item.json.postback }}\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Nata De Coco\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder additional ₱00.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"ADD_ON|AD-NDC|{{ $('Add-Ons Switch').item.json.postback }}\"\n              }\n            ]\n          },\n          {\n            \"title\": \"None Add-ons\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"No additional fees.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Proceed\",\n                \"payload\": \"ADD_ON|NONE|{{ $('Add-Ons Switch').item.json.postback }}\"\n              }\n            ]\n          },\n{\n            \"title\": \"Cancel Item\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Go Back\",\n                \"payload\": \"VIEW_FT\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -1020,
-        1380
+        380,
+        1160
       ],
       "id": "ddcf1c9b-121e-442b-a549-72b6bee19e64",
       "name": "Add-ons Fruit Tea"
     },
     {
       "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Popular\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"Most ordered right now.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Popular\",\n                \"payload\": \"VIEW_POPULAR\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Must Try! Fruit Teas\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"This is FRUIT TEAS category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View FRUIT TEAS category\",\n                \"payload\": \"VIEW_FT\"\n              }\n            ]\n          },\n{\n            \"title\": \"Must Try! Milk Teas\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"This is MILK TEAS category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View MILK TEAS category\",\n                \"payload\": \"VIEW_MT\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Must Try! Signatures\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+3\",\n            \"subtitle\": \"This is SIGNATURES category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Signatures\",\n                \"payload\": \"VIEW_SIGNATURES\"\n              }\n            ]\n          },\n{\n            \"title\": \"Bites\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"This is BITES category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Bites\",\n                \"payload\": \"VIEW_BITES\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
         "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -160,
+        -80
+      ],
+      "id": "85386419-ed88-4c22-8e3b-b5118862c31b",
+      "name": "Menu Gallery1"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.postback }}",
+                    "rightValue": "ADD_MT",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "5d16f0c2-2edc-4fe4-b538-88b84b55bca0"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Milktea"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "88dacd76-b8e9-4b2f-8c69-85af0da14775",
+                    "leftValue": "={{ $json.postback }}",
+                    "rightValue": "ADD_CF",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Coffee"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "efa5336b-2aff-4f36-a2d6-bb5040b8e45f",
+                    "leftValue": "={{ $json.postback }}",
+                    "rightValue": "ADD_FT",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Fruit Teas"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "d171d6ab-c082-42ea-be74-1a0bcd0b7312",
+                    "leftValue": "={{ $json.postback }}",
+                    "rightValue": "ADD_BK",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Baked Goods"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -160,
+        940
+      ],
+      "id": "8325ea7c-fd2b-4b0d-a82e-7e26a17bc46a",
+      "name": "Add-Ons Switch"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0befdf10-32ae-43ce-9600-3eec33d8720b",
+              "leftValue": "={{ $json.Quantity }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            },
+            {
+              "id": "e500196f-3b18-4777-9b14-4e656d1f91e3",
+              "leftValue": "={{ $json.Quantity }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        1260
+      ],
+      "id": "853824e0-1506-4d20-89b9-aa1b22068a4e",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "collection": "Menu",
+        "options": {},
+        "query": "={ \"ProductID\": \"{{ $json.baseDrink }}\" }"
       },
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        -760,
-        1500
+        -120,
+        1380
       ],
       "id": "fac725d6-adcf-47c3-afd4-a736b19f5844",
-      "name": "MongoDB"
+      "name": "fetch baseDrink",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "collection": "Add-ons",
+        "options": {},
+        "query": "={\n  \"AddOnID\": \"{{ $json.addOn }}\"\n}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -120,
+        1520
+      ],
+      "id": "b5dd5399-90e4-4ee8-9ccf-694b8a8897de",
+      "name": "fetch add-on",
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "debug bites\n",
+        "height": 80,
+        "width": 150,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -340,
+        1060
+      ],
+      "id": "35026108-9b46-46ca-91bc-d78c4479aaa8",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "collection": "Ingredients",
+        "options": {},
+        "query": "={\n  \"IngredientID\": {\n    \"$in\": {{ JSON.stringify($json.ingredients || []) }}\n  }\n}\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        560,
+        1480
+      ],
+      "id": "e44d352f-bfed-456d-af4e-f238e18a7e55",
+      "name": "fetch ingredients stock",
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Suppose the incoming postback is in item.json.postback\nconst postback = $input.first().json.postback; // e.g. \"ADD_ON|AD-BOB|ADD_CF-CAR\"\n\nconst [ , addOn, baseDrinkRaw ] = postback.split('|');\n\n// Remove \"ADD_\" prefix from baseDrink if it exists\nconst baseDrink = baseDrinkRaw.startsWith('ADD_') ? baseDrinkRaw.slice(4) : baseDrinkRaw;\n\n// Set the extracted values as new fields for use in later nodes\nreturn {\n  json: {\n    addOn,      // \"AD-BOB\"\n    baseDrink   // \"CF-CAR\"\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        1440
+      ],
+      "id": "0e6a293e-5b0e-4f47-9c53-c4f4e98e9900",
+      "name": "extract values"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Check Ingredient Stock - Code Node\nconst drinkData = $('fetch baseDrink').first().json;\nconst extractedData = $('extract values').first().json;\n\n// Safely get add-on data - handle when node returns nothing\nlet addOnData = null;\ntry {\n  const addOnNode = $('fetch add-on').first();\n  addOnData = addOnNode ? addOnNode.json : null;\n} catch (error) {\n  // Node didn't return any data\n  addOnData = null;\n}\n\n// Check if drink exists\nif (!drinkData || Object.keys(drinkData).length === 0) {\n  return [{\n    json: {\n      success: false,\n      message: `Sorry, the drink \"${extractedData.baseDrink}\" is not available in our menu.`,\n      code: 'PRODUCT_NOT_FOUND',\n      senderId: $('Listen').first().json.senderId\n    }\n  }];\n}\n\n// Handle add-on validation\nlet validatedAddOnData = null;\n\nif (extractedData.addOn && extractedData.addOn !== 'NONE') {\n  // User selected an add-on, validate it exists\n  if (!addOnData || Object.keys(addOnData).length === 0) {\n    return [{\n      json: {\n        success: false,\n        message: `Sorry, the selected add-on \"${extractedData.addOn}\" is not available.`,\n        code: 'ADDON_NOT_FOUND',\n        senderId: $('Listen').first().json.senderId\n      }\n    }];\n  }\n\n  // Check add-on stock and availability\n  if (addOnData.Quantity <= 0 || !addOnData.IsEnabled) {\n    return [{\n      json: {\n        success: false,\n        message: `Sorry, ${addOnData.Name} is currently out of stock. Please choose a different add-on.`,\n        code: 'ADDON_OUT_OF_STOCK',\n        senderId: $('Listen').first().json.senderId\n      }\n    }];\n  }\n\n  validatedAddOnData = addOnData;\n} else {\n  // No add-on selected (NONE or null/undefined) or fetch returned nothing\n  validatedAddOnData = {\n    AddOnID: 'NONE',\n    Name: 'No Add-on',\n    Price: 0,\n    Quantity: Infinity,\n    IsEnabled: true\n  };\n}\n\n// Prepare data for ingredient checking\nreturn [{\n  json: {\n    drinkData,\n    addOnData: validatedAddOnData,\n    extractedData,\n    senderId: $('Listen').first().json.senderId,\n    ingredients: drinkData.Ingredients || []\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        320,
+        1480
+      ],
+      "id": "dacfbbc0-312a-434f-bee7-7214dee46855",
+      "name": "prep check ingredient stock"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validate Stock Levels - Code Node\n\n// Safely get all required data with proper validation\nlet allIngredientStocks = [];\ntry {\n  const ingredientNodes = $('fetch ingredients stock').all();\n  allIngredientStocks = ingredientNodes && ingredientNodes.length > 0 \n    ? ingredientNodes.map(item => item.json) \n    : [];\n} catch (error) {\n  console.log('No ingredient stock data found');\n  allIngredientStocks = [];\n}\n\n// Safely get drink data\nlet drinkData = null;\ntry {\n  drinkData = $('fetch baseDrink').first().json;\n} catch (error) {\n  drinkData = null;\n}\n\n// Safely get add-on data\nlet addOnData = null;\ntry {\n  const addOnNode = $('fetch add-on').first();\n  addOnData = addOnNode ? addOnNode.json : null;\n} catch (error) {\n  addOnData = null;\n}\n\n// Safely get extracted data\nlet extractedData = null;\ntry {\n  extractedData = $('extract values').first().json;\n} catch (error) {\n  extractedData = null;\n}\n\n// Safely get sender ID\nlet senderId = null;\ntry {\n  senderId = $('Listen').first().json.senderId;\n} catch (error) {\n  senderId = 'unknown_user';\n}\n\n// Validate essential data exists\nif (!drinkData || !extractedData) {\n  return [{\n    json: {\n      success: false,\n      message: 'Missing essential order data. Please try again.',\n      code: 'MISSING_DATA',\n      senderId\n    }\n  }];\n}\n\n// Handle add-on data - create default if none selected\nif (!addOnData && (!extractedData.addOn || extractedData.addOn === 'NONE')) {\n  addOnData = {\n    AddOnID: 'NONE',\n    Name: 'No Add-on',\n    Price: 0,\n    Quantity: Infinity,\n    IsEnabled: true\n  };\n}\n\nlet requiredIngredients = drinkData.Ingredients || [];\n\n// Ensure it's an array\nif (!Array.isArray(requiredIngredients)) {\n  requiredIngredients = requiredIngredients ? [requiredIngredients] : [];\n}\n\nconsole.log('Required Ingredients (IDs):', requiredIngredients);\nconsole.log('Available Stock Data:', allIngredientStocks);\n\n// Check if ingredient stock data is available\nif (requiredIngredients.length > 0 && allIngredientStocks.length === 0) {\n  return [{\n    json: {\n      success: false,\n      message: 'Unable to check ingredient availability. Please try again later.',\n      code: 'STOCK_DATA_UNAVAILABLE',\n      senderId\n    }\n  }];\n}\n\n// Check if all required ingredients are available\nconst unavailableIngredients = [];\n\nfor (const requiredIngredientId of requiredIngredients) {\n  if (!requiredIngredientId) continue;\n  \n  // Match by IngredientID field (not _id)\n  const stock = allIngredientStocks.find(item => item.IngredientID === requiredIngredientId);\n  \n  console.log(`Looking for: ${requiredIngredientId}, Found:`, stock);\n  \n  if (!stock || stock.Quantity <= 0 || !stock.IsEnabled) {\n    unavailableIngredients.push({\n      ingredientId: requiredIngredientId,\n      name: stock ? stock.Name : 'Unknown Ingredient',\n      available: false,\n      quantity: stock ? stock.Quantity : 0,\n      enabled: stock ? stock.IsEnabled : false\n    });\n  }\n}\n\n// If any ingredients are unavailable, return error\nif (unavailableIngredients.length > 0) {\n  const unavailableNames = unavailableIngredients.map(item => item.name).join(', ');\n  return [{\n    json: {\n      success: false,\n      message: `Sorry, \"${drinkData.Name}\" is currently unavailable due to insufficient stock of: ${unavailableNames}`,\n      code: 'INSUFFICIENT_INGREDIENTS',\n      unavailableIngredients,\n      senderId\n    }\n  }];\n}\n\n// All ingredients available - proceed to add to cart\nconst basePrice = drinkData.Price || 0;\nconst addOnPrice = addOnData ? (addOnData.Price || 0) : 0;\nconst totalPrice = basePrice + addOnPrice;\n\nreturn [{\n  json: {\n    success: true,\n    message: `Great! \"${drinkData.Name}\" with \"${addOnData ? addOnData.Name : 'No Add-on'}\" has been added to your cart.`,\n    code: 'ORDER_ADDED_TO_CART',\n    cartItem: {\n      userId: senderId,\n      productId: extractedData.baseDrink,\n      productName: drinkData.Name,\n      addOnId: extractedData.addOn || 'NONE',\n      addOnName: addOnData ? addOnData.Name : 'No Add-on',\n      quantity: 1,\n      basePrice: basePrice,\n      addOnPrice: addOnPrice,\n      totalPrice: totalPrice,\n      createdAt: new Date(),\n      status: 'pending'\n    },\n    pricing: {\n      basePrice,\n      addOnPrice,\n      totalPrice\n    },\n    senderId\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        740,
+        1480
+      ],
+      "id": "0fd13cfb-c98a-414a-ad9c-8fd71d5e993e",
+      "name": "validate stock & cart"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        100,
+        1480
+      ],
+      "id": "58c39583-cb18-45ac-8a03-097170f0e684",
+      "name": "Merge"
     }
   ],
   "pinData": {},
@@ -979,6 +1214,13 @@
         ],
         [
           {
+            "node": "Menu Gallery1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
             "node": "Popular Menu",
             "type": "main",
             "index": 0
@@ -1014,37 +1256,18 @@
         ],
         [
           {
-            "node": "Switch1",
+            "node": "extract values",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add-Ons Switch",
             "type": "main",
             "index": 0
           }
         ]
-      ]
-    },
-    "Switch1": {
-      "main": [
-        [
-          {
-            "node": "Select Add-ons Milktea Message",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Select Add-ons Coffee Message",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Select Add-ons Fruit Tea Message",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        []
       ]
     },
     "Select Add-ons Milktea Message": {
@@ -1079,13 +1302,131 @@
           }
         ]
       ]
+    },
+    "Add-ons Milktea": {
+      "main": [
+        []
+      ]
+    },
+    "Add-ons Coffee": {
+      "main": [
+        []
+      ]
+    },
+    "Add-ons Fruit Tea": {
+      "main": [
+        []
+      ]
+    },
+    "Add-Ons Switch": {
+      "main": [
+        [
+          {
+            "node": "Select Add-ons Milktea Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Select Add-ons Coffee Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Select Add-ons Fruit Tea Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "extract values",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "fetch baseDrink": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "fetch add-on": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "fetch ingredients stock": {
+      "main": [
+        [
+          {
+            "node": "validate stock & cart",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "extract values": {
+      "main": [
+        [
+          {
+            "node": "fetch baseDrink",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "fetch add-on",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "prep check ingredient stock": {
+      "main": [
+        [
+          {
+            "node": "fetch ingredients stock",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "prep check ingredient stock",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "f163f800-fb19-4d69-a7b0-506f88d262ac",
+  "versionId": "7c2e4676-8eb3-47ea-948b-c02a9ede1c76",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "e55ad63998dbff63a27e8a719a0f75ec990732ee36c99c049c4be96c65a0b3c2"
