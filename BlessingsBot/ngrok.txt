@@ -1,0 +1,1 @@
+docker run --rm -it -p 4040:4040 -e NGROK_AUTHTOKEN="2wL2xF9pQ8oeTGCfo1NRlBODDKQ_34tAsuE2mP4VzjMQzLuQZ" ngrok/ngrok http host.docker.internal:32768
