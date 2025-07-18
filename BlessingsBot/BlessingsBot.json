@@ -110,7 +110,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// n8n Function node (mode: Run Once for All Items)\n// Adds storage for previous postback before the latest. Minimal edits for compatibility.\n\nconst items = $input.all();\nconst body = items[0]?.json?.body;\nconst entry = body?.entry?.[0]?.messaging?.[0];\nconst text = entry?.message?.text;\nconst senderId = entry?.sender?.id;\nconst postback = entry?.postback?.payload;\n\n// Use n8n's staticData to persist across executions (per workflow run)\nconst staticData = $getWorkflowStaticData('global');\nconst senderKey = `user_${senderId}`;\n\n// Get previous postback for this sender (if any)\nconst previous = staticData[senderKey]?.previousPostback || null;\nconst latest = staticData[senderKey]?.latestPostback || null;\n\nif (\n  body?.object === 'page' &&\n  senderId\n) {\n  // Handle \"Get Started\" text\n  if (text && text.trim().toLowerCase() === 'get started') {\n    return [{\n      json: {\n        type: 'text',\n        text: 'get started',\n        senderId,\n        previousPostback: previous,\n        latestPostback: latest\n      }\n    }];\n  }\n  // Handle postback button\n  if (postback) {\n    // Update staticData: shift latest to previous, store new postback as latest\n    staticData[senderKey] = {\n      previousPostback: latest,\n      latestPostback: postback\n    };\n    return [{\n      json: {\n        type: 'postback',\n        postback,\n        senderId,\n        previousPostback: latest,\n        latestPostback: postback\n      }\n    }];\n  }\n  // Ignore other messages (optional)\n  return [];\n} else {\n  return [{\n    json: { error: 'Invalid payload or missing sender' }\n  }];\n}"
+        "jsCode": "const items = $input.all();\nconst body = items[0]?.json?.body;\nconst entry = body?.entry?.[0]?.messaging?.[0];\nconst text = entry?.message?.text;\nconst senderId = entry?.sender?.id;\nconst postback = entry?.postback?.payload;\n\nconst staticData = $getWorkflowStaticData('global');\nconst senderKey = `user_${senderId}`;\n\nconst previous = staticData[senderKey]?.previousPostback || null;\nconst latest = staticData[senderKey]?.latestPostback || null;\n\nfunction isSizeSelected(payload) {\n  if (!payload) return false;\n  const parts = payload.split('|');\n  return parts.length === 2 && parts[0].length > 0 && parts[1].length > 0;\n}\n\nfunction isAddOnSelected(payload) {\n  if (!payload) return false;\n  const parts = payload.split('|');\n  return parts.length === 3 && parts.every(part => part.length > 0);\n}\n\nconst sizeSelected = isSizeSelected(postback);\nconst isAddOnSelectedFlag = isAddOnSelected(postback);\n\nif (\n  body?.object === 'page' &&\n  senderId\n) {\n  if (text && text.trim().toLowerCase() === 'get started') {\n    return [{\n      json: {\n        type: 'text',\n        text: 'get started',\n        senderId,\n        previousPostback: previous,\n        latestPostback: latest,\n        sizeSelected: false,\n        isAddOnSelected: false\n      }\n    }];\n  }\n  if (postback) {\n    staticData[senderKey] = {\n      previousPostback: latest,\n      latestPostback: postback,\n      sizeSelected,\n      isAddOnSelected: isAddOnSelectedFlag\n    };\n    return [{\n      json: {\n        type: 'postback',\n        postback,\n        senderId,\n        previousPostback: previous,\n        latestPostback: postback,\n        sizeSelected,\n        isAddOnSelected: isAddOnSelectedFlag\n      }\n    }];\n  }\n  return [];\n} else {\n  return [{\n    json: { error: 'Invalid payload or missing sender' }\n  }];\n}\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -130,8 +130,8 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -940,
-        800
+        -820,
+        840
       ],
       "id": "a7d3ed37-a7a2-47c2-89a2-a2f83508f408",
       "name": "Sticky Note1"
@@ -158,8 +158,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        80,
-        -240
+        0,
+        -500
       ],
       "id": "5f8483d0-8d83-4b70-911d-6d735d44bb0b",
       "name": "Menu Gallery"
@@ -186,8 +186,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        80,
-        -400
+        0,
+        -660
       ],
       "id": "eb8789bf-5f7f-4948-a5b1-c007b636a7a8",
       "name": "Data Privacy Notice"
@@ -213,8 +213,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -160,
-        80
+        -240,
+        -180
       ],
       "id": "4c864da5-e7be-4561-8ade-acbd4834f8bd",
       "name": "Popular Menu"
@@ -240,8 +240,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -160,
-        240
+        -240,
+        -20
       ],
       "id": "cf2d8d23-477e-4404-8279-60d00c48991c",
       "name": "Fruit Teas Menu"
@@ -261,14 +261,14 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.senderId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Cupcake\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_BK-CUP\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Crinkles\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_BK-CRN\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Cookies\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_BK-COO\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Waffles\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_BK-WAF\"\n              }\n            ]\n          },\n{\n            \"title\": \"Main Menu\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Go Back\",\n                \"payload\": \"REVIEW_MENU\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.senderId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Cupcake\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"BK-CUP\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Crinkles\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"BK-CRN\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Cookies\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"BK-COO\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Waffles\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"BK-WAF\"\n              }\n            ]\n          },\n{\n            \"title\": \"Main Menu\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Go Back\",\n                \"payload\": \"REVIEW_MENU\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -160,
-        720
+        -240,
+        460
       ],
       "id": "4b9cf7ca-b1ef-496e-b6cb-d5dfe950156a",
       "name": "Bites Menu"
@@ -294,8 +294,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -160,
-        -400
+        -240,
+        -660
       ],
       "id": "e1c555a3-8f8a-446e-bd4d-6f710c9f996e",
       "name": "Greeting Message"
@@ -321,8 +321,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -160,
-        -240
+        -240,
+        -500
       ],
       "id": "f9f6fb4d-e72f-4a3f-95d3-bd4a0e312638",
       "name": "Order Intro Message"
@@ -348,8 +348,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -160,
-        400
+        -240,
+        140
       ],
       "id": "8360fcb6-b1fd-41e6-bc7f-b2379bfddca5",
       "name": "Milk Teas Menu"
@@ -375,8 +375,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -160,
-        560
+        -240,
+        300
       ],
       "id": "87976d9f-b703-4e4e-92c1-397cf33de3be",
       "name": "Signatures Menu"
@@ -595,7 +595,7 @@
                   {
                     "id": "101da682-cd8c-4b85-a6d4-c5e3d2debc5b",
                     "leftValue": "={{ $json.postback }}",
-                    "rightValue": "ADD_ON",
+                    "rightValue": "ADD",
                     "operator": {
                       "type": "string",
                       "operation": "contains"
@@ -605,7 +605,7 @@
                 "combinator": "and"
               },
               "renameOutput": true,
-              "outputKey": "ADD_ON"
+              "outputKey": "SELECT_SIZE"
             },
             {
               "conditions": {
@@ -618,18 +618,68 @@
                 "conditions": [
                   {
                     "id": "209f67ce-2454-4997-bb33-bd767e2ee798",
-                    "leftValue": "={{ $json.type }}",
+                    "leftValue": "={{ $json.sizeSelected }}",
                     "rightValue": "postback",
                     "operator": {
-                      "type": "string",
-                      "operation": "equals"
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
                     }
                   }
                 ],
                 "combinator": "and"
               },
               "renameOutput": true,
-              "outputKey": "ADD_DRINK"
+              "outputKey": "SELECT_ADD_ON"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "05dad1f5-46fb-4d26-9814-8321aed9f207",
+                    "leftValue": "={{ $json.postback }}",
+                    "rightValue": "BK",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ADD_BITES"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "fbf026d2-4bfc-47ce-bce9-55dfc6e57ad5",
+                    "leftValue": "={{ $json.isAddOnSelected }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "VERIFY_ITEM"
             }
           ]
         },
@@ -665,7 +715,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        140,
+        300,
         800
       ],
       "id": "9afb48f7-fdce-4b38-9c61-20e9e697d1ad",
@@ -692,7 +742,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        140,
+        300,
         980
       ],
       "id": "51aac8ef-611d-4439-8adc-a51b7c24190b",
@@ -719,7 +769,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        140,
+        300,
         1160
       ],
       "id": "df59f71a-091c-4df3-af12-d26dd102da08",
@@ -735,18 +785,19 @@
             {
               "name": "Content-Type",
               "value": "application/json"
-            }
+            },
+            {}
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Boba\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱00.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"ADD_ON|AD-BOB|{{ $('Add-Ons Switch').item.json.postback }}\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Coffee Jelly\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱00.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"ADD_ON|AD-CJL|{{ $('Add-Ons Switch').item.json.postback }}\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Nata De Coco\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder additional ₱00.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"ADD_ON|AD-NDC|{{ $('Add-Ons Switch').item.json.postback }}\"\n              }\n            ]\n          },\n          {\n            \"title\": \"None Add-ons\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"No additional fees.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Proceed\",\n                \"payload\": \"ADD_ON|NONE|{{ $('Add-Ons Switch').item.json.postback }}\"\n              }\n            ]\n          },\n{\n            \"title\": \"Cancel Item\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Go Back\",\n                \"payload\": \"VIEW_MT\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Boba\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-BOB\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Coffee Jelly\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-CJL\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Nata De Coco\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-NDC\"\n              }\n            ]\n          },\n{\n            \"title\": \"Pearl\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-PEA\"\n              }\n            ]\n          },\n          {\n            \"title\": \"None Add-ons\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"No additional fees.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Proceed\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|NONE\"\n              }\n            ]\n          },\n{\n            \"title\": \"Cancel Item\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Go Back\",\n                \"payload\": \"VIEW_MT\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        380,
+        480,
         800
       ],
       "id": "8d651e29-c931-461e-9c53-1d374fc12835",
@@ -767,13 +818,13 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Boba\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱00.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"ADD_ON|AD-BOB|{{ $('Add-Ons Switch').item.json.postback }}\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Coffee Jelly\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱00.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"ADD_ON|AD-CJL|{{ $('Add-Ons Switch').item.json.postback }}\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Nata De Coco\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder additional ₱00.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"ADD_ON|AD-NDC|{{ $('Add-Ons Switch').item.json.postback }}\"\n              }\n            ]\n          },\n          {\n            \"title\": \"None Add-ons\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"No additional fees.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Proceed\",\n                \"payload\": \"ADD_ON|NONE|{{ $('Add-Ons Switch').item.json.postback }}\"\n              }\n            ]\n          },\n{\n            \"title\": \"Cancel Item\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Go Back\",\n                \"payload\": \"VIEW_SIGNATURES\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Boba\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-BOB\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Coffee Jelly\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-CJL\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Nata De Coco\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-NDC\"\n              }\n            ]\n          },\n{\n            \"title\": \"Pearl\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-PEA\"\n              }\n            ]\n          },\n          {\n            \"title\": \"None Add-ons\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"No additional fees.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Proceed\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|NONE\"\n              }\n            ]\n          },\n{\n            \"title\": \"Cancel Item\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Go Back\",\n                \"payload\": \"VIEW_CF\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        380,
+        480,
         980
       ],
       "id": "488b6806-ef64-4c96-98c5-f89e634a96a0",
@@ -794,13 +845,13 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Boba\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱00.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"ADD_ON|AD-BOB|{{ $('Add-Ons Switch').item.json.postback }}\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Coffee Jelly\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱00.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"ADD_ON|AD-CJL|{{ $('Add-Ons Switch').item.json.postback }}\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Nata De Coco\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder additional ₱00.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"ADD_ON|AD-NDC|{{ $('Add-Ons Switch').item.json.postback }}\"\n              }\n            ]\n          },\n          {\n            \"title\": \"None Add-ons\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"No additional fees.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Proceed\",\n                \"payload\": \"ADD_ON|NONE|{{ $('Add-Ons Switch').item.json.postback }}\"\n              }\n            ]\n          },\n{\n            \"title\": \"Cancel Item\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Go Back\",\n                \"payload\": \"VIEW_FT\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Boba\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-BOB\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Coffee Jelly\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-CJL\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Nata De Coco\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-NDC\"\n              }\n            ]\n          },\n{\n            \"title\": \"Pearl\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-PEA\"\n              }\n            ]\n          },\n          {\n            \"title\": \"None Add-ons\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"No additional fees.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Proceed\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|NONE\"\n              }\n            ]\n          },\n{\n            \"title\": \"Cancel Item\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Go Back\",\n                \"payload\": \"VIEW_FT\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        380,
+        480,
         1160
       ],
       "id": "ddcf1c9b-121e-442b-a549-72b6bee19e64",
@@ -822,14 +873,14 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Popular\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"Most ordered right now.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Popular\",\n                \"payload\": \"VIEW_POPULAR\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Must Try! Fruit Teas\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"This is FRUIT TEAS category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View FRUIT TEAS category\",\n                \"payload\": \"VIEW_FT\"\n              }\n            ]\n          },\n{\n            \"title\": \"Must Try! Milk Teas\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"This is MILK TEAS category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View MILK TEAS category\",\n                \"payload\": \"VIEW_MT\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Must Try! Signatures\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+3\",\n            \"subtitle\": \"This is SIGNATURES category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Signatures\",\n                \"payload\": \"VIEW_SIGNATURES\"\n              }\n            ]\n          },\n{\n            \"title\": \"Bites\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"This is BITES category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Bites\",\n                \"payload\": \"VIEW_BITES\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $('Listen').item.json.senderId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Popular\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"Most ordered right now.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Popular\",\n                \"payload\": \"VIEW_POPULAR\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Must Try! Fruit Teas\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"This is FRUIT TEAS category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View FRUIT TEAS category\",\n                \"payload\": \"VIEW_FT\"\n              }\n            ]\n          },\n{\n            \"title\": \"Must Try! Milk Teas\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"This is MILK TEAS category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View MILK TEAS category\",\n                \"payload\": \"VIEW_MT\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Must Try! Signatures\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+3\",\n            \"subtitle\": \"This is SIGNATURES category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Signatures\",\n                \"payload\": \"VIEW_SIGNATURES\"\n              }\n            ]\n          },\n{\n            \"title\": \"Bites\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"This is BITES category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Bites\",\n                \"payload\": \"VIEW_BITES\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -160,
-        -80
+        -240,
+        -340
       ],
       "id": "85386419-ed88-4c22-8e3b-b5118862c31b",
       "name": "Menu Gallery1"
@@ -849,7 +900,7 @@
                 "conditions": [
                   {
                     "leftValue": "={{ $json.postback }}",
-                    "rightValue": "ADD_MT",
+                    "rightValue": "MT",
                     "operator": {
                       "type": "string",
                       "operation": "contains"
@@ -874,7 +925,7 @@
                   {
                     "id": "88dacd76-b8e9-4b2f-8c69-85af0da14775",
                     "leftValue": "={{ $json.postback }}",
-                    "rightValue": "ADD_CF",
+                    "rightValue": "CF",
                     "operator": {
                       "type": "string",
                       "operation": "contains"
@@ -898,7 +949,7 @@
                   {
                     "id": "efa5336b-2aff-4f36-a2d6-bb5040b8e45f",
                     "leftValue": "={{ $json.postback }}",
-                    "rightValue": "ADD_FT",
+                    "rightValue": "FT",
                     "operator": {
                       "type": "string",
                       "operation": "contains"
@@ -909,30 +960,6 @@
               },
               "renameOutput": true,
               "outputKey": "Fruit Teas"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "id": "d171d6ab-c082-42ea-be74-1a0bcd0b7312",
-                    "leftValue": "={{ $json.postback }}",
-                    "rightValue": "ADD_BK",
-                    "operator": {
-                      "type": "string",
-                      "operation": "contains"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "Baked Goods"
             }
           ]
         },
@@ -941,53 +968,11 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        -160,
-        940
+        -260,
+        800
       ],
       "id": "8325ea7c-fd2b-4b0d-a82e-7e26a17bc46a",
       "name": "Add-Ons Switch"
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "id": "0befdf10-32ae-43ce-9600-3eec33d8720b",
-              "leftValue": "={{ $json.Quantity }}",
-              "rightValue": 0,
-              "operator": {
-                "type": "number",
-                "operation": "gt"
-              }
-            },
-            {
-              "id": "e500196f-3b18-4777-9b14-4e656d1f91e3",
-              "leftValue": "={{ $json.Quantity }}",
-              "rightValue": 0,
-              "operator": {
-                "type": "number",
-                "operation": "gt"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        1120,
-        1260
-      ],
-      "id": "853824e0-1506-4d20-89b9-aa1b22068a4e",
-      "name": "If1"
     },
     {
       "parameters": {
@@ -1021,7 +1006,7 @@
       "typeVersion": 1.2,
       "position": [
         -120,
-        1520
+        1560
       ],
       "id": "b5dd5399-90e4-4ee8-9ccf-694b8a8897de",
       "name": "fetch add-on",
@@ -1031,22 +1016,6 @@
           "name": "MongoDB account"
         }
       }
-    },
-    {
-      "parameters": {
-        "content": "debug bites\n",
-        "height": 80,
-        "width": 150,
-        "color": 3
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "typeVersion": 1,
-      "position": [
-        -340,
-        1060
-      ],
-      "id": "35026108-9b46-46ca-91bc-d78c4479aaa8",
-      "name": "Sticky Note2"
     },
     {
       "parameters": {
@@ -1071,13 +1040,13 @@
     },
     {
       "parameters": {
-        "jsCode": "// Suppose the incoming postback is in item.json.postback\nconst postback = $input.first().json.postback; // e.g. \"ADD_ON|AD-BOB|ADD_CF-CAR\"\n\nconst [ , addOn, baseDrinkRaw ] = postback.split('|');\n\n// Remove \"ADD_\" prefix from baseDrink if it exists\nconst baseDrink = baseDrinkRaw.startsWith('ADD_') ? baseDrinkRaw.slice(4) : baseDrinkRaw;\n\n// Set the extracted values as new fields for use in later nodes\nreturn {\n  json: {\n    addOn,      // \"AD-BOB\"\n    baseDrink   // \"CF-CAR\"\n  }\n};"
+        "jsCode": "const postback = $input.first().json.postback || '';\n\nlet addOn = null;\nlet baseDrink = null;\n\nif (postback.includes('|')) {\n  const parts = postback.split('|');\n  addOn = parts[1] || null;\n  baseDrink = parts[2] || null;\n  if (baseDrink && baseDrink.startsWith('ADD_')) {\n    baseDrink = baseDrink.slice(4);\n  }\n}\n\nconst isBite = postback.includes('BK');\n\nreturn {\n  json: {\n    postback,\n    addOn,\n    baseDrink,\n    isBite\n  }\n};\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -320,
-        1440
+        -360,
+        1180
       ],
       "id": "0e6a293e-5b0e-4f47-9c53-c4f4e98e9900",
       "name": "extract values"
@@ -1118,6 +1087,80 @@
       ],
       "id": "58c39583-cb18-45ac-8a03-097170f0e684",
       "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "const postback = $json.latestPostback || $json.postback;\nconst productId = postback.replace('ADD_', '');\n\nreturn [{ json: { productId } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -260,
+        640
+      ],
+      "id": "4f26a22b-9332-42e8-8e01-55177bfbae91",
+      "name": "get productID"
+    },
+    {
+      "parameters": {
+        "collection": "Menu",
+        "options": {},
+        "query": "={ \"ProductID\": \"{{ $json.productId }}\" } "
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -80,
+        640
+      ],
+      "id": "a6c616f3-9b43-458b-bc64-f0c747be006a",
+      "name": "verify productID",
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const product = $input.first().json;\nconst sizes = Array.isArray(product.Sizes) ? product.Sizes : [];\nconst senderId = $('Listen').first().json.senderId;\nconst priceFormat = p => (p ? `₱${p}` : '');\nif (sizes.length === 0) {\n  return [{\n    json: {\n      sendSizeButtons: false,\n      sizeSelected: false,\n      message: `Selected: ${product.Name} (${priceFormat(product.BasePrice)}). Added to cart!`,\n      senderId\n    }\n  }];\n}\nconst buttons = sizes.map(s => ({\n  type: \"postback\",\n  title: `${s.Size} - ${priceFormat(s.BasePrice)}`,\n  payload: `${product.ProductID}|${s.Size}`\n}));\nreturn [{\n  json: {\n    sendSizeButtons: true,\n    sizeSelected: false,\n    recipient_id: senderId,\n    message: `Choose a size for your ${product.Name}:`,\n    buttons\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        640
+      ],
+      "id": "ba7d3731-c9a9-490a-bd79-3ba1c3b7b873",
+      "name": "retrieve sizes"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"button\",\n        \"text\": \"{{ $json.message }}\",\n        \"buttons\": {{ JSON.stringify($json.buttons) }}\n      }\n    }\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        260,
+        640
+      ],
+      "id": "77800f66-04a6-482e-bce7-cd3715443d08",
+      "name": "Select Size Prompt"
     }
   ],
   "pinData": {},
@@ -1256,7 +1299,7 @@
         ],
         [
           {
-            "node": "extract values",
+            "node": "get productID",
             "type": "main",
             "index": 0
           }
@@ -1264,6 +1307,20 @@
         [
           {
             "node": "Add-Ons Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "extract values",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "extract values",
             "type": "main",
             "index": 0
           }
@@ -1340,13 +1397,6 @@
             "type": "main",
             "index": 0
           }
-        ],
-        [
-          {
-            "node": "extract values",
-            "type": "main",
-            "index": 0
-          }
         ]
       ]
     },
@@ -1420,13 +1470,46 @@
           }
         ]
       ]
+    },
+    "get productID": {
+      "main": [
+        [
+          {
+            "node": "verify productID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "verify productID": {
+      "main": [
+        [
+          {
+            "node": "retrieve sizes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "retrieve sizes": {
+      "main": [
+        [
+          {
+            "node": "Select Size Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "7c2e4676-8eb3-47ea-948b-c02a9ede1c76",
+  "versionId": "b31b0490-4b59-4f6d-8f24-43ba5c20222e",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "e55ad63998dbff63a27e8a719a0f75ec990732ee36c99c049c4be96c65a0b3c2"
