@@ -818,7 +818,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Boba\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-BOB\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Coffee Jelly\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-CJL\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Nata De Coco\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-NDC\"\n              }\n            ]\n          },\n{\n            \"title\": \"Pearl\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-PEA\"\n              }\n            ]\n          },\n          {\n            \"title\": \"None Add-ons\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"No additional fees.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Proceed\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|NONE\"\n              }\n            ]\n          },\n{\n            \"title\": \"Cancel Item\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Go Back\",\n                \"payload\": \"VIEW_CF\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Boba\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-BOB\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Coffee Jelly\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-CJL\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Nata De Coco\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-NDC\"\n              }\n            ]\n          },\n{\n            \"title\": \"Pearl\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-PEA\"\n              }\n            ]\n          },\n          {\n            \"title\": \"None Add-ons\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"No additional fees.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Proceed\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|NONE\"\n              }\n            ]\n          },\n{\n            \"title\": \"Cancel Item\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Go Back\",\n                \"payload\": \"VIEW_SIGNATURES\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -1026,7 +1026,7 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        560,
+        500,
         1480
       ],
       "id": "e44d352f-bfed-456d-af4e-f238e18a7e55",
@@ -1040,7 +1040,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const postback = $input.first().json.postback || '';\n\nlet addOn = null;\nlet baseDrink = null;\n\nif (postback.includes('|')) {\n  const parts = postback.split('|');\n  addOn = parts[1] || null;\n  baseDrink = parts[2] || null;\n  if (baseDrink && baseDrink.startsWith('ADD_')) {\n    baseDrink = baseDrink.slice(4);\n  }\n}\n\nconst isBite = postback.includes('BK');\n\nreturn {\n  json: {\n    postback,\n    addOn,\n    baseDrink,\n    isBite\n  }\n};\n"
+        "jsCode": "const postback = $input.first().json.postback || '';\n\nconst parts = postback.split('|');\nconst baseDrink = parts[0] || null;\nconst size = parts[1] || null;\nlet addOn = parts[2] || null;\nif (addOn?.startsWith('ADD_')) addOn = addOn.slice(4);\nconst Bite = parts.find(p => p.includes('BK')) || (postback.includes('BK') ? postback : null);\n\nreturn {\n  json: { postback, baseDrink, size, addOn, Bite }\n};\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1053,7 +1053,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Check Ingredient Stock - Code Node\nconst drinkData = $('fetch baseDrink').first().json;\nconst extractedData = $('extract values').first().json;\n\n// Safely get add-on data - handle when node returns nothing\nlet addOnData = null;\ntry {\n  const addOnNode = $('fetch add-on').first();\n  addOnData = addOnNode ? addOnNode.json : null;\n} catch (error) {\n  // Node didn't return any data\n  addOnData = null;\n}\n\n// Check if drink exists\nif (!drinkData || Object.keys(drinkData).length === 0) {\n  return [{\n    json: {\n      success: false,\n      message: `Sorry, the drink \"${extractedData.baseDrink}\" is not available in our menu.`,\n      code: 'PRODUCT_NOT_FOUND',\n      senderId: $('Listen').first().json.senderId\n    }\n  }];\n}\n\n// Handle add-on validation\nlet validatedAddOnData = null;\n\nif (extractedData.addOn && extractedData.addOn !== 'NONE') {\n  // User selected an add-on, validate it exists\n  if (!addOnData || Object.keys(addOnData).length === 0) {\n    return [{\n      json: {\n        success: false,\n        message: `Sorry, the selected add-on \"${extractedData.addOn}\" is not available.`,\n        code: 'ADDON_NOT_FOUND',\n        senderId: $('Listen').first().json.senderId\n      }\n    }];\n  }\n\n  // Check add-on stock and availability\n  if (addOnData.Quantity <= 0 || !addOnData.IsEnabled) {\n    return [{\n      json: {\n        success: false,\n        message: `Sorry, ${addOnData.Name} is currently out of stock. Please choose a different add-on.`,\n        code: 'ADDON_OUT_OF_STOCK',\n        senderId: $('Listen').first().json.senderId\n      }\n    }];\n  }\n\n  validatedAddOnData = addOnData;\n} else {\n  // No add-on selected (NONE or null/undefined) or fetch returned nothing\n  validatedAddOnData = {\n    AddOnID: 'NONE',\n    Name: 'No Add-on',\n    Price: 0,\n    Quantity: Infinity,\n    IsEnabled: true\n  };\n}\n\n// Prepare data for ingredient checking\nreturn [{\n  json: {\n    drinkData,\n    addOnData: validatedAddOnData,\n    extractedData,\n    senderId: $('Listen').first().json.senderId,\n    ingredients: drinkData.Ingredients || []\n  }\n}];\n"
+        "jsCode": "const drinkData = $('fetch baseDrink').first().json;\nconst extractedData = $('extract values').first().json;\n\nlet addOnData = null;\ntry {\n  const addOnNode = $('fetch add-on').first();\n  addOnData = addOnNode ? addOnNode.json : null;\n} catch {\n  addOnData = null;\n}\n\nconst senderId = $('Listen').first().json.senderId;\n\nif (extractedData.Bite) {\n  const bitesData = $('fetch bites').first().json;\n\n  if (!bitesData || Object.keys(bitesData).length === 0) {\n    return [{\n      json: {\n        success: false,\n        message: `Sorry, the bites \"${extractedData.Bite}\" is not available.`,\n        code: 'BITES_NOT_FOUND',\n        senderId\n      }\n    }];\n  }\n\n  if (bitesData.Quantity <= 0 || !bitesData.IsEnabled) {\n    return [{\n      json: {\n        success: false,\n        message: `Sorry, ${bitesData.Name} is currently out of stock. Please choose a different item.`,\n        code: 'BITES_OUT_OF_STOCK',\n        senderId\n      }\n    }];\n  }\n\n  return [{\n    json: {\n      success: true,\n      message: `${bitesData.Name} is available.`,\n      bitesData,\n      senderId\n    }\n  }];\n}\n\nif (!drinkData || Object.keys(drinkData).length === 0) {\n  return [{\n    json: {\n      success: false,\n      message: `Sorry, the drink \"${extractedData.baseDrink}\" is not available in our menu.`,\n      code: 'PRODUCT_NOT_FOUND',\n      senderId\n    }\n  }];\n}\n\nlet validatedAddOnData = null;\n\nif (extractedData.addOn && extractedData.addOn !== 'NONE') {\n  if (!addOnData || Object.keys(addOnData).length === 0) {\n    return [{\n      json: {\n        success: false,\n        message: `Sorry, the selected add-on \"${extractedData.addOn}\" is not available.`,\n        code: 'ADDON_NOT_FOUND',\n        senderId\n      }\n    }];\n  }\n\n  if (addOnData.Quantity <= 0 || !addOnData.IsEnabled) {\n    return [{\n      json: {\n        success: false,\n        message: `Sorry, ${addOnData.Name} is currently out of stock. Please choose a different add-on.`,\n        code: 'ADDON_OUT_OF_STOCK',\n        senderId\n      }\n    }];\n  }\n\n  validatedAddOnData = addOnData;\n} else {\n  validatedAddOnData = {\n    AddOnID: 'NONE',\n    Name: 'No Add-on',\n    Price: 0,\n    Quantity: Infinity,\n    IsEnabled: true\n  };\n}\n\nreturn [{\n  json: {\n    drinkData,\n    addOnData: validatedAddOnData,\n    extractedData,\n    senderId,\n    ingredients: drinkData.Ingredients || []\n  }\n}];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1066,12 +1066,12 @@
     },
     {
       "parameters": {
-        "jsCode": "// Validate Stock Levels - Code Node\n\n// Safely get all required data with proper validation\nlet allIngredientStocks = [];\ntry {\n  const ingredientNodes = $('fetch ingredients stock').all();\n  allIngredientStocks = ingredientNodes && ingredientNodes.length > 0 \n    ? ingredientNodes.map(item => item.json) \n    : [];\n} catch (error) {\n  console.log('No ingredient stock data found');\n  allIngredientStocks = [];\n}\n\n// Safely get drink data\nlet drinkData = null;\ntry {\n  drinkData = $('fetch baseDrink').first().json;\n} catch (error) {\n  drinkData = null;\n}\n\n// Safely get add-on data\nlet addOnData = null;\ntry {\n  const addOnNode = $('fetch add-on').first();\n  addOnData = addOnNode ? addOnNode.json : null;\n} catch (error) {\n  addOnData = null;\n}\n\n// Safely get extracted data\nlet extractedData = null;\ntry {\n  extractedData = $('extract values').first().json;\n} catch (error) {\n  extractedData = null;\n}\n\n// Safely get sender ID\nlet senderId = null;\ntry {\n  senderId = $('Listen').first().json.senderId;\n} catch (error) {\n  senderId = 'unknown_user';\n}\n\n// Validate essential data exists\nif (!drinkData || !extractedData) {\n  return [{\n    json: {\n      success: false,\n      message: 'Missing essential order data. Please try again.',\n      code: 'MISSING_DATA',\n      senderId\n    }\n  }];\n}\n\n// Handle add-on data - create default if none selected\nif (!addOnData && (!extractedData.addOn || extractedData.addOn === 'NONE')) {\n  addOnData = {\n    AddOnID: 'NONE',\n    Name: 'No Add-on',\n    Price: 0,\n    Quantity: Infinity,\n    IsEnabled: true\n  };\n}\n\nlet requiredIngredients = drinkData.Ingredients || [];\n\n// Ensure it's an array\nif (!Array.isArray(requiredIngredients)) {\n  requiredIngredients = requiredIngredients ? [requiredIngredients] : [];\n}\n\nconsole.log('Required Ingredients (IDs):', requiredIngredients);\nconsole.log('Available Stock Data:', allIngredientStocks);\n\n// Check if ingredient stock data is available\nif (requiredIngredients.length > 0 && allIngredientStocks.length === 0) {\n  return [{\n    json: {\n      success: false,\n      message: 'Unable to check ingredient availability. Please try again later.',\n      code: 'STOCK_DATA_UNAVAILABLE',\n      senderId\n    }\n  }];\n}\n\n// Check if all required ingredients are available\nconst unavailableIngredients = [];\n\nfor (const requiredIngredientId of requiredIngredients) {\n  if (!requiredIngredientId) continue;\n  \n  // Match by IngredientID field (not _id)\n  const stock = allIngredientStocks.find(item => item.IngredientID === requiredIngredientId);\n  \n  console.log(`Looking for: ${requiredIngredientId}, Found:`, stock);\n  \n  if (!stock || stock.Quantity <= 0 || !stock.IsEnabled) {\n    unavailableIngredients.push({\n      ingredientId: requiredIngredientId,\n      name: stock ? stock.Name : 'Unknown Ingredient',\n      available: false,\n      quantity: stock ? stock.Quantity : 0,\n      enabled: stock ? stock.IsEnabled : false\n    });\n  }\n}\n\n// If any ingredients are unavailable, return error\nif (unavailableIngredients.length > 0) {\n  const unavailableNames = unavailableIngredients.map(item => item.name).join(', ');\n  return [{\n    json: {\n      success: false,\n      message: `Sorry, \"${drinkData.Name}\" is currently unavailable due to insufficient stock of: ${unavailableNames}`,\n      code: 'INSUFFICIENT_INGREDIENTS',\n      unavailableIngredients,\n      senderId\n    }\n  }];\n}\n\n// All ingredients available - proceed to add to cart\nconst basePrice = drinkData.Price || 0;\nconst addOnPrice = addOnData ? (addOnData.Price || 0) : 0;\nconst totalPrice = basePrice + addOnPrice;\n\nreturn [{\n  json: {\n    success: true,\n    message: `Great! \"${drinkData.Name}\" with \"${addOnData ? addOnData.Name : 'No Add-on'}\" has been added to your cart.`,\n    code: 'ORDER_ADDED_TO_CART',\n    cartItem: {\n      userId: senderId,\n      productId: extractedData.baseDrink,\n      productName: drinkData.Name,\n      addOnId: extractedData.addOn || 'NONE',\n      addOnName: addOnData ? addOnData.Name : 'No Add-on',\n      quantity: 1,\n      basePrice: basePrice,\n      addOnPrice: addOnPrice,\n      totalPrice: totalPrice,\n      createdAt: new Date(),\n      status: 'pending'\n    },\n    pricing: {\n      basePrice,\n      addOnPrice,\n      totalPrice\n    },\n    senderId\n  }\n}];\n"
+        "jsCode": "let allIngredientStocks = [];\ntry {\n  const ingredientStockNodes = $('fetch ingredients stock').all();\n  allIngredientStocks = ingredientStockNodes?.length\n    ? ingredientStockNodes.map(item => item.json)\n    : [];\n} catch {\n  allIngredientStocks = [];\n}\n\nlet drinkData = null;\ntry {\n  drinkData = $('fetch baseDrink').first().json;\n} catch {\n  drinkData = null;\n}\n\nlet addOnData = null;\ntry {\n  addOnData = $('fetch add-on').first()?.json || null;\n} catch {\n  addOnData = null;\n}\n\nlet extractedData = null;\ntry {\n  extractedData = $('extract values').first().json;\n} catch {\n  extractedData = null;\n}\n\nlet senderId = 'unknown_user';\ntry {\n  senderId = $('Listen').first().json.senderId || senderId;\n} catch {}\n\nif (!drinkData || !extractedData) {\n  return [{\n    json: {\n      success: false,\n      message: 'Missing essential order data. Please try again.',\n      code: 'MISSING_DATA',\n      senderId\n    }\n  }];\n}\n\nif ((!addOnData || Object.keys(addOnData).length === 0) && (!extractedData.addOn || extractedData.addOn === 'NONE')) {\n  addOnData = {\n    AddOnID: 'NONE',\n    Name: 'No Add-on',\n    Price: 0,\n    Quantity: Infinity,\n    IsEnabled: true\n  };\n}\n\nlet requiredIngredients = drinkData.Ingredients || [];\n\nif (!Array.isArray(requiredIngredients)) {\n  requiredIngredients = requiredIngredients ? [requiredIngredients] : [];\n}\n\nif (requiredIngredients.length > 0 && allIngredientStocks.length === 0) {\n  return [{\n    json: {\n      success: false,\n      message: 'Unable to check ingredient availability. Please try again later.',\n      code: 'STOCK_DATA_UNAVAILABLE',\n      senderId\n    }\n  }];\n}\n\nconst unavailableIngredients = [];\n\nfor (const ingredientId of requiredIngredients) {\n  if (!ingredientId) continue;\n\n  const stock = allIngredientStocks.find(item => item.IngredientID === ingredientId);\n\n  if (\n    !stock ||\n    stock.Quantity === undefined ||\n    stock.Quantity <= 0 ||\n    !stock.IsEnabled\n  ) {\n    unavailableIngredients.push({\n      ingredientId,\n      name: stock?.Name || 'Unknown Ingredient',\n      available: false,\n      quantity: stock?.Quantity ?? 0,\n      enabled: stock?.IsEnabled ?? false\n    });\n  }\n}\n\nif (unavailableIngredients.length > 0) {\n  const names = unavailableIngredients.map(i => i.name).join(', ');\n  return [{\n    json: {\n      success: false,\n      message: `Sorry, \"${drinkData.Name}\" is unavailable due to insufficient stock of: ${names}`,\n      code: 'INSUFFICIENT_INGREDIENTS',\n      unavailableIngredients,\n      senderId\n    }\n  }];\n}\n\nfunction createCartItem({\n  userId,\n  productId,\n  productName,\n  addOnId,\n  addOnName,\n  quantity = 1,\n  basePrice = 0,\n  addOnPrice = 0,\n  status = 'pending'\n}) {\n  const totalPrice = basePrice + addOnPrice;\n  return {\n    userId,\n    productId,\n    productName,\n    addOnId,\n    addOnName,\n    quantity,\n    basePrice,\n    addOnPrice,\n    totalPrice,\n    createdAt: new Date().toISOString(),\n    status\n  };\n}\n\nconst basePrice = drinkData.Sizes?.[0]?.BasePrice || 0;\nconst addOnPrice = addOnData?.BasePrice || 0;\n\nconst cartItem = createCartItem({\n  userId: senderId,\n  productId: extractedData.baseDrink,\n  productName: drinkData.Name,\n  addOnId: extractedData.addOn || 'NONE',\n  addOnName: addOnData.Name || 'No Add-on',\n  basePrice,\n  addOnPrice\n});\n\nreturn [{\n  json: {\n    success: true,\n    message: `Great! '${drinkData.Name}' with '${addOnData?.Name || 'No Add-on'}' has been added to your cart.`,\n    code: 'ORDER_ADDED_TO_CART',\n    cartItem,\n    pricing: {\n      basePrice,\n      addOnPrice,\n      totalPrice: cartItem.totalPrice\n    },\n    senderId\n  }\n}];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        740,
+        680,
         1480
       ],
       "id": "0fd13cfb-c98a-414a-ad9c-8fd71d5e993e",
@@ -1082,7 +1082,7 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        100,
+        120,
         1480
       ],
       "id": "58c39583-cb18-45ac-8a03-097170f0e684",
@@ -1161,6 +1161,110 @@
       ],
       "id": "77800f66-04a6-482e-bce7-cd3715443d08",
       "name": "Select Size Prompt"
+    },
+    {
+      "parameters": {
+        "collection": "Menu",
+        "options": {},
+        "query": "={\n  \"ProductID\": \"{{ $json.Bite }}\"\n}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -120,
+        1220
+      ],
+      "id": "1bf08cdf-9d3d-4631-91f9-f7881f541694",
+      "name": "fetch bites",
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{$json.senderId}}\"\n  },\n  \"message\": {\n    \"text\": \"{{ $json.message }}\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        1480
+      ],
+      "id": "6dff43b5-05f3-4528-8f2c-8595f16274ca",
+      "name": "Item Added to Cart Message"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Popular\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"Most ordered right now.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Popular\",\n                \"payload\": \"VIEW_POPULAR\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Must Try! Fruit Teas\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"This is FRUIT TEAS category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View FRUIT TEAS category\",\n                \"payload\": \"VIEW_FT\"\n              }\n            ]\n          },\n{\n            \"title\": \"Must Try! Milk Teas\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"This is MILK TEAS category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View MILK TEAS category\",\n                \"payload\": \"VIEW_MT\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Must Try! Signatures\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+3\",\n            \"subtitle\": \"This is SIGNATURES category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Signatures\",\n                \"payload\": \"VIEW_SIGNATURES\"\n              }\n            ]\n          },\n{\n            \"title\": \"Bites\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"This is BITES category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Bites\",\n                \"payload\": \"VIEW_BITES\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1060,
+        1480
+      ],
+      "id": "8c7447c6-bc46-4457-9635-46dc59f4bbbc",
+      "name": "Menu Gallery2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"button\",\n        \"text\": \"You can view or checkout your cart anytime:\",\n        \"buttons\": [\n          {\n            \"type\": \"postback\",\n            \"title\": \"View Cart\",\n            \"payload\": \"VIEW_CART\"\n          }\n        ]\n      }\n    }\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1260,
+        1480
+      ],
+      "id": "d6ee227e-7ddf-4fda-8c0d-54d03eb1dd4a",
+      "name": "View Cart Button"
     }
   ],
   "pinData": {},
@@ -1445,6 +1549,11 @@
             "node": "fetch add-on",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "fetch bites",
+            "type": "main",
+            "index": 0
           }
         ]
       ]
@@ -1503,13 +1612,57 @@
           }
         ]
       ]
+    },
+    "fetch bites": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "validate stock & cart": {
+      "main": [
+        [
+          {
+            "node": "Item Added to Cart Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Item Added to Cart Message": {
+      "main": [
+        [
+          {
+            "node": "Menu Gallery2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Menu Gallery2": {
+      "main": [
+        [
+          {
+            "node": "View Cart Button",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "b31b0490-4b59-4f6d-8f24-43ba5c20222e",
+  "versionId": "318113d2-3319-430d-9155-49020dd0f1c6",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "e55ad63998dbff63a27e8a719a0f75ec990732ee36c99c049c4be96c65a0b3c2"
