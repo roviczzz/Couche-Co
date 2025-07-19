@@ -1,0 +1,532 @@
+[{
+  "_id": {
+    "$oid": "6877071c1ec987b69ec2349e"
+  },
+  "ProductID": "MT-TAR",
+  "Name": "Taro",
+  "Sizes": [
+    {
+      "Size": "16oz",
+      "BasePrice": 45
+    },
+    {
+      "Size": "22oz",
+      "BasePrice": 55
+    }
+  ],
+  "Quantity": 32,
+  "Ingredients": [
+    "ING-CREAMER",
+    "ING-TEA",
+    "ING-TARO"
+  ],
+  "Category": "Milktea",
+  "Allergen": null,
+  "IsEnabled": true
+},
+{
+  "_id": {
+    "$oid": "6877071c1ec987b69ec2349f"
+  },
+  "ProductID": "MT-MAT",
+  "Name": "Matcha",
+  "Sizes": [
+    {
+      "Size": "16oz",
+      "BasePrice": 45
+    },
+    {
+      "Size": "22oz",
+      "BasePrice": 55
+    }
+  ],
+  "Quantity": 32,
+  "Ingredients": [
+    "ING-CREAMER",
+    "ING-TEA",
+    "ING-MATCHA"
+  ],
+  "Category": "Milktea",
+  "Allergen": null,
+  "IsEnabled": true
+},
+{
+  "_id": {
+    "$oid": "6877071c1ec987b69ec234a0"
+  },
+  "ProductID": "MT-OKI",
+  "Name": "Okinawa",
+  "Sizes": [
+    {
+      "Size": "16oz",
+      "BasePrice": 45
+    },
+    {
+      "Size": "22oz",
+      "BasePrice": 55
+    }
+  ],
+  "Quantity": 32,
+  "Ingredients": [
+    "ING-CREAMER",
+    "ING-TEA",
+    "ING-OKINAWA"
+  ],
+  "Category": "Milktea",
+  "Allergen": null,
+  "IsEnabled": true
+},
+{
+  "_id": {
+    "$oid": "6877071c1ec987b69ec234a1"
+  },
+  "ProductID": "MT-DAL",
+  "Name": "Dalgona",
+  "Sizes": [
+    {
+      "Size": "16oz",
+      "BasePrice": 45
+    },
+    {
+      "Size": "22oz",
+      "BasePrice": 55
+    }
+  ],
+  "Quantity": 32,
+  "Ingredients": [
+    "ING-CREAMER",
+    "ING-TEA",
+    "ING-DALGONA"
+  ],
+  "Category": "Milktea",
+  "Allergen": null,
+  "IsEnabled": true
+},
+{
+  "_id": {
+    "$oid": "6877071c1ec987b69ec234a2"
+  },
+  "ProductID": "MT-HER",
+  "Name": "Hershey's",
+  "Sizes": [
+    {
+      "Size": "16oz",
+      "BasePrice": 45
+    },
+    {
+      "Size": "22oz",
+      "BasePrice": 55
+    }
+  ],
+  "Quantity": 32,
+  "Ingredients": [
+    "ING-CREAMER",
+    "ING-TEA",
+    "ING-HERHSEYS"
+  ],
+  "Category": "Milktea",
+  "Allergen": null,
+  "IsEnabled": true
+},
+{
+  "_id": {
+    "$oid": "6877071c1ec987b69ec234a3"
+  },
+  "ProductID": "MT-WIN",
+  "Name": "Wintermelon",
+  "Sizes": [
+    {
+      "Size": "16oz",
+      "BasePrice": 45
+    },
+    {
+      "Size": "22oz",
+      "BasePrice": 55
+    }
+  ],
+  "Quantity": 32,
+  "Ingredients": [
+    "ING-CREAMER",
+    "ING-TEA",
+    "ING-WINTER"
+  ],
+  "Category": "Milktea",
+  "Allergen": null,
+  "IsEnabled": true
+},
+{
+  "_id": {
+    "$oid": "6877071c1ec987b69ec234a4"
+  },
+  "ProductID": "MT-SCA",
+  "Name": "Salted Caramel",
+  "Sizes": [
+    {
+      "Size": "16oz",
+      "BasePrice": 45
+    },
+    {
+      "Size": "22oz",
+      "BasePrice": 55
+    }
+  ],
+  "Quantity": 32,
+  "Ingredients": [
+    "ING-CREAMER",
+    "ING-TEA",
+    "ING-SCPWDR"
+  ],
+  "Category": "Milktea",
+  "Allergen": null,
+  "IsEnabled": true
+},
+{
+  "_id": {
+    "$oid": "6877071c1ec987b69ec234a5"
+  },
+  "ProductID": "MT-CNC",
+  "Name": "Cookies 'N Cream",
+  "Sizes": [
+    {
+      "Size": "16oz",
+      "BasePrice": 45
+    },
+    {
+      "Size": "22oz",
+      "BasePrice": 55
+    }
+  ],
+  "Quantity": 32,
+  "Ingredients": [
+    "ING-CREAMER",
+    "ING-TEA",
+    "ING-COOKNCR"
+  ],
+  "Category": "Milktea",
+  "Allergen": null,
+  "IsEnabled": true
+},
+{
+  "_id": {
+    "$oid": "6877071c1ec987b69ec234a6"
+  },
+  "ProductID": "MT-BFO",
+  "Name": "Black Forest",
+  "Sizes": [
+    {
+      "Size": "16oz",
+      "BasePrice": 45
+    },
+    {
+      "Size": "22oz",
+      "BasePrice": 55
+    }
+  ],
+  "Quantity": 32,
+  "Ingredients": [
+    "ING-CREAMER",
+    "ING-TEA",
+    "ING-BFOREST"
+  ],
+  "Category": "Milktea",
+  "Allergen": null,
+  "IsEnabled": true
+},
+{
+  "_id": {
+    "$oid": "6877071c1ec987b69ec234a7"
+  },
+  "ProductID": "CF-CAR",
+  "Name": "Caramel",
+  "Sizes": [
+    {
+      "Size": "16oz",
+      "BasePrice": 59
+    }
+  ],
+  "Quantity": 32,
+  "Ingredients": [
+    "ING-ESP",
+    "ING-MILK",
+    "ING-CARMEL"
+  ],
+  "Category": "Coffee",
+  "Allergen": null,
+  "IsEnabled": true
+},
+{
+  "_id": {
+    "$oid": "6877071c1ec987b69ec234a8"
+  },
+  "ProductID": "CF-HAZ",
+  "Name": "Hazelnut",
+  "Sizes": [
+    {
+      "Size": "16oz",
+      "BasePrice": 59
+    }
+  ],
+  "Quantity": 32,
+  "Ingredients": [
+    "ING-ESP",
+    "ING-MILK",
+    "ING-HAZEL"
+  ],
+  "Category": "Coffee",
+  "Allergen": "Peanut",
+  "IsEnabled": true
+},
+{
+  "_id": {
+    "$oid": "6877071c1ec987b69ec234a9"
+  },
+  "ProductID": "CF-TON",
+  "Name": "Toffee Nut",
+  "Sizes": [
+    {
+      "Size": "16oz",
+      "BasePrice": 59
+    }
+  ],
+  "Quantity": 32,
+  "Ingredients": [
+    "ING-ESP",
+    "ING-MILK",
+    "ING-TOFF"
+  ],
+  "Category": "Coffee",
+  "Allergen": "Peanut",
+  "IsEnabled": true
+},
+{
+  "_id": {
+    "$oid": "6877071c1ec987b69ec234aa"
+  },
+  "ProductID": "CF-MAC",
+  "Name": "Macademia Nut",
+  "Sizes": [
+    {
+      "Size": "16oz",
+      "BasePrice": 59
+    }
+  ],
+  "Quantity": 32,
+  "Ingredients": [
+    "ING-ESP",
+    "ING-MILK",
+    "ING-MACAD"
+  ],
+  "Category": "Coffee",
+  "Allergen": "Peanut",
+  "IsEnabled": true
+},
+{
+  "_id": {
+    "$oid": "6877071c1ec987b69ec234ab"
+  },
+  "ProductID": "CF-SPL",
+  "Name": "Spanish Latte",
+  "Sizes": [
+    {
+      "Size": "16oz",
+      "BasePrice": 59
+    }
+  ],
+  "Quantity": 32,
+  "Ingredients": [
+    "ING-ESP",
+    "ING-MILK",
+    "ING-COND"
+  ],
+  "Category": "Coffee",
+  "Allergen": null,
+  "IsEnabled": true
+},
+{
+  "_id": {
+    "$oid": "6877071c1ec987b69ec234ac"
+  },
+  "ProductID": "CF-SCA",
+  "Name": "Salted Caramel",
+  "Sizes": [
+    {
+      "Size": "16oz",
+      "BasePrice": 59
+    }
+  ],
+  "Quantity": 32,
+  "Ingredients": [
+    "ING-ESP",
+    "ING-MILK",
+    "ING-SCARMEL"
+  ],
+  "Category": "Coffee",
+  "Allergen": null,
+  "IsEnabled": true
+},
+{
+  "_id": {
+    "$oid": "6877071c1ec987b69ec234ad"
+  },
+  "ProductID": "CF-WCH",
+  "Name": "White Chocolate",
+  "Sizes": [
+    {
+      "Size": "16oz",
+      "BasePrice": 59
+    }
+  ],
+  "Quantity": 32,
+  "Ingredients": [
+    "ING-ESP",
+    "ING-MILK",
+    "ING-WCH"
+  ],
+  "Category": "Coffee",
+  "Allergen": null,
+  "IsEnabled": true
+},
+{
+  "_id": {
+    "$oid": "6877071c1ec987b69ec234ae"
+  },
+  "ProductID": "FT-STR",
+  "Name": "Strawberry",
+  "Sizes": [
+    {
+      "Size": "22oz",
+      "BasePrice": 39
+    }
+  ],
+  "Quantity": 32,
+  "Ingredients": [
+    "ING-WAT",
+    "ING-TEA",
+    "ING-STRAW"
+  ],
+  "Category": "Fruit Tea",
+  "Allergen": null,
+  "IsEnabled": true
+},
+{
+  "_id": {
+    "$oid": "6877071c1ec987b69ec234af"
+  },
+  "ProductID": "FT-GAP",
+  "Name": "Green Apple",
+  "Sizes": [
+    {
+      "Size": "22oz",
+      "BasePrice": 39
+    }
+  ],
+  "Quantity": 32,
+  "Ingredients": [
+    "ING-WAT",
+    "ING-TEA",
+    "ING-GREENAPP"
+  ],
+  "Category": "Fruit Tea",
+  "Allergen": null,
+  "IsEnabled": true
+},
+{
+  "_id": {
+    "$oid": "6877071c1ec987b69ec234b0"
+  },
+  "ProductID": "FT-MAN",
+  "Name": "Mango",
+  "Sizes": [
+    {
+      "Size": "22oz",
+      "BasePrice": 39
+    }
+  ],
+  "Quantity": 32,
+  "Ingredients": [
+    "ING-WAT",
+    "ING-TEA",
+    "ING-MANGO"
+  ],
+  "Category": "Fruit Tea",
+  "Allergen": null,
+  "IsEnabled": true
+},
+{
+  "_id": {
+    "$oid": "6877071c1ec987b69ec234b1"
+  },
+  "ProductID": "FT-PAF",
+  "Name": "Passion Fruit",
+  "Sizes": [
+    {
+      "Size": "22oz",
+      "BasePrice": 39
+    }
+  ],
+  "Quantity": 32,
+  "Ingredients": [
+    "ING-WAT",
+    "ING-TEA",
+    "ING-PASSFRUIT"
+  ],
+  "Category": "Fruit Tea",
+  "Allergen": null,
+  "IsEnabled": true
+},
+{
+  "_id": {
+    "$oid": "6877071c1ec987b69ec234b2"
+  },
+  "ProductID": "BK-CUP",
+  "Name": "Cupcake",
+  "Sizes": [],
+  "BasePrice": 25,
+  "Quantity": 32,
+  "Ingredients": [],
+  "Category": "Pastries",
+  "Allergen": null,
+  "IsEnabled": true
+},
+{
+  "_id": {
+    "$oid": "6877071c1ec987b69ec234b3"
+  },
+  "ProductID": "BK-CRN",
+  "Name": "Crinkles",
+  "Sizes": [],
+  "BasePrice": 15,
+  "Quantity": 32,
+  "Ingredients": [],
+  "Category": "Pastries",
+  "Allergen": null,
+  "IsEnabled": true
+},
+{
+  "_id": {
+    "$oid": "6877071c1ec987b69ec234b4"
+  },
+  "ProductID": "BK-COO",
+  "Name": "Cookies",
+  "Sizes": [],
+  "BasePrice": 20,
+  "Quantity": 32,
+  "Ingredients": [],
+  "Category": "Pastries",
+  "Allergen": null,
+  "IsEnabled": true
+},
+{
+  "_id": {
+    "$oid": "6877071c1ec987b69ec234b5"
+  },
+  "ProductID": "BK-WAF",
+  "Name": "Waffles",
+  "Sizes": [],
+  "BasePrice": 120,
+  "Quantity": 32,
+  "Ingredients": [],
+  "Category": "Pastries",
+  "Allergen": null,
+  "IsEnabled": true
+}]
