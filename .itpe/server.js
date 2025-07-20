@@ -1,4 +1,5 @@
 const express = require('express');
+const session = require('express-session');
 const { MongoClient } = require('mongodb');
 const { check, validationResult } = require('express-validator');
 const expressLayouts = require('express-ejs-layouts');
@@ -6,12 +7,28 @@ const app = express();
 const port = 8080;
 const uri = 'mongodb+srv://CoucheAdmin:couchemongo2025!@bsit.dhojcct.mongodb.net/';
 
+app.use(
+  session({
+    secret: '4eaf42844a1772cb12e90869666b3a929f785d5bbd6d0fc5402c95ebc8721c3bca4ac502cc2fa7ec8abcbec042202876',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false }
+  })
+);
+
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/views');
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(__dirname + '/public'));
 app.use(expressLayouts);
 app.set('layout', 'layout');
+
+function isLoggedIn(req, res, next) {
+  if (req.session.user) {
+    return next();
+  }
+  res.redirect('/account/login');
+}
 
 app.get('/', async (req, res) => {
   try {
@@ -69,6 +86,10 @@ app.post(
           layout: false
         });
       }
+      req.session.user = {
+        username: user.username,
+        email: user.email
+      };
       res.redirect('/admin/dashboard');
     } catch (err) {
       res.status(500).send('Internal Server Error');
@@ -80,14 +101,19 @@ app.get('/account/register', (req, res) => {
   res.render('register', { errors: {}, formData: {}, error: null, layout: false });
 });
 
-app.get('/admin/dashboard', (req, res) => {
-  res.render('dashboard', { title: 'Admin Dashboard' });
+app.get('/admin/dashboard', isLoggedIn, (req, res) => {
+  res.render('dashboard', { title: 'Admin Dashboard', user: req.session.user });
 });
 
 app.get('/menu', (req, res) => {
   res.render('menu'); 
 });
 
+app.get('/logout', (req, res) => {
+  req.session.destroy(() => {
+    res.redirect('/account/login');
+  });
+});
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
