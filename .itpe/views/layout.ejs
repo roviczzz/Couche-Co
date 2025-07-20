@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title><%= typeof title !== 'undefined' ? title : 'Blessings Cafe' %></title>
+    <link rel="stylesheet" href="/css/site.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background-color: #fff6f0;
+            color: #5a3e2b;
+        }
+
+        .header {
+            background-color: #D4A574;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #8B4513;
+        }
+
+        .logo-circle {
+            width: 40px;
+            height: 40px;
+            background-color: #8B4513;
+            border-radius: 50%;
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+
+        .search-container {
+            flex: 1;
+            max-width: 600px;
+            margin: 0 20px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 20px 12px 50px;
+            border: none;
+            border-radius: 25px;
+            background-color: white;
+            font-size: 16px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+
+        .notification {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            background-color: #8B4513;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #ff4444;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .wrapper {
+            display: flex;
+        }
+
+        .sidebar {
+            width: 220px;
+            padding: 20px;
+            background-color: #ffe4c4;
+            height: 100vh;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+            box-sizing: border-box; /* ensures width includes padding */
+        }
+
+        .sidebar h2 {
+            color: #a05c2f;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .sidebar ul li {
+            margin: 10px 0;
+        }
+
+        .sidebar ul li a {
+            text-decoration: none;
+            color: #5a3e2b;
+            font-weight: 500;
+            display: block;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        .sidebar ul li a:hover {
+            background-color: #fdd9b0;
+            color: #7a3f1c;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            background-color: #fff6f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <div class="logo-circle">C</div>
+            BLESSINGS<span style="font-style: italic;">Cafe</span>
+        </div>
+        <div class="search-container">
+            <div class="search-icon">🔍</div>
+            <input type="text" class="search-input" placeholder="Search">
+        </div>
+        <div class="notification">
+            🔔
+            <div class="notification-badge">1</div>
+        </div>
+    </div>
+
+    <div class="wrapper">
+        <div class="sidebar">
+            <h2>My Menu</h2>
+            <ul>
+                <li><a href="/admin/dashboard">🏠 Home</a></li>
+                <li><a href="/menu">📋 Menu</a></li>
+                <li><a href="#">📦 Orders</a></li>
+                <li><a href="#">📦 Stocks</a></li>
+                <li><a href="#">🛒 Products</a></li>
+                <li><a href="#">📊 Analytics</a></li>
+                <li><a href="#">🏷️ Discounts</a></li>
+                <li><a href="#">🛠️ Management</a></li>
+                <li><a href="#">⚙️ Settings</a></li>
+                <li><a href="/account/logout">🚪 Logout</a></li>
+            </ul>
+        </div>
+        <div class="main-content">
+            <%- body %>
+        </div>
+    </div>
+</body>
+</html>

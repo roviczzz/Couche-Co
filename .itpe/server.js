@@ -84,6 +84,11 @@ app.get('/admin/dashboard', (req, res) => {
   res.render('dashboard', { title: 'Admin Dashboard' });
 });
 
+app.get('/menu', (req, res) => {
+  res.render('menu'); 
+});
+
+
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
