@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SmartCafe_BlessingsCafe")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3cbd11dc2f5fcb38e57139b7722a6629bd21623d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9dacb645f75165e2447e19b5d65f59f541d0e190")]
 [assembly: System.Reflection.AssemblyProductAttribute("SmartCafe_BlessingsCafe")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SmartCafe_BlessingsCafe")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
