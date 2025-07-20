@@ -105,9 +105,20 @@ app.get('/admin/dashboard', isLoggedIn, (req, res) => {
   res.render('dashboard', { title: 'Admin Dashboard', user: req.session.user });
 });
 
-app.get('/menu', (req, res) => {
-  res.render('menu'); 
+app.get('/menu', async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const menuCollection = db.collection('Menu');
+    const menuItems = await menuCollection.find().toArray();
+    await client.close();
+    res.render('menu', { menuItems });   
+  } catch (err) {
+    res.status(500).send('Internal Server Error');
+  }
 });
+
+
 
 app.get('/logout', (req, res) => {
   req.session.destroy(() => {

@@ -1,183 +1,153 @@
+<%
+  // Group menuItems by category at the very top of your EJS file
+  const grouped = {};
+  menuItems.forEach(item => {
+    if (!grouped[item.Category]) grouped[item.Category] = [];
+    grouped[item.Category].push(item);
+  });
+%>
 <div class="main-container">
-    <div class="content">
-        <div class="promo-banner">Buy 3 for 143</div>
-        <div class="section-title">Coffee</div>
-        <div class="products-grid">
-            <% const coffeeItems = [
-                {name: 'White Chocolate', price: 89.00},
-                {name: 'Caramel Macchiato', price: 79.00},
-                {name: 'Salted Caramel', price: 89.00},
-                {name: 'Almond', price: 79.00}
-            ]; %>
-            <% coffeeItems.forEach(item => { %>
-            <div class="product-card" onclick="addToOrder('<%= item.name %>', <%= item.price %>)">
-                <div class="product-image">200x200 Image</div>
-                <div class="product-name"><%= item.name %></div>
-                <div class="product-price">₱ <%= item.price.toFixed(2) %></div>
-            </div>
-            <% }); %>
-        </div>
-        <div class="section-title">Milktea</div>
-        <div class="products-grid">
-            <% const milkteaItems = [
-                {name: 'Classic Milktea', price: 69.00},
-                {name: 'Matcha', price: 79.00},
-                {name: 'Cookies and cream', price: 69.00},
-                {name: 'Dalgona', price: 89.00}
-            ]; %>
-            <% milkteaItems.forEach(item => { %>
-            <div class="product-card" onclick="addToOrder('<%= item.name %>', <%= item.price %>)">
-                <div class="product-image">200x200 Image</div>
-                <div class="product-name"><%= item.name %></div>
-                <div class="product-price">₱ <%= item.price.toFixed(2) %></div>
-            </div>
-            <% }); %>
-        </div>
-        <div class="section-title">Pastries</div>
-        <div class="products-grid">
-            <% const pastryItems = [
-                {name: 'Chocolate Chip Cookie', price: 45.00},
-                {name: 'Brownie', price: 65.00},
-                {name: 'Muffin', price: 55.00}
-            ]; %>
-            <% pastryItems.forEach(item => { %>
-            <div class="product-card" onclick="addToOrder('<%= item.name %>', <%= item.price %>)">
-                <div class="product-image">200x200 Image</div>
-                <div class="product-name"><%= item.name %></div>
-                <div class="product-price">₱ <%= item.price.toFixed(2) %></div>
-            </div>
-            <% }); %>
-        </div>
+  <div class="content">
+    <div class="promo-banner">Buy 3 for 143</div>
+    <% Object.keys(grouped).forEach(category => { %>
+      <div class="section-title"><%= category %></div>
+      <div class="products-grid">
+        <% grouped[category].forEach(item => { %>
+          <div class="product-card">
+            <div class="product-image">200x200 Image</div>
+            <div class="product-name"><%= item.Name %></div>
+            <% if (item.Sizes && item.Sizes.length > 0) { %>
+              <% item.Sizes.forEach(sizeObj => { %>
+                <div class="product-size">
+                  <span>Size: <%= sizeObj.Size %></span>
+                  <span>₱ <%= Number(sizeObj.BasePrice).toFixed(2) %></span>
+                  <button onclick="addToOrder('<%= item.Name %>', <%= sizeObj.BasePrice %>, '<%= sizeObj.Size %>')">Add</button>
+                </div>
+              <% }) %>
+            <% } else { %>
+              <div class="product-price">
+                ₱ <%= Number(item.BasePrice).toFixed(2) %>
+                <button onclick="addToOrder('<%= item.Name %>', <%= item.BasePrice %>)">Add</button>
+              </div>
+            <% } %>
+          </div>
+        <% }) %>
+      </div>
+    <% }) %>
+  </div>
+  <div class="summary-panel">
+    <div class="summary-title">Summary</div>
+    <div id="order-items"></div>
+    <div class="summary-totals">
+      <div class="total-row">
+        <span>Subtotal</span>
+        <span id="subtotal">₱ 00.00</span>
+      </div>
+      <div class="total-row">
+        <span>Tax</span>
+        <span id="tax">₱ 00.00</span>
+      </div>
+      <div class="total-row final">
+        <span>Total</span>
+        <span id="total">₱ 00.00</span>
+      </div>
     </div>
-    <div class="summary-panel">
-            <div class="summary-title">Summary</div>
-            
-            <div id="order-items">
-            </div>
-
-            <div class="summary-totals">
-                <div class="total-row">
-                    <span>Subtotal</span>
-                    <span id="subtotal">₱ 00.00</span>
-                </div>
-                <div class="total-row">
-                    <span>Tax</span>
-                    <span id="tax">₱ 00.00</span>
-                </div>
-                <div class="total-row final">
-                    <span>Total</span>
-                    <span id="total">₱ 00.00</span>
-                </div>
-            </div>
-
-            <div class="payment-section">
-                <div class="payment-title">Payment Method</div>
-                <div class="payment-options">
-                    <div class="payment-option selected" onclick="selectPayment('cash')">
-                        <span>Pay by Cash</span>
-                        <div class="payment-check">✓</div>
-                    </div>
-                    <div class="payment-option" onclick="selectPayment('epayment')">
-                        <span>E-Payment</span>
-                        <div class="payment-check" style="background-color: #ddd;"></div>
-                    </div>
-                </div>
-                <button class="proceed-btn">Proceed Order</button>
-            </div>
+    <div class="payment-section">
+      <div class="payment-title">Payment Method</div>
+      <div class="payment-options">
+        <div class="payment-option selected" onclick="selectPayment('cash')">
+          <span>Pay by Cash</span>
+          <div class="payment-check">✓</div>
         </div>
+        <div class="payment-option" onclick="selectPayment('epayment')">
+          <span>E-Payment</span>
+          <div class="payment-check" style="background-color: #ddd;"></div>
+        </div>
+      </div>
+      <button class="proceed-btn">Proceed Order</button>
     </div>
+  </div>
 </div>
 
+
 <script>
-        let orderItems = [];
-
-        function updateSummary() {
-            let subtotal = 0;
-            orderItems.forEach(item => {
-                subtotal += item.price * item.quantity;
-            });
-            
-            const tax = subtotal * 0.12;
-            const total = subtotal + tax;
-            
-            document.getElementById('subtotal').textContent = `₱ ${subtotal.toFixed(2)}`;
-            document.getElementById('tax').textContent = `₱ ${tax.toFixed(2)}`;
-            document.getElementById('total').textContent = `₱ ${total.toFixed(2)}`;
-        }
-
-        function addItem(index) {
-            orderItems[index].quantity++;
-            document.querySelectorAll('.quantity')[index].textContent = `${orderItems[index].quantity}x`;
-            updateSummary();
-        }
-
-        function removeItem(index) {
-            if (orderItems[index].quantity > 1) {
-                orderItems[index].quantity--;
-            } else {
-                orderItems.splice(index, 1);
-            }
-            renderOrderItems();
-            updateSummary();
-        }
-
-
-        function addToOrder(name, price) {
-            const existingItem = orderItems.find(item => item.name === name);
-            if (existingItem) {
-                existingItem.quantity++;
-            } else {
-                orderItems.push({name: name, price: price, quantity: 1});
-            }
-            renderOrderItems();
-            updateSummary();
-        }
-
-        function renderOrderItems() {
-            const container = document.getElementById('order-items');
-            container.innerHTML = '';
-            
-            orderItems.forEach((item, index) => {
-                const itemHTML = `
-                    <div class="order-item">
-                        <button class="quantity-btn remove-btn" onclick="removeItem(${index})">-</button>
-                        <div class="quantity">${item.quantity}x</div>
-                        <button class="quantity-btn add-btn" onclick="addItem(${index})">+</button>
-                        <div class="item-details">
-                            <div class="item-name">${item.name}</div>
-                            <div class="item-price">₱ ${item.price.toFixed(2)}</div>
-                        </div>
-                    </div>
-                `;
-                container.innerHTML += itemHTML;
-            });
-        }
-
-        function selectPayment(method) {
-            const options = document.querySelectorAll('.payment-option');
-            options.forEach(option => {
-                option.classList.remove('selected');
-                const check = option.querySelector('.payment-check');
-                check.style.backgroundColor = '#ddd';
-                check.textContent = '';
-            });
-            
-            if (method === 'cash') {
-                options[0].classList.add('selected');
-                const check = options[0].querySelector('.payment-check');
-                check.style.backgroundColor = '#4CAF50';
-                check.textContent = '✓';
-            } else {
-                options[1].classList.add('selected');
-                const check = options[1].querySelector('.payment-check');
-                check.style.backgroundColor = '#4CAF50';
-                check.textContent = '✓';
-            }
-        }
-    </script>
+let orderItems = [];
+function updateSummary() {
+  let subtotal = 0;
+  orderItems.forEach(item => {
+    subtotal += item.price * item.quantity;
+  });
+  const tax = subtotal * 0.12;
+  const total = subtotal + tax;
+  document.getElementById('subtotal').textContent = `₱ ${subtotal.toFixed(2)}`;
+  document.getElementById('tax').textContent = `₱ ${tax.toFixed(2)}`;
+  document.getElementById('total').textContent = `₱ ${total.toFixed(2)}`;
+}
+function addItem(index) {
+  orderItems[index].quantity++;
+  document.querySelectorAll('.quantity')[index].textContent = `${orderItems[index].quantity}x`;
+  updateSummary();
+}
+function removeItem(index) {
+  if (orderItems[index].quantity > 1) {
+    orderItems[index].quantity--;
+  } else {
+    orderItems.splice(index, 1);
+  }
+  renderOrderItems();
+  updateSummary();
+}
+function addToOrder(name, price) {
+  const existingItem = orderItems.find(item => item.name === name);
+  if (existingItem) {
+    existingItem.quantity++;
+  } else {
+    orderItems.push({name: name, price: price, quantity: 1});
+  }
+  renderOrderItems();
+  updateSummary();
+}
+function renderOrderItems() {
+  const container = document.getElementById('order-items');
+  container.innerHTML = '';
+  orderItems.forEach((item, index) => {
+    const itemHTML = `
+      <div class="order-item">
+        <button class="quantity-btn remove-btn" onclick="removeItem(${index})">-</button>
+        <div class="quantity">${item.quantity}x</div>
+        <button class="quantity-btn add-btn" onclick="addItem(${index})">+</button>
+        <div class="item-details">
+          <div class="item-name">${item.name}</div>
+          <div class="item-price">₱ ${item.price.toFixed(2)}</div>
+        </div>
+      </div>
+    `;
+    container.innerHTML += itemHTML;
+  });
+}
+function selectPayment(method) {
+  const options = document.querySelectorAll('.payment-option');
+  options.forEach(option => {
+    option.classList.remove('selected');
+    const check = option.querySelector('.payment-check');
+    check.style.backgroundColor = '#ddd';
+    check.textContent = '';
+  });
+  if (method === 'cash') {
+    options[0].classList.add('selected');
+    const check = options[0].querySelector('.payment-check');
+    check.style.backgroundColor = '#4CAF50';
+    check.textContent = '✓';
+  } else {
+    options[1].classList.add('selected');
+    const check = options[1].querySelector('.payment-check');
+    check.style.backgroundColor = '#4CAF50';
+    check.textContent = '✓';
+  }
+}
+</script>
 
 <style>
-
 .main-container { display: flex; min-height: calc(100vh - 70px); }
 .content { flex: 1; padding: 20px; background-color: #f0f0f0; }
 .promo-banner { background-color: #D4A574; color: #8B4513; padding: 10px 20px; border-radius: 25px; display: inline-block; margin-bottom: 20px; font-weight: bold; }
@@ -188,6 +158,7 @@
 .product-image { width: 200px; height: 200px; background-color: #999; border-radius: 10px; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; }
 .product-name { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 5px;}
 .product-price { font-size: 14px; color: #666;}
+.item-sizes { font-size: 13px; color: #7a4e2b; margin-top: 6px; }
 .summary-panel { width: 350px; background-color: white; padding: 20px; border-left: 1px solid #ddd; }
 .summary-title { font-size: 24px; font-weight: bold; margin-bottom: 20px; }
 .order-item { display: flex; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
