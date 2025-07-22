@@ -321,6 +321,92 @@ app.get('/edit-product/:id', isLoggedIn, async (req, res) => {
   }
 });
 
+
+
+
+
+// 🔎 Load Ingredients
+app.get('/stocks', async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const ingredients = await db.collection('Ingredients').find().toArray();
+    await client.close();
+    res.render('stocks', { ingredients });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Failed to load ingredients');
+  }
+});
+
+// ➕ Add Ingredient
+app.post('/stocks', async (req, res) => {
+  const { IngredientID, Name, Quantity, Category, Allergen, isEnabled } = req.body;
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    await db.collection('Ingredients').insertOne({
+      IngredientID,
+      Name,
+      Quantity: parseInt(Quantity),
+      Category,
+      Allergen,
+      isEnabled: isEnabled === 'true'
+    });
+    await client.close();
+    res.redirect('/stocks');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Failed to add ingredient');
+  }
+});
+
+// ✏️ Edit Ingredient
+app.post('/stocks/edit/:id', async (req, res) => {
+  const id = req.params.id;
+  const { IngredientID, Name, Quantity, Category, Allergen, isEnabled } = req.body;
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    await db.collection('Ingredients').updateOne(
+      { _id: new ObjectId(id) },
+      {
+        $set: {
+          IngredientID,
+          Name,
+          Quantity: parseInt(Quantity),
+          Category,
+          Allergen,
+          isEnabled: isEnabled === 'true'
+        }
+      }
+    );
+    await client.close();
+    res.redirect('/stocks');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Failed to update ingredient');
+  }
+});
+
+// ❌ Delete Ingredient
+app.post('/stocks/delete/:id', async (req, res) => {
+  const id = req.params.id;
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    await db.collection('Ingredients').deleteOne({ _id: new ObjectId(id) });
+    await client.close();
+    res.redirect('/stocks');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Failed to delete ingredient');
+  }
+});
+
+
+
+
 app.get('/logout', (req, res) => {
   req.session.destroy(() => {
     res.redirect('/account/login');

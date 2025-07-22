@@ -1,0 +1,166 @@
+<div class="stocks-container">
+  <h2>Ingredient Inventory</h2>
+
+  
+
+  <!-- Add Ingredient Form -->
+  <form action="/stocks" method="POST" class="stocks-form-add">
+    <input type="text" name="IngredientID" placeholder="Ingredient ID" required>
+    <input type="text" name="Name" placeholder="Name" required>
+    <input type="number" name="Quantity" placeholder="Quantity" required>
+    <input type="text" name="Category" placeholder="Category" required>
+    <input type="text" name="Allergen" placeholder="Allergen" required>
+    <select name="isEnabled" required>
+      <option value="true">Enabled</option>
+      <option value="false">Disabled</option>
+    </select>
+    <button type="submit" class="stocks-add-btn">Add Ingredient</button>
+  </form>
+
+  <!-- Ingredient Table -->
+  <table class="stocks-table">
+    <thead>
+      <tr>
+        <th>Ingredient ID</th>
+        <th>Name</th>
+        <th>Quantity</th>
+        <th>Category</th>
+        <th>Allergen</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (ingredients.length === 0) { %>
+        <tr><td colspan="7" class="stocks-center">No ingredients found.</td></tr>
+      <% } else { %>
+        <% ingredients.forEach(i => { %>
+          <tr>
+            <form action="/stocks/edit/<%= i._id %>" method="POST">
+              <td><input type="text" name="IngredientID" value="<%= i.IngredientID %>" required></td>
+              <td><input type="text" name="Name" value="<%= i.Name %>" required></td>
+              <td><input type="number" name="Quantity" value="<%= i.Quantity %>" required></td>
+              <td><input type="text" name="Category" value="<%= i.Category %>" required></td>
+              <td><input type="text" name="Allergen" value="<%= i.Allergen %>" required></td>
+              <td>
+                <select name="isEnabled" required>
+                  <option value="true" <%= i.isEnabled ? 'selected' : '' %>>Enabled</option>
+                  <option value="false" <%= !i.isEnabled ? 'selected' : '' %>>Disabled</option>
+                </select>
+              </td>
+              <td>
+                <button type="submit" class="stocks-btn update">Update</button>
+            </form>
+            <form action="/stocks/delete/<%= i._id %>" method="POST" style="display:inline;">
+              <button type="submit" onclick="return confirm('Are you sure?')" class="stocks-btn delete">Delete</button>
+            </form>
+              </td>
+          </tr>
+        <% }) %>
+      <% } %>
+    </tbody>
+  </table>
+</div>
+
+<!-- Scoped CSS -->
+<style>
+  .stocks-container {
+    background: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    max-width: 1900px;
+    margin: 30px auto;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    font-family: 'Segoe UI', sans-serif;
+  }
+
+  .stocks-container h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #5a3921;
+  }
+
+
+  .stocks-form-add {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 30px;
+  }
+
+  .stocks-form-add input,
+  .stocks-form-add select {
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    width: 160px;
+  }
+
+  .stocks-add-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.3s ease;
+  }
+
+  .stocks-add-btn:hover {
+    background-color: #218838;
+  }
+
+  .stocks-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .stocks-table th, .stocks-table td {
+    text-align: center;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .stocks-table th {
+    background-color: #7a4e2b;
+    color: white;
+  }
+
+  .stocks-table input[type="text"],
+  .stocks-table input[type="number"],
+  .stocks-table select {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+
+  .stocks-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-size: 13px;
+    cursor: pointer;
+    margin: 2px;
+  }
+
+  .stocks-btn.update {
+    background-color: #28a745;
+  }
+
+  .stocks-btn.delete {
+    background-color: #dc3545;
+  }
+
+  .stocks-center {
+    text-align: center;
+    font-style: italic;
+    color: #999;
+  }
+</style>
+
+
