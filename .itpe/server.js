@@ -91,7 +91,7 @@ app.post(
         username: user.username,
         email: user.email
       };
-      res.redirect('/admin/dashboard');
+      res.redirect('/dashboard');
     } catch (err) {
       res.status(500).send('Internal Server Error');
     }
@@ -102,7 +102,7 @@ app.get('/account/register', (req, res) => {
   res.render('register', { errors: {}, formData: {}, error: null, layout: false });
 });
 
-app.get('/admin/dashboard', isLoggedIn, (req, res) => {
+app.get('/dashboard', isLoggedIn, (req, res) => {
   res.render('dashboard', { title: 'Admin Dashboard', user: req.session.user });
 });
 
