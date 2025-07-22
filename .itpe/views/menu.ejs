@@ -12,42 +12,22 @@
       <div class="section-title"><%= category %></div>
       <div class="products-grid">
         <% grouped[category].forEach(item => { %>
-          <div class="product-card">
+          <div tabindex="0" role="button" class="product-card" onclick='handleProductClick(<%= JSON.stringify(item) %>)'>
             <div class="product-image">
               <% if (item.imagelink && item.imagelink.length > 0) { %>
-                <img src="<%= item.imagelink %>" alt="<%= item.Name %>" style="width: 180px; height: 180px; object-fit: cover; border-radius: 12px;">
+                <img src="<%= item.imagelink %>" alt="<%= item.Name %>" style="width: 120px; height: 120px; object-fit: cover; border-radius: 12px;">
               <% } else { %>
-                <span style="display:inline-block;width:180px;height:180px;border-radius:12px;background:#999;line-height:180px;color:#fff;">No image</span>
+                <span style="display:inline-block;width:100px;height:100px;border-radius:12px;background:#999;line-height:100px;color:#fff;">No image</span>
               <% } %>
             </div>
             <div class="product-name"><%= item.Name %></div>
-            <% if (item.Sizes && item.Sizes.length > 0) { %>
-              <% item.Sizes.forEach(sizeObj => { %>
-                <div class="product-size">
-                  <span>₱ <%= Number(sizeObj.BasePrice).toFixed(2) %></span>
-                  <button
-                    class="add-btn-lg"
-                    data-name="<%= item.Name %>"
-                    data-price="<%= sizeObj.BasePrice %>"
-                    data-size="<%= sizeObj.Size %>"
-                    data-category="<%= item.Category %>"
-                    onclick="addToOrder(this.dataset.name, parseFloat(this.dataset.price), this.dataset.size, this.dataset.category)"
-                  >Add <%= sizeObj.Size %>
-                  </button>
-                </div>
-              <% }) %>
+            <% if (item.Sizes && item.Sizes.length === 1) { 
+              const sizeObj = item.Sizes[0]; %>
+              <div class="product-price">₱ <%= Number(sizeObj.BasePrice).toFixed(2) %></div>
+            <% } else if (!item.Sizes || item.Sizes.length === 0) { %>
+              <div class="product-price">₱ <%= Number(item.BasePrice).toFixed(2) %></div>
             <% } else { %>
-              <div class="product-price">
-                ₱ <%= Number(item.BasePrice).toFixed(2) %>
-                <button
-                  class="add-btn-lg"
-                  data-name="<%= item.Name %>"
-                  data-price="<%= item.BasePrice %>"
-                  data-size=""
-                  data-category="<%= item.Category %>"
-                  onclick="addToOrder(this.dataset.name, parseFloat(this.dataset.price), this.dataset.size || null, this.dataset.category)"
-                >Add</button>
-              </div>
+              <div class="product-price">Multiple sizes available</div>
             <% } %>
           </div>
         <% }) %>
@@ -84,6 +64,15 @@
   </div>
 </div>
 
+<!-- Size selection modal -->
+<div id="size-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;z-index:1000;">
+  <div style="background:white;padding:20px;border-radius:12px;min-width:300px;max-width:90vw;">
+    <h3 id="modal-product-name" style="margin-bottom:15px;"></h3>
+    <div id="size-options" style="display:flex;flex-wrap: wrap;gap:10px;"></div>
+    <button onclick="closeSizeModal()" style="margin-top:15px;padding:10px 20px;border:none;border-radius:8px;background:#D4A574;color:#fff;cursor:pointer;">Cancel</button>
+  </div>
+</div>
+
 <script>
 let orderItems = [];
 function updateSummary() {
@@ -115,7 +104,6 @@ function updateSummary() {
   const subtotal = promoTotalPrice + leftoverPrice + pastryTotal;
   document.getElementById('subtotal').textContent = `₱ ${subtotal.toFixed(2)}`;
   document.getElementById('total').textContent = `₱ ${subtotal.toFixed(2)}`;
-  const promoAmount = promoSets * (promoItemsExp.length > 0 ? (promoItemsExp.reduce((a,b) => a+b, 0) / promoItemsExp.length) * 3 - 143 : 0);
   const promoDiv = document.getElementById('promo-applied');
   if (!promoDiv) {
     if (promoSets > 0) {
@@ -152,7 +140,6 @@ function addToOrder(name, price, size = null, category = null) {
   renderOrderItems();
   updateSummary();
 }
-
 function addItem(index) {
   orderItems[index].quantity++;
   renderOrderItems();
@@ -207,6 +194,50 @@ function selectPayment(method) {
     check.textContent = '✓';
   }
 }
+
+function handleProductClick(item) {
+  if (item.Sizes && item.Sizes.length > 1) {
+    showSizeModal(item);
+  } else {
+    let size = null;
+    let price = item.BasePrice;
+    if (item.Sizes && item.Sizes.length === 1) {
+      size = item.Sizes[0].Size;
+      price = item.Sizes[0].BasePrice;
+    }
+    addToOrder(item.Name, price, size, item.Category);
+  }
+}
+
+function showSizeModal(item) {
+  const modal = document.getElementById('size-modal');
+  const productNameElem = document.getElementById('modal-product-name');
+  const optionsContainer = document.getElementById('size-options');
+  productNameElem.textContent = item.Name;
+  optionsContainer.innerHTML = '';
+
+  item.Sizes.forEach(sizeObj => {
+    const btn = document.createElement('button');
+    btn.textContent = `${sizeObj.Size} - ₱${Number(sizeObj.BasePrice).toFixed(2)}`;
+    btn.style.padding = '10px 15px';
+    btn.style.border = '1px solid #D4A574';
+    btn.style.borderRadius = '8px';
+    btn.style.background = '#fff6f0';
+    btn.style.cursor = 'pointer';
+    btn.onclick = () => {
+      addToOrder(item.Name, sizeObj.BasePrice, sizeObj.Size, item.Category);
+      closeSizeModal();
+    };
+    optionsContainer.appendChild(btn);
+  });
+
+  modal.style.display = 'flex';
+}
+
+function closeSizeModal() {
+  const modal = document.getElementById('size-modal');
+  modal.style.display = 'none';
+}
 </script>
 
 <style>
@@ -214,49 +245,52 @@ function selectPayment(method) {
 .content { flex: 1; padding: 20px; background-color: #f0f0f0; }
 .promo-banner { background-color: #D4A574; color: #8B4513; padding: 10px 20px; border-radius: 25px; display: inline-block; margin-bottom: 20px; font-weight: bold; }
 .section-title { font-size: 28px; color: #8B4513; margin-bottom: 20px; font-weight: bold; }
-.products-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 30px; margin-bottom: 30px; }
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
 .product-card {
   background-color: #fff;
-  border-radius: 15px;
-  padding: 18px 16px;
+  border-radius: 10px;
+  padding: 12px 8px;
   text-align: center;
-  cursor: pointer;
-  transition: box-shadow 0.2s;
-  box-shadow: 0 2px 8px rgba(120,80,40,0.07);
-  border: 1px solid #ece4db;
-  min-height: 315px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+  border: 1px solid #ddd;
+  min-height: 220px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: box-shadow 0.2s;
 }
-.product-card:hover { box-shadow: 0 6px 24px rgba(120,80,40,0.13); }
-.product-image { margin: 0 auto 14px; }
-.product-name { font-size: 17px; font-weight: bold; color: #5a3e2b; margin-bottom: 8px;}
+.product-card:hover {
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+}
+.product-image img {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+.product-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #5a3e2b;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .product-price,
 .product-size {
-  display: flex;
-  flex-direction: column;
-  align-items: center; 
-  gap: 2px;
-  margin-bottom: 15px;
+  font-size: 13px;
+  color: #7a5936;
+  margin-bottom: 6px;
 }
-.add-btn-lg {
-  display: inline-block;
-  font-size: 15.5px;
-  font-weight: bold;
-  min-width: 88px;
-  padding: 11px 20px;
-  border-radius: 20px;
-  margin-left: 8px;
-  margin-top: 7px;
-  border: none;
-  background-color: #D4A574;
-  color: white;
-  cursor: pointer;
-  transition: background 0.19s;
-}
-.add-btn-lg:hover { background-color: #B8956A; }
 .summary-panel { width: 350px; background-color: white; padding: 20px; border-left: 1px solid #ddd; }
 .summary-title { font-size: 24px; font-weight: bold; margin-bottom: 20px; }
 .order-item { display: flex; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #eee; }

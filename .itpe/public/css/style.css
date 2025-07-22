@@ -1,7 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
 
 body {
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Inter', sans-serif; /* Changed from Poppins to Inter */
     margin: 0;
     padding: 0;
     background-color: #fff6f0;
@@ -9,6 +9,7 @@ body {
     align-items: center;
     justify-content: center;
     height: 100vh;
+    letter-spacing: -0.5px;
 }
 
 .login-box {

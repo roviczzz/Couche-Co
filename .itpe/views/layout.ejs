@@ -5,10 +5,13 @@
     <title><%= typeof title !== 'undefined' ? title : 'Blessings Cafe' %></title>
     <link rel="stylesheet" href="/css/site.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+
     <style>
         body {
             margin: 0;
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Inter', sans-serif;
             background-color: #fff6f0;
             color: #5a3e2b;
         }
@@ -104,7 +107,9 @@
             background-color: #ffe4c4;
             height: 100vh;
             box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
-            box-sizing: border-box; /* ensures width includes padding */
+            box-sizing: border-box;
+            letter-spacing: -1px;
+            font-weight: 800;
         }
 
         .sidebar h2 {
@@ -147,12 +152,11 @@
 <body>
     <div class="header">
         <div class="logo">
-            <div class="logo-circle">C</div>
-            BLESSINGS<span style="font-style: italic;">Cafe</span>
+            <img src="./resources/logo.png" alt="Logo" />
         </div>
         <div class="search-container">
             <div class="search-icon">🔍</div>
-            <input type="text" class="search-input" placeholder="Search">
+            <input type="text" class="search-input" placeholder="Search" />
         </div>
         <div class="notification">
             🔔
@@ -162,18 +166,17 @@
 
     <div class="wrapper">
         <div class="sidebar">
-            <h2>My Menu</h2>
             <ul>
-                <li><a href="/admin/dashboard">🏠 Home</a></li>
-                <li><a href="/menu">📋 Menu</a></li>
-                <!-- <li><a href="#">📦 Orders</a></li> -->
-                <li><a href="#">📦 Stocks</a></li>
-                <li><a href="#">🛒 Products</a></li>
-                <!-- <li><a href="#">📊 Analytics</a></li>
-                <li><a href="#">🏷️ Discounts</a></li>
-                <li><a href="#">🛠️ Management</a></li>
-                <li><a href="#">⚙️ Settings</a></li> -->
-                <li><a href="/logout">🚪 Logout</a></li>
+  <li><a href="/dashboard"><i class="fa-solid fa-house"></i> Home</a></li>
+            <li><a href="/menu"><i class="fa-solid fa-list"></i> Menu</a></li>
+            <!-- <li><a href="#"><i class="fa-solid fa-box"></i> Orders</a></li> -->
+            <li><a href="#"><i class="fa-solid fa-warehouse"></i> Stocks</a></li>
+            <li><a href="#"><i class="fa-solid fa-cart-shopping"></i> Products</a></li>
+            <!-- <li><a href="#"><i class="fa-solid fa-chart-bar"></i> Analytics</a></li>
+            <li><a href="#"><i class="fa-solid fa-tags"></i> Discounts</a></li>
+            <li><a href="#"><i class="fa-solid fa-wrench"></i> Management</a></li>
+            <li><a href="#"><i class="fa-solid fa-gear"></i> Settings</a></li> -->
+            <li><a href="/logout"><i class="fa-solid fa-door-open"></i> Logout</a></li>
             </ul>
         </div>
         <div class="main-content">
