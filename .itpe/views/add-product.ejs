@@ -1,0 +1,121 @@
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+  * {
+    font-family: 'Inter', sans-serif;
+  }
+
+  .form-container {
+    max-width: 500px;
+    margin: 40px auto;
+    background-color: #fff;
+    padding: 25px 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+
+  .form-title {
+    text-align: left;
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 24px;
+    font-weight: bold;
+  }
+
+  .form-label {
+    display: block;
+    margin-top: 15px;
+    font-weight: bold;
+    color: #555;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+  }
+
+  .checkbox-group {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .checkbox-label {
+    font-weight: normal;
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+    color: #444;
+  }
+
+  .checkbox-input {
+    margin-right: 6px;
+  }
+
+  .submit-button {
+    margin-top: 25px;
+    padding: 12px;
+    width: 100%;
+    background-color: #2b8a3e;
+    color: white;
+    font-size: 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    text-align: center;
+  }
+
+  .submit-button:hover {
+    background-color: #247432;
+  }
+</style>
+
+<div class="main-content">
+  <div class="form-container">
+    <div class="form-title">Add Product</div>
+    <form action="/products/add" method="POST">
+      
+      <label class="form-label">Product ID:</label>
+      <input class="form-input" type="text" name="ProductID" required>
+
+      <label class="form-label">Name:</label>
+      <input class="form-input" type="text" name="Name" required>
+
+      <label class="form-label">16oz Price:</label>
+      <input class="form-input" type="number" name="size16" step="0.01">
+
+      <label class="form-label">22oz Price:</label>
+      <input class="form-input" type="number" name="size22" step="0.01">
+
+      <label class="form-label">Quantity:</label>
+      <input class="form-input" type="number" name="Quantity" required>
+
+      <label class="form-label">Ingredients (comma-separated):</label>
+      <input class="form-input" type="text" name="Ingredients" placeholder="e.g., ING-COFFEE, ING-CREAMER">
+
+      <label class="form-label">Category:</label>
+      <input class="form-input" type="text" name="Category" required>
+
+      <label class="form-label">Base Price (optional for Pastries):</label>
+      <input class="form-input" type="number" name="BasePrice" step="0.01">
+
+      <label class="form-label">Allergen (optional):</label>
+      <input class="form-input" type="text" name="Allergen">
+
+      <label class="form-label">Image Link:</label>
+      <input class="form-input" type="text" name="imagelink">
+
+      <div class="checkbox-group">
+        <label class="checkbox-label"><input class="checkbox-input" type="checkbox" name="available" value="true" checked> Available</label>
+        <label class="checkbox-label"><input class="checkbox-input" type="checkbox" name="IsEnabled" value="true" checked> Enabled</label>
+      </div>
+
+      <button class="submit-button" type="submit">Add Product</button>
+    </form>
+  </div>
+</div>
