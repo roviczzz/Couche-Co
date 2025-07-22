@@ -1,5 +1,4 @@
 <%
-  // Group menuItems by category at the very top of your EJS file
   const grouped = {};
   menuItems.forEach(item => {
     if (!grouped[item.Category]) grouped[item.Category] = [];
@@ -14,20 +13,40 @@
       <div class="products-grid">
         <% grouped[category].forEach(item => { %>
           <div class="product-card">
-            <div class="product-image">200x200 Image</div>
+            <div class="product-image">
+              <% if (item.imagelink && item.imagelink.length > 0) { %>
+                <img src="<%= item.imagelink %>" alt="<%= item.Name %>" style="width: 180px; height: 180px; object-fit: cover; border-radius: 12px;">
+              <% } else { %>
+                <span style="display:inline-block;width:180px;height:180px;border-radius:12px;background:#999;line-height:180px;color:#fff;">No image</span>
+              <% } %>
+            </div>
             <div class="product-name"><%= item.Name %></div>
             <% if (item.Sizes && item.Sizes.length > 0) { %>
               <% item.Sizes.forEach(sizeObj => { %>
                 <div class="product-size">
-                  <span>Size: <%= sizeObj.Size %></span>
                   <span>₱ <%= Number(sizeObj.BasePrice).toFixed(2) %></span>
-                  <button onclick="addToOrder('<%= item.Name %>', <%= sizeObj.BasePrice %>, '<%= sizeObj.Size %>')">Add</button>
+                  <button
+                    class="add-btn-lg"
+                    data-name="<%= item.Name %>"
+                    data-price="<%= sizeObj.BasePrice %>"
+                    data-size="<%= sizeObj.Size %>"
+                    data-category="<%= item.Category %>"
+                    onclick="addToOrder(this.dataset.name, parseFloat(this.dataset.price), this.dataset.size, this.dataset.category)"
+                  >Add <%= sizeObj.Size %>
+                  </button>
                 </div>
               <% }) %>
             <% } else { %>
               <div class="product-price">
                 ₱ <%= Number(item.BasePrice).toFixed(2) %>
-                <button onclick="addToOrder('<%= item.Name %>', <%= item.BasePrice %>)">Add</button>
+                <button
+                  class="add-btn-lg"
+                  data-name="<%= item.Name %>"
+                  data-price="<%= item.BasePrice %>"
+                  data-size=""
+                  data-category="<%= item.Category %>"
+                  onclick="addToOrder(this.dataset.name, parseFloat(this.dataset.price), this.dataset.size || null, this.dataset.category)"
+                >Add</button>
               </div>
             <% } %>
           </div>
@@ -42,10 +61,6 @@
       <div class="total-row">
         <span>Subtotal</span>
         <span id="subtotal">₱ 00.00</span>
-      </div>
-      <div class="total-row">
-        <span>Tax</span>
-        <span id="tax">₱ 00.00</span>
       </div>
       <div class="total-row final">
         <span>Total</span>
@@ -69,23 +84,78 @@
   </div>
 </div>
 
-
 <script>
 let orderItems = [];
 function updateSummary() {
-  let subtotal = 0;
+  let promoQuantity = 0;
+  let promoPriceTotal = 0;
+  let promoSets = 0;
+  let pastryTotal = 0;
+  const promoItemsExp = [];
   orderItems.forEach(item => {
-    subtotal += item.price * item.quantity;
+    if (item.category !== 'Pastries') {
+      for(let i=0; i < item.quantity; i++) {
+        promoItemsExp.push(item.price);
+      }
+    } else {
+      pastryTotal += item.price * item.quantity;
+    }
   });
-  const tax = subtotal * 0.12;
-  const total = subtotal + tax;
+  promoQuantity = promoItemsExp.length;
+  promoSets = Math.floor(promoQuantity / 3);
+  const promoTotalPrice = promoSets * 143;
+  const leftoverCount = promoQuantity % 3;
+  let leftoverPrice = 0;
+  if(leftoverCount > 0) {
+    promoItemsExp.sort((a,b) => a - b);
+    for(let i = promoQuantity - leftoverCount; i < promoQuantity; i++) {
+      leftoverPrice += promoItemsExp[i];
+    }
+  }
+  const subtotal = promoTotalPrice + leftoverPrice + pastryTotal;
   document.getElementById('subtotal').textContent = `₱ ${subtotal.toFixed(2)}`;
-  document.getElementById('tax').textContent = `₱ ${tax.toFixed(2)}`;
-  document.getElementById('total').textContent = `₱ ${total.toFixed(2)}`;
+  document.getElementById('total').textContent = `₱ ${subtotal.toFixed(2)}`;
+  const promoAmount = promoSets * (promoItemsExp.length > 0 ? (promoItemsExp.reduce((a,b) => a+b, 0) / promoItemsExp.length) * 3 - 143 : 0);
+  const promoDiv = document.getElementById('promo-applied');
+  if (!promoDiv) {
+    if (promoSets > 0) {
+      const div = document.createElement('div');
+      div.id = 'promo-applied';
+      div.style.marginTop = '10px';
+      div.style.fontWeight = 'bold';
+      div.textContent = `Promo applied: ₱ ${ (promoSets * 143).toFixed(2) } for ${promoSets*3} items`;
+      document.querySelector('.summary-totals').appendChild(div);
+    }
+  } else {
+    if (promoSets > 0) {
+      promoDiv.textContent = `Promo applied: ₱ ${ (promoSets * 143).toFixed(2) } for ${promoSets*3} items`;
+    } else {
+      promoDiv.remove();
+    }
+  }
 }
+function addToOrder(name, price, size = null, category = null) {
+  const key = size ? (name + ' - ' + size) : name;
+  let existingItem = orderItems.find(item => item.key === key);
+  if (existingItem) {
+    existingItem.quantity++;
+  } else {
+    orderItems.push({
+      name: name,
+      size: size,
+      price: price,
+      quantity: 1,
+      key: key,
+      category: category 
+    });
+  }
+  renderOrderItems();
+  updateSummary();
+}
+
 function addItem(index) {
   orderItems[index].quantity++;
-  document.querySelectorAll('.quantity')[index].textContent = `${orderItems[index].quantity}x`;
+  renderOrderItems();
   updateSummary();
 }
 function removeItem(index) {
@@ -97,20 +167,11 @@ function removeItem(index) {
   renderOrderItems();
   updateSummary();
 }
-function addToOrder(name, price) {
-  const existingItem = orderItems.find(item => item.name === name);
-  if (existingItem) {
-    existingItem.quantity++;
-  } else {
-    orderItems.push({name: name, price: price, quantity: 1});
-  }
-  renderOrderItems();
-  updateSummary();
-}
 function renderOrderItems() {
   const container = document.getElementById('order-items');
   container.innerHTML = '';
   orderItems.forEach((item, index) => {
+    const sizeLabel = item.size ? `<div class="order-size">${item.size}</div>` : '';
     const itemHTML = `
       <div class="order-item">
         <button class="quantity-btn remove-btn" onclick="removeItem(${index})">-</button>
@@ -118,6 +179,7 @@ function renderOrderItems() {
         <button class="quantity-btn add-btn" onclick="addItem(${index})">+</button>
         <div class="item-details">
           <div class="item-name">${item.name}</div>
+          ${sizeLabel}
           <div class="item-price">₱ ${item.price.toFixed(2)}</div>
         </div>
       </div>
@@ -152,22 +214,59 @@ function selectPayment(method) {
 .content { flex: 1; padding: 20px; background-color: #f0f0f0; }
 .promo-banner { background-color: #D4A574; color: #8B4513; padding: 10px 20px; border-radius: 25px; display: inline-block; margin-bottom: 20px; font-weight: bold; }
 .section-title { font-size: 28px; color: #8B4513; margin-bottom: 20px; font-weight: bold; }
-.products-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
-.product-card { background-color: #c0c0c0; border-radius: 15px; padding: 20px; text-align: center; cursor: pointer; transition: transform 0.2s; }
-.product-card:hover { transform: translateY(-2px); }
-.product-image { width: 200px; height: 200px; background-color: #999; border-radius: 10px; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; }
-.product-name { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 5px;}
-.product-price { font-size: 14px; color: #666;}
-.item-sizes { font-size: 13px; color: #7a4e2b; margin-top: 6px; }
+.products-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 30px; margin-bottom: 30px; }
+.product-card {
+  background-color: #fff;
+  border-radius: 15px;
+  padding: 18px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(120,80,40,0.07);
+  border: 1px solid #ece4db;
+  min-height: 315px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+.product-card:hover { box-shadow: 0 6px 24px rgba(120,80,40,0.13); }
+.product-image { margin: 0 auto 14px; }
+.product-name { font-size: 17px; font-weight: bold; color: #5a3e2b; margin-bottom: 8px;}
+.product-price,
+.product-size {
+  display: flex;
+  flex-direction: column;
+  align-items: center; 
+  gap: 2px;
+  margin-bottom: 15px;
+}
+.add-btn-lg {
+  display: inline-block;
+  font-size: 15.5px;
+  font-weight: bold;
+  min-width: 88px;
+  padding: 11px 20px;
+  border-radius: 20px;
+  margin-left: 8px;
+  margin-top: 7px;
+  border: none;
+  background-color: #D4A574;
+  color: white;
+  cursor: pointer;
+  transition: background 0.19s;
+}
+.add-btn-lg:hover { background-color: #B8956A; }
 .summary-panel { width: 350px; background-color: white; padding: 20px; border-left: 1px solid #ddd; }
 .summary-title { font-size: 24px; font-weight: bold; margin-bottom: 20px; }
 .order-item { display: flex; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
-.quantity-btn { width: 25px; height: 25px; border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+.quantity-btn { width: 32px; height: 32px; border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 22px; }
 .remove-btn { background-color: #ff6b6b; color: white; margin-right: 10px; }
 .add-btn { background-color: #4CAF50; color: white; margin-left: 10px; }
 .item-details { flex: 1; margin: 0 10px; }
 .item-name { font-weight: bold; margin-bottom: 2px;}
-.item-price { color: #666; font-size: 14px;}
+.order-size { color: #a87636; font-size: 13.5px; margin-bottom: 2px; }
+.item-price { color: #666; font-size: 15px;}
 .quantity { font-weight: bold; margin: 0 10px;}
 .summary-totals { margin-top: 20px; padding-top: 20px; border-top: 2px solid #eee;}
 .total-row { display: flex; justify-content: space-between; margin-bottom: 10px;}
