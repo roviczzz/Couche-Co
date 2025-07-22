@@ -9,11 +9,21 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
 
     <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             margin: 0;
             font-family: 'Inter', sans-serif;
             background-color: #fff6f0;
             color: #5a3e2b;
+
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
 
         .header {
@@ -99,17 +109,21 @@
 
         .wrapper {
             display: flex;
+            flex: 1 1 auto;
+            height: 100vh;
         }
 
         .sidebar {
             width: 220px;
             padding: 20px;
             background-color: #ffe4c4;
-            height: 100vh;
+            height: 180vh;
             box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
             box-sizing: border-box;
             letter-spacing: -1px;
             font-weight: 800;
+            position: sticky;
+            top: 0;
         }
 
         .sidebar h2 {

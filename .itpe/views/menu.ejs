@@ -1,3 +1,8 @@
+<style>
+  .main-content {
+    padding: 0 !important;
+  }
+</style>
 <%
   const grouped = {};
   menuItems.forEach(item => {
@@ -12,8 +17,7 @@
       <div class="section-title"><%= category %></div>
       <div class="products-grid">
         <% grouped[category].forEach(item => { %>
-          <div tabindex="0" role="button" class="product-card" onclick='handleProductClick(<%= JSON.stringify(item) %>)'>
-            <div class="product-image">
+          <div tabindex="0" role="button" class="product-card" data-item='<%= JSON.stringify(item) %>' onclick="handleProductClick(JSON.parse(this.dataset.item))">            <div class="product-image">
               <% if (item.imagelink && item.imagelink.length > 0) { %>
                 <img src="<%= item.imagelink %>" alt="<%= item.Name %>" style="width: 120px; height: 120px; object-fit: cover; border-radius: 12px;">
               <% } else { %>
