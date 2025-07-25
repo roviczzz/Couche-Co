@@ -116,7 +116,7 @@ app.get('/account/register', (req, res) => {
 });
 
 app.get('/dashboard', isLoggedIn, nocache, (req, res) => {
-  res.render('dashboard', { title: 'Dashboard | Blessings Cafe', user: req.session.user });
+  res.render('dashboard', { title: 'Dashboard | Blessings Cafe', user: req.session.user, currentPage: req.path });
 });
 
 app.get('/menu', isLoggedIn, nocache, async (req, res) => {
@@ -126,7 +126,7 @@ app.get('/menu', isLoggedIn, nocache, async (req, res) => {
     const menuCollection = db.collection('Menu');
     const menuItems = await menuCollection.find().toArray();
     await client.close();
-    res.render('menu', { menuItems, title: 'Menu | Blessings Cafe', user: req.session.user });
+    res.render('menu', { menuItems, title: 'Menu | Blessings Cafe', user: req.session.user, currentPage: req.path });
   } catch (err) {
     res.status(500).send('Internal Server Error');
   }
@@ -139,7 +139,7 @@ app.get('/products', isLoggedIn, nocache, async (req, res) => {
     const productCollection = db.collection('Menu');
     const products = await productCollection.find().toArray();
     await client.close();
-    res.render('products', { products, title: 'Products | Blessings Cafe', user: req.session.user });
+    res.render('products', { products, title: 'Products | Blessings Cafe', user: req.session.user, currentPage: req.path });
   } catch (err) {
     console.error('Error fetching products:', err);
     res.status(500).send('Internal Server Error');
@@ -308,7 +308,7 @@ app.post('/delete-product/:id', async (req, res) => {
 
 
 app.get('/add-product', isLoggedIn, nocache, (req, res) => {
-  res.render('add-product', { title: 'Add Product | Blessings Cafe' });
+  res.render('add-product', { title: 'Add Product | Blessings Cafe' , user: req.session.user, currentPage: req.path});
 });
 
 app.get('/edit-product/:id', isLoggedIn, nocache, async (req, res) => {
@@ -321,7 +321,7 @@ app.get('/edit-product/:id', isLoggedIn, nocache, async (req, res) => {
 
     if (!product) return res.status(404).send('Product not found');
 
-    res.render('edit-product', { title: 'Edit Product | Blessings Cafe', product });
+    res.render('edit-product', { title: 'Edit Product | Blessings Cafe', product, user: req.session.user, currentPage: req.path});
   } catch (err) {
     console.error('Error fetching product for editing:', err);
     res.status(500).send('Internal Server Error');
@@ -335,7 +335,7 @@ app.get('/stocks', isLoggedIn, nocache, async (req, res) => {
     const db = client.db('blessingscafe');
     const ingredients = await db.collection('Ingredients').find().toArray();
     await client.close();
-    res.render('stocks', { ingredients, title: 'Stocks | Blessings Cafe', user: req.session.user });
+    res.render('stocks', { ingredients, title: 'Stocks | Blessings Cafe', user: req.session.user, currentPage: req.path});
   } catch (err) {
     console.error(err);
     res.status(500).send('Failed to load ingredients');
@@ -412,7 +412,7 @@ app.get('/order', isLoggedIn, nocache, async (req, res) => {
     const ordersCollection = db.collection('Orders');
     const orders = await ordersCollection.find().toArray();
     await client.close();
-    res.render('order', { orders, title: 'Orders | Blessings Cafe', user: req.session.user });
+    res.render('order', { orders, title: 'Orders | Blessings Cafe', user: req.session.user, currentPage: req.path});
   } catch (err) {
     console.error('Error fetching orders:', err);
     res.status(500).send('Internal Server Error');

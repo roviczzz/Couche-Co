@@ -75,6 +75,7 @@
             }
 
         .search-input {
+            font-family: 'Aeonik', sans-serif;
             width: 100%;
             padding: 12px 20px 12px 40px;
             border: 2px solid #e5e5e5; 
@@ -101,33 +102,56 @@
 
 
         .notification {
-            margin-left: auto;  
+            margin-left: auto;
             position: relative;
             width: 40px;
             height: 40px;
-            background-color: #8B4513;
-            border-radius: 50%;
+            border-radius: 6px;   
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
+            color: #5e606e;
             cursor: pointer;
+            font-size: 20px;
+            user-select: none;
+            outline: none;
+            background: transparent; 
             }
 
-        .notification-badge {
+            .notification-dropdown {
             position: absolute;
-            top: -5px;
-            right: -5px;
-            background-color: #ff4444;
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+            top: 48px;
+            right: 0;
+            width: 280px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            padding: 10px 0;
+            font-size: 14px;
+            color: #5a3e2b;
+            z-index: 1000;
+            max-height: 300px;
+            overflow-y: auto;
+            box-sizing: border-box;
+            }
+
+            .notification-item {
+            padding: 10px 20px;
+            border-bottom: 1px solid #eee;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            }
+
+            .notification-item:last-child {
+            border-bottom: none;
+            }
+
+            .notification-item:hover {
+            background-color: #fdd9b0;
+            color: #7a3f1c;
+            }
+
 
         .wrapper {
             display: flex;
@@ -174,6 +198,13 @@
             transition: background-color 0.3s ease;
         }
 
+        .sidebar ul li a.active {
+            background-color: #fdd9b0;
+            color: #5a3e2b; 
+            font-weight: bold; 
+            }
+
+
         .sidebar ul li a i {
             margin-right: 15px; 
             vertical-align: middle;
@@ -195,6 +226,43 @@
         }
     </style>
 </head>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const notification = document.querySelector('.notification');
+    const dropdown = notification.querySelector('.notification-dropdown');
+
+    function toggleDropdown() {
+      const isHidden = dropdown.hasAttribute('hidden');
+      if (isHidden) {
+        dropdown.removeAttribute('hidden');
+        notification.setAttribute('aria-expanded', 'true');
+      } else {
+        dropdown.setAttribute('hidden', '');
+        notification.setAttribute('aria-expanded', 'false');
+      }
+    }
+
+    notification.addEventListener('click', toggleDropdown);
+    notification.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggleDropdown();
+      }
+      if (e.key === 'Escape') {
+        dropdown.setAttribute('hidden', '');
+        notification.setAttribute('aria-expanded', 'false');
+        notification.blur();
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!notification.contains(e.target)) {
+        dropdown.setAttribute('hidden', '');
+        notification.setAttribute('aria-expanded', 'false');
+      }
+    });
+  });
+</script>
 <body>
             <div class="header">
         <div class="logo">
@@ -204,26 +272,41 @@
             <div class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
             <input type="text" class="search-input" placeholder="Search..." />
         </div>
-        <div class="notification">
-            🔔
-            <div class="notification-badge">1</div>
-        </div>
+        <div class="notification" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false" aria-label="Notifications">
+            <i class="fa-regular fa-bell"></i>
+            <div class="notification-dropdown" aria-label="Notification list" role="region" hidden>
+                <div class="notification-item">You have 1 new order.</div>
+                <div class="notification-item">Stock level is low for 'Coffee Beans'.</div>
+                <div class="notification-item">New product added to the menu.</div>
+            </div>
+            </div>
         </div>
 
     <div class="wrapper">
         <div class="sidebar">
             <ul>
-            <li><a href="/dashboard"><i class="fa-solid fa-house"></i>Home</a></li>
-            <li><a href="/order"><i class="fa-solid fa-box"></i>Orders</a></li>
-            <li><a href="/menu"><i class="fa-solid fa-list"></i>POS Menu</a></li>
-            <li><a href="/stocks"><i class="fa-solid fa-warehouse"></i>Stocks</a></li>
-            <li><a href="/products"><i class="fa-solid fa-cart-shopping"></i>Products</a></li>
-            <!-- <li><a href="#"><i class="fa-solid fa-chart-bar"></i> Analytics</a></li>
-            <li><a href="#"><i class="fa-solid fa-tags"></i> Discounts</a></li>
-            <li><a href="#"><i class="fa-solid fa-wrench"></i> Management</a></li>
-            <li><a href="#"><i class="fa-solid fa-gear"></i> Settings</a></li> -->
-            <li><a href="/logout"><i class="fa-solid fa-door-open"></i>Logout</a></li>
-            </ul>
+                <% 
+                    const sidebarItems = [
+                    { path: '/dashboard', label: 'Home', icon: 'house' },
+                    { path: '/order', label: 'Orders', icon: 'box' },
+                    { path: '/menu', label: 'POS Menu', icon: 'list' },
+                    { path: '/stocks', label: 'Stocks', icon: 'warehouse' },
+                    { path: '/products', label: 'Products', icon: 'cart-shopping' },
+                    { path: '/logout', label: 'Logout', icon: 'door-open' }
+                    ];
+                %>
+
+                <% sidebarItems.forEach(item => { 
+                    const isActive = (currentPage === item.path);
+                %>
+                    <li>
+                    <a href="<%= item.path %>" class="<%= isActive ? 'active' : '' %>">
+                        <i class="fa-solid fa-<%= item.icon %>"></i>
+                        <%= item.label %>
+                    </a>
+                    </li>
+                <% }) %>
+                </ul>
         </div>
         <div class="main-content">
             <%- body %>
