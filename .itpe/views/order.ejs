@@ -1,0 +1,67 @@
+<h1>Order Details</h1>
+
+<table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+  <thead style="background-color: #D4A574; color: #fff;">
+    <tr>
+      <th style="padding: 10px; border: 1px solid #ccc;">OrderID</th>
+      <th style="padding: 10px; border: 1px solid #ccc;">Products</th>
+      <th style="padding: 10px; border: 1px solid #ccc;">Qty.</th>
+      <th style="padding: 10px; border: 1px solid #ccc;">Customer Name</th>
+      <th style="padding: 10px; border: 1px solid #ccc;">Address</th>
+      <th style="padding: 10px; border: 1px solid #ccc;">Status</th>
+      <th style="padding: 10px; border: 1px solid #ccc;">Payment</th>
+      <th style="padding: 10px; border: 1px solid #ccc;">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% if (orders.length === 0) { %>
+      <tr>
+        <td colspan="8" style="text-align:center; padding: 20px;">No orders found.</td>
+      </tr>
+    <% } else { %>
+      <% orders.forEach(order => { %>
+        <tr>
+          <td style="padding: 8px; border: 1px solid #ccc;"><%= order.OrderID || order._id.toString() %></td>
+          
+          <td style="padding: 8px; border: 1px solid #ccc;">
+            <% if (Array.isArray(order.Products)) { %>
+              <%= order.Products.map(p => {
+                if(typeof p === 'string') return p;
+                else if(typeof p.name === 'string') return p.name; 
+                else return JSON.stringify(p);
+              }).join(', ') %>
+            <% } else { %>
+              <%= order.Products ? order.Products.toString() : '' %>
+            <% } %>
+          </td>
+          
+          <td style="padding: 8px; border: 1px solid #ccc;">
+            <% 
+              // Calculate total quantity from Products, assuming each product has quantity or count property
+              let totalQty = 0;
+              if (Array.isArray(order.Products)) {
+                order.Products.forEach(p => {
+                  if (p.quantity) totalQty += p.quantity;
+                  else if(p.Qty) totalQty += p.Qty;
+                  else totalQty += 1;
+                });
+              } else {
+                totalQty = order.Qty || '-';
+              }
+            %>
+            <%= totalQty %>
+          </td>
+          
+          <td style="padding: 8px; border: 1px solid #ccc;"><%= order.CustomerName || order.customerName || 'N/A' %></td>
+          <td style="padding: 8px; border: 1px solid #ccc;"><%= order.Address || order.address || 'N/A' %></td>
+          <td style="padding: 8px; border: 1px solid #ccc;"><%= order.Status || order.status || 'Pending' %></td>
+          <td style="padding: 8px; border: 1px solid #ccc;"><%= order.Payment || order.payment || 'Unpaid' %></td>
+          <td style="padding: 8px; border: 1px solid #ccc; white-space: nowrap;">
+            <a href="/orders/edit/<%= order._id %>" style="margin-right: 8px; text-decoration:none; color:#4CAF50;">Edit</a>
+            <a href="/orders/details/<%= order._id %>" style="text-decoration:none; color:#2196F3;">Details</a>
+          </td>
+        </tr>
+      <% }); %>
+    <% } %>
+  </tbody>
+</table>

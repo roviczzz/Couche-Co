@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
-
+    <link rel="icon" href="/favicon.ico" />
     <style>
         html, body {
             height: 100%;
@@ -17,7 +17,7 @@
 
         body {
             margin: 0;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Aeonik', sans-serif;
             background-color: #fff6f0;
             color: #5a3e2b;
 
@@ -27,7 +27,7 @@
         }
 
         .header {
-            background-color: #D4A574;
+            background-color: #ffffff;
             padding: 15px 20px;
             display: flex;
             align-items: center;
@@ -39,7 +39,7 @@
             align-items: center;
             font-size: 24px;
             font-weight: bold;
-            color: #8B4513;
+            margin-right: 10px;
         }
 
         .logo-circle {
@@ -58,28 +58,50 @@
         .search-container {
             flex: 1;
             max-width: 600px;
-            margin: 0 20px;
+            margin-left: 0;
             position: relative;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 12px 20px 12px 50px;
-            border: none;
-            border-radius: 25px;
-            background-color: white;
-            font-size: 16px;
+            display: flex;
+            align-items: center;
         }
 
         .search-icon {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
+            position: relative; 
+            left: 35px; 
             color: #666;
+            font-size: 1.2rem; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 20px 12px 40px;
+            border: 2px solid #e5e5e5; 
+            border-radius: 10px;
+            background-color: white;
+            font-size: 16px;
+            box-sizing: border-box;
+            outline: none; 
+            transition: border-color 0.2s ease;
+            }
+
+        .search-input::placeholder {
+            color: #5e606e;
+            font-weight: normal;
+            opacity: 1; 
         }
 
+
+        .search-input:focus {
+            border-color: #a05c2f; 
+            box-shadow: 0 0 5px rgba(160, 92, 47, 0.5);
+            }
+
+
+
         .notification {
+            margin-left: auto;  
             position: relative;
             width: 40px;
             height: 40px;
@@ -90,7 +112,7 @@
             justify-content: center;
             color: white;
             cursor: pointer;
-        }
+            }
 
         .notification-badge {
             position: absolute;
@@ -116,12 +138,12 @@
         .sidebar {
             width: 220px;
             padding: 20px;
-            background-color: #ffe4c4;
+            background-color: #f8f9fb;
             height: 180vh;
             box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
             box-sizing: border-box;
-            letter-spacing: -1px;
-            font-weight: 800;
+            letter-spacing: 0px;
+            font-weight: 500;
             position: sticky;
             top: 0;
         }
@@ -143,13 +165,23 @@
 
         .sidebar ul li a {
             text-decoration: none;
-            color: #5a3e2b;
+            color: #5e606e;
             font-weight: 500;
+            font-size: 1.6vh;
             display: block;
             padding: 8px 12px;
             border-radius: 8px;
             transition: background-color 0.3s ease;
         }
+
+        .sidebar ul li a i {
+            margin-right: 15px; 
+            vertical-align: middle;
+            min-width: 16px;
+            text-align: center;
+            display: inline-block;
+        }
+
 
         .sidebar ul li a:hover {
             background-color: #fdd9b0;
@@ -159,38 +191,38 @@
         .main-content {
             flex: 1;
             padding: 30px;
-            background-color: #fff6f0;
+            background-color: #ffffff;
         }
     </style>
 </head>
 <body>
-    <div class="header">
+            <div class="header">
         <div class="logo">
             <img src="./resources/logo.png" alt="Logo" />
         </div>
         <div class="search-container">
-            <div class="search-icon">🔍</div>
-            <input type="text" class="search-input" placeholder="Search" />
+            <div class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
+            <input type="text" class="search-input" placeholder="Search..." />
         </div>
         <div class="notification">
             🔔
             <div class="notification-badge">1</div>
         </div>
-    </div>
+        </div>
 
     <div class="wrapper">
         <div class="sidebar">
             <ul>
-  <li><a href="/dashboard"><i class="fa-solid fa-house"></i> Home</a></li>
-            <li><a href="/menu"><i class="fa-solid fa-list"></i> Menu</a></li>
-            <!-- <li><a href="/stocks"><i class="fa-solid fa-box"></i> Orders</a></li> -->
-            <li><a href="/stocks"><i class="fa-solid fa-warehouse"></i> Stocks</a></li>
-            <li><a href="/products"><i class="fa-solid fa-cart-shopping"></i> Products</a></li>
+            <li><a href="/dashboard"><i class="fa-solid fa-house"></i>Home</a></li>
+            <li><a href="/order"><i class="fa-solid fa-box"></i>Orders</a></li>
+            <li><a href="/menu"><i class="fa-solid fa-list"></i>POS Menu</a></li>
+            <li><a href="/stocks"><i class="fa-solid fa-warehouse"></i>Stocks</a></li>
+            <li><a href="/products"><i class="fa-solid fa-cart-shopping"></i>Products</a></li>
             <!-- <li><a href="#"><i class="fa-solid fa-chart-bar"></i> Analytics</a></li>
             <li><a href="#"><i class="fa-solid fa-tags"></i> Discounts</a></li>
             <li><a href="#"><i class="fa-solid fa-wrench"></i> Management</a></li>
             <li><a href="#"><i class="fa-solid fa-gear"></i> Settings</a></li> -->
-            <li><a href="/logout"><i class="fa-solid fa-door-open"></i> Logout</a></li>
+            <li><a href="/logout"><i class="fa-solid fa-door-open"></i>Logout</a></li>
             </ul>
         </div>
         <div class="main-content">

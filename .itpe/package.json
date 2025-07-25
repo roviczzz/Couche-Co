@@ -16,7 +16,8 @@
     "express-ejs-layouts": "^2.5.1",
     "express-session": "^1.18.2",
     "express-validator": "^7.2.1",
-    "mongodb": "^6.17.0"
+    "mongodb": "^6.17.0",
+    "serve-favicon": "^2.5.1"
   },
   "description": ""
 }

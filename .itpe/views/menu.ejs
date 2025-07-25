@@ -1,7 +1,15 @@
 <style>
   .main-content {
     padding: 0 !important;
-  }
+    }
+    .promo-banner {
+      user-select: none;
+      -webkit-user-select: none; 
+      -moz-user-select: none;    
+      -ms-user-select: none;     
+    
+    }
+  
 </style>
 <%
   const grouped = {};
@@ -12,6 +20,7 @@
 %>
 <div class="main-container">
   <div class="content">
+    <h1>Select Order</h1>
     <div class="promo-banner">Buy 3 for 143</div>
     <% Object.keys(grouped).forEach(category => { %>
       <div class="section-title"><%= category %></div>
@@ -72,7 +81,7 @@
 <div id="size-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;z-index:1000;">
   <div style="background:white;padding:20px;border-radius:12px;min-width:300px;max-width:90vw;">
     <h3 id="modal-product-name" style="margin-bottom:15px;"></h3>
-    <div id="size-options" style="display:flex;flex-wrap: wrap;gap:10px;font-family: 'Inter', sans-serif;"></div>
+    <div id="size-options" style="display:flex;flex-wrap: wrap;gap:10px;"></div>
     <button onclick="closeSizeModal()" style="margin-top:15px;padding:10px 20px;border:none;border-radius:8px;background:#D4A574;color:#fff;cursor:pointer;">Cancel</button>
   </div>
 </div>
@@ -246,8 +255,8 @@ function closeSizeModal() {
 
 <style>
 .main-container { display: flex; min-height: calc(100vh - 70px); }
-.content { flex: 1; padding: 20px; background-color: #f0f0f0; }
-.promo-banner { background-color: #D4A574; color: #8B4513; padding: 10px 20px; border-radius: 25px; display: inline-block; margin-bottom: 20px; font-weight: bold; }
+.content { flex: 1; padding: 20px; background-color: #f8f9fb; }
+.promo-banner { background-color: #ffe7ce; color: #ca651c; padding: 10px 20px; border-radius: 25px; display: inline-block; margin-bottom: 20px; font-weight: bold; }
 .section-title { font-size: 28px; color: #8B4513; margin-bottom: 20px; font-weight: bold; }
 .products-grid {
   display: grid;
