@@ -329,19 +329,28 @@ app.get('/edit-product/:id', isLoggedIn, nocache, async (req, res) => {
 });
 
 
+
+
 app.get('/stocks', isLoggedIn, nocache, async (req, res) => {
   try {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
     const ingredients = await db.collection('Ingredients').find().toArray();
     await client.close();
-    res.render('stocks', { ingredients, title: 'Stocks | Blessings Cafe', user: req.session.user, currentPage: req.path});
+
+    const message = req.query.msg || null;
+    res.render('stocks', {
+      ingredients,
+      title: 'Stocks | Blessings Cafe',
+      user: req.session.user,
+      currentPage: req.path,
+      message
+    });
   } catch (err) {
     console.error(err);
     res.status(500).send('Failed to load ingredients');
   }
 });
-
 
 app.post('/stocks', async (req, res) => {
   const { IngredientID, Name, Quantity, Category, Allergen, isEnabled } = req.body;
@@ -357,7 +366,7 @@ app.post('/stocks', async (req, res) => {
       isEnabled: isEnabled === 'true'
     });
     await client.close();
-    res.redirect('/stocks');
+    res.redirect('/stocks?msg=add_success');
   } catch (err) {
     console.error(err);
     res.status(500).send('Failed to add ingredient');
@@ -384,7 +393,7 @@ app.post('/stocks/edit/:id', async (req, res) => {
       }
     );
     await client.close();
-    res.redirect('/stocks');
+    res.redirect('/stocks?msg=update_success');
   } catch (err) {
     console.error(err);
     res.status(500).send('Failed to update ingredient');
@@ -398,12 +407,19 @@ app.post('/stocks/delete/:id', async (req, res) => {
     const db = client.db('blessingscafe');
     await db.collection('Ingredients').deleteOne({ _id: new ObjectId(id) });
     await client.close();
-    res.redirect('/stocks');
+    res.redirect('/stocks?msg=delete_success');
   } catch (err) {
     console.error(err);
     res.status(500).send('Failed to delete ingredient');
   }
 });
+
+
+
+
+
+
+
 
 app.get('/order', isLoggedIn, nocache, async (req, res) => {
   try {
