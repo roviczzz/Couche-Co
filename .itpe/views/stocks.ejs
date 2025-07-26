@@ -1,7 +1,9 @@
 <div class="stocks-container">
-  <h2>Ingredient Inventory</h2>
+  <h1>Ingredient Inventory</h1>
 
-  
+  <% if (message) { %>
+    <div id="message" class="message"></div>
+  <% } %>
 
   <!-- Add Ingredient Form -->
   <form action="/stocks" method="POST" class="stocks-form-add">
@@ -52,7 +54,7 @@
                 <button type="submit" class="stocks-btn update">Update</button>
             </form>
             <form action="/stocks/delete/<%= i._id %>" method="POST" style="display:inline;">
-              <button type="submit" onclick="return confirm('Are you sure?')" class="stocks-btn delete">Delete</button>
+              <button type="submit" class="stocks-btn delete">Delete</button>
             </form>
               </td>
           </tr>
@@ -80,6 +82,16 @@
     color: #5a3921;
   }
 
+  .message {
+    color: #155724;
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    text-align: center;
+    font-weight: 600;
+  }
 
   .stocks-form-add {
     display: flex;
@@ -105,11 +117,12 @@
     padding: 10px 16px;
     border-radius: 6px;
     cursor: pointer;
-    transition: 0.3s ease;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
   }
 
   .stocks-add-btn:hover {
     background-color: #218838;
+    box-shadow: 0 0 8px rgba(40, 167, 69, 0.6);
   }
 
   .stocks-table {
@@ -146,14 +159,25 @@
     font-size: 13px;
     cursor: pointer;
     margin: 2px;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
   }
 
   .stocks-btn.update {
     background-color: #28a745;
   }
 
+  .stocks-btn.update:hover {
+    background-color: #1e7e34; /* Darker green */
+    box-shadow: 0 0 8px rgba(40, 167, 69, 0.6);
+  }
+
   .stocks-btn.delete {
     background-color: #dc3545;
+  }
+
+  .stocks-btn.delete:hover {
+    background-color: #bd2130; /* Darker red */
+    box-shadow: 0 0 8px rgba(220, 53, 69, 0.6);
   }
 
   .stocks-center {
@@ -163,4 +187,58 @@
   }
 </style>
 
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Show success message based on query parameter
+    const messageDiv = document.getElementById('message');
+    if (messageDiv) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const msg = urlParams.get('msg');
 
+      let text = '';
+      if (msg === 'add_success') text = 'Ingredient successfully added.';
+      else if (msg === 'update_success') text = 'Ingredient successfully updated.';
+      else if (msg === 'delete_success') text = 'Ingredient successfully deleted.';
+
+      if (text) {
+        messageDiv.textContent = text;
+
+        // Auto fade out after 4 seconds
+        setTimeout(() => {
+          messageDiv.style.transition = 'opacity 1s ease';
+          messageDiv.style.opacity = 0;
+        }, 4000);
+      }
+    }
+
+    // Confirmation dialogs for adding ingredient
+    const addForm = document.querySelector('.stocks-form-add');
+    if (addForm) {
+      addForm.addEventListener('submit', event => {
+        if (!confirm('Are you sure you want to add this ingredient?')) {
+          event.preventDefault();
+        }
+      });
+    }
+
+    // Confirmation dialogs for updating ingredients
+    const updateForms = document.querySelectorAll('form[action^="/stocks/edit/"]');
+    updateForms.forEach(form => {
+      form.addEventListener('submit', event => {
+        if (!confirm('Are you sure you want to update this ingredient?')) {
+          event.preventDefault();
+        }
+      });
+    });
+
+    // Confirmation dialogs for deleting ingredients
+    const deleteForms = document.querySelectorAll('form[action^="/stocks/delete/"]');
+    deleteForms.forEach(form => {
+      form.addEventListener('submit', event => {
+        if (!confirm('Are you sure you want to delete this ingredient?')) {
+          event.preventDefault();
+        }
+      });
+    });
+  });
+</script>
