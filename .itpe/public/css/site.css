@@ -250,7 +250,10 @@ body {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
   text-align: center;
   width: 360px;
-  position: relative;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   font-family: 'Aeonik', sans-serif;
 }
 
