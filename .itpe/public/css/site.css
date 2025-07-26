@@ -1,0 +1,341 @@
+@font-face {
+  font-family: 'Aeonik';
+  src: url('/fonts/Aeonik-Regular.woff2') format('woff2'),
+       url('/fonts/Aeonik-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Aeonik';
+  src: url('/fonts/Aeonik-Bold.woff2') format('woff2'),
+       url('/fonts/Aeonik-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Aeonik', sans-serif;
+  font-weight: 400;
+  background-color: #fff6f0;
+  color: #5a3e2b;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column; 
+  min-height: 100vh;
+  letter-spacing: -0.5px;
+}
+
+.header {
+  background-color: #ffffff;
+  padding: 15px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  font-size: 24px;
+  font-weight: 700;
+  margin-right: 10px;
+}
+
+.logo-circle {
+  width: 40px;
+  height: 40px;
+  background-color: #8B4513;
+  border-radius: 50%;
+  margin-right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 18px;
+}
+
+.search-container {
+  position: relative;
+  max-width: 600px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+  font-size: 1.2rem;
+  width: 24px;
+  height: 24px;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 20px 12px 55px;
+  border: 2px solid #e5e5e5;
+  border-radius: 10px;
+  background-color: white;
+  font-family: 'Aeonik', sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.search-input::placeholder {
+  color: #5e606e;
+  font-weight: normal;
+  opacity: 1;
+}
+
+.search-input:focus {
+  border-color: #a05c2f;
+  box-shadow: 0 0 5px rgba(160, 92, 47, 0.5);
+}
+
+
+.notification {
+  margin-left: auto;
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #5e606e;
+  cursor: pointer;
+  font-size: 20px;
+  user-select: none;
+  outline: none;
+  background: transparent;
+}
+
+.notification-dropdown {
+  position: absolute;
+  top: 48px;
+  right: 0;
+  width: 280px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  padding: 10px 0;
+  font-size: 14px;
+  color: #5a3e2b;
+  z-index: 1000;
+  max-height: 300px;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.notification-item {
+  padding: 10px 20px;
+  border-bottom: 1px solid #eee;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.notification-item:hover {
+  background-color: #fdd9b0;
+  color: #7a3f1c;
+}
+
+.wrapper {
+  display: flex;
+  flex: 1 1 auto;
+  height: 100vh;
+}
+
+.sidebar {
+  width: 220px;
+  padding: 20px;
+  background-color: #f8f9fb;
+  height: 180vh;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+  letter-spacing: 0;
+  font-family: 'Aeonik', sans-serif;
+  font-weight: 400;
+  position: sticky;
+  top: 0;
+}
+
+.sidebar h2 {
+  color: #a05c2f;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar ul li {
+  margin: 10px 0;
+}
+
+.sidebar ul li a {
+  text-decoration: none;
+  color: #5e606e;
+  font-weight: 400;
+  font-size: 1.6vh;
+  display: block;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+  font-family: 'Aeonik', sans-serif;
+}
+
+.sidebar ul li a.active {
+  background-color: #fdd9b0;
+  color: #5a3e2b;
+  font-weight: 700;
+}
+
+.sidebar ul li a i {
+  margin-right: 15px;
+  vertical-align: middle;
+  min-width: 16px;
+  text-align: center;
+  display: inline-block;
+}
+
+.sidebar ul li a:hover {
+  background-color: #fdd9b0;
+  color: #7a3f1c;
+}
+
+.main-content {
+  flex: 1;
+  padding: 30px;
+  background-color: #ffffff;
+  font-family: 'Aeonik', sans-serif;
+  font-weight: 400;
+}
+
+.order-details-table {
+  font-family: 'Aeonik', sans-serif;
+  font-weight: 400 !important;
+}
+
+.login-box {
+  background-color: #ffe4c4;
+  padding: 40px 30px;
+  border-radius: 30px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  width: 360px;
+  position: relative;
+  font-family: 'Aeonik', sans-serif;
+}
+
+.login-box img {
+  width: 80px;
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff6f0;
+  border-radius: 50%;
+  padding: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+  margin-top: 50px;
+  font-weight: 700;
+  color: #5a3e2b;
+  font-family: 'Aeonik', sans-serif;
+}
+
+label {
+  display: block;
+  text-align: left;
+  margin: 15px 0 5px;
+  color: #333;
+  font-family: 'Aeonik', sans-serif;
+}
+
+input[type="text"],
+input[type="password"] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: 'Aeonik', sans-serif;
+  font-weight: 400;
+}
+
+.forgot {
+  display: block;
+  text-align: right;
+  margin: 8px 0;
+  font-size: 12px;
+  color: #7a4e2b;
+  text-decoration: none;
+  font-family: 'Aeonik', sans-serif;
+}
+
+button {
+  width: 100%;
+  background-color: #a05c2f;
+  color: white;
+  padding: 12px;
+  font-weight: 700;
+  font-size: 16px;
+  border: none;
+  border-radius: 12px;
+  margin-top: 15px;
+  cursor: pointer;
+  font-family: 'Aeonik', sans-serif;
+}
+
+button:hover {
+  background-color: #7a3f1c;
+}
+
+.signup {
+  margin-top: 15px;
+  font-size: 13px;
+  font-family: 'Aeonik', sans-serif;
+}
+
+.signup a {
+  color: #7a4e2b;
+  text-decoration: none;
+  font-weight: 500;
+  font-family: 'Aeonik', sans-serif;
+}
+
+.error {
+  color: red;
+  font-size: 13px;
+  margin-top: 10px;
+  font-family: 'Aeonik', sans-serif;
+}

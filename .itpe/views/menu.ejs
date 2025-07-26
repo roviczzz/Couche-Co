@@ -47,33 +47,52 @@
       </div>
     <% }) %>
   </div>
-  <div class="summary-panel">
-    <div class="summary-title">Summary</div>
-    <div id="order-items"></div>
-    <div class="summary-totals">
-      <div class="total-row">
-        <span>Subtotal</span>
-        <span id="subtotal">₱ 00.00</span>
+<div class="summary-panel">
+  <div class="summary-title">Summary</div>
+
+  <div class="customer-details-section" style="margin-bottom: 20px;">
+    <label for="customer-name" style="font-weight: bold; display: block; margin-bottom: 6px; color: #5a3e2b;">Customer Name</label>
+    <input type="text" id="customer-name" placeholder="Enter customer name" style="width: 92%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; margin-bottom: 15px;" />
+
+    <label for="delivery-type" style="font-weight: bold; display: block; margin-bottom: 6px; color: #5a3e2b;">Delivery Type</label>
+    <select id="delivery-type" style="width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; margin-bottom: 15px; cursor: pointer;">
+      <option value="Take-Out" selected>Take-Out</option>
+      <option value="Pick-Up">Pick-Up</option>
+      <option value="Delivery">Delivery</option>
+    </select>
+
+    <div id="address-container" style="display: none;">
+      <label for="address" style="font-weight: bold; display: block; margin-bottom: 6px; color: #5a3e2b;">Address</label>
+      <textarea id="address" rows="3" placeholder="Enter delivery address" style="width: 92%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; resize: vertical;"></textarea>
+    </div>
+  </div>
+
+  <div id="order-items"></div>
+
+  <div class="summary-totals">
+    <div class="total-row">
+      <span>Subtotal</span>
+      <span id="subtotal">₱ 00.00</span>
+    </div>
+    <div class="total-row final">
+      <span>Total</span>
+      <span id="total">₱ 00.00</span>
+    </div>
+  </div>
+
+  <div class="payment-section">
+    <div class="payment-title">Payment Method</div>
+    <div class="payment-options">
+      <div class="payment-option selected" onclick="selectPayment('cash')">
+        <span>Pay by Cash</span>
+        <div class="payment-check">✓</div>
       </div>
-      <div class="total-row final">
-        <span>Total</span>
-        <span id="total">₱ 00.00</span>
+      <div class="payment-option" onclick="selectPayment('epayment')">
+        <span>E-Payment</span>
+        <div class="payment-check" style="background-color: #ddd;"></div>
       </div>
     </div>
-    <div class="payment-section">
-      <div class="payment-title">Payment Method</div>
-      <div class="payment-options">
-        <div class="payment-option selected" onclick="selectPayment('cash')">
-          <span>Pay by Cash</span>
-          <div class="payment-check">✓</div>
-        </div>
-        <div class="payment-option" onclick="selectPayment('epayment')">
-          <span>E-Payment</span>
-          <div class="payment-check" style="background-color: #ddd;"></div>
-        </div>
-      </div>
-      <button class="proceed-btn">Proceed Order</button>
-    </div>
+    <button class="proceed-btn">Proceed Order</button>
   </div>
 </div>
 
@@ -114,9 +133,27 @@ function updateSummary() {
       leftoverPrice += promoItemsExp[i];
     }
   }
-  const subtotal = promoTotalPrice + leftoverPrice + pastryTotal;
+  let subtotal = promoTotalPrice + leftoverPrice + pastryTotal;
+  const deliveryType = document.getElementById('delivery-type')?.value;
+  const deliveryFee = 15;
+  const summaryTotals = document.querySelector('.summary-totals');
+
+  const existingDeliveryFeeDiv = document.getElementById('delivery-fee-message');
+  if (existingDeliveryFeeDiv) existingDeliveryFeeDiv.remove();
+
+  if (deliveryType === 'Delivery') {
+    subtotal += deliveryFee;
+    const div = document.createElement('div');
+    div.id = 'delivery-fee-message';
+    div.style.marginTop = '10px';
+    div.style.fontWeight = 'bold';
+    div.textContent = `Delivery Fee applied: ₱ ${deliveryFee.toFixed(2)}`;
+    summaryTotals.appendChild(div);
+  }
+
   document.getElementById('subtotal').textContent = `₱ ${subtotal.toFixed(2)}`;
   document.getElementById('total').textContent = `₱ ${subtotal.toFixed(2)}`;
+
   const promoDiv = document.getElementById('promo-applied');
   if (!promoDiv) {
     if (promoSets > 0) {
@@ -124,12 +161,12 @@ function updateSummary() {
       div.id = 'promo-applied';
       div.style.marginTop = '10px';
       div.style.fontWeight = 'bold';
-      div.textContent = `Promo applied: ₱ ${ (promoSets * 143).toFixed(2) } for ${promoSets*3} items`;
-      document.querySelector('.summary-totals').appendChild(div);
+      div.textContent = `Promo applied: ₱ ${(promoSets * 143).toFixed(2)} for ${promoSets * 3} items`;
+      summaryTotals.appendChild(div);
     }
   } else {
     if (promoSets > 0) {
-      promoDiv.textContent = `Promo applied: ₱ ${ (promoSets * 143).toFixed(2) } for ${promoSets*3} items`;
+      promoDiv.textContent = `Promo applied: ₱ ${(promoSets * 143).toFixed(2)} for ${promoSets * 3} items`;
     } else {
       promoDiv.remove();
     }
@@ -207,7 +244,6 @@ function selectPayment(method) {
     check.textContent = '✓';
   }
 }
-
 function handleProductClick(item) {
   if (item.Sizes && item.Sizes.length > 1) {
     showSizeModal(item);
@@ -221,14 +257,12 @@ function handleProductClick(item) {
     addToOrder(item.Name, price, size, item.Category);
   }
 }
-
 function showSizeModal(item) {
   const modal = document.getElementById('size-modal');
   const productNameElem = document.getElementById('modal-product-name');
   const optionsContainer = document.getElementById('size-options');
   productNameElem.textContent = item.Name;
   optionsContainer.innerHTML = '';
-
   item.Sizes.forEach(sizeObj => {
     const btn = document.createElement('button');
     btn.textContent = `${sizeObj.Size} - ₱${Number(sizeObj.BasePrice).toFixed(2)}`;
@@ -243,15 +277,31 @@ function showSizeModal(item) {
     };
     optionsContainer.appendChild(btn);
   });
-
   modal.style.display = 'flex';
 }
-
 function closeSizeModal() {
   const modal = document.getElementById('size-modal');
   modal.style.display = 'none';
 }
+document.addEventListener('DOMContentLoaded', () => {
+  const deliveryTypeSelect = document.getElementById('delivery-type');
+  if(deliveryTypeSelect) {
+    deliveryTypeSelect.addEventListener('change', () => {
+      const addressContainer = document.getElementById('address-container');
+      if(deliveryTypeSelect.value === 'Delivery') {
+        addressContainer.style.display = 'block';
+      } else {
+        addressContainer.style.display = 'none';
+      }
+      updateSummary();
+    });
+    if(deliveryTypeSelect.value === 'Delivery') {
+      document.getElementById('address-container').style.display = 'block';
+    }
+  }
+});
 </script>
+
 
 <style>
 .main-container { display: flex; min-height: calc(100vh - 70px); }

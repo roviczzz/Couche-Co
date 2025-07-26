@@ -1,64 +1,74 @@
+<style>
+  thead th {
+  text-align: left;
+}
+
+  table {
+    border-collapse: separate; 
+  }
+  th, td {
+    border: none !important;
+  }
+</style>
+
 <h1>Order Details</h1>
 
 <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-  <thead style="background-color: #D4A574; color: #fff;">
+  <thead style="background-color: #f9f9f9; color: #505255;">
     <tr>
       <th style="padding: 10px; border: 1px solid #ccc;">OrderID</th>
-      <th style="padding: 10px; border: 1px solid #ccc;">Products</th>
-      <th style="padding: 10px; border: 1px solid #ccc;">Qty.</th>
-      <th style="padding: 10px; border: 1px solid #ccc;">Customer Name</th>
-      <th style="padding: 10px; border: 1px solid #ccc;">Address</th>
-      <th style="padding: 10px; border: 1px solid #ccc;">Status</th>
+      <th style="padding: 10px; border: 1px solid #ccc;">Created</th>
+      <th style="padding: 10px; border: 1px solid #ccc;">Customer</th>
       <th style="padding: 10px; border: 1px solid #ccc;">Payment</th>
+      <th style="padding: 10px; border: 1px solid #ccc;">Total</th>
+      <th style="padding: 10px; border: 1px solid #ccc;">Delivery</th>
+      <th style="padding: 10px; border: 1px solid #ccc;">Items</th>
+      <th style="padding: 10px; border: 1px solid #ccc;">Fulfillment</th>
       <th style="padding: 10px; border: 1px solid #ccc;">Actions</th>
     </tr>
   </thead>
   <tbody>
     <% if (orders.length === 0) { %>
       <tr>
-        <td colspan="8" style="text-align:center; padding: 20px;">No orders found.</td>
+        <td colspan="9" style="text-align:center; padding: 20px;">No orders found.</td>
       </tr>
     <% } else { %>
       <% orders.forEach(order => { %>
         <tr>
-          <td style="padding: 8px; border: 1px solid #ccc;"><%= order.OrderID || order._id.toString() %></td>
-          
+          <td style="padding: 8px; border: 1px solid #ccc;"><%= order.OrderID || 'N/A' %></td>
+
+          <!-- Created column - formatted date -->
           <td style="padding: 8px; border: 1px solid #ccc;">
-            <% if (Array.isArray(order.Products)) { %>
-              <%= order.Products.map(p => {
-                if(typeof p === 'string') return p;
-                else if(typeof p.name === 'string') return p.name; 
-                else return JSON.stringify(p);
-              }).join(', ') %>
+            <% if(order.Date) { %>
+              <%= new Date(order.Date).toLocaleString() %>
+            <% } else if(order.date) { %>
+              <%= new Date(order.date).toLocaleString() %>
             <% } else { %>
-              <%= order.Products ? order.Products.toString() : '' %>
+              N/A
             <% } %>
           </td>
-          
+
+          <td style="padding: 8px; border: 1px solid #ccc;"><%= order.Customer || order.customer || 'N/A' %></td>
+          <td style="padding: 8px; border: 1px solid #ccc;"><%= order.PaymentStatus || order.paymentStatus || 'Unpaid' %></td>
           <td style="padding: 8px; border: 1px solid #ccc;">
-            <% 
-              // Calculate total quantity from Products, assuming each product has quantity or count property
-              let totalQty = 0;
-              if (Array.isArray(order.Products)) {
-                order.Products.forEach(p => {
-                  if (p.quantity) totalQty += p.quantity;
-                  else if(p.Qty) totalQty += p.Qty;
-                  else totalQty += 1;
-                });
-              } else {
-                totalQty = order.Qty || '-';
-              }
-            %>
-            <%= totalQty %>
+            <% if(order.Total !== undefined && order.Total !== null) { %>
+              ₱ <%= Number(order.Total).toFixed(2) %>
+            <% } else { %>
+              N/A
+            <% } %>
           </td>
-          
-          <td style="padding: 8px; border: 1px solid #ccc;"><%= order.CustomerName || order.customerName || 'N/A' %></td>
-          <td style="padding: 8px; border: 1px solid #ccc;"><%= order.Address || order.address || 'N/A' %></td>
-          <td style="padding: 8px; border: 1px solid #ccc;"><%= order.Status || order.status || 'Pending' %></td>
-          <td style="padding: 8px; border: 1px solid #ccc;"><%= order.Payment || order.payment || 'Unpaid' %></td>
-          <td style="padding: 8px; border: 1px solid #ccc; white-space: nowrap;">
-            <a href="/orders/edit/<%= order._id %>" style="margin-right: 8px; text-decoration:none; color:#4CAF50;">Edit</a>
-            <a href="/orders/details/<%= order._id %>" style="text-decoration:none; color:#2196F3;">Details</a>
+          <td style="padding: 8px; border: 1px solid #ccc;"><%= order.DeliveryStatus || order.deliveryStatus || 'N/A' %></td>
+          <td style="padding: 8px; border: 1px solid #ccc;">
+            <%= order.ItemTotal !== undefined && order.ItemTotal !== null ? order.ItemTotal : 'N/A' %>
+          </td>
+          <td style="padding: 8px; border: 1px solid #ccc;"><%= order.FulfillmentStatus || order.fulfillmentStatus || 'N/A' %></td>
+          <td style="padding: 8px; border: 1px solid #ccc; white-space: nowrap; text-align: center;">
+            <a href="/orders/edit/<%= order._id %>" title="Edit Order" style="color:#5e606e; margin-right: 12px; font-size: 18px;">
+              <i class="fa-regular fa-pen-to-square"></i>
+            </a>
+            <a href="/orders/details/<%= order._id %>" title="View Details" style="color:#5e606e; font-size: 18px;">
+              <i class="fa-regular fa-file"></i>
+            </a>
           </td>
         </tr>
       <% }); %>
