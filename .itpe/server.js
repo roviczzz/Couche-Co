@@ -7,6 +7,7 @@ const app = express();
 const port = 8080;
 const uri = 'mongodb+srv://CoucheAdmin:couchemongo2025!@bsit.dhojcct.mongodb.net/';
 
+const flash = require('connect-flash');
 const favicon = require('serve-favicon');
 const path = require('path');
 
@@ -20,6 +21,16 @@ app.use(
     cookie: { secure: false }
   })
 );
+
+app.use(flash());
+
+
+app.use((req, res, next) => {
+  res.locals.success_msg = req.flash('success_msg');
+  res.locals.error_msg = req.flash('error_msg');
+  next();
+});
+
 
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/views');
@@ -148,17 +159,33 @@ app.get('/products', isLoggedIn, nocache, async (req, res) => {
 
 app.post('/toggle-availability/:id', async (req, res) => {
   const productId = req.params.id;
-  const available = req.body.available;
+  
+  // Safely convert to boolean in case it comes as a string
+  const available = req.body.available === true || req.body.available === 'true';
 
   try {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
-    await db.collection('Menu').updateOne(
+
+    const product = await db.collection('Menu').findOne({ _id: new ObjectId(productId) });
+    if (!product) {
+      await client.close();
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    const result = await db.collection('Menu').updateOne(
       { _id: new ObjectId(productId) },
       { $set: { available: available } }
     );
+
     await client.close();
-    res.json({ success: true });
+
+    // Optional: Check if update actually modified the document
+    if (result.modifiedCount === 0) {
+      return res.status(500).json({ success: false, message: 'No change made to product' });
+    }
+
+    res.json({ success: true, productName: product.Name });
   } catch (err) {
     console.error('Error updating product availability:', err);
     res.status(500).json({ success: false });
@@ -216,6 +243,7 @@ if (Category.toLowerCase() === 'pastries' && !isNaN(parseFloat(BasePrice))) {
 
     await productCollection.insertOne(productData);
     await client.close();
+    req.flash('success_msg', `${Name} has been added to the menu`);
     res.redirect('/products');
   } catch (err) {
     console.error('Error adding product:', err);
@@ -276,6 +304,7 @@ app.post('/products/edit/:id', async (req, res) => {
     );
 
     await client.close();
+    req.flash('success_msg', `${Name} has been updated`);
     res.redirect('/products');
   } catch (err) {
     console.error('Error editing product:', err);
@@ -296,8 +325,8 @@ app.post('/delete-product/:id', async (req, res) => {
     await client.close(); // ✅ clean up
 
     if (result.deletedCount === 1) {
-      res.redirect('/products');
-    } else {
+  req.flash('success_msg', `Product has been deleted`);
+  res.redirect('/products');} else {
       res.status(404).send('Product not found');
     }
   } catch (err) {
