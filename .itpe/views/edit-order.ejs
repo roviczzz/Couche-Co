@@ -21,7 +21,11 @@
           <% order.Cart.forEach((item, idx) => { %>
             <li style="display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee;">
               <div style="display: flex; align-items: center; gap: 12px;">
-                <i class="fa-solid fa-box-open" style="color: #6b7280;"></i>
+                <% if(item.imagelink && item.imagelink !== 'placeholder') { %>
+                <img src="<%= item.imagelink %>" alt="<%= item.ProductName %>" style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px;" />
+                <% } else { %>
+                <i class="fa-solid fa-box-open" style="color: #6b7280; font-size: 24px;"></i>
+                <% } %>
                 <span style="font-weight: 600;"><%= item.ProductName %></span>
               </div>
               <div style="display: flex; align-items: center; gap: 10px;">
@@ -36,10 +40,10 @@
                 <input type="hidden" name="Cart[<%= idx %>][ProductID]" value="<%= item.ProductID %>" />
                 <input type="hidden" name="Cart[<%= idx %>][ProductName]" value="<%= item.ProductName %>" />
                 <button type="button" class="btn-delete" data-idx="<%= idx %>" title="Delete item" style="border:none; background:none; color:#ef4444; font-size: 18px; cursor: pointer;">
-                <i class="fa-solid fa-trash"></i>
+                  <i class="fa-solid fa-trash"></i>
                 </button>
                 <button type="button" class="btn-edit" data-idx="<%= idx %>" title="Edit item" style="border:none; background:none; color:#2563eb; font-size: 18px; cursor: pointer;">
-                <i class="fa-solid fa-pen"></i>
+                  <i class="fa-solid fa-pen"></i>
                 </button>
               </div>
             </li>
@@ -157,7 +161,6 @@
         <p>No shipping information available.</p>
     </section>
     <% } %>
-
 
   </aside>
 

@@ -160,7 +160,6 @@ app.get('/products', isLoggedIn, nocache, async (req, res) => {
 app.post('/toggle-availability/:id', async (req, res) => {
   const productId = req.params.id;
   
-  // Safely convert to boolean in case it comes as a string
   const available = req.body.available === true || req.body.available === 'true';
 
   try {
@@ -180,7 +179,6 @@ app.post('/toggle-availability/:id', async (req, res) => {
 
     await client.close();
 
-    // Optional: Check if update actually modified the document
     if (result.modifiedCount === 0) {
       return res.status(500).json({ success: false, message: 'No change made to product' });
     }
@@ -322,7 +320,7 @@ app.post('/delete-product/:id', async (req, res) => {
     const db = client.db('blessingscafe'); 
     const result = await db.collection('Menu').deleteOne({ _id: new ObjectId(productId) });
 
-    await client.close(); // ✅ clean up
+    await client.close(); 
 
     if (result.deletedCount === 1) {
   req.flash('success_msg', `Product has been deleted`);
@@ -458,32 +456,53 @@ app.get('/order', isLoggedIn, nocache, async (req, res) => {
   }
 });
 
-app.get('/orders/edit/:id', async (req, res) => {
+app.get('/orders/edit/:id', isLoggedIn, nocache, async (req, res) => {
   const orderId = req.params.id;
+
+  if (!ObjectId.isValid(orderId)) {
+    return res.status(400).send('Invalid order ID');
+  }
 
   try {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
     const ordersCollection = db.collection('Orders');
+    const menuCollection = db.collection('Menu');
 
     const order = await ordersCollection.findOne({ _id: new ObjectId(orderId) });
 
-    await client.close();
-
     if (!order) {
+      await client.close();
       return res.status(404).send('Order not found');
     }
 
-    res.render('edit-order', { 
-      order, 
-      title: `Edit Order #${order.OrderID}`, 
+    if (order.Cart && Array.isArray(order.Cart)) {
+      for (let i = 0; i < order.Cart.length; i++) {
+        const productId = order.Cart[i].ProductID;
+        if (productId && ObjectId.isValid(productId)) {
+          const menuItem = await menuCollection.findOne({ _id: new ObjectId(productId) });
+          order.Cart[i].imagelink = menuItem && menuItem.imagelink ? menuItem.imagelink : null;
+        } else {
+          order.Cart[i].imagelink = null;
+        }
+      }
+    }
+
+    await client.close();
+
+    res.render('edit-order', {
+      order,
+      title: `Edit Order #${order.OrderID}`,
       user: req.session.user,
-      currentPage: '/orders/edit' 
+      currentPage: req.path
     });
   } catch (err) {
+    console.error('Error in /orders/edit/:id:', err);
     res.status(500).send('Internal Server Error');
   }
 });
+
+
 
 
 app.get('/logout', (req, res) => {
@@ -514,73 +533,7 @@ app.post('/api/orders', async (req, res) => {
   }
 });
 
-app.post('/orders/edit/:id', async (req, res) => {
-  const orderId = req.params.id;
-  const {
-    Customer,
-    DeliveryStatus,
-    Address,
-    PaymentMode,
-    FulfillmentStatus,
-    PaymentStatus,
-    Cart
-  } = req.body;
 
-  try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const ordersCollection = db.collection('Orders');
-
-    let updatedCart = [];
-
-    if (Cart) {
-      if (Array.isArray(Cart)) {
-        updatedCart = Cart.map(item => ({
-          ProductID: item.ProductID,
-          ProductName: item.ProductName,
-          Quantity: parseInt(item.Quantity) || 0
-        }));
-      } else {
-        updatedCart = Object.values(Cart).map(item => ({
-          ProductID: item.ProductID,
-          ProductName: item.ProductName,
-          Quantity: parseInt(item.Quantity) || 0
-        }));
-      }
-    }
-
-    updatedCart = updatedCart.filter(item => item.Quantity > 0);
-
-    const itemTotal = updatedCart.reduce((sum, item) => sum + item.Quantity, 0);
-
-    const existingOrder = await ordersCollection.findOne({ _id: new ObjectId(orderId) });
-    const total = existingOrder?.Total || 0;
-
-    await ordersCollection.updateOne(
-      { _id: new ObjectId(orderId) },
-      {
-        $set: {
-          Customer,
-          DeliveryStatus,
-          Address: DeliveryStatus === 'Delivery' ? Address : undefined,
-          PaymentMode,
-          FulfillmentStatus,
-          PaymentStatus,
-          Cart: updatedCart,
-          ItemTotal: itemTotal,
-          Total: total,
-          Date: existingOrder?.Date || new Date().toISOString()
-        }
-      }
-    );
-
-    await client.close();
-
-    res.redirect('/order');
-  } catch {
-    res.status(500).send('Internal Server Error');
-  }
-});
 
 
 
