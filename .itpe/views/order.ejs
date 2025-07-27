@@ -33,11 +33,9 @@
         <td colspan="9" style="text-align:center; padding: 20px;">No orders found.</td>
       </tr>
     <% } else { %>
-      <% orders.forEach(order => { %>
+      <% orders.slice(1).forEach(order => { %>
         <tr>
-          <td style="padding: 8px; border: 1px solid #ccc;"><%= order.OrderID || 'N/A' %></td>
-
-          <!-- Created column - formatted date -->
+          <td style="padding: 8px; border: 1px solid #ccc;"><%= order.OrderID ? '#' + order.OrderID : 'N/A' %></td>
           <td style="padding: 8px; border: 1px solid #ccc;">
             <% if(order.Date) { %>
               <%= new Date(order.Date).toLocaleString() %>
@@ -62,7 +60,7 @@
             <%= order.ItemTotal !== undefined && order.ItemTotal !== null ? order.ItemTotal : 'N/A' %>
           </td>
           <td style="padding: 8px; border: 1px solid #ccc;"><%= order.FulfillmentStatus || order.fulfillmentStatus || 'N/A' %></td>
-          <td style="padding: 8px; border: 1px solid #ccc; white-space: nowrap; text-align: center;">
+          <td style="padding: 8px; border: 1px solid #ccc; white-space: nowrap; text-align: left;">
             <a href="/orders/edit/<%= order._id %>" title="Edit Order" style="color:#5e606e; margin-right: 12px; font-size: 18px;">
               <i class="fa-regular fa-pen-to-square"></i>
             </a>

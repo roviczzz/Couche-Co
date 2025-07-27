@@ -1,0 +1,244 @@
+<div class="edit-order-container" style="max-width:1500px; margin: 20px auto; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.1); display: flex; gap: 20px;">
+
+  <section style="flex: 1 1 700px; display: flex; flex-direction: column; gap: 30px;">
+
+    <header style="display: flex; flex-wrap: wrap; align-items: center; gap: 15px;">
+      <h1 style="margin: 0;">
+        Edit Order <%= order.OrderID ? '#' + order.OrderID : 'N/A' %>
+      </h1>
+      <div style="font-weight: 600; color: #d97706; background: #fff7ed; padding: 6px 14px; border-radius: 20px;">
+        <%= order.PaymentStatus || 'Payment Pending' %>
+      </div>
+      <div style="font-weight: 600; color: #b91c1c; background: #fecaca; padding: 6px 14px; border-radius: 20px;">
+        <%= order.FulfillmentStatus || 'Unfulfilled' %>
+      </div>
+    </header>
+
+    <section style="border: 1px solid #ddd; border-radius: 8px; padding: 20px;">
+      <h2 style="margin-top: 0;">Order Items</h2>
+      <ul style="list-style: none; padding: 0; margin: 0;">
+        <% if(order.Cart && order.Cart.length > 0) { %>
+          <% order.Cart.forEach((item, idx) => { %>
+            <li style="display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <i class="fa-solid fa-box-open" style="color: #6b7280;"></i>
+                <span style="font-weight: 600;"><%= item.ProductName %></span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <input 
+                  type="number" 
+                  name="Cart[<%= idx %>][Quantity]" 
+                  value="<%= item.Quantity %>" 
+                  min="1"
+                  required
+                  style="width: 60px; padding: 6px; border: 1px solid #ccc; border-radius: 6px; text-align: center;"
+                />
+                <input type="hidden" name="Cart[<%= idx %>][ProductID]" value="<%= item.ProductID %>" />
+                <input type="hidden" name="Cart[<%= idx %>][ProductName]" value="<%= item.ProductName %>" />
+                <button type="button" class="btn-delete" data-idx="<%= idx %>" title="Delete item" style="border:none; background:none; color:#ef4444; font-size: 18px; cursor: pointer;">
+                <i class="fa-solid fa-trash"></i>
+                </button>
+                <button type="button" class="btn-edit" data-idx="<%= idx %>" title="Edit item" style="border:none; background:none; color:#2563eb; font-size: 18px; cursor: pointer;">
+                <i class="fa-solid fa-pen"></i>
+                </button>
+              </div>
+            </li>
+          <% }) %>
+        <% } else { %>
+          <li style="padding: 15px 0; color: #6b7280;">No items in this order.</li>
+        <% } %>
+      </ul>
+
+      <button 
+        type="button" 
+        onclick="fulfillOrder()" 
+        style="margin-top: 20px; background-color: #d97706; color: white; padding: 12px 24px; border: none; border-radius: 25px; font-weight: 700; cursor: pointer;"
+      >
+        <i class="fa-solid fa-check-to-slot" style="margin-right: 8px;"></i> Fulfill Order
+      </button>
+    </section>
+
+    <section style="border: 1px solid #ddd; border-radius: 8px; padding: 20px;">
+      <h2 style="margin-top: 0;">Order Summary</h2>
+
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+        <strong>Payment Mode</strong>
+        <div style="display: flex; align-items: center; gap: 8px;white-space: nowrap;">
+            <span><%= order.PaymentMode || 'N/A' %></span>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+        <strong>Subtotal</strong>
+        <span>₱ <%= order.Total ? (order.Total - (order.DeliveryStatus === 'Delivery' ? 15 : 0)).toFixed(2) : '0.00' %></span>
+      </div>
+
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+        <strong>No of Items</strong>
+        <span><%= order.ItemTotal || 0 %></span>
+      </div>
+
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+        <strong>Delivery Type</strong>
+        <div style="display: flex; align-items: center; gap: 8px; white-space: nowrap;">
+            <span><%= order.DeliveryStatus || 'N/A' %></span>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; justify-content: space-between; font-weight: 700; font-size: 1.1em; border-top: 1px solid #ddd; padding-top: 12px;">
+        <span>Total</span>
+        <span>₱ <%= order.Total ? order.Total.toFixed(2) : '0.00' %></span>
+      </div>
+
+      <div style="margin-top: 20px; display: flex; gap: 12px;">
+        <button type="button" onclick="cancelOrder()" style="flex: 1; background-color: #ef4444; color: white; padding: 12px; border: none; border-radius: 25px; font-weight: 700; cursor: pointer;">
+          Cancel Order
+        </button>
+        <button type="button" onclick="confirmPayment()" style="flex: 1; background-color: #2563eb; color: white; padding: 12px; border: none; border-radius: 25px; font-weight: 700; cursor: pointer;">
+          Confirm Payment
+        </button>
+      </div>
+    </section>
+
+  </section>
+
+  <aside style="width: 300px; display: flex; flex-direction: column; gap: 20px;margin-top: 67px;">
+
+    <section style="border: 1px solid #ddd; border-radius: 8px; padding: 20px; position: relative; min-height: 150px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+        <h3 style="margin: 0;">Notes</h3>
+        <button type="button" id="editNotesBtn" title="Edit notes" 
+        style="border: none; background: none; color: #2563eb; cursor: pointer;margin-left: 180px;">
+        <i class="fa-solid fa-pen-to-square"></i>
+        </button>
+    </div>
+
+    <div id="notesDisplay" style="white-space: pre-wrap; margin-top: 10px;"><%= order.Notes || 'No notes.' %></div>
+    <textarea id="orderNotes" name="Notes" rows="6" 
+        style="width: 100%; resize: vertical; border: 1px solid #ccc; border-radius: 6px; padding: 8px; display: none; margin-top: 20px;">
+    </textarea>
+    </section>
+
+    <section style="border: 1px solid #ddd; border-radius: 8px; padding: 20px;">
+      <h3 style="display: flex; align-items: center; gap: 8px; margin-top: 0;">
+        <i class="fa-solid fa-user"></i> Customer Details
+      </h3>
+      <p><strong>Customer Name:</strong> <%= order.Customer || 'N/A' %></p>
+    </section>
+
+    <section style="border: 1px solid #ddd; border-radius: 8px; padding: 20px;">
+      <h3 style="display: flex; align-items: center; gap: 8px; margin-top: 0;">
+        <i class="fa-solid fa-phone"></i> Contact Information
+      </h3>
+      <p>Placeholder for contact info</p>
+    </section>
+
+    <% if (order.DeliveryStatus === 'Delivery') { %>
+    <section style="border: 1px solid #ddd; border-radius: 8px; padding: 20px;">
+        <h3 style="display: flex; align-items: center; gap: 8px; margin-top: 0;">
+        <i class="fa-solid fa-truck"></i> Shipping Address
+        </h3>
+        <p><strong>Customer Name:</strong> <%= order.Customer || 'N/A' %></p>
+        <p><strong>Address:</strong> <%= order.Address || 'N/A' %></p>
+    </section>
+    <% } else if (order.DeliveryStatus === 'Take-Out' || order.DeliveryStatus === 'Pick-Up') { %>
+    <section style="border: 1px solid #ddd; border-radius: 8px; padding: 20px;">
+        <h3 style="display: flex; align-items: center; gap: 8px; margin-top: 0;">
+        <i class="fa-solid fa-truck"></i> Delivery Type
+        </h3>
+        <p><strong>Status:</strong> <%= order.DeliveryStatus %></p>
+        <p style="color: #6b7280;">No shipping address required for <%= order.DeliveryStatus %>.</p>
+    </section>
+    <% } else { %>
+    <section style="border: 1px solid #ddd; border-radius: 8px; padding: 20px;">
+        <h3 style="display: flex; align-items: center; gap: 8px; margin-top: 0;">
+        <i class="fa-solid fa-truck"></i> Delivery Information
+        </h3>
+        <p>No shipping information available.</p>
+    </section>
+    <% } %>
+
+
+  </aside>
+
+</div>
+
+<script>
+    const editBtn = document.getElementById('editNotesBtn');
+    const notesDisplay = document.getElementById('notesDisplay');
+    const notesTextarea = document.getElementById('orderNotes');
+
+    document.addEventListener('click', function(e) {
+    const deleteBtn = e.target.closest('.btn-delete');
+    if (deleteBtn) {
+        const idx = parseInt(deleteBtn.getAttribute('data-idx'), 10);
+        deleteItem(idx);
+        return;
+    }
+
+    const editBtn = e.target.closest('.btn-edit');
+    if (editBtn) {
+        const idx = parseInt(editBtn.getAttribute('data-idx'), 10);
+        editItem(idx);
+        return;
+    }
+    });
+  
+  editBtn.addEventListener('click', () => {
+    if (notesTextarea.style.display === 'none') {
+      notesTextarea.value = notesDisplay.textContent.trim() === 'No notes.' ? '' : notesDisplay.textContent;
+      notesDisplay.style.display = 'none';
+      notesTextarea.style.display = 'block';
+      notesTextarea.style.width = '95%';
+      notesTextarea.focus();
+      editBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
+    } else {
+      const newText = notesTextarea.value.trim();
+      notesDisplay.textContent = newText || 'No notes.';
+      notesTextarea.style.display = 'none';
+      notesTextarea.style.width = '95%';
+      notesDisplay.style.display = 'block';
+      editBtn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i>';
+    }
+  });
+  
+  function deleteItem(idx) {
+    const inputQty = document.querySelector(`input[name="Cart[${idx}][Quantity]"]`);
+    if (inputQty) {
+      inputQty.value = 0;
+      inputQty.form.submit();
+    }
+  }
+
+  function editItem(idx) {
+    alert('Edit item functionality not implemented.');
+  }
+
+  function fulfillOrder() {
+    alert('Fulfill Order functionality not implemented.');
+  }
+
+  function cancelOrder() {
+    alert('Cancel Order functionality not implemented.');
+  }
+
+  function confirmPayment() {
+    alert('Confirm Payment functionality not implemented.');
+  }
+
+  function editPaymentMode() {
+    alert('Edit Payment Mode functionality not implemented.');
+  }
+
+  function editDeliveryType() {
+    alert('Edit Delivery Type functionality not implemented.');
+  }
+
+  function editNotes() {
+    const notes = document.getElementById('orderNotes');
+    if (notes) {
+      notes.focus();
+      alert('You can now edit the notes.');
+    }
+  }
+</script>

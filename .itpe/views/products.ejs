@@ -12,10 +12,10 @@
     <a href="/add-product" class="add-btn">+ Add Product</a>
   </div>
 
-  <% if (success_msg) { %>
-  <div class="toast-flash"><%= success_msg %></div>
-  <div id="toggle-toast" class="toast-flash hidden"></div>
-  <% } %>
+<% if (success_msg) { %>
+  <div id="pageLoadToast" class="toast-flash hidden"><%= success_msg %></div>
+<% } %>
+
 
   <div class="content">
     <% Object.keys(grouped).forEach(category => { %>
@@ -98,14 +98,6 @@ function showToast(message) {
   }, 3000);
 }
 
-
-const toast = document.querySelector('.toast-flash');
-if (toast) {
-  setTimeout(() => {
-    toast.style.display = 'none';
-  }, 4000);
-}
-
 let deleteUrl = '';
 document.querySelectorAll('.delete-btn').forEach(button => {
   button.addEventListener('click', function (e) {
@@ -140,8 +132,6 @@ body {
 .main-container {
   width: 100%;
   min-height: 100vh;
-  background-color: #f0f0f0;
-  padding: 20px;
   box-sizing: border-box;
 }
 .top-bar {
@@ -174,8 +164,10 @@ body {
   margin-bottom: 40px;
 }
 .product-card {
-  background-color: #c0c0c0;
+  background-color: #fff;
   border-radius: 15px;
+  border: 1px solid #ddd;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.08);
   padding: 20px;
   text-align: center;
   position: relative;

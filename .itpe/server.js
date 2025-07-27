@@ -444,12 +444,6 @@ app.post('/stocks/delete/:id', async (req, res) => {
 });
 
 
-
-
-
-
-
-
 app.get('/order', isLoggedIn, nocache, async (req, res) => {
   try {
     const client = await MongoClient.connect(uri);
@@ -464,7 +458,32 @@ app.get('/order', isLoggedIn, nocache, async (req, res) => {
   }
 });
 
+app.get('/orders/edit/:id', async (req, res) => {
+  const orderId = req.params.id;
 
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const ordersCollection = db.collection('Orders');
+
+    const order = await ordersCollection.findOne({ _id: new ObjectId(orderId) });
+
+    await client.close();
+
+    if (!order) {
+      return res.status(404).send('Order not found');
+    }
+
+    res.render('edit-order', { 
+      order, 
+      title: `Edit Order #${order.OrderID}`, 
+      user: req.session.user,
+      currentPage: '/orders/edit' 
+    });
+  } catch (err) {
+    res.status(500).send('Internal Server Error');
+  }
+});
 
 
 app.get('/logout', (req, res) => {
@@ -472,6 +491,98 @@ app.get('/logout', (req, res) => {
     res.redirect('/account/login');
   });
 });
+
+app.post('/api/orders', async (req, res) => {
+  try {
+    const orderData = req.body;
+
+    if (!orderData || !orderData.OrderID || !orderData.Date || !orderData.Cart || !orderData.Customer) {
+      return res.status(400).json({ success: false, error: 'Missing required order fields' });
+    }
+
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    await db.collection('Orders').insertOne(orderData);
+
+    await client.close();
+
+    res.json({ success: true, orderId: orderData.OrderID });
+  } catch (err) {
+    console.error('Error saving order:', err);
+    res.status(500).json({ success: false, error: 'Failed to save order' });
+  }
+});
+
+app.post('/orders/edit/:id', async (req, res) => {
+  const orderId = req.params.id;
+  const {
+    Customer,
+    DeliveryStatus,
+    Address,
+    PaymentMode,
+    FulfillmentStatus,
+    PaymentStatus,
+    Cart
+  } = req.body;
+
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const ordersCollection = db.collection('Orders');
+
+    let updatedCart = [];
+
+    if (Cart) {
+      if (Array.isArray(Cart)) {
+        updatedCart = Cart.map(item => ({
+          ProductID: item.ProductID,
+          ProductName: item.ProductName,
+          Quantity: parseInt(item.Quantity) || 0
+        }));
+      } else {
+        updatedCart = Object.values(Cart).map(item => ({
+          ProductID: item.ProductID,
+          ProductName: item.ProductName,
+          Quantity: parseInt(item.Quantity) || 0
+        }));
+      }
+    }
+
+    updatedCart = updatedCart.filter(item => item.Quantity > 0);
+
+    const itemTotal = updatedCart.reduce((sum, item) => sum + item.Quantity, 0);
+
+    const existingOrder = await ordersCollection.findOne({ _id: new ObjectId(orderId) });
+    const total = existingOrder?.Total || 0;
+
+    await ordersCollection.updateOne(
+      { _id: new ObjectId(orderId) },
+      {
+        $set: {
+          Customer,
+          DeliveryStatus,
+          Address: DeliveryStatus === 'Delivery' ? Address : undefined,
+          PaymentMode,
+          FulfillmentStatus,
+          PaymentStatus,
+          Cart: updatedCart,
+          ItemTotal: itemTotal,
+          Total: total,
+          Date: existingOrder?.Date || new Date().toISOString()
+        }
+      }
+    );
+
+    await client.close();
+
+    res.redirect('/order');
+  } catch {
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);

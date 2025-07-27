@@ -5,7 +5,6 @@
     <div id="message" class="message"></div>
   <% } %>
 
-  <!-- Add Ingredient Form -->
   <form action="/stocks" method="POST" class="stocks-form-add">
     <input type="text" name="IngredientID" placeholder="Ingredient ID" required>
     <input type="text" name="Name" placeholder="Name" required>
@@ -64,16 +63,12 @@
   </table>
 </div>
 
-<!-- Scoped CSS -->
 <style>
   .stocks-container {
     background: #fff;
-    padding: 30px;
-    border-radius: 12px;
     max-width: 1900px;
     margin: 30px auto;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-    font-family: 'Segoe UI', sans-serif;
+    letter-spacing: -.5px;
   }
 
   .stocks-container h2 {
@@ -103,7 +98,6 @@
 
   .stocks-form-add input,
   .stocks-form-add select {
-    padding: 10px;
     font-size: 14px;
     border-radius: 6px;
     border: 1px solid #ccc;
