@@ -1,4 +1,9 @@
 <style>
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
 thead th {
   text-align: left;
 }
@@ -17,7 +22,7 @@ th, td {
 tbody tr {
   cursor: pointer;
   transition: background-color 0.2s ease;
-  border-bottom: 8px solid transparent; /* slight gap effect between rows */
+  border-bottom: 8px solid transparent;
 }
 
 tbody tr:hover {
@@ -29,10 +34,40 @@ tbody tr:hover {
   display: flex;
   gap: 24px;
   margin-top: 20px;
+  height: calc(100vh - 40px);
+  box-sizing: border-box;
 }
 
 .orders-table-container {
   flex: 2;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.orders-table-container > h1 {
+  flex-shrink: 0;
+}
+
+.orders-table-container table {
+  border-collapse: collapse;
+  width: 100%;
+  flex-shrink: 0;
+  table-layout: fixed;
+}
+
+.orders-table-container table thead,
+.orders-table-container table tbody tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.orders-table-container table tbody {
+  display: block;
+  height: calc(100% - 38px);
+  overflow-y: auto;
 }
 
 .order-detail-panel {
@@ -44,7 +79,8 @@ tbody tr:hover {
   padding: 24px 26px;
   display: none;
   flex-direction: column;
-  height: fit-content;
+  height: 100%;
+  overflow-y: auto;
   position: sticky;
   top: 20px;
   font-family: 'Aeonik', sans-serif;
@@ -111,6 +147,21 @@ tbody tr:hover {
   color: #5a3e2b;
 }
 
+.product-quantity-price {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 14px;
+  color: #5a3e2b;
+  align-items: center;
+}
+
+.product-price {
+  margin-left: auto;
+  font-weight: 600;
+  color: #5a3e2b;
+}
+
 .order-detail-buttons {
   margin-top: auto;
   display: flex;
@@ -166,14 +217,14 @@ tbody tr:hover {
     <table>
       <thead style="background-color: #f9f9f9; color: #505255;">
         <tr>
-          <th>OrderID</th>
-          <th>Created</th>
-          <th>Customer</th>
-          <th>Payment</th>
-          <th>Total</th>
-          <th>Delivery</th>
-          <th>Items</th>
-          <th>Fulfillment</th>
+          <th data-column="orderid">OrderID</th>
+          <th data-column="created">Created</th>
+          <th data-column="customer">Customer</th>
+          <th data-column="payment">Payment</th>
+          <th data-column="total">Total</th>
+          <th data-column="delivery">Delivery</th>
+          <th data-column="items">Items</th>
+          <th data-column="fulfillment">Fulfillment</th>
         </tr>
       </thead>
       <tbody>
@@ -230,11 +281,13 @@ tbody tr:hover {
 
 </div>
 
+<script type="application/json" id="orders-data"><%- JSON.stringify(orders || []) %></script>
+<script type="application/json" id="menu-data"><%- JSON.stringify(menu || []) %></script>
 
 <script>
-const orders = <%- JSON.stringify(orders.slice(1)) %>;
-const menu = <%- JSON.stringify(menu) %>;
-const orderDetailPanel = document.getElementById('orderDetailPanel');
+const ordersData = JSON.parse(document.getElementById('orders-data').textContent || '[]');
+const orders = ordersData.slice(1);
+const menu = JSON.parse(document.getElementById('menu-data').textContent || '[]');const orderDetailPanel = document.getElementById('orderDetailPanel');
 const orderSummaryContent = document.getElementById('orderSummaryContent');
 const orderDetailButtons = document.getElementById('orderDetailButtons');
 const editOrderLink = document.getElementById('editOrderLink');
@@ -243,9 +296,21 @@ function formatCurrency(value) {
   return '₱ ' + Number(value).toFixed(2);
 }
 
-function getProductPrice(productName) {
-  const item = menu.find(m => m.ProductName === productName);
-  return item && item.Price != null ? Number(item.Price) : 0;
+function getPriceAndSize(productName, sizeLabel) {
+  const menuItem = menu.find(m => m.Name === productName);
+  if (!menuItem) return { price: 0, size: sizeLabel || null };
+
+  if (menuItem.Sizes && menuItem.Sizes.length > 0) {
+    const sizeObj = menuItem.Sizes.find(s => s.Size === sizeLabel);
+    if (sizeObj) {
+      return { price: Number(sizeObj.BasePrice), size: sizeObj.Size };
+    }
+    const fallbackSize = menuItem.Sizes[0];
+    return { price: Number(fallbackSize.BasePrice), size: fallbackSize.Size };
+  } else if (menuItem.BasePrice) {
+    return { price: Number(menuItem.BasePrice), size: null };
+  }
+  return { price: 0, size: null };
 }
 
 function createProductList(order) {
@@ -254,12 +319,16 @@ function createProductList(order) {
   }
   let html = '<ul>';
   order.Cart.forEach(item => {
-    const price = getProductPrice(item.ProductName);
-    const totalPrice = price * (item.Quantity || 0);
+    const quantity = Number(item.Quantity) || 0;
+    const sizeLabel = item.Size || null;
+    const { price, size } = getPriceAndSize(item.ProductName, sizeLabel);
+    const totalPrice = price * quantity;
+
     html += `<li>
       <span class="product-name">${item.ProductName || 'N/A'}</span>
       <span class="product-quantity-price">
-        Qty: ${item.Quantity || 0} 
+        <strong>${size ? size : 'Size N/A'}</strong> &nbsp;&nbsp;
+        Qty: ${quantity} 
         <span class="product-price">${formatCurrency(totalPrice)}</span>
       </span>
     </li>`;
@@ -268,14 +337,68 @@ function createProductList(order) {
   return html;
 }
 
+
+
 function showOrderDetails(order) {
   let address = order.Address || order.address || 'N/A';
   let customer = order.Customer || order.customer || 'N/A';
-  let contact = order.Contact || order.contact || 'N/A';
-  let deliveryChargeMsg = '';
-  if (order.DeliveryStatus === 'Delivery' || order.DeliveryStatus === 'delivery') {
-    deliveryChargeMsg = `<p style="color:#a05c2f; font-weight:600; margin-top:8px;">Delivery Charge: + ₱ 15</p>`;
+  let contact = order.ContactNumber || order.ContactNumber || 'N/A';
+  const deliveryFee = 15;
+
+  let totalItems = 0;
+  if (order.Cart && order.Cart.length) {
+    totalItems = order.Cart.reduce((sum, item) => sum + (Number(item.Quantity) || 0), 0);
   }
+
+  let productsSubtotal = 0;
+  if (order.Cart && order.Cart.length) {
+    order.Cart.forEach(item => {
+      const quantity = Number(item.Quantity) || 0;
+      const sizeLabel = item.Size || null;
+      const menuItem = menu.find(m => m.Name === item.ProductName);
+      let price = 0;
+      if (menuItem) {
+        if (menuItem.Sizes && menuItem.Sizes.length > 0 && sizeLabel) {
+          const sizeObj = menuItem.Sizes.find(s => s.Size === sizeLabel);
+          price = sizeObj ? Number(sizeObj.BasePrice) : (menuItem.BasePrice ? Number(menuItem.BasePrice) : 0);
+        } else {
+          price = menuItem.BasePrice ? Number(menuItem.BasePrice) : 0;
+        }
+      }
+      productsSubtotal += price * quantity;
+    });
+  }
+
+  const deliveryChargeHtml = (order.DeliveryStatus === 'Delivery' || order.DeliveryStatus === 'delivery')
+    ? `<p style="color:#a05c2f; font-weight:600; margin-top:8px; display: flex; justify-content: space-between;">
+         <span>Delivery Charge:</span> <span>₱ ${deliveryFee.toFixed(2)}</span>
+       </p>`
+    : '';
+
+  const subtotalHtml = `
+    <p style="display: flex; justify-content: space-between; font-weight: 600; font-size: 15px; margin-top: 10px;">
+      <span>Subtotal:</span> 
+      <span>₱ ${productsSubtotal.toFixed(2)}</span>
+    </p>
+  `;
+
+  const promoSets = Math.floor(totalItems / 3);
+  const promoMessage = promoSets > 0
+  ? `<p style="font-weight: 600; color: #a05c2f; margin-top: 10px; display: flex; justify-content: space-between;">
+       <span>Promo Applied:</span>
+       <span style="text-align: right;">143 for (${promoSets * 3} items)</span>
+     </p>`
+  : '';
+
+
+  const totalPriceValue = order.Total ? Number(order.Total) : productsSubtotal + ((order.DeliveryStatus === 'Delivery' || order.DeliveryStatus === 'delivery') ? deliveryFee : 0);
+
+  const totalHtml = `
+    <p style="display: flex; justify-content: space-between; font-weight: 700; font-size: 16px; margin-top: 12px;">
+      <span>Total:</span> 
+      <span>₱ ${totalPriceValue.toFixed(2)}</span>
+    </p>
+  `;
 
   const summaryHtml = `
     <div class="order-detail-section">
@@ -284,18 +407,32 @@ function showOrderDetails(order) {
     </div>
     <div class="order-detail-section">
       <h3>Customer Information</h3>
-      <p><span class="label">Name:</span> ${customer}</p>
-      <p><span class="label">Address:</span> ${address}</p>
-      <p><span class="label">Contact:</span> ${contact}</p>
+      <p><span class="label"><strong>Name:</strong></span> ${customer}</p>
+      <p><span class="label"><strong>Address:</strong></span> ${address}</p>
+      <p><span class="label"><strong>Contact:</strong></span> ${contact}</p>
     </div>
     <div class="order-detail-section">
       <h3>Summary</h3>
-      <p><span class="label">Payment Status:</span> ${order.PaymentStatus || 'Unpaid'}</p>
-      <p><span class="label">Delivery Status:</span> ${order.DeliveryStatus || 'N/A'}</p>
-      <p><span class="label">Fulfillment Status:</span> ${order.FulfillmentStatus || 'N/A'}</p>
-      <p><span class="label">Total Items:</span> ${order.ItemTotal || 0}</p>
-      <p><span class="label">Subtotal:</span> ${formatCurrency(order.Total || 0)}</p>
-      ${deliveryChargeMsg}
+      <p style="display: flex; justify-content: space-between;">
+      <span class="label"><strong>Payment Status:</strong></span>
+      <span>${order.PaymentStatus || 'Unpaid'}</span>
+    </p>
+    <p style="display: flex; justify-content: space-between;">
+      <span class="label"><strong>Delivery Type:</strong></span>
+      <span>${order.DeliveryStatus || 'N/A'}</span>
+    </p>
+    <p style="display: flex; justify-content: space-between;">
+      <span class="label"><strong>Fulfillment Status:</strong></span>
+      <span>${order.FulfillmentStatus || 'N/A'}</span>
+    </p>
+      <p style="display: flex; justify-content: space-between;">
+      <span class="label"><strong>Total Items:</strong></span>
+      <span>${order.ItemTotal || 0}</span>
+      </p>
+      ${subtotalHtml}
+      ${deliveryChargeHtml}
+      ${promoMessage}
+      ${totalHtml}
     </div>
   `;
 
@@ -319,6 +456,9 @@ function showOrderDetails(order) {
   };
 }
 
+
+
+
 document.querySelectorAll('.order-row').forEach(row => {
   row.addEventListener('click', () => {
     const idx = parseInt(row.dataset.idx, 10);
@@ -330,5 +470,144 @@ document.querySelectorAll('.order-row').forEach(row => {
     }
   });
 });
+
+const ordersTableBody = document.querySelector('.orders-table-container tbody');
+const orderHeaders = document.querySelectorAll('.orders-table-container thead th');
+
+let currentSort = {
+  column: null,
+  direction: 'asc'
+};
+
+function compareValues(a, b, isNumber = false) {
+  if (isNumber) {
+    const numA = Number(a);
+    const numB = Number(b);
+    if (isNaN(numA)) return 1;
+    if (isNaN(numB)) return -1;
+    return numA - numB;
+  } else {
+    return String(a).localeCompare(String(b));
+  }
+}
+
+function sortOrders(columnKey) {
+  if (currentSort.column === columnKey) {
+    currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+  } else {
+    currentSort.column = columnKey;
+    currentSort.direction = 'asc';
+  }
+
+  const keyMap = {
+    orderid: 'OrderID',
+    created: 'Date',
+    customer: 'Customer',
+    payment: 'PaymentStatus',
+    total: 'Total',
+    delivery: 'DeliveryStatus',
+    items: 'ItemTotal',
+    fulfillment: 'FulfillmentStatus'
+  };
+
+  const key = keyMap[columnKey];
+
+  orders.sort((a, b) => {
+    let valA = a[key];
+    let valB = b[key];
+
+    if (columnKey === 'created') {
+      valA = new Date(valA || a.date || 0).getTime();
+      valB = new Date(valB || b.date || 0).getTime();
+      return (valA - valB) * (currentSort.direction === 'asc' ? 1 : -1);
+    }
+
+    if (valA === undefined || valA === null) valA = '';
+    if (valB === undefined || valB === null) valB = '';
+
+    if (columnKey === 'total' || columnKey === 'items') {
+      return (Number(valA) - Number(valB)) * (currentSort.direction === 'asc' ? 1 : -1);
+    }
+
+    const comp = String(valA).localeCompare(String(valB));
+    return currentSort.direction === 'asc' ? comp : -comp;
+  });
+
+  renderOrdersTable();
+  renderSortArrows();
+}
+
+function renderOrdersTable() {
+  ordersTableBody.innerHTML = '';
+  if (orders.length === 0) {
+    ordersTableBody.innerHTML = `
+      <tr>
+        <td colspan="8" style="text-align:center; padding: 20px;">No orders found.</td>
+      </tr>`;
+    return;
+  }
+  orders.forEach((order, index) => {
+    ordersTableBody.innerHTML += `
+      <tr class="order-row" data-idx="${index}">
+        <td>${order.OrderID ? '#' + order.OrderID : 'N/A'}</td>
+        <td>${order.Date ? new Date(order.Date).toLocaleString()
+          : order.date ? new Date(order.date).toLocaleString() : 'N/A'}</td>
+        <td>${order.Customer || order.customer || 'N/A'}</td>
+        <td>${order.PaymentStatus || order.paymentStatus || 'Unpaid'}</td>
+        <td>${order.Total !== undefined && order.Total !== null ? '₱ ' + Number(order.Total).toFixed(2) : 'N/A'}</td>
+        <td>${order.DeliveryStatus || order.deliveryStatus || 'N/A'}</td>
+        <td>${order.ItemTotal !== undefined && order.ItemTotal !== null ? order.ItemTotal : 'N/A'}</td>
+        <td>${order.FulfillmentStatus || order.fulfillmentStatus || 'N/A'}</td>
+      </tr>
+    `;
+  });
+
+  document.querySelectorAll('.order-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const idx = parseInt(row.dataset.idx, 10);
+      if (idx >= 0 && idx < orders.length) {
+        const order = orders[idx];
+        showOrderDetails(order);
+        document.querySelectorAll('.order-row').forEach(r => r.style.backgroundColor = '');
+        row.style.backgroundColor = '#f0f0f0';
+      }
+    });
+  });
+}
+
+function clearSortArrows() {
+  orderHeaders.forEach(th => {
+    const arrowSpan = th.querySelector('.sort-arrow');
+    if (arrowSpan) arrowSpan.remove();
+  });
+}
+
+function renderSortArrows() {
+  clearSortArrows();
+  if (!currentSort.column) return;
+
+  const header = [...orderHeaders].find(th => th.dataset.column === currentSort.column);
+  if (!header) return;
+
+  const arrow = document.createElement('span');
+  arrow.classList.add('sort-arrow');
+  arrow.style.marginLeft = '6px';
+  arrow.style.fontSize = '12px';
+  arrow.style.userSelect = 'none';
+  arrow.textContent = currentSort.direction === 'asc' ? '▲' : '▼';
+  header.appendChild(arrow);
+}
+
+orderHeaders.forEach(th => {
+  const columnKey = th.dataset.column;
+  if (columnKey) {
+    th.style.cursor = 'pointer';
+    th.addEventListener('click', () => {
+      sortOrders(columnKey);
+    });
+  }
+});
+
+renderOrdersTable();
 
 </script>
