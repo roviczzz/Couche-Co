@@ -57,11 +57,24 @@
       <option value="Pick-Up">Pick-Up</option>
       <option value="Delivery">Delivery</option>
     </select>
-    
+
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px;">
+    <label for="notes-textarea" style="font-weight: bold; color: #5a3e2b; margin: 0; user-select: none;">Notes</label>
+    <button id="toggle-notes-btn" type="button"
+      style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="#5a3e2b" width="18" height="18" viewBox="0 0 24 24">
+        <path d="M7 10l5 5 5-5H7z"/>
+      </svg>
+    </button>
+  </div>
+  <textarea id="notes-textarea" maxlength="250" rows="3" placeholder="Add notes (max 250 characters)"
+    style="width: 92%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; resize: vertical; margin-top: -10px; margin-bottom: 15px; display: none;"></textarea>
+
     <div id="address-container" style="display: none;">
       <label for="address" style="font-weight: bold; display: block; margin-bottom: 6px; color: #5a3e2b;">Address</label>
       <textarea id="address" rows="3" placeholder="Enter delivery address" style="width: 92%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; resize: vertical;"></textarea>
     </div>
+    
   </div>
 
     <div id="order-items"></div>
@@ -119,6 +132,17 @@
 
 
 <script>
+document.getElementById('toggle-notes-btn').onclick = function() {
+  const ta = document.getElementById('notes-textarea');
+  if (ta.style.display === 'block') {
+    ta.style.display = 'none';
+    ta.value = '';
+  } else {
+    ta.style.display = 'block';
+    ta.focus();
+  }
+};
+
 let orderItems = [];
 
 function updateSummary() {
@@ -192,7 +216,6 @@ function updateSummary() {
 
   document.getElementById('total').textContent = `₱ ${subtotalPromoApplied.toFixed(2)}`;
 }
-
 
 function calculateTotals() {
   const itemPriceElements = document.querySelectorAll('.item-price');
@@ -438,6 +461,8 @@ document.getElementById('proceed-order-btn').addEventListener('click', function(
 
   let totalItemsCount = orderItems.reduce((sum, item) => sum + item.quantity, 0);
 
+  const notes = document.getElementById('notes-textarea').value.trim();
+
   let confirmMsg = `Customer: ${customerName}\n`;
   if (contactNumber) {
     confirmMsg += `Contact Number: ${contactNumber}\n`;
@@ -445,6 +470,9 @@ document.getElementById('proceed-order-btn').addEventListener('click', function(
   confirmMsg += `Items: ${totalItemsCount} items\nDelivery Type: ${deliveryType}\n`;
   if (deliveryType === 'Delivery') {
     confirmMsg += `Address: ${document.getElementById('address').value.trim()}\n`;
+  }
+  if (notes) {
+    confirmMsg += `Notes: ${notes}\n`;
   }
   confirmMsg += `Payment Method: ${paymentModeText}\nTotal: ₱${totalNumber}`;
 
@@ -457,7 +485,7 @@ document.getElementById('proceed-order-btn').addEventListener('click', function(
   const cancelBtn = document.getElementById('confirm-cancel-btn');
 
   confirmBtn.onclick = function() {
-    submitOrder(customerName, contactNumber, deliveryType, paymentModeText, totalNumber, totalItemsCount);
+    submitOrder(customerName, contactNumber, deliveryType, paymentModeText, totalNumber, totalItemsCount, notes);
     modal.classList.add('hidden');
   };
   cancelBtn.onclick = function() {
@@ -472,7 +500,7 @@ function generateOrderID() {
   return lastOrderNumber;
 }
 
-function submitOrder(customer, contactNumber, deliveryType, paymentMode, total, itemTotal) {
+function submitOrder(customer, contactNumber, deliveryType, paymentMode, total, itemTotal, notes) {
   const cart = orderItems.map(item => ({
     ProductID: item.productId || item.key,
     ProductName: item.name,
@@ -503,6 +531,7 @@ function submitOrder(customer, contactNumber, deliveryType, paymentMode, total, 
     ItemTotal: itemTotal,
     DeliveryStatus: deliveryType,
     Address: (deliveryType === 'Delivery') ? document.getElementById('address').value.trim() : '',
+    Notes: notes || '',
     FulfillmentStatus: "Preparing"
   };
 
@@ -534,6 +563,7 @@ function submitOrder(customer, contactNumber, deliveryType, paymentMode, total, 
       const addressInput = document.getElementById('address');
       addressContainer.style.display = 'none';
       addressInput.value = '';
+      document.getElementById('notes-textarea').value = '';
       updateSummary();
       const deliveryFeeDiv = document.getElementById('delivery-fee-message');
       if (deliveryFeeDiv) deliveryFeeDiv.remove();
@@ -740,7 +770,7 @@ html, body {
   background-color: white;
   padding: 20px;
   border-left: 1px solid #ddd;
-  max-height: 100vh;
+  max-height: 860px;
   margin-bottom: 0;
   overflow-y: auto;
   box-sizing: border-box;
@@ -762,7 +792,7 @@ html, body {
 }
 
 .order-item:last-child {
-  border-bottom: none;
+  border-bottom: none !important;
   margin-bottom: 0;
   padding-bottom: 0;
 }
