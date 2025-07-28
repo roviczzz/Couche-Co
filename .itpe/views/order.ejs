@@ -30,6 +30,11 @@ tbody tr:hover {
   border-bottom-color: transparent;
 }
 
+#fulfillmentDropdown ul li:hover {
+  background-color: #f0f0f0;
+}
+
+
 .layout-container {
   display: flex;
   gap: 24px;
@@ -55,6 +60,10 @@ tbody tr:hover {
   width: 100%;
   flex-shrink: 0;
   table-layout: fixed;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 .orders-table-container table thead,
@@ -207,6 +216,56 @@ tbody tr:hover {
   color: #7a3f1c;
 }
 
+.status-payment {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 12px;
+  color: white;
+  min-width: 72px;
+  text-align: center;
+  user-select: text;
+}
+
+.status-pending {
+  background-color: #f0ad4e;
+}
+.status-complete {
+  background-color: #5cb85c;
+}
+.status-cancelled {
+  background-color: #d9534f;
+}
+
+.status-fulfillment {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 12px;
+  color: white;
+  min-width: 96px;
+  text-align: center;
+  user-select: text;
+}
+
+.status-ful-cancelled {
+  background-color: #d9534f;
+}
+
+.status-preparing {
+  background-color: #f0ad4e;
+}
+
+.status-in-delivery {
+  background-color: #0275d8;
+}
+
+.status-completed {
+  background-color: #5cb85c;
+}
+
 </style>
 
 <div class="layout-container">
@@ -270,13 +329,22 @@ tbody tr:hover {
       <p>Select an order to see details.</p>
     </div>
 
-    <div class="order-detail-buttons" id="orderDetailButtons" style="display:none;">
-      <button class="btn-accent" id="confirmPaymentBtn">Confirm Payment</button>
-      <button class="btn-accent" id="fulfillOrderBtn">Fulfill Order</button>
-      <button class="btn-accent" id="cancelOrderBtn">Cancel Order</button>
-      <button class="btn-accent" id="printInvoiceBtn">Print Invoice</button>
-      <a href="#" class="edit-label" id="editOrderLink">Edit Order</a>
+    <div class="order-detail-buttons" id="orderDetailButtons" style="display:none; position: relative;">
+    <button class="btn-accent" id="confirmPaymentBtn">Confirm Payment</button>
+    <button class="btn-accent" id="fulfillOrderBtn">Fulfill Order</button>
+    <button class="btn-accent" id="cancelOrderBtn">Cancel Order</button>
+    <button class="btn-accent" id="printInvoiceBtn">Print Invoice</button>
+    <a href="#" class="edit-label" id="editOrderLink">Edit Order</a>
+
+    <div id="fulfillmentDropdown" style="display:none; position: absolute; bottom: 48px; right: 0; background: white; border: 1px solid #ccc; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 10; font-size: 14px;">
+      <ul style="list-style:none; margin:0; padding:8px 0; width: 160px;">
+        <li class="fulfill-option" data-status="Cancelled" style="padding: 8px 16px; cursor: pointer;">Cancelled</li>
+        <li class="fulfill-option" data-status="Preparing" style="padding: 8px 16px; cursor: pointer;">Preparing</li>
+        <li class="fulfill-option" data-status="In Delivery" style="padding: 8px 16px; cursor: pointer;">In Delivery</li>
+        <li class="fulfill-option" data-status="Completed" style="padding: 8px 16px; cursor: pointer;">Completed</li>
+      </ul>
     </div>
+  </div>
   </aside>
 
 </div>
@@ -287,10 +355,24 @@ tbody tr:hover {
 <script>
 const ordersData = JSON.parse(document.getElementById('orders-data').textContent || '[]');
 const orders = ordersData.slice(1);
-const menu = JSON.parse(document.getElementById('menu-data').textContent || '[]');const orderDetailPanel = document.getElementById('orderDetailPanel');
+const menu = JSON.parse(document.getElementById('menu-data').textContent || '[]');
+const orderDetailPanel = document.getElementById('orderDetailPanel');
 const orderSummaryContent = document.getElementById('orderSummaryContent');
 const orderDetailButtons = document.getElementById('orderDetailButtons');
 const editOrderLink = document.getElementById('editOrderLink');
+const fulfillmentDropdown = document.createElement('div');
+fulfillmentDropdown.id = 'fulfillmentDropdown';
+fulfillmentDropdown.style.cssText = 'display:none; position: absolute; bottom: 48px; right: 0; background: white; border: 1px solid #ccc; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 10; font-size: 14px;';
+fulfillmentDropdown.innerHTML = `
+  <ul style="list-style:none; margin:0; padding:8px 0; width: 160px;">
+    <li class="fulfill-option" data-status="Cancelled" style="padding: 8px 16px; cursor: pointer;">Cancelled</li>
+    <li class="fulfill-option" data-status="Preparing" style="padding: 8px 16px; cursor: pointer;">Preparing</li>
+    <li class="fulfill-option" data-status="In Delivery" style="padding: 8px 16px; cursor: pointer;">In Delivery</li>
+    <li class="fulfill-option" data-status="Completed" style="padding: 8px 16px; cursor: pointer;">Completed</li>
+  </ul>
+`;
+orderDetailButtons.style.position = 'relative';
+orderDetailButtons.appendChild(fulfillmentDropdown);
 
 function formatCurrency(value) {
   return '₱ ' + Number(value).toFixed(2);
@@ -323,7 +405,6 @@ function createProductList(order) {
     const sizeLabel = item.Size || null;
     const { price, size } = getPriceAndSize(item.ProductName, sizeLabel);
     const totalPrice = price * quantity;
-
     html += `<li>
       <span class="product-name">${item.ProductName || 'N/A'}</span>
       <span class="product-quantity-price">
@@ -337,9 +418,11 @@ function createProductList(order) {
   return html;
 }
 
-
+let currentOrder = null;
 
 function showOrderDetails(order) {
+  currentOrder = order;
+
   let address = order.Address || order.address || 'N/A';
   let customer = order.Customer || order.customer || 'N/A';
   let contact = order.ContactNumber || order.ContactNumber || 'N/A';
@@ -384,12 +467,11 @@ function showOrderDetails(order) {
 
   const promoSets = Math.floor(totalItems / 3);
   const promoMessage = promoSets > 0
-  ? `<p style="font-weight: 600; color: #a05c2f; margin-top: 10px; display: flex; justify-content: space-between;">
-       <span>Promo Applied:</span>
-       <span style="text-align: right;">143 for (${promoSets * 3} items)</span>
-     </p>`
-  : '';
-
+    ? `<p style="font-weight: 600; color: #a05c2f; margin-top: 10px; display: flex; justify-content: space-between;">
+         <span>Promo Applied:</span>
+         <span style="text-align: right;">143 for (${promoSets * 3} items)</span>
+       </p>`
+    : '';
 
   const totalPriceValue = order.Total ? Number(order.Total) : productsSubtotal + ((order.DeliveryStatus === 'Delivery' || order.DeliveryStatus === 'delivery') ? deliveryFee : 0);
 
@@ -399,6 +481,9 @@ function showOrderDetails(order) {
       <span>₱ ${totalPriceValue.toFixed(2)}</span>
     </p>
   `;
+
+  const paymentStatusBadge = getPaymentStatusBadge(order.PaymentStatus || order.paymentStatus);
+  const fulfillmentStatusBadge = getFulfillmentStatusBadge(order.FulfillmentStatus || order.fulfillmentStatus);
 
   const summaryHtml = `
     <div class="order-detail-section">
@@ -413,21 +498,21 @@ function showOrderDetails(order) {
     </div>
     <div class="order-detail-section">
       <h3>Summary</h3>
+      <p style="display: flex; justify-content: space-between; align-items: center;">
+        <span class="label"><strong>Payment Status:</strong></span>
+        ${paymentStatusBadge}
+      </p>
+      <p style="display: flex; justify-content: space-between; align-items: center;">
+        <span class="label"><strong>Delivery Type:</strong></span>
+        <span>${order.DeliveryStatus || 'N/A'}</span>
+      </p>
+      <p style="display: flex; justify-content: space-between; align-items: center;">
+        <span class="label"><strong>Fulfillment Status:</strong></span>
+        ${fulfillmentStatusBadge}
+      </p>
       <p style="display: flex; justify-content: space-between;">
-      <span class="label"><strong>Payment Status:</strong></span>
-      <span>${order.PaymentStatus || 'Unpaid'}</span>
-    </p>
-    <p style="display: flex; justify-content: space-between;">
-      <span class="label"><strong>Delivery Type:</strong></span>
-      <span>${order.DeliveryStatus || 'N/A'}</span>
-    </p>
-    <p style="display: flex; justify-content: space-between;">
-      <span class="label"><strong>Fulfillment Status:</strong></span>
-      <span>${order.FulfillmentStatus || 'N/A'}</span>
-    </p>
-      <p style="display: flex; justify-content: space-between;">
-      <span class="label"><strong>Total Items:</strong></span>
-      <span>${order.ItemTotal || 0}</span>
+        <span class="label"><strong>Total Items:</strong></span>
+        <span>${order.ItemTotal || 0}</span>
       </p>
       ${subtotalHtml}
       ${deliveryChargeHtml}
@@ -439,25 +524,8 @@ function showOrderDetails(order) {
   orderSummaryContent.innerHTML = summaryHtml;
   orderDetailButtons.style.display = 'flex';
   orderDetailPanel.style.display = 'flex';
-
   editOrderLink.href = `/order/edit/${order._id || ''}`;
-
-  document.getElementById('confirmPaymentBtn').onclick = () => {
-    alert(`Confirm Payment for Order #${order.OrderID || order.OrderId || 'N/A'}`);
-  };
-  document.getElementById('fulfillOrderBtn').onclick = () => {
-    alert(`Fulfill Order #${order.OrderID || order.OrderId || 'N/A'}`);
-  };
-  document.getElementById('cancelOrderBtn').onclick = () => {
-    alert(`Cancel Order #${order.OrderID || order.OrderId || 'N/A'}`);
-  };
-  document.getElementById('printInvoiceBtn').onclick = () => {
-    alert(`Print Invoice for Order #${order.OrderID || order.OrderId || 'N/A'}`);
-  };
 }
-
-
-
 
 document.querySelectorAll('.order-row').forEach(row => {
   row.addEventListener('click', () => {
@@ -473,11 +541,7 @@ document.querySelectorAll('.order-row').forEach(row => {
 
 const ordersTableBody = document.querySelector('.orders-table-container tbody');
 const orderHeaders = document.querySelectorAll('.orders-table-container thead th');
-
-let currentSort = {
-  column: null,
-  direction: 'asc'
-};
+let currentSort = { column: null, direction: 'asc' };
 
 function compareValues(a, b, isNumber = false) {
   if (isNumber) {
@@ -498,7 +562,6 @@ function sortOrders(columnKey) {
     currentSort.column = columnKey;
     currentSort.direction = 'asc';
   }
-
   const keyMap = {
     orderid: 'OrderID',
     created: 'Date',
@@ -509,30 +572,23 @@ function sortOrders(columnKey) {
     items: 'ItemTotal',
     fulfillment: 'FulfillmentStatus'
   };
-
   const key = keyMap[columnKey];
-
   orders.sort((a, b) => {
     let valA = a[key];
     let valB = b[key];
-
     if (columnKey === 'created') {
       valA = new Date(valA || a.date || 0).getTime();
       valB = new Date(valB || b.date || 0).getTime();
       return (valA - valB) * (currentSort.direction === 'asc' ? 1 : -1);
     }
-
     if (valA === undefined || valA === null) valA = '';
     if (valB === undefined || valB === null) valB = '';
-
     if (columnKey === 'total' || columnKey === 'items') {
       return (Number(valA) - Number(valB)) * (currentSort.direction === 'asc' ? 1 : -1);
     }
-
     const comp = String(valA).localeCompare(String(valB));
     return currentSort.direction === 'asc' ? comp : -comp;
   });
-
   renderOrdersTable();
   renderSortArrows();
 }
@@ -540,28 +596,26 @@ function sortOrders(columnKey) {
 function renderOrdersTable() {
   ordersTableBody.innerHTML = '';
   if (orders.length === 0) {
-    ordersTableBody.innerHTML = `
-      <tr>
-        <td colspan="8" style="text-align:center; padding: 20px;">No orders found.</td>
-      </tr>`;
+    ordersTableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 20px;">No orders found.</td></tr>`;
     return;
   }
   orders.forEach((order, index) => {
+    const paymentBadge = getPaymentStatusBadge(order.PaymentStatus || order.paymentStatus);
+    const fulfillmentBadge = getFulfillmentStatusBadge(order.FulfillmentStatus || order.fulfillmentStatus);
     ordersTableBody.innerHTML += `
       <tr class="order-row" data-idx="${index}">
         <td>${order.OrderID ? '#' + order.OrderID : 'N/A'}</td>
         <td>${order.Date ? new Date(order.Date).toLocaleString()
           : order.date ? new Date(order.date).toLocaleString() : 'N/A'}</td>
         <td>${order.Customer || order.customer || 'N/A'}</td>
-        <td>${order.PaymentStatus || order.paymentStatus || 'Unpaid'}</td>
+        <td>${paymentBadge}</td>
         <td>${order.Total !== undefined && order.Total !== null ? '₱ ' + Number(order.Total).toFixed(2) : 'N/A'}</td>
         <td>${order.DeliveryStatus || order.deliveryStatus || 'N/A'}</td>
         <td>${order.ItemTotal !== undefined && order.ItemTotal !== null ? order.ItemTotal : 'N/A'}</td>
-        <td>${order.FulfillmentStatus || order.fulfillmentStatus || 'N/A'}</td>
+        <td>${fulfillmentBadge}</td>
       </tr>
     `;
   });
-
   document.querySelectorAll('.order-row').forEach(row => {
     row.addEventListener('click', () => {
       const idx = parseInt(row.dataset.idx, 10);
@@ -585,10 +639,8 @@ function clearSortArrows() {
 function renderSortArrows() {
   clearSortArrows();
   if (!currentSort.column) return;
-
   const header = [...orderHeaders].find(th => th.dataset.column === currentSort.column);
   if (!header) return;
-
   const arrow = document.createElement('span');
   arrow.classList.add('sort-arrow');
   arrow.style.marginLeft = '6px';
@@ -609,5 +661,111 @@ orderHeaders.forEach(th => {
 });
 
 renderOrdersTable();
+
+function getPaymentStatusBadge(status) {
+  if (!status) return '';
+  const normalized = status.toLowerCase();
+  if (normalized.includes('pending')) {
+    return `<span class="status-payment status-pending" title="Payment Pending">Pending</span>`;
+  } else if (normalized.includes('complete') || normalized.includes('paid')) {
+    return `<span class="status-payment status-complete" title="Payment Complete">Complete</span>`;
+  } else if (normalized.includes('cancel')) {
+    return `<span class="status-payment status-cancelled" title="Payment Cancelled">Cancelled</span>`;
+  }
+  return `<span class="status-payment">${status}</span>`;
+}
+
+function getFulfillmentStatusBadge(status) {
+  if (!status) return '';
+  const normalized = status.toLowerCase();
+  if (normalized.includes('cancel')) {
+    return `<span class="status-fulfillment status-ful-cancelled" title="Order Cancelled">Cancelled</span>`;
+  } else if (normalized.includes('preparing')) {
+    return `<span class="status-fulfillment status-preparing" title="Being Prepared">Preparing</span>`;
+  } else if (normalized.includes('in delivery') || normalized.includes('delivering')) {
+    return `<span class="status-fulfillment status-in-delivery" title="Out for Delivery">In Delivery</span>`;
+  } else if (normalized.includes('complete') || normalized.includes('delivered')) {
+    return `<span class="status-fulfillment status-completed" title="Order Completed">Completed</span>`;
+  }
+  return `<span class="status-fulfillment">${status}</span>`;
+}
+
+const fulfillOrderBtn = document.getElementById('fulfillOrderBtn');
+const confirmPaymentBtn = document.getElementById('confirmPaymentBtn');
+
+fulfillOrderBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  if (fulfillmentDropdown.style.display === 'block') {
+    fulfillmentDropdown.style.display = 'none';
+  } else {
+    fulfillmentDropdown.style.display = 'block';
+  }
+});
+
+document.addEventListener('click', () => {
+  fulfillmentDropdown.style.display = 'none';
+});
+
+fulfillmentDropdown.querySelectorAll('.fulfill-option').forEach(option => {
+  option.addEventListener('click', async () => {
+    const selectedStatus = option.getAttribute('data-status');
+    if (currentOrder) {
+      try {
+        const orderID = currentOrder.OrderID;
+        console.log('Updating order ID:', orderID, 'to status:', selectedStatus);
+        console.log('Current order object:', currentOrder);
+        
+        if (!orderID && orderID !== 0) {
+          throw new Error('Order ID is missing');
+        }
+        
+        const response = await fetch(`/orders/${orderID}/fulfillment`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ FulfillmentStatus: selectedStatus })
+        });
+        
+        const responseData = await response.json();
+        console.log('Server response:', responseData);
+        
+        if (!response.ok) {
+          throw new Error(responseData.error || `Server returned ${response.status}`);
+        }
+        
+        currentOrder.FulfillmentStatus = selectedStatus;
+        showOrderDetails(currentOrder);
+        renderOrdersTable();
+        
+        console.log('Update successful:', responseData.message);
+        
+        const successMsg = responseData.message || 'Fulfillment status updated successfully';
+        alert(successMsg);
+        
+      } catch (error) {
+        console.error('Update error:', error);
+        console.error('Current order:', currentOrder);
+        alert('Error updating fulfillment status: ' + error.message);
+      }
+    } else {
+      console.error('No current order selected');
+      alert('No order selected');
+    }
+    
+    fulfillmentDropdown.style.display = 'none';
+  });
+});
+
+
+
+confirmPaymentBtn.addEventListener('click', () => {
+  if (currentOrder) {
+    currentOrder.PaymentStatus = 'Completed';
+    currentOrder.paymentStatus = 'Completed';
+    showOrderDetails(currentOrder);
+    renderOrdersTable();
+  }
+});
 
 </script>

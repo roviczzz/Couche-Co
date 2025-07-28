@@ -468,6 +468,53 @@ app.get('/order', isLoggedIn, nocache, async (req, res) => {
   }
 });
 
+app.patch('/orders/:OrderID/fulfillment', isLoggedIn, nocache, async (req, res) => {
+  const { OrderID } = req.params;
+  const { FulfillmentStatus } = req.body;
+
+  if (!FulfillmentStatus) {
+    return res.status(400).json({ error: 'FulfillmentStatus is required' });
+  }
+
+  const orderIDNumber = Number(OrderID);
+  if (isNaN(orderIDNumber)) {
+    return res.status(400).json({ error: 'Invalid OrderID format' });
+  }
+
+  let client;
+  try {
+    client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const ordersCollection = db.collection('Orders');
+
+    const filter = { OrderID: orderIDNumber };
+    const updateDoc = { $set: { FulfillmentStatus } };
+
+    const updateResult = await ordersCollection.updateOne(filter, updateDoc);
+    console.log('Update result:', updateResult);
+
+    const updatedOrder = await ordersCollection.findOne(filter);
+    console.log('Updated order:', updatedOrder);
+
+    if (!updatedOrder) {
+      await client.close();
+      return res.status(404).json({ error: `Order with ID ${orderIDNumber} not found` });
+    }
+
+    await client.close();
+    return res.status(200).json({
+      success: true,
+      message: `Fulfillment status updated to "${FulfillmentStatus}"`,
+      order: updatedOrder
+    });
+
+  } catch (error) {
+    if (client) await client.close();
+    console.error('Error updating FulfillmentStatus:', error);
+    return res.status(500).json({ error: 'Server error while updating order' });
+  }
+});
+
 
 app.get('/orders/edit/:id', isLoggedIn, nocache, async (req, res) => {
   const orderId = req.params.id;
