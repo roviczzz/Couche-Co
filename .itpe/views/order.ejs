@@ -334,7 +334,7 @@ tbody tr:hover {
     <button class="btn-accent" id="fulfillOrderBtn">Fulfill Order</button>
     <button class="btn-accent" id="cancelOrderBtn">Cancel Order</button>
     <button class="btn-accent" id="printInvoiceBtn">Print Invoice</button>
-    <a href="#" class="edit-label" id="editOrderLink">Edit Order</a>
+    <!-- <a href="#" class="edit-label" id="editOrderLink">Edit Order</a> -->
 
     <div id="fulfillmentDropdown" style="display:none; position: absolute; bottom: 48px; right: 0; background: white; border: 1px solid #ccc; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 10; font-size: 14px;">
       <ul style="list-style:none; margin:0; padding:8px 0; width: 160px;">
@@ -524,7 +524,7 @@ function showOrderDetails(order) {
   orderSummaryContent.innerHTML = summaryHtml;
   orderDetailButtons.style.display = 'flex';
   orderDetailPanel.style.display = 'flex';
-  editOrderLink.href = `/order/edit/${order._id || ''}`;
+  editOrderLink.href = `/orders/edit/${order._id || ''}`;
 }
 
 document.querySelectorAll('.order-row').forEach(row => {
@@ -668,7 +668,7 @@ function getPaymentStatusBadge(status) {
   if (normalized.includes('pending')) {
     return `<span class="status-payment status-pending" title="Payment Pending">Pending</span>`;
   } else if (normalized.includes('complete') || normalized.includes('paid')) {
-    return `<span class="status-payment status-complete" title="Payment Complete">Complete</span>`;
+    return `<span class="status-payment status-complete" title="Payment Complete">Completed</span>`;
   } else if (normalized.includes('cancel')) {
     return `<span class="status-payment status-cancelled" title="Payment Cancelled">Cancelled</span>`;
   }
@@ -758,14 +758,198 @@ fulfillmentDropdown.querySelectorAll('.fulfill-option').forEach(option => {
 });
 
 
-
-confirmPaymentBtn.addEventListener('click', () => {
-  if (currentOrder) {
+confirmPaymentBtn.addEventListener('click', async () => {
+  if (!currentOrder) {
+    alert('No order selected');
+    return;
+  }
+  const orderID = currentOrder.OrderID;
+  
+  try {
+    const response = await fetch(`/orders/${orderID}/payment-status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ PaymentStatus: 'Completed' })
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || `Update failed with status ${response.status}`);
+    }
     currentOrder.PaymentStatus = 'Completed';
     currentOrder.paymentStatus = 'Completed';
     showOrderDetails(currentOrder);
     renderOrdersTable();
+
+    alert('Payment status updated to Completed!');
+  } catch (error) {
+    console.error('Failed to update payment status:', error);
+    alert('Failed to update payment status: ' + error.message);
   }
 });
+
+cancelOrderBtn.addEventListener('click', async () => {
+  if (!currentOrder) {
+    alert('No order selected');
+    return;
+  }
+  const orderID = currentOrder.OrderID;
+
+  try {
+    const response = await fetch(`/orders/${orderID}/cancel`, {
+      method: 'PATCH'
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || `Cancel request failed with status ${response.status}`);
+
+    currentOrder.PaymentStatus = 'Cancelled';
+    currentOrder.paymentStatus = 'Cancelled';
+    currentOrder.FulfillmentStatus = 'Cancelled';
+    currentOrder.fulfillmentStatus = 'Cancelled';
+    showOrderDetails(currentOrder);
+    renderOrdersTable();
+
+    alert('Order successfully cancelled.');
+
+  } catch (error) {
+    console.error('Failed to cancel order:', error);
+    alert('Failed to cancel order: ' + error.message);
+  }
+});
+
+const printInvoiceBtn = document.getElementById('printInvoiceBtn');
+
+printInvoiceBtn.addEventListener('click', () => {
+  if (!currentOrder) {
+    alert('No order selected');
+    return;
+  }
+
+  const invoiceWindow = window.open('', 'Print Invoice', 'width=600,height=800');
+  if (!invoiceWindow) {
+    alert('Popup blocked. Please allow popups for this website.');
+    return;
+  }
+
+  const formatCurrency = (value) => `₱ ${Number(value).toFixed(2)}`;
+
+  const orderDate = currentOrder.Date ? new Date(currentOrder.Date).toLocaleString() :
+                    (currentOrder.date ? new Date(currentOrder.date).toLocaleString() : 'N/A');
+
+  let productsHtml = '<table style="width:100%; border-collapse: collapse;">' +
+    `<thead>
+       <tr>
+         <th style="border-bottom: 1px solid #ddd; text-align: left;">Product</th>
+         <th style="border-bottom: 1px solid #ddd; text-align: center;">Size</th>
+         <th style="border-bottom: 1px solid #ddd; text-align: center;">Quantity</th>
+         <th style="border-bottom: 1px solid #ddd; text-align: right;">Price</th>
+         <th style="border-bottom: 1px solid #ddd; text-align: right;">Total</th>
+       </tr>
+     </thead><tbody>`;
+
+  if (currentOrder.Cart && currentOrder.Cart.length) {
+    currentOrder.Cart.forEach(item => {
+      const quantity = Number(item.Quantity) || 0;
+      const size = item.Size || 'N/A';
+
+      let unitPrice = 0;
+      const menuItem = menu.find(m => m.Name === item.ProductName);
+      if (menuItem) {
+        if (menuItem.Sizes && menuItem.Sizes.length > 0 && size !== 'N/A') {
+          const sizeObj = menuItem.Sizes.find(s => s.Size === size);
+          unitPrice = sizeObj ? Number(sizeObj.BasePrice) : (menuItem.BasePrice ? Number(menuItem.BasePrice) : 0);
+        } else {
+          unitPrice = menuItem.BasePrice ? Number(menuItem.BasePrice) : 0;
+        }
+      }
+      const totalPrice = unitPrice * quantity;
+
+      productsHtml += `<tr>
+        <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">${item.ProductName || 'N/A'}</td>
+        <td style="padding: 6px 8px; border-bottom: 1px solid #eee; text-align: center;">${size}</td>
+        <td style="padding: 6px 8px; border-bottom: 1px solid #eee; text-align: center;">${quantity}</td>
+        <td style="padding: 6px 8px; border-bottom: 1px solid #eee; text-align: right;">${formatCurrency(unitPrice)}</td>
+        <td style="padding: 6px 8px; border-bottom: 1px solid #eee; text-align: right;">${formatCurrency(totalPrice)}</td>
+      </tr>`;
+    });
+  } else {
+    productsHtml += `<tr><td colspan="5" style="text-align:center; padding: 12px;">No products in the order.</td></tr>`;
+  }
+  productsHtml += '</tbody></table>';
+
+  const deliveryCharge = (currentOrder.DeliveryStatus && currentOrder.DeliveryStatus.toLowerCase() === 'delivery') ? 15 : 0;
+  const deliveryChargeHtml = deliveryCharge > 0 ? `<p><strong>Delivery Charge:</strong> ${formatCurrency(deliveryCharge)}</p>` : '';
+
+  const subtotal = currentOrder.Total ? Number(currentOrder.Total) - deliveryCharge : 0;
+  const total = currentOrder.Total ? Number(currentOrder.Total) : subtotal + deliveryCharge;
+
+  const invoiceHtml = `
+    <html>
+    <head>
+      <title>Invoice for Order #${currentOrder.OrderID || 'N/A'}</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          margin: 20px;
+          color: #333;
+        }
+        h1, h2 {
+          text-align: center;
+          color: #a05c2f;
+        }
+        p {
+          margin: 4px 0;
+        }
+        .info {
+          margin-bottom: 20px;
+        }
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 20px;
+        }
+        th, td {
+          padding: 8px;
+          border: 1px solid #ddd;
+        }
+        th {
+          background-color: #f9f9f9;
+        }
+        .totals p {
+          text-align: right;
+          font-size: 16px;
+        }
+      </style>
+    </head>
+    <body>
+      <h1>Blessings Cafe</h1>
+      <h2>Invoice</h2>
+      <div class="info">
+        <p><strong>Order ID:</strong> #${currentOrder.OrderID || 'N/A'}</p>
+        <p><strong>Customer:</strong> ${currentOrder.Customer || currentOrder.customer || 'N/A'}</p>
+        <p><strong>Address:</strong> ${currentOrder.Address || currentOrder.address || 'N/A'}</p>
+        <p><strong>Contact:</strong> ${currentOrder.ContactNumber || 'N/A'}</p>
+        <p><strong>Date:</strong> ${orderDate}</p>
+      </div>
+      ${productsHtml}
+      <div class="totals">
+        <p><strong>Subtotal:</strong> ${formatCurrency(subtotal)}</p>
+        ${deliveryChargeHtml}
+        <p><strong>Total:</strong> ${formatCurrency(total)}</p>
+        <p><strong>Payment Status:</strong> ${currentOrder.PaymentStatus || currentOrder.paymentStatus || 'N/A'}</p>
+        <p><strong>Fulfillment Status:</strong> ${currentOrder.FulfillmentStatus || currentOrder.fulfillmentStatus || 'N/A'}</p>
+      </div>
+      <p style="text-align:center; margin-top: 40px;">Thank you for your order!</p>
+    </body>
+    </html>
+  `;
+
+  invoiceWindow.document.write(invoiceHtml);
+  invoiceWindow.document.close();
+  invoiceWindow.focus();
+  invoiceWindow.print();
+});
+
 
 </script>

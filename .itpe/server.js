@@ -515,6 +515,99 @@ app.patch('/orders/:OrderID/fulfillment', isLoggedIn, nocache, async (req, res) 
   }
 });
 
+app.patch('/orders/:OrderID/payment-status', isLoggedIn, nocache, async (req, res) => {
+  const { OrderID } = req.params;
+  const { PaymentStatus } = req.body;
+
+  if (!PaymentStatus) {
+    return res.status(400).json({ error: 'PaymentStatus is required' });
+  }
+
+  const orderIDNumber = Number(OrderID);
+  if (isNaN(orderIDNumber)) {
+    return res.status(400).json({ error: 'Invalid OrderID format' });
+  }
+
+  let client;
+  try {
+    client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const ordersCollection = db.collection('Orders');
+
+    const filter = { OrderID: orderIDNumber };
+    const updateDoc = { $set: { PaymentStatus } };
+
+    const updateResult = await ordersCollection.updateOne(filter, updateDoc);
+    console.log('Update result:', updateResult);
+
+    const updatedOrder = await ordersCollection.findOne(filter);
+    console.log('Updated order:', updatedOrder);
+
+    if (!updatedOrder) {
+      await client.close();
+      return res.status(404).json({ error: `Order with ID ${orderIDNumber} not found` });
+    }
+
+    await client.close();
+    return res.status(200).json({
+      success: true,
+      message: `Payment status updated to "${PaymentStatus}"`,
+      order: updatedOrder
+    });
+
+  } catch (error) {
+    if (client) await client.close();
+    console.error('Error updating PaymentStatus:', error);
+    return res.status(500).json({ error: 'Server error while updating order' });
+  }
+});
+
+app.patch('/orders/:OrderID/cancel', isLoggedIn, nocache, async (req, res) => {
+  const { OrderID } = req.params;
+
+  const orderIDNumber = Number(OrderID);
+  if (isNaN(orderIDNumber)) {
+    return res.status(400).json({ error: 'Invalid OrderID format' });
+  }
+
+  let client;
+  try {
+    client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const ordersCollection = db.collection('Orders');
+
+    const filter = { OrderID: orderIDNumber };
+    const updateDoc = {
+      $set: {
+        PaymentStatus: 'Cancelled',
+        FulfillmentStatus: 'Cancelled'
+      }
+    };
+
+    const updateResult = await ordersCollection.updateOne(filter, updateDoc);
+    const updatedOrder = await ordersCollection.findOne(filter);
+
+    if (!updatedOrder) {
+      await client.close();
+      return res.status(404).json({ error: `Order with ID ${orderIDNumber} not found` });
+    }
+
+    await client.close();
+    return res.status(200).json({
+      success: true,
+      message: 'Order cancelled successfully',
+      order: updatedOrder
+    });
+    
+  } catch (error) {
+    if (client) await client.close();
+    console.error('Error cancelling order:', error);
+    return res.status(500).json({ error: 'Server error while cancelling order' });
+  }
+});
+
+
+
 
 app.get('/orders/edit/:id', isLoggedIn, nocache, async (req, res) => {
   const orderId = req.params.id;
