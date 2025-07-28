@@ -1,75 +1,334 @@
 <style>
-  thead th {
+thead th {
   text-align: left;
 }
 
-  table {
-    border-collapse: separate; 
-  }
-  th, td {
-    border: none !important;
-  }
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-top: 20px;
+}
+
+th, td {
+  border: none !important;
+  padding: 12px 14px;
+}
+
+tbody tr {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-bottom: 8px solid transparent; /* slight gap effect between rows */
+}
+
+tbody tr:hover {
+  background-color: #f0f0f0;
+  border-bottom-color: transparent;
+}
+
+.layout-container {
+  display: flex;
+  gap: 24px;
+  margin-top: 20px;
+}
+
+.orders-table-container {
+  flex: 2;
+}
+
+.order-detail-panel {
+  flex: 1;
+  max-width: 400px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+  padding: 24px 26px;
+  display: none;
+  flex-direction: column;
+  height: fit-content;
+  position: sticky;
+  top: 20px;
+  font-family: 'Aeonik', sans-serif;
+  color: #5a3e2b;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.order-detail-panel h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-weight: 700;
+  border-bottom: 1.5px solid #ddd;
+  padding-bottom: 8px;
+  font-size: 18px;
+}
+
+.order-detail-section {
+  margin-bottom: 24px;
+}
+
+.order-detail-section h3 {
+  margin: 10px 0 14px;
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: 0.1px;
+}
+
+.order-detail-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.order-detail-section ul li {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 12px;
+  border-bottom: 1px solid #eee;
+  font-weight: 500;
+  background-color: transparent;
+}
+
+.order-detail-section ul li:nth-child(even) {
+  background-color: #f0f0f0;
+}
+
+.order-detail-section ul li span.product-name {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.order-detail-section ul li span.product-quantity-price {
+  font-size: 14px;
+  color: #5a3e2b;
+  display: flex;
+  justify-content: flex-start;
+  gap: 12px;
+}
+
+.order-detail-section ul li span.product-price {
+  margin-left: auto;
+  font-weight: 600;
+  color: #5a3e2b;
+}
+
+.order-detail-buttons {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.btn-accent {
+  flex: 1 1 calc(50% - 14px);
+  background-color: #a05c2f;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 14px 0;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  text-align: center;
+  font-size: 15px;
+}
+
+.btn-accent:hover {
+  background-color: #7a3f1c;
+}
+
+.btn-full-width {
+  flex: 1 1 100%;
+}
+
+.edit-label {
+  flex: 1 1 100%;
+  text-align: center;
+  padding: 14px 0;
+  color: #5e606e;
+  font-weight: 700;
+  user-select: none;
+  cursor: pointer;
+  font-size: 15px;
+  text-decoration: underline;
+}
+
+.edit-label:hover {
+  color: #7a3f1c;
+}
+
 </style>
 
-<h1>Order Details</h1>
+<div class="layout-container">
 
-<table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-  <thead style="background-color: #f9f9f9; color: #505255;">
-    <tr>
-      <th style="padding: 10px; border: 1px solid #ccc;">OrderID</th>
-      <th style="padding: 10px; border: 1px solid #ccc;">Created</th>
-      <th style="padding: 10px; border: 1px solid #ccc;">Customer</th>
-      <th style="padding: 10px; border: 1px solid #ccc;">Payment</th>
-      <th style="padding: 10px; border: 1px solid #ccc;">Total</th>
-      <th style="padding: 10px; border: 1px solid #ccc;">Delivery</th>
-      <th style="padding: 10px; border: 1px solid #ccc;">Items</th>
-      <th style="padding: 10px; border: 1px solid #ccc;">Fulfillment</th>
-      <th style="padding: 10px; border: 1px solid #ccc;">Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    <% if (orders.length === 0) { %>
-      <tr>
-        <td colspan="9" style="text-align:center; padding: 20px;">No orders found.</td>
-      </tr>
-    <% } else { %>
-      <% orders.slice(1).forEach(order => { %>
+  <div class="orders-table-container">
+    <h1>Order Details</h1>
+
+    <table>
+      <thead style="background-color: #f9f9f9; color: #505255;">
         <tr>
-          <td style="padding: 8px; border: 1px solid #ccc;"><%= order.OrderID ? '#' + order.OrderID : 'N/A' %></td>
-          <td style="padding: 8px; border: 1px solid #ccc;">
-            <% if(order.Date) { %>
-              <%= new Date(order.Date).toLocaleString() %>
-            <% } else if(order.date) { %>
-              <%= new Date(order.date).toLocaleString() %>
-            <% } else { %>
-              N/A
-            <% } %>
-          </td>
-
-          <td style="padding: 8px; border: 1px solid #ccc;"><%= order.Customer || order.customer || 'N/A' %></td>
-          <td style="padding: 8px; border: 1px solid #ccc;"><%= order.PaymentStatus || order.paymentStatus || 'Unpaid' %></td>
-          <td style="padding: 8px; border: 1px solid #ccc;">
-            <% if(order.Total !== undefined && order.Total !== null) { %>
-              ₱ <%= Number(order.Total).toFixed(2) %>
-            <% } else { %>
-              N/A
-            <% } %>
-          </td>
-          <td style="padding: 8px; border: 1px solid #ccc;"><%= order.DeliveryStatus || order.deliveryStatus || 'N/A' %></td>
-          <td style="padding: 8px; border: 1px solid #ccc;">
-            <%= order.ItemTotal !== undefined && order.ItemTotal !== null ? order.ItemTotal : 'N/A' %>
-          </td>
-          <td style="padding: 8px; border: 1px solid #ccc;"><%= order.FulfillmentStatus || order.fulfillmentStatus || 'N/A' %></td>
-          <td style="padding: 8px; border: 1px solid #ccc; white-space: nowrap; text-align: left;">
-            <a href="/orders/edit/<%= order._id %>" title="Edit Order" style="color:#5e606e; margin-right: 12px; font-size: 18px;">
-              <i class="fa-regular fa-pen-to-square"></i>
-            </a>
-            <a href="/orders/details/<%= order._id %>" title="View Details" style="color:#5e606e; font-size: 18px;">
-              <i class="fa-regular fa-file"></i>
-            </a>
-          </td>
+          <th>OrderID</th>
+          <th>Created</th>
+          <th>Customer</th>
+          <th>Payment</th>
+          <th>Total</th>
+          <th>Delivery</th>
+          <th>Items</th>
+          <th>Fulfillment</th>
         </tr>
-      <% }); %>
-    <% } %>
-  </tbody>
-</table>
+      </thead>
+      <tbody>
+        <% if (orders.length === 0) { %>
+          <tr>
+            <td colspan="8" style="text-align:center; padding: 20px;">No orders found.</td>
+          </tr>
+        <% } else { %>
+          <% orders.slice(1).forEach((order, index) => { %>
+            <tr class="order-row" data-idx="<%= index %>">
+              <td><%= order.OrderID ? '#' + order.OrderID : 'N/A' %></td>
+              <td>
+                <% if(order.Date) { %>
+                  <%= new Date(order.Date).toLocaleString() %>
+                <% } else if(order.date) { %>
+                  <%= new Date(order.date).toLocaleString() %>
+                <% } else { %>
+                  N/A
+                <% } %>
+              </td>
+              <td><%= order.Customer || order.customer || 'N/A' %></td>
+              <td><%= order.PaymentStatus || order.paymentStatus || 'Unpaid' %></td>
+              <td>
+                <% if(order.Total !== undefined && order.Total !== null) { %>
+                  ₱ <%= Number(order.Total).toFixed(2) %>
+                <% } else { %>
+                  N/A
+                <% } %>
+              </td>
+              <td><%= order.DeliveryStatus || order.deliveryStatus || 'N/A' %></td>
+              <td><%= order.ItemTotal !== undefined && order.ItemTotal !== null ? order.ItemTotal : 'N/A' %></td>
+              <td><%= order.FulfillmentStatus || order.fulfillmentStatus || 'N/A' %></td>
+            </tr>
+          <% }); %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+
+  <aside class="order-detail-panel" id="orderDetailPanel" aria-live="polite" aria-label="Order details panel">
+    <h2>Order Summary</h2>
+    <div id="orderSummaryContent">
+      <p>Select an order to see details.</p>
+    </div>
+
+    <div class="order-detail-buttons" id="orderDetailButtons" style="display:none;">
+      <button class="btn-accent" id="confirmPaymentBtn">Confirm Payment</button>
+      <button class="btn-accent" id="fulfillOrderBtn">Fulfill Order</button>
+      <button class="btn-accent" id="cancelOrderBtn">Cancel Order</button>
+      <button class="btn-accent" id="printInvoiceBtn">Print Invoice</button>
+      <a href="#" class="edit-label" id="editOrderLink">Edit Order</a>
+    </div>
+  </aside>
+
+</div>
+
+
+<script>
+const orders = <%- JSON.stringify(orders.slice(1)) %>;
+const menu = <%- JSON.stringify(menu) %>;
+const orderDetailPanel = document.getElementById('orderDetailPanel');
+const orderSummaryContent = document.getElementById('orderSummaryContent');
+const orderDetailButtons = document.getElementById('orderDetailButtons');
+const editOrderLink = document.getElementById('editOrderLink');
+
+function formatCurrency(value) {
+  return '₱ ' + Number(value).toFixed(2);
+}
+
+function getProductPrice(productName) {
+  const item = menu.find(m => m.ProductName === productName);
+  return item && item.Price != null ? Number(item.Price) : 0;
+}
+
+function createProductList(order) {
+  if (!order.Cart || !order.Cart.length) {
+    return '<p>No products in this order.</p>';
+  }
+  let html = '<ul>';
+  order.Cart.forEach(item => {
+    const price = getProductPrice(item.ProductName);
+    const totalPrice = price * (item.Quantity || 0);
+    html += `<li>
+      <span class="product-name">${item.ProductName || 'N/A'}</span>
+      <span class="product-quantity-price">
+        Qty: ${item.Quantity || 0} 
+        <span class="product-price">${formatCurrency(totalPrice)}</span>
+      </span>
+    </li>`;
+  });
+  html += '</ul>';
+  return html;
+}
+
+function showOrderDetails(order) {
+  let address = order.Address || order.address || 'N/A';
+  let customer = order.Customer || order.customer || 'N/A';
+  let contact = order.Contact || order.contact || 'N/A';
+  let deliveryChargeMsg = '';
+  if (order.DeliveryStatus === 'Delivery' || order.DeliveryStatus === 'delivery') {
+    deliveryChargeMsg = `<p style="color:#a05c2f; font-weight:600; margin-top:8px;">Delivery Charge: + ₱ 15</p>`;
+  }
+
+  const summaryHtml = `
+    <div class="order-detail-section">
+      <h3>Products</h3>
+      ${createProductList(order)}
+    </div>
+    <div class="order-detail-section">
+      <h3>Customer Information</h3>
+      <p><span class="label">Name:</span> ${customer}</p>
+      <p><span class="label">Address:</span> ${address}</p>
+      <p><span class="label">Contact:</span> ${contact}</p>
+    </div>
+    <div class="order-detail-section">
+      <h3>Summary</h3>
+      <p><span class="label">Payment Status:</span> ${order.PaymentStatus || 'Unpaid'}</p>
+      <p><span class="label">Delivery Status:</span> ${order.DeliveryStatus || 'N/A'}</p>
+      <p><span class="label">Fulfillment Status:</span> ${order.FulfillmentStatus || 'N/A'}</p>
+      <p><span class="label">Total Items:</span> ${order.ItemTotal || 0}</p>
+      <p><span class="label">Subtotal:</span> ${formatCurrency(order.Total || 0)}</p>
+      ${deliveryChargeMsg}
+    </div>
+  `;
+
+  orderSummaryContent.innerHTML = summaryHtml;
+  orderDetailButtons.style.display = 'flex';
+  orderDetailPanel.style.display = 'flex';
+
+  editOrderLink.href = `/order/edit/${order._id || ''}`;
+
+  document.getElementById('confirmPaymentBtn').onclick = () => {
+    alert(`Confirm Payment for Order #${order.OrderID || order.OrderId || 'N/A'}`);
+  };
+  document.getElementById('fulfillOrderBtn').onclick = () => {
+    alert(`Fulfill Order #${order.OrderID || order.OrderId || 'N/A'}`);
+  };
+  document.getElementById('cancelOrderBtn').onclick = () => {
+    alert(`Cancel Order #${order.OrderID || order.OrderId || 'N/A'}`);
+  };
+  document.getElementById('printInvoiceBtn').onclick = () => {
+    alert(`Print Invoice for Order #${order.OrderID || order.OrderId || 'N/A'}`);
+  };
+}
+
+document.querySelectorAll('.order-row').forEach(row => {
+  row.addEventListener('click', () => {
+    const idx = parseInt(row.dataset.idx, 10);
+    if (idx >= 0 && idx < orders.length) {
+      const order = orders[idx];
+      showOrderDetails(order);
+      document.querySelectorAll('.order-row').forEach(r => r.style.backgroundColor = '');
+      row.style.backgroundColor = '#f0f0f0';
+    }
+  });
+});
+
+</script>

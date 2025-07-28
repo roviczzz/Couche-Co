@@ -213,9 +213,18 @@
     }
   }
 
-  function editItem(idx) {
-    alert('Edit item functionality not implemented.');
+function editItem(idx) {
+  const inputQty = document.querySelector(`input[name="Cart[${idx}][Quantity]"]`);
+  if (!inputQty) return;
+
+  if (inputQty.style.display === 'none' || inputQty.style.display === '') {
+    inputQty.style.display = 'inline-block';
+    inputQty.focus();
+  } else {
+    inputQty.style.display = 'none';
   }
+}
+
 
   function fulfillOrder() {
     alert('Fulfill Order functionality not implemented.');
@@ -245,3 +254,9 @@
     }
   }
 </script>
+
+<style>
+  input[type="number"][name^="Cart"] {
+  display: none;
+}
+</style>

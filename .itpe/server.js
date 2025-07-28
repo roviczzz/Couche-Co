@@ -446,15 +446,28 @@ app.get('/order', isLoggedIn, nocache, async (req, res) => {
   try {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
+
     const ordersCollection = db.collection('Orders');
+    const menuCollection = db.collection('Menu'); 
     const orders = await ordersCollection.find().toArray();
+
+    const menu = await menuCollection.find().toArray();
+
     await client.close();
-    res.render('order', { orders, title: 'Orders | Blessings Cafe', user: req.session.user, currentPage: req.path});
+
+    res.render('order', { 
+      orders, 
+      menu,              
+      title: 'Orders | Blessings Cafe', 
+      user: req.session.user, 
+      currentPage: req.path
+    });
   } catch (err) {
-    console.error('Error fetching orders:', err);
+    console.error('Error fetching orders or menu:', err);
     res.status(500).send('Internal Server Error');
   }
 });
+
 
 app.get('/orders/edit/:id', isLoggedIn, nocache, async (req, res) => {
   const orderId = req.params.id;
