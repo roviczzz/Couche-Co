@@ -3,20 +3,28 @@ A capstone output for Blessings Cafe in Imus City, Cavite. Presented to the Info
 
 
 
-# Blessings Cafe Admin
-#### Prerequisites on Deploying:
+# Blessings Cafe Admin Webpage [EJS]
+#### Deploying:
 
 
 1. Install MongoDB Community Server
-2. Initiate Commands
-    - npm install
-3. node server.js
+2. Install prerequisite modules:
+<code> npm install </code> 
+3. Run website
+> node server.js
 
 
 
-# BlessingsBot 
-#### Prerequisites on Deploying:
+# BlessingsBot [n8n]
+#### Deploying:
+To run n8n use:
+>placeholder
 
+
+# Database [MongoDB]
+#### Deploying:
+To run mongodb use:
+>placeholder
 
 
 # TO DO
