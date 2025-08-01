@@ -1,6 +1,6 @@
 # SMART CAFE: A Complete E-commerce System for Blessings Cafe
 A capstone output for Blessings Cafe in Imus City, Cavite. Presented to the Information Technology Department of De La Salle University Dasmarinas. Using n8n + MongoDB + Node.js.
-***
+
 
 
 # Blessings Cafe Admin
@@ -15,12 +15,12 @@ A capstone output for Blessings Cafe in Imus City, Cavite. Presented to the Info
     - npm install ejs
 3. node server.js
 
-***
+
 
 # BlessingsBot 
 #### Prerequisites on Deploying:
 
-***
+
 
 # TO DO
 ### <i>PENDING TASKS</i>
@@ -42,7 +42,7 @@ A capstone output for Blessings Cafe in Imus City, Cavite. Presented to the Info
 
 ### Math
 
-***
+
 
 
 ## CREDITS:
