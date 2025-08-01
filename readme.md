@@ -9,10 +9,7 @@ A capstone output for Blessings Cafe in Imus City, Cavite. Presented to the Info
 
 1. Install MongoDB Community Server
 2. Initiate Commands
-    - npm init-y
-    - npm install mongodb
-    - npm install express
-    - npm install ejs
+    - npm install
 3. node server.js
 
 
