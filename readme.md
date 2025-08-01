@@ -1,13 +1,52 @@
-# TO DO (Ken & Math)
-Start developing website on Couche-SysIntegFO (if possible rename, or rename it later might conflict w files)
+# SMART CAFE: A Complete E-commerce System for Blessings Cafe
+A capstone output for Blessings Cafe in Imus City, Cavite. Presented to the Information Technology Department of De La Salle University Dasmarinas. Using n8n + MongoDB + Node.js.
+***
 
 
-# TO DO (Rovic)
-BlessingsBot
-(n8n + MongoDB + Node.js)
-
-Dacpac
-aspnet-Couche_SysIntegFO-e33b15f9-9f15-47fb-b860-012ec8393d70
+# Blessings Cafe Admin
+#### Prerequisites on Deploying:
 
 
-# RUN DOCKER
+1. Install MongoDB Community Server
+2. Initiate Commands
+    - npm init-y
+    - npm install mongodb
+    - npm install express
+    - npm install ejs
+3. node server.js
+
+***
+
+# BlessingsBot 
+#### Prerequisites on Deploying:
+
+***
+
+# TO DO
+### <i>PENDING TASKS</i>
+- Views
+  - analytics
+  - discounts
+  - management
+  - settings
+  - forgot password
+- Chatbot
+  - cart function
+  - paymongo
+
+### Rovic
+- connection string hide on repo
+
+### Ken
+
+
+### Math
+
+***
+
+
+## CREDITS:
+TEAM Couche
+> Math
+> Ken
+> Rovic

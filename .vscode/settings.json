@@ -1,3 +1,6 @@
 {
-    "CodeGPT.apiKey": "CodeGPT Plus Beta"
+    "C_Cpp.errorSquiggles": "enabled",
+    "files.associations": {
+        "iostream": "cpp"
+    }
 }
