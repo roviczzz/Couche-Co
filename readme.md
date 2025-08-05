@@ -29,27 +29,35 @@ To run mongodb use:
 
 # TO DO
 ### <i>PENDING TASKS</i>
-- Views
-  - analytics
-  - discounts
-  - management
-  - settings
-  - forgot password
-- Chatbot
-  - cart function
-  - paymongo
+- [ ] Views
+  - [ ] analytics
+    - popular items
+  - [ ] discounts
+  - [ ] management
+  - [ ] settings
+  - [ ] forgot password
+- [ ] Chatbot
+  - [ ] cart function
+  - [ ] session
+  - [ ] clear conversation after transaction (if possible)
+  - [ ] paymongo
+  - [ ] delivery function
+  - [ ] invoice function
+- [ ] Database 
+  - [ ] images 
+  - [ ] descriptions [with prices]
 
 ### Rovic
-- connection string hide on repo
+- [x] connection string hide on repo
 
 ### Ken
--Analytics
--Chatbot management
--Forgot password
+- [ ] Analytics
+- [ ] Chatbot management 
+- [ ] Forgot password
 
 ### Math
--DIscounts
--Settings
+- [ ] Discounts
+- [ ] Settings
 
 
 
