@@ -152,7 +152,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Popular\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"Most ordered right now.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Popular\",\n                \"payload\": \"VIEW_POPULAR\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Must Try! Fruit Teas\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"This is FRUIT TEAS category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View FRUIT TEAS category\",\n                \"payload\": \"VIEW_FT\"\n              }\n            ]\n          },\n{\n            \"title\": \"Must Try! Milk Teas\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"This is MILK TEAS category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View MILK TEAS category\",\n                \"payload\": \"VIEW_MT\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Must Try! Signatures\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+3\",\n            \"subtitle\": \"This is SIGNATURES category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Signatures\",\n                \"payload\": \"VIEW_SIGNATURES\"\n              }\n            ]\n          },\n{\n            \"title\": \"Bites\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"This is BITES category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Bites\",\n                \"payload\": \"VIEW_BITES\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $('Listen').item.json.senderId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Popular\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"Most ordered right now.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Popular\",\n                \"payload\": \"VIEW_POPULAR\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Must Try! Fruit Teas\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"This is FRUIT TEAS category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View FRUIT TEAS category\",\n                \"payload\": \"VIEW_FT\"\n              }\n            ]\n          },\n{\n            \"title\": \"Must Try! Milk Teas\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"This is MILK TEAS category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View MILK TEAS category\",\n                \"payload\": \"VIEW_MT\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Must Try! Signatures\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+3\",\n            \"subtitle\": \"This is SIGNATURES category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Signatures\",\n                \"payload\": \"VIEW_SIGNATURES\"\n              }\n            ]\n          },\n{\n            \"title\": \"Bites\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"This is BITES category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Bites\",\n                \"payload\": \"VIEW_BITES\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -207,87 +207,6 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.senderId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Spanish Latte Coffee\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_CF-SPL\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Salted Caramel Coffee\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_CF-SCA\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Green Apple Fruit Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_FT-GAP\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Matcha Milk Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-MAT\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Okinawa Milktea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+3\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-OKI\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Wintermelon Milktea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-WIN\"\n              }\n            ]\n          },\n{\n            \"title\": \"Main Menu\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Go Back\",\n                \"payload\": \"REVIEW_MENU\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        -240,
-        -180
-      ],
-      "id": "4c864da5-e7be-4561-8ade-acbd4834f8bd",
-      "name": "Popular Menu"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.senderId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Strawberry Fruit Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_FT-STR\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Mango Fruit Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_FT-MAN\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Green Apple Fruit Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_FT-GAP\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Passion Fruit Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_FT-PAF\"\n              }\n            ]\n          },\n{\n            \"title\": \"Main Menu\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Go Back\",\n                \"payload\": \"REVIEW_MENU\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        -240,
-        -20
-      ],
-      "id": "cf2d8d23-477e-4404-8279-60d00c48991c",
-      "name": "Fruit Teas Menu"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.senderId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Cupcake\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"BK-CUP\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Crinkles\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"BK-CRN\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Cookies\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"BK-COO\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Waffles\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"BK-WAF\"\n              }\n            ]\n          },\n{\n            \"title\": \"Main Menu\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Go Back\",\n                \"payload\": \"REVIEW_MENU\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        -240,
-        460
-      ],
-      "id": "4b9cf7ca-b1ef-496e-b6cb-d5dfe950156a",
-      "name": "Bites Menu"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
         "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{$json.senderId}}\"\n  },\n  \"message\": {\n    \"text\": \"Blessed Day! 👋 I’m BBot your virtual barista. I can help you with everything you need here at Blessings Cafe, please enter \\\"Get started\\\" to start ordering. Thank you!\"\n  }\n}",
         "options": {}
       },
@@ -326,60 +245,6 @@
       ],
       "id": "f9f6fb4d-e72f-4a3f-95d3-bd4a0e312638",
       "name": "Order Intro Message"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.senderId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Taro Milk Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-TAR\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Matcha Milk Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-MAT\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Okinawa Milk Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-OKI\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Dalgona Milk Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-DAL\"\n              }\n            ]\n          },\n{\n            \"title\": \"Hershey's Milk Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-HER\"\n              }\n            ]\n          },\n{\n            \"title\": \"Wintermelon Milk Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-WIN\"\n              }\n            ]\n          },\n{\n            \"title\": \"Salted Caramel Milk Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-SCA\"\n              }\n            ]\n          },\n{\n            \"title\": \"Cookies 'N Cream Milk Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-CNC\"\n              }\n            ]\n          },\n{\n            \"title\": \"Black Forest Milk Tea\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_MT-BFO\"\n              }\n            ]\n          },\n{\n            \"title\": \"Main Menu\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Go Back\",\n                \"payload\": \"REVIEW_MENU\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        -240,
-        140
-      ],
-      "id": "8360fcb6-b1fd-41e6-bc7f-b2379bfddca5",
-      "name": "Milk Teas Menu"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.senderId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Caramel Coffee\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_CF-CAR\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Hazelnut Coffee\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_CF-HAZ\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Toffee Nut Coffee\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_CF-TON\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Macademia Nut Coffee\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_CF-MAC\"\n              }\n            ]\n          },\n{\n            \"title\": \"Spanish Latte Coffee\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_CF-SPL\"\n              }\n            ]\n          },\n{\n            \"title\": \"Salted Caramel Coffee\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_CF-SCA\"\n              }\n            ]\n          },\n{\n            \"title\": \"White Chocolate Coffee\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Cart\",\n                \"payload\": \"ADD_CF-WCH\"\n              }\n            ]\n          },\n{\n            \"title\": \"Main Menu\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Go Back\",\n                \"payload\": \"REVIEW_MENU\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        -240,
-        300
-      ],
-      "id": "87976d9f-b703-4e4e-92c1-397cf33de3be",
-      "name": "Signatures Menu"
     },
     {
       "parameters": {
@@ -593,6 +458,31 @@
                 },
                 "conditions": [
                   {
+                    "id": "05dad1f5-46fb-4d26-9814-8321aed9f207",
+                    "leftValue": "={{ $json.isBitesSelected }}",
+                    "rightValue": "BK",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ADD_BITES"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
                     "id": "101da682-cd8c-4b85-a6d4-c5e3d2debc5b",
                     "leftValue": "={{ $json.postback }}",
                     "rightValue": "ADD",
@@ -631,30 +521,6 @@
               },
               "renameOutput": true,
               "outputKey": "SELECT_ADD_ON"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "id": "05dad1f5-46fb-4d26-9814-8321aed9f207",
-                    "leftValue": "={{ $json.postback }}",
-                    "rightValue": "BK",
-                    "operator": {
-                      "type": "string",
-                      "operation": "contains"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "ADD_BITES"
             },
             {
               "conditions": {
@@ -716,7 +582,7 @@
       "typeVersion": 4.2,
       "position": [
         300,
-        800
+        840
       ],
       "id": "9afb48f7-fdce-4b38-9c61-20e9e697d1ad",
       "name": "Select Add-ons Milktea Message"
@@ -743,7 +609,7 @@
       "typeVersion": 4.2,
       "position": [
         300,
-        980
+        1020
       ],
       "id": "51aac8ef-611d-4439-8adc-a51b7c24190b",
       "name": "Select Add-ons Coffee Message"
@@ -770,7 +636,7 @@
       "typeVersion": 4.2,
       "position": [
         300,
-        1160
+        1200
       ],
       "id": "df59f71a-091c-4df3-af12-d26dd102da08",
       "name": "Select Add-ons Fruit Tea Message"
@@ -798,7 +664,7 @@
       "typeVersion": 4.2,
       "position": [
         480,
-        800
+        840
       ],
       "id": "8d651e29-c931-461e-9c53-1d374fc12835",
       "name": "Add-ons Milktea"
@@ -825,7 +691,7 @@
       "typeVersion": 4.2,
       "position": [
         480,
-        980
+        1020
       ],
       "id": "488b6806-ef64-4c96-98c5-f89e634a96a0",
       "name": "Add-ons Coffee"
@@ -852,38 +718,10 @@
       "typeVersion": 4.2,
       "position": [
         480,
-        1160
+        1200
       ],
       "id": "ddcf1c9b-121e-442b-a549-72b6bee19e64",
       "name": "Add-ons Fruit Tea"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            },
-            {}
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $('Listen').item.json.senderId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Popular\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"Most ordered right now.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Popular\",\n                \"payload\": \"VIEW_POPULAR\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Must Try! Fruit Teas\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"This is FRUIT TEAS category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View FRUIT TEAS category\",\n                \"payload\": \"VIEW_FT\"\n              }\n            ]\n          },\n{\n            \"title\": \"Must Try! Milk Teas\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"This is MILK TEAS category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View MILK TEAS category\",\n                \"payload\": \"VIEW_MT\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Must Try! Signatures\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+3\",\n            \"subtitle\": \"This is SIGNATURES category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Signatures\",\n                \"payload\": \"VIEW_SIGNATURES\"\n              }\n            ]\n          },\n{\n            \"title\": \"Bites\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"This is BITES category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Bites\",\n                \"payload\": \"VIEW_BITES\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        -240,
-        -340
-      ],
-      "id": "85386419-ed88-4c22-8e3b-b5118862c31b",
-      "name": "Menu Gallery1"
     },
     {
       "parameters": {
@@ -968,8 +806,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        -260,
-        800
+        80,
+        840
       ],
       "id": "8325ea7c-fd2b-4b0d-a82e-7e26a17bc46a",
       "name": "Add-Ons Switch"
@@ -1124,7 +962,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const product = $input.first().json;\nconst sizes = Array.isArray(product.Sizes) ? product.Sizes : [];\nconst senderId = $('Listen').first().json.senderId;\nconst priceFormat = p => (p ? `₱${p}` : '');\nif (sizes.length === 0) {\n  return [{\n    json: {\n      sendSizeButtons: false,\n      sizeSelected: false,\n      message: `Selected: ${product.Name} (${priceFormat(product.BasePrice)}). Added to cart!`,\n      senderId\n    }\n  }];\n}\nconst buttons = sizes.map(s => ({\n  type: \"postback\",\n  title: `${s.Size} - ${priceFormat(s.BasePrice)}`,\n  payload: `${product.ProductID}|${s.Size}`\n}));\nreturn [{\n  json: {\n    sendSizeButtons: true,\n    sizeSelected: false,\n    recipient_id: senderId,\n    message: `Choose a size for your ${product.Name}:`,\n    buttons\n  }\n}];\n"
+        "jsCode": "const product = $input.first().json;\nconst senderId = $('Listen').first().json.senderId;\nconst priceFormat = p => (p ? `₱${p}` : '');\n\nconst isBite = product.ProductID && product.ProductID.startsWith('BK-');\n\nif (isBite) {\n  return [{\n    json: {\n      sendSizeButtons: false,\n      sizeSelected: false,\n      message: `Selected: ${product.Name} (${priceFormat(product.BasePrice)}). Added to cart!`,\n      senderId,\n      isBitesSelected: true\n    }\n  }];\n}\n\nconst sizes = Array.isArray(product.Sizes) ? product.Sizes : [];\n\nif (sizes.length === 0) {\n  return [{\n    json: {\n      sendSizeButtons: false,\n      sizeSelected: false,\n      message: `Selected: ${product.Name} (${priceFormat(product.BasePrice)}). Added to cart!`,\n      senderId\n    }\n  }];\n}\n\nconst buttons = sizes.map(s => ({\n  type: \"postback\",\n  title: `${s.Size} - ${priceFormat(s.BasePrice)}`,\n  payload: `${product.ProductID}|${s.Size}`\n}));\n\nreturn [{\n  json: {\n    sendSizeButtons: true,\n    sizeSelected: false,\n    recipient_id: senderId,\n    message: `Choose a size for your ${product.Name}:`,\n    buttons\n  }\n}];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1150,14 +988,14 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"button\",\n        \"text\": \"{{ $json.message }}\",\n        \"buttons\": {{ JSON.stringify($json.buttons) }}\n      }\n    }\n  }\n}\n",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $('Listen').item.json.senderId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"button\",\n        \"text\": \"{{ $json.message }}\",\n        \"buttons\": {{ JSON.stringify($json.buttons) }}\n      }\n    }\n  }\n}\n",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        260,
-        640
+        480,
+        660
       ],
       "id": "77800f66-04a6-482e-bce7-cd3715443d08",
       "name": "Select Size Prompt"
@@ -1265,6 +1103,345 @@
       ],
       "id": "d6ee227e-7ddf-4fda-8c0d-54d03eb1dd4a",
       "name": "View Cart Button"
+    },
+    {
+      "parameters": {
+        "collection": "Menu",
+        "options": {},
+        "query": "={\n  \"ProductID\": {\n    \"$in\": [\n      \"CF-SPL\",\n      \"CF-SCA\",\n      \"FT-GAP\",\n      \"MT-MAT\",\n      \"MT-OKI\",\n      \"MT-WIN\"\n    ]\n  },\n  \"IsEnabled\": true,\n  \"available\": true\n}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -240,
+        -340
+      ],
+      "id": "6defc956-8c80-469b-9d9e-ae5c2d6dcb0c",
+      "name": "Retrieve Popular DB",
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const desiredProductIDs = [\n  \"CF-SPL\",\n  \"CF-SCA\",\n  \"FT-GAP\",\n  \"MT-MAT\",\n  \"MT-OKI\",\n  \"MT-WIN\"\n];\n\nconst senderId = $('Listen').first().json.senderId;\n\nconst menuItems = $input.all().map(i => i.json);\n\nconst filteredItems = menuItems.filter(item =>\n  desiredProductIDs.includes(item.ProductID) && item.IsEnabled && item.available\n);\n\nconst elements = filteredItems.map(item => ({\n  title: item.Name,\n  image_url: (item.imagelink && item.imagelink !== \"placeholder\")\n    ? item.imagelink\n    : `https://via.placeholder.com/300x200?text=${encodeURIComponent(item.Name)}`,\n  subtitle: item.description || \"No description available\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Add to Cart\",\n      payload: `ADD_${item.ProductID}`\n    }\n  ]\n}));\n\nelements.push({\n  title: \"Main Menu\",\n  image_url: \"https://via.placeholder.com/300x200?text=Main+Menu\",\n  subtitle: \"Return to main menu\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Go Back\",\n      payload: \"REVIEW_MENU\"\n    }\n  ]\n});\n\nconst responsePayload = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    attachment: {\n      type: \"template\",\n      payload: {\n        template_type: \"generic\",\n        elements: elements\n      }\n    }\n  }\n};\n\nreturn [{ json: responsePayload }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        -340
+      ],
+      "id": "3269c785-712c-4865-9030-58951c53e780",
+      "name": "Retrieve Popular"
+    },
+    {
+      "parameters": {
+        "collection": "Menu",
+        "options": {},
+        "query": "={\n  \"ProductID\": { \"$regex\": \"^FT-\" },\n  \"IsEnabled\": true,\n  \"available\": true\n}\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -240,
+        -180
+      ],
+      "id": "78908abc-bc66-4c41-92b4-9e287518275f",
+      "name": "Retrieve Fruit Tea DB",
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract real sender ID from incoming data, adjust path if needed\nconst senderId = $('Listen').first().json.senderId;\n\nif (!senderId) {\n  throw new Error(\"Sender ID not found in input data\");\n}\n\n// Get all menu items from input (e.g. from MongoDB node output)\nconst menuItems = $input.all().map(i => i.json);\n\n// Filter to ProductIDs that start with \"FT\", and are enabled + available\nconst filteredItems = menuItems.filter(item =>\n  item.ProductID && item.ProductID.startsWith(\"FT\") && item.IsEnabled && item.available\n);\n\n// Map filtered items into Messenger carousel elements, using description for subtitle\nconst elements = filteredItems.map(item => ({\n  title: item.Name + \" Fruit Tea\",\n  image_url: (item.imagelink && item.imagelink !== \"placeholder\")\n    ? item.imagelink\n    : `https://via.placeholder.com/300x200?text=${encodeURIComponent(item.Name)}`,\n  subtitle: item.description || \"No description available\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Add to Cart\",\n      payload: `ADD_${item.ProductID}`\n    }\n  ]\n}));\n\n// Add the \"Main Menu\" navigation card\nelements.push({\n  title: \"Main Menu\",\n  image_url: \"https://via.placeholder.com/300x200?text=Main+Menu\",\n  subtitle: \"Return to main menu\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Go Back\",\n      payload: \"REVIEW_MENU\"\n    }\n  ]\n});\n\nconst responsePayload = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    attachment: {\n      type: \"template\",\n      payload: {\n        template_type: \"generic\",\n        elements: elements\n      }\n    }\n  }\n};\n\n// Return the payload as one item, array format required by n8n\nreturn [{ json: responsePayload }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        -180
+      ],
+      "id": "5abae1dd-2c1a-409b-9c71-cdb0e694991a",
+      "name": "Retrieve Fruit Tea"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        80,
+        -340
+      ],
+      "id": "4c864da5-e7be-4561-8ade-acbd4834f8bd",
+      "name": "Display Popular Menu"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        80,
+        -180
+      ],
+      "id": "273a22a3-b5fb-4a0e-8049-58039492b898",
+      "name": "Display Fruit Tea Menu"
+    },
+    {
+      "parameters": {
+        "collection": "Menu",
+        "options": {},
+        "query": "={\n  \"ProductID\": { \"$regex\": \"^MT-\" },\n  \"IsEnabled\": true,\n  \"available\": true\n}\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -240,
+        -20
+      ],
+      "id": "8c163cbd-afdc-485c-8aa2-9542d6bb47a4",
+      "name": "Retrieve Milktea DB",
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const senderId = $('Listen').first().json.senderId;\n\nif (!senderId) {\n  throw new Error(\"Sender ID not found in input data\");\n}\n\nconst menuItems = $input.all().map(i => i.json);\n\nconst filteredItems = menuItems.filter(item =>\n  item.ProductID && item.ProductID.startsWith(\"MT\") && item.IsEnabled && item.available\n);\n\nconst elements = filteredItems.map(item => ({\n  title: item.Name + \" Milk Tea\",\n  image_url: (item.imagelink && item.imagelink !== \"placeholder\")\n    ? item.imagelink\n    : `https://via.placeholder.com/300x200?text=${encodeURIComponent(item.Name)}`,\n  subtitle: item.description || \"Delicious milk tea.\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Add to Cart\",\n      payload: `ADD_${item.ProductID}`\n    }\n  ]\n}));\n\nelements.push({\n  title: \"Main Menu\",\n  image_url: \"https://via.placeholder.com/300x200?text=Main+Menu\",\n  subtitle: \"Return to main menu\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Go Back\",\n      payload: \"REVIEW_MENU\"\n    }\n  ]\n});\n\nconst responsePayload = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    attachment: {\n      type: \"template\",\n      payload: {\n        template_type: \"generic\",\n        elements: elements\n      }\n    }\n  }\n};\n\nreturn [{ json: responsePayload }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -60,
+        -20
+      ],
+      "id": "40deaba2-5db1-4c6c-9bdb-58965ade4b34",
+      "name": "Retrieve Milk Tea"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        120,
+        -20
+      ],
+      "id": "2c27a39c-88b2-411f-9309-7a738a1ba09b",
+      "name": "Display Milk Tea Menu"
+    },
+    {
+      "parameters": {
+        "jsCode": "const senderId = $('Listen').first().json.senderId;\n\nif (!senderId) {\n  throw new Error(\"Sender ID not found in input data\");\n}\n\nconst menuItems = $input.all().map(i => i.json);\n\nconst filteredItems = menuItems.filter(item =>\n  item.ProductID && item.ProductID.startsWith(\"CF\") && item.IsEnabled && item.available\n);\n\nconst elements = filteredItems.map(item => ({\n  title: item.Name + \" Coffee\",\n  image_url: (item.imagelink && item.imagelink !== \"placeholder\")\n    ? item.imagelink\n    : `https://via.placeholder.com/300x200?text=${encodeURIComponent(item.Name)}`,\n  subtitle: item.description || \"Delicious signature coffee.\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Add to Cart\",\n      payload: `ADD_${item.ProductID}`\n    }\n  ]\n}));\n\nelements.push({\n  title: \"Main Menu\",\n  image_url: \"https://via.placeholder.com/300x200?text=Main+Menu\",\n  subtitle: \"Return to main menu\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Go Back\",\n      payload: \"REVIEW_MENU\"\n    }\n  ]\n});\n\nconst responsePayload = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    attachment: {\n      type: \"template\",\n      payload: {\n        template_type: \"generic\",\n        elements: elements\n      }\n    }\n  }\n};\n\nreturn [{ json: responsePayload }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -60,
+        140
+      ],
+      "id": "cca2f62b-ba2f-45b5-a4a9-a9bc97223dee",
+      "name": "Retrieve Signatures"
+    },
+    {
+      "parameters": {
+        "collection": "Menu",
+        "options": {},
+        "query": "={\n  \"ProductID\": { \"$regex\": \"^CF-\" },\n  \"IsEnabled\": true,\n  \"available\": true\n}\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -240,
+        140
+      ],
+      "id": "bab4f151-3b70-4638-9520-281c478e4555",
+      "name": "Retrieve Signatures DB",
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        120,
+        140
+      ],
+      "id": "f126a481-4832-4113-8c84-03c00053a9ee",
+      "name": "Display Signatures Menu"
+    },
+    {
+      "parameters": {
+        "collection": "Menu",
+        "options": {},
+        "query": "={\n  \"ProductID\": { \"$regex\": \"^BK-\" },\n  \"IsEnabled\": true,\n  \"available\": true\n}\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -240,
+        300
+      ],
+      "id": "e5ab743c-4e7c-4e41-a038-ba1ec87eb087",
+      "name": "Retrieve Bites DB",
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const senderId = $('Listen').first().json.senderId;\n\nif (!senderId) {\n  throw new Error(\"Sender ID not found in input data\");\n}\n\nconst menuItems = $input.all().map(i => i.json);\n\nconst filteredItems = menuItems.filter(item =>\n  item.ProductID && item.ProductID.startsWith(\"BK\") && item.IsEnabled && item.available\n);\n\nconst elements = filteredItems.map(item => ({\n  title: item.Name,\n  image_url: (item.imagelink && item.imagelink !== \"placeholder\")\n    ? item.imagelink\n    : `https://via.placeholder.com/300x200?text=${encodeURIComponent(item.Name)}`,\n  subtitle: item.description || \"Tasty bite-sized treats\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Add to Cart\",\n      payload: `ADD_${item.ProductID}`\n    }\n  ]\n}));\n\nelements.push({\n  title: \"Main Menu\",\n  image_url: \"https://via.placeholder.com/300x200?text=Main+Menu\",\n  subtitle: \"Return to main menu\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Go Back\",\n      payload: \"REVIEW_MENU\"\n    }\n  ]\n});\n\nconst responsePayload = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    attachment: {\n      type: \"template\",\n      payload: {\n        template_type: \"generic\",\n        elements: elements\n      }\n    }\n  }\n};\n\nreturn [{ json: responsePayload }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -60,
+        300
+      ],
+      "id": "69983cca-8ba0-4d4d-b008-55c511f75bb2",
+      "name": "Retrieve Bites"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        120,
+        300
+      ],
+      "id": "6ef94043-aead-4c09-8ef3-6a384f5d71a3",
+      "name": "Display Bites Menu"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d6a36e88-2fff-44ab-9cf9-4e2a471e0793",
+              "leftValue": "={{ $json.isBitesSelected }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        260,
+        640
+      ],
+      "id": "d4752855-4bad-45f9-827e-e665492f04f4",
+      "name": "Item Condition"
     }
   ],
   "pinData": {},
@@ -1361,42 +1538,49 @@
         ],
         [
           {
-            "node": "Menu Gallery1",
+            "node": "Menu Gallery",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Popular Menu",
+            "node": "Retrieve Popular DB",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Fruit Teas Menu",
+            "node": "Retrieve Fruit Tea DB",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Milk Teas Menu",
+            "node": "Retrieve Milktea DB",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Signatures Menu",
+            "node": "Retrieve Signatures DB",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Bites Menu",
+            "node": "Retrieve Bites DB",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "extract values",
             "type": "main",
             "index": 0
           }
@@ -1411,13 +1595,6 @@
         [
           {
             "node": "Add-Ons Switch",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "extract values",
             "type": "main",
             "index": 0
           }
@@ -1606,7 +1783,7 @@
       "main": [
         [
           {
-            "node": "Select Size Prompt",
+            "node": "Item Condition",
             "type": "main",
             "index": 0
           }
@@ -1656,13 +1833,141 @@
           }
         ]
       ]
+    },
+    "Retrieve Popular DB": {
+      "main": [
+        [
+          {
+            "node": "Retrieve Popular",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve Popular": {
+      "main": [
+        [
+          {
+            "node": "Display Popular Menu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve Fruit Tea DB": {
+      "main": [
+        [
+          {
+            "node": "Retrieve Fruit Tea",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve Fruit Tea": {
+      "main": [
+        [
+          {
+            "node": "Display Fruit Tea Menu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve Milktea DB": {
+      "main": [
+        [
+          {
+            "node": "Retrieve Milk Tea",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve Milk Tea": {
+      "main": [
+        [
+          {
+            "node": "Display Milk Tea Menu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve Signatures": {
+      "main": [
+        [
+          {
+            "node": "Display Signatures Menu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve Signatures DB": {
+      "main": [
+        [
+          {
+            "node": "Retrieve Signatures",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve Bites DB": {
+      "main": [
+        [
+          {
+            "node": "Retrieve Bites",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve Bites": {
+      "main": [
+        [
+          {
+            "node": "Display Bites Menu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Item Condition": {
+      "main": [
+        [
+          {
+            "node": "Main Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Select Size Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "318113d2-3319-430d-9155-49020dd0f1c6",
+  "versionId": "0cf65bdc-e748-4e13-ad0d-951d4d4f44d2",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "e55ad63998dbff63a27e8a719a0f75ec990732ee36c99c049c4be96c65a0b3c2"
