@@ -48,7 +48,7 @@ To run mongodb use:
   - [ ] descriptions [with prices]
 
 ### Rovic
-[X] connection string hide on repo
+[x] connection string hide on repo
 
 ### Ken
 - [ ] Analytics
