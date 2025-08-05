@@ -5,7 +5,8 @@ const { check, validationResult } = require('express-validator');
 const expressLayouts = require('express-ejs-layouts');
 const app = express();
 const port = 8080;
-const uri = 'mongodb+srv://CoucheAdmin:couchemongo2025!@bsit.dhojcct.mongodb.net/';
+require('dotenv').config();
+const uri = process.env.MONGODB_URI;
 
 const flash = require('connect-flash');
 const favicon = require('serve-favicon');
