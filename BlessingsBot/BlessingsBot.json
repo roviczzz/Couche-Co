@@ -458,6 +458,31 @@
                 },
                 "conditions": [
                   {
+                    "id": "05dad1f5-46fb-4d26-9814-8321aed9f207",
+                    "leftValue": "={{ $json.isBitesSelected }}",
+                    "rightValue": "BK",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ADD_BITES"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
                     "id": "101da682-cd8c-4b85-a6d4-c5e3d2debc5b",
                     "leftValue": "={{ $json.postback }}",
                     "rightValue": "ADD",
@@ -496,30 +521,6 @@
               },
               "renameOutput": true,
               "outputKey": "SELECT_ADD_ON"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "id": "05dad1f5-46fb-4d26-9814-8321aed9f207",
-                    "leftValue": "={{ $json.postback }}",
-                    "rightValue": "BK",
-                    "operator": {
-                      "type": "string",
-                      "operation": "contains"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "ADD_BITES"
             },
             {
               "conditions": {
@@ -581,7 +582,7 @@
       "typeVersion": 4.2,
       "position": [
         300,
-        800
+        840
       ],
       "id": "9afb48f7-fdce-4b38-9c61-20e9e697d1ad",
       "name": "Select Add-ons Milktea Message"
@@ -608,7 +609,7 @@
       "typeVersion": 4.2,
       "position": [
         300,
-        980
+        1020
       ],
       "id": "51aac8ef-611d-4439-8adc-a51b7c24190b",
       "name": "Select Add-ons Coffee Message"
@@ -635,7 +636,7 @@
       "typeVersion": 4.2,
       "position": [
         300,
-        1160
+        1200
       ],
       "id": "df59f71a-091c-4df3-af12-d26dd102da08",
       "name": "Select Add-ons Fruit Tea Message"
@@ -663,7 +664,7 @@
       "typeVersion": 4.2,
       "position": [
         480,
-        800
+        840
       ],
       "id": "8d651e29-c931-461e-9c53-1d374fc12835",
       "name": "Add-ons Milktea"
@@ -690,7 +691,7 @@
       "typeVersion": 4.2,
       "position": [
         480,
-        980
+        1020
       ],
       "id": "488b6806-ef64-4c96-98c5-f89e634a96a0",
       "name": "Add-ons Coffee"
@@ -717,7 +718,7 @@
       "typeVersion": 4.2,
       "position": [
         480,
-        1160
+        1200
       ],
       "id": "ddcf1c9b-121e-442b-a549-72b6bee19e64",
       "name": "Add-ons Fruit Tea"
@@ -805,8 +806,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        -260,
-        800
+        80,
+        840
       ],
       "id": "8325ea7c-fd2b-4b0d-a82e-7e26a17bc46a",
       "name": "Add-Ons Switch"
@@ -961,7 +962,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const product = $input.first().json;\nconst sizes = Array.isArray(product.Sizes) ? product.Sizes : [];\nconst senderId = $('Listen').first().json.senderId;\nconst priceFormat = p => (p ? `₱${p}` : '');\nif (sizes.length === 0) {\n  return [{\n    json: {\n      sendSizeButtons: false,\n      sizeSelected: false,\n      message: `Selected: ${product.Name} (${priceFormat(product.BasePrice)}). Added to cart!`,\n      senderId\n    }\n  }];\n}\nconst buttons = sizes.map(s => ({\n  type: \"postback\",\n  title: `${s.Size} - ${priceFormat(s.BasePrice)}`,\n  payload: `${product.ProductID}|${s.Size}`\n}));\nreturn [{\n  json: {\n    sendSizeButtons: true,\n    sizeSelected: false,\n    recipient_id: senderId,\n    message: `Choose a size for your ${product.Name}:`,\n    buttons\n  }\n}];\n"
+        "jsCode": "const product = $input.first().json;\nconst senderId = $('Listen').first().json.senderId;\nconst priceFormat = p => (p ? `₱${p}` : '');\n\nconst isBite = product.ProductID && product.ProductID.startsWith('BK-');\n\nif (isBite) {\n  return [{\n    json: {\n      sendSizeButtons: false,\n      sizeSelected: false,\n      message: `Selected: ${product.Name} (${priceFormat(product.BasePrice)}). Added to cart!`,\n      senderId,\n      isBitesSelected: true\n    }\n  }];\n}\n\nconst sizes = Array.isArray(product.Sizes) ? product.Sizes : [];\n\nif (sizes.length === 0) {\n  return [{\n    json: {\n      sendSizeButtons: false,\n      sizeSelected: false,\n      message: `Selected: ${product.Name} (${priceFormat(product.BasePrice)}). Added to cart!`,\n      senderId\n    }\n  }];\n}\n\nconst buttons = sizes.map(s => ({\n  type: \"postback\",\n  title: `${s.Size} - ${priceFormat(s.BasePrice)}`,\n  payload: `${product.ProductID}|${s.Size}`\n}));\n\nreturn [{\n  json: {\n    sendSizeButtons: true,\n    sizeSelected: false,\n    recipient_id: senderId,\n    message: `Choose a size for your ${product.Name}:`,\n    buttons\n  }\n}];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -987,14 +988,14 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"button\",\n        \"text\": \"{{ $json.message }}\",\n        \"buttons\": {{ JSON.stringify($json.buttons) }}\n      }\n    }\n  }\n}\n",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $('Listen').item.json.senderId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"button\",\n        \"text\": \"{{ $json.message }}\",\n        \"buttons\": {{ JSON.stringify($json.buttons) }}\n      }\n    }\n  }\n}\n",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        260,
-        640
+        480,
+        660
       ],
       "id": "77800f66-04a6-482e-bce7-cd3715443d08",
       "name": "Select Size Prompt"
@@ -1407,6 +1408,40 @@
       ],
       "id": "6ef94043-aead-4c09-8ef3-6a384f5d71a3",
       "name": "Display Bites Menu"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d6a36e88-2fff-44ab-9cf9-4e2a471e0793",
+              "leftValue": "={{ $json.isBitesSelected }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        260,
+        640
+      ],
+      "id": "d4752855-4bad-45f9-827e-e665492f04f4",
+      "name": "Item Condition"
     }
   ],
   "pinData": {},
@@ -1545,6 +1580,13 @@
         ],
         [
           {
+            "node": "extract values",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
             "node": "get productID",
             "type": "main",
             "index": 0
@@ -1553,13 +1595,6 @@
         [
           {
             "node": "Add-Ons Switch",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "extract values",
             "type": "main",
             "index": 0
           }
@@ -1748,7 +1783,7 @@
       "main": [
         [
           {
-            "node": "Select Size Prompt",
+            "node": "Item Condition",
             "type": "main",
             "index": 0
           }
@@ -1908,13 +1943,31 @@
           }
         ]
       ]
+    },
+    "Item Condition": {
+      "main": [
+        [
+          {
+            "node": "Main Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Select Size Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "07a2e6f9-857c-4d8e-9a47-6e73337a2ca2",
+  "versionId": "0cf65bdc-e748-4e13-ad0d-951d4d4f44d2",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "e55ad63998dbff63a27e8a719a0f75ec990732ee36c99c049c4be96c65a0b3c2"
