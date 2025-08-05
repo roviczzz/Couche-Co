@@ -43,10 +43,13 @@ To run mongodb use:
 - connection string hide on repo
 
 ### Ken
-
+-Analytics
+-Chatbot management
+-Forgot password
 
 ### Math
-
+-DIscounts
+-Settings
 
 
 
