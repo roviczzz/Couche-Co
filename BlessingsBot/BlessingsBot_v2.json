@@ -1,0 +1,2448 @@
+{
+  "name": "BlessingsBot v2",
+  "nodes": [
+    {
+      "parameters": {
+        "respondWith": "noData",
+        "options": {
+          "responseCode": 403
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -3900,
+        -1140
+      ],
+      "id": "3b75721c-0328-4199-8434-81550d49ea78",
+      "name": "403"
+    },
+    {
+      "parameters": {
+        "multipleMethods": true,
+        "path": "facebook-webhook",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -4380,
+        -980
+      ],
+      "id": "54ee5828-693d-4329-98bd-5fe0b557344a",
+      "name": "Webhook",
+      "webhookId": "d22a95ca-f2db-48a6-81a9-e6936e01b0e9"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "1d6a0b58-ea4a-4b35-911c-8bba18f046cc",
+              "leftValue": "={{ $json.query['hub.mode'] }}",
+              "rightValue": "subscribe",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "0c752a75-947d-4153-972b-ed671827cda6",
+              "leftValue": "={{ $json.query['hub.verify_token'] }}",
+              "rightValue": "fb-blessingsbot-secret-token",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -4120,
+        -1240
+      ],
+      "id": "8dfaecdc-50c9-4069-8f03-f3fa4d49c2de",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.query['hub.challenge'] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -3900,
+        -1340
+      ],
+      "id": "ed52d1ec-4406-4e17-a81b-04bb8c166b67",
+      "name": "Return Challenge"
+    },
+    {
+      "parameters": {
+        "content": "## BlessingsBot Workflow\nGet Method = Webhook verification\nPost Method = Chatbot integration",
+        "height": 100,
+        "width": 300
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -4500,
+        -1180
+      ],
+      "id": "0e278a82-73fd-4b0d-930b-f58448ce60af",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst body = items[0]?.json?.body;\nconst entry = body?.entry?.[0]?.messaging?.[0];\nconst text = entry?.message?.text;\nconst senderId = entry?.sender?.id;\nconst postback = entry?.postback?.payload;\n\nconst staticData = $getWorkflowStaticData('global');\nconst senderKey = `user_${senderId}`;\n\nconst previous = staticData[senderKey]?.previousPostback || null;\nconst latest = staticData[senderKey]?.latestPostback || null;\n\nfunction isSizeSelected(payload) {\n  if (!payload) return false;\n  const parts = payload.split('|');\n  return parts.length === 2 && parts[0].length > 0 && parts[1].length > 0;\n}\n\nfunction isAddOnSelected(payload) {\n  if (!payload) return false;\n  const parts = payload.split('|');\n  return parts.length === 3 && parts.every(part => part.length > 0);\n}\n\nconst sizeSelected = isSizeSelected(postback);\nconst isAddOnSelectedFlag = isAddOnSelected(postback);\n\nif (\n  body?.object === 'page' &&\n  senderId\n) {\n  if (text && text.trim().toLowerCase() === 'get started') {\n    return [{\n      json: {\n        type: 'text',\n        text: 'get started',\n        senderId,\n        previousPostback: previous,\n        latestPostback: latest,\n        sizeSelected: false,\n        isAddOnSelected: false\n      }\n    }];\n  }\n  if (postback) {\n    staticData[senderKey] = {\n      previousPostback: latest,\n      latestPostback: postback,\n      sizeSelected,\n      isAddOnSelected: isAddOnSelectedFlag\n    };\n    return [{\n      json: {\n        type: 'postback',\n        postback,\n        senderId,\n        previousPostback: previous,\n        latestPostback: postback,\n        sizeSelected,\n        isAddOnSelected: isAddOnSelectedFlag\n      }\n    }];\n  }\n  return [];\n} else {\n  return [{\n    json: { error: 'Invalid payload or missing sender' }\n  }];\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4200,
+        -580
+      ],
+      "id": "df552fcf-e7a4-4daf-b409-b687ada850ee",
+      "name": "Listen"
+    },
+    {
+      "parameters": {
+        "content": "## Switch\nGet_Started = Greeting message\nUSER_AGREES = Postback direct to main system",
+        "width": 210,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -4080,
+        -340
+      ],
+      "id": "c61b6ec4-11dd-448e-8282-76d2ac4a067b",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $('Listen').item.json.senderId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Popular\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"Most ordered right now.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Popular\",\n                \"payload\": \"VIEW_POPULAR\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Must Try! Fruit Teas\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"This is FRUIT TEAS category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View FRUIT TEAS category\",\n                \"payload\": \"VIEW_FT\"\n              }\n            ]\n          },\n{\n            \"title\": \"Must Try! Milk Teas\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"This is MILK TEAS category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View MILK TEAS category\",\n                \"payload\": \"VIEW_MT\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Must Try! Signatures\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+3\",\n            \"subtitle\": \"This is SIGNATURES category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Signatures\",\n                \"payload\": \"VIEW_SIGNATURES\"\n              }\n            ]\n          },\n{\n            \"title\": \"Bites\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"This is BITES category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Bites\",\n                \"payload\": \"VIEW_BITES\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3300,
+        -2040
+      ],
+      "id": "7bdc693f-a6e6-42ec-b1b8-045fa62996b3",
+      "name": "Menu Gallery"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $('Listen').item.json.senderId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"button\",\n        \"text\": \"Blessings Cafe requires your consent to collect and use the personal information you provide via this chat. Our process complies with the Data Privacy Act of 2012 and the Blessings Cafe Privacy Policy. Please confirm your agreement:\\n\\nPrivacy Policy: https://blessingscafe-web.onrender.com/privacy\\nData Privacy Act: https://www.privacy.gov.ph/data-privacy-act/\",\n        \"buttons\": [\n          {\n            \"type\": \"postback\",\n            \"title\": \"Yes, I agree\",\n            \"payload\": \"USER_AGREES\"\n          }\n        ]\n      }\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3300,
+        -2300
+      ],
+      "id": "fd9323e4-6cca-4f9f-b2f9-c46dbd41ef44",
+      "name": "Data Privacy Notice"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{$json.senderId}}\"\n  },\n  \"message\": {\n    \"text\": \"Blessed Day! 👋 I’m BBot your virtual barista. I can help you with everything you need here at Blessings Cafe, please enter \\\"Get started\\\" to start ordering. Thank you!\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3520,
+        -2300
+      ],
+      "id": "df8a87a9-36f4-43cf-8682-e57c924f66b3",
+      "name": "Greeting Message"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{$json.senderId}}\"\n  },\n  \"message\": {\n    \"text\": \"Blessings! 👋 What shall we get you for today?\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3520,
+        -2040
+      ],
+      "id": "8e8dd3d1-0bdd-440a-ad31-0147cb9904fe",
+      "name": "Order Intro Message"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.text }}",
+                    "rightValue": "=get started",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "34660f01-5dda-4c09-8e2d-b7fe1d7740ea"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "GET_STARTED"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "baec8468-aee7-4d39-8eda-69d3df7ff336",
+                    "leftValue": "={{ $json.postback }}",
+                    "rightValue": "=USER_AGREES",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "USER_AGREES"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "2ab06b25-f53f-4ce8-b8be-6925f1c10792",
+                    "leftValue": "={{ $json.postback }}",
+                    "rightValue": "REVIEW_MENU",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "REVIEW_MENU"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "6658ec1f-f61a-4d8a-9f88-8373360aa105",
+                    "leftValue": "={{ $json.postback }}",
+                    "rightValue": "VIEW_POPULAR",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "VIEW_POPULAR"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "377b0cb9-4f47-4f91-881f-c5e91892cb48",
+                    "leftValue": "={{ $json.postback }}",
+                    "rightValue": "VIEW_FT",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "VIEW_FT"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "d1c2224a-7ded-4432-939b-2ee4528f6911",
+                    "leftValue": "={{ $json.postback }}",
+                    "rightValue": "VIEW_MT",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "VIEW_MT"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ea8f2c49-4cf9-4056-8f4d-b04a9fa8c65e",
+                    "leftValue": "={{ $json.postback }}",
+                    "rightValue": "VIEW_SIGNATURES",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "VIEW_SIGNATURES"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "50146c47-4d27-438a-b80e-9cfc7b974a26",
+                    "leftValue": "={{ $json.postback }}",
+                    "rightValue": "VIEW_BITES",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "VIEW_BITES"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "101da682-cd8c-4b85-a6d4-c5e3d2debc5b",
+                    "leftValue": "={{ $json.postback }}",
+                    "rightValue": "ADD",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "SELECT_SIZE"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "209f67ce-2454-4997-bb33-bd767e2ee798",
+                    "leftValue": "={{ $json.sizeSelected }}",
+                    "rightValue": "postback",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "SELECT_ADD_ON"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "fbf026d2-4bfc-47ce-bce9-55dfc6e57ad5",
+                    "leftValue": "={{ $json.isCompleteOrder && !$json.isBitesOrder }}",
+                    "rightValue": "3",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "VERIFY_ITEM"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "3487551d-528c-4833-aa51-006be27cf2db",
+                    "leftValue": "={{ $json.isBitesSelected }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "HANDLE_BITES"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "c0db2966-b3e9-4019-b5d5-056208f5c281",
+                    "leftValue": "={{ $json.postback }}",
+                    "rightValue": "VIEW_CART",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "VIEW_CART"
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -3800,
+        -720
+      ],
+      "id": "b2ac2eec-0c5e-4e14-82ed-5b9b97b32989",
+      "name": "Main Switch"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{$json.senderId}}\"\n  },\n  \"message\": {\n    \"text\": \"Please select your add-ons\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2240,
+        -600
+      ],
+      "id": "c8a80220-aadc-47dc-aeb0-8d03af5bcfab",
+      "name": "Select Add-ons Milktea Message"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{$json.senderId}}\"\n  },\n  \"message\": {\n    \"text\": \"Please select your add-ons\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2240,
+        -400
+      ],
+      "id": "ea9d035d-1fa2-4a9e-bce7-88b970290aa0",
+      "name": "Select Add-ons Coffee Message"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{$json.senderId}}\"\n  },\n  \"message\": {\n    \"text\": \"Please select your add-ons\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2240,
+        -200
+      ],
+      "id": "ac02f48e-b858-4748-beb6-0b7d06e43b1f",
+      "name": "Select Add-ons Fruit Tea Message"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Boba\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-BOB\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Coffee Jelly\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-CJL\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Nata De Coco\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-NDC\"\n              }\n            ]\n          },\n{\n            \"title\": \"Pearl\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-PEA\"\n              }\n            ]\n          },\n          {\n            \"title\": \"None Add-ons\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"No additional fees.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Proceed\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|NONE\"\n              }\n            ]\n          },\n{\n            \"title\": \"Cancel Item\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Go Back\",\n                \"payload\": \"VIEW_MT\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2020,
+        -600
+      ],
+      "id": "be2eaeac-cb1f-48e2-9537-12851bf8acfa",
+      "name": "Add-ons Milktea"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Boba\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-BOB\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Coffee Jelly\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-CJL\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Nata De Coco\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-NDC\"\n              }\n            ]\n          },\n{\n            \"title\": \"Pearl\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-PEA\"\n              }\n            ]\n          },\n          {\n            \"title\": \"None Add-ons\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"No additional fees.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Proceed\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|NONE\"\n              }\n            ]\n          },\n{\n            \"title\": \"Cancel Item\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Go Back\",\n                \"payload\": \"VIEW_SIGNATURES\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2020,
+        -400
+      ],
+      "id": "1492c71b-dfcd-4e00-be35-74cfa0f1a93e",
+      "name": "Add-ons Coffee"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Boba\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-BOB\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Coffee Jelly\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-CJL\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Nata De Coco\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-NDC\"\n              }\n            ]\n          },\n{\n            \"title\": \"Pearl\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-PEA\"\n              }\n            ]\n          },\n          {\n            \"title\": \"None Add-ons\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"No additional fees.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Proceed\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|NONE\"\n              }\n            ]\n          },\n{\n            \"title\": \"Cancel Item\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Go Back\",\n                \"payload\": \"VIEW_FT\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2020,
+        -200
+      ],
+      "id": "80cee92c-c3fd-43c8-94bd-e8234d3a2ce9",
+      "name": "Add-ons Fruit Tea"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.postback }}",
+                    "rightValue": "MT",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "5d16f0c2-2edc-4fe4-b538-88b84b55bca0"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Milktea"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "88dacd76-b8e9-4b2f-8c69-85af0da14775",
+                    "leftValue": "={{ $json.postback }}",
+                    "rightValue": "CF",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Coffee"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "efa5336b-2aff-4f36-a2d6-bb5040b8e45f",
+                    "leftValue": "={{ $json.postback }}",
+                    "rightValue": "FT",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Fruit Teas"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -2460,
+        -400
+      ],
+      "id": "edfd87ec-54a0-45a7-ba94-f127941f1a21",
+      "name": "Add-Ons Switch"
+    },
+    {
+      "parameters": {
+        "jsCode": "const postback = $input.first().json.postback || '';\nconst senderId = $input.first().json.senderId;\n\nconst parts = postback.split('|');\nconst productId = parts[0] || null;\nconst size = parts[1] || null;\nlet addOn = parts[2] || null;\nif (addOn?.startsWith('ADD_')) addOn = addOn.slice(4);\n\nconst isBite = productId?.startsWith('BK-');\n\nif (!productId) {\n  return {\n    json: {\n      error: 'Invalid product selection',\n      senderId\n    }\n  };\n}\n\nreturn {\n  json: {\n    productId,\n    size: size === 'NONE' ? null : size,\n    addOn: addOn === 'NONE' ? null : addOn,\n    isBite,\n    senderId,\n    needsDbFetch: true\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3440,
+        0
+      ],
+      "id": "9b66e31f-5507-4b45-b21a-98e593cc4b11",
+      "name": "extract values"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -3000,
+        0
+      ],
+      "id": "b74eee2e-718c-4b20-98dd-b4809a6b7495",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "const postback = $json.latestPostback || $json.postback;\nconst productId = postback.replace('ADD_', '');\n\nreturn [{ json: { productId } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3520,
+        -540
+      ],
+      "id": "f0e1f4e4-71c1-481d-bd96-68d0b11e8423",
+      "name": "get productID"
+    },
+    {
+      "parameters": {
+        "collection": "Menu",
+        "options": {},
+        "query": "={ \"ProductID\": \"{{ $json.productId }}\" } "
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -3300,
+        -540
+      ],
+      "id": "ea5d3b52-4d56-475c-babb-93a145c8d8c5",
+      "name": "verify productID",
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const product = $input.first().json;\nconst senderId = $('Listen').first().json.senderId;\nconst priceFormat = p => (p ? `₱${p}` : '');\n\nconst isBite = product.ProductID && product.ProductID.startsWith('BK-');\n\nif (isBite) {\n  // For bites, create a postback similar to the drink format but with NONE for size and add-on\n  return [{\n    json: {\n      sendSizeButtons: false,\n      sizeSelected: false,\n      message: `Selected: ${product.Name} (${priceFormat(product.BasePrice)}). Adding to cart...`,\n      senderId,\n      isBitesSelected: true,\n      // Create postback in the same format as drinks but with NONE values\n      postback: `${product.ProductID}|NONE|NONE`,\n      type: \"postback\"\n    }\n  }];\n}\n\nconst sizes = Array.isArray(product.Sizes) ? product.Sizes : [];\n\nif (sizes.length === 0) {\n  return [{\n    json: {\n      sendSizeButtons: false,\n      sizeSelected: false,\n      message: `Selected: ${product.Name} (${priceFormat(product.BasePrice)}). Added to cart!`,\n      senderId\n    }\n  }];\n}\n\nconst buttons = sizes.map(s => ({\n  type: \"postback\",\n  title: `${s.Size} - ${priceFormat(s.BasePrice)}`,\n  payload: `${product.ProductID}|${s.Size}`\n}));\n\nreturn [{\n  json: {\n    sendSizeButtons: true,\n    sizeSelected: false,\n    recipient_id: senderId,\n    message: `Choose a size for your ${product.Name}:`,\n    buttons\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3080,
+        -540
+      ],
+      "id": "de190a2e-0470-4729-9365-64bbc0c3b643",
+      "name": "retrieve sizes"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $('Listen').item.json.senderId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"button\",\n        \"text\": \"{{ $json.message }}\",\n        \"buttons\": {{ JSON.stringify($json.buttons) }}\n      }\n    }\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2640,
+        -540
+      ],
+      "id": "41581a76-f414-49af-aff1-fcbf1565261b",
+      "name": "Select Size Prompt"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $('Upsert Prepare').item.json.userId }}\"\n  },\n  \"message\": {\n    \"text\": \" successfully added to cart\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -500,
+        20
+      ],
+      "id": "2500442e-c559-4bd7-b0ff-1a7d4e773dac",
+      "name": "Item Added to Cart Message"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Popular\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"Most ordered right now.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Popular\",\n                \"payload\": \"VIEW_POPULAR\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Must Try! Fruit Teas\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"This is FRUIT TEAS category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View FRUIT TEAS category\",\n                \"payload\": \"VIEW_FT\"\n              }\n            ]\n          },\n{\n            \"title\": \"Must Try! Milk Teas\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"This is MILK TEAS category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View MILK TEAS category\",\n                \"payload\": \"VIEW_MT\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Must Try! Signatures\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+3\",\n            \"subtitle\": \"This is SIGNATURES category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Signatures\",\n                \"payload\": \"VIEW_SIGNATURES\"\n              }\n            ]\n          },\n{\n            \"title\": \"Bites\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"This is BITES category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Bites\",\n                \"payload\": \"VIEW_BITES\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -320,
+        20
+      ],
+      "id": "ecd7c657-bcb3-452b-a5b6-0161431d5311",
+      "name": "Menu Gallery2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"button\",\n        \"text\": \"You can view or checkout your cart anytime:\",\n        \"buttons\": [\n          {\n            \"type\": \"postback\",\n            \"title\": \"View Cart\",\n            \"payload\": \"VIEW_CART\"\n          }\n        ]\n      }\n    }\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -100,
+        20
+      ],
+      "id": "9cb3ea8d-8cb4-4500-bbf2-e6d083c63d83",
+      "name": "View Cart Button"
+    },
+    {
+      "parameters": {
+        "collection": "Menu",
+        "options": {},
+        "query": "={\n  \"ProductID\": {\n    \"$in\": [\n      \"CF-SPL\",\n      \"CF-SCA\",\n      \"FT-GAP\",\n      \"MT-MAT\",\n      \"MT-OKI\",\n      \"MT-WIN\"\n    ]\n  },\n  \"IsEnabled\": true,\n  \"available\": true\n}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -3520,
+        -1780
+      ],
+      "id": "c8cc4bd4-e44f-46d2-9b65-6c79e0a759da",
+      "name": "Retrieve Popular DB",
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const desiredProductIDs = [\n  \"CF-SPL\",\n  \"CF-SCA\",\n  \"FT-GAP\",\n  \"MT-MAT\",\n  \"MT-OKI\",\n  \"MT-WIN\"\n];\n\nconst senderId = $('Listen').first().json.senderId;\n\nconst menuItems = $input.all().map(i => i.json);\n\nconst filteredItems = menuItems.filter(item =>\n  desiredProductIDs.includes(item.ProductID) && item.IsEnabled && item.available\n);\n\nconst elements = filteredItems.map(item => ({\n  title: item.Name,\n  image_url: (item.imagelink && item.imagelink !== \"placeholder\")\n    ? item.imagelink\n    : `https://via.placeholder.com/300x200?text=${encodeURIComponent(item.Name)}`,\n  subtitle: item.description || \"No description available\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Add to Cart\",\n      payload: `ADD_${item.ProductID}`\n    }\n  ]\n}));\n\nelements.push({\n  title: \"Main Menu\",\n  image_url: \"https://via.placeholder.com/300x200?text=Main+Menu\",\n  subtitle: \"Return to main menu\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Go Back\",\n      payload: \"REVIEW_MENU\"\n    }\n  ]\n});\n\nconst responsePayload = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    attachment: {\n      type: \"template\",\n      payload: {\n        template_type: \"generic\",\n        elements: elements\n      }\n    }\n  }\n};\n\nreturn [{ json: responsePayload }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3300,
+        -1780
+      ],
+      "id": "88fdf6dc-bbd3-4ff2-b6c3-3a6c644b4484",
+      "name": "Retrieve Popular"
+    },
+    {
+      "parameters": {
+        "collection": "Menu",
+        "options": {},
+        "query": "={\n  \"ProductID\": { \"$regex\": \"^FT-\" },\n  \"IsEnabled\": true,\n  \"available\": true\n}\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -3520,
+        -1520
+      ],
+      "id": "63788612-8b87-4035-8a42-1420fd8d198a",
+      "name": "Retrieve Fruit Tea DB",
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract real sender ID from incoming data, adjust path if needed\nconst senderId = $('Listen').first().json.senderId;\n\nif (!senderId) {\n  throw new Error(\"Sender ID not found in input data\");\n}\n\n// Get all menu items from input (e.g. from MongoDB node output)\nconst menuItems = $input.all().map(i => i.json);\n\n// Filter to ProductIDs that start with \"FT\", and are enabled + available\nconst filteredItems = menuItems.filter(item =>\n  item.ProductID && item.ProductID.startsWith(\"FT\") && item.IsEnabled && item.available\n);\n\n// Map filtered items into Messenger carousel elements, using description for subtitle\nconst elements = filteredItems.map(item => ({\n  title: item.Name + \" Fruit Tea\",\n  image_url: (item.imagelink && item.imagelink !== \"placeholder\")\n    ? item.imagelink\n    : `https://via.placeholder.com/300x200?text=${encodeURIComponent(item.Name)}`,\n  subtitle: item.description || \"No description available\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Add to Cart\",\n      payload: `ADD_${item.ProductID}`\n    }\n  ]\n}));\n\n// Add the \"Main Menu\" navigation card\nelements.push({\n  title: \"Main Menu\",\n  image_url: \"https://via.placeholder.com/300x200?text=Main+Menu\",\n  subtitle: \"Return to main menu\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Go Back\",\n      payload: \"REVIEW_MENU\"\n    }\n  ]\n});\n\nconst responsePayload = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    attachment: {\n      type: \"template\",\n      payload: {\n        template_type: \"generic\",\n        elements: elements\n      }\n    }\n  }\n};\n\n// Return the payload as one item, array format required by n8n\nreturn [{ json: responsePayload }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3300,
+        -1520
+      ],
+      "id": "2b706331-7847-40f5-8bbd-ad7780327a52",
+      "name": "Retrieve Fruit Tea"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3080,
+        -1780
+      ],
+      "id": "47653583-40f8-4ec7-ae7a-a9a3a3551e2a",
+      "name": "Display Popular Menu"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3080,
+        -1520
+      ],
+      "id": "2a79a2bf-be7a-4c8b-965a-4b486d6bd0da",
+      "name": "Display Fruit Tea Menu"
+    },
+    {
+      "parameters": {
+        "collection": "Menu",
+        "options": {},
+        "query": "={\n  \"ProductID\": { \"$regex\": \"^MT-\" },\n  \"IsEnabled\": true,\n  \"available\": true\n}\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -3520,
+        -1260
+      ],
+      "id": "2d740abf-5822-42f0-b584-710964c82c44",
+      "name": "Retrieve Milktea DB",
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const senderId = $('Listen').first().json.senderId;\n\nif (!senderId) {\n  throw new Error(\"Sender ID not found in input data\");\n}\n\nconst menuItems = $input.all().map(i => i.json);\n\nconst filteredItems = menuItems.filter(item =>\n  item.ProductID && item.ProductID.startsWith(\"MT\") && item.IsEnabled && item.available\n);\n\nconst elements = filteredItems.map(item => ({\n  title: item.Name + \" Milk Tea\",\n  image_url: (item.imagelink && item.imagelink !== \"placeholder\")\n    ? item.imagelink\n    : `https://via.placeholder.com/300x200?text=${encodeURIComponent(item.Name)}`,\n  subtitle: item.description || \"Delicious milk tea.\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Add to Cart\",\n      payload: `ADD_${item.ProductID}`\n    }\n  ]\n}));\n\nelements.push({\n  title: \"Main Menu\",\n  image_url: \"https://via.placeholder.com/300x200?text=Main+Menu\",\n  subtitle: \"Return to main menu\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Go Back\",\n      payload: \"REVIEW_MENU\"\n    }\n  ]\n});\n\nconst responsePayload = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    attachment: {\n      type: \"template\",\n      payload: {\n        template_type: \"generic\",\n        elements: elements\n      }\n    }\n  }\n};\n\nreturn [{ json: responsePayload }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3300,
+        -1260
+      ],
+      "id": "30f3c38e-5b04-488f-b75e-9ae4a36c951e",
+      "name": "Retrieve Milk Tea"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3080,
+        -1260
+      ],
+      "id": "c6dde6ce-f19b-4bcb-aaf7-6d7ea1a172ab",
+      "name": "Display Milk Tea Menu"
+    },
+    {
+      "parameters": {
+        "jsCode": "const senderId = $('Listen').first().json.senderId;\n\nif (!senderId) {\n  throw new Error(\"Sender ID not found in input data\");\n}\n\nconst menuItems = $input.all().map(i => i.json);\n\nconst filteredItems = menuItems.filter(item =>\n  item.ProductID && item.ProductID.startsWith(\"CF\") && item.IsEnabled && item.available\n);\n\nconst elements = filteredItems.map(item => ({\n  title: item.Name + \" Coffee\",\n  image_url: (item.imagelink && item.imagelink !== \"placeholder\")\n    ? item.imagelink\n    : `https://via.placeholder.com/300x200?text=${encodeURIComponent(item.Name)}`,\n  subtitle: item.description || \"Delicious signature coffee.\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Add to Cart\",\n      payload: `ADD_${item.ProductID}`\n    }\n  ]\n}));\n\nelements.push({\n  title: \"Main Menu\",\n  image_url: \"https://via.placeholder.com/300x200?text=Main+Menu\",\n  subtitle: \"Return to main menu\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Go Back\",\n      payload: \"REVIEW_MENU\"\n    }\n  ]\n});\n\nconst responsePayload = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    attachment: {\n      type: \"template\",\n      payload: {\n        template_type: \"generic\",\n        elements: elements\n      }\n    }\n  }\n};\n\nreturn [{ json: responsePayload }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3300,
+        -1000
+      ],
+      "id": "65cc6b82-1f39-4e59-8365-4bf5a00ecfda",
+      "name": "Retrieve Signatures"
+    },
+    {
+      "parameters": {
+        "collection": "Menu",
+        "options": {},
+        "query": "={\n  \"ProductID\": { \"$regex\": \"^CF-\" },\n  \"IsEnabled\": true,\n  \"available\": true\n}\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -3520,
+        -1000
+      ],
+      "id": "48fc2198-2063-4c03-8614-48e55c257881",
+      "name": "Retrieve Signatures DB",
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3080,
+        -1000
+      ],
+      "id": "abade349-35d5-472f-98f1-2a4965d2c497",
+      "name": "Display Signatures Menu"
+    },
+    {
+      "parameters": {
+        "collection": "Menu",
+        "options": {},
+        "query": "={\n  \"ProductID\": { \"$regex\": \"^BK-\" },\n  \"IsEnabled\": true,\n  \"available\": true\n}\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -3520,
+        -740
+      ],
+      "id": "006ff9f2-59c0-486e-aad5-c799f7f5f60e",
+      "name": "Retrieve Bites DB",
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const senderId = $('Listen').first().json.senderId;\n\nif (!senderId) {\n  throw new Error(\"Sender ID not found in input data\");\n}\n\nconst menuItems = $input.all().map(i => i.json);\n\nconst filteredItems = menuItems.filter(item =>\n  item.ProductID && item.ProductID.startsWith(\"BK\") && item.IsEnabled && item.available\n);\n\nconst elements = filteredItems.map(item => ({\n  title: item.Name,\n  image_url: (item.imagelink && item.imagelink !== \"placeholder\")\n    ? item.imagelink\n    : `https://via.placeholder.com/300x200?text=${encodeURIComponent(item.Name)}`,\n  subtitle: item.description || \"Tasty bite-sized treats\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Add to Cart\",\n      payload: `ADD_${item.ProductID}`\n    }\n  ]\n}));\n\nelements.push({\n  title: \"Main Menu\",\n  image_url: \"https://via.placeholder.com/300x200?text=Main+Menu\",\n  subtitle: \"Return to main menu\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Go Back\",\n      payload: \"REVIEW_MENU\"\n    }\n  ]\n});\n\nconst responsePayload = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    attachment: {\n      type: \"template\",\n      payload: {\n        template_type: \"generic\",\n        elements: elements\n      }\n    }\n  }\n};\n\nreturn [{ json: responsePayload }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3300,
+        -740
+      ],
+      "id": "21a9c8f3-82d9-40bc-a7d0-3f352130efdb",
+      "name": "Retrieve Bites"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3080,
+        -740
+      ],
+      "id": "25c4bb9f-34f3-4032-8875-3558b30bd36e",
+      "name": "Display Bites Menu"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d6a36e88-2fff-44ab-9cf9-4e2a471e0793",
+              "leftValue": "={{ $json.isBitesSelected }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2860,
+        -540
+      ],
+      "id": "d326d65e-3d95-45da-8e6b-28e19e76914e",
+      "name": "Item Condition"
+    },
+    {
+      "parameters": {
+        "jsCode": "const postback = $input.first().json.postback || '';\nconst parts = postback.split('|');\n\nreturn {\n  json: {\n    ...$json,\n    isCompleteOrder: parts.length === 3 && parts[1] !== 'NONE',\n    isBitesOrder: parts.length === 3 && parts[0].startsWith('BK-')\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4000,
+        -580
+      ],
+      "id": "518de291-7468-4a33-abd6-cb9b3bc877d6",
+      "name": "verify complete order"
+    },
+    {
+      "parameters": {
+        "collection": "Add-ons",
+        "options": {},
+        "query": "={ \"AddOnID\": \"{{ $json.addOn }}\" } "
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -3240,
+        80
+      ],
+      "id": "f5425588-9c5c-44b1-a8a6-c4c89eea32df",
+      "name": "Add-ons",
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "collection": "Menu",
+        "options": {},
+        "query": "={ \"ProductID\": \"{{ $json.productId }}\" }"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -3240,
+        -80
+      ],
+      "id": "e04f98ec-f554-434c-8b39-638257b56d42",
+      "name": "Menu",
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const productData = $input.all().find(item => item.json.ProductID)?.json;\nconst addOnData = $input.all().find(item => item.json.AddOnID)?.json;\nconst senderId = $input.first().json.senderId;\n\nlet requiredIngredients = {};\nlet directItems = {};\n\nif (productData?.Ingredients && productData.Ingredients.length > 0) {\n  productData.Ingredients.forEach(ingredientId => {\n    if (!requiredIngredients[ingredientId]) {\n      requiredIngredients[ingredientId] = 0;\n    }\n    requiredIngredients[ingredientId] += 1;\n  });\n}\n\nif (productData?.ProductID?.startsWith('BK-') && productData.Quantity !== undefined) {\n  directItems[productData.ProductID] = {\n    required: 1,\n    available: productData.Quantity,\n    name: productData.Name\n  };\n}\n\nif (addOnData?.Quantity !== undefined) {\n  directItems[addOnData.AddOnID] = {\n    required: 1,\n    available: addOnData.Quantity,\n    name: addOnData.Name\n  };\n}\n\nreturn [\n  {\n    json: {\n      productData,\n      addOnData,\n      requiredIngredients,\n      directItems,\n      needsIngredientCheck: Object.keys(requiredIngredients).length > 0,\n      needsDirectCheck: Object.keys(directItems).length > 0,\n      senderId,\n      _stockCheckData: true\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2780,
+        0
+      ],
+      "id": "28337403-9a43-4fe4-b83e-892865750a25",
+      "name": "Check Inventory Stock"
+    },
+    {
+      "parameters": {
+        "collection": "Ingredients",
+        "options": {},
+        "query": "={ \"IngredientID\": { \"$in\": {{ JSON.stringify(Object.keys($json.requiredIngredients)) }} } }"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -2560,
+        0
+      ],
+      "id": "e87e55a0-d984-4020-8336-3680e3756570",
+      "name": "MongoDB Inventory",
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const allInputs = $input.all();\nconst stockData = allInputs[0].json.stockCheckData;\nconst senderId = $('extract values').first().json.senderId;\n\nconst inventoryData = allInputs.filter(item => item.json.IngredientID || item.json.AddOnID);\n\nconst { productData, addOnData, directItems, requiredIngredients } = stockData;\n\nlet errors = [];\nlet warnings = [];\n\nif (productData && (!productData.IsEnabled || !productData.available)) {\n  errors.push(`${productData.Name} is currently unavailable`);\n}\n\nif (addOnData && !addOnData.IsEnabled) {\n  errors.push(`${addOnData.Name} add-on is currently unavailable`);\n}\n\nif (Object.keys(requiredIngredients).length > 0) {\n  Object.entries(requiredIngredients).forEach(([ingredientId, required]) => {\n    const ingredient = inventoryData.find(inv => inv.json.IngredientID === ingredientId);\n    if (!ingredient) {\n      errors.push(`Ingredient ${ingredientId} not found in inventory`);\n    } else if (!ingredient.json.IsEnabled) {\n      errors.push(`Ingredient ${ingredient.json.Name} is currently disabled`);\n    } else if (ingredient.json.Quantity < required) {\n      errors.push(`Insufficient ${ingredient.json.Name} stock (need: ${required}, have: ${ingredient.json.Quantity})`);\n    } else if (ingredient.json.Quantity <= 5) {\n      warnings.push(`Low stock warning: ${ingredient.json.Name} (${ingredient.json.Quantity} remaining)`);\n    }\n  });\n}\n\nObject.entries(directItems || {}).forEach(([itemId, itemInfo]) => {\n  const addon = inventoryData.find(inv => inv.json.AddOnID === itemId);\n  if (addon) {\n    if (!addon.json.IsEnabled) {\n      errors.push(`${addon.json.Name} add-on is currently disabled`);\n    } else if (addon.json.Quantity < itemInfo.required) {\n      errors.push(`Insufficient ${addon.json.Name} stock (need: ${itemInfo.required}, have: ${addon.json.Quantity})`);\n    } else if (addon.json.Quantity <= 3) {\n      warnings.push(`Low stock: ${addon.json.Name} (${addon.json.Quantity} remaining)`);\n    }\n  }\n});\n\nreturn {\n  json: {\n    isValid: errors.length === 0,\n    errors,\n    warnings,\n    productData,\n    addOnData,\n    senderId: senderId,\n    canProceed: errors.length === 0\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2200,
+        0
+      ],
+      "id": "e9b15b28-d6d4-41c1-ae7b-1fb937988cd6",
+      "name": "Validation Node"
+    },
+    {
+      "parameters": {
+        "jsCode": "const currentData = $input.all();\nconst stockCheckData = $('Check Inventory Stock').first().json;\n\nreturn currentData.map(item => ({\n  json: {\n    ...item.json,\n    stockCheckData: stockCheckData\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2380,
+        0
+      ],
+      "id": "23160554-45de-407b-baf8-22cdb1c2fa8b",
+      "name": "Stock Check Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "const allInputs = $input.all();\nconst validationResult = allInputs[0].json;\n\nif (!validationResult.isValid) {\n  return {\n    json: {\n      success: false,\n      message: \"Cannot add to cart due to validation errors\",\n      errors: validationResult.errors,\n      warnings: validationResult.warnings\n    }\n  };\n}\n\nconst { productData, addOnData } = validationResult;\nconst stockData = allInputs[0].json.stockCheckData || validationResult.stockCheckData;\n\nconst cartItem = {\n  productId: productData.ProductID,\n  productName: productData.Name,\n  category: productData.Category,\n  basePrice: productData.Sizes[0].BasePrice,\n  size: \"16oz\",\n  quantity: 1,\n  addOns: addOnData ? [{\n    addOnId: addOnData.AddOnID,\n    addOnName: addOnData.Name,\n    addOnPrice: addOnData.BasePrice,\n    quantity: 1\n  }] : [],\n  totalPrice: productData.Sizes[0].BasePrice + (addOnData ? addOnData.BasePrice : 0),\n  timestamp: new Date().toISOString(),\n  userId: $('Listen').first().json.senderId\n};\n\nreturn {\n  json: {\n    success: true,\n    message: \"Item successfully added to cart\",\n    cartItem: cartItem,\n    warnings: validationResult.warnings\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1620,
+        40
+      ],
+      "id": "3cf588c5-6777-4a77-b2f1-aaf786f8e577",
+      "name": "Add to Cart"
+    },
+    {
+      "parameters": {
+        "jsCode": "const senderId = $input.first().json.senderId\n\nif (!senderId) {\n  return [{ json: { error: \"No sender ID found, cannot retrieve cart.\" } }];\n}\n\nreturn [{ json: { senderId } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3440,
+        340
+      ],
+      "id": "8ccfa4af-f808-45f8-8f41-b5e63ab2c39b",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "collection": "Chatbot-Cart",
+        "options": {},
+        "query": "={ userId: \"{{ $json.senderId }}\" }"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -3220,
+        340
+      ],
+      "id": "5654eb55-ed6d-4825-b9bf-aa19e5229d4e",
+      "name": "Add-ons1",
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cartDoc = $input.first().json;\nconst userCart = Array.isArray(cartDoc.items) ? cartDoc.items : [];\nlet messageText;\n\nif (!userCart.length) {\n  messageText = \"Your cart is empty.\";\n} else {\n  messageText = \"🛒 Your Cart:\\n\";\n  userCart.forEach((item, idx) => {\n    messageText += `\\n${idx + 1}. ${item.productName} (${item.size})\\nQty: ${item.quantity}`;\n    if (item.addOns && item.addOns.length) {\n      messageText += `\\nAdd-ons: ${item.addOns.join(\", \")}`;\n    }\n    messageText += `\\nPrice: ₱${item.price}\\n`;\n  });\n  const total = userCart.reduce((sum, item) => sum + item.price, 0);\n  messageText += `\\nTotal: ₱${total}`;\n}\n\nreturn {\n  json: {\n    recipient_id: cartDoc.userId || $('Listen').first().json.senderId,\n    message: messageText\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3020,
+        340
+      ],
+      "id": "7c65e810-78ec-4e97-af50-0dbddfd3b61a",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const userId = $('Listen').first().json.senderId;\nconst cartItem = $input.first().json.cartItem;\n\nreturn {\n  json: {\n    userId: userId,\n    cartItem: cartItem\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1460,
+        40
+      ],
+      "id": "0abde633-1d3f-44a5-a8b8-b1e79f1c1a5b",
+      "name": "Upsert Prepare"
+    },
+    {
+      "parameters": {
+        "collection": "Chatbot-Cart",
+        "options": {},
+        "query": "={ \"userId\": \"{{$json.userId}}\" }"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -1300,
+        40
+      ],
+      "id": "4521c06a-65d0-46e3-b71c-6ddba4c28f85",
+      "name": "Add to Cart DB",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $('Upsert Prepare').first().json;\nconst now = new Date().toISOString();\n\nreturn {\n  json: {\n    userId: data.userId,\n    items: [data.cartItem], // Create a new items array with the first item\n    createdAt: now,\n    updatedAt: now\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -920,
+        -60
+      ],
+      "id": "3695ecae-e87c-40dc-8f04-f5fa7e000864",
+      "name": "Prepare Insert"
+    },
+    {
+      "parameters": {
+        "jsCode": "const newItemData = $('Upsert Prepare').first().json;\n\n\nconst existingCart = $('Add to Cart DB').first().json;\n\nconst updatedItems = [...existingCart.items, newItemData.cartItem];\n\nreturn {\n  json: {\n    userId: existingCart.userId,\n    items: updatedItems,\n    updatedAt: new Date().toISOString()\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -920,
+        120
+      ],
+      "id": "7495af8b-4e8c-4ba6-a7f0-337fb5771bc8",
+      "name": "Prepare Update"
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "Chatbot-Cart",
+        "fields": "=userId,items,createdAt,updatedAt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -740,
+        -60
+      ],
+      "id": "62204525-407c-4b8d-8bdd-27a268f020b0",
+      "name": "Insert Cart",
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "collection": "Chatbot-Cart",
+        "updateKey": "userId",
+        "fields": "=items,updatedAt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -740,
+        120
+      ],
+      "id": "fa3b510f-90b9-46ee-b3e9-9d4191a7cebe",
+      "name": "Update Cart",
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "326acbeb-e89a-42de-ae33-71c590fc63ad",
+              "leftValue": "={{ Object.keys($('Add to Cart DB').first().json).length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1140,
+        40
+      ],
+      "id": "c49cc2ff-3d0e-4cc7-b459-02d2abc57689",
+      "name": "Cart Exists"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "364fd7a6-5ed7-466e-bd6e-83ea38893b2c",
+              "leftValue": "={{ $json.canProceed }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2020,
+        0
+      ],
+      "id": "229a55ff-d6bb-42e5-8a24-4b7d6f8f679c",
+      "name": "canProceed"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.senderId }}\"\n  },\n  \"message\": {\n    \"text\": \"We apologize, but {{ $json.productData.Name }} is currently unavailable.\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1840,
+        200
+      ],
+      "id": "50e8f0af-c3b9-4850-8470-e1bd7c739c1a",
+      "name": "Product Unavailable"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Popular\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"Most ordered right now.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Popular\",\n                \"payload\": \"VIEW_POPULAR\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Must Try! Fruit Teas\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"This is FRUIT TEAS category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View FRUIT TEAS category\",\n                \"payload\": \"VIEW_FT\"\n              }\n            ]\n          },\n{\n            \"title\": \"Must Try! Milk Teas\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"This is MILK TEAS category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View MILK TEAS category\",\n                \"payload\": \"VIEW_MT\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Must Try! Signatures\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+3\",\n            \"subtitle\": \"This is SIGNATURES category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Signatures\",\n                \"payload\": \"VIEW_SIGNATURES\"\n              }\n            ]\n          },\n{\n            \"title\": \"Bites\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"This is BITES category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Bites\",\n                \"payload\": \"VIEW_BITES\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1640,
+        200
+      ],
+      "id": "d4da07ee-1862-4552-be77-9489f16164c4",
+      "name": "Menu Gallery1"
+    },
+    {
+      "parameters": {
+        "content": "## TO-DO\n- Bites Handling ADD TO CART\n- isEnabled and Quantity Handling\n"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2560,
+        180
+      ],
+      "typeVersion": 1,
+      "id": "0ea17e73-229a-4652-bf9d-fc3e970d9dd1",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## TO-DO\n- Show Cart\n- Remove item from cart\n- Confirm Cart\n"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -3780,
+        420
+      ],
+      "typeVersion": 1,
+      "id": "2ac7ab0d-120f-40b1-b35a-0da85d2d9b24",
+      "name": "Sticky Note3"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Listen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Return Challenge",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "403",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Listen": {
+      "main": [
+        [
+          {
+            "node": "verify complete order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Greeting Message": {
+      "main": [
+        [
+          {
+            "node": "Data Privacy Notice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Order Intro Message": {
+      "main": [
+        [
+          {
+            "node": "Menu Gallery",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Main Switch": {
+      "main": [
+        [
+          {
+            "node": "Greeting Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Order Intro Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Menu Gallery",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Retrieve Popular DB",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Retrieve Fruit Tea DB",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Retrieve Milktea DB",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Retrieve Signatures DB",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Retrieve Bites DB",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "get productID",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add-Ons Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "extract values",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "extract values",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Add-ons Milktea Message": {
+      "main": [
+        [
+          {
+            "node": "Add-ons Milktea",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Add-ons Coffee Message": {
+      "main": [
+        [
+          {
+            "node": "Add-ons Coffee",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Add-ons Fruit Tea Message": {
+      "main": [
+        [
+          {
+            "node": "Add-ons Fruit Tea",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add-Ons Switch": {
+      "main": [
+        [
+          {
+            "node": "Select Add-ons Milktea Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Select Add-ons Coffee Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Select Add-ons Fruit Tea Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "extract values": {
+      "main": [
+        [
+          {
+            "node": "Menu",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Add-ons",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Check Inventory Stock",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get productID": {
+      "main": [
+        [
+          {
+            "node": "verify productID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "verify productID": {
+      "main": [
+        [
+          {
+            "node": "retrieve sizes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "retrieve sizes": {
+      "main": [
+        [
+          {
+            "node": "Item Condition",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Item Added to Cart Message": {
+      "main": [
+        [
+          {
+            "node": "Menu Gallery2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Menu Gallery2": {
+      "main": [
+        [
+          {
+            "node": "View Cart Button",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve Popular DB": {
+      "main": [
+        [
+          {
+            "node": "Retrieve Popular",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve Popular": {
+      "main": [
+        [
+          {
+            "node": "Display Popular Menu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve Fruit Tea DB": {
+      "main": [
+        [
+          {
+            "node": "Retrieve Fruit Tea",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve Fruit Tea": {
+      "main": [
+        [
+          {
+            "node": "Display Fruit Tea Menu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve Milktea DB": {
+      "main": [
+        [
+          {
+            "node": "Retrieve Milk Tea",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve Milk Tea": {
+      "main": [
+        [
+          {
+            "node": "Display Milk Tea Menu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve Signatures": {
+      "main": [
+        [
+          {
+            "node": "Display Signatures Menu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve Signatures DB": {
+      "main": [
+        [
+          {
+            "node": "Retrieve Signatures",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve Bites DB": {
+      "main": [
+        [
+          {
+            "node": "Retrieve Bites",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve Bites": {
+      "main": [
+        [
+          {
+            "node": "Display Bites Menu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Item Condition": {
+      "main": [
+        [
+          {
+            "node": "verify complete order",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Select Size Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "verify complete order": {
+      "main": [
+        [
+          {
+            "node": "Main Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Menu": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add-ons": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Check Inventory Stock": {
+      "main": [
+        [
+          {
+            "node": "MongoDB Inventory",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Inventory": {
+      "main": [
+        [
+          {
+            "node": "Stock Check Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validation Node": {
+      "main": [
+        [
+          {
+            "node": "canProceed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stock Check Data": {
+      "main": [
+        [
+          {
+            "node": "Validation Node",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add to Cart": {
+      "main": [
+        [
+          {
+            "node": "Upsert Prepare",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add-ons1": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Prepare": {
+      "main": [
+        [
+          {
+            "node": "Add to Cart DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add to Cart DB": {
+      "main": [
+        [
+          {
+            "node": "Cart Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Insert": {
+      "main": [
+        [
+          {
+            "node": "Insert Cart",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Update": {
+      "main": [
+        [
+          {
+            "node": "Update Cart",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cart Exists": {
+      "main": [
+        [
+          {
+            "node": "Prepare Insert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Cart": {
+      "main": [
+        [
+          {
+            "node": "Item Added to Cart Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Cart": {
+      "main": [
+        [
+          {
+            "node": "Item Added to Cart Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "canProceed": {
+      "main": [
+        [
+          {
+            "node": "Add to Cart",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Product Unavailable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Product Unavailable": {
+      "main": [
+        [
+          {
+            "node": "Menu Gallery1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ef3b5794-b440-49ff-ae49-6039706f6974",
+  "meta": {
+    "instanceId": "e55ad63998dbff63a27e8a719a0f75ec990732ee36c99c049c4be96c65a0b3c2"
+  },
+  "id": "rrrFiNTsm9kRtFZu",
+  "tags": []
+}
