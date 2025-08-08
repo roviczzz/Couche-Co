@@ -110,7 +110,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const items = $input.all();\nconst body = items[0]?.json?.body;\nconst entry = body?.entry?.[0]?.messaging?.[0];\nconst text = entry?.message?.text;\nconst senderId = entry?.sender?.id;\nconst postback = entry?.postback?.payload;\n\nconst staticData = $getWorkflowStaticData('global');\nconst senderKey = `user_${senderId}`;\n\nconst previous = staticData[senderKey]?.previousPostback || null;\nconst latest = staticData[senderKey]?.latestPostback || null;\n\nfunction isSizeSelected(payload) {\n  if (!payload) return false;\n  const parts = payload.split('|');\n  return parts.length === 2 && parts[0].length > 0 && parts[1].length > 0;\n}\n\nfunction isAddOnSelected(payload) {\n  if (!payload) return false;\n  const parts = payload.split('|');\n  return parts.length === 3 && parts.every(part => part.length > 0);\n}\n\nconst sizeSelected = isSizeSelected(postback);\nconst isAddOnSelectedFlag = isAddOnSelected(postback);\n\nif (\n  body?.object === 'page' &&\n  senderId\n) {\n  if (text && text.trim().toLowerCase() === 'get started') {\n    return [{\n      json: {\n        type: 'text',\n        text: 'get started',\n        senderId,\n        previousPostback: previous,\n        latestPostback: latest,\n        sizeSelected: false,\n        isAddOnSelected: false\n      }\n    }];\n  }\n  if (postback) {\n    staticData[senderKey] = {\n      previousPostback: latest,\n      latestPostback: postback,\n      sizeSelected,\n      isAddOnSelected: isAddOnSelectedFlag\n    };\n    return [{\n      json: {\n        type: 'postback',\n        postback,\n        senderId,\n        previousPostback: previous,\n        latestPostback: postback,\n        sizeSelected,\n        isAddOnSelected: isAddOnSelectedFlag\n      }\n    }];\n  }\n  return [];\n} else {\n  return [{\n    json: { error: 'Invalid payload or missing sender' }\n  }];\n}\n"
+        "jsCode": "const items = $input.all();\nconst body = items[0]?.json?.body;\nconst entry = body?.entry?.[0]?.messaging?.[0];\nconst text = entry?.message?.text;\nconst senderId = entry?.sender?.id;\n\n// Check for both regular postbacks AND quick replies\nconst postback = entry?.postback?.payload || entry?.message?.quick_reply?.payload;\n\nconst staticData = $getWorkflowStaticData('global');\nconst senderKey = `user_${senderId}`;\n\nconst previous = staticData[senderKey]?.previousPostback || null;\nconst latest = staticData[senderKey]?.latestPostback || null;\n\nfunction isSizeSelected(payload) {\n  if (!payload) return false;\n  const parts = payload.split('|');\n  return parts.length === 2 && parts[0].length > 0 && parts[1].length > 0;\n}\n\nfunction isAddOnSelected(payload) {\n  if (!payload) return false;\n  const parts = payload.split('|');\n  return parts.length === 3 && parts.every(part => part.length > 0);\n}\n\nconst sizeSelected = isSizeSelected(postback);\nconst isAddOnSelectedFlag = isAddOnSelected(postback);\n\nif (\n  body?.object === 'page' &&\n  senderId\n) {\n  if (text && !postback && text.trim().toLowerCase() === 'get started') {\n    return [{\n      json: {\n        type: 'text',\n        text: 'get started',\n        senderId,\n        previousPostback: previous,\n        latestPostback: latest,\n        sizeSelected: false,\n        isAddOnSelected: false\n      }\n    }];\n  }\n  if (postback) {\n    staticData[senderKey] = {\n      previousPostback: latest,\n      latestPostback: postback,\n      sizeSelected,\n      isAddOnSelected: isAddOnSelectedFlag\n    };\n    return [{\n      json: {\n        type: 'postback',\n        postback,\n        senderId,\n        previousPostback: previous,\n        latestPostback: postback,\n        sizeSelected,\n        isAddOnSelected: isAddOnSelectedFlag\n      }\n    }];\n  }\n  return [];\n} else {\n  return [{\n    json: { error: 'Invalid payload or missing sender' }\n  }];\n}"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -158,8 +158,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -40,
-        -860
+        400,
+        -820
       ],
       "id": "5f8483d0-8d83-4b70-911d-6d735d44bb0b",
       "name": "Menu Gallery"
@@ -234,14 +234,14 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{$json.senderId}}\"\n  },\n  \"message\": {\n    \"text\": \"Blessings! 👋 What shall we get you for today?\"\n  }\n}",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $('Listen').item.json.senderId }}\"\n  },\n  \"message\": {\n    \"text\": \"Blessings! 👋 What shall we get you for today?\"\n  }\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -260,
-        -860
+        180,
+        -820
       ],
       "id": "f9f6fb4d-e72f-4a3f-95d3-bd4a0e312638",
       "name": "Order Intro Message"
@@ -571,6 +571,56 @@
               },
               "renameOutput": true,
               "outputKey": "VIEW_CART"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "552c1c3b-9f35-4d07-b2db-febb97810903",
+                    "leftValue": "={{ $json.postback }}",
+                    "rightValue": "CLEAR_CART",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "CLEAR_CART"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "850a7070-fced-4358-82a0-2bc61a0d05e9",
+                    "leftValue": "={{ $json.postback }}",
+                    "rightValue": "END_SESSION",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "END_SESSION"
             }
           ]
         },
@@ -1253,7 +1303,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const postback = $input.first().json.postback || '';\nconst parts = postback.split('|');\n\nreturn {\n  json: {\n    ...$json,\n    isCompleteOrder: parts.length === 3 && parts[1] !== 'NONE',\n    isBitesOrder: parts.length === 3 && parts[0].startsWith('BK-')\n  }\n};"
+        "jsCode": "const input = $input.first().json;\nconst postback = input.postback || '';\nconst parts = postback.split('|');\n\n// Handle special postbacks like CLEAR_CART\nconst isSpecialPostback = ['CLEAR_CART', 'VIEW_CART', 'CHECKOUT', 'REVIEW_MENU', 'MAIN_MENU', 'END_SESSION'].includes(postback);\n\n// If it's a special postback, pass it through directly with the right flags\nif (isSpecialPostback) {\n  return {\n    json: {\n      ...input,\n      isCompleteOrder: false,\n      isBitesOrder: false\n    }\n  };\n}\n\n// Otherwise process as normal product selection\nreturn {\n  json: {\n    ...input,\n    isCompleteOrder: parts.length === 3 && parts[1] !== 'NONE',\n    isBitesOrder: parts.length === 3 && parts[0].startsWith('BK-')\n  }\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1607,8 +1657,8 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -600,
-        1380
+        -920,
+        1280
       ],
       "typeVersion": 1,
       "id": "12387487-351c-4487-97d1-ddb198654f07",
@@ -1626,46 +1676,6 @@
       ],
       "id": "61391f1f-e6b4-4fb0-9ba1-03520bb62315",
       "name": "senderId Prepare"
-    },
-    {
-      "parameters": {
-        "jsCode": "const cartData = $input.first().json;\nconst { isEmpty, cartItems, itemCount, subtotal, senderId } = cartData;\n\nlet cartMessage;\nlet quickReplies = [];\n\nif (isEmpty) {\n  cartMessage = \"Your cart is empty. Would you like to see our menu?\";\n  quickReplies = [\n    {\n      title: \"View Menu\",\n      payload: \"REVIEW_MENU\"\n    }\n  ];\n} else {\n  // Format cart for display\n  cartMessage = \"📋 *YOUR CART* 📋\\n\\n\";\n\n  cartItems.forEach((group, index) => {\n    cartMessage += `${index + 1}. ${group.productName} (${group.size})\\n`;\n    cartMessage += `   ${group.count}x ₱${group.totalPrice.toFixed(2)}\\n`;\n    \n    // Add add-ons if any\n    if (group.addOns && group.addOns.length > 0) {\n      group.addOns.forEach(addon => {\n        cartMessage += `   + ${addon.addOnName} (₱${addon.addOnPrice})\\n`;\n      });\n    }\n    cartMessage += \"\\n\";\n  });\n\n  cartMessage += `------------------------\\n`;\n  cartMessage += `Subtotal: ₱${subtotal.toFixed(2)}\\n\\n`;\n  cartMessage += \"What would you like to do next?\";\n\n  quickReplies = [\n    {\n      title: \"Checkout\",\n      payload: \"CHECKOUT\"\n    },\n    {\n      title: \"Continue Shopping\",\n      payload: \"REVIEW_MENU\"\n    },\n    {\n      title: \"Clear Cart\",\n      payload: \"CLEAR_CART\"\n    }\n  ];\n}\n\nreturn {\n  json: {\n    cartMessage,\n    quickReplies,\n    senderId\n  }\n};"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        320,
-        1520
-      ],
-      "id": "a749f880-95b2-4cc4-9bbd-4125d96edb26",
-      "name": "Code"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.senderId }}\"\n  },\n  \"message\": {\n    \"text\": \"{{ $json.cartMessage }}\",\n    \"quick_replies\": [\n      {% for reply in $json.quickReplies %}\n      {\n        \"content_type\": \"text\",\n        \"title\": \"{{ reply.title }}\",\n        \"payload\": \"{{ reply.payload }}\"\n      }{% if not $loop.last %},{% endif %}\n      {% endfor %}\n    ]\n  }\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        520,
-        1520
-      ],
-      "id": "060161f8-c82c-4fec-a3c0-74333107b214",
-      "name": "Product Unavailable1"
     },
     {
       "parameters": {
@@ -1807,6 +1817,7 @@
       ],
       "id": "b8c48b45-301c-4369-8b6a-e327a3bc73dc",
       "name": "find userId Cart",
+      "alwaysOutputData": true,
       "credentials": {
         "mongoDb": {
           "id": "uQrs31uzSyOdcALm",
@@ -1821,11 +1832,330 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        160,
-        1520
+        400,
+        1420
       ],
       "id": "01c9b71b-033e-4e68-a6f1-84ac6d0146dd",
       "name": "Retrieve Cart Items"
+    },
+    {
+      "parameters": {
+        "jsCode": "const cartData = $input.first().json;\nconst { cartItems, itemCount, subtotal, senderId } = cartData;\n\nlet cartMessage = \"📋 *YOUR CART* 📋\\n\\n\";\nlet itemCounter = 1;\n\n// Process each cart item\ncartItems.forEach(item => {\n  // Get product details\n  const productName = item.productName;\n  const size = item.size;\n  const quantity = item.quantity || 1; \n  const price = item.totalPrice.toFixed(2);\n  \n  cartMessage += `${itemCounter}. ${productName} (${size})\\n`;\n  cartMessage += `   ${quantity}x ₱${price}\\n`;\n  \n  // Add add-ons if any\n  if (item.addOns && item.addOns.length > 0) {\n    item.addOns.forEach(addon => {\n      cartMessage += `   + ${addon.addOnName} (₱${addon.addOnPrice})\\n`;\n    });\n  }\n  \n  cartMessage += \"\\n\";\n  itemCounter++;\n});\n\ncartMessage += `------------------------\\n`;\ncartMessage += `Subtotal: ₱${subtotal.toFixed(2)}\\n\\n`;\ncartMessage += \"What would you like to do next?\";\n\n// Create the complete message object for Facebook\nconst messageObject = {\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": senderId\n  },\n  \"message\": {\n    \"text\": cartMessage,\n    \"quick_replies\": [\n      {\n        \"content_type\": \"text\",\n        \"title\": \"Checkout\",\n        \"payload\": \"CHECKOUT\"\n      },\n      {\n        \"content_type\": \"text\", \n        \"title\": \"Continue Shopping\",\n        \"payload\": \"REVIEW_MENU\"\n      },\n      {\n        \"content_type\": \"text\",\n        \"title\": \"Clear Cart\",\n        \"payload\": \"CLEAR_CART\"\n      }\n    ]\n  }\n};\n\nreturn {\n  json: messageObject\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        1420
+      ],
+      "id": "a749f880-95b2-4cc4-9bbd-4125d96edb26",
+      "name": "Display Items"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Function node to extract sender ID\nconst postbackData = $input.first().json;\nconst senderId = postbackData.senderId;\n\nreturn {\n  json: {\n    senderId\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -180,
+        1900
+      ],
+      "id": "0f33265c-40da-4f3a-b0e0-1310de68e337",
+      "name": "senderId Prepare1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        740,
+        1420
+      ],
+      "id": "060161f8-c82c-4fec-a3c0-74333107b214",
+      "name": "Display Cart Message"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        360,
+        1900
+      ],
+      "id": "74dca3c1-d3db-4ca9-95d2-625466fb4370",
+      "name": "Delete Confirmation Message"
+    },
+    {
+      "parameters": {
+        "jsCode": "const senderId = $('senderId Prepare1').first().json.senderId;\n\nconst messageObject = {\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": senderId\n  },\n  \"message\": {\n    \"text\": \"Your cart has been cleared. Would you like to continue shopping?\",\n    \"quick_replies\": [\n      {\n        \"content_type\": \"text\",\n        \"title\": \"View Menu\",\n        \"payload\": \"REVIEW_MENU\"\n      },\n      {\n        \"content_type\": \"text\", \n        \"title\": \"End Session\",\n        \"payload\": \"END_SESSION\"\n      }\n    ]\n  }\n};\n\nreturn {\n  json: messageObject\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        180,
+        1900
+      ],
+      "id": "b0adc59d-cb4c-404e-887a-baf000eae35e",
+      "name": "Delete Confirmation"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "collection": "Chatbot-Cart",
+        "query": "={ \"userId\": \"{{ $json.senderId }}\" }"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        1900
+      ],
+      "id": "fa23b919-2f6f-4220-a8ff-891546c35260",
+      "name": "find and delete userId Cart",
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "collection": "Chatbot-Cart",
+        "options": {},
+        "query": "={ \"userId\": \"{{ $json.senderId }}\" }"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -260,
+        -860
+      ],
+      "id": "25e67898-a93a-4e06-b299-d69bbd43ac5d",
+      "name": "Find usercart",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ee3c5011-6234-423d-a33b-eaf7f63f71d0",
+              "leftValue": "={{ Object.keys($('Find usercart').first().json).length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -40,
+        -860
+      ],
+      "id": "e39a51f7-b00a-457c-8c5b-e0f13943a617",
+      "name": "User Cart Exist"
+    },
+    {
+      "parameters": {
+        "jsCode": "// In your handler for END_SESSION\nconst senderId = $input.first().json.senderId;\nconst staticData = $getWorkflowStaticData('global');\nconst senderKey = `user_${senderId}`;\n\n// Clear user session data\ndelete staticData[senderKey];\n\n// Return a final goodbye message\nreturn {\n  json: {\n    \"messaging_type\": \"RESPONSE\",\n    \"recipient\": { \"id\": senderId },\n    \"message\": {\n      \"text\": \"Thank you for visiting! Your session has been ended. You can start a new conversation anytime by entering 'Get Started'.\"\n    }\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -200,
+        2140
+      ],
+      "id": "de7c728e-769d-4604-88a3-f2d9689f9055",
+      "name": "End Session"
+    },
+    {
+      "parameters": {
+        "content": "add bites handler"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        640,
+        1000
+      ],
+      "typeVersion": 1,
+      "id": "341777c0-38d0-4c3d-95be-18ed156ea44a",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -20,
+        2140
+      ],
+      "id": "021657f6-8ba3-4f42-9413-135159bed8a9",
+      "name": "End Session Message"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "472758f2-4038-4b4f-aa38-a033fc3a0267",
+              "name": "recipient_id",
+              "value": "={{ $json.userId }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2720,
+        980
+      ],
+      "id": "0fc5b3b8-010b-4aeb-933e-684b09d72dce",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6b050e0a-3555-4c30-a589-cc97c1b26663",
+              "leftValue": "={{ Object.keys($('find userId Cart').first().json).length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        200,
+        1520
+      ],
+      "id": "571caceb-4ce6-427a-9147-fa484e3807c4",
+      "name": "Cart Handler",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        560,
+        1620
+      ],
+      "id": "fed28ce4-6790-4f6c-a028-979ebb1f016e",
+      "name": "Display Non-Existent Cart Message"
+    },
+    {
+      "parameters": {
+        "jsCode": "const senderId = $('senderId Prepare').first().json.senderId;\n\nconst messageObject = {\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": senderId\n  },\n  \"message\": {\n    \"text\": \"Your cart is Empty. Would you like to continue shopping?\",\n    \"quick_replies\": [\n      {\n        \"content_type\": \"text\",\n        \"title\": \"View Menu\",\n        \"payload\": \"REVIEW_MENU\"\n      },\n      {\n        \"content_type\": \"text\", \n        \"title\": \"End Session\",\n        \"payload\": \"END_SESSION\"\n      }\n    ]\n  }\n};\n\nreturn {\n  json: messageObject\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        1620
+      ],
+      "id": "95ff8776-8117-4811-8741-26e5838e781f",
+      "name": "Null Cart"
     }
   ],
   "pinData": {},
@@ -1915,14 +2245,14 @@
         ],
         [
           {
-            "node": "Order Intro Message",
+            "node": "Find usercart",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Menu Gallery",
+            "node": "Find usercart",
             "type": "main",
             "index": 0
           }
@@ -1993,6 +2323,20 @@
         [
           {
             "node": "senderId Prepare",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "senderId Prepare1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "End Session",
             "type": "main",
             "index": 0
           }
@@ -2401,17 +2745,6 @@
         ]
       ]
     },
-    "Code": {
-      "main": [
-        [
-          {
-            "node": "Product Unavailable1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "extract values": {
       "main": [
         [
@@ -2509,7 +2842,7 @@
       "main": [
         [
           {
-            "node": "Retrieve Cart Items",
+            "node": "Cart Handler",
             "type": "main",
             "index": 0
           }
@@ -2520,7 +2853,131 @@
       "main": [
         [
           {
-            "node": "Code",
+            "node": "Display Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Display Items": {
+      "main": [
+        [
+          {
+            "node": "Display Cart Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "senderId Prepare1": {
+      "main": [
+        [
+          {
+            "node": "find and delete userId Cart",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Confirmation": {
+      "main": [
+        [
+          {
+            "node": "Delete Confirmation Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "find and delete userId Cart": {
+      "main": [
+        [
+          {
+            "node": "Delete Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find usercart": {
+      "main": [
+        [
+          {
+            "node": "User Cart Exist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "User Cart Exist": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Order Intro Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "End Session": {
+      "main": [
+        [
+          {
+            "node": "End Session Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Menu Gallery2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cart Handler": {
+      "main": [
+        [
+          {
+            "node": "Retrieve Cart Items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Null Cart",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Null Cart": {
+      "main": [
+        [
+          {
+            "node": "Display Non-Existent Cart Message",
             "type": "main",
             "index": 0
           }
@@ -2532,7 +2989,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "ac7b170b-fb6d-4d6e-b33d-07893cbb8e01",
+  "versionId": "f38cb8dd-40fa-4278-aa45-bc7eb8216a96",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "e55ad63998dbff63a27e8a719a0f75ec990732ee36c99c049c4be96c65a0b3c2"
