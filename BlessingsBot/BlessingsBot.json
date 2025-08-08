@@ -11,8 +11,8 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
       "position": [
-        -640,
-        40
+        -680,
+        -80
       ],
       "id": "16c99dbe-b19d-4ab8-8060-b3e6db6f4b3a",
       "name": "403"
@@ -72,8 +72,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -860,
-        -60
+        -900,
+        -180
       ],
       "id": "d4305810-5d3a-432d-bc84-8733382293e4",
       "name": "If"
@@ -87,23 +87,24 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
       "position": [
-        -640,
-        -160
+        -680,
+        -280
       ],
       "id": "f13e8c69-30a0-4ccb-9873-96d522dcd3ac",
       "name": "Return Challenge"
     },
     {
       "parameters": {
-        "content": "## BlessingsBot Workflow\nGet Method = Webhook verification\nPost Method = Chatbot integration",
-        "height": 100,
-        "width": 300
+        "content": "## Workflow\n* Get Method = Facebook Webhook verification\n* Post Method = Chatbot System",
+        "height": 120,
+        "width": 340,
+        "color": 4
       },
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -1240,
-        0
+        -880,
+        80
       ],
       "id": "b71423f9-3f38-4124-950f-f6475c8d9a20",
       "name": "Sticky Note"
@@ -123,15 +124,16 @@
     },
     {
       "parameters": {
-        "content": "## Switch\nGet_Started = Greeting message\nUSER_AGREES = Postback direct to main system",
-        "width": 210,
+        "content": "## BLESSINGSBOT MAIN SWITCH FLOW\n* GET_STARTED\nGreeting message and Data Privacy Notice\n* USER_AGREES\nPostback direct to main system [REVIEW_MENU]\n* REVIEW_MENU\nHandles Displaying Menu Categories\n* VIEW_POPULAR, FT, MT, SIGNATURES, BITES\nHandles Displaying Menu Items\n* SELECT_SIZE\nPrompts user to select available drink sizes\n* SELECT_ADD_ON\nPrompts user to select available add-ons\n* HANDLE_BITES & VIEW_CART\nHandle To-Add Bites Item and directs after 'SELECT_ADD_ON'\n* CLEAR_CART\nClear Cart Function\n* END_SESSION\nEnd Session Function",
+        "height": 440,
+        "width": 630,
         "color": 3
       },
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -820,
-        840
+        -1200,
+        820
       ],
       "id": "a7d3ed37-a7a2-47c2-89a2-a2f83508f408",
       "name": "Sticky Note1"
@@ -1598,7 +1600,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.senderId }}\"\n  },\n  \"message\": {\n    \"text\": \"We apologize, but {{ $json.productData.Name }} is currently unavailable.\"\n  }\n}",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.senderId }}\"\n  },\n  \"message\": {\n    \"text\": \"{{ $json.errors[0] }}\"\n  }\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -1644,8 +1646,8 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        60,
-        880
+        200,
+        960
       ],
       "typeVersion": 1,
       "id": "24b3fa0a-af5a-4fc8-87ed-bdc7ab66578d",
@@ -1657,8 +1659,8 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -920,
-        1280
+        -600,
+        1800
       ],
       "typeVersion": 1,
       "id": "12387487-351c-4487-97d1-ddb198654f07",
@@ -1672,7 +1674,7 @@
       "typeVersion": 2,
       "position": [
         -180,
-        1520
+        1660
       ],
       "id": "61391f1f-e6b4-4fb0-9ba1-03520bb62315",
       "name": "senderId Prepare"
@@ -1792,7 +1794,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const allInputs = $input.all();\nconst stockData = allInputs[0].json.stockCheckData;\nconst senderId = $('extract values').first().json.senderId;\n\nconst inventoryData = allInputs.filter(item => item.json.IngredientID || item.json.AddOnID);\n\nconst { productData, addOnData, directItems, requiredIngredients } = stockData;\n\nlet errors = [];\nlet warnings = [];\n\nif (productData && (!productData.IsEnabled || !productData.available)) {\n  errors.push(`${productData.Name} is currently unavailable`);\n}\n\nif (addOnData && !addOnData.IsEnabled) {\n  errors.push(`${addOnData.Name} add-on is currently unavailable`);\n}\n\nif (Object.keys(requiredIngredients).length > 0) {\n  Object.entries(requiredIngredients).forEach(([ingredientId, required]) => {\n    const ingredient = inventoryData.find(inv => inv.json.IngredientID === ingredientId);\n    if (!ingredient) {\n      errors.push(`Ingredient ${ingredientId} not found in inventory`);\n    } else if (!ingredient.json.IsEnabled) {\n      errors.push(`Ingredient ${ingredient.json.Name} is currently disabled`);\n    } else if (ingredient.json.Quantity < required) {\n      errors.push(`Insufficient ${ingredient.json.Name} stock (need: ${required}, have: ${ingredient.json.Quantity})`);\n    } else if (ingredient.json.Quantity <= 5) {\n      warnings.push(`Low stock warning: ${ingredient.json.Name} (${ingredient.json.Quantity} remaining)`);\n    }\n  });\n}\n\nObject.entries(directItems || {}).forEach(([itemId, itemInfo]) => {\n  const addon = inventoryData.find(inv => inv.json.AddOnID === itemId);\n  if (addon) {\n    if (!addon.json.IsEnabled) {\n      errors.push(`${addon.json.Name} add-on is currently disabled`);\n    } else if (addon.json.Quantity < itemInfo.required) {\n      errors.push(`Insufficient ${addon.json.Name} stock (need: ${itemInfo.required}, have: ${addon.json.Quantity})`);\n    } else if (addon.json.Quantity <= 3) {\n      warnings.push(`Low stock: ${addon.json.Name} (${addon.json.Quantity} remaining)`);\n    }\n  }\n});\n\nreturn {\n  json: {\n    isValid: errors.length === 0,\n    errors,\n    warnings,\n    productData,\n    addOnData,\n    senderId: senderId,\n    canProceed: errors.length === 0\n  }\n};"
+        "jsCode": "const allInputs = $input.all();\nconst stockData = allInputs[0].json.stockCheckData;\nconst senderId = $('extract values').first().json.senderId;\n\nconst inventoryData = allInputs.filter(item => item.json.IngredientID || item.json.AddOnID);\n\nconst { productData, addOnData, directItems, requiredIngredients } = stockData;\n\nlet errors = [];\nlet warnings = [];\n\nif (productData && (!productData.isEnabled || !productData.available)) {\n  errors.push(`${productData.Name} is currently unavailable. Please select another item.`);\n}\n\n// Check add-on quantity\nif (addOnData) {\n  if (!addOnData.IsEnabled) {\n  errors.push(`${addOnData.Name} add-on is unavailable. Please select another option.`);\n  } else if (addOnData.Quantity <= 0) {\n    // Add check for add-on quantity\n    errors.push(`${addOnData.Name} is currently out of stock. Please select an alternative.`);\n  } else if (addOnData.Quantity <= 3) {\n    warnings.push(`Low stock: ${addOnData.Name} (${addOnData.Quantity} remaining)`);\n  }\n}\n\nif (Object.keys(requiredIngredients).length > 0) {\n  Object.entries(requiredIngredients).forEach(([ingredientId, required]) => {\n    const ingredient = inventoryData.find(inv => inv.json.IngredientID === ingredientId);\n    if (!ingredient) {\n      errors.push(`Ingredient ${ingredientId} not found in inventory`);\n    } else if (!ingredient.json.IsEnabled) {\n      errors.push(`Ingredient ${ingredient.json.Name} is currently disabled`);\n    } else if (ingredient.json.Quantity < required) {\n      errors.push(`Insufficient ${ingredient.json.Name} stock (need: ${required}, have: ${ingredient.json.Quantity})`);\n    } else if (ingredient.json.Quantity <= 5) {\n      warnings.push(`Low stock warning: ${ingredient.json.Name} (${ingredient.json.Quantity} remaining)`);\n    }\n  });\n}\n\nObject.entries(directItems || {}).forEach(([itemId, itemInfo]) => {\n  const addon = inventoryData.find(inv => inv.json.AddOnID === itemId);\n  if (addon) {\n    if (!addon.json.IsEnabled) {\n      errors.push(`${addon.json.Name} add-on is currently disabled`);\n    } else if (addon.json.Quantity < itemInfo.required) {\n      errors.push(`Insufficient ${addon.json.Name} stock (need: ${itemInfo.required}, have: ${addon.json.Quantity})`);\n    } else if (addon.json.Quantity <= 3) {\n      warnings.push(`Low stock: ${addon.json.Name} (${addon.json.Quantity} remaining)`);\n    }\n  }\n});\n\nreturn {\n  json: {\n    isValid: errors.length === 0,\n    errors,\n    warnings,\n    productData,\n    addOnData,\n    senderId: senderId,\n    canProceed: errors.length === 0\n  }\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1813,7 +1815,7 @@
       "typeVersion": 1.2,
       "position": [
         0,
-        1520
+        1660
       ],
       "id": "b8c48b45-301c-4369-8b6a-e327a3bc73dc",
       "name": "find userId Cart",
@@ -1833,7 +1835,7 @@
       "typeVersion": 2,
       "position": [
         400,
-        1420
+        1560
       ],
       "id": "01c9b71b-033e-4e68-a6f1-84ac6d0146dd",
       "name": "Retrieve Cart Items"
@@ -1846,7 +1848,7 @@
       "typeVersion": 2,
       "position": [
         560,
-        1420
+        1560
       ],
       "id": "a749f880-95b2-4cc4-9bbd-4125d96edb26",
       "name": "Display Items"
@@ -1859,7 +1861,7 @@
       "typeVersion": 2,
       "position": [
         -180,
-        1900
+        2040
       ],
       "id": "0f33265c-40da-4f3a-b0e0-1310de68e337",
       "name": "senderId Prepare1"
@@ -1886,7 +1888,7 @@
       "typeVersion": 4.2,
       "position": [
         740,
-        1420
+        1560
       ],
       "id": "060161f8-c82c-4fec-a3c0-74333107b214",
       "name": "Display Cart Message"
@@ -1913,7 +1915,7 @@
       "typeVersion": 4.2,
       "position": [
         360,
-        1900
+        2040
       ],
       "id": "74dca3c1-d3db-4ca9-95d2-625466fb4370",
       "name": "Delete Confirmation Message"
@@ -1926,7 +1928,7 @@
       "typeVersion": 2,
       "position": [
         180,
-        1900
+        2040
       ],
       "id": "b0adc59d-cb4c-404e-887a-baf000eae35e",
       "name": "Delete Confirmation"
@@ -1941,7 +1943,7 @@
       "typeVersion": 1.2,
       "position": [
         0,
-        1900
+        2040
       ],
       "id": "fa23b919-2f6f-4220-a8ff-891546c35260",
       "name": "find and delete userId Cart",
@@ -2014,20 +2016,21 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -200,
-        2140
+        -180,
+        2380
       ],
       "id": "de7c728e-769d-4604-88a3-f2d9689f9055",
       "name": "End Session"
     },
     {
       "parameters": {
-        "content": "add bites handler"
+        "content": "add bites handler",
+        "height": 80
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        640,
-        1000
+        660,
+        1100
       ],
       "typeVersion": 1,
       "id": "341777c0-38d0-4c3d-95be-18ed156ea44a",
@@ -2054,34 +2057,11 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -20,
-        2140
+        0,
+        2380
       ],
       "id": "021657f6-8ba3-4f42-9413-135159bed8a9",
       "name": "End Session Message"
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "472758f2-4038-4b4f-aa38-a033fc3a0267",
-              "name": "recipient_id",
-              "value": "={{ $json.userId }}",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        2720,
-        980
-      ],
-      "id": "0fc5b3b8-010b-4aeb-933e-684b09d72dce",
-      "name": "Edit Fields"
     },
     {
       "parameters": {
@@ -2111,7 +2091,7 @@
       "typeVersion": 2.2,
       "position": [
         200,
-        1520
+        1660
       ],
       "id": "571caceb-4ce6-427a-9147-fa484e3807c4",
       "name": "Cart Handler",
@@ -2139,7 +2119,7 @@
       "typeVersion": 4.2,
       "position": [
         560,
-        1620
+        1760
       ],
       "id": "fed28ce4-6790-4f6c-a028-979ebb1f016e",
       "name": "Display Non-Existent Cart Message"
@@ -2152,10 +2132,92 @@
       "typeVersion": 2,
       "position": [
         400,
-        1620
+        1760
       ],
       "id": "95ff8776-8117-4811-8741-26e5838e781f",
       "name": "Null Cart"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "472758f2-4038-4b4f-aa38-a033fc3a0267",
+              "name": "recipient_id",
+              "value": "={{ $json.userId }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2720,
+        980
+      ],
+      "id": "0fc5b3b8-010b-4aeb-933e-684b09d72dce",
+      "name": "Pass recipientId"
+    },
+    {
+      "parameters": {
+        "content": "# 🛒\nClear Cart",
+        "height": 100,
+        "width": 150
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -180,
+        1900
+      ],
+      "typeVersion": 1,
+      "id": "d2a22222-2d1e-41d1-81b2-0934bd1822ee",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "# 🛒\nView Cart",
+        "height": 100,
+        "width": 150
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -180,
+        1520
+      ],
+      "typeVersion": 1,
+      "id": "73d409bd-4925-4208-9601-9c8d822a927d",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "# 🔚\nEnd Session",
+        "height": 100,
+        "width": 150
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -180,
+        2260
+      ],
+      "typeVersion": 1,
+      "id": "502760fa-6a6c-4205-be39-18bd6a7b970b",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "# BlessingsBot\nCreated: June 17, 2025\n\nBy:\nTeam Couche",
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1420,
+        180
+      ],
+      "id": "c4f30cb9-89ce-41a4-92ba-12e59be89b22",
+      "name": "Sticky Note8"
     }
   ],
   "pinData": {},
@@ -2919,7 +2981,7 @@
       "main": [
         [
           {
-            "node": "Edit Fields",
+            "node": "Pass recipientId",
             "type": "main",
             "index": 0
           }
@@ -2938,17 +3000,6 @@
         [
           {
             "node": "End Session Message",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Edit Fields": {
-      "main": [
-        [
-          {
-            "node": "Menu Gallery2",
             "type": "main",
             "index": 0
           }
@@ -2983,13 +3034,24 @@
           }
         ]
       ]
+    },
+    "Pass recipientId": {
+      "main": [
+        [
+          {
+            "node": "Menu Gallery2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "f38cb8dd-40fa-4278-aa45-bc7eb8216a96",
+  "versionId": "ff4f4c52-cf37-49d1-91d7-aa9c5a2a9bea",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "e55ad63998dbff63a27e8a719a0f75ec990732ee36c99c049c4be96c65a0b3c2"
