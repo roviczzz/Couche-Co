@@ -36,37 +36,9 @@ To run mongodb use:
   - [ ] management
   - [ ] settings
   - [ ] forgot password
-- [ ] Chatbot
-  - [ ] cart function
-  - [ ] session
-  - [ ] clear conversation after transaction (if possible)
-  - [ ] paymongo
-  - [ ] delivery function
-  - [ ] invoice function
 - [ ] Database 
   - [ ] images 
   - [ ] descriptions [with prices]
-
-### Rovic
-- [x] connection string hide on repo
-
-### Ken
-- [ ] Product Management
-  - [ ] Remove Quantity field
-  - [ ] Add autocomplete when typing for Ingredients
-  - [ ] Disabled mode or hide "Base Price (Pastries only)" for this field
-  - [ ] Improve Layout
-- [ ] Analytics
-- [ ] Chatbot management 
-- [ ] Forgot password
-
-### Math
-- [ ] Ingredients Inventory
-  - [ ] Make the Add Ingredient section a pop up window
-  - [ ] Improve Layout
-- [ ] Discounts
-- [ ] Settings
-
 
 
 ## CREDITS:
