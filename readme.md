@@ -56,6 +56,7 @@ To run mongodb use:
 - [ ] Forgot password
 
 ### Math
+- [ ] Ingredients Inventory (Make the Add Ingredient section a pop up window)
 - [ ] Discounts
 - [ ] Settings
 
