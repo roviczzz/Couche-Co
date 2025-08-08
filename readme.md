@@ -51,6 +51,7 @@ To run mongodb use:
 - [x] connection string hide on repo
 
 ### Ken
+- [ ] Product Management (Remove Quantity field)
 - [ ] Analytics
 - [ ] Chatbot management 
 - [ ] Forgot password
