@@ -11,8 +11,8 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
       "position": [
-        -580,
-        20
+        -680,
+        -80
       ],
       "id": "16c99dbe-b19d-4ab8-8060-b3e6db6f4b3a",
       "name": "403"
@@ -27,7 +27,7 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        -1020,
+        -1120,
         200
       ],
       "id": "aa8774c3-caff-4831-93e2-3a04167fbecc",
@@ -72,8 +72,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -800,
-        -60
+        -900,
+        -180
       ],
       "id": "d4305810-5d3a-432d-bc84-8733382293e4",
       "name": "If"
@@ -87,35 +87,36 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
       "position": [
-        -580,
-        -160
+        -680,
+        -280
       ],
       "id": "f13e8c69-30a0-4ccb-9873-96d522dcd3ac",
       "name": "Return Challenge"
     },
     {
       "parameters": {
-        "content": "## BlessingsBot Workflow\nGet Method = Webhook verification\nPost Method = Chatbot integration",
-        "height": 100,
-        "width": 300
+        "content": "## Workflow\n* Get Method = Facebook Webhook verification\n* Post Method = Chatbot System",
+        "height": 120,
+        "width": 340,
+        "color": 4
       },
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -1220,
-        60
+        -880,
+        80
       ],
       "id": "b71423f9-3f38-4124-950f-f6475c8d9a20",
       "name": "Sticky Note"
     },
     {
       "parameters": {
-        "jsCode": "const items = $input.all();\nconst body = items[0]?.json?.body;\nconst entry = body?.entry?.[0]?.messaging?.[0];\nconst text = entry?.message?.text;\nconst senderId = entry?.sender?.id;\nconst postback = entry?.postback?.payload;\n\nconst staticData = $getWorkflowStaticData('global');\nconst senderKey = `user_${senderId}`;\n\nconst previous = staticData[senderKey]?.previousPostback || null;\nconst latest = staticData[senderKey]?.latestPostback || null;\n\nfunction isSizeSelected(payload) {\n  if (!payload) return false;\n  const parts = payload.split('|');\n  return parts.length === 2 && parts[0].length > 0 && parts[1].length > 0;\n}\n\nfunction isAddOnSelected(payload) {\n  if (!payload) return false;\n  const parts = payload.split('|');\n  return parts.length === 3 && parts.every(part => part.length > 0);\n}\n\nconst sizeSelected = isSizeSelected(postback);\nconst isAddOnSelectedFlag = isAddOnSelected(postback);\n\nif (\n  body?.object === 'page' &&\n  senderId\n) {\n  if (text && text.trim().toLowerCase() === 'get started') {\n    return [{\n      json: {\n        type: 'text',\n        text: 'get started',\n        senderId,\n        previousPostback: previous,\n        latestPostback: latest,\n        sizeSelected: false,\n        isAddOnSelected: false\n      }\n    }];\n  }\n  if (postback) {\n    staticData[senderKey] = {\n      previousPostback: latest,\n      latestPostback: postback,\n      sizeSelected,\n      isAddOnSelected: isAddOnSelectedFlag\n    };\n    return [{\n      json: {\n        type: 'postback',\n        postback,\n        senderId,\n        previousPostback: previous,\n        latestPostback: postback,\n        sizeSelected,\n        isAddOnSelected: isAddOnSelectedFlag\n      }\n    }];\n  }\n  return [];\n} else {\n  return [{\n    json: { error: 'Invalid payload or missing sender' }\n  }];\n}\n"
+        "jsCode": "const items = $input.all();\nconst body = items[0]?.json?.body;\nconst entry = body?.entry?.[0]?.messaging?.[0];\nconst text = entry?.message?.text;\nconst senderId = entry?.sender?.id;\n\n// Check for both regular postbacks AND quick replies\nconst postback = entry?.postback?.payload || entry?.message?.quick_reply?.payload;\n\nconst staticData = $getWorkflowStaticData('global');\nconst senderKey = `user_${senderId}`;\n\nconst previous = staticData[senderKey]?.previousPostback || null;\nconst latest = staticData[senderKey]?.latestPostback || null;\n\nfunction isSizeSelected(payload) {\n  if (!payload) return false;\n  const parts = payload.split('|');\n  return parts.length === 2 && parts[0].length > 0 && parts[1].length > 0;\n}\n\nfunction isAddOnSelected(payload) {\n  if (!payload) return false;\n  const parts = payload.split('|');\n  return parts.length === 3 && parts.every(part => part.length > 0);\n}\n\nconst sizeSelected = isSizeSelected(postback);\nconst isAddOnSelectedFlag = isAddOnSelected(postback);\n\nif (\n  body?.object === 'page' &&\n  senderId\n) {\n  if (text && !postback && text.trim().toLowerCase() === 'get started') {\n    return [{\n      json: {\n        type: 'text',\n        text: 'get started',\n        senderId,\n        previousPostback: previous,\n        latestPostback: latest,\n        sizeSelected: false,\n        isAddOnSelected: false\n      }\n    }];\n  }\n  if (postback) {\n    staticData[senderKey] = {\n      previousPostback: latest,\n      latestPostback: postback,\n      sizeSelected,\n      isAddOnSelected: isAddOnSelectedFlag\n    };\n    return [{\n      json: {\n        type: 'postback',\n        postback,\n        senderId,\n        previousPostback: previous,\n        latestPostback: postback,\n        sizeSelected,\n        isAddOnSelected: isAddOnSelectedFlag\n      }\n    }];\n  }\n  return [];\n} else {\n  return [{\n    json: { error: 'Invalid payload or missing sender' }\n  }];\n}"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -820,
+        -940,
         600
       ],
       "id": "acb78e74-b07a-4c5f-bbd4-75b2b71e20b0",
@@ -123,15 +124,16 @@
     },
     {
       "parameters": {
-        "content": "## Switch\nGet_Started = Greeting message\nUSER_AGREES = Postback direct to main system",
-        "width": 210,
+        "content": "## BLESSINGSBOT MAIN SWITCH FLOW\n* GET_STARTED\nGreeting message and Data Privacy Notice\n* USER_AGREES\nPostback direct to main system [REVIEW_MENU]\n* REVIEW_MENU\nHandles Displaying Menu Categories\n* VIEW_POPULAR, FT, MT, SIGNATURES, BITES\nHandles Displaying Menu Items\n* SELECT_SIZE\nPrompts user to select available drink sizes\n* SELECT_ADD_ON\nPrompts user to select available add-ons\n* HANDLE_BITES & VIEW_CART\nHandle To-Add Bites Item and directs after 'SELECT_ADD_ON'\n* CLEAR_CART\nClear Cart Function\n* END_SESSION\nEnd Session Function",
+        "height": 440,
+        "width": 630,
         "color": 3
       },
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -820,
-        840
+        -1200,
+        820
       ],
       "id": "a7d3ed37-a7a2-47c2-89a2-a2f83508f408",
       "name": "Sticky Note1"
@@ -158,8 +160,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        0,
-        -500
+        400,
+        -820
       ],
       "id": "5f8483d0-8d83-4b70-911d-6d735d44bb0b",
       "name": "Menu Gallery"
@@ -186,8 +188,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        0,
-        -660
+        -40,
+        -1120
       ],
       "id": "eb8789bf-5f7f-4948-a5b1-c007b636a7a8",
       "name": "Data Privacy Notice"
@@ -213,8 +215,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -240,
-        -660
+        -260,
+        -1120
       ],
       "id": "e1c555a3-8f8a-446e-bd4d-6f710c9f996e",
       "name": "Greeting Message"
@@ -234,14 +236,14 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{$json.senderId}}\"\n  },\n  \"message\": {\n    \"text\": \"Blessings! 👋 What shall we get you for today?\"\n  }\n}",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $('Listen').item.json.senderId }}\"\n  },\n  \"message\": {\n    \"text\": \"Blessings! 👋 What shall we get you for today?\"\n  }\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -240,
-        -500
+        180,
+        -820
       ],
       "id": "f9f6fb4d-e72f-4a3f-95d3-bd4a0e312638",
       "name": "Order Intro Message"
@@ -255,7 +257,7 @@
                 "options": {
                   "caseSensitive": true,
                   "leftValue": "",
-                  "typeValidation": "strict",
+                  "typeValidation": "loose",
                   "version": 2
                 },
                 "conditions": [
@@ -279,7 +281,7 @@
                 "options": {
                   "caseSensitive": true,
                   "leftValue": "",
-                  "typeValidation": "strict",
+                  "typeValidation": "loose",
                   "version": 2
                 },
                 "conditions": [
@@ -303,7 +305,7 @@
                 "options": {
                   "caseSensitive": true,
                   "leftValue": "",
-                  "typeValidation": "strict",
+                  "typeValidation": "loose",
                   "version": 2
                 },
                 "conditions": [
@@ -328,7 +330,7 @@
                 "options": {
                   "caseSensitive": true,
                   "leftValue": "",
-                  "typeValidation": "strict",
+                  "typeValidation": "loose",
                   "version": 2
                 },
                 "conditions": [
@@ -353,7 +355,7 @@
                 "options": {
                   "caseSensitive": true,
                   "leftValue": "",
-                  "typeValidation": "strict",
+                  "typeValidation": "loose",
                   "version": 2
                 },
                 "conditions": [
@@ -378,7 +380,7 @@
                 "options": {
                   "caseSensitive": true,
                   "leftValue": "",
-                  "typeValidation": "strict",
+                  "typeValidation": "loose",
                   "version": 2
                 },
                 "conditions": [
@@ -403,7 +405,7 @@
                 "options": {
                   "caseSensitive": true,
                   "leftValue": "",
-                  "typeValidation": "strict",
+                  "typeValidation": "loose",
                   "version": 2
                 },
                 "conditions": [
@@ -428,7 +430,7 @@
                 "options": {
                   "caseSensitive": true,
                   "leftValue": "",
-                  "typeValidation": "strict",
+                  "typeValidation": "loose",
                   "version": 2
                 },
                 "conditions": [
@@ -453,32 +455,7 @@
                 "options": {
                   "caseSensitive": true,
                   "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "id": "05dad1f5-46fb-4d26-9814-8321aed9f207",
-                    "leftValue": "={{ $json.isBitesSelected }}",
-                    "rightValue": "BK",
-                    "operator": {
-                      "type": "boolean",
-                      "operation": "true",
-                      "singleValue": true
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "ADD_BITES"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
+                  "typeValidation": "loose",
                   "version": 2
                 },
                 "conditions": [
@@ -502,7 +479,7 @@
                 "options": {
                   "caseSensitive": true,
                   "leftValue": "",
-                  "typeValidation": "strict",
+                  "typeValidation": "loose",
                   "version": 2
                 },
                 "conditions": [
@@ -527,14 +504,14 @@
                 "options": {
                   "caseSensitive": true,
                   "leftValue": "",
-                  "typeValidation": "strict",
+                  "typeValidation": "loose",
                   "version": 2
                 },
                 "conditions": [
                   {
                     "id": "fbf026d2-4bfc-47ce-bce9-55dfc6e57ad5",
-                    "leftValue": "={{ $json.isAddOnSelected }}",
-                    "rightValue": "",
+                    "leftValue": "={{ $json.isCompleteOrder && !$json.isBitesOrder }}",
+                    "rightValue": "3",
                     "operator": {
                       "type": "boolean",
                       "operation": "true",
@@ -546,9 +523,110 @@
               },
               "renameOutput": true,
               "outputKey": "VERIFY_ITEM"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "3487551d-528c-4833-aa51-006be27cf2db",
+                    "leftValue": "={{ $json.isBitesSelected }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "HANDLE_BITES"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "c0db2966-b3e9-4019-b5d5-056208f5c281",
+                    "leftValue": "={{ $json.postback }}",
+                    "rightValue": "VIEW_CART",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "VIEW_CART"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "552c1c3b-9f35-4d07-b2db-febb97810903",
+                    "leftValue": "={{ $json.postback }}",
+                    "rightValue": "CLEAR_CART",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "CLEAR_CART"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "850a7070-fced-4358-82a0-2bc61a0d05e9",
+                    "leftValue": "={{ $json.postback }}",
+                    "rightValue": "END_SESSION",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "END_SESSION"
             }
           ]
         },
+        "looseTypeValidation": true,
         "options": {}
       },
       "type": "n8n-nodes-base.switch",
@@ -581,8 +659,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        300,
-        840
+        1020,
+        580
       ],
       "id": "9afb48f7-fdce-4b38-9c61-20e9e697d1ad",
       "name": "Select Add-ons Milktea Message"
@@ -608,8 +686,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        300,
-        1020
+        1020,
+        780
       ],
       "id": "51aac8ef-611d-4439-8adc-a51b7c24190b",
       "name": "Select Add-ons Coffee Message"
@@ -635,8 +713,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        300,
-        1200
+        1020,
+        980
       ],
       "id": "df59f71a-091c-4df3-af12-d26dd102da08",
       "name": "Select Add-ons Fruit Tea Message"
@@ -663,8 +741,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        480,
-        840
+        1240,
+        580
       ],
       "id": "8d651e29-c931-461e-9c53-1d374fc12835",
       "name": "Add-ons Milktea"
@@ -690,8 +768,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        480,
-        1020
+        1240,
+        780
       ],
       "id": "488b6806-ef64-4c96-98c5-f89e634a96a0",
       "name": "Add-ons Coffee"
@@ -717,8 +795,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        480,
-        1200
+        1240,
+        980
       ],
       "id": "ddcf1c9b-121e-442b-a549-72b6bee19e64",
       "name": "Add-ons Fruit Tea"
@@ -806,125 +884,11 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        80,
-        840
+        800,
+        780
       ],
       "id": "8325ea7c-fd2b-4b0d-a82e-7e26a17bc46a",
       "name": "Add-Ons Switch"
-    },
-    {
-      "parameters": {
-        "collection": "Menu",
-        "options": {},
-        "query": "={ \"ProductID\": \"{{ $json.baseDrink }}\" }"
-      },
-      "type": "n8n-nodes-base.mongoDb",
-      "typeVersion": 1.2,
-      "position": [
-        -120,
-        1380
-      ],
-      "id": "fac725d6-adcf-47c3-afd4-a736b19f5844",
-      "name": "fetch baseDrink",
-      "alwaysOutputData": true,
-      "credentials": {
-        "mongoDb": {
-          "id": "uQrs31uzSyOdcALm",
-          "name": "MongoDB account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "collection": "Add-ons",
-        "options": {},
-        "query": "={\n  \"AddOnID\": \"{{ $json.addOn }}\"\n}"
-      },
-      "type": "n8n-nodes-base.mongoDb",
-      "typeVersion": 1.2,
-      "position": [
-        -120,
-        1560
-      ],
-      "id": "b5dd5399-90e4-4ee8-9ccf-694b8a8897de",
-      "name": "fetch add-on",
-      "credentials": {
-        "mongoDb": {
-          "id": "uQrs31uzSyOdcALm",
-          "name": "MongoDB account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "collection": "Ingredients",
-        "options": {},
-        "query": "={\n  \"IngredientID\": {\n    \"$in\": {{ JSON.stringify($json.ingredients || []) }}\n  }\n}\n"
-      },
-      "type": "n8n-nodes-base.mongoDb",
-      "typeVersion": 1.2,
-      "position": [
-        500,
-        1480
-      ],
-      "id": "e44d352f-bfed-456d-af4e-f238e18a7e55",
-      "name": "fetch ingredients stock",
-      "credentials": {
-        "mongoDb": {
-          "id": "uQrs31uzSyOdcALm",
-          "name": "MongoDB account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "const postback = $input.first().json.postback || '';\n\nconst parts = postback.split('|');\nconst baseDrink = parts[0] || null;\nconst size = parts[1] || null;\nlet addOn = parts[2] || null;\nif (addOn?.startsWith('ADD_')) addOn = addOn.slice(4);\nconst Bite = parts.find(p => p.includes('BK')) || (postback.includes('BK') ? postback : null);\n\nreturn {\n  json: { postback, baseDrink, size, addOn, Bite }\n};\n"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -360,
-        1180
-      ],
-      "id": "0e6a293e-5b0e-4f47-9c53-c4f4e98e9900",
-      "name": "extract values"
-    },
-    {
-      "parameters": {
-        "jsCode": "const drinkData = $('fetch baseDrink').first().json;\nconst extractedData = $('extract values').first().json;\n\nlet addOnData = null;\ntry {\n  const addOnNode = $('fetch add-on').first();\n  addOnData = addOnNode ? addOnNode.json : null;\n} catch {\n  addOnData = null;\n}\n\nconst senderId = $('Listen').first().json.senderId;\n\nif (extractedData.Bite) {\n  const bitesData = $('fetch bites').first().json;\n\n  if (!bitesData || Object.keys(bitesData).length === 0) {\n    return [{\n      json: {\n        success: false,\n        message: `Sorry, the bites \"${extractedData.Bite}\" is not available.`,\n        code: 'BITES_NOT_FOUND',\n        senderId\n      }\n    }];\n  }\n\n  if (bitesData.Quantity <= 0 || !bitesData.IsEnabled) {\n    return [{\n      json: {\n        success: false,\n        message: `Sorry, ${bitesData.Name} is currently out of stock. Please choose a different item.`,\n        code: 'BITES_OUT_OF_STOCK',\n        senderId\n      }\n    }];\n  }\n\n  return [{\n    json: {\n      success: true,\n      message: `${bitesData.Name} is available.`,\n      bitesData,\n      senderId\n    }\n  }];\n}\n\nif (!drinkData || Object.keys(drinkData).length === 0) {\n  return [{\n    json: {\n      success: false,\n      message: `Sorry, the drink \"${extractedData.baseDrink}\" is not available in our menu.`,\n      code: 'PRODUCT_NOT_FOUND',\n      senderId\n    }\n  }];\n}\n\nlet validatedAddOnData = null;\n\nif (extractedData.addOn && extractedData.addOn !== 'NONE') {\n  if (!addOnData || Object.keys(addOnData).length === 0) {\n    return [{\n      json: {\n        success: false,\n        message: `Sorry, the selected add-on \"${extractedData.addOn}\" is not available.`,\n        code: 'ADDON_NOT_FOUND',\n        senderId\n      }\n    }];\n  }\n\n  if (addOnData.Quantity <= 0 || !addOnData.IsEnabled) {\n    return [{\n      json: {\n        success: false,\n        message: `Sorry, ${addOnData.Name} is currently out of stock. Please choose a different add-on.`,\n        code: 'ADDON_OUT_OF_STOCK',\n        senderId\n      }\n    }];\n  }\n\n  validatedAddOnData = addOnData;\n} else {\n  validatedAddOnData = {\n    AddOnID: 'NONE',\n    Name: 'No Add-on',\n    Price: 0,\n    Quantity: Infinity,\n    IsEnabled: true\n  };\n}\n\nreturn [{\n  json: {\n    drinkData,\n    addOnData: validatedAddOnData,\n    extractedData,\n    senderId,\n    ingredients: drinkData.Ingredients || []\n  }\n}];\n"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        320,
-        1480
-      ],
-      "id": "dacfbbc0-312a-434f-bee7-7214dee46855",
-      "name": "prep check ingredient stock"
-    },
-    {
-      "parameters": {
-        "jsCode": "let allIngredientStocks = [];\ntry {\n  const ingredientStockNodes = $('fetch ingredients stock').all();\n  allIngredientStocks = ingredientStockNodes?.length\n    ? ingredientStockNodes.map(item => item.json)\n    : [];\n} catch {\n  allIngredientStocks = [];\n}\n\nlet drinkData = null;\ntry {\n  drinkData = $('fetch baseDrink').first().json;\n} catch {\n  drinkData = null;\n}\n\nlet addOnData = null;\ntry {\n  addOnData = $('fetch add-on').first()?.json || null;\n} catch {\n  addOnData = null;\n}\n\nlet extractedData = null;\ntry {\n  extractedData = $('extract values').first().json;\n} catch {\n  extractedData = null;\n}\n\nlet senderId = 'unknown_user';\ntry {\n  senderId = $('Listen').first().json.senderId || senderId;\n} catch {}\n\nif (!drinkData || !extractedData) {\n  return [{\n    json: {\n      success: false,\n      message: 'Missing essential order data. Please try again.',\n      code: 'MISSING_DATA',\n      senderId\n    }\n  }];\n}\n\nif ((!addOnData || Object.keys(addOnData).length === 0) && (!extractedData.addOn || extractedData.addOn === 'NONE')) {\n  addOnData = {\n    AddOnID: 'NONE',\n    Name: 'No Add-on',\n    Price: 0,\n    Quantity: Infinity,\n    IsEnabled: true\n  };\n}\n\nlet requiredIngredients = drinkData.Ingredients || [];\n\nif (!Array.isArray(requiredIngredients)) {\n  requiredIngredients = requiredIngredients ? [requiredIngredients] : [];\n}\n\nif (requiredIngredients.length > 0 && allIngredientStocks.length === 0) {\n  return [{\n    json: {\n      success: false,\n      message: 'Unable to check ingredient availability. Please try again later.',\n      code: 'STOCK_DATA_UNAVAILABLE',\n      senderId\n    }\n  }];\n}\n\nconst unavailableIngredients = [];\n\nfor (const ingredientId of requiredIngredients) {\n  if (!ingredientId) continue;\n\n  const stock = allIngredientStocks.find(item => item.IngredientID === ingredientId);\n\n  if (\n    !stock ||\n    stock.Quantity === undefined ||\n    stock.Quantity <= 0 ||\n    !stock.IsEnabled\n  ) {\n    unavailableIngredients.push({\n      ingredientId,\n      name: stock?.Name || 'Unknown Ingredient',\n      available: false,\n      quantity: stock?.Quantity ?? 0,\n      enabled: stock?.IsEnabled ?? false\n    });\n  }\n}\n\nif (unavailableIngredients.length > 0) {\n  const names = unavailableIngredients.map(i => i.name).join(', ');\n  return [{\n    json: {\n      success: false,\n      message: `Sorry, \"${drinkData.Name}\" is unavailable due to insufficient stock of: ${names}`,\n      code: 'INSUFFICIENT_INGREDIENTS',\n      unavailableIngredients,\n      senderId\n    }\n  }];\n}\n\nfunction createCartItem({\n  userId,\n  productId,\n  productName,\n  addOnId,\n  addOnName,\n  quantity = 1,\n  basePrice = 0,\n  addOnPrice = 0,\n  status = 'pending'\n}) {\n  const totalPrice = basePrice + addOnPrice;\n  return {\n    userId,\n    productId,\n    productName,\n    addOnId,\n    addOnName,\n    quantity,\n    basePrice,\n    addOnPrice,\n    totalPrice,\n    createdAt: new Date().toISOString(),\n    status\n  };\n}\n\nconst basePrice = drinkData.Sizes?.[0]?.BasePrice || 0;\nconst addOnPrice = addOnData?.BasePrice || 0;\n\nconst cartItem = createCartItem({\n  userId: senderId,\n  productId: extractedData.baseDrink,\n  productName: drinkData.Name,\n  addOnId: extractedData.addOn || 'NONE',\n  addOnName: addOnData.Name || 'No Add-on',\n  basePrice,\n  addOnPrice\n});\n\nreturn [{\n  json: {\n    success: true,\n    message: `Great! '${drinkData.Name}' with '${addOnData?.Name || 'No Add-on'}' has been added to your cart.`,\n    code: 'ORDER_ADDED_TO_CART',\n    cartItem,\n    pricing: {\n      basePrice,\n      addOnPrice,\n      totalPrice: cartItem.totalPrice\n    },\n    senderId\n  }\n}];\n"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        680,
-        1480
-      ],
-      "id": "0fd13cfb-c98a-414a-ad9c-8fd71d5e993e",
-      "name": "validate stock & cart"
-    },
-    {
-      "parameters": {},
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3.2,
-      "position": [
-        120,
-        1480
-      ],
-      "id": "58c39583-cb18-45ac-8a03-097170f0e684",
-      "name": "Merge"
     },
     {
       "parameters": {
@@ -948,7 +912,7 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        -80,
+        -40,
         640
       ],
       "id": "a6c616f3-9b43-458b-bc64-f0c747be006a",
@@ -962,12 +926,12 @@
     },
     {
       "parameters": {
-        "jsCode": "const product = $input.first().json;\nconst senderId = $('Listen').first().json.senderId;\nconst priceFormat = p => (p ? `₱${p}` : '');\n\nconst isBite = product.ProductID && product.ProductID.startsWith('BK-');\n\nif (isBite) {\n  return [{\n    json: {\n      sendSizeButtons: false,\n      sizeSelected: false,\n      message: `Selected: ${product.Name} (${priceFormat(product.BasePrice)}). Added to cart!`,\n      senderId,\n      isBitesSelected: true\n    }\n  }];\n}\n\nconst sizes = Array.isArray(product.Sizes) ? product.Sizes : [];\n\nif (sizes.length === 0) {\n  return [{\n    json: {\n      sendSizeButtons: false,\n      sizeSelected: false,\n      message: `Selected: ${product.Name} (${priceFormat(product.BasePrice)}). Added to cart!`,\n      senderId\n    }\n  }];\n}\n\nconst buttons = sizes.map(s => ({\n  type: \"postback\",\n  title: `${s.Size} - ${priceFormat(s.BasePrice)}`,\n  payload: `${product.ProductID}|${s.Size}`\n}));\n\nreturn [{\n  json: {\n    sendSizeButtons: true,\n    sizeSelected: false,\n    recipient_id: senderId,\n    message: `Choose a size for your ${product.Name}:`,\n    buttons\n  }\n}];\n"
+        "jsCode": "const product = $input.first().json;\nconst senderId = $('Listen').first().json.senderId;\nconst priceFormat = p => (p ? `₱${p}` : '');\n\nconst isBite = product.ProductID && product.ProductID.startsWith('BK-');\n\nif (isBite) {\n  // For bites, create a postback similar to the drink format but with NONE for size and add-on\n  return [{\n    json: {\n      sendSizeButtons: false,\n      sizeSelected: false,\n      message: `Selected: ${product.Name} (${priceFormat(product.BasePrice)}). Adding to cart...`,\n      senderId,\n      isBitesSelected: true,\n      // Create postback in the same format as drinks but with NONE values\n      postback: `${product.ProductID}|NONE|NONE`,\n      type: \"postback\"\n    }\n  }];\n}\n\nconst sizes = Array.isArray(product.Sizes) ? product.Sizes : [];\n\nif (sizes.length === 0) {\n  return [{\n    json: {\n      sendSizeButtons: false,\n      sizeSelected: false,\n      message: `Selected: ${product.Name} (${priceFormat(product.BasePrice)}). Added to cart!`,\n      senderId\n    }\n  }];\n}\n\nconst buttons = sizes.map(s => ({\n  type: \"postback\",\n  title: `${s.Size} - ${priceFormat(s.BasePrice)}`,\n  payload: `${product.ProductID}|${s.Size}`\n}));\n\nreturn [{\n  json: {\n    sendSizeButtons: true,\n    sizeSelected: false,\n    recipient_id: senderId,\n    message: `Choose a size for your ${product.Name}:`,\n    buttons\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        80,
+        180,
         640
       ],
       "id": "ba7d3731-c9a9-490a-bd79-3ba1c3b7b873",
@@ -994,115 +958,11 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        480,
-        660
+        620,
+        640
       ],
       "id": "77800f66-04a6-482e-bce7-cd3715443d08",
       "name": "Select Size Prompt"
-    },
-    {
-      "parameters": {
-        "collection": "Menu",
-        "options": {},
-        "query": "={\n  \"ProductID\": \"{{ $json.Bite }}\"\n}"
-      },
-      "type": "n8n-nodes-base.mongoDb",
-      "typeVersion": 1.2,
-      "position": [
-        -120,
-        1220
-      ],
-      "id": "1bf08cdf-9d3d-4631-91f9-f7881f541694",
-      "name": "fetch bites",
-      "credentials": {
-        "mongoDb": {
-          "id": "uQrs31uzSyOdcALm",
-          "name": "MongoDB account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{$json.senderId}}\"\n  },\n  \"message\": {\n    \"text\": \"{{ $json.message }}\"\n  }\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        880,
-        1480
-      ],
-      "id": "6dff43b5-05f3-4528-8f2c-8595f16274ca",
-      "name": "Item Added to Cart Message"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            },
-            {}
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Popular\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"Most ordered right now.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Popular\",\n                \"payload\": \"VIEW_POPULAR\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Must Try! Fruit Teas\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"This is FRUIT TEAS category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View FRUIT TEAS category\",\n                \"payload\": \"VIEW_FT\"\n              }\n            ]\n          },\n{\n            \"title\": \"Must Try! Milk Teas\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"This is MILK TEAS category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View MILK TEAS category\",\n                \"payload\": \"VIEW_MT\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Must Try! Signatures\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+3\",\n            \"subtitle\": \"This is SIGNATURES category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Signatures\",\n                \"payload\": \"VIEW_SIGNATURES\"\n              }\n            ]\n          },\n{\n            \"title\": \"Bites\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"This is BITES category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Bites\",\n                \"payload\": \"VIEW_BITES\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1060,
-        1480
-      ],
-      "id": "8c7447c6-bc46-4457-9635-46dc59f4bbbc",
-      "name": "Menu Gallery2"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            },
-            {}
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"button\",\n        \"text\": \"You can view or checkout your cart anytime:\",\n        \"buttons\": [\n          {\n            \"type\": \"postback\",\n            \"title\": \"View Cart\",\n            \"payload\": \"VIEW_CART\"\n          }\n        ]\n      }\n    }\n  }\n}\n",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1260,
-        1480
-      ],
-      "id": "d6ee227e-7ddf-4fda-8c0d-54d03eb1dd4a",
-      "name": "View Cart Button"
     },
     {
       "parameters": {
@@ -1113,8 +973,8 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        -240,
-        -340
+        -260,
+        -600
       ],
       "id": "6defc956-8c80-469b-9d9e-ae5c2d6dcb0c",
       "name": "Retrieve Popular DB",
@@ -1132,8 +992,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -80,
-        -340
+        -40,
+        -600
       ],
       "id": "3269c785-712c-4865-9030-58951c53e780",
       "name": "Retrieve Popular"
@@ -1147,8 +1007,8 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        -240,
-        -180
+        -260,
+        -340
       ],
       "id": "78908abc-bc66-4c41-92b4-9e287518275f",
       "name": "Retrieve Fruit Tea DB",
@@ -1166,8 +1026,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -80,
-        -180
+        -40,
+        -340
       ],
       "id": "5abae1dd-2c1a-409b-9c71-cdb0e694991a",
       "name": "Retrieve Fruit Tea"
@@ -1193,8 +1053,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        80,
-        -340
+        180,
+        -600
       ],
       "id": "4c864da5-e7be-4561-8ade-acbd4834f8bd",
       "name": "Display Popular Menu"
@@ -1220,8 +1080,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        80,
-        -180
+        180,
+        -340
       ],
       "id": "273a22a3-b5fb-4a0e-8049-58039492b898",
       "name": "Display Fruit Tea Menu"
@@ -1235,8 +1095,8 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        -240,
-        -20
+        -260,
+        -80
       ],
       "id": "8c163cbd-afdc-485c-8aa2-9542d6bb47a4",
       "name": "Retrieve Milktea DB",
@@ -1254,8 +1114,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -60,
-        -20
+        -40,
+        -80
       ],
       "id": "40deaba2-5db1-4c6c-9bdb-58965ade4b34",
       "name": "Retrieve Milk Tea"
@@ -1281,8 +1141,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        120,
-        -20
+        180,
+        -80
       ],
       "id": "2c27a39c-88b2-411f-9309-7a738a1ba09b",
       "name": "Display Milk Tea Menu"
@@ -1294,8 +1154,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -60,
-        140
+        -40,
+        180
       ],
       "id": "cca2f62b-ba2f-45b5-a4a9-a9bc97223dee",
       "name": "Retrieve Signatures"
@@ -1309,8 +1169,8 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        -240,
-        140
+        -260,
+        180
       ],
       "id": "bab4f151-3b70-4638-9520-281c478e4555",
       "name": "Retrieve Signatures DB",
@@ -1342,8 +1202,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        120,
-        140
+        180,
+        180
       ],
       "id": "f126a481-4832-4113-8c84-03c00053a9ee",
       "name": "Display Signatures Menu"
@@ -1352,13 +1212,13 @@
       "parameters": {
         "collection": "Menu",
         "options": {},
-        "query": "={\n  \"ProductID\": { \"$regex\": \"^BK-\" },\n  \"IsEnabled\": true,\n  \"available\": true\n}\n"
+        "query": "={\n  \"ProductID\": { \"$regex\": \"^BK-\" },\n  \"isEnabled\": true\n}"
       },
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        -240,
-        300
+        -260,
+        440
       ],
       "id": "e5ab743c-4e7c-4e41-a038-ba1ec87eb087",
       "name": "Retrieve Bites DB",
@@ -1371,13 +1231,13 @@
     },
     {
       "parameters": {
-        "jsCode": "const senderId = $('Listen').first().json.senderId;\n\nif (!senderId) {\n  throw new Error(\"Sender ID not found in input data\");\n}\n\nconst menuItems = $input.all().map(i => i.json);\n\nconst filteredItems = menuItems.filter(item =>\n  item.ProductID && item.ProductID.startsWith(\"BK\") && item.IsEnabled && item.available\n);\n\nconst elements = filteredItems.map(item => ({\n  title: item.Name,\n  image_url: (item.imagelink && item.imagelink !== \"placeholder\")\n    ? item.imagelink\n    : `https://via.placeholder.com/300x200?text=${encodeURIComponent(item.Name)}`,\n  subtitle: item.description || \"Tasty bite-sized treats\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Add to Cart\",\n      payload: `ADD_${item.ProductID}`\n    }\n  ]\n}));\n\nelements.push({\n  title: \"Main Menu\",\n  image_url: \"https://via.placeholder.com/300x200?text=Main+Menu\",\n  subtitle: \"Return to main menu\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Go Back\",\n      payload: \"REVIEW_MENU\"\n    }\n  ]\n});\n\nconst responsePayload = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    attachment: {\n      type: \"template\",\n      payload: {\n        template_type: \"generic\",\n        elements: elements\n      }\n    }\n  }\n};\n\nreturn [{ json: responsePayload }];\n"
+        "jsCode": "const senderId = $('Listen').first().json.senderId;\n\nif (!senderId) {\n  throw new Error(\"Sender ID not found in input data\");\n}\n\nconst menuItems = $input.all().map(i => i.json);\n\nconst filteredItems = menuItems.filter(item =>\n  item.ProductID && item.ProductID.startsWith(\"BK-\") && item.isEnabled && item.available\n);\n\nconst elements = filteredItems.map(item => ({\n  title: item.Name,\n  image_url: (item.imagelink && item.imagelink !== \"placeholder\")\n    ? item.imagelink\n    : `https://via.placeholder.com/300x200?text=${encodeURIComponent(item.Name)}`,\n  subtitle: item.description || \"Tasty bite-sized treats\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Add to Cart\",\n      payload: `ADD_${item.ProductID}`\n    }\n  ]\n}));\n\nelements.push({\n  title: \"Main Menu\",\n  image_url: \"https://via.placeholder.com/300x200?text=Main+Menu\",\n  subtitle: \"Return to main menu\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Go Back\",\n      payload: \"REVIEW_MENU\"\n    }\n  ]\n});\n\nconst responsePayload = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    attachment: {\n      type: \"template\",\n      payload: {\n        template_type: \"generic\",\n        elements: elements\n      }\n    }\n  }\n};\n\nreturn [{ json: responsePayload }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -60,
-        300
+        -40,
+        440
       ],
       "id": "69983cca-8ba0-4d4d-b008-55c511f75bb2",
       "name": "Retrieve Bites"
@@ -1403,8 +1263,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        120,
-        300
+        180,
+        440
       ],
       "id": "6ef94043-aead-4c09-8ef3-6a384f5d71a3",
       "name": "Display Bites Menu"
@@ -1437,11 +1297,948 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        260,
+        400,
         640
       ],
       "id": "d4752855-4bad-45f9-827e-e665492f04f4",
       "name": "Item Condition"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst postback = input.postback || '';\nconst parts = postback.split('|');\n\n// Handle special postbacks like CLEAR_CART\nconst isSpecialPostback = ['CLEAR_CART', 'VIEW_CART', 'CHECKOUT', 'REVIEW_MENU', 'MAIN_MENU', 'END_SESSION'].includes(postback);\n\n// If it's a special postback, pass it through directly with the right flags\nif (isSpecialPostback) {\n  return {\n    json: {\n      ...input,\n      isCompleteOrder: false,\n      isBitesOrder: false\n    }\n  };\n}\n\n// Otherwise process as normal product selection\nreturn {\n  json: {\n    ...input,\n    isCompleteOrder: parts.length === 3 && parts[1] !== 'NONE',\n    isBitesOrder: parts.length === 3 && parts[0].startsWith('BK-')\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -740,
+        600
+      ],
+      "id": "bf46635a-909e-42f1-b393-c5783dab6acc",
+      "name": "verify complete order"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $('Upsert Prepare').item.json.userId }}\"\n  },\n  \"message\": {\n    \"text\": \"{{ $('Upsert Prepare').item.json.cartItem.productName }} successfully added to cart!\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3340,
+        1220
+      ],
+      "id": "7f7027f5-a0b9-46f7-b689-a4e499fe289b",
+      "name": "Item Added to Cart Message"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Popular\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"Most ordered right now.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Popular\",\n                \"payload\": \"VIEW_POPULAR\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Must Try! Fruit Teas\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"This is FRUIT TEAS category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View FRUIT TEAS category\",\n                \"payload\": \"VIEW_FT\"\n              }\n            ]\n          },\n{\n            \"title\": \"Must Try! Milk Teas\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"This is MILK TEAS category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View MILK TEAS category\",\n                \"payload\": \"VIEW_MT\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Must Try! Signatures\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+3\",\n            \"subtitle\": \"This is SIGNATURES category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Signatures\",\n                \"payload\": \"VIEW_SIGNATURES\"\n              }\n            ]\n          },\n{\n            \"title\": \"Bites\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"This is BITES category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Bites\",\n                \"payload\": \"VIEW_BITES\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3520,
+        1220
+      ],
+      "id": "390c0d2d-b4cf-4972-8514-ae1069cf7d12",
+      "name": "Menu Gallery2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"button\",\n        \"text\": \"You can view or checkout your cart anytime:\",\n        \"buttons\": [\n          {\n            \"type\": \"postback\",\n            \"title\": \"View Cart\",\n            \"payload\": \"VIEW_CART\"\n          }\n        ]\n      }\n    }\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3740,
+        1220
+      ],
+      "id": "be385cc7-f28f-4ae5-82a9-7b7983428b80",
+      "name": "View Cart Button"
+    },
+    {
+      "parameters": {
+        "jsCode": "const allInputs = $input.all();\nconst validationResult = allInputs[0].json;\n\nif (!validationResult.isValid) {\n  return {\n    json: {\n      success: false,\n      message: \"Cannot add to cart due to validation errors\",\n      errors: validationResult.errors,\n      warnings: validationResult.warnings\n    }\n  };\n}\n\nconst { productData, addOnData } = validationResult;\nconst stockData = allInputs[0].json.stockCheckData || validationResult.stockCheckData;\n\n// Determine if this is a bite item (has direct BasePrice) or drink item (has Sizes array with prices)\nconst isBite = productData.ProductID.startsWith('BK-');\nconst basePrice = isBite ? productData.BasePrice : \n                 (productData.Sizes && productData.Sizes.length > 0 ? productData.Sizes[0].BasePrice : 0);\n\nconst cartItem = {\n  productId: productData.ProductID,\n  productName: productData.Name,\n  category: productData.Category,\n  basePrice: basePrice,\n  // Only include size for drink items, not for bites\n  size: isBite ? null : (productData.Sizes[0]?.Size || \"16oz\"),\n  quantity: 1,\n  addOns: addOnData ? [{\n    addOnId: addOnData.AddOnID,\n    addOnName: addOnData.Name,\n    addOnPrice: addOnData.BasePrice,\n    quantity: 1\n  }] : [],\n  totalPrice: basePrice + (addOnData ? addOnData.BasePrice : 0),\n  timestamp: new Date().toISOString(),\n  userId: $('Listen').first().json.senderId\n};\n\nreturn {\n  json: {\n    success: true,\n    message: \"Item successfully added to cart\",\n    cartItem: cartItem,\n    warnings: validationResult.warnings\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2220,
+        1240
+      ],
+      "id": "44370541-34c4-4507-9023-8372f2e4af7d",
+      "name": "Add to Cart"
+    },
+    {
+      "parameters": {
+        "jsCode": "const userId = $('Listen').first().json.senderId;\nconst cartItem = $input.first().json.cartItem;\n\nreturn {\n  json: {\n    userId: userId,\n    cartItem: cartItem\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2380,
+        1240
+      ],
+      "id": "80f6647f-6f90-4520-aea7-a8e6653cc4d4",
+      "name": "Upsert Prepare"
+    },
+    {
+      "parameters": {
+        "collection": "Chatbot-Cart",
+        "options": {},
+        "query": "={ \"userId\": \"{{$json.userId}}\" }"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        2540,
+        1240
+      ],
+      "id": "0c45856c-22dc-4dbf-958d-2391d0275198",
+      "name": "Add to Cart DB",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $('Upsert Prepare').first().json;\nconst now = new Date().toISOString();\n\nreturn {\n  json: {\n    userId: data.userId,\n    items: [data.cartItem], // Create a new items array with the first item\n    createdAt: now,\n    updatedAt: now\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2920,
+        1140
+      ],
+      "id": "834db604-fd1a-4459-b5de-cbc49f578a93",
+      "name": "Prepare Insert"
+    },
+    {
+      "parameters": {
+        "jsCode": "const newItemData = $('Upsert Prepare').first().json;\n\n\nconst existingCart = $('Add to Cart DB').first().json;\n\nconst updatedItems = [...existingCart.items, newItemData.cartItem];\n\nreturn {\n  json: {\n    userId: existingCart.userId,\n    items: updatedItems,\n    updatedAt: new Date().toISOString()\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2920,
+        1320
+      ],
+      "id": "f52d6739-8c69-4a62-a0ff-b85f3f83b6d3",
+      "name": "Prepare Update"
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "Chatbot-Cart",
+        "fields": "=userId,items,createdAt,updatedAt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        3100,
+        1140
+      ],
+      "id": "7d3a9383-103f-4617-8410-813678b49e86",
+      "name": "Insert Cart",
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "collection": "Chatbot-Cart",
+        "updateKey": "userId",
+        "fields": "=items,updatedAt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        3100,
+        1320
+      ],
+      "id": "e85dbdc4-9f65-45dd-8e09-1f52325576b5",
+      "name": "Update Cart",
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "326acbeb-e89a-42de-ae33-71c590fc63ad",
+              "leftValue": "={{ Object.keys($('Add to Cart DB').first().json).length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2700,
+        1240
+      ],
+      "id": "60556298-366a-43f5-a009-2f8a48208f80",
+      "name": "Cart Exists"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "364fd7a6-5ed7-466e-bd6e-83ea38893b2c",
+              "leftValue": "={{ $json.canProceed }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1740,
+        1260
+      ],
+      "id": "777d927c-df42-408e-92f2-3802ea424d22",
+      "name": "canProceed"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.senderId }}\"\n  },\n  \"message\": {\n    \"text\": \"{{ $json.errors[0] }}\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2000,
+        1400
+      ],
+      "id": "5851585b-e807-428a-9116-4f64817769a1",
+      "name": "Product Unavailable"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Popular\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"Most ordered right now.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Popular\",\n                \"payload\": \"VIEW_POPULAR\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Must Try! Fruit Teas\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"This is FRUIT TEAS category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View FRUIT TEAS category\",\n                \"payload\": \"VIEW_FT\"\n              }\n            ]\n          },\n{\n            \"title\": \"Must Try! Milk Teas\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+2\",\n            \"subtitle\": \"This is MILK TEAS category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View MILK TEAS category\",\n                \"payload\": \"VIEW_MT\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Must Try! Signatures\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+3\",\n            \"subtitle\": \"This is SIGNATURES category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Signatures\",\n                \"payload\": \"VIEW_SIGNATURES\"\n              }\n            ]\n          },\n{\n            \"title\": \"Bites\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"This is BITES category\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"View Bites\",\n                \"payload\": \"VIEW_BITES\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2200,
+        1400
+      ],
+      "id": "02b186c7-ff92-495c-8b01-279724c7fd8e",
+      "name": "Menu Gallery1"
+    },
+    {
+      "parameters": {
+        "content": "## TO-DO\n- Show Cart\n- Remove item from cart\n- Confirm Cart\n"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -600,
+        1800
+      ],
+      "typeVersion": 1,
+      "id": "12387487-351c-4487-97d1-ddb198654f07",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "jsCode": "const senderId = $input.first().json.senderId\n\nif (!senderId) {\n  return [{ json: { error: \"No sender ID found, cannot retrieve cart.\" } }];\n}\n\nreturn [{ json: { senderId } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -180,
+        1660
+      ],
+      "id": "61391f1f-e6b4-4fb0-9ba1-03520bb62315",
+      "name": "senderId Prepare"
+    },
+    {
+      "parameters": {
+        "jsCode": "const postback = $input.first().json.postback || '';\nconst senderId = $input.first().json.senderId;\n\nconst parts = postback.split('|');\nconst productId = parts[0] || null;\nconst size = parts[1] || null;\nlet addOn = parts[2] || null;\nif (addOn?.startsWith('ADD_')) addOn = addOn.slice(4);\n\nconst isBite = productId?.startsWith('BK-');\n\nif (!productId) {\n  return {\n    json: {\n      error: 'Invalid product selection',\n      senderId\n    }\n  };\n}\n\nreturn {\n  json: {\n    productId,\n    size: size === 'NONE' ? null : size,\n    addOn: addOn === 'NONE' ? null : addOn,\n    isBite,\n    senderId,\n    needsDbFetch: true\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -200,
+        1200
+      ],
+      "id": "89f31752-b720-4873-8875-e480e51b2240",
+      "name": "extract values"
+    },
+    {
+      "parameters": {
+        "collection": "Menu",
+        "options": {},
+        "query": "={ \"ProductID\": \"{{ $json.productId }}\" }"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        1120
+      ],
+      "id": "f0d498d4-4612-41d8-b26d-ededf50ea259",
+      "name": "Menu",
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "collection": "Add-ons",
+        "options": {},
+        "query": "={ \"AddOnID\": \"{{ $json.addOn }}\" } "
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        1280
+      ],
+      "id": "4de3b5f0-bfaa-451a-98bb-480197244c4d",
+      "name": "Add-ons",
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        240,
+        1200
+      ],
+      "id": "1b492548-b04f-41bc-abd4-812400d64843",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "const productData = $input.all().find(item => item.json.ProductID)?.json;\nconst addOnData = $input.all().find(item => item.json.AddOnID)?.json;\nconst senderId = $input.first().json.senderId;\n\nlet requiredIngredients = {};\nlet directItems = {};\n\nif (productData?.Ingredients && productData.Ingredients.length > 0) {\n  productData.Ingredients.forEach(ingredientId => {\n    if (!requiredIngredients[ingredientId]) {\n      requiredIngredients[ingredientId] = 0;\n    }\n    requiredIngredients[ingredientId] += 1;\n  });\n}\n\nif (productData?.ProductID?.startsWith('BK-') && productData.Quantity !== undefined) {\n  directItems[productData.ProductID] = {\n    required: 1,\n    available: productData.Quantity,\n    name: productData.Name\n  };\n}\n\nif (addOnData?.Quantity !== undefined) {\n  directItems[addOnData.AddOnID] = {\n    required: 1,\n    available: addOnData.Quantity,\n    name: addOnData.Name\n  };\n}\n\nreturn [\n  {\n    json: {\n      productData,\n      addOnData,\n      requiredIngredients,\n      directItems,\n      needsIngredientCheck: Object.keys(requiredIngredients).length > 0,\n      needsDirectCheck: Object.keys(directItems).length > 0,\n      senderId,\n      _stockCheckData: true\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        1200
+      ],
+      "id": "442cdd14-96ba-48e9-bc5b-befb704a3425",
+      "name": "Check Inventory Stock"
+    },
+    {
+      "parameters": {
+        "collection": "Ingredients",
+        "options": {},
+        "query": "={ \"IngredientID\": { \"$in\": {{ JSON.stringify(Object.keys($json.requiredIngredients)) }} } }"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        940,
+        1200
+      ],
+      "id": "2260176c-dd7a-42bf-b364-40912d396795",
+      "name": "MongoDB Inventory",
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const currentData = $input.all();\nconst stockCheckData = $('Check Inventory Stock').first().json;\n\nreturn currentData.map(item => ({\n  json: {\n    ...item.json,\n    stockCheckData: stockCheckData\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1240,
+        1200
+      ],
+      "id": "3dcf8151-fad4-4cf0-80cc-d693230ae9d0",
+      "name": "Stock Check Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "const allInputs = $input.all();\n// Handle the case where stockData might be directly in the first input or in stockCheckData\nconst inputData = allInputs[0]?.json || {};\nconst stockData = inputData._stockCheckData ? inputData : (inputData.stockCheckData || {});\nconst senderId = $('extract values').first()?.json?.senderId;\n\n// Safely destructure with defaults to prevent errors\nconst productData = stockData.productData || inputData.productData || {};\nconst addOnData = stockData.addOnData || inputData.addOnData;\nconst directItems = stockData.directItems || inputData.directItems || {};\nconst requiredIngredients = stockData.requiredIngredients || inputData.requiredIngredients || {};\n\nconst inventoryData = allInputs.filter(item => item.json.IngredientID || item.json.AddOnID);\n\nlet errors = [];\nlet warnings = [];\n\n// Check if product is available and enabled\nif (productData && (!productData.isEnabled && !productData.available)) {\n  errors.push(`${productData.Name} is currently unavailable. Please select another item.`);\n}\n\n// BITES HANDLING: Direct check for bites items\nif (productData && productData.ProductID && productData.ProductID.startsWith('BK-')) {\n  // Bites have direct quantity tracking on the product\n  if (productData.Quantity <= 0) {\n    errors.push(`${productData.Name} is currently out of stock. Please select another item.`);\n  } else if (productData.Quantity <= 5) {\n    warnings.push(`Low stock: ${productData.Name} (${productData.Quantity} remaining)`);\n  }\n}\n\n// Check add-on quantity\nif (addOnData) {\n  if (!addOnData.IsEnabled) {\n    errors.push(`${addOnData.Name} add-on is unavailable. Please select another option.`);\n  } else if (addOnData.Quantity <= 0) {\n    errors.push(`${addOnData.Name} is currently out of stock. Please select an alternative.`);\n  } else if (addOnData.Quantity <= 3) {\n    warnings.push(`Low stock: ${addOnData.Name} (${addOnData.Quantity} remaining)`);\n  }\n}\n\n// Check ingredients for non-bites items\nif (Object.keys(requiredIngredients).length > 0) {\n  Object.entries(requiredIngredients).forEach(([ingredientId, required]) => {\n    const ingredient = inventoryData.find(inv => inv.json.IngredientID === ingredientId);\n    if (!ingredient) {\n      errors.push(`Ingredient ${ingredientId} not found in inventory`);\n    } else if (!ingredient.json.IsEnabled) {\n      errors.push(`Ingredient ${ingredient.json.Name} is currently disabled`);\n    } else if (ingredient.json.Quantity < required) {\n      errors.push(`Insufficient ${ingredient.json.Name} stock (need: ${required}, have: ${ingredient.json.Quantity})`);\n    } else if (ingredient.json.Quantity <= 5) {\n      warnings.push(`Low stock warning: ${ingredient.json.Name} (${ingredient.json.Quantity} remaining)`);\n    }\n  });\n}\n\n// Check add-ons in inventory\nObject.entries(directItems || {}).forEach(([itemId, itemInfo]) => {\n  // Skip bites items here - we already handled them above\n  if (!itemId.startsWith('BK-')) {\n    const addon = inventoryData.find(inv => inv.json.AddOnID === itemId);\n    if (addon) {\n      if (!addon.json.IsEnabled) {\n        errors.push(`${addon.json.Name} add-on is currently disabled`);\n      } else if (addon.json.Quantity < itemInfo.required) {\n        errors.push(`Insufficient ${addon.json.Name} stock (need: ${itemInfo.required}, have: ${addon.json.Quantity})`);\n      } else if (addon.json.Quantity <= 3) {\n        warnings.push(`Low stock: ${addon.json.Name} (${addon.json.Quantity} remaining)`);\n      }\n    }\n  }\n});\n\nreturn {\n  json: {\n    isValid: errors.length === 0,\n    errors,\n    warnings,\n    productData,\n    addOnData,\n    senderId: senderId,\n    canProceed: errors.length === 0,\n    stockCheckData: stockData  // Pass this along for downstream nodes\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1460,
+        1320
+      ],
+      "id": "451886f9-1ef5-43b7-a279-648a90c9de67",
+      "name": "Validation Node"
+    },
+    {
+      "parameters": {
+        "collection": "Chatbot-Cart",
+        "options": {},
+        "query": "={ \"userId\": \"{{ $json.senderId }}\" }"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        1660
+      ],
+      "id": "b8c48b45-301c-4369-8b6a-e327a3bc73dc",
+      "name": "find userId Cart",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cartData = $input.all().map(item => item.json);\nconst senderId = $('senderId Prepare').first().json.senderId;\n\n// Handle empty cart\nif (!cartData || cartData.length === 0) {\n  return {\n    json: {\n      isEmpty: true,\n      message: \"Your cart is currently empty.\",\n      senderId\n    }\n  };\n}\n\nlet subtotal = 0;\nlet totalItems = 0;\nlet processedItems = [];\n\n// Handle nested cart structure\ncartData.forEach(cart => {\n  if (cart.cartItems && Array.isArray(cart.cartItems)) {\n    cart.cartItems.forEach(cartItem => {\n      if (cartItem.items && Array.isArray(cartItem.items)) {\n        cartItem.items.forEach(nestedCart => {\n          if (nestedCart.items && Array.isArray(nestedCart.items)) {\n            // Access the actual product items\n            nestedCart.items.forEach(actualItem => {\n              processedItems.push(actualItem);\n              subtotal += actualItem.totalPrice;\n              totalItems += actualItem.quantity;\n            });\n          }\n        });\n      }\n    });\n  }\n});\n\n// If we didn't find any items in the nested structure, try a simpler approach\nif (processedItems.length === 0) {\n  // Try direct approach if nested structure doesn't work\n  cartData.forEach(cart => {\n    if (cart.items && Array.isArray(cart.items)) {\n      cart.items.forEach(item => {\n        processedItems.push(item);\n        subtotal += item.totalPrice || 0;\n        totalItems += item.quantity || 0;\n      });\n    }\n  });\n}\n\nreturn {\n  json: {\n    isEmpty: processedItems.length === 0,\n    cartItems: processedItems,\n    itemCount: totalItems,\n    subtotal,\n    senderId\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        1560
+      ],
+      "id": "01c9b71b-033e-4e68-a6f1-84ac6d0146dd",
+      "name": "Retrieve Cart Items"
+    },
+    {
+      "parameters": {
+        "jsCode": "const cartData = $input.first().json;\nconst { cartItems, itemCount, subtotal, senderId } = cartData;\n\nlet cartMessage = \"📋 *YOUR CART* 📋\\n\\n\";\nlet itemCounter = 1;\n\n// Process each cart item\ncartItems.forEach(item => {\n  // Get product details\n  const productName = item.productName;\n  const size = item.size;\n  const quantity = item.quantity || 1; \n  const price = item.totalPrice.toFixed(2);\n  \n  cartMessage += `${itemCounter}. ${productName} (${size})\\n`;\n  cartMessage += `   ${quantity}x ₱${price}\\n`;\n  \n  // Add add-ons if any\n  if (item.addOns && item.addOns.length > 0) {\n    item.addOns.forEach(addon => {\n      cartMessage += `   + ${addon.addOnName} (₱${addon.addOnPrice})\\n`;\n    });\n  }\n  \n  cartMessage += \"\\n\";\n  itemCounter++;\n});\n\ncartMessage += `------------------------\\n`;\ncartMessage += `Subtotal: ₱${subtotal.toFixed(2)}\\n\\n`;\ncartMessage += \"What would you like to do next?\";\n\n// Create the complete message object for Facebook\nconst messageObject = {\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": senderId\n  },\n  \"message\": {\n    \"text\": cartMessage,\n    \"quick_replies\": [\n      {\n        \"content_type\": \"text\",\n        \"title\": \"Checkout\",\n        \"payload\": \"CHECKOUT\"\n      },\n      {\n        \"content_type\": \"text\", \n        \"title\": \"Continue Shopping\",\n        \"payload\": \"REVIEW_MENU\"\n      },\n      {\n        \"content_type\": \"text\",\n        \"title\": \"Clear Cart\",\n        \"payload\": \"CLEAR_CART\"\n      }\n    ]\n  }\n};\n\nreturn {\n  json: messageObject\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        1560
+      ],
+      "id": "a749f880-95b2-4cc4-9bbd-4125d96edb26",
+      "name": "Display Items"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Function node to extract sender ID\nconst postbackData = $input.first().json;\nconst senderId = postbackData.senderId;\n\nreturn {\n  json: {\n    senderId\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -180,
+        2040
+      ],
+      "id": "0f33265c-40da-4f3a-b0e0-1310de68e337",
+      "name": "senderId Prepare1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        740,
+        1560
+      ],
+      "id": "060161f8-c82c-4fec-a3c0-74333107b214",
+      "name": "Display Cart Message"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        360,
+        2040
+      ],
+      "id": "74dca3c1-d3db-4ca9-95d2-625466fb4370",
+      "name": "Delete Confirmation Message"
+    },
+    {
+      "parameters": {
+        "jsCode": "const senderId = $('senderId Prepare1').first().json.senderId;\n\nconst messageObject = {\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": senderId\n  },\n  \"message\": {\n    \"text\": \"Your cart has been cleared. Would you like to continue shopping?\",\n    \"quick_replies\": [\n      {\n        \"content_type\": \"text\",\n        \"title\": \"View Menu\",\n        \"payload\": \"REVIEW_MENU\"\n      },\n      {\n        \"content_type\": \"text\", \n        \"title\": \"End Session\",\n        \"payload\": \"END_SESSION\"\n      }\n    ]\n  }\n};\n\nreturn {\n  json: messageObject\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        180,
+        2040
+      ],
+      "id": "b0adc59d-cb4c-404e-887a-baf000eae35e",
+      "name": "Delete Confirmation"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "collection": "Chatbot-Cart",
+        "query": "={ \"userId\": \"{{ $json.senderId }}\" }"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        2040
+      ],
+      "id": "fa23b919-2f6f-4220-a8ff-891546c35260",
+      "name": "find and delete userId Cart",
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "collection": "Chatbot-Cart",
+        "options": {},
+        "query": "={ \"userId\": \"{{ $json.senderId }}\" }"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -260,
+        -860
+      ],
+      "id": "25e67898-a93a-4e06-b299-d69bbd43ac5d",
+      "name": "Find usercart",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ee3c5011-6234-423d-a33b-eaf7f63f71d0",
+              "leftValue": "={{ Object.keys($('Find usercart').first().json).length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -40,
+        -860
+      ],
+      "id": "e39a51f7-b00a-457c-8c5b-e0f13943a617",
+      "name": "User Cart Exist"
+    },
+    {
+      "parameters": {
+        "jsCode": "// In your handler for END_SESSION\nconst senderId = $input.first().json.senderId;\nconst staticData = $getWorkflowStaticData('global');\nconst senderKey = `user_${senderId}`;\n\n// Clear user session data\ndelete staticData[senderKey];\n\n// Return a final goodbye message\nreturn {\n  json: {\n    \"messaging_type\": \"RESPONSE\",\n    \"recipient\": { \"id\": senderId },\n    \"message\": {\n      \"text\": \"Thank you for visiting! Your session has been ended. You can start a new conversation anytime by entering 'Get Started'.\"\n    }\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -180,
+        2380
+      ],
+      "id": "de7c728e-769d-4604-88a3-f2d9689f9055",
+      "name": "End Session"
+    },
+    {
+      "parameters": {
+        "content": "add promos handler",
+        "height": 80
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        660,
+        1100
+      ],
+      "typeVersion": 1,
+      "id": "341777c0-38d0-4c3d-95be-18ed156ea44a",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        2380
+      ],
+      "id": "021657f6-8ba3-4f42-9413-135159bed8a9",
+      "name": "End Session Message"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6b050e0a-3555-4c30-a589-cc97c1b26663",
+              "leftValue": "={{ Object.keys($('find userId Cart').first().json).length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        200,
+        1660
+      ],
+      "id": "571caceb-4ce6-427a-9147-fa484e3807c4",
+      "name": "Cart Handler",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        560,
+        1760
+      ],
+      "id": "fed28ce4-6790-4f6c-a028-979ebb1f016e",
+      "name": "Display Non-Existent Cart Message"
+    },
+    {
+      "parameters": {
+        "jsCode": "const senderId = $('senderId Prepare').first().json.senderId;\n\nconst messageObject = {\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": senderId\n  },\n  \"message\": {\n    \"text\": \"Your cart is Empty. Would you like to continue shopping?\",\n    \"quick_replies\": [\n      {\n        \"content_type\": \"text\",\n        \"title\": \"View Menu\",\n        \"payload\": \"REVIEW_MENU\"\n      },\n      {\n        \"content_type\": \"text\", \n        \"title\": \"End Session\",\n        \"payload\": \"END_SESSION\"\n      }\n    ]\n  }\n};\n\nreturn {\n  json: messageObject\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        1760
+      ],
+      "id": "95ff8776-8117-4811-8741-26e5838e781f",
+      "name": "Null Cart"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "472758f2-4038-4b4f-aa38-a033fc3a0267",
+              "name": "recipient_id",
+              "value": "={{ $json.userId }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2720,
+        980
+      ],
+      "id": "0fc5b3b8-010b-4aeb-933e-684b09d72dce",
+      "name": "Pass recipientId"
+    },
+    {
+      "parameters": {
+        "content": "# 🛒\nClear Cart",
+        "height": 100,
+        "width": 150
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -180,
+        1900
+      ],
+      "typeVersion": 1,
+      "id": "d2a22222-2d1e-41d1-81b2-0934bd1822ee",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "# 🛒\nView Cart",
+        "height": 100,
+        "width": 150
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -180,
+        1520
+      ],
+      "typeVersion": 1,
+      "id": "73d409bd-4925-4208-9601-9c8d822a927d",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "# 🔚\nEnd Session",
+        "height": 100,
+        "width": 150
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -180,
+        2260
+      ],
+      "typeVersion": 1,
+      "id": "502760fa-6a6c-4205-be39-18bd6a7b970b",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "# BlessingsBot\nCreated: June 17, 2025\n\nBy:\nTeam Couche",
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1420,
+        180
+      ],
+      "id": "c4f30cb9-89ce-41a4-92ba-12e59be89b22",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d45fc113-b49b-496f-93b3-9116bb23e73a",
+              "leftValue": "={{ $json.productData && $json.productData.ProductID && $json.productData.ProductID.startsWith('BK-') }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        680,
+        1300
+      ],
+      "id": "81903fcd-7e6d-4577-b89e-e58ace00ab84",
+      "name": "Item Identifier"
     }
   ],
   "pinData": {},
@@ -1486,7 +2283,7 @@
       "main": [
         [
           {
-            "node": "Main Switch",
+            "node": "verify complete order",
             "type": "main",
             "index": 0
           }
@@ -1531,14 +2328,14 @@
         ],
         [
           {
-            "node": "Order Intro Message",
+            "node": "Find usercart",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Menu Gallery",
+            "node": "Find usercart",
             "type": "main",
             "index": 0
           }
@@ -1580,13 +2377,6 @@
         ],
         [
           {
-            "node": "extract values",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
             "node": "get productID",
             "type": "main",
             "index": 0
@@ -1602,6 +2392,34 @@
         [
           {
             "node": "extract values",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "extract values",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "senderId Prepare",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "senderId Prepare1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "End Session",
             "type": "main",
             "index": 0
           }
@@ -1681,82 +2499,6 @@
         ]
       ]
     },
-    "fetch baseDrink": {
-      "main": [
-        [
-          {
-            "node": "Merge",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "fetch add-on": {
-      "main": [
-        [
-          {
-            "node": "Merge",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
-    "fetch ingredients stock": {
-      "main": [
-        [
-          {
-            "node": "validate stock & cart",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "extract values": {
-      "main": [
-        [
-          {
-            "node": "fetch baseDrink",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "fetch add-on",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "fetch bites",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "prep check ingredient stock": {
-      "main": [
-        [
-          {
-            "node": "fetch ingredients stock",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Merge": {
-      "main": [
-        [
-          {
-            "node": "prep check ingredient stock",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "get productID": {
       "main": [
         [
@@ -1784,50 +2526,6 @@
         [
           {
             "node": "Item Condition",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "fetch bites": {
-      "main": [
-        [
-          {
-            "node": "Merge",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "validate stock & cart": {
-      "main": [
-        [
-          {
-            "node": "Item Added to Cart Message",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Item Added to Cart Message": {
-      "main": [
-        [
-          {
-            "node": "Menu Gallery2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Menu Gallery2": {
-      "main": [
-        [
-          {
-            "node": "View Cart Button",
             "type": "main",
             "index": 0
           }
@@ -1948,7 +2646,7 @@
       "main": [
         [
           {
-            "node": "Main Switch",
+            "node": "verify complete order",
             "type": "main",
             "index": 0
           }
@@ -1961,13 +2659,438 @@
           }
         ]
       ]
+    },
+    "verify complete order": {
+      "main": [
+        [
+          {
+            "node": "Main Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add to Cart": {
+      "main": [
+        [
+          {
+            "node": "Upsert Prepare",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Item Added to Cart Message": {
+      "main": [
+        [
+          {
+            "node": "Menu Gallery2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Menu Gallery2": {
+      "main": [
+        [
+          {
+            "node": "View Cart Button",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Prepare": {
+      "main": [
+        [
+          {
+            "node": "Add to Cart DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add to Cart DB": {
+      "main": [
+        [
+          {
+            "node": "Cart Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Insert": {
+      "main": [
+        [
+          {
+            "node": "Insert Cart",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Update": {
+      "main": [
+        [
+          {
+            "node": "Update Cart",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Cart": {
+      "main": [
+        [
+          {
+            "node": "Item Added to Cart Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Cart": {
+      "main": [
+        [
+          {
+            "node": "Item Added to Cart Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cart Exists": {
+      "main": [
+        [
+          {
+            "node": "Prepare Insert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "canProceed": {
+      "main": [
+        [
+          {
+            "node": "Add to Cart",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Product Unavailable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Product Unavailable": {
+      "main": [
+        [
+          {
+            "node": "Menu Gallery1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "senderId Prepare": {
+      "main": [
+        [
+          {
+            "node": "find userId Cart",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "extract values": {
+      "main": [
+        [
+          {
+            "node": "Menu",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Add-ons",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Menu": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add-ons": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Check Inventory Stock",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Inventory Stock": {
+      "main": [
+        [
+          {
+            "node": "Item Identifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Inventory": {
+      "main": [
+        [
+          {
+            "node": "Stock Check Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stock Check Data": {
+      "main": [
+        [
+          {
+            "node": "Validation Node",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validation Node": {
+      "main": [
+        [
+          {
+            "node": "canProceed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "find userId Cart": {
+      "main": [
+        [
+          {
+            "node": "Cart Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve Cart Items": {
+      "main": [
+        [
+          {
+            "node": "Display Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Display Items": {
+      "main": [
+        [
+          {
+            "node": "Display Cart Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "senderId Prepare1": {
+      "main": [
+        [
+          {
+            "node": "find and delete userId Cart",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Confirmation": {
+      "main": [
+        [
+          {
+            "node": "Delete Confirmation Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "find and delete userId Cart": {
+      "main": [
+        [
+          {
+            "node": "Delete Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find usercart": {
+      "main": [
+        [
+          {
+            "node": "User Cart Exist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "User Cart Exist": {
+      "main": [
+        [
+          {
+            "node": "Pass recipientId",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Order Intro Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "End Session": {
+      "main": [
+        [
+          {
+            "node": "End Session Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cart Handler": {
+      "main": [
+        [
+          {
+            "node": "Retrieve Cart Items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Null Cart",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Null Cart": {
+      "main": [
+        [
+          {
+            "node": "Display Non-Existent Cart Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pass recipientId": {
+      "main": [
+        [
+          {
+            "node": "Menu Gallery2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Item Identifier": {
+      "main": [
+        [
+          {
+            "node": "MongoDB Inventory",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Validation Node",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "0cf65bdc-e748-4e13-ad0d-951d4d4f44d2",
+  "versionId": "1578fbd2-82f0-478c-bc6b-f84bf86316be",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "e55ad63998dbff63a27e8a719a0f75ec990732ee36c99c049c4be96c65a0b3c2"
