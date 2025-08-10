@@ -1,0 +1,704 @@
+<div class="stocks-container">
+  <h1>Promo Management</h1>
+
+  <div id="messageArea"></div>
+
+  <!-- Add Promo Button -->
+  <div class="add-ingredient-section">
+    <button id="addPromoBtn" class="stocks-add-btn">Add Promo</button>
+  </div>
+
+  <!-- Permanent Promos Section -->
+  <div class="permanent-promos">
+    <h3>Permanent Promos</h3>
+    <ul class="promo-list">
+      <li>Buy 3 For 143</li>
+      <li>Buy 1 Take 1</li>
+    </ul>
+  </div>
+
+  <!-- Add Promo Form (Initially Hidden) -->
+  <div id="addPromoForm" class="stocks-form-container" style="display: none;">
+    <h2>Add Promo</h2>
+    <div id="formMessageArea"></div>
+    <form id="promoForm" class="stocks-form-vertical">
+      <div class="form-group">
+        <label for="eventInput">Event Name:</label>
+        <input type="text" id="eventInput" name="event" required>
+      </div>
+
+      <div class="form-group">
+        <label for="descriptionInput">Description:</label>
+        <input type="text" id="descriptionInput" name="description" required>
+      </div>
+
+      <div class="form-group">
+        <label for="startDateInput">Starting Date:</label>
+        <input type="date" id="startDateInput" name="startDate" required>
+      </div>
+
+      <div class="form-group">
+        <label for="endDateInput">Closing Date:</label>
+        <input type="date" id="endDateInput" name="endDate" required>
+      </div>
+
+      <div class="button-group">
+        <button type="button" id="savePromoBtn" class="add-product-btn">Add Promo</button>
+        <button type="button" id="cancelBtn" class="cancel-btn">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <table class="stocks-table">
+    <thead>
+      <tr>
+        <th>Event Name</th>
+        <th>Starting Date</th>
+        <th>Closing Date</th>
+        <th>Description</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="promoTableBody">
+      <% if (promos && promos.length > 0) { %>
+        <% promos.forEach((promo, index) => { %>
+          <tr data-promo-id="<%= promo._id %>">
+            <td><input type="text" name="event" class="event-input" value="<%= promo.event %>" data-id="<%= promo._id %>" required></td>
+            <td><input type="date" name="startDate" class="start-date-input" value="<%= promo.startDate ? new Date(promo.startDate).toISOString().split('T')[0] : '' %>" data-id="<%= promo._id %>" required></td>
+            <td><input type="date" name="endDate" class="end-date-input" value="<%= promo.endDate ? new Date(promo.endDate).toISOString().split('T')[0] : '' %>" data-id="<%= promo._id %>" required></td>
+            <td><input type="text" name="description" class="description-input" value="<%= promo.description %>" data-id="<%= promo._id %>" required></td>
+            <td>
+              <button class="stocks-btn update update-btn" data-id="<%= promo._id %>">Update</button>
+              <button class="stocks-btn delete delete-btn" data-id="<%= promo._id %>">Delete</button>
+            </td>
+          </tr>
+        <% }) %>
+      <% } else { %>
+        <tr>
+          <td colspan="5" class="stocks-center">No promos found.</td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table>
+
+  <div id="loading" class="loading">Processing...</div>
+</div>
+
+<style>
+  /* Design tokens (same palette, easier maintenance) */
+  :root {
+    --brown: #7a4e2b;
+    --brown-dark: #5a3921;
+    --green: #28a745;
+    --green-dark: #218838;
+    --red: #dc3545;
+    --red-dark: #bd2130;
+    --gray: #6c757d;
+    --gray-dark: #545b62;
+    --white: #ffffff;
+    --bg-light: #f8f9fa;
+    --border: #e0e0e0;
+    --border-light: #ddd;
+    --text: #333;
+    --muted: #999;
+  }
+
+  /* Base styles - matching stocks.ejs */
+  .stocks-container {
+    background: var(--white);
+    max-width: 1900px;
+    margin: 30px auto;
+    padding: 24px;
+    letter-spacing: -0.5px;
+  }
+
+  .stocks-container h1 {
+    color: var(--brown-dark);
+    margin-bottom: 20px;
+    font-size: 28px;
+  }
+
+  .stocks-container h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: var(--brown-dark);
+  }
+
+  .stocks-container h3 {
+    color: var(--brown-dark);
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+
+  /* Message styling */
+  #messageArea .message, 
+  #formMessageArea .message {
+    color: #155724;
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    text-align: center;
+    font-weight: 600;
+  }
+
+  #messageArea .error, 
+  #formMessageArea .error {
+    color: #721c24;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+  }
+
+  /* Add button section */
+  .add-ingredient-section {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .stocks-add-btn {
+    background-color: var(--green);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .stocks-add-btn:hover {
+    background-color: var(--green-dark);
+    box-shadow: 0 0 8px rgba(40, 167, 69, 0.6);
+  }
+
+  /* Permanent Promos Section */
+  .permanent-promos {
+    background-color: #f5f5f5;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 30px;
+  }
+
+  .promo-list {
+    list-style-type: none;
+    padding-left: 10px;
+  }
+
+  .promo-list li {
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--border);
+  }
+
+  .promo-list li:last-child {
+    border-bottom: none;
+  }
+
+  /* Form container styling */
+  .stocks-form-container {
+    background-color: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 30px;
+    margin: 0 auto 30px auto;
+    max-width: 500px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  .stocks-form-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .form-group label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .form-group input[type="text"],
+  .form-group input[type="date"] {
+    padding: 12px;
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+    background-color: #fafafa;
+  }
+
+  .form-group input[type="text"]:focus,
+  .form-group input[type="date"]:focus {
+    outline: none;
+    border-color: var(--green);
+    background-color: var(--white);
+  }
+
+  /* Button group styling */
+  .button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .add-product-btn {
+    background-color: var(--green);
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 100%;
+  }
+
+  .add-product-btn:hover {
+    background-color: var(--green-dark);
+  }
+
+  .cancel-btn {
+    background-color: var(--gray);
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 100%;
+  }
+
+  .cancel-btn:hover {
+    background-color: var(--gray-dark);
+  }
+
+  /* Table styling */
+  .stocks-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-top: 20px;
+  }
+
+  .stocks-table th, .stocks-table td {
+    text-align: center;
+    padding: 10px;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .stocks-table th {
+    background-color: var(--brown);
+    color: white;
+  }
+
+  .stocks-table input[type="text"],
+  .stocks-table input[type="date"] {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+
+  .stocks-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-size: 13px;
+    cursor: pointer;
+    margin: 2px;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .stocks-btn.update {
+    background-color: var(--green);
+  }
+
+  .stocks-btn.update:hover {
+    background-color: var(--green-dark);
+    box-shadow: 0 0 8px rgba(40, 167, 69, 0.6);
+  }
+
+  .stocks-btn.delete {
+    background-color: var(--red);
+  }
+
+  .stocks-btn.delete:hover {
+    background-color: var(--red-dark);
+    box-shadow: 0 0 8px rgba(220, 53, 69, 0.6);
+  }
+
+  .stocks-center {
+    text-align: center;
+    font-style: italic;
+    color: var(--muted);
+  }
+
+  /* Loading indicator */
+  .loading {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 15px 25px;
+    border-radius: 5px;
+    z-index: 1000;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .stocks-container {
+      padding: 15px;
+    }
+    
+    .stocks-form-container {
+      padding: 20px;
+    }
+    
+    .stocks-table {
+      font-size: 12px;
+    }
+    
+    .stocks-table th, .stocks-table td {
+      padding: 8px 5px;
+    }
+    
+    .stocks-btn {
+      padding: 5px 10px;
+      font-size: 12px;
+    }
+  }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const addPromoForm = document.getElementById('addPromoForm');
+  const loading = document.getElementById('loading');
+
+  // Show/hide loading indicator
+  function showLoading() {
+    loading.style.display = 'block';
+  }
+
+  function hideLoading() {
+    loading.style.display = 'none';
+  }
+
+  // Show messages
+  function showMessage(message, type = 'success', container = 'messageArea') {
+    const messageArea = document.getElementById(container);
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${type}`;
+    messageDiv.textContent = message;
+    messageArea.appendChild(messageDiv);
+    
+    // Auto-hide after 4 seconds
+    setTimeout(() => {
+      messageDiv.style.transition = 'opacity 1s ease';
+      messageDiv.style.opacity = 0;
+      
+      setTimeout(() => {
+        messageDiv.remove();
+      }, 1000);
+    }, 4000);
+  }
+
+  // Clear messages
+  function clearMessages(container = 'messageArea') {
+    const messageArea = document.getElementById(container);
+    messageArea.innerHTML = '';
+  }
+
+  // Update total count
+  function updateTotalCount() {
+    const activeRows = document.querySelectorAll('#promoTableBody tr[data-promo-id]').length;
+    const emptyRow = document.querySelector('#promoTableBody tr:not([data-promo-id])');
+    
+    if (activeRows === 0 && !emptyRow) {
+      const tableBody = document.getElementById('promoTableBody');
+      tableBody.innerHTML = `<tr><td colspan="5" class="stocks-center">No promos found.</td></tr>`;
+    }
+  }
+
+  // Date validation
+  function validateDates(startDate, endDate) {
+    if (startDate && endDate) {
+      return new Date(startDate) <= new Date(endDate);
+    }
+    return true;
+  }
+
+  // Form validation
+  function validateForm() {
+    const form = document.getElementById('promoForm');
+    const event = document.getElementById('eventInput').value.trim();
+    const description = document.getElementById('descriptionInput').value.trim();
+    const startDate = document.getElementById('startDateInput').value;
+    const endDate = document.getElementById('endDateInput').value;
+    
+    if (!event) {
+      showMessage('Please enter an event name', 'error', 'formMessageArea');
+      return false;
+    }
+    
+    if (!description) {
+      showMessage('Please enter a description', 'error', 'formMessageArea');
+      return false;
+    }
+    
+    if (!startDate) {
+      showMessage('Please select a starting date', 'error', 'formMessageArea');
+      return false;
+    }
+    
+    if (!endDate) {
+      showMessage('Please select a closing date', 'error', 'formMessageArea');
+      return false;
+    }
+    
+    if (!validateDates(startDate, endDate)) {
+      showMessage('Closing date must be after or equal to starting date', 'error', 'formMessageArea');
+      return false;
+    }
+
+    return true;
+  }
+
+  // Add row to table
+  function addRowToTable(promo) {
+    const tableBody = document.getElementById('promoTableBody');
+    
+    // Remove empty state row if it exists
+    const emptyRow = document.querySelector('#promoTableBody tr:not([data-promo-id])');
+    if (emptyRow) {
+      emptyRow.remove();
+    }
+
+    // Create new row
+    const newRow = document.createElement('tr');
+    newRow.setAttribute('data-promo-id', promo._id);
+    newRow.innerHTML = `
+      <td><input type="text" name="event" class="event-input" value="${promo.event}" data-id="${promo._id}" required></td>
+      <td><input type="date" name="startDate" class="start-date-input" value="${promo.startDate ? new Date(promo.startDate).toISOString().split('T')[0] : ''}" data-id="${promo._id}" required></td>
+      <td><input type="date" name="endDate" class="end-date-input" value="${promo.endDate ? new Date(promo.endDate).toISOString().split('T')[0] : ''}" data-id="${promo._id}" required></td>
+      <td><input type="text" name="description" class="description-input" value="${promo.description}" data-id="${promo._id}" required></td>
+      <td>
+        <button class="stocks-btn update update-btn" data-id="${promo._id}">Update</button>
+        <button class="stocks-btn delete delete-btn" data-id="${promo._id}">Delete</button>
+      </td>
+    `;
+    
+    tableBody.appendChild(newRow);
+  }
+
+  // Add Promo Button
+  document.getElementById('addPromoBtn').addEventListener('click', function() {
+    clearMessages();
+    clearMessages('formMessageArea');
+    addPromoForm.style.display = 'block';
+    document.getElementById('addPromoBtn').style.display = 'none';
+    document.getElementById('promoForm').reset();
+    // Scroll to form
+    addPromoForm.scrollIntoView({ behavior: 'smooth' });
+  });
+
+  // Cancel Button
+  document.getElementById('cancelBtn').addEventListener('click', function() {
+    addPromoForm.style.display = 'none';
+    document.getElementById('addPromoBtn').style.display = 'inline-block';
+    // Clear form fields
+    document.getElementById('promoForm').reset();
+  });
+
+  // Save Promo
+  document.getElementById('savePromoBtn').addEventListener('click', function() {
+    clearMessages('formMessageArea');
+    
+    if (!validateForm()) {
+      return;
+    }
+
+    const saveBtn = document.getElementById('savePromoBtn');
+    
+    // Get form values
+    const event = document.getElementById('eventInput').value;
+    const description = document.getElementById('descriptionInput').value;
+    const startDate = document.getElementById('startDateInput').value;
+    const endDate = document.getElementById('endDateInput').value;
+    
+    // Create payload
+    const payload = {
+      event: event,
+      description: description,
+      startDate: startDate,
+      endDate: endDate
+    };
+    
+    // Disable button to prevent double submission
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Adding...';
+    showLoading();
+    
+    fetch('/discounts/add', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload)
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      hideLoading();
+      if (data.success) {
+        // Add the new promo to the table
+        if (data.promo) {
+          addRowToTable(data.promo);
+        }
+        
+        // Reset form and go back to main view
+        document.getElementById('promoForm').reset();
+        addPromoForm.style.display = 'none';
+        document.getElementById('addPromoBtn').style.display = 'inline-block';
+        showMessage('Promo successfully added.');
+      } else {
+        showMessage(data.message || 'Error saving promo', 'error', 'formMessageArea');
+      }
+    })
+    .catch(error => {
+      console.error('Fetch error:', error);
+      hideLoading();
+      showMessage('Error connecting to server. Please try again.', 'error', 'formMessageArea');
+    })
+    .finally(() => {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Add Promo';
+    });
+  });
+
+  // Update buttons
+  document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('update-btn')) {
+      const promoId = e.target.dataset.id;
+      const row = e.target.closest('tr');
+      const event = row.querySelector('.event-input').value;
+      const startDate = row.querySelector('.start-date-input').value;
+      const endDate = row.querySelector('.end-date-input').value;
+      const description = row.querySelector('.description-input').value;
+      
+      if (!validateDates(startDate, endDate)) {
+        showMessage('Closing date must be after or equal to starting date', 'error');
+        return;
+      }
+      
+      if (!event || !description || !startDate || !endDate) {
+        showMessage('All fields are required', 'error');
+        return;
+      }
+      
+      const updateBtn = e.target;
+      updateBtn.disabled = true;
+      updateBtn.textContent = 'Updating...';
+      showLoading();
+      
+      // Create payload
+      const payload = {
+        event: event,
+        startDate: startDate,
+        endDate: endDate,
+        description: description
+      };
+      
+      fetch(`/discounts/edit/${promoId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(response => response.json())
+      .then(data => {
+        hideLoading();
+        if (data.success) {
+          showMessage('Promo successfully updated.');
+        } else {
+          showMessage(data.message || 'Error updating promo', 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        hideLoading();
+        showMessage('Error updating promo', 'error');
+      })
+      .finally(() => {
+        updateBtn.disabled = false;
+        updateBtn.textContent = 'Update';
+      });
+    }
+  });
+
+  // Delete buttons
+  document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('delete-btn')) {
+      const promoId = e.target.dataset.id;
+      const row = e.target.closest('tr');
+      const event = row.querySelector('.event-input').value;
+      
+      if (confirm('Are you sure you want to delete this promo?')) {
+        const deleteBtn = e.target;
+        deleteBtn.disabled = true;
+        deleteBtn.textContent = 'Deleting...';
+        showLoading();
+        
+        fetch(`/discounts/delete/${promoId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          hideLoading();
+          if (data.success) {
+            row.remove();
+            updateTotalCount();
+            showMessage('Promo successfully deleted.');
+          } else {
+            showMessage(data.message || 'Error deleting promo', 'error');
+            deleteBtn.disabled = false;
+            deleteBtn.textContent = 'Delete';
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          hideLoading();
+          showMessage('Error deleting promo', 'error');
+          deleteBtn.disabled = false;
+          deleteBtn.textContent = 'Delete';
+        });
+      }
+    }
+  });
+
+  // Initialize total count
+  updateTotalCount();
+});
+</script>

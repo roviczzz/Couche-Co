@@ -25,18 +25,19 @@ app.use(
 
 app.use(flash());
 
-
 app.use((req, res, next) => {
   res.locals.success_msg = req.flash('success_msg');
   res.locals.error_msg = req.flash('error_msg');
   next();
 });
 
-
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/views');
-app.use(express.urlencoded({ extended: false }));
+
+// ⚠️ IMPORTANT: Move these BEFORE express.static and expressLayouts
+app.use(express.urlencoded({ extended: true })); // Changed from false to true
 app.use(express.json());
+
 app.use(express.static(__dirname + '/public'));
 app.use(expressLayouts);
 app.set('layout', 'layout');
@@ -54,7 +55,6 @@ function nocache(req, res, next) {
   res.header('Expires', '0');
   next();
 }
-
 
 app.get('/', async (req, res) => {
   try {
@@ -232,7 +232,6 @@ if (Category.toLowerCase() === 'pastries' && !isNaN(parseFloat(BasePrice))) {
   productData.BasePrice = parseFloat(BasePrice);
 }
 
-
   try {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
@@ -311,8 +310,6 @@ app.post('/products/edit/:id', async (req, res) => {
   }
 });
 
-
-
 app.post('/delete-product/:id', async (req, res) => {
   const productId = req.params.id;
 
@@ -324,7 +321,7 @@ app.post('/delete-product/:id', async (req, res) => {
     await client.close(); 
 
     if (result.deletedCount === 1) {
-  req.flash('success_msg', `Product has been deleted`);
+  req.flash('success_msg', 'Product has been deleted');
   res.redirect('/products');} else {
       res.status(404).send('Product not found');
     }
@@ -333,7 +330,6 @@ app.post('/delete-product/:id', async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 });
-
 
 app.get('/add-product', isLoggedIn, nocache, (req, res) => {
   res.render('add-product', { title: 'Add Product | Blessings Cafe' , user: req.session.user, currentPage: req.path});
@@ -355,9 +351,6 @@ app.get('/edit-product/:id', isLoggedIn, nocache, async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 });
-
-
-
 
 app.get('/stocks', isLoggedIn, nocache, async (req, res) => {
   try {
@@ -441,7 +434,6 @@ app.post('/stocks/delete/:id', async (req, res) => {
     res.status(500).send('Failed to delete ingredient');
   }
 });
-
 
 app.get('/order', isLoggedIn, nocache, async (req, res) => {
   try {
@@ -607,9 +599,6 @@ app.patch('/orders/:OrderID/cancel', isLoggedIn, nocache, async (req, res) => {
   }
 });
 
-
-
-
 app.get('/orders/edit/:id', isLoggedIn, nocache, async (req, res) => {
   const orderId = req.params.id;
 
@@ -656,8 +645,359 @@ app.get('/orders/edit/:id', isLoggedIn, nocache, async (req, res) => {
   }
 });
 
+// ========== ENHANCED DISCOUNTS/PROMOS ROUTES ==========
 
+// GET route for discounts page
+app.get('/discounts', isLoggedIn, nocache, async (req, res) => {
+  try {
+    console.log('📋 Loading discounts page for user:', req.session.user.username);
+    
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const promosCollection = db.collection('Promos');
+    const promos = await promosCollection.find().toArray();
+    await client.close();
 
+    console.log(`✅ Fetched ${promos.length} promos from database`);
+
+    res.render('discounts', { 
+      promos, 
+      title: 'Discounts | Blessings Cafe', 
+      user: req.session.user, 
+      currentPage: req.path 
+    });
+  } catch (err) {
+    console.error('❌ Error fetching promos:', err);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// POST route for adding new promo - FIXED VERSION
+app.post('/discounts/add', isLoggedIn, async (req, res) => {
+  console.log('=== PROMO ADD REQUEST STARTED ===');
+  console.log('Timestamp:', new Date().toISOString());
+  console.log('User:', req.session.user?.username || 'No user found');
+  console.log('Request method:', req.method);
+  console.log('Request URL:', req.url);
+  console.log('Content-Type:', req.headers['content-type']);
+  console.log('Raw req.body:', req.body);
+  console.log('req.body type:', typeof req.body);
+  console.log('req.body keys:', Object.keys(req.body || {}));
+  
+  try {
+    // Check if req.body exists
+    if (!req.body || typeof req.body !== 'object') {
+      console.log('❌ CRITICAL ERROR: req.body is not an object');
+      console.log('req.body value:', req.body);
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Request body parsing failed. Please check form configuration.',
+        debug: {
+          bodyType: typeof req.body,
+          bodyValue: req.body,
+          contentType: req.headers['content-type']
+        }
+      });
+    }
+
+    // Extract data from form
+    const { event, startDate, endDate, description } = req.body;
+    
+    // Log extracted fields
+    console.log('Extracted fields:');
+    console.log('- event:', event, '(type:', typeof event, ')');
+    console.log('- startDate:', startDate, '(type:', typeof startDate, ')');
+    console.log('- endDate:', endDate, '(type:', typeof endDate, ')');
+    console.log('- description:', description, '(type:', typeof description, ')');
+    
+    // Validation
+    if (!event || !startDate || !endDate || !description) {
+      console.log('❌ VALIDATION FAILED - Missing fields');
+      return res.status(400).json({ 
+        success: false, 
+        message: 'All fields are required',
+        received: { event, startDate, endDate, description }
+      });
+    }
+
+    // Trim whitespace
+    const trimmedEvent = String(event).trim();
+    const trimmedDescription = String(description).trim();
+    
+    if (!trimmedEvent || !trimmedDescription) {
+      console.log('❌ VALIDATION FAILED - Empty fields after trim');
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Fields cannot be empty'
+      });
+    }
+
+    // Date validation
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    console.log('Date parsing:');
+    console.log('- start date:', start);
+    console.log('- end date:', end);
+    console.log('- start valid:', !isNaN(start.getTime()));
+    console.log('- end valid:', !isNaN(end.getTime()));
+    
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      console.log('❌ DATE VALIDATION FAILED - Invalid dates');
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid date format' 
+      });
+    }
+    
+    if (start > end) {
+      console.log('❌ DATE VALIDATION FAILED - Start date after end date');
+      return res.status(400).json({ 
+        success: false, 
+        message: 'End date must be after or equal to start date' 
+      });
+    }
+    
+    console.log('🔄 Connecting to MongoDB...');
+    
+    const client = await MongoClient.connect(uri);
+    console.log('✅ MongoDB connected successfully');
+    
+    const db = client.db('blessingscafe');
+    console.log('✅ Database selected: blessingscafe');
+    
+    const promosCollection = db.collection('Promos');
+    console.log('✅ Collection selected: Promos');
+    
+    const newPromo = {
+      event: trimmedEvent,
+      startDate: start,
+      endDate: end,
+      description: trimmedDescription,
+      isActive: true,
+      createdAt: new Date(),
+      createdBy: req.session.user?.username || 'Unknown'
+    };
+    
+    console.log('📄 Document to insert:', JSON.stringify(newPromo, null, 2));
+    
+    const result = await promosCollection.insertOne(newPromo);
+    console.log('✅ Insert result:', result);
+    console.log('✅ Inserted ID:', result.insertedId);
+    
+    // Verify the insertion
+    const insertedDoc = await promosCollection.findOne({ _id: result.insertedId });
+    console.log('✅ Verification - inserted document exists:', !!insertedDoc);
+    
+    // Count total promos
+    const totalCount = await promosCollection.countDocuments();
+    console.log('✅ Total promos in collection:', totalCount);
+    
+    await client.close();
+    console.log('✅ MongoDB connection closed');
+    
+    console.log('=== PROMO ADD REQUEST COMPLETED SUCCESSFULLY ===');
+    
+    // Return the created promo with its ID for frontend table update
+    res.json({ 
+      success: true, 
+      message: 'Promo added successfully',
+      promo: {
+        _id: result.insertedId,
+        ...newPromo
+      }
+    });
+  } catch (err) {
+    console.error('❌ ERROR adding promo:', err);
+    console.error('Error name:', err.name);
+    console.error('Error message:', err.message);
+    console.error('Error stack:', err.stack);
+    console.log('=== PROMO ADD REQUEST FAILED ===');
+    
+    res.status(500).json({ 
+      success: false, 
+      message: 'Database error occurred. Please check server logs.',
+      error: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error',
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// POST route for editing promo - JSON VERSION
+app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
+  const { id } = req.params;
+  
+  try {
+    // Get form data from either JSON or FormData
+    let event, startDate, endDate, description;
+    
+    if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
+      // JSON data
+      ({ event, startDate, endDate, description } = req.body);
+    } else {
+      // Form data
+      event = req.body.event;
+      startDate = req.body.startDate;
+      endDate = req.body.endDate;
+      description = req.body.description;
+    }
+    
+    // Validation
+    if (!event || !startDate || !endDate || !description) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'All fields are required' 
+      });
+    }
+
+    // Date validation
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid date format' 
+      });
+    }
+    
+    if (start > end) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'End date must be after or equal to start date' 
+      });
+    }
+
+    // Validate ObjectId
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid promo ID' 
+      });
+    }
+    
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const promosCollection = db.collection('Promos');
+    
+    const updateResult = await promosCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { 
+        $set: { 
+          event: String(event).trim(),
+          startDate: start,
+          endDate: end,
+          description: String(description).trim(),
+          updatedAt: new Date(),
+          updatedBy: req.session.user?.username || 'Unknown'
+        } 
+      }
+    );
+    
+    await client.close();
+    
+    if (updateResult.matchedCount === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Promo not found' 
+      });
+    }
+    
+    res.json({ 
+      success: true, 
+      message: 'Promo updated successfully' 
+    });
+  } catch (err) {
+    console.error('Error editing promo:', err);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Database error: ' + err.message 
+    });
+  }
+});
+
+// POST route for deleting promo
+app.post('/discounts/delete/:id', isLoggedIn, async (req, res) => {
+  const { id } = req.params;
+  
+  console.log('🗑️ Deleting promo:', id);
+  
+  // Validate ObjectId
+  if (!ObjectId.isValid(id)) {
+    return res.status(400).json({ 
+      success: false, 
+      message: 'Invalid promo ID' 
+    });
+  }
+  
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const promosCollection = db.collection('Promos');
+    
+    // Get promo details before deletion for logging
+    const promo = await promosCollection.findOne({ _id: new ObjectId(id) });
+    
+    if (!promo) {
+      await client.close();
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Promo not found' 
+      });
+    }
+    
+    const deleteResult = await promosCollection.deleteOne({ _id: new ObjectId(id) });
+    
+    console.log('✅ Delete result:', deleteResult);
+    
+    await client.close();
+    
+    if (deleteResult.deletedCount === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Promo not found' 
+      });
+    }
+    
+    console.log(`✅ Promo "${promo.event}" deleted by ${req.session.user.username}`);
+    
+    res.json({ 
+      success: true, 
+      message: 'Promo deleted successfully' 
+    });
+  } catch (err) {
+    console.error('❌ Error deleting promo:', err);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Database error: ' + err.message 
+    });
+  }
+});
+
+// POST route for toggling promo switches
+app.post('/discounts/toggle-switch', isLoggedIn, async (req, res) => {
+  const { promoId, enabled } = req.body;
+  
+  try {
+    console.log(`🔄 Promo ${promoId} toggled to: ${enabled} by ${req.session.user.username}`);
+    
+    // Here you could update a database field if needed
+    // For example, updating an 'enabled' field in the promo document
+    
+    res.json({ 
+      success: true, 
+      message: `Promo switch ${enabled ? 'enabled' : 'disabled'} successfully` 
+    });
+  } catch (err) {
+    console.error('❌ Error toggling promo switch:', err);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to toggle promo switch' 
+    });
+  }
+});
+
+// ========== END OF ENHANCED DISCOUNTS/PROMOS ROUTES ==========
 
 app.get('/logout', (req, res) => {
   req.session.destroy(() => {
@@ -687,10 +1027,6 @@ app.post('/api/orders', async (req, res) => {
   }
 });
 
-
-
-
-
 app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+  console.log(`Server is running on http://localhost:8080`);
 });
