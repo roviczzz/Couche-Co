@@ -310,6 +310,45 @@ app.get('/management', async (req, res) => {
 });
 
 
+app.get('/forgot-password', (req, res) => {
+    res.render('forgot-password', { layout: false });
+});
+
+
+app.post('/forgot-password', async (req, res) => {
+    const { username, newPassword } = req.body;
+
+    if (!username || !newPassword) {
+        return res.status(400).send('Username and new password are required');
+    }
+
+    let client;
+    try {
+        client = await MongoClient.connect(uri);
+        const db = client.db('blessingscafe');
+        const usersCollection = db.collection('users');
+
+        const user = await usersCollection.findOne({ username: username });
+        if (!user) {
+            await client.close();
+            return res.status(404).send('User not found');
+        }
+
+        await usersCollection.updateOne(
+            { username: username },
+            { $set: { password: newPassword } }
+        );
+
+        await client.close();
+        res.send('Password updated successfully. You can now log in.');
+    } catch (error) {
+        if (client) await client.close();
+        console.error('Error updating password:', error);
+        res.status(500).send('Server error');
+    }
+});
+
+
 
 
 app.post('/delete-product/:id', async (req, res) => {
