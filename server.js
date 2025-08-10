@@ -161,7 +161,7 @@ app.get('/products', isLoggedIn, nocache, async (req, res) => {
 app.post('/toggle-availability/:id', async (req, res) => {
   const productId = req.params.id;
   
-  const available = req.body.available === true || req.body.available === 'true';
+  const isEnabled = req.body.isEnabled === true || req.body.isEnabled === 'true';
 
   try {
     const client = await MongoClient.connect(uri);
@@ -175,7 +175,7 @@ app.post('/toggle-availability/:id', async (req, res) => {
 
     const result = await db.collection('Menu').updateOne(
       { _id: new ObjectId(productId) },
-      { $set: { available: available } }
+      { $set: { isEnabled: isEnabled } }
     );
 
     await client.close();
@@ -197,13 +197,11 @@ app.post('/products/add', async (req, res) => {
     Name,
     size16,
     size22,
-    Quantity,
     Ingredients,
     Category,
     Allergen,
     imagelink,
-    available,
-    IsEnabled,
+    isEnabled,
     BasePrice 
   } = req.body;
 
@@ -219,15 +217,13 @@ app.post('/products/add', async (req, res) => {
     ProductID,
     Name,
     Sizes: Sizes.length > 0 ? Sizes : null,
-    Quantity: parseInt(Quantity),
     Ingredients: ingredientsArray,
     Category,
     Allergen: Allergen || null,
     imagelink: imagelink || 'placeholder',
-    available: available === 'true',
-    IsEnabled: IsEnabled === 'true'
+    isEnabled: isEnabled === 'true'
   };
-
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
 if (Category.toLowerCase() === 'pastries' && !isNaN(parseFloat(BasePrice))) {
   productData.BasePrice = parseFloat(BasePrice);
 }
@@ -260,11 +256,9 @@ app.post('/products/edit/:id', async (req, res) => {
     BasePrice,
     size16,
     size22,
-    Quantity,
     Ingredients,
     Allergen,
-    available,
-    IsEnabled
+    isEnabled
   } = req.body;
 
   try {
@@ -277,10 +271,8 @@ app.post('/products/edit/:id', async (req, res) => {
       Price: parseFloat(Price),
       Category,
       imagelink,
-      Quantity: Quantity ? parseInt(Quantity) : 0,
       Allergen: Allergen || '',
-      available: available === 'true',
-      IsEnabled: IsEnabled === 'true',
+      isEnabled: isEnabled === 'true',
       Ingredients: Ingredients ? Ingredients.split(',').map(i => i.trim()) : [],
     };
 
@@ -311,6 +303,13 @@ app.post('/products/edit/:id', async (req, res) => {
   }
 });
 
+app.get('/management', async (req, res) => {
+  res.render('management', {
+    currentPage: '/management'
+  });
+});
+
+
 
 
 app.post('/delete-product/:id', async (req, res) => {
@@ -333,6 +332,7 @@ app.post('/delete-product/:id', async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 });
+
 
 
 app.get('/add-product', isLoggedIn, nocache, (req, res) => {

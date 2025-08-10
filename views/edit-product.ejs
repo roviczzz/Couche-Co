@@ -102,10 +102,6 @@
       <div><input class="field-input" type="number" name="size22" value="<%= size22 ? size22.BasePrice : '' %>" step="0.01"></div>
     </div>
 
-    <div class="field-group">
-      <div class="field-label">Quantity:</div>
-      <div><input class="field-input" type="number" name="Quantity" value="<%= product.Quantity || '' %>" required></div>
-    </div>
 
     <div class="field-group">
       <div class="field-label">Ingredients (comma-separated):</div>
@@ -133,7 +129,6 @@
     </div>
 
     <div class="checkbox-group">
-      <label><input type="checkbox" name="available" value="true" <%= product.available ? 'checked' : '' %> /> Available</label>
       <label><input type="checkbox" name="IsEnabled" value="true" <%= product.IsEnabled ? 'checked' : '' %> /> Enabled</label>
     </div>
 

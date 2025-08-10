@@ -32,7 +32,7 @@
             </div>
             <div class="product-name"><%= product.Name %></div>
             <label class="switch">
-              <input type="checkbox" <%= product.available ? 'checked' : '' %> onchange="toggleAvailability(this, '<%= product._id %>')">
+              <input type="checkbox" <%= product.isEnabled ? 'checked' : '' %> onchange="toggleAvailability(this, '<%= product._id %>')">
               <span class="slider round"></span>
             </label>
             <div class="action-buttons">
@@ -62,27 +62,27 @@
 
 <script>
 function toggleAvailability(checkbox, productId) {
-  const available = checkbox.checked;
+  const isEnabled = checkbox.checked;
   fetch(`/toggle-availability/${productId}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ available })
+    body: JSON.stringify({ isEnabled })
   })
   .then(res => res.json())
   .then(data => {
     if (data.success && data.productName) {
-      showToast(`${data.productName} is now ${available ? 'available' : 'unavailable'}`);
+      showToast(`${data.productName} is now ${isEnabled ? 'available' : 'unavailable'}`);
     } else {
       showToast(' Failed to update availability.');
-      checkbox.checked = !available;
+      checkbox.checked = !isEnabled;
     }
   })
   .catch(err => {
     console.error('Error updating availability:', err);
     showToast(' An error occurred.');
-    checkbox.checked = !available;
+    checkbox.checked = !isEnabled;
   });
 }
 
