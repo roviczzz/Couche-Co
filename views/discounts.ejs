@@ -1,5 +1,7 @@
 <div class="stocks-container">
-  <h1>Promo Management</h1>
+  <div class="header-section">
+    <h1>Promo Management</h1>
+  </div>
 
   <div id="messageArea"></div>
 
@@ -24,12 +26,12 @@
     <form id="promoForm" class="stocks-form-vertical">
       <div class="form-group">
         <label for="eventInput">Event Name:</label>
-        <input type="text" id="eventInput" name="event" required>
+        <input type="text" id="eventInput" name="event" placeholder="Enter promo event name" required>
       </div>
 
       <div class="form-group">
         <label for="descriptionInput">Description:</label>
-        <input type="text" id="descriptionInput" name="description" required>
+        <input type="text" id="descriptionInput" name="description" placeholder="Enter promo description" required>
       </div>
 
       <div class="form-group">
@@ -49,79 +51,124 @@
     </form>
   </div>
 
-  <table class="stocks-table">
-    <thead>
-      <tr>
-        <th>Event Name</th>
-        <th>Starting Date</th>
-        <th>Closing Date</th>
-        <th>Description</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody id="promoTableBody">
-      <% if (promos && promos.length > 0) { %>
-        <% promos.forEach((promo, index) => { %>
-          <tr data-promo-id="<%= promo._id %>">
-            <td><input type="text" name="event" class="event-input" value="<%= promo.event %>" data-id="<%= promo._id %>" required></td>
-            <td><input type="date" name="startDate" class="start-date-input" value="<%= promo.startDate ? new Date(promo.startDate).toISOString().split('T')[0] : '' %>" data-id="<%= promo._id %>" required></td>
-            <td><input type="date" name="endDate" class="end-date-input" value="<%= promo.endDate ? new Date(promo.endDate).toISOString().split('T')[0] : '' %>" data-id="<%= promo._id %>" required></td>
-            <td><input type="text" name="description" class="description-input" value="<%= promo.description %>" data-id="<%= promo._id %>" required></td>
-            <td>
-              <button class="stocks-btn update update-btn" data-id="<%= promo._id %>">Update</button>
-              <button class="stocks-btn delete delete-btn" data-id="<%= promo._id %>">Delete</button>
-            </td>
-          </tr>
-        <% }) %>
-      <% } else { %>
+  <!-- Table Container - Now wrapped like stocks.ejs -->
+  <div class="table-container">
+    <table class="stocks-table">
+      <thead>
         <tr>
-          <td colspan="5" class="stocks-center">No promos found.</td>
+          <th>Event Name</th>
+          <th>Starting Date</th>
+          <th>Closing Date</th>
+          <th>Description</th>
+          <th>Actions</th>
         </tr>
-      <% } %>
-    </tbody>
-  </table>
+      </thead>
+      <tbody id="promoTableBody">
+        <% if (promos && promos.length > 0) { %>
+          <% promos.forEach((promo, index) => { %>
+            <tr data-promo-id="<%= promo._id %>">
+              <td><input type="text" name="event" class="event-input" value="<%= promo.event %>" data-id="<%= promo._id %>" required></td>
+              <td><input type="date" name="startDate" class="start-date-input" value="<%= promo.startDate ? new Date(promo.startDate).toISOString().split('T')[0] : '' %>" data-id="<%= promo._id %>" required></td>
+              <td><input type="date" name="endDate" class="end-date-input" value="<%= promo.endDate ? new Date(promo.endDate).toISOString().split('T')[0] : '' %>" data-id="<%= promo._id %>" required></td>
+              <td><input type="text" name="description" class="description-input" value="<%= promo.description %>" data-id="<%= promo._id %>" required></td>
+              <td>
+                <button class="stocks-btn update update-btn" data-id="<%= promo._id %>">Update</button>
+                <button class="stocks-btn delete delete-btn" data-id="<%= promo._id %>">Delete</button>
+              </td>
+            </tr>
+          <% }) %>
+        <% } else { %>
+          <tr>
+            <td colspan="5" class="stocks-center">No promos found.</td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
 
   <div id="loading" class="loading">Processing...</div>
 </div>
 
 <style>
-  /* Design tokens (same palette, easier maintenance) */
+  /* Design tokens (same palette, more polished) */
   :root {
     --brown: #7a4e2b;
     --brown-dark: #5a3921;
+    --brown-light: #a06b3b;
+    --brown-gradient: linear-gradient(to bottom, #7a4e2b, #5a3921);
     --green: #28a745;
     --green-dark: #218838;
+    --green-gradient: linear-gradient(to bottom, #28a745, #218838);
     --red: #dc3545;
     --red-dark: #bd2130;
+    --red-gradient: linear-gradient(to bottom, #dc3545, #bd2130);
     --gray: #6c757d;
     --gray-dark: #545b62;
+    --gray-gradient: linear-gradient(to bottom, #6c757d, #545b62);
     --white: #ffffff;
     --bg-light: #f8f9fa;
+    --bg-lighter: #fafafa;
     --border: #e0e0e0;
     --border-light: #ddd;
     --text: #333;
+    --text-light: #666;
     --muted: #999;
+
+    --radius: 12px;
+    --radius-sm: 8px;
+    --radius-xs: 4px;
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+    --shadow-md: 0 8px 24px rgba(0,0,0,0.12);
+    --shadow-inner: inset 0 2px 4px rgba(0,0,0,0.05);
+    --transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  /* Base styles - matching stocks.ejs */
+  /* Base container */
   .stocks-container {
     background: var(--white);
-    max-width: 1900px;
+    max-width: 1200px;
     margin: 30px auto;
-    padding: 24px;
-    letter-spacing: -0.5px;
+    padding: 30px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    letter-spacing: -0.25px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
 
-  .stocks-container h1 {
+  /* Enhanced header */
+  .header-section {
+    margin-bottom: 30px;
+    position: relative;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .header-section h1 {
+    margin: 0;
     color: var(--brown-dark);
-    margin-bottom: 20px;
-    font-size: 28px;
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .header-section:after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 80px;
+    height: 2px;
+    background: var(--brown);
   }
 
   .stocks-container h2 {
     text-align: center;
-    margin-bottom: 20px;
+    margin: 0 0 25px 0;
     color: var(--brown-dark);
+    font-size: 26px;
+    font-weight: 700;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-light);
   }
 
   .stocks-container h3 {
@@ -135,81 +182,137 @@
   #formMessageArea .message {
     color: #155724;
     background-color: #d4edda;
+    background-image: linear-gradient(to bottom, #d4edda, #c3e6cb);
     border: 1px solid #c3e6cb;
-    padding: 10px 15px;
-    margin-bottom: 15px;
-    border-radius: 5px;
+    border-left: 4px solid #28a745;
+    padding: 16px 20px;
+    margin: 0 0 24px 0;
+    border-radius: var(--radius-sm);
     text-align: center;
     font-weight: 600;
+    box-shadow: var(--shadow-sm);
+    animation: fadeSlideIn var(--transition);
+  }
+
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   #messageArea .error, 
   #formMessageArea .error {
     color: #721c24;
     background-color: #f8d7da;
-    border: 1px solid #f5c6cb;
+    border-color: #f5c6cb;
+    border-left-color: #dc3545;
   }
 
   /* Add button section */
   .add-ingredient-section {
     text-align: center;
-    margin-bottom: 30px;
+    margin: 24px 0 30px;
   }
 
   .stocks-add-btn {
-    background-color: var(--green);
-    color: white;
+    background: var(--green-gradient);
+    color: var(--white);
     border: none;
-    padding: 12px 20px;
-    border-radius: 6px;
+    padding: 14px 32px;
+    border-radius: var(--radius-sm);
     cursor: pointer;
     font-size: 16px;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    font-weight: 600;
+    transition: box-shadow var(--transition), transform var(--transition), filter var(--transition);
+    box-shadow: var(--shadow-sm), 0 1px 3px rgba(40, 167, 69, 0.3);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stocks-add-btn:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.7s;
   }
 
   .stocks-add-btn:hover {
-    background-color: var(--green-dark);
-    box-shadow: 0 0 8px rgba(40, 167, 69, 0.6);
+    box-shadow: var(--shadow-md), 0 4px 8px rgba(40, 167, 69, 0.4);
+    transform: translateY(-2px);
+    filter: brightness(1.05);
+  }
+
+  .stocks-add-btn:hover:before {
+    left: 100%;
+  }
+
+  .stocks-add-btn:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-sm), 0 1px 2px rgba(40, 167, 69, 0.4);
   }
 
   /* Permanent Promos Section */
   .permanent-promos {
-    background-color: #f5f5f5;
+    background: linear-gradient(to bottom, var(--bg-light), #eef2f7);
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     padding: 20px;
     margin-bottom: 30px;
+    box-shadow: var(--shadow-inner);
   }
 
   .promo-list {
     list-style-type: none;
     padding-left: 10px;
+    margin-bottom: 0;
   }
 
   .promo-list li {
     padding: 8px 0;
     border-bottom: 1px dashed var(--border);
+    font-size: 14px;
   }
 
   .promo-list li:last-child {
     border-bottom: none;
   }
 
-  /* Form container styling */
+  /* Enhanced Form Container */
   .stocks-form-container {
     background-color: var(--white);
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: var(--radius);
     padding: 30px;
-    margin: 0 auto 30px auto;
-    max-width: 500px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin: 0 auto 30px;
+    max-width: 700px;
+    box-shadow: var(--shadow-md);
+    position: relative;
+  }
+
+  .stocks-form-container:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--brown-gradient);
+    border-top-left-radius: var(--radius);
+    border-top-right-radius: var(--radius);
   }
 
   .stocks-form-vertical {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 20px;
+  }
+
+  /* Make last rows span two columns (buttons) */
+  .stocks-form-vertical .button-group {
+    grid-column: 1 / -1;
   }
 
   .form-group {
@@ -219,19 +322,26 @@
 
   .form-group label {
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
     color: var(--text);
     margin-bottom: 8px;
   }
 
   .form-group input[type="text"],
   .form-group input[type="date"] {
-    padding: 12px;
+    padding: 14px 16px;
     border: 1px solid var(--border-light);
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     font-size: 14px;
-    transition: border-color 0.3s ease;
-    background-color: #fafafa;
+    background-color: var(--bg-lighter);
+    transition: all var(--transition);
+    box-shadow: var(--shadow-inner);
+  }
+
+  .form-group input[type="text"]:hover,
+  .form-group input[type="date"]:hover {
+    border-color: #bbb;
+    background-color: #f5f5f5;
   }
 
   .form-group input[type="text"]:focus,
@@ -239,110 +349,245 @@
     outline: none;
     border-color: var(--green);
     background-color: var(--white);
+    box-shadow: 0 0 0 3px rgba(40,167,69,0.15);
+    transform: translateY(-1px);
   }
 
-  /* Button group styling */
+  /* Enhanced Buttons */
   .button-group {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 15px;
+  }
+
+  .add-product-btn,
+  .cancel-btn {
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all var(--transition);
+    width: 100%;
+    padding: 16px;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .add-product-btn:before,
+  .cancel-btn:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.7s;
+  }
+
+  .add-product-btn:hover:before,
+  .cancel-btn:hover:before {
+    left: 100%;
   }
 
   .add-product-btn {
-    background-color: var(--green);
-    color: white;
-    border: none;
-    padding: 15px;
-    border-radius: 6px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    width: 100%;
+    background: var(--green-gradient);
+    color: var(--white);
+    box-shadow: var(--shadow-sm), 0 1px 3px rgba(40, 167, 69, 0.3);
   }
 
   .add-product-btn:hover {
-    background-color: var(--green-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md), 0 4px 8px rgba(40, 167, 69, 0.4);
+    filter: brightness(1.05);
+  }
+
+  .add-product-btn:active {
+    transform: translateY(0);
+    filter: brightness(0.95);
   }
 
   .cancel-btn {
-    background-color: var(--gray);
-    color: white;
-    border: none;
-    padding: 15px;
-    border-radius: 6px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    width: 100%;
+    background: var(--gray-gradient);
+    color: var(--white);
   }
 
   .cancel-btn:hover {
-    background-color: var(--gray-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    filter: brightness(1.05);
   }
 
-  /* Table styling */
+  .cancel-btn:active {
+    transform: translateY(0);
+    filter: brightness(0.95);
+  }
+
+  /* Enhanced Table Container - EXACTLY like stocks.ejs */
+  .table-container {
+    overflow: hidden;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    margin-top: 30px;
+    background: var(--white);
+    border: 1px solid var(--border);
+  }
+
+  /* Enhanced Table - EXACTLY like stocks.ejs */
   .stocks-table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     font-size: 14px;
-    margin-top: 20px;
   }
 
-  .stocks-table th, .stocks-table td {
+  .stocks-table th,
+  .stocks-table td {
     text-align: center;
-    padding: 10px;
-    border-bottom: 1px solid var(--border-light);
+    padding: 16px 12px;
+    border-bottom: 1px solid var(--border);
   }
 
-  .stocks-table th {
-    background-color: var(--brown);
-    color: white;
+  .stocks-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .stocks-table thead th {
+    background: var(--brown-gradient);
+    color: var(--white);
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 16px 12px;
+    box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+  }
+
+  .stocks-table thead th:first-child {
+    border-top-left-radius: var(--radius-xs);
+  }
+
+  .stocks-table thead th:last-child {
+    border-top-right-radius: var(--radius-xs);
+  }
+
+  .stocks-table tbody tr {
+    transition: background-color var(--transition);
+  }
+
+  .stocks-table tbody tr:nth-child(even) {
+    background-color: #f7f9fc;
+  }
+
+  .stocks-table tbody tr:hover {
+    background-color: #eef2f7;
   }
 
   .stocks-table input[type="text"],
-  .stocks-table input[type="date"] {
+  .stocks-table input[type="date"],
+  .stocks-table input[type="number"],
+  .stocks-table select {
     width: 100%;
-    padding: 6px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    padding: 10px 12px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-xs);
+    background: var(--bg-lighter);
+    transition: all var(--transition);
+    box-shadow: var(--shadow-inner);
+    font-size: 14px;
   }
 
+  .stocks-table input[type="text"]:hover,
+  .stocks-table input[type="date"]:hover,
+  .stocks-table input[type="number"]:hover,
+  .stocks-table select:hover {
+    border-color: #bbb;
+    background-color: #f5f5f5;
+  }
+
+  .stocks-table input[type="text"]:focus,
+  .stocks-table input[type="date"]:focus,
+  .stocks-table input[type="number"]:focus,
+  .stocks-table select:focus {
+    outline: none;
+    border-color: var(--green);
+    background: var(--white);
+    box-shadow: 0 0 0 3px rgba(40,167,69,0.15);
+    transform: translateY(-1px);
+  }
+
+  /* Enhanced Action Buttons - EXACTLY like stocks.ejs */
   .stocks-btn {
-    padding: 6px 12px;
+    padding: 10px 16px;
     border: none;
-    border-radius: 5px;
-    color: white;
+    border-radius: var(--radius-xs);
+    color: var(--white);
     font-size: 13px;
+    font-weight: 700;
     cursor: pointer;
     margin: 2px;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    transition: all var(--transition);
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+    min-width: 80px;
+  }
+
+  .stocks-btn:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.7s;
+  }
+
+  .stocks-btn:hover:before {
+    left: 100%;
   }
 
   .stocks-btn.update {
-    background-color: var(--green);
+    background: var(--green-gradient);
+    box-shadow: var(--shadow-sm), 0 1px 3px rgba(40, 167, 69, 0.3);
   }
 
   .stocks-btn.update:hover {
-    background-color: var(--green-dark);
-    box-shadow: 0 0 8px rgba(40, 167, 69, 0.6);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm), 0 4px 8px rgba(40, 167, 69, 0.4);
+    filter: brightness(1.05);
   }
 
   .stocks-btn.delete {
-    background-color: var(--red);
+    background: var(--red-gradient);
+    box-shadow: var(--shadow-sm), 0 1px 3px rgba(220, 53, 69, 0.3);
   }
 
   .stocks-btn.delete:hover {
-    background-color: var(--red-dark);
-    box-shadow: 0 0 8px rgba(220, 53, 69, 0.6);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm), 0 4px 8px rgba(220, 53, 69, 0.4);
+    filter: brightness(1.05);
+  }
+
+  .stocks-btn:active {
+    transform: translateY(0);
+    filter: brightness(0.95);
   }
 
   .stocks-center {
     text-align: center;
     font-style: italic;
     color: var(--muted);
+    padding: 25px;
+    font-size: 15px;
+    background: linear-gradient(to bottom, var(--bg-light), #eef2f7);
   }
 
   /* Loading indicator */
@@ -352,35 +597,102 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: rgba(0,0,0,0.7);
+    background: rgba(0,0,0,0.85);
     color: white;
-    padding: 15px 25px;
-    border-radius: 5px;
-    z-index: 1000;
+    padding: 1.25rem 2.5rem;
+    border-radius: 10px;
+    z-index: 9999;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.3);
+    backdrop-filter: blur(4px);
+    animation: pulse 1.5s infinite alternate;
   }
 
-  /* Responsive adjustments */
-  @media (max-width: 768px) {
+  @keyframes pulse {
+    from { box-shadow: 0 0 25px rgba(255,255,255,0.5); }
+    to { box-shadow: 0 0 15px rgba(255,255,255,0.3); }
+  }
+
+  /* Enhanced Responsive Design */
+  @media (max-width: 900px) {
+    .stocks-form-vertical {
+      grid-template-columns: 1fr;
+    }
+    
+    .stocks-form-vertical .form-group:nth-child(n) {
+      grid-column: 1 / -1;
+    }
+    
+    .button-group {
+      grid-template-columns: 1fr;
+    }
+    
+    .button-group button {
+      margin-bottom: 5px;
+    }
+  }
+
+  @media (max-width: 700px) {
     .stocks-container {
-      padding: 15px;
-    }
-    
-    .stocks-form-container {
       padding: 20px;
+      margin: 15px;
+      border-radius: var(--radius-sm);
     }
     
-    .stocks-table {
-      font-size: 12px;
+    .header-section h1 {
+      font-size: 28px;
     }
     
-    .stocks-table th, .stocks-table td {
-      padding: 8px 5px;
+    .stocks-table thead th {
+      font-size: 13px;
+      padding: 14px 8px;
+    }
+    
+    .stocks-table th,
+    .stocks-table td {
+      padding: 14px 8px;
     }
     
     .stocks-btn {
-      padding: 5px 10px;
+      padding: 8px 12px;
       font-size: 12px;
+      min-width: 70px;
     }
+  }
+  
+  @media (max-width: 500px) {
+    .stocks-container {
+      padding: 16px 12px;
+    }
+    
+    .action-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    
+    .stocks-table {
+      font-size: 13px;
+    }
+    
+    .stocks-table input[type="text"],
+    .stocks-table input[type="date"],
+    .stocks-table input[type="number"],
+    .stocks-table select {
+      padding: 8px;
+    }
+  }
+
+  /* Focus States for Accessibility */
+  .stocks-add-btn:focus,
+  .add-product-btn:focus,
+  .cancel-btn:focus,
+  .stocks-btn:focus,
+  input:focus,
+  select:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(40,167,69,0.25);
   }
 </style>
 
