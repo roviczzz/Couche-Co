@@ -140,9 +140,6 @@
   --transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Widen container to fill available space */
-
-
 /* Enhanced header */
 .header-section {
   margin-bottom: 30px;
@@ -238,15 +235,15 @@
   box-shadow: var(--shadow-sm), 0 1px 2px rgba(40, 167, 69, 0.4);
 }
 
-/* Enhanced Form Container - now wider */
+/* Enhanced Form Container - Portrait Layout */
 .stocks-form-container {
   background-color: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 30px;
   margin: 0 auto 30px;
-  max-width: 90%;
-  width: 90%;
+  max-width: 500px; /* Fixed width for better alignment */
+  width: 100%;
   box-shadow: var(--shadow-md);
   position: relative;
 }
@@ -273,22 +270,17 @@
   border-bottom: 1px solid var(--border-light);
 }
 
+/* FIXED: Clean Portrait Layout - Single Column */
 .stocks-form-vertical {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 20px;
-}
-
-/* Make checkboxes and buttons span full width */
-.stocks-form-vertical .form-group:nth-child(6),
-.stocks-form-vertical .form-group:nth-child(7),
-.stocks-form-vertical .button-group {
-  grid-column: 1 / -1;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
 .form-group label {
@@ -307,6 +299,8 @@
   background-color: var(--bg-lighter);
   transition: all var(--transition);
   box-shadow: var(--shadow-inner);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .form-group input[type="text"]:hover,
@@ -331,9 +325,8 @@
   background: linear-gradient(to bottom, var(--bg-light), #eef2f7);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 14px 16px;
-  margin: 8px 0;
   box-shadow: var(--shadow-inner);
+  margin: 5px 0;
 }
 
 .checkbox-group label {
@@ -345,6 +338,7 @@
   font-weight: 600;
   color: var(--text);
   user-select: none;
+  width: 100%;
 }
 
 .checkbox-group input[type="checkbox"] {
@@ -357,13 +351,10 @@
 
 /* Enhanced Buttons */
 .button-group {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
   gap: 16px;
-  margin-top: 15px;
-  max-width: 400px;
-  margin-left: auto;
-  margin-right: auto;
+  margin-top: 20px;
+  justify-content: center;
 }
 
 .add-product-btn,
@@ -374,11 +365,11 @@
   font-weight: 700;
   cursor: pointer;
   transition: all var(--transition);
-  width: 100%;
-  padding: 16px;
+  padding: 16px 32px;
   box-shadow: var(--shadow-sm);
   position: relative;
   overflow: hidden;
+  min-width: 140px;
 }
 
 .add-product-btn:before,
@@ -431,7 +422,7 @@
   filter: brightness(0.95);
 }
 
-/* Enhanced Table Container - wider */
+/* Enhanced Table Container */
 .table-container {
   overflow-x: auto;
   border-radius: var(--radius);
@@ -442,7 +433,7 @@
   width: 100%;
 }
 
-/* Enhanced Table - wider columns */
+/* Enhanced Table */
 .stocks-table {
   width: 100%;
   border-collapse: separate;
@@ -451,14 +442,14 @@
   table-layout: fixed;
 }
 
-/* Define column widths to use full space */
-.stocks-table th:nth-child(1), .stocks-table td:nth-child(1) { width: 15%; } /* Ingredient ID */
-.stocks-table th:nth-child(2), .stocks-table td:nth-child(2) { width: 20%; } /* Name */
-.stocks-table th:nth-child(3), .stocks-table td:nth-child(3) { width: 10%; } /* Quantity */
-.stocks-table th:nth-child(4), .stocks-table td:nth-child(4) { width: 15%; } /* Category */
-.stocks-table th:nth-child(5), .stocks-table td:nth-child(5) { width: 15%; } /* Allergen */
-.stocks-table th:nth-child(6), .stocks-table td:nth-child(6) { width: 10%; } /* Status */
-.stocks-table th:nth-child(7), .stocks-table td:nth-child(7) { width: 15%; } /* Actions */
+/* Define column widths */
+.stocks-table th:nth-child(1), .stocks-table td:nth-child(1) { width: 15%; }
+.stocks-table th:nth-child(2), .stocks-table td:nth-child(2) { width: 20%; }
+.stocks-table th:nth-child(3), .stocks-table td:nth-child(3) { width: 10%; }
+.stocks-table th:nth-child(4), .stocks-table td:nth-child(4) { width: 15%; }
+.stocks-table th:nth-child(5), .stocks-table td:nth-child(5) { width: 15%; }
+.stocks-table th:nth-child(6), .stocks-table td:nth-child(6) { width: 10%; }
+.stocks-table th:nth-child(7), .stocks-table td:nth-child(7) { width: 15%; }
 
 .stocks-table th,
 .stocks-table td {
@@ -605,54 +596,20 @@
 }
 
 /* Enhanced Responsive Design */
-@media (max-width: 1200px) {
-  .stocks-container {
-    max-width: 98vw;
-    width: 98vw;
-    padding: 28px;
-  }
-  
+@media (max-width: 600px) {
   .stocks-form-container {
     max-width: 95%;
-    width: 95%;
-  }
-}
-
-@media (max-width: 900px) {
-  .stocks-form-vertical {
-    grid-template-columns: 1fr 1fr;
-  }
-  
-  .stocks-form-vertical .form-group:nth-child(5),
-  .stocks-form-vertical .form-group:nth-child(6),
-  .stocks-form-vertical .form-group:nth-child(7),
-  .stocks-form-vertical .button-group {
-    grid-column: 1 / -1;
+    padding: 20px;
   }
   
   .button-group {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+    gap: 10px;
   }
   
-  .button-group button {
-    margin-bottom: 5px;
-  }
-}
-
-@media (max-width: 700px) {
-  .stocks-container {
-    padding: 20px;
-    margin: 15px auto;
-    max-width: 95vw;
-    width: 95vw;
-  }
-  
-  .stocks-form-vertical {
-    grid-template-columns: 1fr;
-  }
-  
-  .stocks-form-vertical .form-group:nth-child(n) {
-    grid-column: 1 / -1;
+  .add-product-btn,
+  .cancel-btn {
+    width: 100%;
   }
   
   .header-section h1 {
@@ -680,12 +637,6 @@
   .stocks-container {
     padding: 16px 12px;
     margin: 10px auto;
-  }
-  
-  .action-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
   }
   
   .stocks-table {

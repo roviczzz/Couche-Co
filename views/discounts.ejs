@@ -35,6 +35,11 @@
       </div>
 
       <div class="form-group">
+        <label for="discountPercentageInput">Discount Percentage:</label>
+        <input type="number" id="discountPercentageInput" name="discountPercentage" placeholder="Enter discount percentage (e.g. 15)" min="0" max="100" step="0.01" required>
+      </div>
+
+      <div class="form-group">
         <label for="startDateInput">Starting Date:</label>
         <input type="date" id="startDateInput" name="startDate" required>
       </div>
@@ -60,6 +65,7 @@
           <th>Starting Date</th>
           <th>Closing Date</th>
           <th>Description</th>
+          <th>Discount %</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -71,6 +77,7 @@
               <td><input type="date" name="startDate" class="start-date-input" value="<%= promo.startDate ? new Date(promo.startDate).toISOString().split('T')[0] : '' %>" data-id="<%= promo._id %>" required></td>
               <td><input type="date" name="endDate" class="end-date-input" value="<%= promo.endDate ? new Date(promo.endDate).toISOString().split('T')[0] : '' %>" data-id="<%= promo._id %>" required></td>
               <td><input type="text" name="description" class="description-input" value="<%= promo.description %>" data-id="<%= promo._id %>" required></td>
+              <td><input type="number" name="discountPercentage" class="discount-percentage-input" value="<%= promo.discountPercentage || '' %>" data-id="<%= promo._id %>" min="0" max="100" step="0.01" required></td>
               <td>
                 <button class="stocks-btn update update-btn" data-id="<%= promo._id %>">Update</button>
                 <button class="stocks-btn delete delete-btn" data-id="<%= promo._id %>">Delete</button>
@@ -79,7 +86,7 @@
           <% }) %>
         <% } else { %>
           <tr>
-            <td colspan="5" class="stocks-center">No promos found.</td>
+            <td colspan="6" class="stocks-center">No promos found.</td>
           </tr>
         <% } %>
       </tbody>
@@ -270,14 +277,15 @@
     border-bottom: none;
   }
 
-  /* Enhanced Form Container */
+  /* Enhanced Form Container - Portrait Layout */
   .stocks-form-container {
     background-color: var(--white);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 30px;
     margin: 0 auto 30px;
-    max-width: 700px;
+    max-width: 500px; /* Fixed width for better alignment */
+    width: 100%;
     box-shadow: var(--shadow-md);
     position: relative;
   }
@@ -294,20 +302,17 @@
     border-top-right-radius: var(--radius);
   }
 
+  /* FIXED: Clean Portrait Layout - Single Column */
   .stocks-form-vertical {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 20px;
-  }
-
-  /* Make last rows span two columns (buttons) */
-  .stocks-form-vertical .button-group {
-    grid-column: 1 / -1;
   }
 
   .form-group {
     display: flex;
     flex-direction: column;
+    width: 100%;
   }
 
   .form-group label {
@@ -318,7 +323,8 @@
   }
 
   .form-group input[type="text"],
-  .form-group input[type="date"] {
+  .form-group input[type="date"],
+  .form-group input[type="number"] {
     padding: 14px 16px;
     border: 1px solid var(--border-light);
     border-radius: var(--radius-sm);
@@ -326,16 +332,20 @@
     background-color: var(--bg-lighter);
     transition: all var(--transition);
     box-shadow: var(--shadow-inner);
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .form-group input[type="text"]:hover,
-  .form-group input[type="date"]:hover {
+  .form-group input[type="date"]:hover,
+  .form-group input[type="number"]:hover {
     border-color: #bbb;
     background-color: #f5f5f5;
   }
 
   .form-group input[type="text"]:focus,
-  .form-group input[type="date"]:focus {
+  .form-group input[type="date"]:focus,
+  .form-group input[type="number"]:focus {
     outline: none;
     border-color: var(--green);
     background-color: var(--white);
@@ -345,10 +355,10 @@
 
   /* Enhanced Buttons */
   .button-group {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
     gap: 16px;
-    margin-top: 15px;
+    margin-top: 20px;
+    justify-content: center;
   }
 
   .add-product-btn,
@@ -359,11 +369,11 @@
     font-weight: 700;
     cursor: pointer;
     transition: all var(--transition);
-    width: 100%;
-    padding: 16px;
+    padding: 16px 32px;
     box-shadow: var(--shadow-sm);
     position: relative;
     overflow: hidden;
+    min-width: 140px;
   }
 
   .add-product-btn:before,
@@ -605,29 +615,20 @@
   }
 
   /* Enhanced Responsive Design */
-  @media (max-width: 900px) {
-    .stocks-form-vertical {
-      grid-template-columns: 1fr;
-    }
-    
-    .stocks-form-vertical .form-group:nth-child(n) {
-      grid-column: 1 / -1;
+  @media (max-width: 600px) {
+    .stocks-form-container {
+      max-width: 95%;
+      padding: 20px;
     }
     
     .button-group {
-      grid-template-columns: 1fr;
+      flex-direction: column;
+      gap: 10px;
     }
     
-    .button-group button {
-      margin-bottom: 5px;
-    }
-  }
-
-  @media (max-width: 700px) {
-    .stocks-container {
-      padding: 20px;
-      margin: 15px;
-      border-radius: var(--radius-sm);
+    .add-product-btn,
+    .cancel-btn {
+      width: 100%;
     }
     
     .header-section h1 {
@@ -732,7 +733,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (activeRows === 0 && !emptyRow) {
       const tableBody = document.getElementById('promoTableBody');
-      tableBody.innerHTML = `<tr><td colspan="5" class="stocks-center">No promos found.</td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="6" class="stocks-center">No promos found.</td></tr>`;
     }
   }
 
@@ -749,6 +750,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('promoForm');
     const event = document.getElementById('eventInput').value.trim();
     const description = document.getElementById('descriptionInput').value.trim();
+    const discountPercentage = document.getElementById('discountPercentageInput').value;
     const startDate = document.getElementById('startDateInput').value;
     const endDate = document.getElementById('endDateInput').value;
     
@@ -759,6 +761,16 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (!description) {
       showMessage('Please enter a description', 'error', 'formMessageArea');
+      return false;
+    }
+    
+    if (!discountPercentage) {
+      showMessage('Please enter a discount percentage', 'error', 'formMessageArea');
+      return false;
+    }
+    
+    if (discountPercentage < 0 || discountPercentage > 100) {
+      showMessage('Discount percentage must be between 0 and 100', 'error', 'formMessageArea');
       return false;
     }
     
@@ -798,6 +810,7 @@ document.addEventListener('DOMContentLoaded', function() {
       <td><input type="date" name="startDate" class="start-date-input" value="${promo.startDate ? new Date(promo.startDate).toISOString().split('T')[0] : ''}" data-id="${promo._id}" required></td>
       <td><input type="date" name="endDate" class="end-date-input" value="${promo.endDate ? new Date(promo.endDate).toISOString().split('T')[0] : ''}" data-id="${promo._id}" required></td>
       <td><input type="text" name="description" class="description-input" value="${promo.description}" data-id="${promo._id}" required></td>
+      <td><input type="number" name="discountPercentage" class="discount-percentage-input" value="${promo.discountPercentage || ''}" data-id="${promo._id}" min="0" max="100" step="0.01" required></td>
       <td>
         <button class="stocks-btn update update-btn" data-id="${promo._id}">Update</button>
         <button class="stocks-btn delete delete-btn" data-id="${promo._id}">Delete</button>
@@ -839,6 +852,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Get form values
     const event = document.getElementById('eventInput').value;
     const description = document.getElementById('descriptionInput').value;
+    const discountPercentage = document.getElementById('discountPercentageInput').value;
     const startDate = document.getElementById('startDateInput').value;
     const endDate = document.getElementById('endDateInput').value;
     
@@ -846,6 +860,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const payload = {
       event: event,
       description: description,
+      discountPercentage: parseFloat(discountPercentage),
       startDate: startDate,
       endDate: endDate
     };
@@ -905,14 +920,20 @@ document.addEventListener('DOMContentLoaded', function() {
       const startDate = row.querySelector('.start-date-input').value;
       const endDate = row.querySelector('.end-date-input').value;
       const description = row.querySelector('.description-input').value;
+      const discountPercentage = row.querySelector('.discount-percentage-input').value;
       
       if (!validateDates(startDate, endDate)) {
         showMessage('Closing date must be after or equal to starting date', 'error');
         return;
       }
       
-      if (!event || !description || !startDate || !endDate) {
+      if (!event || !description || !discountPercentage || !startDate || !endDate) {
         showMessage('All fields are required', 'error');
+        return;
+      }
+      
+      if (discountPercentage < 0 || discountPercentage > 100) {
+        showMessage('Discount percentage must be between 0 and 100', 'error');
         return;
       }
       
@@ -926,7 +947,8 @@ document.addEventListener('DOMContentLoaded', function() {
         event: event,
         startDate: startDate,
         endDate: endDate,
-        description: description
+        description: description,
+        discountPercentage: parseFloat(discountPercentage)
       };
       
       fetch(`/discounts/edit/${promoId}`, {
