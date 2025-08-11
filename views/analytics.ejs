@@ -8,11 +8,20 @@
       font-family: Arial, sans-serif;
       margin: 20px;
     }
-    h1 {
+    h1, h2 {
       color: #6b3e26;
     }
     .section {
-      margin-bottom: 40px;
+      margin-bottom: 50px;
+    }
+    /* Chart container styling */
+    .chart-container {
+      max-width: 1000px; /* bigger */
+      margin: auto;
+    }
+    canvas {
+      width: 100% !important;
+      height: 500px !important; /* taller */
     }
   </style>
 </head>
@@ -24,15 +33,19 @@
       Below is a breakdown of the top-selling products based on recent sales data.
       This chart helps you identify which items are most popular with your customers.
     </p>
-    <canvas id="popularProductsChart" width="800" height="400"></canvas>
+    <div class="chart-container">
+      <canvas id="popularProductsChart"></canvas>
+    </div>
   </div>
 
   <div class="section">
-    <h2>Average Sales Per Day</h2>
+    <h1>Average Sales Per Day</h1>
     <p>
       This chart shows the average sales amount per order for each day, helping you see trends in customer spending.
     </p>
-    <canvas id="averageSalesChart" width="800" height="400"></canvas>
+    <div class="chart-container">
+      <canvas id="averageSalesChart"></canvas>
+    </div>
   </div>
 
   <script>
@@ -41,7 +54,7 @@
         const res = await fetch('/analytics/popular-products');
         const results = await res.json();
 
-        const top = results.slice(0, 10); // top 10
+        const top = results.slice(0, 10);
         const labels = top.map(r => r._id);
         const data = top.map(r => r.totalQuantity);
 
@@ -52,13 +65,24 @@
             datasets: [{
               label: 'Units Sold',
               data: data,
-              backgroundColor: 'rgba(108, 52, 31, 0.7)'
+              backgroundColor: 'rgba(108, 52, 31, 0.8)',
+              borderWidth: 2
             }]
           },
           options: {
             responsive: true,
+            plugins: {
+              legend: { labels: { font: { size: 16 } } },
+              title: { display: true, text: 'Top 10 Products', font: { size: 20 } }
+            },
             scales: {
-              y: { beginAtZero: true }
+              x: {
+                ticks: { font: { size: 14 } }
+              },
+              y: { 
+                beginAtZero: true,
+                ticks: { font: { size: 14 } }
+              }
             }
           }
         });
@@ -72,7 +96,6 @@
         const res = await fetch('/analytics/average-sales-per-day');
         const results = await res.json();
 
-        // Format dates to "MMM DD, YYYY" (e.g., Aug 11, 2025)
         const labels = results.map(r => {
           const dateObj = new Date(r._id);
           return dateObj.toLocaleDateString('en-US', {
@@ -91,22 +114,29 @@
             datasets: [{
               label: 'Average Sales (₱)',
               data: data,
-              backgroundColor: 'rgba(108, 52, 31, 0.3)',
+              backgroundColor: 'rgba(108, 52, 31, 0.2)',
               borderColor: 'rgba(108, 52, 31, 1)',
+              borderWidth: 3,
+              pointRadius: 5,
+              pointHoverRadius: 7,
               fill: true,
               tension: 0.3
             }]
           },
           options: {
             responsive: true,
+            plugins: {
+              legend: { labels: { font: { size: 16 } } },
+              title: { display: true, text: 'Average Sales Trend', font: { size: 20 } }
+            },
             scales: {
               x: {
-                ticks: {
-                  maxRotation: 45,  // Tilt labels for better fit
-                  minRotation: 45
-                }
+                ticks: { font: { size: 14 }, maxRotation: 45, minRotation: 45 }
               },
-              y: { beginAtZero: true }
+              y: {
+                beginAtZero: true,
+                ticks: { font: { size: 14 } }
+              }
             }
           }
         });
