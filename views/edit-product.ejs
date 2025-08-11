@@ -17,10 +17,31 @@
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   }
 
-  .form-container h2 {
-    text-align: left;
+  .header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 20px;
+  }
+
+  .form-container h2 {
+    margin: 0;
     color: #333;
+  }
+
+  .back-button {
+    padding: 8px 14px;
+    background-color: #ccc;
+    color: #333;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+  }
+
+  .back-button:hover {
+    background-color: #bbb;
   }
 
   .field-group {
@@ -79,7 +100,11 @@
 </style>
 
 <div class="form-container">
-  <h2>Edit Product</h2>
+  <div class="header-container">
+    <h2>Edit Product</h2>
+    <a href="/products" class="back-button">← Back</a>
+  </div>
+
   <form id="editProductForm" action="/products/edit/<%= product._id %>" method="POST">
     <div class="field-group">
       <div class="field-label">Name:</div>
@@ -138,7 +163,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
   document.getElementById('editProductForm').addEventListener('submit', function(e) {
-    e.preventDefault(); // prevent default form submission
+    e.preventDefault();
     
     Swal.fire({
       title: 'Update this product?',
