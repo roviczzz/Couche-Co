@@ -77,11 +77,10 @@
     background-color: #247432;
   }
 </style>
-</style>
 
 <div class="form-container">
   <h2>Edit Product</h2>
-  <form action="/products/edit/<%= product._id %>" method="POST">
+  <form id="editProductForm" action="/products/edit/<%= product._id %>" method="POST">
     <div class="field-group">
       <div class="field-label">Name:</div>
       <div><input class="field-input" type="text" name="Name" value="<%= product.Name %>" required></div>
@@ -101,7 +100,6 @@
       <div class="field-label">22oz Price:</div>
       <div><input class="field-input" type="number" name="size22" value="<%= size22 ? size22.BasePrice : '' %>" step="0.01"></div>
     </div>
-
 
     <div class="field-group">
       <div class="field-label">Ingredients (comma-separated):</div>
@@ -135,3 +133,28 @@
     <button class="submit-button" type="submit">Update Product</button>
   </form>
 </div>
+
+<!-- SweetAlert2 Script -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  document.getElementById('editProductForm').addEventListener('submit', function(e) {
+    e.preventDefault(); // prevent default form submission
+    
+    Swal.fire({
+      title: 'Update this product?',
+      text: "Your changes will be saved.",
+      imageUrl: 'https://iili.io/F5oAbt9.png',
+      imageWidth: 80,
+      imageHeigth: 80,
+      showCancelButton: true,
+      confirmButtonColor: '#2b8a3e',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, update it!',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.submit();
+      }
+    });
+  });
+</script>

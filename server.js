@@ -723,12 +723,23 @@ app.post('/api/orders', async (req, res) => {
   }
 });
 
+let ordersCollection;
+let menuCollection;
+
+async function connectDB() {
+  await client.connect();
+  const db = client.db('blessingscafe');
+  ordersCollection = db.collection('Orders');
+  menuCollection = db.collection('Menu');
+}
+
+connectDB()
+  .then(() => console.log("Connected to MongoDB"))
+  .catch(err => console.error("DB connection error:", err));
+
+// Popular Products
 async function getPopularProducts() {
   try {
-    await client.connect();
-    const db = client.db('blessingscafe'); // your DB name
-    const ordersCollection = db.collection('Orders');
-
     const results = await ordersCollection.aggregate([
       { $unwind: "$Cart" },
       {
@@ -744,8 +755,6 @@ async function getPopularProducts() {
   } catch (error) {
     console.error(error);
     return [];
-  } finally {
-    await client.close();
   }
 }
 
@@ -759,7 +768,39 @@ app.get('/analytics/popular-products', async (req, res) => {
   }
 });
 
+// Sales Per Day
+app.get('/analytics/average-sales-per-day', async (req, res) => {
+  try {
+    const salesPerDay = await ordersCollection.aggregate([
+      {
+        $addFields: {
+          parsedDate: {
+            $cond: {
+              if: { $eq: [{ $type: "$Date" }, "string"] },
+              then: { $dateFromString: { dateString: "$Date" } },
+              else: "$Date"
+            }
+          }
+        }
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$parsedDate" } },
+          avgSales: { $avg: "$Total" }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]).toArray();
 
+    res.json(salesPerDay);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error fetching average sales per day");
+  }
+});
+
+
+// Analytics page
 app.get('/analytics', isLoggedIn, nocache, (req, res) => {
   res.render('analytics', {
     title: 'Analytics | Blessings Cafe',
@@ -767,7 +808,6 @@ app.get('/analytics', isLoggedIn, nocache, (req, res) => {
     currentPage: req.path
   });
 });
-
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);

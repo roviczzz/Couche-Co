@@ -1,15 +1,42 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
 <head>
   <title><%= title %></title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    h1 {
+      color: #6b3e26;
+    }
+    .section {
+      margin-bottom: 40px;
+    }
+  </style>
 </head>
 <body>
-  <h1>Popular Products</h1>
-  <canvas id="popularProductsChart" width="800" height="400"></canvas>
+
+  <div class="section">
+    <h1>Popular Products</h1>
+    <p>
+      Below is a breakdown of the top-selling products based on recent sales data.
+      This chart helps you identify which items are most popular with your customers.
+    </p>
+    <canvas id="popularProductsChart" width="800" height="400"></canvas>
+  </div>
+
+  <div class="section">
+    <h2>Average Sales Per Day</h2>
+    <p>
+      This chart shows the average sales amount per order for each day, helping you see trends in customer spending.
+    </p>
+    <canvas id="averageSalesChart" width="800" height="400"></canvas>
+  </div>
 
   <script>
-    async function drawChart() {
+    async function drawPopularProductsChart() {
       try {
         const res = await fetch('/analytics/popular-products');
         const results = await res.json();
@@ -25,13 +52,12 @@
             datasets: [{
               label: 'Units Sold',
               data: data,
-              // Chart.js will pick defaults; style later as needed
+              backgroundColor: 'rgba(108, 52, 31, 0.7)'
             }]
           },
           options: {
             responsive: true,
             scales: {
-              x: { beginAtZero: true },
               y: { beginAtZero: true }
             }
           }
@@ -41,7 +67,56 @@
       }
     }
 
-    drawChart();
+    async function drawAverageSalesChart() {
+      try {
+        const res = await fetch('/analytics/average-sales-per-day');
+        const results = await res.json();
+
+        // Format dates to "MMM DD, YYYY" (e.g., Aug 11, 2025)
+        const labels = results.map(r => {
+          const dateObj = new Date(r._id);
+          return dateObj.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+          });
+        });
+
+        const data = results.map(r => r.avgSales);
+
+        new Chart(document.getElementById('averageSalesChart'), {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Average Sales (₱)',
+              data: data,
+              backgroundColor: 'rgba(108, 52, 31, 0.3)',
+              borderColor: 'rgba(108, 52, 31, 1)',
+              fill: true,
+              tension: 0.3
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              x: {
+                ticks: {
+                  maxRotation: 45,  // Tilt labels for better fit
+                  minRotation: 45
+                }
+              },
+              y: { beginAtZero: true }
+            }
+          }
+        });
+      } catch (err) {
+        console.error('Average sales chart error', err);
+      }
+    }
+
+    drawPopularProductsChart();
+    drawAverageSalesChart();
   </script>
 </body>
 </html>
