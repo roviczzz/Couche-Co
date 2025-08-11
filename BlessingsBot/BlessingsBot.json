@@ -160,7 +160,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        620,
+        400,
         -820
       ],
       "id": "5f8483d0-8d83-4b70-911d-6d735d44bb0b",
@@ -188,7 +188,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        180,
+        -40,
         -1120
       ],
       "id": "eb8789bf-5f7f-4948-a5b1-c007b636a7a8",
@@ -215,7 +215,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -40,
+        -260,
         -1120
       ],
       "id": "e1c555a3-8f8a-446e-bd4d-6f710c9f996e",
@@ -242,7 +242,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        400,
+        180,
         -820
       ],
       "id": "f9f6fb4d-e72f-4a3f-95d3-bd4a0e312638",
@@ -759,7 +759,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1240,
+        1020,
         580
       ],
       "id": "9afb48f7-fdce-4b38-9c61-20e9e697d1ad",
@@ -786,7 +786,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1240,
+        1020,
         780
       ],
       "id": "51aac8ef-611d-4439-8adc-a51b7c24190b",
@@ -813,7 +813,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1240,
+        1020,
         980
       ],
       "id": "df59f71a-091c-4df3-af12-d26dd102da08",
@@ -841,7 +841,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1460,
+        1240,
         580
       ],
       "id": "8d651e29-c931-461e-9c53-1d374fc12835",
@@ -868,7 +868,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1460,
+        1240,
         780
       ],
       "id": "488b6806-ef64-4c96-98c5-f89e634a96a0",
@@ -895,7 +895,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1460,
+        1240,
         980
       ],
       "id": "ddcf1c9b-121e-442b-a549-72b6bee19e64",
@@ -984,7 +984,7 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        1020,
+        800,
         780
       ],
       "id": "8325ea7c-fd2b-4b0d-a82e-7e26a17bc46a",
@@ -997,7 +997,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -40,
+        -260,
         640
       ],
       "id": "4f26a22b-9332-42e8-8e01-55177bfbae91",
@@ -1012,7 +1012,7 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        180,
+        -40,
         640
       ],
       "id": "a6c616f3-9b43-458b-bc64-f0c747be006a",
@@ -1031,7 +1031,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        400,
+        180,
         640
       ],
       "id": "ba7d3731-c9a9-490a-bd79-3ba1c3b7b873",
@@ -1058,7 +1058,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        840,
+        620,
         640
       ],
       "id": "77800f66-04a6-482e-bce7-cd3715443d08",
@@ -1068,12 +1068,12 @@
       "parameters": {
         "collection": "Menu",
         "options": {},
-        "query": "={\n  \"ProductID\": {\n    \"$in\": [\n      \"CF-SPL\",\n      \"CF-SCA\",\n      \"FT-GAP\",\n      \"MT-MAT\",\n      \"MT-OKI\",\n      \"MT-WIN\"\n    ]\n  },\n  \"isEnabled\": true\n}"
+        "query": "={\n  \"ProductID\": {\n    \"$in\": [\n      \"CF-SPL\",\n      \"CF-SCA\",\n      \"FT-GAP\",\n      \"MT-MAT\",\n      \"MT-OKI\",\n      \"MT-WIN\"\n    ]\n  },\n  \"IsEnabled\": true,\n  \"available\": true\n}"
       },
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        -40,
+        -260,
         -600
       ],
       "id": "6defc956-8c80-469b-9d9e-ae5c2d6dcb0c",
@@ -1087,12 +1087,12 @@
     },
     {
       "parameters": {
-        "jsCode": "const desiredProductIDs = [\n  \"CF-SPL\",\n  \"CF-SCA\",\n  \"FT-GAP\",\n  \"MT-MAT\",\n  \"MT-OKI\",\n  \"MT-WIN\"\n];\n\nconst senderId = $('Listen').first().json.senderId;\n\nconst menuItems = $input.all().map(i => i.json);\n\nconst filteredItems = menuItems.filter(item =>\n  desiredProductIDs.includes(item.ProductID) && item.isEnabled\n);\n\nconst elements = filteredItems.map(item => ({\n  title: item.Name,\n  image_url: (item.imagelink && item.imagelink !== \"placeholder\")\n    ? item.imagelink\n    : `https://via.placeholder.com/300x200?text=${encodeURIComponent(item.Name)}`,\n  subtitle: item.description || \"No description available\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Add to Cart\",\n      payload: `ADD_${item.ProductID}`\n    }\n  ]\n}));\n\nelements.push({\n  title: \"Main Menu\",\n  image_url: \"https://via.placeholder.com/300x200?text=Main+Menu\",\n  subtitle: \"Return to main menu\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Go Back\",\n      payload: \"REVIEW_MENU\"\n    }\n  ]\n});\n\nconst responsePayload = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    attachment: {\n      type: \"template\",\n      payload: {\n        template_type: \"generic\",\n        elements: elements\n      }\n    }\n  }\n};\n\nreturn [{ json: responsePayload }];\n"
+        "jsCode": "const desiredProductIDs = [\n  \"CF-SPL\",\n  \"CF-SCA\",\n  \"FT-GAP\",\n  \"MT-MAT\",\n  \"MT-OKI\",\n  \"MT-WIN\"\n];\n\nconst senderId = $('Listen').first().json.senderId;\n\nconst menuItems = $input.all().map(i => i.json);\n\nconst filteredItems = menuItems.filter(item =>\n  desiredProductIDs.includes(item.ProductID) && item.IsEnabled && item.available\n);\n\nconst elements = filteredItems.map(item => ({\n  title: item.Name,\n  image_url: (item.imagelink && item.imagelink !== \"placeholder\")\n    ? item.imagelink\n    : `https://via.placeholder.com/300x200?text=${encodeURIComponent(item.Name)}`,\n  subtitle: item.description || \"No description available\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Add to Cart\",\n      payload: `ADD_${item.ProductID}`\n    }\n  ]\n}));\n\nelements.push({\n  title: \"Main Menu\",\n  image_url: \"https://via.placeholder.com/300x200?text=Main+Menu\",\n  subtitle: \"Return to main menu\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Go Back\",\n      payload: \"REVIEW_MENU\"\n    }\n  ]\n});\n\nconst responsePayload = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    attachment: {\n      type: \"template\",\n      payload: {\n        template_type: \"generic\",\n        elements: elements\n      }\n    }\n  }\n};\n\nreturn [{ json: responsePayload }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        180,
+        -40,
         -600
       ],
       "id": "3269c785-712c-4865-9030-58951c53e780",
@@ -1102,12 +1102,12 @@
       "parameters": {
         "collection": "Menu",
         "options": {},
-        "query": "={\n  \"ProductID\": { \"$regex\": \"^FT-\" },\n  \"isEnabled\": true\n}\n"
+        "query": "={\n  \"ProductID\": { \"$regex\": \"^FT-\" },\n  \"IsEnabled\": true,\n  \"available\": true\n}\n"
       },
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        -40,
+        -260,
         -340
       ],
       "id": "78908abc-bc66-4c41-92b4-9e287518275f",
@@ -1121,12 +1121,12 @@
     },
     {
       "parameters": {
-        "jsCode": "// Extract real sender ID from incoming data, adjust path if needed\nconst senderId = $('Listen').first().json.senderId;\n\nif (!senderId) {\n  throw new Error(\"Sender ID not found in input data\");\n}\n\n// Get all menu items from input (e.g. from MongoDB node output)\nconst menuItems = $input.all().map(i => i.json);\n\n// Filter to ProductIDs that start with \"FT\", and are enabled + available\nconst filteredItems = menuItems.filter(item =>\n  item.ProductID && item.ProductID.startsWith(\"FT\") && item.isEnabled\n);\n\n// Map filtered items into Messenger carousel elements, using description for subtitle\nconst elements = filteredItems.map(item => ({\n  title: item.Name + \" Fruit Tea\",\n  image_url: (item.imagelink && item.imagelink !== \"placeholder\")\n    ? item.imagelink\n    : `https://via.placeholder.com/300x200?text=${encodeURIComponent(item.Name)}`,\n  subtitle: item.description || \"No description available\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Add to Cart\",\n      payload: `ADD_${item.ProductID}`\n    }\n  ]\n}));\n\n// Add the \"Main Menu\" navigation card\nelements.push({\n  title: \"Main Menu\",\n  image_url: \"https://via.placeholder.com/300x200?text=Main+Menu\",\n  subtitle: \"Return to main menu\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Go Back\",\n      payload: \"REVIEW_MENU\"\n    }\n  ]\n});\n\nconst responsePayload = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    attachment: {\n      type: \"template\",\n      payload: {\n        template_type: \"generic\",\n        elements: elements\n      }\n    }\n  }\n};\n\n// Return the payload as one item, array format required by n8n\nreturn [{ json: responsePayload }];\n"
+        "jsCode": "// Extract real sender ID from incoming data, adjust path if needed\nconst senderId = $('Listen').first().json.senderId;\n\nif (!senderId) {\n  throw new Error(\"Sender ID not found in input data\");\n}\n\n// Get all menu items from input (e.g. from MongoDB node output)\nconst menuItems = $input.all().map(i => i.json);\n\n// Filter to ProductIDs that start with \"FT\", and are enabled + available\nconst filteredItems = menuItems.filter(item =>\n  item.ProductID && item.ProductID.startsWith(\"FT\") && item.IsEnabled && item.available\n);\n\n// Map filtered items into Messenger carousel elements, using description for subtitle\nconst elements = filteredItems.map(item => ({\n  title: item.Name + \" Fruit Tea\",\n  image_url: (item.imagelink && item.imagelink !== \"placeholder\")\n    ? item.imagelink\n    : `https://via.placeholder.com/300x200?text=${encodeURIComponent(item.Name)}`,\n  subtitle: item.description || \"No description available\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Add to Cart\",\n      payload: `ADD_${item.ProductID}`\n    }\n  ]\n}));\n\n// Add the \"Main Menu\" navigation card\nelements.push({\n  title: \"Main Menu\",\n  image_url: \"https://via.placeholder.com/300x200?text=Main+Menu\",\n  subtitle: \"Return to main menu\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Go Back\",\n      payload: \"REVIEW_MENU\"\n    }\n  ]\n});\n\nconst responsePayload = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    attachment: {\n      type: \"template\",\n      payload: {\n        template_type: \"generic\",\n        elements: elements\n      }\n    }\n  }\n};\n\n// Return the payload as one item, array format required by n8n\nreturn [{ json: responsePayload }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        180,
+        -40,
         -340
       ],
       "id": "5abae1dd-2c1a-409b-9c71-cdb0e694991a",
@@ -1153,7 +1153,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        400,
+        180,
         -600
       ],
       "id": "4c864da5-e7be-4561-8ade-acbd4834f8bd",
@@ -1180,7 +1180,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        400,
+        180,
         -340
       ],
       "id": "273a22a3-b5fb-4a0e-8049-58039492b898",
@@ -1190,12 +1190,12 @@
       "parameters": {
         "collection": "Menu",
         "options": {},
-        "query": "={\n  \"ProductID\": { \"$regex\": \"^MT-\" },\n  \"isEnabled\": true\n}\n"
+        "query": "={\n  \"ProductID\": { \"$regex\": \"^MT-\" },\n  \"IsEnabled\": true,\n  \"available\": true\n}\n"
       },
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        -40,
+        -260,
         -80
       ],
       "id": "8c163cbd-afdc-485c-8aa2-9542d6bb47a4",
@@ -1209,12 +1209,12 @@
     },
     {
       "parameters": {
-        "jsCode": "const senderId = $('Listen').first().json.senderId;\n\nif (!senderId) {\n  throw new Error(\"Sender ID not found in input data\");\n}\n\nconst menuItems = $input.all().map(i => i.json);\n\nconst filteredItems = menuItems.filter(item =>\n  item.ProductID && item.ProductID.startsWith(\"MT\") && item.isEnabled\n);\n\nconst elements = filteredItems.map(item => ({\n  title: item.Name + \" Milk Tea\",\n  image_url: (item.imagelink && item.imagelink !== \"placeholder\")\n    ? item.imagelink\n    : `https://via.placeholder.com/300x200?text=${encodeURIComponent(item.Name)}`,\n  subtitle: item.description || \"Delicious milk tea.\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Add to Cart\",\n      payload: `ADD_${item.ProductID}`\n    }\n  ]\n}));\n\nelements.push({\n  title: \"Main Menu\",\n  image_url: \"https://via.placeholder.com/300x200?text=Main+Menu\",\n  subtitle: \"Return to main menu\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Go Back\",\n      payload: \"REVIEW_MENU\"\n    }\n  ]\n});\n\nconst responsePayload = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    attachment: {\n      type: \"template\",\n      payload: {\n        template_type: \"generic\",\n        elements: elements\n      }\n    }\n  }\n};\n\nreturn [{ json: responsePayload }];\n"
+        "jsCode": "const senderId = $('Listen').first().json.senderId;\n\nif (!senderId) {\n  throw new Error(\"Sender ID not found in input data\");\n}\n\nconst menuItems = $input.all().map(i => i.json);\n\nconst filteredItems = menuItems.filter(item =>\n  item.ProductID && item.ProductID.startsWith(\"MT\") && item.IsEnabled && item.available\n);\n\nconst elements = filteredItems.map(item => ({\n  title: item.Name + \" Milk Tea\",\n  image_url: (item.imagelink && item.imagelink !== \"placeholder\")\n    ? item.imagelink\n    : `https://via.placeholder.com/300x200?text=${encodeURIComponent(item.Name)}`,\n  subtitle: item.description || \"Delicious milk tea.\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Add to Cart\",\n      payload: `ADD_${item.ProductID}`\n    }\n  ]\n}));\n\nelements.push({\n  title: \"Main Menu\",\n  image_url: \"https://via.placeholder.com/300x200?text=Main+Menu\",\n  subtitle: \"Return to main menu\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Go Back\",\n      payload: \"REVIEW_MENU\"\n    }\n  ]\n});\n\nconst responsePayload = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    attachment: {\n      type: \"template\",\n      payload: {\n        template_type: \"generic\",\n        elements: elements\n      }\n    }\n  }\n};\n\nreturn [{ json: responsePayload }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        180,
+        -40,
         -80
       ],
       "id": "40deaba2-5db1-4c6c-9bdb-58965ade4b34",
@@ -1241,7 +1241,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        400,
+        180,
         -80
       ],
       "id": "2c27a39c-88b2-411f-9309-7a738a1ba09b",
@@ -1249,12 +1249,12 @@
     },
     {
       "parameters": {
-        "jsCode": "const senderId = $('Listen').first().json.senderId;\n\nif (!senderId) {\n  throw new Error(\"Sender ID not found in input data\");\n}\n\nconst menuItems = $input.all().map(i => i.json);\n\nconst filteredItems = menuItems.filter(item =>\n  item.ProductID && item.ProductID.startsWith(\"CF\") && item.isEnabled\n);\n\nconst elements = filteredItems.map(item => ({\n  title: item.Name + \" Coffee\",\n  image_url: (item.imagelink && item.imagelink !== \"placeholder\")\n    ? item.imagelink\n    : `https://via.placeholder.com/300x200?text=${encodeURIComponent(item.Name)}`,\n  subtitle: item.description || \"Delicious signature coffee.\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Add to Cart\",\n      payload: `ADD_${item.ProductID}`\n    }\n  ]\n}));\n\nelements.push({\n  title: \"Main Menu\",\n  image_url: \"https://via.placeholder.com/300x200?text=Main+Menu\",\n  subtitle: \"Return to main menu\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Go Back\",\n      payload: \"REVIEW_MENU\"\n    }\n  ]\n});\n\nconst responsePayload = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    attachment: {\n      type: \"template\",\n      payload: {\n        template_type: \"generic\",\n        elements: elements\n      }\n    }\n  }\n};\n\nreturn [{ json: responsePayload }];\n"
+        "jsCode": "const senderId = $('Listen').first().json.senderId;\n\nif (!senderId) {\n  throw new Error(\"Sender ID not found in input data\");\n}\n\nconst menuItems = $input.all().map(i => i.json);\n\nconst filteredItems = menuItems.filter(item =>\n  item.ProductID && item.ProductID.startsWith(\"CF\") && item.IsEnabled && item.available\n);\n\nconst elements = filteredItems.map(item => ({\n  title: item.Name + \" Coffee\",\n  image_url: (item.imagelink && item.imagelink !== \"placeholder\")\n    ? item.imagelink\n    : `https://via.placeholder.com/300x200?text=${encodeURIComponent(item.Name)}`,\n  subtitle: item.description || \"Delicious signature coffee.\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Add to Cart\",\n      payload: `ADD_${item.ProductID}`\n    }\n  ]\n}));\n\nelements.push({\n  title: \"Main Menu\",\n  image_url: \"https://via.placeholder.com/300x200?text=Main+Menu\",\n  subtitle: \"Return to main menu\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Go Back\",\n      payload: \"REVIEW_MENU\"\n    }\n  ]\n});\n\nconst responsePayload = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    attachment: {\n      type: \"template\",\n      payload: {\n        template_type: \"generic\",\n        elements: elements\n      }\n    }\n  }\n};\n\nreturn [{ json: responsePayload }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        180,
+        -40,
         180
       ],
       "id": "cca2f62b-ba2f-45b5-a4a9-a9bc97223dee",
@@ -1264,12 +1264,12 @@
       "parameters": {
         "collection": "Menu",
         "options": {},
-        "query": "={\n  \"ProductID\": { \"$regex\": \"^CF-\" },\n  \"isEnabled\": true\n}\n"
+        "query": "={\n  \"ProductID\": { \"$regex\": \"^CF-\" },\n  \"IsEnabled\": true,\n  \"available\": true\n}\n"
       },
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        -40,
+        -260,
         180
       ],
       "id": "bab4f151-3b70-4638-9520-281c478e4555",
@@ -1302,7 +1302,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        400,
+        180,
         180
       ],
       "id": "f126a481-4832-4113-8c84-03c00053a9ee",
@@ -1317,7 +1317,7 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        -40,
+        -260,
         440
       ],
       "id": "e5ab743c-4e7c-4e41-a038-ba1ec87eb087",
@@ -1331,12 +1331,12 @@
     },
     {
       "parameters": {
-        "jsCode": "const senderId = $('Listen').first().json.senderId;\n\nif (!senderId) {\n  throw new Error(\"Sender ID not found in input data\");\n}\n\nconst menuItems = $input.all().map(i => i.json);\n\nconst filteredItems = menuItems.filter(item =>\n  item.ProductID && item.ProductID.startsWith(\"BK-\") && item.isEnabled\n);\n\nconst elements = filteredItems.map(item => ({\n  title: item.Name,\n  image_url: (item.imagelink && item.imagelink !== \"placeholder\")\n    ? item.imagelink\n    : `https://via.placeholder.com/300x200?text=${encodeURIComponent(item.Name)}`,\n  subtitle: item.description || \"Tasty bite-sized treats\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Add to Cart\",\n      payload: `ADD_${item.ProductID}`\n    }\n  ]\n}));\n\nelements.push({\n  title: \"Main Menu\",\n  image_url: \"https://via.placeholder.com/300x200?text=Main+Menu\",\n  subtitle: \"Return to main menu\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Go Back\",\n      payload: \"REVIEW_MENU\"\n    }\n  ]\n});\n\nconst responsePayload = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    attachment: {\n      type: \"template\",\n      payload: {\n        template_type: \"generic\",\n        elements: elements\n      }\n    }\n  }\n};\n\nreturn [{ json: responsePayload }];\n"
+        "jsCode": "const senderId = $('Listen').first().json.senderId;\n\nif (!senderId) {\n  throw new Error(\"Sender ID not found in input data\");\n}\n\nconst menuItems = $input.all().map(i => i.json);\n\nconst filteredItems = menuItems.filter(item =>\n  item.ProductID && item.ProductID.startsWith(\"BK-\") && item.isEnabled && item.available\n);\n\nconst elements = filteredItems.map(item => ({\n  title: item.Name,\n  image_url: (item.imagelink && item.imagelink !== \"placeholder\")\n    ? item.imagelink\n    : `https://via.placeholder.com/300x200?text=${encodeURIComponent(item.Name)}`,\n  subtitle: item.description || \"Tasty bite-sized treats\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Add to Cart\",\n      payload: `ADD_${item.ProductID}`\n    }\n  ]\n}));\n\nelements.push({\n  title: \"Main Menu\",\n  image_url: \"https://via.placeholder.com/300x200?text=Main+Menu\",\n  subtitle: \"Return to main menu\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Go Back\",\n      payload: \"REVIEW_MENU\"\n    }\n  ]\n});\n\nconst responsePayload = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    attachment: {\n      type: \"template\",\n      payload: {\n        template_type: \"generic\",\n        elements: elements\n      }\n    }\n  }\n};\n\nreturn [{ json: responsePayload }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        180,
+        -40,
         440
       ],
       "id": "69983cca-8ba0-4d4d-b008-55c511f75bb2",
@@ -1363,7 +1363,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        400,
+        180,
         440
       ],
       "id": "6ef94043-aead-4c09-8ef3-6a384f5d71a3",
@@ -1397,7 +1397,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        620,
+        400,
         640
       ],
       "id": "d4752855-4bad-45f9-827e-e665492f04f4",
@@ -1437,7 +1437,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3380,
+        3160,
         1180
       ],
       "id": "7f7027f5-a0b9-46f7-b689-a4e499fe289b",
@@ -1465,7 +1465,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3600,
+        3380,
         1280
       ],
       "id": "390c0d2d-b4cf-4972-8514-ae1069cf7d12",
@@ -1493,7 +1493,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3820,
+        3600,
         1280
       ],
       "id": "be385cc7-f28f-4ae5-82a9-7b7983428b80",
@@ -1506,7 +1506,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2060,
+        1840,
         1180
       ],
       "id": "44370541-34c4-4507-9023-8372f2e4af7d",
@@ -1519,7 +1519,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2280,
+        2060,
         1180
       ],
       "id": "80f6647f-6f90-4520-aea7-a8e6653cc4d4",
@@ -1534,7 +1534,7 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        2500,
+        2280,
         1180
       ],
       "id": "0c45856c-22dc-4dbf-958d-2391d0275198",
@@ -1554,7 +1554,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2940,
+        2720,
         1080
       ],
       "id": "834db604-fd1a-4459-b5de-cbc49f578a93",
@@ -1567,7 +1567,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2940,
+        2720,
         1280
       ],
       "id": "f52d6739-8c69-4a62-a0ff-b85f3f83b6d3",
@@ -1583,7 +1583,7 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        3160,
+        2940,
         1080
       ],
       "id": "7d3a9383-103f-4617-8410-813678b49e86",
@@ -1606,7 +1606,7 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        3160,
+        2940,
         1280
       ],
       "id": "e85dbdc4-9f65-45dd-8e09-1f52325576b5",
@@ -1645,7 +1645,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        2720,
+        2500,
         1180
       ],
       "id": "60556298-366a-43f5-a009-2f8a48208f80",
@@ -1679,7 +1679,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1840,
+        1620,
         1280
       ],
       "id": "777d927c-df42-408e-92f2-3802ea424d22",
@@ -1706,7 +1706,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2060,
+        1840,
         1380
       ],
       "id": "5851585b-e807-428a-9116-4f64817769a1",
@@ -1734,7 +1734,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2280,
+        2060,
         1380
       ],
       "id": "02b186c7-ff92-495c-8b01-279724c7fd8e",
@@ -1760,7 +1760,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        40,
+        -180,
         1660
       ],
       "id": "61391f1f-e6b4-4fb0-9ba1-03520bb62315",
@@ -1773,7 +1773,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        20,
+        -200,
         1200
       ],
       "id": "89f31752-b720-4873-8875-e480e51b2240",
@@ -1788,7 +1788,7 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        220,
+        0,
         1120
       ],
       "id": "f0d498d4-4612-41d8-b26d-ededf50ea259",
@@ -1809,7 +1809,7 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        220,
+        0,
         1280
       ],
       "id": "4de3b5f0-bfaa-451a-98bb-480197244c4d",
@@ -1826,7 +1826,7 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        460,
+        240,
         1200
       ],
       "id": "1b492548-b04f-41bc-abd4-812400d64843",
@@ -1839,7 +1839,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        680,
+        460,
         1200
       ],
       "id": "442cdd14-96ba-48e9-bc5b-befb704a3425",
@@ -1854,7 +1854,7 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        1180,
+        960,
         1200
       ],
       "id": "2260176c-dd7a-42bf-b364-40912d396795",
@@ -1873,7 +1873,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1400,
+        1180,
         1200
       ],
       "id": "3dcf8151-fad4-4cf0-80cc-d693230ae9d0",
@@ -1886,7 +1886,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1620,
+        1400,
         1280
       ],
       "id": "451886f9-1ef5-43b7-a279-648a90c9de67",
@@ -1901,7 +1901,7 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        220,
+        0,
         1660
       ],
       "id": "b8c48b45-301c-4369-8b6a-e327a3bc73dc",
@@ -1921,7 +1921,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        620,
+        400,
         1560
       ],
       "id": "01c9b71b-033e-4e68-a6f1-84ac6d0146dd",
@@ -1929,12 +1929,12 @@
     },
     {
       "parameters": {
-        "jsCode": "const prepareUpsertData = $('Prepare Upsert Subtotal').first().json;\nconst { userId, subtotal, itemCount, cartItems } = prepareUpsertData;\n\nlet cartMessage = \"📋 *YOUR CART* 📋\\n\\n\";\nlet itemCounter = 1;\n\ncartItems.forEach(item => {\n  const productName = item.productName;\n  const size = item.size;\n  const quantity = item.quantity || 1; \n  const price = item.totalPrice.toFixed(2);\n  \n  cartMessage += `${itemCounter}. ${productName} (${size})\\n`;\n  cartMessage += `   ${quantity}x ₱${price}\\n`;\n  \n  if (item.addOns && item.addOns.length > 0) {\n    item.addOns.forEach(addon => {\n      cartMessage += `   + ${addon.addOnName} (₱${addon.addOnPrice})\\n`;\n    });\n  }\n  \n  cartMessage += \"\\n\";\n  itemCounter++;\n});\n\ncartMessage += `------------------------\\n`;\ncartMessage += `Subtotal: ₱${subtotal.toFixed(2)}\\n\\n`;\ncartMessage += \"What would you like to do next?\";\n\nreturn {\n  json: {\n    \"messaging_type\": \"RESPONSE\",\n    \"recipient\": {\n      \"id\": userId\n    },\n    \"message\": {\n      \"text\": cartMessage,\n      \"quick_replies\": [\n        {\n          \"content_type\": \"text\",\n          \"title\": \"Checkout\",\n          \"payload\": \"CHECKOUT\"\n        },\n        {\n          \"content_type\": \"text\", \n          \"title\": \"Continue Shopping\",\n          \"payload\": \"REVIEW_MENU\"\n        },\n        {\n          \"content_type\": \"text\",\n          \"title\": \"Clear Cart\",\n          \"payload\": \"CLEAR_CART\"\n        }\n      ]\n    },\n    // Include original cart data for MongoDB\n    originalCartData: {\n      senderId: userId,\n      subtotal,\n      itemCount,\n      cartItems\n    }\n  }\n};"
+        "jsCode": "const cartData = $input.first().json;\nconst { cartItems, itemCount, subtotal, senderId } = cartData;\n\nlet cartMessage = \"📋 *YOUR CART* 📋\\n\\n\";\nlet itemCounter = 1;\n\n// Process each cart item\ncartItems.forEach(item => {\n  // Get product details\n  const productName = item.productName;\n  const size = item.size;\n  const quantity = item.quantity || 1; \n  const price = item.totalPrice.toFixed(2);\n  \n  cartMessage += `${itemCounter}. ${productName} (${size})\\n`;\n  cartMessage += `   ${quantity}x ₱${price}\\n`;\n  \n  // Add add-ons if any\n  if (item.addOns && item.addOns.length > 0) {\n    item.addOns.forEach(addon => {\n      cartMessage += `   + ${addon.addOnName} (₱${addon.addOnPrice})\\n`;\n    });\n  }\n  \n  cartMessage += \"\\n\";\n  itemCounter++;\n});\n\ncartMessage += `------------------------\\n`;\ncartMessage += `Subtotal: ₱${subtotal.toFixed(2)}\\n\\n`;\ncartMessage += \"What would you like to do next?\";\n\n// Create the complete message object for Facebook\nconst messageObject = {\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": senderId\n  },\n  \"message\": {\n    \"text\": cartMessage,\n    \"quick_replies\": [\n      {\n        \"content_type\": \"text\",\n        \"title\": \"Checkout\",\n        \"payload\": \"CHECKOUT\"\n      },\n      {\n        \"content_type\": \"text\", \n        \"title\": \"Continue Shopping\",\n        \"payload\": \"REVIEW_MENU\"\n      },\n      {\n        \"content_type\": \"text\",\n        \"title\": \"Clear Cart\",\n        \"payload\": \"CLEAR_CART\"\n      }\n    ]\n  }\n};\n\nreturn {\n  json: messageObject\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1180,
+        560,
         1560
       ],
       "id": "a749f880-95b2-4cc4-9bbd-4125d96edb26",
@@ -1947,7 +1947,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        40,
+        -180,
         2040
       ],
       "id": "0f33265c-40da-4f3a-b0e0-1310de68e337",
@@ -1974,7 +1974,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1400,
+        740,
         1560
       ],
       "id": "060161f8-c82c-4fec-a3c0-74333107b214",
@@ -2001,7 +2001,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        580,
+        360,
         2040
       ],
       "id": "74dca3c1-d3db-4ca9-95d2-625466fb4370",
@@ -2014,7 +2014,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        400,
+        180,
         2040
       ],
       "id": "b0adc59d-cb4c-404e-887a-baf000eae35e",
@@ -2029,7 +2029,7 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        220,
+        0,
         2040
       ],
       "id": "fa23b919-2f6f-4220-a8ff-891546c35260",
@@ -2050,7 +2050,7 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        -40,
+        -260,
         -860
       ],
       "id": "25e67898-a93a-4e06-b299-d69bbd43ac5d",
@@ -2090,7 +2090,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        180,
+        -40,
         -860
       ],
       "id": "e39a51f7-b00a-457c-8c5b-e0f13943a617",
@@ -2103,7 +2103,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        40,
+        -180,
         2380
       ],
       "id": "de7c728e-769d-4604-88a3-f2d9689f9055",
@@ -2144,7 +2144,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        220,
+        0,
         2380
       ],
       "id": "021657f6-8ba3-4f42-9413-135159bed8a9",
@@ -2177,7 +2177,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        420,
+        200,
         1660
       ],
       "id": "571caceb-4ce6-427a-9147-fa484e3807c4",
@@ -2205,7 +2205,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        780,
+        560,
         1760
       ],
       "id": "fed28ce4-6790-4f6c-a028-979ebb1f016e",
@@ -2218,7 +2218,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        620,
+        400,
         1760
       ],
       "id": "95ff8776-8117-4811-8741-26e5838e781f",
@@ -2241,7 +2241,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        3380,
+        3160,
         1380
       ],
       "id": "0fc5b3b8-010b-4aeb-933e-684b09d72dce",
@@ -2319,7 +2319,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        960,
+        740,
         1280
       ],
       "id": "81903fcd-7e6d-4577-b89e-e58ace00ab84",
@@ -2346,7 +2346,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        280,
+        -180,
         2620
       ],
       "id": "e1388b6a-0558-43e2-b5fb-b0e42be3419d",
@@ -2373,8 +2373,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        40,
-        2860
+        -180,
+        2820
       ],
       "id": "66f6e51c-ab94-4bdf-8c8d-93f208131719",
       "name": "Display Enter Delivery Message"
@@ -2401,8 +2401,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        240,
-        2860
+        20,
+        2820
       ],
       "id": "87d03197-0d58-485b-a671-d217a4ddb416",
       "name": "Display Enter Address Message"
@@ -2451,12 +2451,12 @@
     },
     {
       "parameters": {
-        "jsCode": "// Get current date and time in Philippines timezone (UTC+8)\nconst now = new Date();\nconst philippinesTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);\nconst formattedDate = philippinesTime.toISOString();\n\nlet deliveryMethod = \"DELIVERY\";\nlet deliveryAddress = null;\nlet isDeliverable = false;\nlet nextAction = \"PAYMENT\";\nlet psid = \"unknown\";\n\n// Get the raw input data\nconst rawInput = $input.item.json;\n\n// Check for STORE_PICKUP in multiple possible locations\nif ((rawInput && rawInput[0] && rawInput[0].postback === \"STORE_PICKUP\") ||\n    (rawInput && rawInput.postback === \"STORE_PICKUP\")) {\n  \n  // This is a store pickup request\n  deliveryMethod = \"PICKUP\";\n  deliveryAddress = null;\n  isDeliverable = true;\n  nextAction = \"PAYMENT\";\n  \n  // Get senderId from the appropriate location\n  if (rawInput[0] && rawInput[0].senderId) {\n    psid = rawInput[0].senderId;\n  } else if (rawInput.senderId) {\n    psid = rawInput.senderId;\n  }\n  \n} else {\n  // This is a delivery request - process form data\n  let formData;\n  try {\n    if (rawInput.body && typeof rawInput.body === 'object') {\n      formData = rawInput.body;\n    } else if (rawInput.body && typeof rawInput.body === 'string') {\n      formData = JSON.parse(rawInput.body);\n    } else {\n      formData = rawInput;\n    }\n    psid = formData.psid || rawInput.psid || (rawInput.senderId || \"unknown\");\n  } catch (e) {\n    formData = rawInput;\n    psid = formData.psid || \"unknown\";\n  }\n\n  const street = formData.street || '';\n  const barangay = formData.barangay || '';\n  const city = formData.city || '';\n  const landmarks = formData.landmarks || '';\n  const notes = formData.notes || '';\n  const fullAddress = `${street}, ${barangay}, ${city}`;\n  \n  const supportedBarangays = [\n    \"Alapan I-C\", \"Alapan I-B\", \"Alapan I-A\",\n    \"Buhay na Tubig\", \"Malagasang\", \"Toclong\"\n  ];\n  \n  isDeliverable = supportedBarangays.some(brgy =>\n    barangay.toLowerCase().includes(brgy.toLowerCase())\n  );\n  \n  deliveryAddress = {\n    street,\n    barangay,\n    city,\n    landmarks,\n    notes,\n    fullAddress,\n    isDeliverable\n  };\n  \n  nextAction = isDeliverable ? \"PAYMENT\" : \"NOT_SERVICEABLE\";\n}\n\nreturn {\n  json: {\n    userId: psid,\n    deliveryMethod,\n    deliveryAddress,\n    updatedAt: formattedDate,\n    isDeliverable,\n    nextAction\n  }\n}"
+        "jsCode": "// Get current date and time in Philippines timezone (UTC+8)\nconst now = new Date();\nconst philippinesTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);\nconst formattedDate = philippinesTime.toISOString();\n\nlet deliveryMethod = \"DELIVERY\";\nlet deliveryAddress = null;\nlet isDeliverable = false;\nlet nextAction = \"PAYMENT\";\nlet psid = \"unknown\";\n\n// Get the raw input data\nconst rawInput = $input.item.json;\n\n// Check for STORE_PICKUP in multiple possible locations\nif ((rawInput && rawInput[0] && rawInput[0].postback === \"STORE_PICKUP\") ||\n    (rawInput && rawInput.postback === \"STORE_PICKUP\")) {\n  \n  // This is a store pickup request\n  deliveryMethod = \"PICKUP\";\n  deliveryAddress = null;\n  isDeliverable = true;\n  nextAction = \"PAYMENT\";\n  \n  // Get senderId from the appropriate location\n  if (rawInput[0] && rawInput[0].senderId) {\n    psid = rawInput[0].senderId;\n  } else if (rawInput.senderId) {\n    psid = rawInput.senderId;\n  }\n  \n} else {\n  // This is a delivery request - process form data\n  let formData;\n  try {\n    if (rawInput.body && typeof rawInput.body === 'object') {\n      formData = rawInput.body;\n    } else if (rawInput.body && typeof rawInput.body === 'string') {\n      formData = JSON.parse(rawInput.body);\n    } else {\n      formData = rawInput;\n    }\n    psid = formData.psid || rawInput.psid || (rawInput.senderId || \"unknown\");\n  } catch (e) {\n    formData = rawInput;\n    psid = formData.psid || \"unknown\";\n  }\n  \n  const email = formData.email || '';\n  const phone = formData.phone || '';\n  const street = formData.street || '';\n  const barangay = formData.barangay || '';\n  const city = formData.city || '';\n  const landmarks = formData.landmarks || '';\n  const notes = formData.notes || '';\n  const fullAddress = `${street}, ${barangay}, ${city}`;\n  \n  const supportedBarangays = [\n    \"Alapan I-C\", \"Alapan I-B\", \"Alapan I-A\",\n    \"Buhay na Tubig\", \"Malagasang\", \"Toclong\"\n  ];\n  \n  isDeliverable = supportedBarangays.some(brgy =>\n    barangay.toLowerCase().includes(brgy.toLowerCase())\n  );\n  \n  deliveryAddress = {\n    email,\n    phone,\n    street,\n    barangay,\n    city,\n    landmarks,\n    notes,\n    fullAddress,\n    isDeliverable\n  };\n  \n  nextAction = isDeliverable ? \"PAYMENT\" : \"NOT_SERVICEABLE\";\n}\n\nreturn {\n  json: {\n    userId: psid,\n    deliveryMethod,\n    deliveryAddress,\n    updatedAt: formattedDate,\n    isDeliverable,\n    nextAction\n  }\n}"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1340,
+        1120,
         2360
       ],
       "id": "e3d94f3b-0bf0-428b-be7e-a4e620943d9c",
@@ -2488,7 +2488,7 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        1520,
+        1300,
         2360
       ],
       "id": "afb5edb0-07e1-4af3-83a2-9bce7ee9f235",
@@ -2536,8 +2536,8 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -740,
-        2220
+        60,
+        2580
       ],
       "typeVersion": 1,
       "id": "4005560c-9c4e-4b85-95ef-f8ad0de6f026",
@@ -2573,7 +2573,7 @@
     },
     {
       "parameters": {
-        "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\" />\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no\" />\n  <title>Blessings Cafe - Delivery Address</title>\n  <script>\n    const originalFetch = window.fetch;\n    window.fetch = function(url, options = {}) {\n      if (!options.headers) options.headers = {};\n      options.headers['ngrok-skip-browser-warning'] = 'true';\n      return originalFetch(url, options);\n    }\n  </script>\n  <style>\n    * {\n      box-sizing: border-box;\n      margin: 0;\n      padding: 0;\n    }\n    \n    body {\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;\n      background: #fafafa;\n      color: #1a1a1a;\n      line-height: 1.5;\n      padding: 20px;\n    }\n    \n    .container {\n      max-width: 420px;\n      margin: 40px auto 0;\n      background: white;\n      border-radius: 16px;\n      overflow: hidden;\n      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);\n    }\n    \n    .header {\n      padding: 32px 24px 24px;\n      text-align: center;\n      border-bottom: 1px solid #f0f0f0;\n    }\n    \n    .logo {\n      width: 48px;\n      height: 48px;\n      border-radius: 12px;\n      object-fit: cover;\n      margin-bottom: 16px;\n    }\n    \n    h1 {\n      font-size: 20px;\n      font-weight: 600;\n      color: #1a1a1a;\n      margin-bottom: 4px;\n    }\n    \n    .subheader {\n      font-size: 14px;\n      color: #6b7280;\n    }\n    \n    .form-content {\n      padding: 24px;\n    }\n    \n    .form-group {\n      margin-bottom: 20px;\n    }\n    \n    label {\n      display: block;\n      font-size: 14px;\n      font-weight: 500;\n      color: #374151;\n      margin-bottom: 8px;\n    }\n    \n    .required::after {\n      content: \"*\";\n      color: #ef4444;\n      margin-left: 2px;\n    }\n    \n    input, select, textarea {\n      width: 100%;\n      padding: 12px 16px;\n      border: 1px solid #e5e7eb;\n      border-radius: 8px;\n      font-size: 16px;\n      background: white;\n      transition: border-color 0.15s ease;\n    }\n    \n    input:focus, select:focus, textarea:focus {\n      outline: none;\n      border-color: #3b82f6;\n      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);\n    }\n    \n    input[readonly] {\n      background: #f9fafb;\n      color: #6b7280;\n    }\n    \n    .note {\n      font-size: 12px;\n      color: #9ca3af;\n      margin-top: 6px;\n    }\n    \n    .error {\n      color: #ef4444;\n      font-size: 12px;\n      margin-top: 6px;\n      display: none;\n    }\n    \n    .button {\n      width: 100%;\n      background: #1a1a1a;\n      color: white;\n      border: none;\n      border-radius: 8px;\n      padding: 14px 20px;\n      font-size: 16px;\n      font-weight: 500;\n      cursor: pointer;\n      transition: all 0.15s ease;\n      margin-top: 8px;\n    }\n    \n    .button:hover {\n      background: #333;\n      transform: translateY(-1px);\n    }\n    \n    .button:disabled {\n      background: #d1d5db;\n      color: #9ca3af;\n      cursor: not-allowed;\n      transform: none;\n    }\n    \n    .loading {\n      display: none;\n      text-align: center;\n      padding: 20px;\n    }\n    \n    .spinner {\n      width: 24px;\n      height: 24px;\n      border: 2px solid #f3f4f6;\n      border-top: 2px solid #3b82f6;\n      border-radius: 50%;\n      animation: spin 1s linear infinite;\n      margin: 0 auto 12px;\n    }\n    \n    @keyframes spin {\n      0% { transform: rotate(0deg); }\n      100% { transform: rotate(360deg); }\n    }\n    \n    .loading p {\n      font-size: 14px;\n      color: #6b7280;\n    }\n    \n    .message {\n      padding: 16px;\n      border-radius: 8px;\n      margin-top: 16px;\n      font-size: 14px;\n      text-align: center;\n      display: none;\n    }\n    \n    .success-message {\n      background: #f0fdf4;\n      color: #15803d;\n      border: 1px solid #bbf7d0;\n    }\n    \n    .error-message {\n      background: #fef2f2;\n      color: #dc2626;\n      border: 1px solid #fecaca;\n    }\n    \n    .footer {\n      padding: 16px 24px;\n      text-align: center;\n      border-top: 1px solid #f0f0f0;\n      background: #fafafa;\n    }\n    \n    .footer p {\n      font-size: 12px;\n      color: #9ca3af;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"header\">\n      <img\n        src=\"https://i.imgur.com/jgjiwnv.png\"\n        alt=\"Blessings Cafe Logo\"\n        class=\"logo\"\n        onerror=\"this.src='https://via.placeholder.com/48/1a1a1a/ffffff?text=BC'\"\n      />\n      <h1>Blessings Cafe</h1>\n      <p class=\"subheader\">Customer Delivery address</p>\n    </div>\n\n    <div class=\"form-content\">\n      <form id=\"addressForm\">\n        <input type=\"hidden\" id=\"psid\" name=\"psid\" value=\"{{ $json.psid }}\" />\n\n        <div class=\"form-group\">\n          <label for=\"street\" class=\"required\">Street Address</label>\n          <input type=\"text\" id=\"street\" name=\"street\" placeholder=\"123 Main Street\" required />\n          <div class=\"error\" id=\"streetError\">Please enter your street address</div>\n        </div>\n\n        <div class=\"form-group\">\n          <label for=\"barangay\" class=\"required\">Barangay</label>\n          <select id=\"barangay\" name=\"barangay\" required>\n            <option value=\"\" disabled selected>Select barangay</option>\n            <option value=\"Alapan I-A\">Alapan I-A</option>\n            <option value=\"Alapan I-B\">Alapan I-B</option>\n            <option value=\"Alapan I-C\">Alapan I-C</option>\n            <option value=\"Buhay na Tubig\">Buhay na Tubig</option>\n            <option value=\"Malagasang\">Malagasang</option>\n            <option value=\"Toclong\">Toclong</option>\n          </select>\n          <p class=\"note\">We deliver to selected barangays in Imus only</p>\n          <div class=\"error\" id=\"barangayError\">Please select your barangay</div>\n        </div>\n\n        <div class=\"form-group\">\n          <label for=\"city\" class=\"required\">City</label>\n          <input type=\"text\" id=\"city\" name=\"city\" value=\"Imus\" readonly />\n        </div>\n\n        <div class=\"form-group\">\n          <label for=\"landmarks\">Landmarks</label>\n          <input type=\"text\" id=\"landmarks\" name=\"landmarks\" placeholder=\"Near the church, blue gate\" />\n        </div>\n\n        <div class=\"form-group\">\n          <label for=\"notes\">Delivery Notes</label>\n          <textarea id=\"notes\" name=\"notes\" rows=\"2\" placeholder=\"Special instructions for delivery\"></textarea>\n        </div>\n\n        <button type=\"submit\" class=\"button\" id=\"submitButton\">Save Address</button>\n\n        <div class=\"loading\" id=\"loading\">\n          <div class=\"spinner\"></div>\n          <p>Saving your address...</p>\n        </div>\n\n        <div class=\"success-message message\" id=\"successMessage\">\n          Your delivery address has been saved successfully!\n        </div>\n\n        <div class=\"error-message message\" id=\"errorMessage\">\n          There was a problem saving your address. Please try again.\n        </div>\n      </form>\n    </div>\n\n    <div class=\"footer\">\n      <p>© 2025 Blessings Cafe</p>\n    </div>\n  </div>\n\n  <script>\n    document.addEventListener('DOMContentLoaded', function () {\n      const form = document.getElementById('addressForm');\n      const barangaySelect = document.getElementById('barangay');\n      const cityInput = document.getElementById('city');\n\n      barangaySelect.addEventListener('change', function () {\n        if (this.value === 'Toclong') {\n          cityInput.value = 'Kawit';\n        } else {\n          cityInput.value = 'Imus';\n        }\n      });\n\n      form.addEventListener('submit', submitForm);\n    });\n\n    function validateForm() {\n      let valid = true;\n\n      const street = document.getElementById('street').value.trim();\n      if (!street) {\n        document.getElementById('streetError').style.display = 'block';\n        valid = false;\n      } else {\n        document.getElementById('streetError').style.display = 'none';\n      }\n\n      const barangay = document.getElementById('barangay').value;\n      if (!barangay) {\n        document.getElementById('barangayError').style.display = 'block';\n        valid = false;\n      } else {\n        document.getElementById('barangayError').style.display = 'none';\n      }\n\n      return valid;\n    }\n\n    async function submitForm(event) {\n      event.preventDefault();\n\n      document.getElementById('successMessage').style.display = 'none';\n      document.getElementById('errorMessage').style.display = 'none';\n\n      if (!validateForm()) {\n        return;\n      }\n\n      document.getElementById('loading').style.display = 'block';\n      document.getElementById('submitButton').disabled = true;\n\n      const formData = {\n        psid: document.getElementById('psid').value,\n        street: document.getElementById('street').value.trim(),\n        barangay: document.getElementById('barangay').value,\n        city: document.getElementById('city').value,\n        landmarks: document.getElementById('landmarks').value.trim(),\n        notes: document.getElementById('notes').value.trim(),\n      };\n\n      try {\n        const response = await fetch('https://regularly-helped-terrapin.ngrok-free.app/webhook/save-address', {\n          method: 'POST',\n          headers: {\n            'Content-Type': 'application/json',\n            'ngrok-skip-browser-warning': 'true',\n          },\n          body: JSON.stringify(formData),\n        });\n\n        if (response.ok) {\n          document.getElementById('successMessage').textContent =\n            'Your delivery address has been saved successfully! You may now close this form.';\n          document.getElementById('successMessage').style.display = 'block';\n          document.getElementById('errorMessage').style.display = 'none';\n\n          setTimeout(() => {\n            if (window.MessengerExtensions) {\n              MessengerExtensions.requestCloseBrowser(\n                () => console.log('Webview closed'),\n                (err) => console.log('Unable to close webview: ' + err)\n              );\n            }\n          }, 3000);\n        } else {\n          document.getElementById('errorMessage').style.display = 'block';\n        }\n      } catch (error) {\n        console.error('Error submitting form:', error);\n        document.getElementById('errorMessage').style.display = 'block';\n      } finally {\n        document.getElementById('loading').style.display = 'none';\n        document.getElementById('submitButton').disabled = false;\n      }\n    }\n  </script>\n</body>\n</html>"
+        "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\" />\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no\" />\n  <title>Blessings Cafe - Delivery Address</title>\n  <script>\n    const originalFetch = window.fetch;\n    window.fetch = function(url, options = {}) {\n      if (!options.headers) options.headers = {};\n      options.headers['ngrok-skip-browser-warning'] = 'true';\n      return originalFetch(url, options);\n    }\n  </script>\n  <style>\n    * {\n      box-sizing: border-box;\n      margin: 0;\n      padding: 0;\n    }\n    \n    body {\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;\n      background: #fafafa;\n      color: #1a1a1a;\n      line-height: 1.5;\n      padding: 20px;\n    }\n    \n    .container {\n      max-width: 420px;\n      margin: 40px auto 0;\n      background: white;\n      border-radius: 16px;\n      overflow: hidden;\n      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);\n    }\n    \n    .header {\n      padding: 32px 24px 24px;\n      text-align: center;\n      border-bottom: 1px solid #f0f0f0;\n    }\n    \n    .logo {\n      width: 48px;\n      height: 48px;\n      border-radius: 12px;\n      object-fit: cover;\n      margin-bottom: 16px;\n    }\n    \n    h1 {\n      font-size: 20px;\n      font-weight: 600;\n      color: #1a1a1a;\n      margin-bottom: 4px;\n    }\n    \n    .subheader {\n      font-size: 14px;\n      color: #6b7280;\n    }\n    \n    .form-content {\n      padding: 24px;\n    }\n    \n    .form-group {\n      margin-bottom: 20px;\n    }\n    \n    label {\n      display: block;\n      font-size: 14px;\n      font-weight: 500;\n      color: #374151;\n      margin-bottom: 8px;\n    }\n    \n    .required::after {\n      content: \"*\";\n      color: #ef4444;\n      margin-left: 2px;\n    }\n    \n    input, select, textarea {\n      width: 100%;\n      padding: 12px 16px;\n      border: 1px solid #e5e7eb;\n      border-radius: 8px;\n      font-size: 16px;\n      background: white;\n      transition: border-color 0.15s ease;\n    }\n    \n    input:focus, select:focus, textarea:focus {\n      outline: none;\n      border-color: #3b82f6;\n      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);\n    }\n    \n    input[readonly] {\n      background: #f9fafb;\n      color: #6b7280;\n    }\n    \n    .note {\n      font-size: 12px;\n      color: #9ca3af;\n      margin-top: 6px;\n    }\n    \n    .error {\n      color: #ef4444;\n      font-size: 12px;\n      margin-top: 6px;\n      display: none;\n    }\n    \n    .button {\n      width: 100%;\n      background: #1a1a1a;\n      color: white;\n      border: none;\n      border-radius: 8px;\n      padding: 14px 20px;\n      font-size: 16px;\n      font-weight: 500;\n      cursor: pointer;\n      transition: all 0.15s ease;\n      margin-top: 8px;\n    }\n    \n    .button:hover {\n      background: #333;\n      transform: translateY(-1px);\n    }\n    \n    .button:disabled {\n      background: #d1d5db;\n      color: #9ca3af;\n      cursor: not-allowed;\n      transform: none;\n    }\n    \n    .loading {\n      display: none;\n      text-align: center;\n      padding: 20px;\n    }\n    \n    .spinner {\n      width: 24px;\n      height: 24px;\n      border: 2px solid #f3f4f6;\n      border-top: 2px solid #3b82f6;\n      border-radius: 50%;\n      animation: spin 1s linear infinite;\n      margin: 0 auto 12px;\n    }\n    \n    @keyframes spin {\n      0% { transform: rotate(0deg); }\n      100% { transform: rotate(360deg); }\n    }\n    \n    .loading p {\n      font-size: 14px;\n      color: #6b7280;\n    }\n    \n    .message {\n      padding: 16px;\n      border-radius: 8px;\n      margin-top: 16px;\n      font-size: 14px;\n      text-align: center;\n      display: none;\n    }\n    \n    .success-message {\n      background: #f0fdf4;\n      color: #15803d;\n      border: 1px solid #bbf7d0;\n    }\n    \n    .error-message {\n      background: #fef2f2;\n      color: #dc2626;\n      border: 1px solid #fecaca;\n    }\n    \n    .footer {\n      padding: 16px 24px;\n      text-align: center;\n      border-top: 1px solid #f0f0f0;\n      background: #fafafa;\n    }\n    \n    .footer p {\n      font-size: 12px;\n      color: #9ca3af;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"header\">\n      <img\n        src=\"https://i.imgur.com/jgjiwnv.png\"\n        alt=\"Blessings Cafe Logo\"\n        class=\"logo\"\n        onerror=\"this.src='https://via.placeholder.com/48/1a1a1a/ffffff?text=BC'\"\n      />\n      <h1>Blessings Cafe</h1>\n      <p class=\"subheader\">Customer Delivery address</p>\n    </div>\n\n    <div class=\"form-content\">\n      <form id=\"addressForm\">\n        <input type=\"hidden\" id=\"psid\" name=\"psid\" value=\"{{ $json.psid }}\" />\n\n        <div class=\"form-group\">\n        <label for=\"email\" class=\"required\">Email Address</label>\n        <input type=\"email\" id=\"email\" name=\"email\" placeholder=\"blessingscafe@domain.com\" required />\n        <div class=\"error\" id=\"emailError\">Please enter a valid email address</div>\n        </div>\n\n        <div class=\"form-group\">\n          <label for=\"phone\" class=\"required\">Phone Number</label>\n          <input \n            type=\"tel\" \n            id=\"phone\" \n            name=\"phone\" \n            placeholder=\"+63 912 345 6789, 63912345678, or 09123456789\"\n            required />\n          <div class=\"error\" id=\"phoneError\">Please enter a valid Philippine phone number</div>\n        </div>\n        \n        <div class=\"form-group\">\n          <label for=\"street\" class=\"required\">Street Address</label>\n          <input type=\"text\" id=\"street\" name=\"street\" placeholder=\"123 Main Street\" required />\n          <div class=\"error\" id=\"streetError\">Please enter your street address</div>\n        </div>\n\n        <div class=\"form-group\">\n          <label for=\"barangay\" class=\"required\">Barangay</label>\n          <select id=\"barangay\" name=\"barangay\" required>\n            <option value=\"\" disabled selected>Select barangay</option>\n            <option value=\"Alapan I-A\">Alapan I-A</option>\n            <option value=\"Alapan I-B\">Alapan I-B</option>\n            <option value=\"Alapan I-C\">Alapan I-C</option>\n            <option value=\"Buhay na Tubig\">Buhay na Tubig</option>\n            <option value=\"Malagasang\">Malagasang</option>\n            <option value=\"Toclong\">Toclong</option>\n          </select>\n          <p class=\"note\">We deliver to selected barangays in Imus only</p>\n          <div class=\"error\" id=\"barangayError\">Please select your barangay</div>\n        </div>\n\n        <div class=\"form-group\">\n          <label for=\"city\" class=\"required\">City</label>\n          <input type=\"text\" id=\"city\" name=\"city\" value=\"Imus\" readonly />\n        </div>\n\n        <div class=\"form-group\">\n          <label for=\"landmarks\">Landmarks</label>\n          <input type=\"text\" id=\"landmarks\" name=\"landmarks\" placeholder=\"Near the church, blue gate\" />\n        </div>\n\n        <div class=\"form-group\">\n          <label for=\"notes\">Delivery Notes</label>\n          <textarea id=\"notes\" name=\"notes\" rows=\"2\" placeholder=\"Special instructions for delivery\"></textarea>\n        </div>\n\n        <button type=\"submit\" class=\"button\" id=\"submitButton\">Save Address</button>\n\n        <div class=\"loading\" id=\"loading\">\n          <div class=\"spinner\"></div>\n          <p>Saving your address...</p>\n        </div>\n\n        <div class=\"success-message message\" id=\"successMessage\">\n          Your delivery address has been saved successfully!\n        </div>\n\n        <div class=\"error-message message\" id=\"errorMessage\">\n          There was a problem saving your address. Please try again.\n        </div>\n      </form>\n    </div>\n\n    <div class=\"footer\">\n      <p>© 2025 Blessings Cafe</p>\n    </div>\n  </div>\n\n  <script>\n    // Function to normalize phone number to 09XXXXXXXXX format\n    function normalizePhoneNumber(phone) {\n      // Remove all spaces, dashes, and other non-digit characters except +\n      let cleaned = phone.replace(/[\\s\\-\\(\\)\\.]/g, '');\n      \n      // Handle different formats\n      if (cleaned.startsWith('+63')) {\n        // +639XXXXXXXXX -> 09XXXXXXXXX\n        return '0' + cleaned.slice(3);\n      } else if (cleaned.startsWith('63') && cleaned.length === 12) {\n        // 639XXXXXXXXX -> 09XXXXXXXXX\n        return '0' + cleaned.slice(2);\n      } else if (cleaned.startsWith('09') && cleaned.length === 11) {\n        // 09XXXXXXXXX -> 09XXXXXXXXX (already correct)\n        return cleaned;\n      } else if (cleaned.startsWith('9') && cleaned.length === 10) {\n        // 9XXXXXXXXX -> 09XXXXXXXXX\n        return '0' + cleaned;\n      }\n      \n      return cleaned; // Return as-is if no pattern matches\n    }\n\n    // Function to validate normalized phone number\n    function isValidPhoneNumber(normalizedPhone) {\n      // Should be exactly 11 digits starting with 09\n      return /^09\\d{9}$/.test(normalizedPhone);\n    }\n\n    document.addEventListener('DOMContentLoaded', function () {\n      const phoneInput = document.getElementById('phone');\n\n      // Auto-correct common input patterns\n      phoneInput.addEventListener('input', function() {\n        let val = phoneInput.value;\n      \n        // If user types just \"9\", auto-prepend \"0\"\n        if (val.length === 1 && val === '9') {\n          phoneInput.value = '0' + val;\n        }\n      });\n\n      const form = document.getElementById('addressForm');\n      const barangaySelect = document.getElementById('barangay');\n      const cityInput = document.getElementById('city');\n\n      barangaySelect.addEventListener('change', function () {\n        if (this.value === 'Toclong') {\n          cityInput.value = 'Kawit';\n        } else {\n          cityInput.value = 'Imus';\n        }\n      });\n\n      form.addEventListener('submit', submitForm);\n    });\n\n    function validateForm() {\n      let valid = true;\n\n      // Validate email\n      const email = document.getElementById('email').value.trim();\n      const emailPattern = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\n      if (!email || !emailPattern.test(email)) {\n        document.getElementById('emailError').style.display = 'block';\n        valid = false;\n      } else {\n        document.getElementById('emailError').style.display = 'none';\n      }\n\n      // Validate phone number\n      const phoneValue = document.getElementById('phone').value.trim();\n      const normalizedPhone = normalizePhoneNumber(phoneValue);\n      \n      if (!phoneValue || !isValidPhoneNumber(normalizedPhone)) {\n        document.getElementById('phoneError').style.display = 'block';\n        valid = false;\n      } else {\n        document.getElementById('phoneError').style.display = 'none';\n      }\n\n      // Validate street\n      const street = document.getElementById('street').value.trim();\n      if (!street) {\n        document.getElementById('streetError').style.display = 'block';\n        valid = false;\n      } else {\n        document.getElementById('streetError').style.display = 'none';\n      }\n    \n      // Validate barangay\n      const barangay = document.getElementById('barangay').value;\n      if (!barangay) {\n        document.getElementById('barangayError').style.display = 'block';\n        valid = false;\n      } else {\n        document.getElementById('barangayError').style.display = 'none';\n      }\n    \n      return valid;\n    }\n\n    async function submitForm(event) {\n      event.preventDefault();\n\n      document.getElementById('successMessage').style.display = 'none';\n      document.getElementById('errorMessage').style.display = 'none';\n\n      if (!validateForm()) {\n        return;\n      }\n\n      document.getElementById('loading').style.display = 'block';\n      document.getElementById('submitButton').disabled = true;\n\n      // Normalize phone number before sending\n      const phoneValue = document.getElementById('phone').value.trim();\n      const normalizedPhone = normalizePhoneNumber(phoneValue);\n\n      const formData = {\n        psid: document.getElementById('psid').value,\n        email: document.getElementById('email').value.trim(),\n        phone: normalizedPhone,\n        street: document.getElementById('street').value.trim(),\n        barangay: document.getElementById('barangay').value,\n        city: document.getElementById('city').value,\n        landmarks: document.getElementById('landmarks').value.trim(),\n        notes: document.getElementById('notes').value.trim(),\n      };\n\n      try {\n        const response = await fetch('https://regularly-helped-terrapin.ngrok-free.app/webhook-test/save-address', {\n          method: 'POST',\n          headers: {\n            'Content-Type': 'application/json',\n            'ngrok-skip-browser-warning': 'true',\n          },\n          body: JSON.stringify(formData),\n        });\n\n        if (response.ok) {\n          document.getElementById('successMessage').textContent =\n            'Your delivery address has been saved successfully! You may now close this form.';\n          document.getElementById('successMessage').style.display = 'block';\n          document.getElementById('errorMessage').style.display = 'none';\n\n          setTimeout(() => {\n            if (window.MessengerExtensions) {\n              MessengerExtensions.requestCloseBrowser(\n                () => console.log('Webview closed'),\n                (err) => console.log('Unable to close webview: ' + err)\n              );\n            }\n          }, 3000);\n        } else {\n          document.getElementById('errorMessage').style.display = 'block';\n        }\n      } catch (error) {\n        console.error('Error submitting form:', error);\n        document.getElementById('errorMessage').style.display = 'block';\n      } finally {\n        document.getElementById('loading').style.display = 'none';\n        document.getElementById('submitButton').disabled = false;\n      }\n    }\n  </script>\n</body>\n</html>"
       },
       "type": "n8n-nodes-base.html",
       "typeVersion": 1.2,
@@ -2586,29 +2586,18 @@
     },
     {
       "parameters": {
-        "jsCode": "// N8N Function Node - Create Xendit Payment Link\n// This goes in your N8N workflow after order confirmation\n\nconst order = $input.first().json;\n\n// Xendit API Configuration\nconst XENDIT_API_KEY = 'xnd_development_9YDHJULGUWulhmoYgQxildVQ3EWsAeviiJHwF3PSi9zmNcCKll8zEP3thAc5VvD9'; // Use environment variable in production\nconst XENDIT_BASE_URL = 'https://api.xendit.co';\n\n// Prepare payment data\nconst paymentData = {\n  external_id: `order_${order.userId}_${Date.now()}`, // Unique order ID\n  amount: order.totalAmount || 10000, // Amount in IDR (smallest currency unit)\n  description: order.description || 'Food Order Payment',\n  invoice_duration: 86400, // 24 hours in seconds\n  customer: {\n    given_names: order.customerName || 'Customer',\n    email: order.customerEmail || 'customer@example.com',\n    mobile_number: order.customerPhone || '+628123456789'\n  },\n  customer_notification_preference: {\n    invoice_created: ['whatsapp', 'sms', 'email'],\n    invoice_reminder: ['whatsapp', 'sms', 'email'],\n    invoice_paid: ['whatsapp', 'sms', 'email']\n  },\n  success_redirect_url: 'https://yourdomain.com/payment-success',\n  failure_redirect_url: 'https://yourdomain.com/payment-failed',\n  currency: 'IDR',\n  items: order.items || [\n    {\n      name: 'Food Item',\n      quantity: 1,\n      price: order.totalAmount || 10000,\n      category: 'Food'\n    }\n  ]\n};\n\n// Create payment request\nconst paymentOptions = {\n  method: 'POST',\n  headers: {\n    'Authorization': `Basic ${Buffer.from(XENDIT_API_KEY + ':').toString('base64')}`,\n    'Content-Type': 'application/json'\n  },\n  body: JSON.stringify(paymentData)\n};\n\n// Return the configuration for HTTP Request node\nreturn {\n  json: {\n    url: `${XENDIT_BASE_URL}/v2/invoices`,\n    options: paymentOptions,\n    orderData: order,\n    paymentData: paymentData\n  }\n}"
+        "content": "# before deployment\nremove need to execute workflow for post\n",
+        "height": 120,
+        "width": 350
       },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
+      "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1820,
+        900,
         2520
       ],
-      "id": "200f01c1-6522-4051-8850-30beaf0cb01e",
-      "name": "Prepare Xendit"
-    },
-    {
-      "parameters": {
-        "jsCode": "// Extract and validate order information\nconst input = $input.first().json;\n\nreturn {\n  json: {\n    userId: input.userId,\n    customerName: input.customerName,\n    customerEmail: input.customerEmail,\n    customerPhone: input.customerPhone,\n    items: input.items,\n    totalAmount: input.totalAmount,\n    deliveryMethod: input.deliveryMethod,\n    deliveryAddress: input.deliveryAddress,\n    orderNotes: input.orderNotes\n  }\n};"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1920,
-        2360
-      ],
-      "id": "a45eedf5-5c67-4fc3-b150-042895c1afab",
-      "name": "Prepare Xendit1"
+      "typeVersion": 1,
+      "id": "c5c0cbd2-f04e-44cb-8178-a80921e070ea",
+      "name": "Sticky Note11"
     },
     {
       "parameters": {
@@ -2619,11 +2608,11 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        1700,
+        1500,
         2360
       ],
-      "id": "012a621a-2365-4388-aa41-0be6760e5bd2",
-      "name": "find userId Cart1",
+      "id": "07ba816f-b3af-4ae4-918b-a218f0b24473",
+      "name": "Prepare Cart",
       "alwaysOutputData": true,
       "credentials": {
         "mongoDb": {
@@ -2634,55 +2623,93 @@
     },
     {
       "parameters": {
-        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn $input.all();"
+        "content": "webhook-test",
+        "height": 100,
+        "width": 190
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1480,
+        2040
+      ],
+      "typeVersion": 1,
+      "id": "e0369239-5fce-40eb-a915-53280673209f",
+      "name": "Sticky Note12"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract and validate order information\nconst input = $input.first().json;\n\nreturn {\n  json: {\n    userId: input.userId,\n    customerName: input.customerName,\n    customerEmail: input.customerEmail,\n    customerPhone: input.customerPhone,\n    items: input.items,\n    subtotal: input.subtotal,\n    totalAmount: input.totalAmount,\n    deliveryMethod: input.deliveryMethod,\n    deliveryAddress: input.deliveryAddress,\n    orderNotes: input.orderNotes\n  }\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        40,
-        2620
+        1680,
+        2360
       ],
-      "id": "402a40ee-67a9-45d5-b705-d243b5092b47",
-      "name": "Code"
+      "id": "e7d78e29-d42b-48b0-b44d-3c19a71db856",
+      "name": "Parse User Cart Items"
     },
     {
       "parameters": {
-        "operation": "update",
-        "collection": "Chatbot-Cart",
-        "updateKey": "userId",
-        "fields": "=subtotal,itemCount,updatedAt",
-        "upsert": true,
+        "method": "POST",
+        "url": "https://api.xendit.co/invoices",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"external_id\": \"{{$now.format('MMDDHHmmss')}}-order\",\n  \"payer_email\": \"={{$json.deliveryAddress.email}}\",\n  \"description\": \"Blessings Cafe Payment\",\n  \"merchant_profile_picture_url\": \"https://i.imgur.com/jgjiwnv.png\",\n  \"items\": [\n    {{$json.items.flatMap(item => {\n      let items = [{\n        name: item.productName,\n        quantity: item.quantity,\n        price: item.basePrice,\n        category: item.category\n      }];\n      \n      if(item.addOns && item.addOns.length > 0) {\n        item.addOns.forEach(addon => {\n          items.push({\n            name: `Add-on: ${addon.addOnName}`,\n            quantity: addon.quantity,\n            price: addon.addOnPrice,\n            category: \"Add-ons\"\n          });\n        });\n      }\n      \n      return items;\n    }).map(item => JSON.stringify(item)).join(', ')}}\n  ],\n  \"amount\": {{$json.subtotal}},\n  \"customer_name\": \"={{$json.userId}}\",\n  \"customer_phone\": \"={{$json.deliveryAddress.phone}}\",\n  \"should_send_email\": true,\n  \"payment_methods\": [\"GCASH\", \"GRABPAY\", \"PAYMAYA\", \"SHOPEEPAY\", \"QRPH\"],\n  \"invoice_duration\": 600\n}",
         "options": {}
       },
-      "type": "n8n-nodes-base.mongoDb",
-      "typeVersion": 1.2,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
       "position": [
-        1000,
-        1560
+        1880,
+        2360
       ],
-      "id": "a9215cfe-8e33-4cc5-ad0b-693db27ea918",
-      "name": "Update Subtotal",
-      "executeOnce": false,
-      "alwaysOutputData": false,
+      "id": "0fd0812a-0a7f-4c51-b558-9c4ba1412480",
+      "name": "Xendit POST",
       "credentials": {
-        "mongoDb": {
-          "id": "uQrs31uzSyOdcALm",
-          "name": "MongoDB account"
+        "httpBasicAuth": {
+          "id": "zjgTIhjDbJ6u0bnu",
+          "name": "Unnamed credential"
         }
       }
     },
     {
       "parameters": {
-        "jsCode": "const cartDisplayNode = $input.first().json;\nconst { senderId, subtotal, itemCount, cartItems } = cartDisplayNode;\n\nreturn {\n  json: {\n    userId: senderId,\n    subtotal: subtotal,\n    itemCount: itemCount,\n    cartItems: cartItems,\n    updatedAt: new Date().toISOString()\n  }\n};"
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $('Parse User Cart Items').item.json.userId }}\"\n  },\n  \"message\": {\n    \"text\": \"Please proceed to payment: \\n {{ $json.invoice_url }}\"\n  }\n}",
+        "options": {}
       },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
       "position": [
-        800,
-        1560
+        2080,
+        2360
       ],
-      "id": "eb3db00f-fffe-4433-8bbb-6c16d3b14546",
-      "name": "Prepare Upsert Subtotal"
+      "id": "cc204dcd-9776-4505-8f4b-5482f93423dc",
+      "name": "Payment Link"
     }
   ],
   "pinData": {},
@@ -2870,7 +2897,7 @@
         ],
         [
           {
-            "node": "Code",
+            "node": "Display Delivery Guideline Message",
             "type": "main",
             "index": 0
           }
@@ -3408,7 +3435,7 @@
       "main": [
         [
           {
-            "node": "Prepare Upsert Subtotal",
+            "node": "Display Items",
             "type": "main",
             "index": 0
           }
@@ -3627,51 +3654,40 @@
       "main": [
         [
           {
-            "node": "find userId Cart1",
+            "node": "Prepare Cart",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "find userId Cart1": {
+    "Prepare Cart": {
       "main": [
         [
           {
-            "node": "Prepare Xendit1",
+            "node": "Parse User Cart Items",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Code": {
+    "Parse User Cart Items": {
       "main": [
         [
           {
-            "node": "Display Delivery Guideline Message",
+            "node": "Xendit POST",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Update Subtotal": {
+    "Xendit POST": {
       "main": [
         [
           {
-            "node": "Display Items",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Prepare Upsert Subtotal": {
-      "main": [
-        [
-          {
-            "node": "Update Subtotal",
+            "node": "Payment Link",
             "type": "main",
             "index": 0
           }
@@ -3685,7 +3701,7 @@
     "timezone": "Asia/Taipei",
     "callerPolicy": "workflowsFromSameOwner"
   },
-  "versionId": "6497c02d-e83d-45c7-bc91-e1c5dee8b1ec",
+  "versionId": "09041427-0b17-43de-a6ea-92164cf000a1",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "e55ad63998dbff63a27e8a719a0f75ec990732ee36c99c049c4be96c65a0b3c2"
