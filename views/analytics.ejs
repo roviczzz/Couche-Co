@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+<head>
+  <title><%= title %></title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <h1>Popular Products</h1>
+  <canvas id="popularProductsChart" width="800" height="400"></canvas>
+
+  <script>
+    async function drawChart() {
+      try {
+        const res = await fetch('/analytics/popular-products');
+        const results = await res.json();
+
+        const top = results.slice(0, 10); // top 10
+        const labels = top.map(r => r._id);
+        const data = top.map(r => r.totalQuantity);
+
+        new Chart(document.getElementById('popularProductsChart'), {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Units Sold',
+              data: data,
+              // Chart.js will pick defaults; style later as needed
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              x: { beginAtZero: true },
+              y: { beginAtZero: true }
+            }
+          }
+        });
+      } catch (err) {
+        console.error('Chart error', err);
+      }
+    }
+
+    drawChart();
+  </script>
+</body>
+</html>

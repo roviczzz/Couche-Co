@@ -7,7 +7,7 @@ const app = express();
 const port = 8080;
 require('dotenv').config();
 const uri = process.env.MONGODB_URI;
-
+const client = new MongoClient(uri);
 const flash = require('connect-flash');
 const favicon = require('serve-favicon');
 const path = require('path');
@@ -347,9 +347,6 @@ app.post('/forgot-password', async (req, res) => {
         res.status(500).send('Server error');
     }
 });
-
-
-
 
 app.post('/delete-product/:id', async (req, res) => {
   const productId = req.params.id;
@@ -726,8 +723,50 @@ app.post('/api/orders', async (req, res) => {
   }
 });
 
+async function getPopularProducts() {
+  try {
+    await client.connect();
+    const db = client.db('blessingscafe'); // your DB name
+    const ordersCollection = db.collection('Orders');
+
+    const results = await ordersCollection.aggregate([
+      { $unwind: "$Cart" },
+      {
+        $group: {
+          _id: "$Cart.ProductName",
+          totalQuantity: { $sum: "$Cart.Quantity" }
+        }
+      },
+      { $sort: { totalQuantity: -1 } }
+    ]).toArray();
+
+    return results;
+  } catch (error) {
+    console.error(error);
+    return [];
+  } finally {
+    await client.close();
+  }
+}
+
+app.get('/analytics/popular-products', async (req, res) => {
+  try {
+    const results = await getPopularProducts();
+    res.json(results);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error generating analytics' });
+  }
+});
 
 
+app.get('/analytics', isLoggedIn, nocache, (req, res) => {
+  res.render('analytics', {
+    title: 'Analytics | Blessings Cafe',
+    user: req.session.user,
+    currentPage: req.path
+  });
+});
 
 
 app.listen(port, () => {
