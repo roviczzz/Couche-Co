@@ -77,7 +77,7 @@
               <td><input type="date" name="startDate" class="start-date-input" value="<%= promo.startDate ? new Date(promo.startDate).toISOString().split('T')[0] : '' %>" data-id="<%= promo._id %>" required></td>
               <td><input type="date" name="endDate" class="end-date-input" value="<%= promo.endDate ? new Date(promo.endDate).toISOString().split('T')[0] : '' %>" data-id="<%= promo._id %>" required></td>
               <td><input type="text" name="description" class="description-input" value="<%= promo.description %>" data-id="<%= promo._id %>" required></td>
-              <td><input type="number" name="discountPercentage" class="discount-percentage-input" value="<%= promo.discountPercentage || '' %>" data-id="<%= promo._id %>" min="0" max="100" step="0.01" required></td>
+              <td><input type="number" name="discountPercentage" class="discount-percentage-input" value="<%= promo.discountPercentage !== undefined && promo.discountPercentage !== null ? promo.discountPercentage : '' %>" data-id="<%= promo._id %>" min="0" max="100" step="0.01" required></td>
               <td>
                 <button class="stocks-btn update update-btn" data-id="<%= promo._id %>">Update</button>
                 <button class="stocks-btn delete delete-btn" data-id="<%= promo._id %>">Delete</button>
@@ -802,15 +802,19 @@ document.addEventListener('DOMContentLoaded', function() {
       emptyRow.remove();
     }
 
-    // Create new row
+    // Create new row with proper discount percentage handling
     const newRow = document.createElement('tr');
     newRow.setAttribute('data-promo-id', promo._id);
+    
+    // Ensure discount percentage is properly handled
+    const discountValue = promo.discountPercentage !== undefined && promo.discountPercentage !== null ? promo.discountPercentage : '';
+    
     newRow.innerHTML = `
-      <td><input type="text" name="event" class="event-input" value="${promo.event}" data-id="${promo._id}" required></td>
+      <td><input type="text" name="event" class="event-input" value="${promo.event || ''}" data-id="${promo._id}" required></td>
       <td><input type="date" name="startDate" class="start-date-input" value="${promo.startDate ? new Date(promo.startDate).toISOString().split('T')[0] : ''}" data-id="${promo._id}" required></td>
       <td><input type="date" name="endDate" class="end-date-input" value="${promo.endDate ? new Date(promo.endDate).toISOString().split('T')[0] : ''}" data-id="${promo._id}" required></td>
-      <td><input type="text" name="description" class="description-input" value="${promo.description}" data-id="${promo._id}" required></td>
-      <td><input type="number" name="discountPercentage" class="discount-percentage-input" value="${promo.discountPercentage || ''}" data-id="${promo._id}" min="0" max="100" step="0.01" required></td>
+      <td><input type="text" name="description" class="description-input" value="${promo.description || ''}" data-id="${promo._id}" required></td>
+      <td><input type="number" name="discountPercentage" class="discount-percentage-input" value="${discountValue}" data-id="${promo._id}" min="0" max="100" step="0.01" required></td>
       <td>
         <button class="stocks-btn update update-btn" data-id="${promo._id}">Update</button>
         <button class="stocks-btn delete delete-btn" data-id="${promo._id}">Delete</button>
@@ -850,9 +854,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const saveBtn = document.getElementById('savePromoBtn');
     
     // Get form values
-    const event = document.getElementById('eventInput').value;
-    const description = document.getElementById('descriptionInput').value;
-    const discountPercentage = document.getElementById('discountPercentageInput').value;
+    const event = document.getElementById('eventInput').value.trim();
+    const description = document.getElementById('descriptionInput').value.trim();
+    const discountPercentage = parseFloat(document.getElementById('discountPercentageInput').value);
     const startDate = document.getElementById('startDateInput').value;
     const endDate = document.getElementById('endDateInput').value;
     
@@ -860,10 +864,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const payload = {
       event: event,
       description: description,
-      discountPercentage: parseFloat(discountPercentage),
+      discountPercentage: discountPercentage,
       startDate: startDate,
       endDate: endDate
     };
+    
+    console.log('Saving promo with payload:', payload); // Debug log
     
     // Disable button to prevent double submission
     saveBtn.disabled = true;
@@ -885,6 +891,7 @@ document.addEventListener('DOMContentLoaded', function() {
     })
     .then(data => {
       hideLoading();
+      console.log('Server response:', data); // Debug log
       if (data.success) {
         // Add the new promo to the table
         if (data.promo) {
@@ -916,19 +923,22 @@ document.addEventListener('DOMContentLoaded', function() {
     if (e.target.classList.contains('update-btn')) {
       const promoId = e.target.dataset.id;
       const row = e.target.closest('tr');
-      const event = row.querySelector('.event-input').value;
+      const event = row.querySelector('.event-input').value.trim();
       const startDate = row.querySelector('.start-date-input').value;
       const endDate = row.querySelector('.end-date-input').value;
-      const description = row.querySelector('.description-input').value;
-      const discountPercentage = row.querySelector('.discount-percentage-input').value;
+      const description = row.querySelector('.description-input').value.trim();
+      const discountPercentageInput = row.querySelector('.discount-percentage-input');
+      const discountPercentage = parseFloat(discountPercentageInput.value);
+      
+      console.log('Updating promo with values:', { event, description, discountPercentage, startDate, endDate }); // Debug log
       
       if (!validateDates(startDate, endDate)) {
         showMessage('Closing date must be after or equal to starting date', 'error');
         return;
       }
       
-      if (!event || !description || !discountPercentage || !startDate || !endDate) {
-        showMessage('All fields are required', 'error');
+      if (!event || !description || isNaN(discountPercentage) || !startDate || !endDate) {
+        showMessage('All fields are required and discount percentage must be a valid number', 'error');
         return;
       }
       
@@ -948,8 +958,10 @@ document.addEventListener('DOMContentLoaded', function() {
         startDate: startDate,
         endDate: endDate,
         description: description,
-        discountPercentage: parseFloat(discountPercentage)
+        discountPercentage: discountPercentage
       };
+      
+      console.log('Update payload:', payload); // Debug log
       
       fetch(`/discounts/edit/${promoId}`, {
         method: 'POST',
@@ -961,6 +973,7 @@ document.addEventListener('DOMContentLoaded', function() {
       .then(response => response.json())
       .then(data => {
         hideLoading();
+        console.log('Update response:', data); // Debug log
         if (data.success) {
           showMessage('Promo successfully updated.');
         } else {
@@ -1024,5 +1037,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Initialize total count
   updateTotalCount();
+  
+  // Debug: Log existing promo data
+  console.log('Existing promos in table:');
+  document.querySelectorAll('#promoTableBody tr[data-promo-id]').forEach(row => {
+    const discountInput = row.querySelector('.discount-percentage-input');
+    console.log('Discount percentage value:', discountInput ? discountInput.value : 'Not found');
+  });
 });
 </script>

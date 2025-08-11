@@ -672,7 +672,7 @@ app.get('/discounts', isLoggedIn, nocache, async (req, res) => {
   }
 });
 
-// POST route for adding new promo - FIXED VERSION
+// POST route for adding new promo - FIXED VERSION WITH DISCOUNT PERCENTAGE
 app.post('/discounts/add', isLoggedIn, async (req, res) => {
   console.log('=== PROMO ADD REQUEST STARTED ===');
   console.log('Timestamp:', new Date().toISOString());
@@ -700,8 +700,8 @@ app.post('/discounts/add', isLoggedIn, async (req, res) => {
       });
     }
 
-    // Extract data from form
-    const { event, startDate, endDate, description } = req.body;
+    // Extract data from form - ADDED DISCOUNT PERCENTAGE
+    const { event, startDate, endDate, description, discountPercentage } = req.body;
     
     // Log extracted fields
     console.log('Extracted fields:');
@@ -709,14 +709,15 @@ app.post('/discounts/add', isLoggedIn, async (req, res) => {
     console.log('- startDate:', startDate, '(type:', typeof startDate, ')');
     console.log('- endDate:', endDate, '(type:', typeof endDate, ')');
     console.log('- description:', description, '(type:', typeof description, ')');
+    console.log('- discountPercentage:', discountPercentage, '(type:', typeof discountPercentage, ')');
     
-    // Validation
-    if (!event || !startDate || !endDate || !description) {
+    // Validation - ADDED DISCOUNT PERCENTAGE VALIDATION
+    if (!event || !startDate || !endDate || !description || discountPercentage === undefined || discountPercentage === null) {
       console.log('❌ VALIDATION FAILED - Missing fields');
       return res.status(400).json({ 
         success: false, 
         message: 'All fields are required',
-        received: { event, startDate, endDate, description }
+        received: { event, startDate, endDate, description, discountPercentage }
       });
     }
 
@@ -729,6 +730,16 @@ app.post('/discounts/add', isLoggedIn, async (req, res) => {
       return res.status(400).json({ 
         success: false, 
         message: 'Fields cannot be empty'
+      });
+    }
+
+    // ADDED DISCOUNT PERCENTAGE VALIDATION
+    const discountPercent = parseFloat(discountPercentage);
+    if (isNaN(discountPercent) || discountPercent < 0 || discountPercent > 100) {
+      console.log('❌ DISCOUNT PERCENTAGE VALIDATION FAILED');
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Discount percentage must be a number between 0 and 100'
       });
     }
 
@@ -774,6 +785,7 @@ app.post('/discounts/add', isLoggedIn, async (req, res) => {
       startDate: start,
       endDate: end,
       description: trimmedDescription,
+      discountPercentage: discountPercent, // ADDED DISCOUNT PERCENTAGE
       isActive: true,
       createdAt: new Date(),
       createdBy: req.session.user?.username || 'Unknown'
@@ -788,6 +800,7 @@ app.post('/discounts/add', isLoggedIn, async (req, res) => {
     // Verify the insertion
     const insertedDoc = await promosCollection.findOne({ _id: result.insertedId });
     console.log('✅ Verification - inserted document exists:', !!insertedDoc);
+    console.log('✅ Verification - discount percentage saved:', insertedDoc?.discountPercentage);
     
     // Count total promos
     const totalCount = await promosCollection.countDocuments();
@@ -823,30 +836,43 @@ app.post('/discounts/add', isLoggedIn, async (req, res) => {
   }
 });
 
-// POST route for editing promo - JSON VERSION
+// POST route for editing promo - JSON VERSION WITH DISCOUNT PERCENTAGE
 app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
   const { id } = req.params;
   
   try {
-    // Get form data from either JSON or FormData
-    let event, startDate, endDate, description;
+    // Get form data from either JSON or FormData - ADDED DISCOUNT PERCENTAGE
+    let event, startDate, endDate, description, discountPercentage;
     
     if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
       // JSON data
-      ({ event, startDate, endDate, description } = req.body);
+      ({ event, startDate, endDate, description, discountPercentage } = req.body);
     } else {
       // Form data
       event = req.body.event;
       startDate = req.body.startDate;
       endDate = req.body.endDate;
       description = req.body.description;
+      discountPercentage = req.body.discountPercentage;
     }
     
-    // Validation
-    if (!event || !startDate || !endDate || !description) {
+    console.log('Edit request data:', { event, startDate, endDate, description, discountPercentage });
+    
+    // Validation - ADDED DISCOUNT PERCENTAGE VALIDATION
+    if (!event || !startDate || !endDate || !description || discountPercentage === undefined || discountPercentage === null) {
       return res.status(400).json({ 
         success: false, 
-        message: 'All fields are required' 
+        message: 'All fields are required',
+        received: { event, startDate, endDate, description, discountPercentage }
+      });
+    }
+
+    // ADDED DISCOUNT PERCENTAGE VALIDATION
+    const discountPercent = parseFloat(discountPercentage);
+    if (isNaN(discountPercent) || discountPercent < 0 || discountPercent > 100) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Discount percentage must be a number between 0 and 100'
       });
     }
 
@@ -888,11 +914,14 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
           startDate: start,
           endDate: end,
           description: String(description).trim(),
+          discountPercentage: discountPercent, // ADDED DISCOUNT PERCENTAGE
           updatedAt: new Date(),
           updatedBy: req.session.user?.username || 'Unknown'
         } 
       }
     );
+    
+    console.log('Update result:', updateResult);
     
     await client.close();
     
@@ -998,6 +1027,7 @@ app.post('/discounts/toggle-switch', isLoggedIn, async (req, res) => {
 });
 
 // ========== END OF ENHANCED DISCOUNTS/PROMOS ROUTES ==========
+
 
 app.get('/logout', (req, res) => {
   req.session.destroy(() => {
