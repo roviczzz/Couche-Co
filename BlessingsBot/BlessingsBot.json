@@ -2663,8 +2663,8 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        720,
-        2540
+        1720,
+        2020
       ],
       "typeVersion": 1,
       "id": "c5c0cbd2-f04e-44cb-8178-a80921e070ea",
@@ -2999,13 +2999,13 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.senderId }}\"\n  },\n  \"message\": {\n    \"text\": \"{{ $json.errors[0] }}\"\n  }\n}",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.senderId }}\"\n  },\n  \"message\": {\n    \"text\": \"You have selected Store Pickup with Cash on Hand payment.\\n\\nYour order is now processing and will take a few minutes to prepare. We will notify you here once your order is ready for pickup.\\n\\nUpon pickup, please prepare the exact total amount and present the invoice receipt at the counter\"\n  }\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -160,
+        -200,
         3180
       ],
       "id": "a0963457-6072-4504-bc01-c4f2e4e6b305",
@@ -3036,6 +3036,79 @@
       ],
       "id": "c10e9635-7d95-4bbd-b890-609b4317a5d8",
       "name": "Prepare Invoice Payload"
+    },
+    {
+      "parameters": {
+        "collection": "Chatbot-Cart",
+        "options": {},
+        "query": "={ \"userId\": \"{{ $json.recipient_id }}\" }"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        3180
+      ],
+      "id": "b1f304cf-431f-4005-8dc9-f9ced9c98b22",
+      "name": "find userId Cart2",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get current date and time in Philippines timezone (UTC+8)\nconst now = new Date();\nconst philippinesTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);\nconst formattedDate = philippinesTime.toISOString();\n\n// Get the raw input properly (first item in the input array)\nconst rawInput = Array.isArray($input.all()) ? $input.all()[0].json : $input.item.json;\n\n// Fixed values for store pickup with cash on hand\nconst deliveryMethod = \"STORE PICKUP\";\nconst paymentMethod = \"CASH ON HAND\";\nconst deliveryAddress = null;  // or {} if preferred\nconst isDeliverable = true;\nconst nextAction = \"PAYMENT\";\nconst userId = rawInput.userId || \"unknown\";\n\nreturn {\n  json: {\n    userId: userId,\n    deliveryMethod: deliveryMethod,\n    paymentMethod: paymentMethod,\n    deliveryAddress: deliveryAddress,\n    updatedAt: formattedDate,\n    isDeliverable: isDeliverable,\n    nextAction: nextAction,\n  },\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        3180
+      ],
+      "id": "91a149ba-72e2-4bdc-8d3d-304c4b572fbf",
+      "name": "Process Store Pickup Cash On Hand"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "collection": "Chatbot-Cart",
+        "updateKey": "userId",
+        "fields": "=deliveryMethod, deliveryAddress",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        400,
+        3180
+      ],
+      "id": "7d191245-e477-4384-92d9-8d78b7ff8388",
+      "name": "Insert Null Pickup Address",
+      "credentials": {
+        "mongoDb": {
+          "id": "uQrs31uzSyOdcALm",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "add totalAmount, and deliveryFee to the computation and reflect to db",
+        "height": 80,
+        "width": 290
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1320,
+        2560
+      ],
+      "typeVersion": 1,
+      "id": "d3794fdb-4e6e-45cb-b39a-b93af082a604",
+      "name": "Sticky Note13"
     }
   ],
   "pinData": {},
@@ -3277,7 +3350,13 @@
             "index": 0
           }
         ],
-        []
+        [
+          {
+            "node": "Display Cash On Hand Before Pickup Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Select Add-ons Milktea Message": {
@@ -4132,6 +4211,39 @@
           }
         ]
       ]
+    },
+    "Display Cash On Hand Before Pickup Message": {
+      "main": [
+        [
+          {
+            "node": "find userId Cart2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "find userId Cart2": {
+      "main": [
+        [
+          {
+            "node": "Process Store Pickup Cash On Hand",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Store Pickup Cash On Hand": {
+      "main": [
+        [
+          {
+            "node": "Insert Null Pickup Address",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -4140,7 +4252,7 @@
     "timezone": "Asia/Taipei",
     "callerPolicy": "workflowsFromSameOwner"
   },
-  "versionId": "61c53413-539f-48a8-b0ca-d035a7f994c4",
+  "versionId": "247ecf1e-98c3-4bcd-b99d-ef2371b0eccd",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "e55ad63998dbff63a27e8a719a0f75ec990732ee36c99c049c4be96c65a0b3c2"
