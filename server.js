@@ -208,7 +208,7 @@ app.post('/products/add', async (req, res) => {
   // Map shortcut to full category name
   const categoryMap = {
     CF: "Coffee",
-    MT: "Milk Tea",
+    MT: "Milktea",
     FT: "Fruit Tea",
     BK: "Pastries"
   };
