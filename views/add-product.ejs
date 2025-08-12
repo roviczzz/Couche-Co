@@ -101,61 +101,57 @@
     </div>
 
     <form id="addProductForm" action="/products/add" method="POST">
-      <label class="form-label">Product ID:</label>
-      <input class="form-input" type="text" name="ProductID" required>
 
+      <!-- Category Shortcut -->
+      <label class="form-label">Category:</label>
+      <select class="form-input" name="categoryShortcut" id="categorySelect" required>
+        <option value="">-- Select Category --</option>
+        <option value="CF">Coffee</option>
+        <option value="MT">Milk Tea</option>
+        <option value="FT">Fruit Tea</option>
+        <option value="BK">Pastries</option>
+      </select>
+
+      <!-- Product Code -->
+      <label class="form-label">Product Code (max 4 chars):</label>
+      <input class="form-input" type="text" name="productCode" id="productCode" maxlength="4" placeholder="e.g., CNC" required>
+
+      <!-- Product Name -->
       <label class="form-label">Name:</label>
       <input class="form-input" type="text" name="Name" required>
 
+      <!-- Prices -->
       <label class="form-label">16oz Price:</label>
       <input class="form-input" type="number" name="size16" step="0.01">
 
       <label class="form-label">22oz Price:</label>
       <input class="form-input" type="number" name="size22" step="0.01">
 
+      <!-- Ingredients -->
       <label class="form-label">Ingredients (comma-separated):</label>
       <input class="form-input" type="text" name="Ingredients" placeholder="e.g., ING-COFFEE, ING-CREAMER">
 
-      <label class="form-label">Category:</label>
-      <input class="form-input" type="text" name="Category" required>
-
+      <!-- Base Price -->
       <label class="form-label">Base Price (optional for Pastries):</label>
       <input class="form-input" type="number" name="BasePrice" step="0.01">
 
+      <!-- Allergen -->
       <label class="form-label">Allergen (optional):</label>
       <input class="form-input" type="text" name="Allergen">
 
+      <!-- Image -->
       <label class="form-label">Image Link:</label>
       <input class="form-input" type="text" name="imagelink">
 
+      <!-- Enabled -->
       <div class="checkbox-group">
-        <label class="checkbox-label"><input class="checkbox-input" type="checkbox" name="isEnabled" value="true" checked> Enabled</label>
+        <label class="checkbox-label">
+          <input class="checkbox-input" type="checkbox" name="isEnabled" value="true" checked> Enabled
+        </label>
       </div>
 
+      <!-- Submit -->
       <button class="submit-button" type="submit">Add Product</button>
     </form>
   </div>
 </div>
-
-<script>
-  document.getElementById('addProductForm').addEventListener('submit', function(event) {
-    event.preventDefault();
-
-    Swal.fire({
-      title: 'Add this product?',
-      text: "Please confirm your action before saving.",
-      imageUrl: 'https://iili.io/F5oAbt9.png',
-      imageWidth: 80,
-      imageHeigth: 80,
-      showCancelButton: true,
-      confirmButtonColor: '#2b8a3e',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, add it!',
-      cancelButtonText: 'Cancel'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        event.target.submit();
-      }
-    });
-  });
-</script>

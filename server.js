@@ -193,17 +193,35 @@ app.post('/toggle-availability/:id', async (req, res) => {
 
 app.post('/products/add', async (req, res) => {
   const {
-    ProductID,
+    categoryShortcut, // CF, MT, FT, BK
+    productCode,
     Name,
     size16,
     size22,
     Ingredients,
-    Category,
     Allergen,
     imagelink,
     isEnabled,
-    BasePrice 
+    BasePrice
   } = req.body;
+
+  // Map shortcut to full category name
+  const categoryMap = {
+    CF: "Coffee",
+    MT: "Milk Tea",
+    FT: "Fruit Tea",
+    BK: "Pastries"
+  };
+
+  const Category = categoryMap[categoryShortcut] || null;
+
+  if (!Category || !productCode) {
+    console.warn('Missing category or product code in form submission:', req.body);
+    req.flash('error_msg', 'Please select a category and enter a product code.');
+    return res.redirect('/add-product');
+  }
+
+  const ProductID = `${categoryShortcut.toUpperCase()}-${productCode.toUpperCase()}`;
 
   const Sizes = [];
   if (size16) Sizes.push({ Size: '16oz', BasePrice: parseFloat(size16) });
@@ -218,25 +236,20 @@ app.post('/products/add', async (req, res) => {
     Name,
     Sizes: Sizes.length > 0 ? Sizes : null,
     Ingredients: ingredientsArray,
-    Category,
+    Category, // full name now
     Allergen: Allergen || null,
     imagelink: imagelink || 'placeholder',
     isEnabled: isEnabled === 'true'
   };
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
-if (Category.toLowerCase() === 'pastries' && !isNaN(parseFloat(BasePrice))) {
-  productData.BasePrice = parseFloat(BasePrice);
-}
 
+  if (Category.toLowerCase() === 'pastries' && !isNaN(parseFloat(BasePrice))) {
+    productData.BasePrice = parseFloat(BasePrice);
+  }
 
   try {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
-    const productCollection = db.collection('Menu');
-
-    console.log('Submitted Form Data:', req.body); 
-
-    await productCollection.insertOne(productData);
+    await db.collection('Menu').insertOne(productData);
     await client.close();
     req.flash('success_msg', `${Name} has been added to the menu`);
     res.redirect('/products');
@@ -245,6 +258,8 @@ if (Category.toLowerCase() === 'pastries' && !isNaN(parseFloat(BasePrice))) {
     res.status(500).send('Internal Server Error');
   }
 });
+
+
 
 app.post('/products/edit/:id', async (req, res) => {
   const { id } = req.params;

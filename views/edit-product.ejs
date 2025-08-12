@@ -131,9 +131,18 @@
       <div><input class="field-input" type="text" name="Ingredients" value="<%= product.Ingredients ? product.Ingredients.join(',') : '' %>"></div>
     </div>
 
+    <!-- Updated Category field -->
     <div class="field-group">
       <div class="field-label">Category:</div>
-      <div><input class="field-input" type="text" name="Category" value="<%= product.Category %>" required></div>
+      <div>
+        <select class="field-input" name="Category" required>
+          <option value="">-- Select Category --</option>
+          <option value="Coffee" <%= product.Category === 'Coffee' ? 'selected' : '' %>>Coffee</option>
+          <option value="Milk Tea" <%= product.Category === 'Milk Tea' ? 'selected' : '' %>>Milk Tea</option>
+          <option value="Fruit Tea" <%= product.Category === 'Fruit Tea' ? 'selected' : '' %>>Fruit Tea</option>
+          <option value="Pastries" <%= product.Category === 'Pastries' ? 'selected' : '' %>>Pastries</option>
+        </select>
+      </div>
     </div>
 
     <div class="field-group">
