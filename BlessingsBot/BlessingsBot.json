@@ -3006,7 +3006,7 @@
       "typeVersion": 4.2,
       "position": [
         -200,
-        3180
+        3240
       ],
       "id": "a0963457-6072-4504-bc01-c4f2e4e6b305",
       "name": "Display Cash On Hand Before Pickup Message"
@@ -3047,7 +3047,7 @@
       "typeVersion": 1.2,
       "position": [
         0,
-        3180
+        3240
       ],
       "id": "b1f304cf-431f-4005-8dc9-f9ced9c98b22",
       "name": "find userId Cart2",
@@ -3067,7 +3067,7 @@
       "typeVersion": 2,
       "position": [
         220,
-        3180
+        3140
       ],
       "id": "91a149ba-72e2-4bdc-8d3d-304c4b572fbf",
       "name": "Process Store Pickup Cash On Hand"
@@ -3084,7 +3084,7 @@
       "typeVersion": 1.2,
       "position": [
         400,
-        3180
+        3140
       ],
       "id": "7d191245-e477-4384-92d9-8d78b7ff8388",
       "name": "Insert Null Pickup Address",
@@ -3109,6 +3109,168 @@
       "typeVersion": 1,
       "id": "d3794fdb-4e6e-45cb-b39a-b93af082a604",
       "name": "Sticky Note13"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"recipient\": {\n    \"id\": \"{{ $('Receipt to Image').item.json.senderId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"image\",\n      \"payload\": {\n        \"url\": \"{{ $json.display_url }}\",\n        \"is_reusable\": false\n      }\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1000,
+        3600
+      ],
+      "id": "38dedc6a-b040-4912-ae61-af53101afff6",
+      "name": "Display Enter Delivery Message1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.imgbb.com/1/upload",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "multipart/form-data"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"key\": \"052f10afa5442a3b89fafbf3635291ac\",\n  \"image\": \"{{ $json.image_base64 }}\",\n  \"name\": \"n8n_generated_{{ $now }}\",\n  \"expiration\": \"600\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        3600
+      ],
+      "id": "79bcaad6-b242-4567-93cc-30dab5d534be",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e362562a-16e1-44fa-befe-97c561a89428",
+              "name": "display_url",
+              "value": "={{ $json.data.display_url }}",
+              "type": "string"
+            },
+            {
+              "id": "b27de764-e08b-4928-af3c-7eb0dedf49a6",
+              "name": "thumb_url",
+              "value": "={{ $json.data.thumb.url }} ",
+              "type": "string"
+            },
+            {
+              "id": "029db8c6-cdc4-43a0-9175-ebb67fa63442",
+              "name": "delete_url",
+              "value": "={{ $json.data.delete_url }} ",
+              "type": "string"
+            },
+            {
+              "id": "f234d1aa-e39b-4212-8720-3a7d9f16f33f",
+              "name": "upload_success",
+              "value": "={{ $json.success.toString().trim() === 'true' }}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        800,
+        3600
+      ],
+      "id": "a55f79e3-430a-4c05-88e4-ec2a3c358c15",
+      "name": "Set - Extract ImgBB URLs"
+    },
+    {
+      "parameters": {
+        "language": "python",
+        "pythonCode": "# N8N Python Node - HTML to Image Converter\n# This replaces the HTTP Request node with a free, unlimited solution\n\nimport base64\nimport io\nfrom PIL import Image, ImageDraw, ImageFont\nfrom html import unescape\nimport re\nimport json\n\n# Get the HTML from previous node\nhtml_content = _input.first()['json']['receiptHTML']\n\ndef html_to_image_simple(html_content, width=400, height=800):\n    \"\"\"\n    Simple HTML to image converter using PIL\n    Extracts text content and creates a styled receipt image\n    \"\"\"\n    \n    # Extract text content from HTML (remove tags)\n    def strip_html_tags(html):\n        clean = re.compile('<.*?>')\n        return re.sub(clean, '', html)\n    \n    # Parse key information from HTML\n    lines = []\n    \n    # Extract content between specific divs/classes\n    content_match = re.search(r'<div class=\"content\">(.*?)</div>\\s*</div>\\s*</body>', html_content, re.DOTALL)\n    if content_match:\n        content = content_match.group(1)\n        \n        # Extract title\n        title_match = re.search(r'<div class=\"title\">(.*?)</div>', content)\n        if title_match:\n            lines.append(('title', strip_html_tags(title_match.group(1))))\n        \n        # Extract order info\n        order_info_match = re.search(r'<div class=\"order-info\">(.*?)</div>', content, re.DOTALL)\n        if order_info_match:\n            order_info = strip_html_tags(order_info_match.group(1)).replace('\\n', ' ').strip()\n            lines.append(('info', order_info))\n        \n        # Extract items\n        items_match = re.search(r'<div class=\"items\">(.*?)</div>', content, re.DOTALL)\n        if items_match:\n            items_html = items_match.group(1)\n            \n            # Find all item blocks\n            item_blocks = re.findall(r'<div class=\"item\">(.*?)</div>(?=\\s*<div class=\"item\">|$)', items_html, re.DOTALL)\n            \n            for item_block in item_blocks:\n                # Extract item name and total\n                header_match = re.search(r'<span class=\"item-name\">(.*?)</span>.*?<span class=\"item-total\">(.*?)</span>', item_block)\n                if header_match:\n                    item_name = strip_html_tags(header_match.group(1))\n                    item_total = strip_html_tags(header_match.group(2))\n                    lines.append(('item', f\"{item_name} - {item_total}\"))\n                \n                # Extract item details\n                details_match = re.search(r'<div class=\"item-details\">(.*?)</div>', item_block)\n                if details_match:\n                    details = strip_html_tags(details_match.group(1))\n                    lines.append(('details', f\"  {details}\"))\n                \n                # Extract addons\n                addons = re.findall(r'<div class=\"addon\">(.*?)</div>', item_block)\n                for addon in addons:\n                    addon_text = strip_html_tags(addon)\n                    lines.append(('addon', f\"  {addon_text}\"))\n        \n        # Extract totals\n        totals_match = re.search(r'<div class=\"totals\">(.*?)</div>', content, re.DOTALL)\n        if totals_match:\n            totals_html = totals_match.group(1)\n            \n            # Extract total rows\n            total_rows = re.findall(r'<div class=\"total-row\">.*?<span>(.*?)</span>.*?<span>(.*?)</span>.*?</div>', totals_html)\n            for row in total_rows:\n                label = strip_html_tags(row[0])\n                amount = strip_html_tags(row[1])\n                lines.append(('total', f\"{label}: {amount}\"))\n            \n            # Extract final total\n            final_match = re.search(r'<div class=\"final-total\">.*?<span>(.*?)</span>.*?<span>(.*?)</span>.*?</div>', totals_html)\n            if final_match:\n                label = strip_html_tags(final_match.group(1))\n                amount = strip_html_tags(final_match.group(2))\n                lines.append(('final_total', f\"{label}: {amount}\"))\n        \n        # Extract order details\n        details_match = re.search(r'<div class=\"order-details\">(.*?)</div>', content, re.DOTALL)\n        if details_match:\n            details_html = details_match.group(1)\n            detail_rows = re.findall(r'<div class=\"detail-row\">.*?<span class=\"detail-label\">(.*?)</span>.*?<span>(.*?)</span>.*?</div>', details_html)\n            for row in detail_rows:\n                label = strip_html_tags(row[0])\n                value = strip_html_tags(row[1])\n                lines.append(('detail', f\"{label} {value}\"))\n        \n        # Extract thank you message\n        thank_match = re.search(r'<div class=\"thank-you\">(.*?)</div>', content)\n        if thank_match:\n            thank_you = strip_html_tags(thank_match.group(1))\n            lines.append(('thank_you', thank_you))\n\n    # Create image\n    img = Image.new('RGB', (width, height), 'white')\n    draw = ImageDraw.Draw(img)\n    \n    # Try to use system fonts, fallback to default\n    try:\n        font_title = ImageFont.truetype(\"/System/Library/Fonts/Helvetica.ttc\", 24)\n        font_header = ImageFont.truetype(\"/System/Library/Fonts/Helvetica.ttc\", 18)\n        font_normal = ImageFont.truetype(\"/System/Library/Fonts/Helvetica.ttc\", 14)\n        font_small = ImageFont.truetype(\"/System/Library/Fonts/Helvetica.ttc\", 12)\n    except:\n        try:\n            font_title = ImageFont.truetype(\"arial.ttf\", 24)\n            font_header = ImageFont.truetype(\"arial.ttf\", 18)\n            font_normal = ImageFont.truetype(\"arial.ttf\", 14)\n            font_small = ImageFont.truetype(\"arial.ttf\", 12)\n        except:\n            font_title = ImageFont.load_default()\n            font_header = ImageFont.load_default()\n            font_normal = ImageFont.load_default()\n            font_small = ImageFont.load_default()\n    \n    # Draw header background\n    draw.rectangle([0, 0, width, 80], fill='#1a1a1a')\n    \n    # Draw logo and tagline\n    draw.text((width//2, 25), \"BLESSINGS CAFE\", font=font_header, fill='white', anchor='mm')\n    draw.text((width//2, 50), \"Fresh • Quality • Delicious\", font=font_small, fill='white', anchor='mm')\n    \n    # Draw border\n    draw.rectangle([10, 10, width-10, height-50], outline='black', width=2)\n    \n    y_pos = 100\n    padding = 20\n    \n    for line_type, text in lines:\n        if y_pos > height - 100:  # Prevent overflow\n            break\n            \n        if line_type == 'title':\n            draw.text((width//2, y_pos), text, font=font_header, fill='#1a1a1a', anchor='mm')\n            y_pos += 30\n        elif line_type == 'info':\n            draw.text((width//2, y_pos), text, font=font_small, fill='#666', anchor='mm')\n            y_pos += 25\n        elif line_type == 'item':\n            # Draw item on two lines if too long\n            if len(text) > 35:\n                words = text.split(' - ')\n                draw.text((padding, y_pos), words[0], font=font_normal, fill='black')\n                draw.text((width - padding, y_pos), words[1] if len(words) > 1 else '', font=font_normal, fill='black', anchor='rm')\n            else:\n                draw.text((padding, y_pos), text, font=font_normal, fill='black')\n            y_pos += 22\n        elif line_type == 'details':\n            draw.text((padding, y_pos), text, font=font_small, fill='#666')\n            y_pos += 18\n        elif line_type == 'addon':\n            draw.text((padding, y_pos), text, font=font_small, fill='#888')\n            y_pos += 18\n        elif line_type == 'total':\n            parts = text.split(': ')\n            if len(parts) == 2:\n                draw.text((padding, y_pos), parts[0] + ':', font=font_normal, fill='black')\n                draw.text((width - padding, y_pos), parts[1], font=font_normal, fill='black', anchor='rm')\n            y_pos += 20\n        elif line_type == 'final_total':\n            # Draw line above final total\n            draw.line([padding, y_pos-5, width-padding, y_pos-5], fill='black', width=2)\n            y_pos += 10\n            parts = text.split(': ')\n            if len(parts) == 2:\n                draw.text((padding, y_pos), parts[0] + ':', font=font_header, fill='black')\n                draw.text((width - padding, y_pos), parts[1], font=font_header, fill='black', anchor='rm')\n            y_pos += 35\n        elif line_type == 'detail':\n            draw.text((width//2, y_pos), text, font=font_small, fill='#333', anchor='mm')\n            y_pos += 18\n        elif line_type == 'thank_you':\n            draw.text((width//2, y_pos), text, font=font_normal, fill='#1a1a1a', anchor='mm')\n            y_pos += 30\n    \n    # Add footer\n    draw.text((width//2, height-30), \"© 2025 Blessings Cafe\", font=font_small, fill='#999', anchor='mm')\n    \n    # Crop image to actual content height\n    actual_height = min(y_pos + 50, height)\n    img = img.crop((0, 0, width, actual_height))\n    \n    return img\n\n# Generate the image\ntry:\n    receipt_image = html_to_image_simple(html_content)\n    \n    # Convert to base64\n    buffer = io.BytesIO()\n    receipt_image.save(buffer, format='PNG', quality=95, optimize=True)\n    img_base64 = base64.b64encode(buffer.getvalue()).decode()\n    \n    # Create data URL\n    image_data_url = f\"data:image/png;base64,{img_base64}\"\n    \n    return {\n        \"json\": {\n            \"senderId\": _input.first()['json']['senderId'],\n            \"image_base64\": img_base64,\n            \"image_data_url\": image_data_url,\n            \"image_size\": len(buffer.getvalue()),\n            \"status\": \"success\"\n        }\n    }\n\nexcept Exception as e:\n    return {\n        \"json\": {\n            \"senderId\": _input.first()['json']['senderId'],\n            \"error\": str(e),\n            \"status\": \"failed\"\n        }\n    }\n\n# Requirements for n8n Python node:\n# pip install Pillow"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        420,
+        3340
+      ],
+      "id": "0a33c055-4a7e-4032-b7eb-a922024fe072",
+      "name": "Receipt to Image"
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputData = $input.first().json;\nconst cartData = Array.isArray(inputData) ? inputData[0] : inputData;\nconst { items: cartItems, subtotal, userId: senderId, deliveryMethod = 'STORE_PICKUP', paymentMethod = 'Cash On Hand' } = cartData;\n\n\nconst currentDate = new Date().toLocaleString('en-PH', {\n  timeZone: 'Asia/Manila',\n  year: 'numeric',\n  month: 'long', \n  day: 'numeric',\n  hour: '2-digit',\n  minute: '2-digit'\n});\n\nconst deliveryFee = deliveryMethod === 'DELIVERY' ? 20 : 0;\nconst finalTotal = subtotal + deliveryFee;\nconst orderId = `BC${Date.now()}`;\n\n// Generate items HTML\nlet itemsHTML = '';\ncartItems.forEach((item, index) => {\n  const displaySize = (item.category === \"Pastries\" || !item.size) ? \"\" : ` (${item.size})`;\n  \n  itemsHTML += `\n    <div class=\"item\">\n      <div class=\"item-header\">\n        <span class=\"item-name\">${index + 1}. ${item.productName}${displaySize}</span>\n        <span class=\"item-total\">₱${item.totalPrice.toFixed(2)}</span>\n      </div>\n      <div class=\"item-details\">\n        <span>Qty: ${item.quantity} × ₱${item.basePrice.toFixed(2)}</span>\n      </div>`;\n  \n  if (item.addOns && item.addOns.length > 0) {\n    item.addOns.forEach(addon => {\n      itemsHTML += `\n        <div class=\"addon\">\n          + ${addon.addOnName} (${addon.quantity}× ₱${addon.addOnPrice.toFixed(2)})\n        </div>`;\n    });\n  }\n  \n  itemsHTML += `</div>`;\n});\n\nconst receiptHTML = `<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <style>\n    * { margin: 0; padding: 0; box-sizing: border-box; }\n    body {\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;\n      background: white;\n      width: 400px;\n      padding: 0;\n    }\n    .receipt {\n      width: 380px;\n      margin: 10px auto;\n      background: white;\n      border: 2px solid #000;\n      border-radius: 12px;\n      overflow: hidden;\n      box-shadow: 0 4px 12px rgba(0,0,0,0.1);\n    }\n    .header {\n      background: linear-gradient(135deg, #1a1a1a 0%, #333 100%);\n      color: white;\n      text-align: center;\n      padding: 20px;\n    }\n    .logo { font-size: 22px; font-weight: bold; margin-bottom: 4px; }\n    .tagline { font-size: 11px; opacity: 0.9; }\n    .content { padding: 20px; }\n    .title {\n      text-align: center;\n      font-size: 16px;\n      font-weight: bold;\n      margin-bottom: 15px;\n      color: #1a1a1a;\n    }\n    .order-info {\n      text-align: center;\n      font-size: 11px;\n      color: #666;\n      margin-bottom: 20px;\n      line-height: 1.4;\n    }\n    .items { margin-bottom: 20px; }\n    .item {\n      margin-bottom: 12px;\n      padding-bottom: 8px;\n      border-bottom: 1px dotted #ddd;\n    }\n    .item:last-child { border-bottom: none; margin-bottom: 0; }\n    .item-header {\n      display: flex;\n      justify-content: space-between;\n      align-items: center;\n      margin-bottom: 4px;\n    }\n    .item-name { font-weight: 600; font-size: 14px; flex: 1; }\n    .item-total { font-weight: bold; font-size: 14px; }\n    .item-details {\n      font-size: 12px;\n      color: #666;\n      margin-left: 20px;\n    }\n    .addon {\n      font-size: 11px;\n      color: #888;\n      margin-left: 25px;\n      margin-top: 2px;\n    }\n    .totals {\n      border-top: 2px solid #000;\n      padding-top: 15px;\n      margin-top: 15px;\n    }\n    .total-row {\n      display: flex;\n      justify-content: space-between;\n      margin-bottom: 6px;\n      font-size: 13px;\n    }\n    .final-total {\n      display: flex;\n      justify-content: space-between;\n      font-size: 18px;\n      font-weight: bold;\n      margin-top: 10px;\n      padding-top: 10px;\n      border-top: 1px solid #000;\n    }\n    .order-details {\n      background: #f8f9fa;\n      padding: 12px;\n      border-radius: 6px;\n      margin: 15px 0;\n      font-size: 12px;\n    }\n    .detail-row {\n      display: flex;\n      justify-content: space-between;\n      margin-bottom: 4px;\n    }\n    .detail-label { font-weight: 600; }\n    .footer {\n      text-align: center;\n      font-size: 10px;\n      color: #999;\n      margin-top: 15px;\n      padding-top: 10px;\n      border-top: 1px dotted #ccc;\n    }\n    .thank-you {\n      text-align: center;\n      font-size: 14px;\n      font-weight: bold;\n      margin: 15px 0 10px;\n      color: #1a1a1a;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"receipt\">\n    <div class=\"header\">\n      <div class=\"logo\">BLESSINGS CAFE</div>\n      <div class=\"tagline\">Fresh • Quality • Delicious</div>\n    </div>\n    \n    <div class=\"content\">\n      <div class=\"title\">📋 ORDER RECEIPT</div>\n      <div class=\"order-info\">\n        ${currentDate}<br>\n        Order #${orderId}\n      </div>\n      \n      <div class=\"items\">${itemsHTML}</div>\n      \n      <div class=\"totals\">\n        <div class=\"total-row\">\n          <span>Subtotal</span>\n          <span>₱${subtotal.toFixed(2)}</span>\n        </div>\n        ${deliveryFee > 0 ? `\n        <div class=\"total-row\">\n          <span>Delivery Fee</span>\n          <span>₱${deliveryFee.toFixed(2)}</span>\n        </div>` : ''}\n        <div class=\"final-total\">\n          <span>TOTAL</span>\n          <span>₱${finalTotal.toFixed(2)}</span>\n        </div>\n      </div>\n      \n      <div class=\"order-details\">\n        <div class=\"detail-row\">\n          <span class=\"detail-label\">Delivery:</span>\n          <span>${deliveryMethod === 'DELIVERY' ? 'Delivery' : 'Store Pickup'}</span>\n        </div>\n        <div class=\"detail-row\">\n          <span class=\"detail-label\">Payment:</span>\n          <span>${paymentMethod}</span>\n        </div>\n      </div>\n      \n      <div class=\"thank-you\">Thank you for choosing us! ❤️</div>\n      \n      <div class=\"footer\">\n        Visit us again soon!<br>\n        © 2025 Blessings Cafe\n      </div>\n    </div>\n  </div>\n</body>\n</html>`;\n\nreturn {\n  json: {\n    senderId,\n    receiptHTML,\n    orderId,\n    finalTotal: finalTotal.toFixed(2)\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        3340
+      ],
+      "id": "4e1fed9d-535d-4bb5-a708-338f998f3c10",
+      "name": "Receipt as HTML"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.postimages.org/1/upload",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "multipart/form-data"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"upload\": \"{{ $json.image_base64 }}\",\n  \"optsize\": \"0\",\n  \"expire\": \"0\",\n  \"numfiles\": \"1\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        840,
+        3340
+      ],
+      "id": "6cf9d5eb-343f-43a6-b74a-d316ef520c9f",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const { imgbox } = require('imgbox');\nconst fs = require('fs');\n\n// Assuming you have the base64 image as input\nconst base64Image = $json.image_base64;\n\n// Convert base64 to Buffer\nconst imageBuffer = Buffer.from(base64Image, 'base64');\n\n// Prepare file object with buffer and filename\nconst file = {\n  filename: 'receipt.png',\n  buffer: imageBuffer,\n};\n\n// Upload image via imgbox\nconst uploadResponse = await imgbox(file);\n\n// Access the image URL from the response\nconst imageUrl = uploadResponse.files[0].original_url || uploadResponse.files[0].url;\n\nreturn {\n  json: {\n    imageUrl,\n  },\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        3340
+      ],
+      "id": "37478be6-80b6-45d7-a779-aa34da6b3307",
+      "name": "Code"
     }
   ],
   "pinData": {},
@@ -4230,6 +4392,11 @@
             "node": "Process Store Pickup Cash On Hand",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "Receipt as HTML",
+            "type": "main",
+            "index": 0
           }
         ]
       ]
@@ -4244,6 +4411,60 @@
           }
         ]
       ]
+    },
+    "Display Enter Delivery Message1": {
+      "main": [
+        []
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Set - Extract ImgBB URLs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set - Extract ImgBB URLs": {
+      "main": [
+        []
+      ]
+    },
+    "Receipt to Image": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receipt as HTML": {
+      "main": [
+        [
+          {
+            "node": "Receipt to Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -4252,7 +4473,7 @@
     "timezone": "Asia/Taipei",
     "callerPolicy": "workflowsFromSameOwner"
   },
-  "versionId": "247ecf1e-98c3-4bcd-b99d-ef2371b0eccd",
+  "versionId": "56333d46-640f-439d-bcb6-abc98c337d66",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "e55ad63998dbff63a27e8a719a0f75ec990732ee36c99c049c4be96c65a0b3c2"
