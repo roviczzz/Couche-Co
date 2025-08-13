@@ -493,11 +493,21 @@ document.getElementById('proceed-order-btn').addEventListener('click', function(
   };
 });
 
+function pad(num, size = 2) {
+  return num.toString().padStart(size, '0');
+}
+
 function generateOrderID() {
-  let lastOrderNumber = parseInt(localStorage.getItem('lastOrderNumber') || '999', 10);
-  lastOrderNumber++;
-  localStorage.setItem('lastOrderNumber', lastOrderNumber);
-  return lastOrderNumber;
+  const now = new Date();
+  const philippinesTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+  const idDate =
+          pad(philippinesTime.getMonth() + 1) +
+          pad(philippinesTime.getDate()) +
+          pad(philippinesTime.getHours()) +
+          pad(philippinesTime.getMinutes()) +
+          pad(philippinesTime.getSeconds());
+  const transactionId = `${idDate}-BLESSINGSCAFE`;
+  return transactionId;
 }
 
 function submitOrder(customer, contactNumber, deliveryType, paymentMode, total, itemTotal, notes) {
@@ -512,11 +522,11 @@ function submitOrder(customer, contactNumber, deliveryType, paymentMode, total, 
   function formatDate(dateObj) {
     const pad = (n) => (n < 10 ? '0' + n : n);
     return dateObj.getFullYear() + '-' +
-      pad(dateObj.getMonth() + 1) + '-' +
-      pad(dateObj.getDate()) + ' ' +
-      pad(dateObj.getHours()) + ':' +
-      pad(dateObj.getMinutes()) + ':' +
-      pad(dateObj.getSeconds());
+            pad(dateObj.getMonth() + 1) + '-' +
+            pad(dateObj.getDate()) + ' ' +
+            pad(dateObj.getHours()) + ':' +
+            pad(dateObj.getMinutes()) + ':' +
+            pad(dateObj.getSeconds());
   }
 
   const orderData = {
@@ -532,7 +542,8 @@ function submitOrder(customer, contactNumber, deliveryType, paymentMode, total, 
     DeliveryStatus: deliveryType,
     Address: (deliveryType === 'Delivery') ? document.getElementById('address').value.trim() : '',
     Notes: notes || '',
-    FulfillmentStatus: "Preparing"
+    FulfillmentStatus: "Preparing",
+    Source: "POS"
   };
 
   fetch('/api/orders', {
@@ -540,48 +551,48 @@ function submitOrder(customer, contactNumber, deliveryType, paymentMode, total, 
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(orderData)
   })
-  .then(res => {
-    if (!res.ok) {
-      throw new Error(`Network response was not ok: ${res.status} ${res.statusText}`);
-    }
-    const contentType = res.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-      throw new TypeError('Oops, we haven\'t got JSON!');
-    }
-    return res.json();
-  })
-  .then(data => {
-    if (data.success) {
-      alert('Order submitted successfully! Your Order ID is: ' + orderData.OrderID);
-      orderItems = [];
-      renderOrderItems();
-      document.getElementById('customer-name').value = '';
-      document.getElementById('contact-number').value = '';
-      const deliveryTypeSelect = document.getElementById('delivery-type');
-      deliveryTypeSelect.value = 'Take-Out';
-      const addressContainer = document.getElementById('address-container');
-      const addressInput = document.getElementById('address');
-      addressContainer.style.display = 'none';
-      addressInput.value = '';
-      document.getElementById('notes-textarea').value = '';
-      updateSummary();
-      const deliveryFeeDiv = document.getElementById('delivery-fee-message');
-      if (deliveryFeeDiv) deliveryFeeDiv.remove();
-      document.querySelectorAll('.payment-option.selected').forEach(el => {
-        el.classList.remove('selected');
-        const check = el.querySelector('.payment-check');
-        check.style.backgroundColor = '#ddd';
-        check.textContent = '';
-      });
-    } else {
-      alert('Failed to submit order. Please try again.');
-      console.error(data.error || 'Unknown error from server.');
-    }
-  })
-  .catch(err => {
-    alert('Error submitting order.');
-    console.error('Fetch error:', err);
-  });
+          .then(res => {
+            if (!res.ok) {
+              throw new Error(`Network response was not ok: ${res.status} ${res.statusText}`);
+            }
+            const contentType = res.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+              throw new TypeError('Oops, we haven\'t got JSON!');
+            }
+            return res.json();
+          })
+          .then(data => {
+            if (data.success) {
+              alert('Order submitted successfully! Your Order ID is: ' + orderData.OrderID);
+              orderItems = [];
+              renderOrderItems();
+              document.getElementById('customer-name').value = '';
+              document.getElementById('contact-number').value = '';
+              const deliveryTypeSelect = document.getElementById('delivery-type');
+              deliveryTypeSelect.value = 'Take-Out';
+              const addressContainer = document.getElementById('address-container');
+              const addressInput = document.getElementById('address');
+              addressContainer.style.display = 'none';
+              addressInput.value = '';
+              document.getElementById('notes-textarea').value = '';
+              updateSummary();
+              const deliveryFeeDiv = document.getElementById('delivery-fee-message');
+              if (deliveryFeeDiv) deliveryFeeDiv.remove();
+              document.querySelectorAll('.payment-option.selected').forEach(el => {
+                el.classList.remove('selected');
+                const check = el.querySelector('.payment-check');
+                check.style.backgroundColor = '#ddd';
+                check.textContent = '';
+              });
+            } else {
+              alert('Failed to submit order. Please try again.');
+              console.error(data.error || 'Unknown error from server.');
+            }
+          })
+          .catch(err => {
+            alert('Error submitting order.');
+            console.error('Fetch error:', err);
+          });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
