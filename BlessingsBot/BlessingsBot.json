@@ -11,10 +11,10 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
       "position": [
-        -680,
-        -80
+        -416,
+        1040
       ],
-      "id": "16c99dbe-b19d-4ab8-8060-b3e6db6f4b3a",
+      "id": "05649f41-e700-4faa-b0cd-7135e716a058",
       "name": "403"
     },
     {
@@ -27,10 +27,10 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        -1120,
-        200
+        -864,
+        1328
       ],
-      "id": "aa8774c3-caff-4831-93e2-3a04167fbecc",
+      "id": "658e528b-d1db-4d80-a4c6-62a5ade677f0",
       "name": "Webhook",
       "webhookId": "d22a95ca-f2db-48a6-81a9-e6936e01b0e9"
     },
@@ -72,10 +72,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -900,
-        -180
+        -640,
+        944
       ],
-      "id": "d4305810-5d3a-432d-bc84-8733382293e4",
+      "id": "8f05aee1-dce4-4c4a-b6bc-9d11ac544ec6",
       "name": "If"
     },
     {
@@ -87,10 +87,10 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
       "position": [
-        -680,
-        -280
+        -416,
+        848
       ],
-      "id": "f13e8c69-30a0-4ccb-9873-96d522dcd3ac",
+      "id": "d3be3b88-3011-42df-9883-40a46f42191a",
       "name": "Return Challenge"
     },
     {
@@ -103,10 +103,10 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -880,
-        80
+        -624,
+        1200
       ],
-      "id": "b71423f9-3f38-4124-950f-f6475c8d9a20",
+      "id": "789c98e0-3782-4603-bbb7-93f7ea3fb9b8",
       "name": "Sticky Note"
     },
     {
@@ -116,10 +116,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -940,
-        600
+        -688,
+        1728
       ],
-      "id": "acb78e74-b07a-4c5f-bbd4-75b2b71e20b0",
+      "id": "5ac11674-dead-4c23-a26d-7243e7ebe363",
       "name": "Listen"
     },
     {
@@ -132,10 +132,10 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -1200,
-        820
+        -944,
+        1952
       ],
-      "id": "a7d3ed37-a7a2-47c2-89a2-a2f83508f408",
+      "id": "17805964-a804-4dc2-8892-bb5a069ebbc3",
       "name": "Sticky Note1"
     },
     {
@@ -160,10 +160,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        400,
-        -820
+        672,
+        304
       ],
-      "id": "5f8483d0-8d83-4b70-911d-6d735d44bb0b",
+      "id": "274ea9a4-9dfb-49ed-bd80-5d383f69b43f",
       "name": "Menu Gallery"
     },
     {
@@ -188,10 +188,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -40,
-        -1120
+        224,
+        0
       ],
-      "id": "eb8789bf-5f7f-4948-a5b1-c007b636a7a8",
+      "id": "a23afa2a-a815-433f-beef-38a31c925d45",
       "name": "Data Privacy Notice"
     },
     {
@@ -215,10 +215,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -260,
-        -1120
+        0,
+        0
       ],
-      "id": "e1c555a3-8f8a-446e-bd4d-6f710c9f996e",
+      "id": "164c97d9-393b-4258-9973-cf563e44df90",
       "name": "Greeting Message"
     },
     {
@@ -242,10 +242,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        180,
-        -820
+        448,
+        304
       ],
-      "id": "f9f6fb4d-e72f-4a3f-95d3-bd4a0e312638",
+      "id": "7c9b3a45-9649-4c88-bfc2-48c3a9b06063",
       "name": "Order Intro Message"
     },
     {
@@ -734,31 +734,6 @@
                 },
                 "conditions": [
                   {
-                    "id": "fb1a0d00-e4a8-4656-bec9-2d09fb8b0c7f",
-                    "leftValue": "={{ $json.postback }}",
-                    "rightValue": "STORE_PICKUP",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals",
-                      "name": "filter.operator.equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "STORE_PICKUP"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "loose",
-                  "version": 2
-                },
-                "conditions": [
-                  {
                     "id": "083d38da-f9b5-4bf0-92f4-9971f35eb5ff",
                     "leftValue": "={{ $json.postback }}",
                     "rightValue": "GO_BACK",
@@ -857,10 +832,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        -540,
-        460
+        -288,
+        1584
       ],
-      "id": "3c10a93e-8ca8-4ccb-a897-4e83139e1cfb",
+      "id": "2ba6fbc8-814c-4e22-94c0-208fbf244c9b",
       "name": "Main Switch"
     },
     {
@@ -884,10 +859,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1020,
-        580
+        1280,
+        1712
       ],
-      "id": "9afb48f7-fdce-4b38-9c61-20e9e697d1ad",
+      "id": "c1128c05-80a1-4716-939d-d7163b1ac5a5",
       "name": "Select Add-ons Milktea Message"
     },
     {
@@ -911,10 +886,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1020,
-        780
+        1280,
+        1904
       ],
-      "id": "51aac8ef-611d-4439-8adc-a51b7c24190b",
+      "id": "e5b33753-96c4-49bc-a4ec-1923ffc4ac76",
       "name": "Select Add-ons Coffee Message"
     },
     {
@@ -938,10 +913,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1020,
-        980
+        1280,
+        2112
       ],
-      "id": "df59f71a-091c-4df3-af12-d26dd102da08",
+      "id": "49a0584f-c74e-4d9c-a488-7d913ac8d874",
       "name": "Select Add-ons Fruit Tea Message"
     },
     {
@@ -966,10 +941,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1240,
-        580
+        1504,
+        1712
       ],
-      "id": "8d651e29-c931-461e-9c53-1d374fc12835",
+      "id": "4e27bc8f-6b28-41ea-bc3f-0da921d6b7ae",
       "name": "Add-ons Milktea"
     },
     {
@@ -993,10 +968,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1240,
-        780
+        1504,
+        1904
       ],
-      "id": "488b6806-ef64-4c96-98c5-f89e634a96a0",
+      "id": "45bad3c4-1e5d-49ec-9790-ddd7b85d2337",
       "name": "Add-ons Coffee"
     },
     {
@@ -1020,10 +995,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1240,
-        980
+        1504,
+        2112
       ],
-      "id": "ddcf1c9b-121e-442b-a549-72b6bee19e64",
+      "id": "12b66931-2c5e-4a63-a981-8dd8d9357f57",
       "name": "Add-ons Fruit Tea"
     },
     {
@@ -1109,10 +1084,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        800,
-        780
+        1072,
+        1904
       ],
-      "id": "8325ea7c-fd2b-4b0d-a82e-7e26a17bc46a",
+      "id": "bdd275c2-2a5f-4ec6-8be5-721b501c154b",
       "name": "Add-Ons Switch"
     },
     {
@@ -1122,10 +1097,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -260,
-        640
+        0,
+        1760
       ],
-      "id": "4f26a22b-9332-42e8-8e01-55177bfbae91",
+      "id": "50fb01bc-fb4a-40b2-a004-21782a0b0cb4",
       "name": "get productID"
     },
     {
@@ -1137,14 +1112,14 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        -40,
-        640
+        224,
+        1760
       ],
-      "id": "a6c616f3-9b43-458b-bc64-f0c747be006a",
+      "id": "42537116-59b7-496c-a9e7-3fece1ebe467",
       "name": "verify productID",
       "credentials": {
         "mongoDb": {
-          "id": "uQrs31uzSyOdcALm",
+          "id": "gE9wFiHHKb14x1uQ",
           "name": "MongoDB account"
         }
       }
@@ -1156,10 +1131,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        180,
-        640
+        448,
+        1760
       ],
-      "id": "ba7d3731-c9a9-490a-bd79-3ba1c3b7b873",
+      "id": "f91550b2-1a42-4a10-9997-98c234c8c339",
       "name": "retrieve sizes"
     },
     {
@@ -1183,10 +1158,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        620,
-        640
+        880,
+        1760
       ],
-      "id": "77800f66-04a6-482e-bce7-cd3715443d08",
+      "id": "47082c67-e77a-4a8d-a372-b9eb43e171cf",
       "name": "Select Size Prompt"
     },
     {
@@ -1198,14 +1173,14 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        -260,
-        -600
+        0,
+        528
       ],
-      "id": "6defc956-8c80-469b-9d9e-ae5c2d6dcb0c",
+      "id": "348796b7-b42f-4233-a20a-aea01de8e684",
       "name": "Retrieve Popular DB",
       "credentials": {
         "mongoDb": {
-          "id": "uQrs31uzSyOdcALm",
+          "id": "gE9wFiHHKb14x1uQ",
           "name": "MongoDB account"
         }
       }
@@ -1217,10 +1192,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -40,
-        -600
+        224,
+        528
       ],
-      "id": "3269c785-712c-4865-9030-58951c53e780",
+      "id": "415b6658-f184-4da7-b7d5-12c263598413",
       "name": "Retrieve Popular"
     },
     {
@@ -1232,14 +1207,14 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        -260,
-        -340
+        0,
+        784
       ],
-      "id": "78908abc-bc66-4c41-92b4-9e287518275f",
+      "id": "bd372523-0f7e-4530-a000-887db109778b",
       "name": "Retrieve Fruit Tea DB",
       "credentials": {
         "mongoDb": {
-          "id": "uQrs31uzSyOdcALm",
+          "id": "gE9wFiHHKb14x1uQ",
           "name": "MongoDB account"
         }
       }
@@ -1251,10 +1226,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -40,
-        -340
+        224,
+        784
       ],
-      "id": "5abae1dd-2c1a-409b-9c71-cdb0e694991a",
+      "id": "1b45e161-cc59-49df-b643-5b69840a46de",
       "name": "Retrieve Fruit Tea"
     },
     {
@@ -1278,10 +1253,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        180,
-        -600
+        448,
+        528
       ],
-      "id": "4c864da5-e7be-4561-8ade-acbd4834f8bd",
+      "id": "720dba5e-eaff-4783-b0f9-0bbe80a013a0",
       "name": "Display Popular Menu"
     },
     {
@@ -1305,10 +1280,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        180,
-        -340
+        448,
+        784
       ],
-      "id": "273a22a3-b5fb-4a0e-8049-58039492b898",
+      "id": "dc705cb8-60ff-421b-9dca-d04cae4a4a58",
       "name": "Display Fruit Tea Menu"
     },
     {
@@ -1320,14 +1295,14 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        -260,
-        -80
+        0,
+        1040
       ],
-      "id": "8c163cbd-afdc-485c-8aa2-9542d6bb47a4",
+      "id": "a45203d9-e5d5-4b00-bf10-64a863e60a3e",
       "name": "Retrieve Milktea DB",
       "credentials": {
         "mongoDb": {
-          "id": "uQrs31uzSyOdcALm",
+          "id": "gE9wFiHHKb14x1uQ",
           "name": "MongoDB account"
         }
       }
@@ -1339,10 +1314,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -40,
-        -80
+        224,
+        1040
       ],
-      "id": "40deaba2-5db1-4c6c-9bdb-58965ade4b34",
+      "id": "470e85ed-7888-44d3-b53b-12efd22edf69",
       "name": "Retrieve Milk Tea"
     },
     {
@@ -1366,10 +1341,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        180,
-        -80
+        448,
+        1040
       ],
-      "id": "2c27a39c-88b2-411f-9309-7a738a1ba09b",
+      "id": "62029236-f66c-4b02-a554-9c712174aadf",
       "name": "Display Milk Tea Menu"
     },
     {
@@ -1379,10 +1354,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -40,
-        180
+        224,
+        1312
       ],
-      "id": "cca2f62b-ba2f-45b5-a4a9-a9bc97223dee",
+      "id": "2d602b5d-7ffa-47b1-9501-5d47a39cb047",
       "name": "Retrieve Signatures"
     },
     {
@@ -1394,14 +1369,14 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        -260,
-        180
+        0,
+        1312
       ],
-      "id": "bab4f151-3b70-4638-9520-281c478e4555",
+      "id": "d24b9481-f299-40a2-b590-aa39e6bc4878",
       "name": "Retrieve Signatures DB",
       "credentials": {
         "mongoDb": {
-          "id": "uQrs31uzSyOdcALm",
+          "id": "gE9wFiHHKb14x1uQ",
           "name": "MongoDB account"
         }
       }
@@ -1427,10 +1402,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        180,
-        180
+        448,
+        1312
       ],
-      "id": "f126a481-4832-4113-8c84-03c00053a9ee",
+      "id": "7158dd0b-1a7e-43f9-9673-b542be53aed2",
       "name": "Display Signatures Menu"
     },
     {
@@ -1442,14 +1417,14 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        -260,
-        440
+        0,
+        1568
       ],
-      "id": "e5ab743c-4e7c-4e41-a038-ba1ec87eb087",
+      "id": "13e1b99c-0f8e-4cc2-b724-81560fc898ee",
       "name": "Retrieve Bites DB",
       "credentials": {
         "mongoDb": {
-          "id": "uQrs31uzSyOdcALm",
+          "id": "gE9wFiHHKb14x1uQ",
           "name": "MongoDB account"
         }
       }
@@ -1461,10 +1436,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -40,
-        440
+        224,
+        1568
       ],
-      "id": "69983cca-8ba0-4d4d-b008-55c511f75bb2",
+      "id": "c03cceb3-256e-4eb6-82fa-1f8f5adbfb15",
       "name": "Retrieve Bites"
     },
     {
@@ -1488,10 +1463,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        180,
-        440
+        448,
+        1568
       ],
-      "id": "6ef94043-aead-4c09-8ef3-6a384f5d71a3",
+      "id": "a9206ad3-a380-46f9-b58c-e7b288430de6",
       "name": "Display Bites Menu"
     },
     {
@@ -1522,10 +1497,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        400,
-        640
+        672,
+        1760
       ],
-      "id": "d4752855-4bad-45f9-827e-e665492f04f4",
+      "id": "289d09ea-2851-444d-ba61-7899616666c4",
       "name": "Item Condition"
     },
     {
@@ -1535,10 +1510,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -740,
-        600
+        -480,
+        1728
       ],
-      "id": "bf46635a-909e-42f1-b393-c5783dab6acc",
+      "id": "db3014e7-f77c-4c42-b2f9-4611ecb3a7cd",
       "name": "verify complete order"
     },
     {
@@ -1562,10 +1537,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3160,
-        1180
+        3424,
+        2304
       ],
-      "id": "7f7027f5-a0b9-46f7-b689-a4e499fe289b",
+      "id": "65226dc7-4277-4979-be53-facd2b1da2b1",
       "name": "Item Added to Cart Message"
     },
     {
@@ -1590,10 +1565,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3380,
-        1280
+        3648,
+        2400
       ],
-      "id": "390c0d2d-b4cf-4972-8514-ae1069cf7d12",
+      "id": "7278292f-4167-43fa-855d-14ff4bc08d19",
       "name": "Menu Gallery2"
     },
     {
@@ -1618,10 +1593,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3600,
-        1280
+        3872,
+        2400
       ],
-      "id": "be385cc7-f28f-4ae5-82a9-7b7983428b80",
+      "id": "9c781b2a-12c1-40d8-b30e-63bb1e73f66f",
       "name": "View Cart Button"
     },
     {
@@ -1631,10 +1606,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1840,
-        1180
+        2112,
+        2304
       ],
-      "id": "44370541-34c4-4507-9023-8372f2e4af7d",
+      "id": "3da1ade2-16ae-4dde-a167-426f55708f4b",
       "name": "Add to Cart"
     },
     {
@@ -1644,10 +1619,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2060,
-        1180
+        2320,
+        2304
       ],
-      "id": "80f6647f-6f90-4520-aea7-a8e6653cc4d4",
+      "id": "118c9185-8884-4ae0-b21d-609fb2ee55f6",
       "name": "Upsert Prepare"
     },
     {
@@ -1659,15 +1634,15 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        2280,
-        1180
+        2544,
+        2304
       ],
-      "id": "0c45856c-22dc-4dbf-958d-2391d0275198",
+      "id": "e286b545-c3a7-4c2e-81b4-e220a4027ffb",
       "name": "Add to Cart DB",
       "alwaysOutputData": true,
       "credentials": {
         "mongoDb": {
-          "id": "uQrs31uzSyOdcALm",
+          "id": "gE9wFiHHKb14x1uQ",
           "name": "MongoDB account"
         }
       }
@@ -1679,10 +1654,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2720,
-        1080
+        2992,
+        2208
       ],
-      "id": "834db604-fd1a-4459-b5de-cbc49f578a93",
+      "id": "5a9c01f1-1dde-490d-b6fb-357a31fcef8f",
       "name": "Prepare Insert"
     },
     {
@@ -1692,10 +1667,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2720,
-        1280
+        2992,
+        2400
       ],
-      "id": "f52d6739-8c69-4a62-a0ff-b85f3f83b6d3",
+      "id": "56f2952b-f506-49a8-bd65-4a9566abd900",
       "name": "Prepare Update"
     },
     {
@@ -1708,14 +1683,14 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        2940,
-        1080
+        3200,
+        2208
       ],
-      "id": "7d3a9383-103f-4617-8410-813678b49e86",
+      "id": "c0012342-421c-40f9-a2bb-c406eb6d60b8",
       "name": "Insert Cart",
       "credentials": {
         "mongoDb": {
-          "id": "uQrs31uzSyOdcALm",
+          "id": "gE9wFiHHKb14x1uQ",
           "name": "MongoDB account"
         }
       }
@@ -1731,14 +1706,14 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        2940,
-        1280
+        3200,
+        2400
       ],
-      "id": "e85dbdc4-9f65-45dd-8e09-1f52325576b5",
+      "id": "4a278e4c-0330-436c-baa2-730e405379a2",
       "name": "Update Cart",
       "credentials": {
         "mongoDb": {
-          "id": "uQrs31uzSyOdcALm",
+          "id": "gE9wFiHHKb14x1uQ",
           "name": "MongoDB account"
         }
       }
@@ -1770,10 +1745,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        2500,
-        1180
+        2768,
+        2304
       ],
-      "id": "60556298-366a-43f5-a009-2f8a48208f80",
+      "id": "806da0a0-8640-411b-acd4-d878c2aa2584",
       "name": "Cart Exists"
     },
     {
@@ -1804,10 +1779,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1620,
-        1280
+        1888,
+        2400
       ],
-      "id": "777d927c-df42-408e-92f2-3802ea424d22",
+      "id": "c9060b92-3cb4-4ca3-ad07-afdeb7156044",
       "name": "canProceed"
     },
     {
@@ -1831,10 +1806,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1840,
-        1380
+        2112,
+        2512
       ],
-      "id": "5851585b-e807-428a-9116-4f64817769a1",
+      "id": "e9db7cef-5299-4f42-bc7c-4b9464fb2e9f",
       "name": "Product Unavailable"
     },
     {
@@ -1859,24 +1834,11 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2060,
-        1380
+        2320,
+        2512
       ],
-      "id": "02b186c7-ff92-495c-8b01-279724c7fd8e",
+      "id": "d6dc8287-4fc3-47d7-921a-44e42ac50ea5",
       "name": "Menu Gallery1"
-    },
-    {
-      "parameters": {
-        "content": "## TO-DO\n- Remove item from cart\n- Confirm Cart\n"
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        -780,
-        1680
-      ],
-      "typeVersion": 1,
-      "id": "12387487-351c-4487-97d1-ddb198654f07",
-      "name": "Sticky Note3"
     },
     {
       "parameters": {
@@ -1885,10 +1847,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -180,
-        1660
+        80,
+        2784
       ],
-      "id": "61391f1f-e6b4-4fb0-9ba1-03520bb62315",
+      "id": "8b628115-5360-4d31-b558-aca668ec6be6",
       "name": "senderId Prepare"
     },
     {
@@ -1898,10 +1860,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -200,
-        1200
+        64,
+        2320
       ],
-      "id": "89f31752-b720-4873-8875-e480e51b2240",
+      "id": "03697565-64d2-4e5a-8222-168a7604e9a6",
       "name": "extract values"
     },
     {
@@ -1913,14 +1875,14 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        0,
-        1120
+        272,
+        2240
       ],
-      "id": "f0d498d4-4612-41d8-b26d-ededf50ea259",
+      "id": "d8ad0943-f25c-4b94-b427-71108d491992",
       "name": "Menu",
       "credentials": {
         "mongoDb": {
-          "id": "uQrs31uzSyOdcALm",
+          "id": "gE9wFiHHKb14x1uQ",
           "name": "MongoDB account"
         }
       }
@@ -1934,14 +1896,14 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        0,
-        1280
+        272,
+        2400
       ],
-      "id": "4de3b5f0-bfaa-451a-98bb-480197244c4d",
+      "id": "f0d12e99-3c30-4383-aa29-add603b0b6c1",
       "name": "Add-ons",
       "credentials": {
         "mongoDb": {
-          "id": "uQrs31uzSyOdcALm",
+          "id": "gE9wFiHHKb14x1uQ",
           "name": "MongoDB account"
         }
       }
@@ -1951,10 +1913,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        240,
-        1200
+        512,
+        2320
       ],
-      "id": "1b492548-b04f-41bc-abd4-812400d64843",
+      "id": "fd5a93b0-fa7b-4f9b-b104-a0fc3b8e89f2",
       "name": "Merge"
     },
     {
@@ -1964,10 +1926,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        460,
-        1200
+        720,
+        2320
       ],
-      "id": "442cdd14-96ba-48e9-bc5b-befb704a3425",
+      "id": "c125ef06-df9d-4bbd-994e-7400723d1127",
       "name": "Check Inventory Stock"
     },
     {
@@ -1979,14 +1941,14 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        960,
-        1200
+        1232,
+        2320
       ],
-      "id": "2260176c-dd7a-42bf-b364-40912d396795",
+      "id": "09f83573-4533-4edb-ba7a-0277f3f45512",
       "name": "MongoDB Inventory",
       "credentials": {
         "mongoDb": {
-          "id": "uQrs31uzSyOdcALm",
+          "id": "gE9wFiHHKb14x1uQ",
           "name": "MongoDB account"
         }
       }
@@ -1998,10 +1960,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1180,
-        1200
+        1440,
+        2320
       ],
-      "id": "3dcf8151-fad4-4cf0-80cc-d693230ae9d0",
+      "id": "12fcf6bb-0a6f-461b-9627-d9ee9a6a3114",
       "name": "Stock Check Data"
     },
     {
@@ -2011,10 +1973,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1400,
-        1280
+        1664,
+        2400
       ],
-      "id": "451886f9-1ef5-43b7-a279-648a90c9de67",
+      "id": "2e7ae66d-983a-4159-8fe4-5968d48ffe5d",
       "name": "Validation Node"
     },
     {
@@ -2026,15 +1988,15 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        0,
-        1660
+        304,
+        2784
       ],
-      "id": "b8c48b45-301c-4369-8b6a-e327a3bc73dc",
+      "id": "4d756669-6b12-401a-8dc2-7e5ff525cde3",
       "name": "find userId Cart",
       "alwaysOutputData": true,
       "credentials": {
         "mongoDb": {
-          "id": "uQrs31uzSyOdcALm",
+          "id": "gE9wFiHHKb14x1uQ",
           "name": "MongoDB account"
         }
       }
@@ -2046,10 +2008,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        400,
-        1560
+        752,
+        2688
       ],
-      "id": "01c9b71b-033e-4e68-a6f1-84ac6d0146dd",
+      "id": "3a2af813-c9e2-4af7-96fc-7ad9a2d87671",
       "name": "Retrieve Cart Items"
     },
     {
@@ -2059,10 +2021,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        560,
-        1560
+        976,
+        2688
       ],
-      "id": "a749f880-95b2-4cc4-9bbd-4125d96edb26",
+      "id": "caa42bdf-d89f-4278-a4f6-38485f52eaac",
       "name": "Display Items"
     },
     {
@@ -2072,10 +2034,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -180,
-        2040
+        80,
+        3104
       ],
-      "id": "0f33265c-40da-4f3a-b0e0-1310de68e337",
+      "id": "0b673f7a-1384-4a34-bb01-f9a0db860bbb",
       "name": "senderId Prepare1"
     },
     {
@@ -2099,10 +2061,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        740,
-        1560
+        1200,
+        2688
       ],
-      "id": "060161f8-c82c-4fec-a3c0-74333107b214",
+      "id": "75692370-c2f3-4a6f-b2b6-05aa03114ada",
       "name": "Display Cart Message"
     },
     {
@@ -2126,10 +2088,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        360,
-        2040
+        752,
+        3104
       ],
-      "id": "74dca3c1-d3db-4ca9-95d2-625466fb4370",
+      "id": "d00e860b-8c21-45d1-90ba-2d727fe3288e",
       "name": "Delete Confirmation Message"
     },
     {
@@ -2139,10 +2101,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        180,
-        2040
+        528,
+        3104
       ],
-      "id": "b0adc59d-cb4c-404e-887a-baf000eae35e",
+      "id": "70ac10ca-f6a3-4a40-a274-8248a8140d36",
       "name": "Delete Confirmation"
     },
     {
@@ -2154,14 +2116,14 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        0,
-        2040
+        304,
+        3104
       ],
-      "id": "fa23b919-2f6f-4220-a8ff-891546c35260",
+      "id": "ab25538f-a4d0-4d56-9778-e3d6ca7866ca",
       "name": "find and delete userId Cart",
       "credentials": {
         "mongoDb": {
-          "id": "uQrs31uzSyOdcALm",
+          "id": "gE9wFiHHKb14x1uQ",
           "name": "MongoDB account"
         }
       }
@@ -2175,15 +2137,15 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        -260,
-        -860
+        0,
+        272
       ],
-      "id": "25e67898-a93a-4e06-b299-d69bbd43ac5d",
+      "id": "508ed7a7-c2c2-44fa-874f-a7c7ddd8671a",
       "name": "Find usercart",
       "alwaysOutputData": true,
       "credentials": {
         "mongoDb": {
-          "id": "uQrs31uzSyOdcALm",
+          "id": "gE9wFiHHKb14x1uQ",
           "name": "MongoDB account"
         }
       }
@@ -2215,10 +2177,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -40,
-        -860
+        224,
+        272
       ],
-      "id": "e39a51f7-b00a-457c-8c5b-e0f13943a617",
+      "id": "39d61ef2-4416-4983-b3d7-c9d7489047cc",
       "name": "User Cart Exist"
     },
     {
@@ -2228,25 +2190,11 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -180,
-        2380
+        80,
+        3440
       ],
-      "id": "de7c728e-769d-4604-88a3-f2d9689f9055",
+      "id": "8aa39f69-409a-4bdd-b62c-465bcab521a7",
       "name": "End Session"
-    },
-    {
-      "parameters": {
-        "content": "add promos handler",
-        "height": 80
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        660,
-        1100
-      ],
-      "typeVersion": 1,
-      "id": "341777c0-38d0-4c3d-95be-18ed156ea44a",
-      "name": "Sticky Note4"
     },
     {
       "parameters": {
@@ -2269,10 +2217,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        40,
-        2380
+        304,
+        3440
       ],
-      "id": "021657f6-8ba3-4f42-9413-135159bed8a9",
+      "id": "5231d4ff-af3a-4146-8cb0-040e94ff47b9",
       "name": "End Session Message"
     },
     {
@@ -2302,10 +2250,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        200,
-        1660
+        528,
+        2784
       ],
-      "id": "571caceb-4ce6-427a-9147-fa484e3807c4",
+      "id": "b68f70a2-715b-4a88-829e-54111b1de72f",
       "name": "Cart Handler",
       "alwaysOutputData": false
     },
@@ -2330,10 +2278,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        560,
-        1760
+        976,
+        2880
       ],
-      "id": "fed28ce4-6790-4f6c-a028-979ebb1f016e",
+      "id": "66c7caf5-e9e4-4187-aa3b-148b3d058c1d",
       "name": "Display Non-Existent Cart Message"
     },
     {
@@ -2343,10 +2291,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        400,
-        1760
+        752,
+        2880
       ],
-      "id": "95ff8776-8117-4811-8741-26e5838e781f",
+      "id": "8474892d-c3da-4d56-8936-151370b366f0",
       "name": "Null Cart"
     },
     {
@@ -2366,40 +2314,42 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        3160,
-        1380
+        3424,
+        2512
       ],
-      "id": "0fc5b3b8-010b-4aeb-933e-684b09d72dce",
+      "id": "b320e1b9-c018-42a8-8d84-6d6135d75806",
       "name": "Pass recipientId"
     },
     {
       "parameters": {
         "content": "# 🛒\nClear Cart",
         "height": 100,
-        "width": 150
+        "width": 150,
+        "color": 4
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -180,
-        1900
+        80,
+        2992
       ],
       "typeVersion": 1,
-      "id": "d2a22222-2d1e-41d1-81b2-0934bd1822ee",
+      "id": "c9258202-132c-4372-bd8c-b1f518824f94",
       "name": "Sticky Note5"
     },
     {
       "parameters": {
         "content": "# 🛒\nView Cart",
         "height": 100,
-        "width": 150
+        "width": 150,
+        "color": 4
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -180,
-        1520
+        80,
+        2640
       ],
       "typeVersion": 1,
-      "id": "73d409bd-4925-4208-9601-9c8d822a927d",
+      "id": "fa036b99-198d-4146-8a3e-c71a317e4048",
       "name": "Sticky Note6"
     },
     {
@@ -2410,10 +2360,10 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -1420,
-        180
+        -1168,
+        1312
       ],
-      "id": "c4f30cb9-89ce-41a4-92ba-12e59be89b22",
+      "id": "2e08d7bf-d3f7-4058-b950-919b173097b3",
       "name": "Sticky Note8"
     },
     {
@@ -2444,10 +2394,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        740,
-        1280
+        1008,
+        2400
       ],
-      "id": "81903fcd-7e6d-4577-b89e-e58ace00ab84",
+      "id": "1fbb1c88-041b-4a56-93ef-293e9bea83b0",
       "name": "Item Identifier"
     },
     {
@@ -2472,10 +2422,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -20,
-        3660
+        240,
+        5104
       ],
-      "id": "87d03197-0d58-485b-a671-d217a4ddb416",
+      "id": "8e16aaef-3b2d-410d-b02e-395c7d7bdbc3",
       "name": "Display Enter Address Message"
     },
     {
@@ -2493,13 +2443,13 @@
           }
         }
       },
-      "id": "c10c64f5-4a91-4ddb-ab1c-c67efea30ae3",
+      "id": "b8c242df-167d-4807-8e80-46bc75387671",
       "name": "Serve Address Form",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1.1,
       "position": [
-        920,
-        2180
+        16,
+        5488
       ],
       "webhookId": "fe06f5d9-9b5d-4f25-96a2-901edb0d1255"
     },
@@ -2510,13 +2460,13 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "d38799d4-59fe-46f2-97cd-28794445d809",
+      "id": "fbe3ad71-544c-4217-8d2b-30de703ad083",
       "name": "Address Form Submission",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1.1,
       "position": [
-        920,
-        2360
+        16,
+        5664
       ],
       "webhookId": "30225362-86ba-4e3e-b5bb-6adcf512fd1f"
     },
@@ -2527,25 +2477,26 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1120,
-        2360
+        224,
+        5664
       ],
-      "id": "e3d94f3b-0bf0-428b-be7e-a4e620943d9c",
+      "id": "e049e7c9-abe6-4ad7-bde1-98bdf44a5441",
       "name": "Process Form Data"
     },
     {
       "parameters": {
         "content": "# 🚚\nHandle Delivery Details",
         "height": 100,
-        "width": 190
+        "width": 190,
+        "color": 4
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        900,
-        2020
+        0,
+        5328
       ],
       "typeVersion": 1,
-      "id": "ed739098-2a1a-42a0-b2fb-e6c64c018afd",
+      "id": "bf08b123-0657-49b0-acae-33bb06865d47",
       "name": "Sticky Note9"
     },
     {
@@ -2559,14 +2510,14 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        1300,
-        2360
+        400,
+        5664
       ],
-      "id": "afb5edb0-07e1-4af3-83a2-9bce7ee9f235",
+      "id": "30ec3465-5594-445a-b4c6-0b057ca080a0",
       "name": "Insert Delivery Details",
       "credentials": {
         "mongoDb": {
-          "id": "uQrs31uzSyOdcALm",
+          "id": "gE9wFiHHKb14x1uQ",
           "name": "MongoDB account"
         }
       }
@@ -2575,43 +2526,45 @@
       "parameters": {
         "jsCode": "let psid = \"unknown\";\n\nif ($input.item.json.query?.psid) {\n  psid = $input.item.json.query.psid;\n} else if ($input.item.json.body?.psid) {\n  psid = $input.item.json.body.psid;\n} else if ($input.item.json.psid) {\n  psid = $input.item.json.psid;\n}\n\nreturn {\n  json: {\n    psid: psid\n  }\n};"
       },
-      "id": "47c976c4-85a0-441c-826c-dfe3127678a9",
+      "id": "89aadf3d-fc38-4579-8cd7-8db2a2e3f60d",
       "name": "Generate HTML Form",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1120,
-        2180
+        224,
+        5488
       ]
     },
     {
       "parameters": {
         "content": "# 🔚\nEnd Session",
-        "height": 100,
-        "width": 150
+        "height": 112,
+        "width": 150,
+        "color": 4
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -180,
-        2260
+        80,
+        3280
       ],
       "typeVersion": 1,
-      "id": "502760fa-6a6c-4205-be39-18bd6a7b970b",
+      "id": "bbaf10fa-447b-4d20-830c-d017d1cf9b64",
       "name": "Sticky Note7"
     },
     {
       "parameters": {
         "content": "# Before Production\nchange webhook-test to webhook\n\n## before deployment\nngrok browser warning",
         "height": 200,
-        "width": 370
+        "width": 370,
+        "color": 3
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -840,
-        2340
+        -576,
+        3472
       ],
       "typeVersion": 1,
-      "id": "4005560c-9c4e-4b85-95ef-f8ad0de6f026",
+      "id": "9d001806-e506-4db8-8a2b-e7004278e7c3",
       "name": "Sticky Note10"
     },
     {
@@ -2636,10 +2589,10 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
       "position": [
-        1500,
-        2180
+        592,
+        5488
       ],
-      "id": "4d2fe30b-a920-4f92-9929-adee4b39e98f",
+      "id": "8b75adcc-6165-4071-9176-1133d9d090c8",
       "name": "Respond to Webhook"
     },
     {
@@ -2649,25 +2602,26 @@
       "type": "n8n-nodes-base.html",
       "typeVersion": 1.2,
       "position": [
-        1300,
-        2180
+        400,
+        5488
       ],
-      "id": "8cb2acd7-27c0-40d1-8b58-f54e5dbe1893",
+      "id": "4bd05040-4e51-43ce-8061-1ff6820e0ed4",
       "name": "HTML"
     },
     {
       "parameters": {
         "content": "# before deployment\nremove need to execute workflow for post\n",
         "height": 120,
-        "width": 350
+        "width": 350,
+        "color": 3
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1720,
-        2020
+        816,
+        5328
       ],
       "typeVersion": 1,
-      "id": "c5c0cbd2-f04e-44cb-8178-a80921e070ea",
+      "id": "5264d300-f1e2-4187-85e8-f3ccb27fadbc",
       "name": "Sticky Note11"
     },
     {
@@ -2679,15 +2633,15 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        1500,
-        2360
+        592,
+        5664
       ],
-      "id": "07ba816f-b3af-4ae4-918b-a218f0b24473",
+      "id": "eceac54a-ab52-458d-9037-c0f707f1bb0c",
       "name": "Prepare Cart",
       "alwaysOutputData": true,
       "credentials": {
         "mongoDb": {
-          "id": "uQrs31uzSyOdcALm",
+          "id": "gE9wFiHHKb14x1uQ",
           "name": "MongoDB account"
         }
       }
@@ -2696,15 +2650,16 @@
       "parameters": {
         "content": "webhook-test",
         "height": 100,
-        "width": 190
+        "width": 190,
+        "color": 3
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1480,
-        2040
+        576,
+        5344
       ],
       "typeVersion": 1,
-      "id": "e0369239-5fce-40eb-a915-53280673209f",
+      "id": "37b18f67-b07c-4eda-b2ad-79ba3d0d73b5",
       "name": "Sticky Note12"
     },
     {
@@ -2714,10 +2669,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1680,
-        2360
+        784,
+        5664
       ],
-      "id": "e7d78e29-d42b-48b0-b44d-3c19a71db856",
+      "id": "a52ff5a1-c65a-477f-9893-be43aa465b83",
       "name": "Parse User Cart Items"
     },
     {
@@ -2743,14 +2698,14 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2140,
-        2360
+        1232,
+        5664
       ],
-      "id": "0fd0812a-0a7f-4c51-b558-9c4ba1412480",
+      "id": "e07c0ec7-1ead-43f8-9e81-8867fe1e310c",
       "name": "Xendit POST",
       "credentials": {
         "httpBasicAuth": {
-          "id": "zjgTIhjDbJ6u0bnu",
+          "id": "69074vEBxY5torkB",
           "name": "Unnamed credential"
         }
       }
@@ -2776,10 +2731,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2340,
-        2360
+        1440,
+        5664
       ],
-      "id": "cc204dcd-9776-4505-8f4b-5482f93423dc",
+      "id": "df5a0d4d-c3e5-4fed-9eb7-1ecb6d6ac152",
       "name": "Payment Link"
     },
     {
@@ -2789,10 +2744,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        20,
-        2840
+        288,
+        4080
       ],
-      "id": "7abf171a-fcb7-4c9a-bcef-e478de36671f",
+      "id": "6b6f2403-165a-47a7-83c3-02cebc0420b5",
       "name": "Retrieve Cart Items1"
     },
     {
@@ -2804,15 +2759,15 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        -200,
-        2840
+        64,
+        4080
       ],
-      "id": "36838a22-f7d2-48f1-9891-d03eff8c9d0d",
+      "id": "2b06b6a3-2482-4910-b3fd-0ed6da65c457",
       "name": "find userId Cart1",
       "alwaysOutputData": true,
       "credentials": {
         "mongoDb": {
-          "id": "uQrs31uzSyOdcALm",
+          "id": "gE9wFiHHKb14x1uQ",
           "name": "MongoDB account"
         }
       }
@@ -2838,10 +2793,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -220,
-        3660
+        16,
+        5104
       ],
-      "id": "66f6e51c-ab94-4bdf-8c8d-93f208131719",
+      "id": "10bf391a-6972-4f64-8393-64e2d2d89326",
       "name": "Display Enter Delivery Message"
     },
     {
@@ -2871,10 +2826,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        240,
-        2840
+        512,
+        4080
       ],
-      "id": "967f17e8-025a-4c54-8b31-48ba7d40ee02",
+      "id": "2b0d00f5-f6dc-416e-a2e8-a4bd68b9789d",
       "name": "PRE POSTBACK Conditional"
     },
     {
@@ -2898,10 +2853,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        680,
-        2740
+        960,
+        3984
       ],
-      "id": "2d27ea5d-aaac-4bec-b19b-b0d5c2633920",
+      "id": "3dd85d72-2e83-41f3-84db-1b8f127d5865",
       "name": "Display Pre-Delivery Message"
     },
     {
@@ -2925,10 +2880,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        680,
-        2940
+        960,
+        4176
       ],
-      "id": "cc67b658-fda7-464f-a048-96cd41447bc2",
+      "id": "0b866d54-c1c6-4724-8d86-2a6089f1230f",
       "name": "Display Store Pickup Message"
     },
     {
@@ -2938,10 +2893,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        460,
-        2740
+        736,
+        3984
       ],
-      "id": "709d9437-93ae-4129-adc9-8f0addd93ea7",
+      "id": "1b0240c2-e630-4832-9118-314bf1981a50",
       "name": "Display Pre-Delivery Items"
     },
     {
@@ -2951,10 +2906,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        460,
-        2940
+        736,
+        4176
       ],
-      "id": "ab1e5b75-069e-4929-bf31-feedc116bd8b",
+      "id": "79c66909-3904-47d0-a35d-4f7591976ff6",
       "name": "Display Store Pickup Items"
     },
     {
@@ -2978,10 +2933,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -180,
-        2640
+        64,
+        3760
       ],
-      "id": "e1388b6a-0558-43e2-b5fb-b0e42be3419d",
+      "id": "ce026e35-5d09-4eb3-a199-3bc6d250c541",
       "name": "Display Delivery Guidelines Message"
     },
     {
@@ -3005,10 +2960,15 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
+<<<<<<< Updated upstream
         -200,
         3240
+=======
+        16,
+        4784
+>>>>>>> Stashed changes
       ],
-      "id": "a0963457-6072-4504-bc01-c4f2e4e6b305",
+      "id": "85ec54f0-05c7-4685-b723-8722de149a53",
       "name": "Display Cash On Hand Before Pickup Message"
     },
     {
@@ -3018,10 +2978,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1120,
-        2780
+        16,
+        4464
       ],
-      "id": "f2414f98-be89-4090-b0ad-aacc9b86fc6d",
+      "id": "1cbb77e2-5eac-4bd1-ba23-7510315b2d7a",
       "name": "Process Store Pickup"
     },
     {
@@ -3031,10 +2991,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1900,
-        2360
+        992,
+        5664
       ],
-      "id": "c10e9635-7d95-4bbd-b890-609b4317a5d8",
+      "id": "c7a935a6-b19f-435e-819e-b926eea5dd5e",
       "name": "Prepare Invoice Payload"
     },
     {
@@ -3046,15 +3006,20 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
+<<<<<<< Updated upstream
         0,
         3240
+=======
+        240,
+        4784
+>>>>>>> Stashed changes
       ],
-      "id": "b1f304cf-431f-4005-8dc9-f9ced9c98b22",
+      "id": "c4d666dd-e1c8-48e7-b48c-9e661af1eb7a",
       "name": "find userId Cart2",
       "alwaysOutputData": true,
       "credentials": {
         "mongoDb": {
-          "id": "uQrs31uzSyOdcALm",
+          "id": "gE9wFiHHKb14x1uQ",
           "name": "MongoDB account"
         }
       }
@@ -3066,10 +3031,15 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
+<<<<<<< Updated upstream
         220,
         3140
+=======
+        464,
+        4688
+>>>>>>> Stashed changes
       ],
-      "id": "91a149ba-72e2-4bdc-8d3d-304c4b572fbf",
+      "id": "680f06c1-b970-45a5-bdd0-e63e339d8e40",
       "name": "Process Store Pickup Cash On Hand"
     },
     {
@@ -3083,14 +3053,19 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
+<<<<<<< Updated upstream
         400,
         3140
+=======
+        688,
+        4688
+>>>>>>> Stashed changes
       ],
-      "id": "7d191245-e477-4384-92d9-8d78b7ff8388",
+      "id": "c8bf53e6-d4e1-40a7-bf47-415ceacf5714",
       "name": "Insert Null Pickup Address",
       "credentials": {
         "mongoDb": {
-          "id": "uQrs31uzSyOdcALm",
+          "id": "gE9wFiHHKb14x1uQ",
           "name": "MongoDB account"
         }
       }
@@ -3103,15 +3078,31 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1320,
-        2560
+        416,
+        5856
       ],
       "typeVersion": 1,
-      "id": "d3794fdb-4e6e-45cb-b39a-b93af082a604",
+      "id": "8e78ef33-efa9-4f77-9e8e-13ebcd595b35",
       "name": "Sticky Note13"
     },
     {
       "parameters": {
+<<<<<<< Updated upstream
+=======
+        "jsCode": "// Extract senderId and order/cart information from the input JSON\nconst senderId = $input.first().json.userId;\nconst orderId = $json.orderId || `ORDER-${Date.now()}`;\nconst subtotal = parseFloat($json.subtotal) || 0;\nconst finalTotal = parseFloat($json.finalTotal) || subtotal;\nconst cartItems = $json.items || [];\n\n// Generate elements array for Messenger Receipt Template from cart items\nconst elements = cartItems.map(item => {\n  let title = item.productName || 'Item';\n  if (item.size) {\n    title += ` (${item.size})`;\n  }\n  return {\n    title: title,\n    subtitle: item.category || '',\n    quantity: item.quantity || 1,\n    price: item.totalPrice || 0,\n    currency: 'PHP',\n  };\n});\n\n// Compose the receipt template payload\nconst receiptPayload = {\n  messaging_type: \"RESPONSE\",\n  recipient: {\n    id: senderId,\n  },\n  message: {\n    attachment: {\n      type: \"template\",\n      payload: {\n        template_type: \"receipt\",\n        recipient_name: \"Customer\", // optionally replace with real name if available\n        order_number: orderId,\n        currency: \"PHP\",\n        payment_method: \"Cash on Hand\",\n        order_url: \"\", // optional\n        timestamp: Math.floor(Date.now() / 1000),\n        address: null, // for store pickup, no address required\n        summary: {\n          subtotal: subtotal,\n          shipping_cost: 0,\n          total_tax: 0,\n          total_cost: finalTotal,\n        },\n        elements: elements,\n      },\n    },\n  },\n};\n\n// Return output for next node (HTTP Request)\nreturn [\n  {\n    json: receiptPayload,\n  },\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        4880
+      ],
+      "id": "6b3af6b1-c05f-4230-b722-f16b04976c6f",
+      "name": "Extract senderId and order/cart"
+    },
+    {
+      "parameters": {
+>>>>>>> Stashed changes
         "method": "POST",
         "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
         "sendHeaders": true,
@@ -3125,39 +3116,64 @@
         },
         "sendBody": true,
         "specifyBody": "json",
+<<<<<<< Updated upstream
         "jsonBody": "={\n  \"recipient\": {\n    \"id\": \"{{ $('Receipt to Image').item.json.senderId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"image\",\n      \"payload\": {\n        \"url\": \"{{ $json.display_url }}\",\n        \"is_reusable\": false\n      }\n    }\n  }\n}",
+=======
+        "jsonBody": "={{$json}}",
+>>>>>>> Stashed changes
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
+<<<<<<< Updated upstream
         1000,
         3600
       ],
       "id": "38dedc6a-b040-4912-ae61-af53101afff6",
       "name": "Display Enter Delivery Message1"
+=======
+        688,
+        4880
+      ],
+      "id": "f6e1c1a1-64db-42af-b069-2f4b25ae15fd",
+      "name": "Order Confirmation Message"
+>>>>>>> Stashed changes
     },
     {
       "parameters": {
         "method": "POST",
+<<<<<<< Updated upstream
         "url": "https://api.imgbb.com/1/upload",
+=======
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+>>>>>>> Stashed changes
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "Content-Type",
+<<<<<<< Updated upstream
               "value": "multipart/form-data"
+=======
+              "value": "application/json"
+>>>>>>> Stashed changes
             }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
+<<<<<<< Updated upstream
         "jsonBody": "={\n  \"key\": \"052f10afa5442a3b89fafbf3635291ac\",\n  \"image\": \"{{ $json.image_base64 }}\",\n  \"name\": \"n8n_generated_{{ $now }}\",\n  \"expiration\": \"600\"\n}",
+=======
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"text\": \"Hooray!🎉 You've completed your order. Please wait while we prepare our blessings for you. Thank you! 🍪☕\"\n  }\n}",
+>>>>>>> Stashed changes
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
+<<<<<<< Updated upstream
         600,
         3600
       ],
@@ -3209,10 +3225,81 @@
       "parameters": {
         "language": "python",
         "pythonCode": "# N8N Python Node - HTML to Image Converter\n# This replaces the HTTP Request node with a free, unlimited solution\n\nimport base64\nimport io\nfrom PIL import Image, ImageDraw, ImageFont\nfrom html import unescape\nimport re\nimport json\n\n# Get the HTML from previous node\nhtml_content = _input.first()['json']['receiptHTML']\n\ndef html_to_image_simple(html_content, width=400, height=800):\n    \"\"\"\n    Simple HTML to image converter using PIL\n    Extracts text content and creates a styled receipt image\n    \"\"\"\n    \n    # Extract text content from HTML (remove tags)\n    def strip_html_tags(html):\n        clean = re.compile('<.*?>')\n        return re.sub(clean, '', html)\n    \n    # Parse key information from HTML\n    lines = []\n    \n    # Extract content between specific divs/classes\n    content_match = re.search(r'<div class=\"content\">(.*?)</div>\\s*</div>\\s*</body>', html_content, re.DOTALL)\n    if content_match:\n        content = content_match.group(1)\n        \n        # Extract title\n        title_match = re.search(r'<div class=\"title\">(.*?)</div>', content)\n        if title_match:\n            lines.append(('title', strip_html_tags(title_match.group(1))))\n        \n        # Extract order info\n        order_info_match = re.search(r'<div class=\"order-info\">(.*?)</div>', content, re.DOTALL)\n        if order_info_match:\n            order_info = strip_html_tags(order_info_match.group(1)).replace('\\n', ' ').strip()\n            lines.append(('info', order_info))\n        \n        # Extract items\n        items_match = re.search(r'<div class=\"items\">(.*?)</div>', content, re.DOTALL)\n        if items_match:\n            items_html = items_match.group(1)\n            \n            # Find all item blocks\n            item_blocks = re.findall(r'<div class=\"item\">(.*?)</div>(?=\\s*<div class=\"item\">|$)', items_html, re.DOTALL)\n            \n            for item_block in item_blocks:\n                # Extract item name and total\n                header_match = re.search(r'<span class=\"item-name\">(.*?)</span>.*?<span class=\"item-total\">(.*?)</span>', item_block)\n                if header_match:\n                    item_name = strip_html_tags(header_match.group(1))\n                    item_total = strip_html_tags(header_match.group(2))\n                    lines.append(('item', f\"{item_name} - {item_total}\"))\n                \n                # Extract item details\n                details_match = re.search(r'<div class=\"item-details\">(.*?)</div>', item_block)\n                if details_match:\n                    details = strip_html_tags(details_match.group(1))\n                    lines.append(('details', f\"  {details}\"))\n                \n                # Extract addons\n                addons = re.findall(r'<div class=\"addon\">(.*?)</div>', item_block)\n                for addon in addons:\n                    addon_text = strip_html_tags(addon)\n                    lines.append(('addon', f\"  {addon_text}\"))\n        \n        # Extract totals\n        totals_match = re.search(r'<div class=\"totals\">(.*?)</div>', content, re.DOTALL)\n        if totals_match:\n            totals_html = totals_match.group(1)\n            \n            # Extract total rows\n            total_rows = re.findall(r'<div class=\"total-row\">.*?<span>(.*?)</span>.*?<span>(.*?)</span>.*?</div>', totals_html)\n            for row in total_rows:\n                label = strip_html_tags(row[0])\n                amount = strip_html_tags(row[1])\n                lines.append(('total', f\"{label}: {amount}\"))\n            \n            # Extract final total\n            final_match = re.search(r'<div class=\"final-total\">.*?<span>(.*?)</span>.*?<span>(.*?)</span>.*?</div>', totals_html)\n            if final_match:\n                label = strip_html_tags(final_match.group(1))\n                amount = strip_html_tags(final_match.group(2))\n                lines.append(('final_total', f\"{label}: {amount}\"))\n        \n        # Extract order details\n        details_match = re.search(r'<div class=\"order-details\">(.*?)</div>', content, re.DOTALL)\n        if details_match:\n            details_html = details_match.group(1)\n            detail_rows = re.findall(r'<div class=\"detail-row\">.*?<span class=\"detail-label\">(.*?)</span>.*?<span>(.*?)</span>.*?</div>', details_html)\n            for row in detail_rows:\n                label = strip_html_tags(row[0])\n                value = strip_html_tags(row[1])\n                lines.append(('detail', f\"{label} {value}\"))\n        \n        # Extract thank you message\n        thank_match = re.search(r'<div class=\"thank-you\">(.*?)</div>', content)\n        if thank_match:\n            thank_you = strip_html_tags(thank_match.group(1))\n            lines.append(('thank_you', thank_you))\n\n    # Create image\n    img = Image.new('RGB', (width, height), 'white')\n    draw = ImageDraw.Draw(img)\n    \n    # Try to use system fonts, fallback to default\n    try:\n        font_title = ImageFont.truetype(\"/System/Library/Fonts/Helvetica.ttc\", 24)\n        font_header = ImageFont.truetype(\"/System/Library/Fonts/Helvetica.ttc\", 18)\n        font_normal = ImageFont.truetype(\"/System/Library/Fonts/Helvetica.ttc\", 14)\n        font_small = ImageFont.truetype(\"/System/Library/Fonts/Helvetica.ttc\", 12)\n    except:\n        try:\n            font_title = ImageFont.truetype(\"arial.ttf\", 24)\n            font_header = ImageFont.truetype(\"arial.ttf\", 18)\n            font_normal = ImageFont.truetype(\"arial.ttf\", 14)\n            font_small = ImageFont.truetype(\"arial.ttf\", 12)\n        except:\n            font_title = ImageFont.load_default()\n            font_header = ImageFont.load_default()\n            font_normal = ImageFont.load_default()\n            font_small = ImageFont.load_default()\n    \n    # Draw header background\n    draw.rectangle([0, 0, width, 80], fill='#1a1a1a')\n    \n    # Draw logo and tagline\n    draw.text((width//2, 25), \"BLESSINGS CAFE\", font=font_header, fill='white', anchor='mm')\n    draw.text((width//2, 50), \"Fresh • Quality • Delicious\", font=font_small, fill='white', anchor='mm')\n    \n    # Draw border\n    draw.rectangle([10, 10, width-10, height-50], outline='black', width=2)\n    \n    y_pos = 100\n    padding = 20\n    \n    for line_type, text in lines:\n        if y_pos > height - 100:  # Prevent overflow\n            break\n            \n        if line_type == 'title':\n            draw.text((width//2, y_pos), text, font=font_header, fill='#1a1a1a', anchor='mm')\n            y_pos += 30\n        elif line_type == 'info':\n            draw.text((width//2, y_pos), text, font=font_small, fill='#666', anchor='mm')\n            y_pos += 25\n        elif line_type == 'item':\n            # Draw item on two lines if too long\n            if len(text) > 35:\n                words = text.split(' - ')\n                draw.text((padding, y_pos), words[0], font=font_normal, fill='black')\n                draw.text((width - padding, y_pos), words[1] if len(words) > 1 else '', font=font_normal, fill='black', anchor='rm')\n            else:\n                draw.text((padding, y_pos), text, font=font_normal, fill='black')\n            y_pos += 22\n        elif line_type == 'details':\n            draw.text((padding, y_pos), text, font=font_small, fill='#666')\n            y_pos += 18\n        elif line_type == 'addon':\n            draw.text((padding, y_pos), text, font=font_small, fill='#888')\n            y_pos += 18\n        elif line_type == 'total':\n            parts = text.split(': ')\n            if len(parts) == 2:\n                draw.text((padding, y_pos), parts[0] + ':', font=font_normal, fill='black')\n                draw.text((width - padding, y_pos), parts[1], font=font_normal, fill='black', anchor='rm')\n            y_pos += 20\n        elif line_type == 'final_total':\n            # Draw line above final total\n            draw.line([padding, y_pos-5, width-padding, y_pos-5], fill='black', width=2)\n            y_pos += 10\n            parts = text.split(': ')\n            if len(parts) == 2:\n                draw.text((padding, y_pos), parts[0] + ':', font=font_header, fill='black')\n                draw.text((width - padding, y_pos), parts[1], font=font_header, fill='black', anchor='rm')\n            y_pos += 35\n        elif line_type == 'detail':\n            draw.text((width//2, y_pos), text, font=font_small, fill='#333', anchor='mm')\n            y_pos += 18\n        elif line_type == 'thank_you':\n            draw.text((width//2, y_pos), text, font=font_normal, fill='#1a1a1a', anchor='mm')\n            y_pos += 30\n    \n    # Add footer\n    draw.text((width//2, height-30), \"© 2025 Blessings Cafe\", font=font_small, fill='#999', anchor='mm')\n    \n    # Crop image to actual content height\n    actual_height = min(y_pos + 50, height)\n    img = img.crop((0, 0, width, actual_height))\n    \n    return img\n\n# Generate the image\ntry:\n    receipt_image = html_to_image_simple(html_content)\n    \n    # Convert to base64\n    buffer = io.BytesIO()\n    receipt_image.save(buffer, format='PNG', quality=95, optimize=True)\n    img_base64 = base64.b64encode(buffer.getvalue()).decode()\n    \n    # Create data URL\n    image_data_url = f\"data:image/png;base64,{img_base64}\"\n    \n    return {\n        \"json\": {\n            \"senderId\": _input.first()['json']['senderId'],\n            \"image_base64\": img_base64,\n            \"image_data_url\": image_data_url,\n            \"image_size\": len(buffer.getvalue()),\n            \"status\": \"success\"\n        }\n    }\n\nexcept Exception as e:\n    return {\n        \"json\": {\n            \"senderId\": _input.first()['json']['senderId'],\n            \"error\": str(e),\n            \"status\": \"failed\"\n        }\n    }\n\n# Requirements for n8n Python node:\n# pip install Pillow"
+=======
+        912,
+        4880
+      ],
+      "id": "1e7677bd-27d1-459f-aa0d-021adf4afff3",
+      "name": "Display Post Confirmation Message"
+    },
+    {
+      "parameters": {
+        "content": "add webhook after payment to notify user that their order is now preparing then ready for pickup.\nquick replies:\n(Order Received) (Contact)",
+        "height": 128
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        800,
+        5056
+      ],
+      "typeVersion": 1,
+      "id": "b873d57c-0ca3-45e5-a084-45a05d4bc4a8",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "collection": "Chatbot-Cart",
+        "updateKey": "userId",
+        "fields": "=deliveryMethod, deliveryAddress",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        4464
+      ],
+      "id": "601a1179-354a-4ee8-ba93-0b66db6f8e90",
+      "name": "Insert Delivery Details1",
+      "credentials": {
+        "mongoDb": {
+          "id": "gE9wFiHHKb14x1uQ",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "collection": "Chatbot-Cart",
+        "options": {},
+        "query": "={ \"userId\": \"{{ $json.userId }}\" }"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        464,
+        4464
+      ],
+      "id": "81c76341-f744-4de8-a3ab-bef9919d6164",
+      "name": "Prepare Cart1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "gE9wFiHHKb14x1uQ",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract and validate order information\nconst input = $input.first().json;\n\nreturn {\n  json: {\n    userId: input.userId,\n    customerName: input.customerName,\n    customerEmail: input.customerEmail,\n    customerPhone: input.customerPhone,\n    items: input.items,\n    subtotal: input.subtotal,\n    totalAmount: input.totalAmount,\n    deliveryMethod: input.deliveryMethod,\n    deliveryAddress: input.deliveryAddress,\n    orderNotes: input.orderNotes\n  }\n};"
+>>>>>>> Stashed changes
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
+<<<<<<< Updated upstream
         420,
         3340
       ],
@@ -3231,28 +3318,50 @@
       ],
       "id": "4e1fed9d-535d-4bb5-a708-338f998f3c10",
       "name": "Receipt as HTML"
+=======
+        688,
+        4464
+      ],
+      "id": "d53bff76-77d6-46f8-a4a2-c10f8a0e76f1",
+      "name": "Parse User Cart Items1"
+>>>>>>> Stashed changes
     },
     {
       "parameters": {
         "method": "POST",
+<<<<<<< Updated upstream
         "url": "https://api.postimages.org/1/upload",
+=======
+        "url": "https://api.xendit.co/invoices",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+>>>>>>> Stashed changes
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "Content-Type",
+<<<<<<< Updated upstream
               "value": "multipart/form-data"
+=======
+              "value": "application/json"
+>>>>>>> Stashed changes
             }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
+<<<<<<< Updated upstream
         "jsonBody": "={\n  \"upload\": \"{{ $json.image_base64 }}\",\n  \"optsize\": \"0\",\n  \"expire\": \"0\",\n  \"numfiles\": \"1\"\n}\n",
+=======
+        "jsonBody": "={{ $json }}",
+>>>>>>> Stashed changes
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
+<<<<<<< Updated upstream
         840,
         3340
       ],
@@ -3262,18 +3371,213 @@
     {
       "parameters": {
         "jsCode": "const { imgbox } = require('imgbox');\nconst fs = require('fs');\n\n// Assuming you have the base64 image as input\nconst base64Image = $json.image_base64;\n\n// Convert base64 to Buffer\nconst imageBuffer = Buffer.from(base64Image, 'base64');\n\n// Prepare file object with buffer and filename\nconst file = {\n  filename: 'receipt.png',\n  buffer: imageBuffer,\n};\n\n// Upload image via imgbox\nconst uploadResponse = await imgbox(file);\n\n// Access the image URL from the response\nconst imageUrl = uploadResponse.files[0].original_url || uploadResponse.files[0].url;\n\nreturn {\n  json: {\n    imageUrl,\n  },\n};\n"
+=======
+        1136,
+        4464
+      ],
+      "id": "cd0f92f9-1342-4e5b-bb08-32a930578d93",
+      "name": "Xendit POST1",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "69074vEBxY5torkB",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $('Parse User Cart Items1').item.json.userId }}\"\n  },\n  \"message\": {\n    \"text\": \"Please proceed to payment: \\n {{ $json.invoice_url }}\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1360,
+        4464
+      ],
+      "id": "a9d98836-e1d2-4d5f-beb1-2090fb05f3e7",
+      "name": "Payment Link1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\n\nconst items = data.items.flatMap(item => {\n  let baseItems = [{\n    name: item.productName,\n    quantity: item.quantity,\n    price: item.basePrice,\n    category: item.category\n  }];\n  \n  if (item.addOns && item.addOns.length > 0) {\n    item.addOns.forEach(addon => {\n      baseItems.push({\n        name: `Add-on: ${addon.addOnName}`,\n        quantity: addon.quantity,\n        price: addon.addOnPrice,\n        category: \"Add-ons\"\n      });\n    });\n  }\n  \n  return baseItems;\n});\n\nconst email = data.deliveryAddress?.email || \"\";\nconst payerEmail = email.trim() !== \"\" ? email : undefined;\n\nconst now = new Date();\n\nfunction pad(num, size = 2) {\n  return num.toString().padStart(size, '0');\n}\n\nconst formattedDate = \n  pad(now.getMonth() + 1) +   // Month\n  pad(now.getDate()) +        // Day\n  pad(now.getHours()) +       // Hour\n  pad(now.getMinutes()) +     // Minute\n  pad(now.getSeconds());      // Second\n\nconst externalId = `${formattedDate}-order`;\n\nconst invoicePayload = {\n  external_id: externalId,\n  description: \"Blessings Cafe Payment\",\n  merchant_profile_picture_url: \"https://i.imgur.com/jgjiwnv.png\",\n  items: items,\n  amount: data.subtotal,\n  customer_name: data.userId,\n  customer_phone: data.deliveryAddress?.phone || \"\",\n  should_send_email: Boolean(payerEmail),\n  payment_methods: [\"GCASH\", \"GRABPAY\", \"PAYMAYA\", \"SHOPEEPAY\", \"QRPH\"],\n  invoice_duration: 600\n};\n\nif (payerEmail) {\n  invoicePayload.payer_email = payerEmail;\n}\n\nreturn { json: invoicePayload };\n"
+>>>>>>> Stashed changes
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
+<<<<<<< Updated upstream
         640,
         3340
       ],
       "id": "37478be6-80b6-45d7-a779-aa34da6b3307",
       "name": "Code"
+=======
+        912,
+        4464
+      ],
+      "id": "f209099d-beef-4bc6-8155-13115ee78820",
+      "name": "Prepare Invoice Payload1"
+    },
+    {
+      "parameters": {
+        "content": "add webhook after payment to notify user that their order is now preparing then ready for pickup.\nquick replies:\n(Order Received) (Contact)",
+        "height": 128
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1184,
+        4624
+      ],
+      "typeVersion": 1,
+      "id": "0985f23e-e48f-48c0-9db6-2d5178e54094",
+      "name": "Sticky Note14"
+    },
+    {
+      "parameters": {
+        "content": "add webhook after payment to notify user that their order is now preparing for delivery.\nquick replies:\n(Order Received) (Contact)",
+        "height": 128
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1440,
+        5840
+      ],
+      "typeVersion": 1,
+      "id": "80b6ea9a-5b4d-474f-b197-88e19127a958",
+      "name": "Sticky Note15"
+    },
+    {
+      "parameters": {
+        "content": "## Store Pickup E-payment",
+        "height": 128,
+        "width": 336,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -464,
+        4416
+      ],
+      "typeVersion": 1,
+      "id": "0ca39188-146c-4e18-b720-65e60b13d3b0",
+      "name": "Sticky Note16"
+    },
+    {
+      "parameters": {
+        "content": "## Store Pickup Cash-on-Hand",
+        "height": 128,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -368,
+        4784
+      ],
+      "typeVersion": 1,
+      "id": "e18b9582-4193-47dd-bb1e-c9b5b81fab7f",
+      "name": "Sticky Note17"
+    },
+    {
+      "parameters": {
+        "content": "## Delivery E-payment",
+        "height": 128,
+        "width": 288,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -416,
+        5088
+      ],
+      "typeVersion": 1,
+      "id": "335f8c73-2239-4fff-a368-2971d02d35d4",
+      "name": "Sticky Note18"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "save-address",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "f94ab1ae-a31a-4750-aaf7-5ac7df4e62b1",
+      "name": "Notify User For Pickup E-Pay",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        1856,
+        4688
+      ],
+      "webhookId": "30225362-86ba-4e3e-b5bb-6adcf512fd1f"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "save-address",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "357ceecf-f906-42d8-9946-94b0cca9a057",
+      "name": "Notify User For Pickup Cash-on-Hand",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        1856,
+        4912
+      ],
+      "webhookId": "30225362-86ba-4e3e-b5bb-6adcf512fd1f"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "save-address",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "662b4c07-7d73-4d62-830b-15a70fc4267f",
+      "name": "Notify User For Delivery E-Pay",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        1856,
+        5136
+      ],
+      "webhookId": "30225362-86ba-4e3e-b5bb-6adcf512fd1f"
+>>>>>>> Stashed changes
     }
   ],
-  "pinData": {},
+  "pinData": {
+    "Display Cash On Hand Before Pickup Message": [
+      {
+        "json": {
+          "recipient_id": "24048945674713783",
+          "message_id": "m_nT8zCLUbqMPzoQiBUruG0H0tWxGh96pu3mfwkd4yCQtF6y-x0quMs0Yy2Kdd0bp1Cfa2NWAyU74TrKOycjV9UQ"
+        }
+      }
+    ],
+    "Display Post Confirmation Message": [
+      {
+        "json": {
+          "recipient_id": "24048945674713783",
+          "message_id": "m_nT8zCLUbqMPzoQiBUruG0H0tWxGh96pu3mfwkd4yCQtF6y-x0quMs0Yy2Kdd0bp1Cfa2NWAyU74TrKOycjV9UQ"
+        }
+      }
+    ]
+  },
   "connections": {
     "Webhook": {
       "main": [
@@ -3320,11 +3624,6 @@
             "index": 0
           }
         ]
-      ]
-    },
-    "Menu Gallery": {
-      "main": [
-        []
       ]
     },
     "Greeting Message": {
@@ -3486,13 +3785,6 @@
         ],
         [
           {
-            "node": "Process Form Data",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
             "node": "senderId Prepare",
             "type": "main",
             "index": 0
@@ -3552,21 +3844,6 @@
             "index": 0
           }
         ]
-      ]
-    },
-    "Add-ons Milktea": {
-      "main": [
-        []
-      ]
-    },
-    "Add-ons Coffee": {
-      "main": [
-        []
-      ]
-    },
-    "Add-ons Fruit Tea": {
-      "main": [
-        []
       ]
     },
     "Add-Ons Switch": {
@@ -4356,7 +4633,7 @@
       "main": [
         [
           {
-            "node": "Insert Delivery Details",
+            "node": "Insert Delivery Details1",
             "type": "main",
             "index": 0
           }
@@ -4389,6 +4666,11 @@
       "main": [
         [
           {
+            "node": "Extract senderId and order/cart",
+            "type": "main",
+            "index": 0
+          },
+          {
             "node": "Process Store Pickup Cash On Hand",
             "type": "main",
             "index": 0
@@ -4412,6 +4694,7 @@
         ]
       ]
     },
+<<<<<<< Updated upstream
     "Display Enter Delivery Message1": {
       "main": [
         []
@@ -4422,12 +4705,20 @@
         [
           {
             "node": "Set - Extract ImgBB URLs",
+=======
+    "Extract senderId and order/cart": {
+      "main": [
+        [
+          {
+            "node": "Order Confirmation Message",
+>>>>>>> Stashed changes
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
+<<<<<<< Updated upstream
     "Set - Extract ImgBB URLs": {
       "main": [
         []
@@ -4438,28 +4729,84 @@
         [
           {
             "node": "Code",
+=======
+    "Order Confirmation Message": {
+      "main": [
+        [
+          {
+            "node": "Display Post Confirmation Message",
+>>>>>>> Stashed changes
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
+<<<<<<< Updated upstream
     "Receipt as HTML": {
       "main": [
         [
           {
             "node": "Receipt to Image",
+=======
+    "Insert Delivery Details1": {
+      "main": [
+        [
+          {
+            "node": "Prepare Cart1",
+>>>>>>> Stashed changes
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
+<<<<<<< Updated upstream
     "Code": {
       "main": [
         [
           {
             "node": "HTTP Request1",
+=======
+    "Prepare Cart1": {
+      "main": [
+        [
+          {
+            "node": "Parse User Cart Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse User Cart Items1": {
+      "main": [
+        [
+          {
+            "node": "Prepare Invoice Payload1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Xendit POST1": {
+      "main": [
+        [
+          {
+            "node": "Payment Link1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Invoice Payload1": {
+      "main": [
+        [
+          {
+            "node": "Xendit POST1",
+>>>>>>> Stashed changes
             "type": "main",
             "index": 0
           }
@@ -4469,15 +4816,17 @@
   },
   "active": true,
   "settings": {
-    "executionOrder": "v1",
-    "timezone": "Asia/Taipei",
-    "callerPolicy": "workflowsFromSameOwner"
+    "executionOrder": "v1"
   },
+<<<<<<< Updated upstream
   "versionId": "56333d46-640f-439d-bcb6-abc98c337d66",
+=======
+  "versionId": "30e66595-49c6-44cb-a952-53e1e7a13094",
+>>>>>>> Stashed changes
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "e55ad63998dbff63a27e8a719a0f75ec990732ee36c99c049c4be96c65a0b3c2"
+    "instanceId": "818d45e7d7435ffe1fb1a4348f404a0c4a80b891ed8669035a39a5ec5e90d0d6"
   },
-  "id": "25ZZiVoHSztSfOCp",
+  "id": "kD1ThIYQgNcrkjdr",
   "tags": []
 }
