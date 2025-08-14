@@ -352,8 +352,8 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -416,
-        32
+        -1136,
+        -16
       ],
       "typeVersion": 1,
       "id": "a91e506f-9e35-4ec8-8cbb-cd6e34fed3bd",
@@ -368,8 +368,8 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -176,
-        16
+        -1504,
+        -32
       ],
       "typeVersion": 1,
       "id": "e5223c43-84dd-4e1c-b42f-171f0b8138fb",
@@ -384,8 +384,8 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -1344,
-        32
+        -1504,
+        176
       ],
       "typeVersion": 1,
       "id": "fc31bab4-fb74-4b16-936c-16e5944f0238",
@@ -465,8 +465,8 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        928,
-        720
+        704,
+        560
       ],
       "typeVersion": 1,
       "id": "c75f64e7-d5b0-4bb6-847e-97ff700f6d15",
@@ -474,13 +474,13 @@
     },
     {
       "parameters": {
-        "content": "add webhook after payment to notify user that their order is now preparing then ready for pickup.\nquick replies:\n(Order Received) (Contact)",
+        "content": "add webhook to notify user that their order is ready for pickup.\nquick replies:\n(Order Received) (Contact)",
         "height": 128
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        912,
-        1072
+        1008,
+        1648
       ],
       "typeVersion": 1,
       "id": "4a808939-f3c2-4873-b1c5-1fa7d1c638be",
@@ -493,29 +493,12 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        928,
-        896
+        1024,
+        560
       ],
       "typeVersion": 1,
       "id": "8b04dfb6-98cc-44a0-8147-ec986127c13c",
       "name": "Sticky Note15"
-    },
-    {
-      "parameters": {
-        "httpMethod": "POST",
-        "path": "/xendit-webhook",
-        "responseMode": "responseNode",
-        "options": {}
-      },
-      "id": "f9eae1e0-29c8-444b-bedd-a57e71367e29",
-      "name": "Notify Order Confirmation For Delivery & Pickup [E-Pay]",
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 1.1,
-      "position": [
-        -1248,
-        944
-      ],
-      "webhookId": "30225362-86ba-4e3e-b5bb-6adcf512fd1f"
     },
     {
       "parameters": {
@@ -839,6 +822,103 @@
         1360
       ],
       "webhookId": "30225362-86ba-4e3e-b5bb-6adcf512fd1f"
+    },
+    {
+      "parameters": {
+        "content": "# 🚚\nHandle Store Pickup Cash-on-Hand",
+        "height": 116,
+        "width": 190,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1504,
+        624
+      ],
+      "typeVersion": 1,
+      "id": "19213137-7566-4bae-b394-b95e55cdadee",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## E-payment Handler\nboth pickup and delivery",
+        "height": 132,
+        "width": 190,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1504,
+        928
+      ],
+      "typeVersion": 1,
+      "id": "54c83ab7-d1dd-49f4-94e3-1afdfc4a60cc",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Cash-On-Hand Handler\npickup only",
+        "height": 116,
+        "width": 190,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1504,
+        1360
+      ],
+      "typeVersion": 1,
+      "id": "41a21d01-6ead-48a8-b99f-7b3ea06414bf",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "/xendit-webhook",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "f9eae1e0-29c8-444b-bedd-a57e71367e29",
+      "name": "Order Confirmation For Delivery & Pickup [E-Pay]",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        -1248,
+        944
+      ],
+      "webhookId": "30225362-86ba-4e3e-b5bb-6adcf512fd1f"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "949aa252-9ae4-4395-8747-924202f2aa42",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        880,
+        848
+      ],
+      "id": "a23c3ca5-5542-4406-9489-7ffb05f3d31e",
+      "name": "Notify Delivery Webhook",
+      "webhookId": "949aa252-9ae4-4395-8747-924202f2aa42"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "949aa252-9ae4-4395-8747-924202f2aa42",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        880,
+        1040
+      ],
+      "id": "19db6461-89ef-41d9-999a-f24f3df70ec8",
+      "name": "Notify Pickup Webhook",
+      "webhookId": "949aa252-9ae4-4395-8747-924202f2aa42"
     }
   ],
   "pinData": {},
@@ -1030,17 +1110,6 @@
         ]
       ]
     },
-    "Notify Order Confirmation For Delivery & Pickup [E-Pay]": {
-      "main": [
-        [
-          {
-            "node": "Payment Status [E-Pay]",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "find userId Cart [Order Confirmation]": {
       "main": [
         [
@@ -1184,13 +1253,24 @@
           }
         ]
       ]
+    },
+    "Order Confirmation For Delivery & Pickup [E-Pay]": {
+      "main": [
+        [
+          {
+            "node": "Payment Status [E-Pay]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "2e69f2e3-b445-402c-9200-04f7c3e24b69",
+  "versionId": "e530e7f4-8ab9-4c56-8977-4a7a0a4b861e",
   "meta": {
     "instanceId": "818d45e7d7435ffe1fb1a4348f404a0c4a80b891ed8669035a39a5ec5e90d0d6"
   },
