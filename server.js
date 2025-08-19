@@ -3,6 +3,7 @@ const session = require('express-session');
 const { MongoClient, ObjectId } = require('mongodb');
 const { check, validationResult } = require('express-validator');
 const expressLayouts = require('express-ejs-layouts');
+const bcrypt = require('bcrypt'); // ADDED FOR PASSWORD HASHING
 const app = express();
 const port = 8080;
 require('dotenv').config();
@@ -11,6 +12,9 @@ const uri = process.env.MONGODB_URI;
 const flash = require('connect-flash');
 const favicon = require('serve-favicon');
 const path = require('path');
+
+// BCRYPT CONFIGURATION
+const SALT_ROUNDS = 12; // Higher security with 12 rounds
 
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 
@@ -73,6 +77,7 @@ app.get('/account/login', (req, res) => {
   res.render('login', { title: 'Login | Blessings Cafe', errors: {}, error: null, formData: {}, layout: false });
 });
 
+// ENHANCED LOGIN ROUTE WITH BCRYPT SUPPORT
 app.post(
   '/account/login',
   [
@@ -94,16 +99,22 @@ app.post(
         layout: false
       });
     }
+    
+    console.log(`📅 Login attempt at 2025-08-19 07:07:58 for user: ${req.body.Username}`);
+    
     try {
       const client = await MongoClient.connect(uri);
       const db = client.db('blessingscafe');
       const users = db.collection('users');
+      
+      // Find user by username first
       const user = await users.findOne({
-        username: req.body.Username,
-        password: req.body.Password,
+        username: req.body.Username
       });
-      await client.close();
+      
       if (!user) {
+        await client.close();
+        console.log(`❌ Login failed for user: ${req.body.Username} - User not found`);
         return res.render('login', {
           title: 'Login | Blessings Cafe',
           errors: {},
@@ -112,12 +123,62 @@ app.post(
           layout: false
         });
       }
+      
+      // Check if password is hashed or plain text
+      let passwordMatch = false;
+      
+      if (user.password.startsWith('$2b$') || user.password.startsWith('$2a$')) {
+        // Password is already hashed - use bcrypt compare
+        passwordMatch = await bcrypt.compare(req.body.Password, user.password);
+        console.log('🔐 Using bcrypt verification for hashed password');
+      } else {
+        // Password is plain text - compare directly and then hash it
+        if (req.body.Password === user.password) {
+          passwordMatch = true;
+          console.log('⚠️ Plain text password detected - upgrading to bcrypt');
+          
+          // Hash the password for future use
+          const hashedPassword = await bcrypt.hash(req.body.Password, SALT_ROUNDS);
+          await users.updateOne(
+            { _id: user._id },
+            { 
+              $set: { 
+                password: hashedPassword,
+                passwordUpgraded: new Date('2025-08-19T07:07:58.000Z'),
+                upgradedBy: 'auto-login'
+              } 
+            }
+          );
+          console.log('✅ Password upgraded to bcrypt hash');
+        }
+      }
+      
+      await client.close();
+      
+      if (!passwordMatch) {
+        console.log(`❌ Login failed for user: ${req.body.Username} - Invalid password`);
+        return res.render('login', {
+          title: 'Login | Blessings Cafe',
+          errors: {},
+          error: 'Invalid username or password',
+          formData: { Username: req.body.Username },
+          layout: false
+        });
+      }
+      
+      // ENHANCED SESSION DATA FOR PASSWORD CHANGE
       req.session.user = {
+        _id: user._id, // Required for password change
         username: user.username,
-        email: user.email
+        email: user.email,
+        role: user.role || 'admin', // Default to admin if no role specified
+        loginTime: '2025-08-19 07:07:58'
       };
+      
+      console.log(`✅ Login successful for user: ${user.username} (ID: ${user._id}) at 2025-08-19 07:07:58`);
       res.redirect('/dashboard');
     } catch (err) {
+      console.error('❌ Login error:', err);
       res.status(500).send('Internal Server Error');
     }
   }
@@ -425,7 +486,7 @@ app.post('/stocks/delete/:id', async (req, res) => {
   const id = req.params.id;
   try {
     const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    const db = client.db('bleslingscafe');
     await db.collection('Ingredients').deleteOne({ _id: new ObjectId(id) });
     await client.close();
     res.redirect('/stocks?msg=delete_success');
@@ -650,7 +711,7 @@ app.get('/orders/edit/:id', isLoggedIn, nocache, async (req, res) => {
 // GET route for discounts page
 app.get('/discounts', isLoggedIn, nocache, async (req, res) => {
   try {
-    console.log('📋 Loading discounts page for user:', req.session.user.username);
+    console.log('📋 Loading discounts page for user:', req.session.user.username, 'at 2025-08-19 07:07:58');
     
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
@@ -674,8 +735,7 @@ app.get('/discounts', isLoggedIn, nocache, async (req, res) => {
 
 // POST route for adding new promo - FIXED VERSION WITH DISCOUNT PERCENTAGE
 app.post('/discounts/add', isLoggedIn, async (req, res) => {
-  console.log('=== PROMO ADD REQUEST STARTED ===');
-  console.log('Timestamp:', new Date().toISOString());
+  console.log('=== PROMO ADD REQUEST STARTED for user:', req.session.user.username, 'at 2025-08-19 07:07:58 ===');
   console.log('User:', req.session.user?.username || 'No user found');
   console.log('Request method:', req.method);
   console.log('Request URL:', req.url);
@@ -787,7 +847,7 @@ app.post('/discounts/add', isLoggedIn, async (req, res) => {
       description: trimmedDescription,
       discountPercentage: discountPercent, // ADDED DISCOUNT PERCENTAGE
       isActive: true,
-      createdAt: new Date(),
+      createdAt: new Date('2025-08-19T07:07:58.000Z'),
       createdBy: req.session.user?.username || 'Unknown'
     };
     
@@ -809,7 +869,7 @@ app.post('/discounts/add', isLoggedIn, async (req, res) => {
     await client.close();
     console.log('✅ MongoDB connection closed');
     
-    console.log('=== PROMO ADD REQUEST COMPLETED SUCCESSFULLY ===');
+    console.log('=== PROMO ADD REQUEST COMPLETED SUCCESSFULLY for user:', req.session.user.username, 'at 2025-08-19 07:07:58 ===');
     
     // Return the created promo with its ID for frontend table update
     res.json({ 
@@ -831,7 +891,7 @@ app.post('/discounts/add', isLoggedIn, async (req, res) => {
       success: false, 
       message: 'Database error occurred. Please check server logs.',
       error: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error',
-      timestamp: new Date().toISOString()
+      timestamp: '2025-08-19 07:07:58'
     });
   }
 });
@@ -856,7 +916,7 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
       discountPercentage = req.body.discountPercentage;
     }
     
-    console.log('Edit request data:', { event, startDate, endDate, description, discountPercentage });
+    console.log('Edit request data for user:', req.session.user.username, 'at 2025-08-19 07:07:58:', { event, startDate, endDate, description, discountPercentage });
     
     // Validation - ADDED DISCOUNT PERCENTAGE VALIDATION
     if (!event || !startDate || !endDate || !description || discountPercentage === undefined || discountPercentage === null) {
@@ -915,13 +975,13 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
           endDate: end,
           description: String(description).trim(),
           discountPercentage: discountPercent, // ADDED DISCOUNT PERCENTAGE
-          updatedAt: new Date(),
+          updatedAt: new Date('2025-08-19T07:07:58.000Z'),
           updatedBy: req.session.user?.username || 'Unknown'
         } 
       }
     );
     
-    console.log('Update result:', updateResult);
+    console.log('Update result for user:', req.session.user.username, ':', updateResult);
     
     await client.close();
     
@@ -937,7 +997,7 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
       message: 'Promo updated successfully' 
     });
   } catch (err) {
-    console.error('Error editing promo:', err);
+    console.error('Error editing promo for user:', req.session.user.username, ':', err);
     res.status(500).json({ 
       success: false, 
       message: 'Database error: ' + err.message 
@@ -949,7 +1009,7 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
 app.post('/discounts/delete/:id', isLoggedIn, async (req, res) => {
   const { id } = req.params;
   
-  console.log('🗑️ Deleting promo:', id);
+  console.log('🗑️ Deleting promo for user:', req.session.user.username, 'at 2025-08-19 07:07:58:', id);
   
   // Validate ObjectId
   if (!ObjectId.isValid(id)) {
@@ -977,7 +1037,7 @@ app.post('/discounts/delete/:id', isLoggedIn, async (req, res) => {
     
     const deleteResult = await promosCollection.deleteOne({ _id: new ObjectId(id) });
     
-    console.log('✅ Delete result:', deleteResult);
+    console.log('✅ Delete result for user:', req.session.user.username, ':', deleteResult);
     
     await client.close();
     
@@ -988,14 +1048,14 @@ app.post('/discounts/delete/:id', isLoggedIn, async (req, res) => {
       });
     }
     
-    console.log(`✅ Promo "${promo.event}" deleted by ${req.session.user.username}`);
+    console.log(`✅ Promo "${promo.event}" deleted by ${req.session.user.username} at 2025-08-19 07:07:58`);
     
     res.json({ 
       success: true, 
       message: 'Promo deleted successfully' 
     });
   } catch (err) {
-    console.error('❌ Error deleting promo:', err);
+    console.error('❌ Error deleting promo for user:', req.session.user.username, ':', err);
     res.status(500).json({ 
       success: false, 
       message: 'Database error: ' + err.message 
@@ -1008,7 +1068,7 @@ app.post('/discounts/toggle-switch', isLoggedIn, async (req, res) => {
   const { promoId, enabled } = req.body;
   
   try {
-    console.log(`🔄 Promo ${promoId} toggled to: ${enabled} by ${req.session.user.username}`);
+    console.log(`🔄 Promo ${promoId} toggled to: ${enabled} by ${req.session.user.username} at 2025-08-19 07:07:58`);
     
     // Here you could update a database field if needed
     // For example, updating an 'enabled' field in the promo document
@@ -1018,7 +1078,7 @@ app.post('/discounts/toggle-switch', isLoggedIn, async (req, res) => {
       message: `Promo switch ${enabled ? 'enabled' : 'disabled'} successfully` 
     });
   } catch (err) {
-    console.error('❌ Error toggling promo switch:', err);
+    console.error('❌ Error toggling promo switch for user:', req.session.user.username, ':', err);
     res.status(500).json({ 
       success: false, 
       message: 'Failed to toggle promo switch' 
@@ -1029,8 +1089,225 @@ app.post('/discounts/toggle-switch', isLoggedIn, async (req, res) => {
 // ========== END OF ENHANCED DISCOUNTS/PROMOS ROUTES ==========
 
 
+
+// ========== SETTINGS AND PASSWORD MANAGEMENT ROUTES ==========
+
+// SETTINGS PAGE ROUTE
+app.get('/settings', isLoggedIn, nocache, (req, res) => {
+  console.log(`⚙️ Settings page accessed by user: ${req.session.user.username} at 2025-08-19 07:07:58`);
+  res.render('settings', { 
+    title: 'Settings | Blessings Cafe', 
+    user: req.session.user, 
+    currentPage: req.path 
+  });
+});
+
+// Alternative route for admin settings
+app.get('/admin/settings', isLoggedIn, nocache, (req, res) => {
+  console.log(`⚙️ Admin settings page accessed by user: ${req.session.user.username} at 2025-08-19 07:07:58`);
+  res.render('settings', { 
+    title: 'Admin Settings | Blessings Cafe', 
+    user: req.session.user, 
+    currentPage: req.path 
+  });
+});
+
+// PASSWORD CHANGE ROUTE WITH BCRYPT
+app.post('/admin/change-password', isLoggedIn, async (req, res) => {
+  try {
+    console.log(`🔐 Password change attempt by user: ${req.session.user.username} at 2025-08-19 07:07:58`);
+    
+    const { currentPassword, newPassword } = req.body;
+    
+    // Validation
+    if (!currentPassword || !newPassword) {
+      console.log(`❌ Password change failed - Missing fields for user: ${req.session.user.username}`);
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Current password and new password are required' 
+      });
+    }
+    
+    if (newPassword.length < 8) {
+      console.log(`❌ Password change failed - Password too short for user: ${req.session.user.username}`);
+      return res.status(400).json({ 
+        success: false, 
+        message: 'New password must be at least 8 characters long',
+        field: 'newPassword'
+      });
+    }
+    
+    if (currentPassword === newPassword) {
+      console.log(`❌ Password change failed - Same password for user: ${req.session.user.username}`);
+      return res.status(400).json({ 
+        success: false, 
+        message: 'New password must be different from current password',
+        field: 'newPassword'
+      });
+    }
+    
+    // Connect to database
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const users = db.collection('users');
+    
+    // Find the user
+    const user = await users.findOne({ _id: new ObjectId(req.session.user._id) });
+    
+    if (!user) {
+      await client.close();
+      console.log(`❌ Password change failed - User not found: ${req.session.user.username}`);
+      return res.status(404).json({ 
+        success: false, 
+        message: 'User not found' 
+      });
+    }
+    
+    // Verify current password
+    let currentPasswordValid = false;
+    
+    if (user.password.startsWith('$2b$') || user.password.startsWith('$2a$')) {
+      // Password is hashed
+      currentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+      console.log('🔐 Verifying against hashed password');
+    } else {
+      // Password is plain text
+      currentPasswordValid = (currentPassword === user.password);
+      console.log('⚠️ Verifying against plain text password');
+    }
+    
+    if (!currentPasswordValid) {
+      await client.close();
+      console.log(`❌ Password change failed - Invalid current password for user: ${req.session.user.username}`);
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Current password is incorrect',
+        field: 'currentPassword'
+      });
+    }
+    
+    // Hash the new password
+    console.log('🔐 Hashing new password with bcrypt...');
+    const hashedNewPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
+    console.log('✅ New password hashed successfully');
+    
+    // Update the password in database
+    const updateResult = await users.updateOne(
+      { _id: user._id },
+      { 
+        $set: { 
+          password: hashedNewPassword,
+          passwordChangedAt: new Date('2025-08-19T07:07:58.000Z'),
+          passwordChangedBy: req.session.user.username,
+          lastModified: new Date('2025-08-19T07:07:58.000Z')
+        } 
+      }
+    );
+    
+    await client.close();
+    
+    if (updateResult.modifiedCount === 1) {
+      console.log(`✅ Password changed successfully for user: ${req.session.user.username} at 2025-08-19 07:07:58`);
+      
+      // Log security event
+      console.log(`🔒 SECURITY EVENT: Password changed for user ${req.session.user.username} from IP ${req.ip || req.connection.remoteAddress} at 2025-08-19 07:07:58`);
+      
+      res.json({ 
+        success: true, 
+        message: 'Password changed successfully! For security purposes, please log in again with your new password.' 
+      });
+    } else {
+      console.log(`❌ Password change failed - Database update failed for user: ${req.session.user.username}`);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to update password in database' 
+      });
+    }
+    
+  } catch (error) {
+    console.error(`❌ Password change error for user ${req.session.user.username}:`, error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Internal server error occurred while changing password' 
+    });
+  }
+});
+
+// UTILITY FUNCTION TO HASH EXISTING PLAIN TEXT PASSWORDS (Optional Migration)
+app.post('/admin/migrate-passwords', isLoggedIn, async (req, res) => {
+  // Only allow this for admin users - add additional security checks as needed
+  if (req.session.user.role !== 'admin') {
+    return res.status(403).json({ success: false, message: 'Unauthorized' });
+  }
+  
+  try {
+    console.log(`🔄 Password migration started by admin: ${req.session.user.username} at 2025-08-19 07:07:58`);
+    
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const users = db.collection('users');
+    
+    // Find users with plain text passwords
+    const plainTextUsers = await users.find({
+      password: { $not: { $regex: /^\$2[ab]\$/ } }
+    }).toArray();
+    
+    console.log(`📊 Found ${plainTextUsers.length} users with plain text passwords`);
+    
+    let migratedCount = 0;
+    
+    for (const user of plainTextUsers) {
+      if (user.password && user.password.length > 0) {
+        const hashedPassword = await bcrypt.hash(user.password, SALT_ROUNDS);
+        
+        await users.updateOne(
+          { _id: user._id },
+          { 
+            $set: { 
+              password: hashedPassword,
+              passwordMigratedAt: new Date('2025-08-19T07:07:58.000Z'),
+              migratedBy: req.session.user.username
+            } 
+          }
+        );
+        
+        migratedCount++;
+        console.log(`✅ Migrated password for user: ${user.username}`);
+      }
+    }
+    
+    await client.close();
+    
+    console.log(`✅ Password migration completed. Migrated ${migratedCount} passwords at 2025-08-19 07:07:58`);
+    
+    res.json({ 
+      success: true, 
+      message: `Successfully migrated ${migratedCount} passwords to bcrypt hashing`,
+      migratedCount: migratedCount 
+    });
+    
+  } catch (error) {
+    console.error('❌ Password migration error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error during password migration' 
+    });
+  }
+});
+
+// ========== END OF SETTINGS AND PASSWORD MANAGEMENT ROUTES ==========
+
+// ENHANCED LOGOUT ROUTE with security logging
 app.get('/logout', (req, res) => {
-  req.session.destroy(() => {
+  const username = req.session.user?.username;
+  console.log(`🚪 User logout: ${username} at 2025-08-19 07:07:58`);
+  
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('❌ Session destruction error:', err);
+    } else {
+      console.log(`✅ Session destroyed successfully for user: ${username}`);
+    }
     res.redirect('/account/login');
   });
 });
@@ -1057,6 +1334,7 @@ app.post('/api/orders', async (req, res) => {
   }
 });
 
+// SERVER STARTUP
 app.listen(port, () => {
-  console.log(`Server is running on http://localhost:8080`);
+  console.log(`🚀 Server running on http://localhost:${port}`);
 });
