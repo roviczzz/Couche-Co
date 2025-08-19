@@ -17,22 +17,24 @@
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   }
 
-  .header-container {
+  .form-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
   }
 
-  .form-container h2 {
-    margin: 0;
+  .form-title {
     color: #333;
+    font-size: 24px;
+    font-weight: bold;
+    margin: 0;
   }
 
   .back-button {
     padding: 8px 14px;
-    background-color: #ccc;
-    color: #333;
+    background-color: #d9534f; /* red */
+    color: white;
     font-size: 14px;
     font-weight: 500;
     text-decoration: none;
@@ -41,7 +43,7 @@
   }
 
   .back-button:hover {
-    background-color: #bbb;
+    background-color: #c9302c;
   }
 
   .field-group {
@@ -49,6 +51,7 @@
   }
 
   .field-label {
+    display: block;
     margin-bottom: 5px;
     font-weight: 600;
     color: #555;
@@ -65,20 +68,40 @@
 
   .checkbox-group {
     display: flex;
-    flex-direction: column;
+    align-items: center;
     margin-top: 20px;
+  }
+
+  .checkbox-group input {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #2b8a3e;
+    border-radius: 4px;
+    margin-right: 8px;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .checkbox-group input:checked {
+    background-color: #2b8a3e;
+  }
+
+  .checkbox-group input:checked::after {
+    content: "✔";
+    position: absolute;
+    top: -2px;
+    left: 2px;
+    font-size: 14px;
+    color: white;
   }
 
   .checkbox-group label {
     font-weight: 500;
+    color: #444;
+    cursor: pointer;
     display: flex;
     align-items: center;
-    margin-bottom: 5px;
-    color: #444;
-  }
-
-  .checkbox-group input {
-    margin-right: 6px;
   }
 
   .submit-button {
@@ -92,6 +115,7 @@
     border: none;
     border-radius: 6px;
     cursor: pointer;
+    transition: background-color 0.2s ease;
   }
 
   .submit-button:hover {
@@ -100,15 +124,15 @@
 </style>
 
 <div class="form-container">
-  <div class="header-container">
-    <h2>Edit Product</h2>
+  <div class="form-header">
+    <div class="form-title">Edit Product</div>
     <a href="/products" class="back-button">← Back</a>
   </div>
 
   <form id="editProductForm" action="/products/edit/<%= product._id %>" method="POST">
     <div class="field-group">
-      <div class="field-label">Name:</div>
-      <div><input class="field-input" type="text" name="Name" value="<%= product.Name %>" required></div>
+      <label class="field-label">Name:</label>
+      <input class="field-input" type="text" name="Name" value="<%= product.Name %>" required>
     </div>
 
     <%
@@ -117,58 +141,58 @@
     %>
 
     <div class="field-group">
-      <div class="field-label">16oz Price:</div>
-      <div><input class="field-input" type="number" name="size16" value="<%= size16 ? size16.BasePrice : '' %>" step="0.01"></div>
+      <label class="field-label">16oz Price:</label>
+      <input class="field-input" type="number" name="size16" value="<%= size16 ? size16.BasePrice : '' %>" step="0.01">
     </div>
 
     <div class="field-group">
-      <div class="field-label">22oz Price:</div>
-      <div><input class="field-input" type="number" name="size22" value="<%= size22 ? size22.BasePrice : '' %>" step="0.01"></div>
+      <label class="field-label">22oz Price:</label>
+      <input class="field-input" type="number" name="size22" value="<%= size22 ? size22.BasePrice : '' %>" step="0.01">
     </div>
 
     <div class="field-group">
-      <div class="field-label">Ingredients (comma-separated):</div>
-      <div><input class="field-input" type="text" name="Ingredients" value="<%= product.Ingredients ? product.Ingredients.join(',') : '' %>"></div>
-    </div>
-
-    <!-- Updated Category field -->
-    <div class="field-group">
-      <div class="field-label">Category:</div>
-      <div>
-        <select class="field-input" name="Category" required>
-          <option value="">-- Select Category --</option>
-          <option value="Coffee" <%= product.Category === 'Coffee' ? 'selected' : '' %>>Coffee</option>
-          <option value="Milktea" <%= product.Category === 'Milktea' ? 'selected' : '' %>>Milktea</option>
-          <option value="Fruit Tea" <%= product.Category === 'Fruit Tea' ? 'selected' : '' %>>Fruit Tea</option>
-          <option value="Pastries" <%= product.Category === 'Pastries' ? 'selected' : '' %>>Pastries</option>
-        </select>
-      </div>
+      <label class="field-label">Ingredients (comma-separated):</label>
+      <input class="field-input" type="text" name="Ingredients" value="<%= product.Ingredients ? product.Ingredients.join(',') : '' %>">
     </div>
 
     <div class="field-group">
-      <div class="field-label">Base Price (Pastries only):</div>
-      <div><input class="field-input" type="number" name="BasePrice" value="<%= product.BasePrice || '' %>" step="0.01"></div>
+      <label class="field-label">Category:</label>
+      <select class="field-input" name="Category" required>
+        <option value="">-- Select Category --</option>
+        <option value="Coffee" <%= product.Category === 'Coffee' ? 'selected' : '' %>>Coffee</option>
+        <option value="Milktea" <%= product.Category === 'Milktea' ? 'selected' : '' %>>Milktea</option>
+        <option value="Fruit Tea" <%= product.Category === 'Fruit Tea' ? 'selected' : '' %>>Fruit Tea</option>
+        <option value="Pastries" <%= product.Category === 'Pastries' ? 'selected' : '' %>>Pastries</option>
+      </select>
     </div>
 
     <div class="field-group">
-      <div class="field-label">Allergen (optional):</div>
-      <div><input class="field-input" type="text" name="Allergen" value="<%= product.Allergen || '' %>"></div>
+      <label class="field-label">Base Price (Pastries only):</label>
+      <input class="field-input" type="number" name="BasePrice" value="<%= product.BasePrice || '' %>" step="0.01">
     </div>
 
     <div class="field-group">
-      <div class="field-label">Image Link:</div>
-      <div><input class="field-input" type="text" name="imagelink" value="<%= product.imagelink || '' %>"></div>
+      <label class="field-label">Allergen (optional):</label>
+      <input class="field-input" type="text" name="Allergen" value="<%= product.Allergen || '' %>">
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Image Link:</label>
+      <input class="field-input" type="text" name="imagelink" value="<%= product.imagelink || '' %>">
     </div>
 
     <div class="checkbox-group">
-      <label><input type="checkbox" name="isEnabled" value="true" <%= product.isEnabled ? 'checked' : '' %> /> Enabled</label>
+      <label>
+        <input type="checkbox" name="isEnabled" value="true" <%= product.isEnabled ? 'checked' : '' %> />
+        Enabled
+      </label>
     </div>
 
     <button class="submit-button" type="submit">Update Product</button>
   </form>
 </div>
 
-<!-- SweetAlert2 Script -->
+<!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
   document.getElementById('editProductForm').addEventListener('submit', function(e) {

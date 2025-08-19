@@ -331,10 +331,10 @@ app.get('/forgot-password', (req, res) => {
 
 
 app.post('/forgot-password', async (req, res) => {
-    const { username, newPassword } = req.body;
+    const { username, secretCode, newPassword } = req.body;
 
-    if (!username || !newPassword) {
-        return res.status(400).send('Username and new password are required');
+    if (!username || !secretCode || !newPassword) {
+        return res.status(400).send('Username, secret code, and new password are required');
     }
 
     let client;
@@ -343,14 +343,16 @@ app.post('/forgot-password', async (req, res) => {
         const db = client.db('blessingscafe');
         const usersCollection = db.collection('users');
 
-        const user = await usersCollection.findOne({ username: username });
+        // Check username + secretCode
+        const user = await usersCollection.findOne({ username: username, secretCode: secretCode });
         if (!user) {
             await client.close();
-            return res.status(404).send('User not found');
+            return res.status(404).send('User not found or invalid secret code');
         }
 
+        // Update password if valid
         await usersCollection.updateOne(
-            { username: username },
+            { username: username, secretCode: secretCode },
             { $set: { password: newPassword } }
         );
 
@@ -362,6 +364,7 @@ app.post('/forgot-password', async (req, res) => {
         res.status(500).send('Server error');
     }
 });
+
 
 app.post('/delete-product/:id', async (req, res) => {
   const productId = req.params.id;
