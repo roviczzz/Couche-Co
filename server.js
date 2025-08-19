@@ -1336,5 +1336,5 @@ app.post('/api/orders', async (req, res) => {
 
 // SERVER STARTUP
 app.listen(port, () => {
-  console.log(`🚀 Server running on http://localhost:${port}`);
+  console.log(` Server running on http://localhost:${port}`);
 });
