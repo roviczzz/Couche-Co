@@ -144,6 +144,25 @@ app.get('/menu', isLoggedIn, nocache, async (req, res) => {
   }
 });
 
+app.get('/api/addons', async (req, res) => {
+    try {
+        console.log('Fetching add-ons...');
+        const client = await MongoClient.connect(uri);
+        const db = client.db('blessingscafe');
+
+        const addOns = await db.collection('Add-ons').find({ isEnabled: true }).toArray();
+
+        console.log('Found add-ons:', addOns.length);
+        console.log('Add-ons data:', addOns);
+
+        await client.close();
+        res.json(addOns);
+    } catch (err) {
+        console.error('Error fetching add-ons:', err);
+        res.status(500).json([]);
+    }
+});
+
 app.get('/products', isLoggedIn, nocache, async (req, res) => {
   try {
     const client = new MongoClient(uri);

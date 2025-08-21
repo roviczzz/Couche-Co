@@ -3,300 +3,308 @@
 </style>
 
 <%
-  const grouped = {};
-  menuItems.forEach(item => {
+const grouped = {};
+menuItems.forEach(item => {
     if (!grouped[item.Category]) grouped[item.Category] = [];
     grouped[item.Category].push(item);
-  });
+});
 %>
 <div class="main-container">
-  <div class="content">
-    <h1>Select Order</h1>
-    <div class="promo-banner">Buy 3 for 143</div>
-    <div id="all-products" style="max-height: calc(100vh - 150px); overflow-y: auto; padding-right: 8px; box-sizing: border-box;">
-      <% Object.keys(grouped).forEach(category => { %>
-        <div class="section-title"><%= category %></div>
-        <div class="products-grid" style="margin-bottom: 20px;">
-          <% grouped[category].forEach(item => { %>
-            <div tabindex="0" role="button" class="product-card" data-item='<%= JSON.stringify(item) %>' onclick="handleProductClick(JSON.parse(this.dataset.item))">
-              <div class="product-image">
-                <% if (item.imagelink && item.imagelink.length > 0) { %>
-                  <img src="<%= item.imagelink %>" alt="<%= item.Name %>" style="width: 120px; height: 120px; object-fit: cover; border-radius: 12px;">
-                <% } else { %>
-                  <span style="display:inline-block;width:100px;height:100px;border-radius:12px;background:#999;line-height:100px;color:#fff;">No image</span>
-                <% } %>
-              </div>
-              <div class="product-name"><%= item.Name %></div>
-              <% if (item.Sizes && item.Sizes.length === 1) { 
-                const sizeObj = item.Sizes[0]; %>
-                <div class="product-price">₱ <%= Number(sizeObj.BasePrice).toFixed(2) %></div>
-              <% } else if (!item.Sizes || item.Sizes.length === 0) { %>
-                <div class="product-price">₱ <%= Number(item.BasePrice).toFixed(2) %></div>
-              <% } else { %>
-                <div class="product-price">Multiple sizes available</div>
-              <% } %>
+    <div class="content">
+        <h1>Select Order</h1>
+        <div class="promo-banner">Buy 3 for 143</div>
+        <div id="all-products" style="max-height: calc(100vh - 150px); overflow-y: auto; padding-right: 8px; box-sizing: border-box;">
+            <% Object.keys(grouped).forEach(category => { %>
+                <div class="section-title"><%= category %></div>
+                <div class="products-grid" style="margin-bottom: 20px;">
+                    <% grouped[category].forEach(item => { %>
+                        <div tabindex="0" role="button" class="product-card" data-item='<%= JSON.stringify(item) %>' onclick="handleProductClick(JSON.parse(this.dataset.item))">
+                            <div class="product-image">
+                                <% if (item.imagelink && item.imagelink.length > 0) { %>
+                                    <img src="<%= item.imagelink %>" alt="<%= item.Name %>" style="width: 120px; height: 120px; object-fit: cover; border-radius: 12px;">
+                                <% } else { %>
+                                    <span style="display:inline-block;width:100px;height:100px;border-radius:12px;background:#999;line-height:100px;color:#fff;">No image</span>
+                                <% } %>
+                            </div>
+                            <div class="product-name"><%= item.Name %></div>
+                            <% if (item.Sizes && item.Sizes.length === 1) {
+                                const sizeObj = item.Sizes[0]; %>
+                            <div class="product-price">₱ <%= Number(sizeObj.BasePrice).toFixed(2) %></div>
+                            <% } else if (!item.Sizes || item.Sizes.length === 0) { %>
+                                <div class="product-price">₱ <%= Number(item.BasePrice).toFixed(2) %></div>
+                            <% } else { %>
+                                <div class="product-price">Multiple sizes available</div>
+                            <% } %>
+                        </div>
+                    <% }) %>
+                </div>
+            <% }) %>
+        </div>
+    </div>
+    <div class="summary-panel">
+        <div class="summary-title">Summary</div>
+
+        <div class="customer-details-section" style="margin-bottom: 20px;">
+            <label for="customer-name" style="font-weight: bold; display: block; margin-bottom: 6px; color: #5a3e2b;">Customer Name</label>
+            <input type="text" id="customer-name" placeholder="Enter customer name" style="width: 92%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; margin-bottom: 15px;" />
+
+            <label for="contact-number" style="font-weight: bold; display: block; margin-bottom: 6px; color: #5a3e2b;">Contact Number</label>
+            <input type="text" id="contact-number" placeholder="Enter contact number (optional)" style="width: 92%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; margin-bottom: 15px;" />
+
+            <label for="delivery-type" style="font-weight: bold; display: block; margin-bottom: 6px; color: #5a3e2b;">Delivery Type</label>
+            <select id="delivery-type" style="width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; margin-bottom: 15px; cursor: pointer;">
+                <option value="Take-Out" selected>Take-Out</option>
+                <option value="Pick-Up">Pick-Up</option>
+                <option value="Delivery">Delivery</option>
+            </select>
+
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px;">
+                <label for="notes-textarea" style="font-weight: bold; color: #5a3e2b; margin: 0; user-select: none;">Notes</label>
+                <button id="toggle-notes-btn" type="button"
+                        style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="#5a3e2b" width="18" height="18" viewBox="0 0 24 24">
+                        <path d="M7 10l5 5 5-5H7z"/>
+                    </svg>
+                </button>
             </div>
-          <% }) %>
+            <textarea id="notes-textarea" maxlength="250" rows="3" placeholder="Add notes (max 250 characters)"
+                      style="width: 92%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; resize: vertical; margin-top: -10px; margin-bottom: 15px; display: none;"></textarea>
+
+            <div id="address-container" style="display: none;">
+                <label for="address" style="font-weight: bold; display: block; margin-bottom: 6px; color: #5a3e2b;">Address</label>
+                <textarea id="address" rows="3" placeholder="Enter delivery address" style="width: 92%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; resize: vertical;"></textarea>
+            </div>
+
         </div>
-      <% }) %>
-    </div>
-  </div>
-  <div class="summary-panel">
-    <div class="summary-title">Summary</div>
 
-    <div class="customer-details-section" style="margin-bottom: 20px;">
-    <label for="customer-name" style="font-weight: bold; display: block; margin-bottom: 6px; color: #5a3e2b;">Customer Name</label>
-    <input type="text" id="customer-name" placeholder="Enter customer name" style="width: 92%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; margin-bottom: 15px;" />
-    
-    <label for="contact-number" style="font-weight: bold; display: block; margin-bottom: 6px; color: #5a3e2b;">Contact Number</label>
-    <input type="text" id="contact-number" placeholder="Enter contact number (optional)" style="width: 92%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; margin-bottom: 15px;" />
-    
-    <label for="delivery-type" style="font-weight: bold; display: block; margin-bottom: 6px; color: #5a3e2b;">Delivery Type</label>
-    <select id="delivery-type" style="width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; margin-bottom: 15px; cursor: pointer;">
-      <option value="Take-Out" selected>Take-Out</option>
-      <option value="Pick-Up">Pick-Up</option>
-      <option value="Delivery">Delivery</option>
-    </select>
+        <div id="order-items"></div>
 
-    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px;">
-    <label for="notes-textarea" style="font-weight: bold; color: #5a3e2b; margin: 0; user-select: none;">Notes</label>
-    <button id="toggle-notes-btn" type="button"
-      style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="#5a3e2b" width="18" height="18" viewBox="0 0 24 24">
-        <path d="M7 10l5 5 5-5H7z"/>
-      </svg>
-    </button>
-  </div>
-  <textarea id="notes-textarea" maxlength="250" rows="3" placeholder="Add notes (max 250 characters)"
-    style="width: 92%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; resize: vertical; margin-top: -10px; margin-bottom: 15px; display: none;"></textarea>
-
-    <div id="address-container" style="display: none;">
-      <label for="address" style="font-weight: bold; display: block; margin-bottom: 6px; color: #5a3e2b;">Address</label>
-      <textarea id="address" rows="3" placeholder="Enter delivery address" style="width: 92%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; resize: vertical;"></textarea>
-    </div>
-    
-  </div>
-
-    <div id="order-items"></div>
-
-    <div class="summary-totals">
-    <div class="total-row">
-      <span>Total Items</span>
-      <span id="total-items" style="text-align: right;">0</span>
-    </div>
-    <div class="total-row">
-    <span>Subtotal</span>
-    <span id="subtotal" style="text-align: right;">₱ 0.00</span>
-    </div>
-    <div id="promo-applied" style="margin-top: 10px; font-weight: bold;"></div>
-    <div id="delivery-fee-message" style="margin-top: 8px; font-weight: bold; color: #a05c2f;"></div>
-    <div class="total-row final" style="margin-top: 12px;">
-      <span>Total</span>
-      <span id="total" style="text-align: right;">₱ 0.00</span>
-    </div>
-  </div>
-
-    <div class="payment-section">
-      <div class="payment-title">Payment Method</div>
-      <div class="payment-options">
-        <div class="payment-option" onclick="selectPayment('cash')">
-          <span>Pay by Cash</span>
-          <div class="payment-check" style="background-color: #ddd;"></div>
+        <div class="summary-totals">
+            <div class="total-row">
+                <span>Total Items</span>
+                <span id="total-items" style="text-align: right;">0</span>
+            </div>
+            <div class="total-row">
+                <span>Subtotal</span>
+                <span id="subtotal" style="text-align: right;">₱ 0.00</span>
+            </div>
+            <div id="promo-applied" style="margin-top: 10px; font-weight: bold;"></div>
+            <div id="delivery-fee-message" style="margin-top: 8px; font-weight: bold; color: #a05c2f;"></div>
+            <div class="total-row final" style="margin-top: 12px;">
+                <span>Total</span>
+                <span id="total" style="text-align: right;">₱ 0.00</span>
+            </div>
         </div>
-        <div class="payment-option" onclick="selectPayment('epayment')">
-          <span>E-Payment</span>
-          <div class="payment-check" style="background-color: #ddd;"></div>
+
+        <div class="payment-section">
+            <div class="payment-title">Payment Method</div>
+            <div class="payment-options">
+                <div class="payment-option" onclick="selectPayment('cash')">
+                    <span>Pay by Cash</span>
+                    <div class="payment-check" style="background-color: #ddd;"></div>
+                </div>
+                <div class="payment-option" onclick="selectPayment('epayment')">
+                    <span>E-Payment</span>
+                    <div class="payment-check" style="background-color: #ddd;"></div>
+                </div>
+            </div>
+            <button id="proceed-order-btn" class="proceed-btn">Proceed Order</button>
         </div>
-      </div>
-      <button id="proceed-order-btn" class="proceed-btn">Proceed Order</button>
     </div>
-  </div>
 </div>
 
 <div id="size-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;z-index:1000;">
-  <div style="background:white;padding:20px;border-radius:12px;min-width:300px;max-width:90vw;">
-    <h3 id="modal-product-name" style="margin-bottom:15px;"></h3>
-    <div id="size-options" style="display:flex;flex-wrap: wrap;gap:10px;"></div>
-    <button onclick="closeSizeModal()" style="margin-top:15px;padding:10px 20px;border:none;border-radius:8px;background:#D4A574;color:#5a3e2b;cursor:pointer;">Cancel</button>
-  </div>
+    <div style="background:white;padding:20px;border-radius:12px;min-width:300px;max-width:90vw;">
+        <h3 id="modal-product-name" style="margin-bottom:15px;"></h3>
+        <div id="size-options" style="display:flex;flex-wrap: wrap;gap:10px;"></div>
+        <div id="addon-options" style="margin-top: 18px;"></div>
+        <button onclick="closeSizeModal()" style="margin-top:15px;padding:10px 20px;border:none;border-radius:8px;background:#D4A574;color:#5a3e2b;cursor:pointer;">Cancel</button>
+    </div>
 </div>
 
 <div id="order-confirm-modal" class="hidden">
-  <div class="modal-content">
-    <h2>Confirm your order</h2>
-    <p id="confirm-message" style="margin-bottom: 20px;"></p>
-    <button id="confirm-submit-btn">Confirm</button>
-    <button id="confirm-cancel-btn">Cancel</button>
-  </div>
+    <div class="modal-content">
+        <h2>Confirm your order</h2>
+        <p id="confirm-message" style="margin-bottom: 20px;"></p>
+        <button id="confirm-submit-btn">Confirm</button>
+        <button id="confirm-cancel-btn">Cancel</button>
+    </div>
 </div>
 
 
 <script>
-document.getElementById('toggle-notes-btn').onclick = function() {
-  const ta = document.getElementById('notes-textarea');
-  if (ta.style.display === 'block') {
-    ta.style.display = 'none';
-    ta.value = '';
-  } else {
-    ta.style.display = 'block';
-    ta.focus();
-  }
-};
+    document.getElementById('toggle-notes-btn').onclick = function() {
+        const ta = document.getElementById('notes-textarea');
+        if (ta.style.display === 'block') {
+            ta.style.display = 'none';
+            ta.value = '';
+        } else {
+            ta.style.display = 'block';
+            ta.focus();
+        }
+    };
 
-let orderItems = [];
+    let orderItems = [];
 
-function updateSummary() {
-  let promoQuantity = 0;
-  let promoSets = 0;
-  let pastryTotal = 0;
-  const promoItemsExp = [];
-  orderItems.forEach(item => {
-    if (item.category !== 'Pastries') {
-      for(let i = 0; i < item.quantity; i++) {
-        promoItemsExp.push(item.price);
-      }
-    } else {
-      pastryTotal += item.price * item.quantity;
+    function updateSummary() {
+        let promoQuantity = 0;
+        let promoSets = 0;
+        let pastryTotal = 0;
+        const promoItemsExp = [];
+        orderItems.forEach(item => {
+            if (item.category !== 'Pastries') {
+                for(let i = 0; i < item.quantity; i++) {
+                    promoItemsExp.push(item.price + (item.addons ? item.addons.reduce((sum, ad) => sum + ad.BasePrice, 0) : 0));
+                }
+            } else {
+                pastryTotal += (item.price + (item.addons ? item.addons.reduce((sum, ad) => sum + ad.BasePrice, 0) : 0)) * item.quantity;
+            }
+        });
+        promoQuantity = promoItemsExp.length;
+        promoSets = Math.floor(promoQuantity / 3);
+        const promoTotalPrice = promoSets * 143;
+        const leftoverCount = promoQuantity % 3;
+        let leftoverPrice = 0;
+        if(leftoverCount > 0) {
+            promoItemsExp.sort((a,b) => a - b);
+            for(let i = promoQuantity - leftoverCount; i < promoQuantity; i++) {
+                leftoverPrice += promoItemsExp[i];
+            }
+        }
+        let subtotalPromoApplied = promoTotalPrice + leftoverPrice + pastryTotal;
+        const deliveryType = document.getElementById('delivery-type')?.value;
+        const deliveryFee = 15;
+        const summaryTotals = document.querySelector('.summary-totals');
+
+        const existingDeliveryFeeDiv = document.getElementById('delivery-fee-message');
+        if (existingDeliveryFeeDiv) existingDeliveryFeeDiv.remove();
+
+        if (deliveryType === 'Delivery') {
+            subtotalPromoApplied += deliveryFee;
+            const div = document.createElement('div');
+            div.id = 'delivery-fee-message';
+            div.style.marginTop = '10px';
+            div.style.fontWeight = 'bold';
+            div.style.color = '#a05c2f';
+            div.textContent = `Delivery Fee applied: ₱ ${deliveryFee.toFixed(2)}`;
+            summaryTotals.appendChild(div);
+        }
+
+        const promoDiv = document.getElementById('promo-applied');
+        if (!promoDiv) {
+            if (promoSets > 0) {
+                const div = document.createElement('div');
+                div.id = 'promo-applied';
+                div.style.marginTop = '10px';
+                div.style.display = 'flex';
+                div.style.justifyContent = 'space-between';
+                div.style.fontWeight = '400';
+                div.innerHTML = `<span>for ${promoSets * 3} items - ₱ ${(promoSets * 143).toFixed(2)}</span>`;
+                summaryTotals.appendChild(div);
+            }
+        } else {
+            if (promoSets > 0) {
+                promoDiv.innerHTML = `<span>for ${promoSets * 3} items - ₱ ${(promoSets * 143).toFixed(2)}</span>`;
+                promoDiv.style.fontWeight = '400';
+                promoDiv.style.display = 'flex';
+                promoDiv.style.justifyContent = 'space-between';
+            } else {
+                promoDiv.innerHTML = '';
+            }
+        }
+
+        updateSubtotalFromItems();
+
+        document.getElementById('total').textContent = `₱ ${subtotalPromoApplied.toFixed(2)}`;
     }
-  });
-  promoQuantity = promoItemsExp.length;
-  promoSets = Math.floor(promoQuantity / 3);
-  const promoTotalPrice = promoSets * 143;
-  const leftoverCount = promoQuantity % 3;
-  let leftoverPrice = 0;
-  if(leftoverCount > 0) {
-    promoItemsExp.sort((a,b) => a - b);
-    for(let i = promoQuantity - leftoverCount; i < promoQuantity; i++) {
-      leftoverPrice += promoItemsExp[i];
+
+    function calculateTotals() {
+        const itemPriceElements = document.querySelectorAll('.item-price');
+        const quantityElements = document.querySelectorAll('.quantity');
+
+        let subtotalItems = 0;
+        let totalItems = 0;
+
+        itemPriceElements.forEach(priceEl => {
+            const priceText = priceEl.textContent || priceEl.innerText;
+            const price = parseFloat(priceText.replace(/[^0-9.]/g, ''));
+            if (!isNaN(price)) subtotalItems += price;
+        });
+
+        quantityElements.forEach(qtyEl => {
+            const qtyText = qtyEl.textContent || qtyEl.innerText;
+            const qty = parseInt(qtyText.replace(/\D/g, ''), 10);
+            if (!isNaN(qty)) totalItems += qty;
+        });
+
+        const totalItemsSpan = document.getElementById('total-items');
+
+        if(totalItemsSpan) {
+            totalItemsSpan.textContent = totalItems;
+        }
+
+        return subtotalItems;
     }
-  }
-  let subtotalPromoApplied = promoTotalPrice + leftoverPrice + pastryTotal;
-  const deliveryType = document.getElementById('delivery-type')?.value;
-  const deliveryFee = 15;
-  const summaryTotals = document.querySelector('.summary-totals');
 
-  const existingDeliveryFeeDiv = document.getElementById('delivery-fee-message');
-  if (existingDeliveryFeeDiv) existingDeliveryFeeDiv.remove();
-
-  if (deliveryType === 'Delivery') {
-    subtotalPromoApplied += deliveryFee;
-    const div = document.createElement('div');
-    div.id = 'delivery-fee-message';
-    div.style.marginTop = '10px';
-    div.style.fontWeight = 'bold';
-    div.style.color = '#a05c2f';
-    div.textContent = `Delivery Fee applied: ₱ ${deliveryFee.toFixed(2)}`;
-    summaryTotals.appendChild(div);
-  }
-
-  const promoDiv = document.getElementById('promo-applied');
-  if (!promoDiv) {
-    if (promoSets > 0) {
-      const div = document.createElement('div');
-      div.id = 'promo-applied';
-      div.style.marginTop = '10px';
-      div.style.display = 'flex';
-      div.style.justifyContent = 'space-between';
-      div.style.fontWeight = '400';
-      div.innerHTML = `<span>for ${promoSets * 3} items - ₱ ${(promoSets * 143).toFixed(2)}</span>`;
-      summaryTotals.appendChild(div);
+    function updateSubtotalFromItems() {
+        const subtotalSpan = document.getElementById('subtotal');
+        let subtotalItems = 0;
+        orderItems.forEach(item => {
+            subtotalItems += (item.price + (item.addons ? item.addons.reduce((sum, ad) => sum + ad.BasePrice, 0) : 0)) * item.quantity;
+        });
+        if (subtotalSpan) {
+            subtotalSpan.textContent = `₱ ${subtotalItems.toFixed(2)}`;
+        }
     }
-  } else {
-    if (promoSets > 0) {
-      promoDiv.innerHTML = `<span>for ${promoSets * 3} items - ₱ ${(promoSets * 143).toFixed(2)}</span>`;
-      promoDiv.style.fontWeight = '400';
-      promoDiv.style.display = 'flex';
-      promoDiv.style.justifyContent = 'space-between';
-    } else {
-      promoDiv.innerHTML = '';
+
+    function addToOrder(name, price, size = null, category = null, productId = null, addons = []) {
+        const key = size ? `${name} - ${size} - ${JSON.stringify(addons.map(a => a.AddOnID).sort())}` : `${name} - ${JSON.stringify(addons.map(a => a.AddOnID).sort())}`;
+        let existingItem = orderItems.find(item => item.key === key);
+
+        if (existingItem) {
+            existingItem.quantity++;
+        } else {
+            orderItems.push({
+                name,
+                size,
+                price,
+                quantity: 1,
+                key,
+                category,
+                productId,
+                addons
+            });
+        }
+        renderOrderItems();
+        updateSummary();
     }
-  }
 
-  updateSubtotalFromItems();
+    function addItem(index) {
+        orderItems[index].quantity++;
+        renderOrderItems();
+        updateSummary();
+    }
 
-  document.getElementById('total').textContent = `₱ ${subtotalPromoApplied.toFixed(2)}`;
-}
+    function removeItem(index) {
+        if (orderItems[index].quantity > 1) {
+            orderItems[index].quantity--;
+        } else {
+            orderItems.splice(index, 1);
+        }
+        renderOrderItems();
+        updateSummary();
+    }
 
-function calculateTotals() {
-  const itemPriceElements = document.querySelectorAll('.item-price');
-  const quantityElements = document.querySelectorAll('.quantity');
-
-  let subtotalItems = 0;
-  let totalItems = 0;
-
-  itemPriceElements.forEach(priceEl => {
-    const priceText = priceEl.textContent || priceEl.innerText;
-    const price = parseFloat(priceText.replace(/[^0-9.]/g, ''));
-    if (!isNaN(price)) subtotalItems += price;
-  });
-
-  quantityElements.forEach(qtyEl => {
-    const qtyText = qtyEl.textContent || qtyEl.innerText;
-    const qty = parseInt(qtyText.replace(/\D/g, ''), 10);
-    if (!isNaN(qty)) totalItems += qty;
-  });
-
-  const totalItemsSpan = document.getElementById('total-items');
-
-  if(totalItemsSpan) {
-    totalItemsSpan.textContent = totalItems;
-  }
-
-  return subtotalItems;
-}
-
-function updateSubtotalFromItems() {
-  const subtotalSpan = document.getElementById('subtotal');
-  const subtotalItems = calculateTotals();
-  if (subtotalSpan) {
-    subtotalSpan.textContent = `₱ ${subtotalItems.toFixed(2)}`;
-  }
-}
-
-function addToOrder(name, price, size = null, category = null, productId = null) {
-  const key = size ? `${name} - ${size}` : name;
-  let existingItem = orderItems.find(item => item.key === key);
-
-  if (existingItem) {
-    existingItem.quantity++;
-  } else {
-    orderItems.push({
-      name,
-      size,
-      price,
-      quantity: 1,
-      key,
-      category,
-      productId
-    });
-  }
-  renderOrderItems();
-  updateSummary();
-}
-
-function addItem(index) {
-  orderItems[index].quantity++;
-  renderOrderItems();
-  updateSummary();
-}
-
-function removeItem(index) {
-  if (orderItems[index].quantity > 1) {
-    orderItems[index].quantity--;
-  } else {
-    orderItems.splice(index, 1);
-  }
-  renderOrderItems();
-  updateSummary();
-}
-
-function renderOrderItems() {
-  const container = document.getElementById('order-items');
-  container.innerHTML = '';
-  orderItems.forEach((item, index) => {
-    const sizeLabel = item.size ? `<div class="order-size">${item.size}</div>` : '';
-    const totalPrice = (item.price * item.quantity).toFixed(2);
-    const itemHTML = `
+    function renderOrderItems() {
+        const container = document.getElementById('order-items');
+        container.innerHTML = '';
+        orderItems.forEach((item, index) => {
+            const sizeLabel = item.size ? `<div class="order-size">${item.size}</div>` : '';
+            const addonLabel = item.addons && item.addons.length > 0
+                ? `<div class="order-addons" style="font-size:12px;color:#a87636;margin-bottom:2px;">+ ${item.addons.map(a => a.Name).join(', ')}</div>` : '';
+            const baseAddonPrice = item.addons ? item.addons.reduce((sum, ad) => sum + ad.BasePrice, 0) : 0;
+            const totalPrice = ((item.price + baseAddonPrice) * item.quantity).toFixed(2);
+            const itemHTML = `
       <div class="order-item" style="border-bottom:1px solid #eee; padding-bottom:15px; margin-bottom:15px;">
         <button class="quantity-btn remove-btn" onclick="removeItem(${index})">-</button>
         <div class="quantity">${item.quantity}x</div>
@@ -304,292 +312,421 @@ function renderOrderItems() {
         <div class="item-details">
           <div class="item-name">${item.name}</div>
           ${sizeLabel}
+          ${addonLabel}
           <div class="item-price">₱ ${totalPrice}</div>
         </div>
       </div>
     `;
-    container.innerHTML += itemHTML;
-  });
-  updateSubtotalFromItems();
-  calculateTotals();
-}
+            container.innerHTML += itemHTML;
+        });
+        updateSubtotalFromItems();
+        calculateTotals();
+    }
 
-function selectPayment(method) {
-  const options = document.querySelectorAll('.payment-option');
-  let targetIndex = method === 'cash' ? 0 : 1;
-  const clickedOption = options[targetIndex];
-  const isSelected = clickedOption.classList.contains('selected');
+    function selectPayment(method) {
+        const options = document.querySelectorAll('.payment-option');
+        let targetIndex = method === 'cash' ? 0 : 1;
+        const clickedOption = options[targetIndex];
+        const isSelected = clickedOption.classList.contains('selected');
 
-  if (isSelected) {
-    clickedOption.classList.remove('selected');
-    const check = clickedOption.querySelector('.payment-check');
-    check.style.backgroundColor = '#ddd';
-    check.textContent = '';
-  } else {
-    options.forEach((option, index) => {
-      const check = option.querySelector('.payment-check');
-      if (index === targetIndex) {
-        option.classList.add('selected');
-        check.style.backgroundColor = '#4CAF50';
-        check.textContent = '✓';
-      } else {
-        option.classList.remove('selected');
-        check.style.backgroundColor = '#ddd';
-        check.textContent = '';
-      }
+        if (isSelected) {
+            clickedOption.classList.remove('selected');
+            const check = clickedOption.querySelector('.payment-check');
+            check.style.backgroundColor = '#ddd';
+            check.textContent = '';
+        } else {
+            options.forEach((option, index) => {
+                const check = option.querySelector('.payment-check');
+                if (index === targetIndex) {
+                    option.classList.add('selected');
+                    check.style.backgroundColor = '#4CAF50';
+                    check.textContent = '✓';
+                } else {
+                    option.classList.remove('selected');
+                    check.style.backgroundColor = '#ddd';
+                    check.textContent = '';
+                }
+            });
+        }
+    }
+
+    function handleProductClick(item) {
+        if (item.Sizes && item.Sizes.length > 1) {
+            showSizeModal(item);
+        } else {
+            let size = null;
+            let price = item.BasePrice;
+            if (item.Sizes && item.Sizes.length === 1) {
+                size = item.Sizes[0].Size;
+                price = item.Sizes[0].BasePrice;
+            }
+            showAddonModal(item, size, price);
+        }
+    }
+
+    function showSizeModal(item) {
+        const modal = document.getElementById('size-modal');
+        const productNameElem = document.getElementById('modal-product-name');
+        const optionsContainer = document.getElementById('size-options');
+        productNameElem.textContent = item.Name;
+        optionsContainer.innerHTML = '';
+        document.getElementById('addon-options').innerHTML = '';
+        item.Sizes.forEach(sizeObj => {
+            const btn = document.createElement('button');
+            btn.textContent = `${sizeObj.Size} - ₱${Number(sizeObj.BasePrice).toFixed(2)}`;
+            btn.style.padding = '10px 15px';
+            btn.style.border = '1px solid #D4A574';
+            btn.style.color = '#5a3e2b';
+            btn.style.borderRadius = '8px';
+            btn.style.background = '#fff6f0';
+            btn.style.cursor = 'pointer';
+            btn.onclick = () => {
+                showAddonModal(item, sizeObj.Size, sizeObj.BasePrice);
+            };
+            optionsContainer.appendChild(btn);
+        });
+        modal.style.display = 'flex';
+    }
+
+    function showAddonModal(item, size, price) {
+        const modal = document.getElementById('size-modal');
+        const addonOptionsDiv = document.getElementById('addon-options');
+
+        // Hide add-ons for Pastries and Bites
+        const lowerCategory = (item.Category || item.category || '').toLowerCase();
+        if (lowerCategory === 'pastries' || lowerCategory === 'bites') {
+            addonOptionsDiv.innerHTML = '';
+            setupConfirmButton(item, size, price);
+            modal.style.display = 'flex';
+            return;
+        }
+
+        addonOptionsDiv.innerHTML = `
+        <span style="color:#8B4513;font-weight:bold;font-size:16px;margin-bottom:8px;display:block">
+            Add-ons (Optional)
+        </span>
+        <div id="addon-checkboxes" style="display:flex;flex-wrap:wrap;gap:10px;">
+            <span style="font-size:12px;color:#999">Loading add-ons...</span>
+        </div>
+    `;
+
+        fetch('/api/addons')
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+                return res.json();
+            })
+            .then(addons => {
+                const container = document.getElementById('addon-checkboxes');
+                if (!container) return;
+                container.innerHTML = '';
+                if (!Array.isArray(addons) || addons.length === 0) {
+                    container.innerHTML = '<span style="font-size:12px;color:#999">No available add-ons.</span>';
+                } else {
+                    addons.forEach((addon) => {
+                        if (!(addon.IsEnabled || addon.isEnabled)) return;
+                        const label = document.createElement('label');
+                        label.style.cssText = `
+                        display: flex;
+                        align-items: center;
+                        gap: 6px;
+                        background: #f6eee7;
+                        border-radius: 6px;
+                        padding: 8px 12px;
+                        cursor: pointer;
+                        margin-bottom: 5px;
+                        border: 1px solid #e0d0c0;
+                        transition: background-color 0.2s;
+                        min-width: 120px;
+                    `;
+                        label.onmouseover = () => label.style.backgroundColor = '#f0e6d7';
+                        label.onmouseout = () => label.style.backgroundColor = '#f6eee7';
+
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.value = addon.AddOnID;
+                        checkbox.dataset.name = addon.Name;
+                        checkbox.dataset.price = addon.BasePrice;
+                        checkbox.style.marginRight = '4px';
+
+                        const nameSpan = document.createElement('span');
+                        nameSpan.textContent = `${addon.Name} (+₱${parseFloat(addon.BasePrice).toFixed(2)})`;
+                        nameSpan.style.fontSize = '13px';
+                        nameSpan.style.fontWeight = '500';
+
+                        label.appendChild(checkbox);
+                        label.appendChild(nameSpan);
+                        container.appendChild(label);
+                    });
+
+                    if (container.childElementCount === 0) {
+                        container.innerHTML = '<span style="font-size:12px;color:#999">No enabled add-ons found.</span>';
+                    }
+                }
+                setupConfirmButton(item, size, price);
+                modal.style.display = 'flex';
+            })
+            .catch(error => {
+                const container = document.getElementById('addon-checkboxes');
+                if (container) {
+                    container.innerHTML = `<span style="font-size:12px;color:#ff6b6b">Error loading add-ons: ${error.message}</span>`;
+                }
+                setupConfirmButton(item, size, price);
+                modal.style.display = 'flex';
+            });
+    }
+
+    function setupConfirmButton(item, size, price) {
+        const optionsContainer = document.getElementById('size-options');
+        optionsContainer.innerHTML = '';
+
+        const confirmBtn = document.createElement('button');
+        confirmBtn.textContent = 'Add to Order';
+        confirmBtn.style.cssText = `
+        margin-top: 15px;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        background: #D4A574;
+        color: #5a3e2b;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 14px;
+        transition: background-color 0.2s;
+        width: 100%;
+    `;
+
+        confirmBtn.onmouseover = () => confirmBtn.style.backgroundColor = '#B8956A';
+        confirmBtn.onmouseout = () => confirmBtn.style.backgroundColor = '#D4A574';
+
+        confirmBtn.onclick = () => {
+            const checked = Array.from(document.querySelectorAll('#addon-checkboxes input[type="checkbox"]:checked'));
+            const selectedAddons = checked.map(c => ({
+                AddOnID: c.value,
+                Name: c.dataset.name,
+                BasePrice: parseFloat(c.dataset.price)
+            }));
+
+            console.log('Selected add-ons:', selectedAddons);
+            addToOrder(item.Name, price, size, item.Category, item.ProductID, selectedAddons);
+            closeSizeModal();
+        };
+
+        optionsContainer.appendChild(confirmBtn);
+    }
+
+    function closeSizeModal() {
+        const modal = document.getElementById('size-modal');
+        modal.style.display = 'none';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const deliveryTypeSelect = document.getElementById('delivery-type');
+        if(deliveryTypeSelect) {
+            deliveryTypeSelect.addEventListener('change', () => {
+                const addressContainer = document.getElementById('address-container');
+                if(deliveryTypeSelect.value === 'Delivery') {
+                    addressContainer.style.display = 'block';
+                } else {
+                    addressContainer.style.display = 'none';
+                }
+                updateSummary();
+            });
+            if(deliveryTypeSelect.value === 'Delivery') {
+                document.getElementById('address-container').style.display = 'block';
+            }
+
+            const options = document.querySelectorAll('.payment-option');
+            options.forEach(option => {
+                if (!option.classList.contains('selected')) {
+                    const check = option.querySelector('.payment-check');
+                    check.style.backgroundColor = '#ddd';
+                    check.textContent = '';
+                }
+            });
+        }
     });
-  }
-}
 
-function handleProductClick(item) {
-  if (item.Sizes && item.Sizes.length > 1) {
-    showSizeModal(item);
-  } else {
-    let size = null;
-    let price = item.BasePrice;
-    if (item.Sizes && item.Sizes.length === 1) {
-      size = item.Sizes[0].Size;
-      price = item.Sizes[0].BasePrice;
-    }
-    addToOrder(item.Name, price, size, item.Category, item.ProductID);
-  }
-}
-
-function showSizeModal(item) {
-  const modal = document.getElementById('size-modal');
-  const productNameElem = document.getElementById('modal-product-name');
-  const optionsContainer = document.getElementById('size-options');
-  productNameElem.textContent = item.Name;
-  optionsContainer.innerHTML = '';
-  item.Sizes.forEach(sizeObj => {
-    const btn = document.createElement('button');
-    btn.textContent = `${sizeObj.Size} - ₱${Number(sizeObj.BasePrice).toFixed(2)}`;
-    btn.style.padding = '10px 15px';
-    btn.style.border = '1px solid #D4A574';
-    btn.style.color = '#5a3e2b';
-    btn.style.borderRadius = '8px';
-    btn.style.background = '#fff6f0';
-    btn.style.cursor = 'pointer';
-    btn.onclick = () => {
-      addToOrder(item.Name, sizeObj.BasePrice, sizeObj.Size, item.Category, item.ProductID);
-      closeSizeModal();
-    };
-    optionsContainer.appendChild(btn);
-  });
-  modal.style.display = 'flex';
-}
-
-function closeSizeModal() {
-  const modal = document.getElementById('size-modal');
-  modal.style.display = 'none';
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  const deliveryTypeSelect = document.getElementById('delivery-type');
-  if(deliveryTypeSelect) {
-    deliveryTypeSelect.addEventListener('change', () => {
-      const addressContainer = document.getElementById('address-container');
-      if(deliveryTypeSelect.value === 'Delivery') {
-        addressContainer.style.display = 'block';
-      } else {
-        addressContainer.style.display = 'none';
-      }
-      updateSummary();
+    document.getElementById('delivery-type').addEventListener('change', () => {
+        const deliveryType = document.getElementById('delivery-type').value;
+        const addressContainer = document.getElementById('address-container');
+        if (deliveryType === 'Delivery') {
+            addressContainer.style.display = 'block';
+        } else {
+            addressContainer.style.display = 'none';
+        }
+        updateSummary();
     });
-    if(deliveryTypeSelect.value === 'Delivery') {
-      document.getElementById('address-container').style.display = 'block';
-    }
 
-    const options = document.querySelectorAll('.payment-option');
-    options.forEach(option => {
-      if (!option.classList.contains('selected')) {
-        const check = option.querySelector('.payment-check');
-        check.style.backgroundColor = '#ddd';
-        check.textContent = '';
-      }
+    document.getElementById('proceed-order-btn').addEventListener('click', function() {
+        if (orderItems.length === 0) {
+            alert('Please add at least one item to your order.');
+            return;
+        }
+
+        const customerName = document.getElementById('customer-name').value.trim();
+        if (!customerName) {
+            alert('Please enter the customer name.');
+            return;
+        }
+
+        const contactNumber = document.getElementById('contact-number').value.trim();
+
+        const deliveryType = document.getElementById('delivery-type').value;
+        if (!deliveryType) {
+            alert('Please select a delivery type.');
+            return;
+        }
+        if (deliveryType === 'Delivery') {
+            const address = document.getElementById('address').value.trim();
+            if (!address) {
+                alert('Please enter the delivery address.');
+                return;
+            }
+        }
+
+        const selectedPaymentOption = document.querySelector('.payment-option.selected');
+        if (!selectedPaymentOption) {
+            alert('Please select a payment method.');
+            return;
+        }
+        const paymentModeText = selectedPaymentOption.querySelector('span').textContent.trim();
+
+        const totalText = document.querySelector('.total-row.final span:last-child').textContent;
+        const totalNumber = totalText.replace(/[^0-9.]/g, '');
+
+        let totalItemsCount = orderItems.reduce((sum, item) => sum + item.quantity, 0);
+
+        const notes = document.getElementById('notes-textarea').value.trim();
+
+        let confirmMsg = `Customer: ${customerName}\n`;
+        if (contactNumber) {
+            confirmMsg += `Contact Number: ${contactNumber}\n`;
+        }
+        confirmMsg += `Items: ${totalItemsCount} items\nDelivery Type: ${deliveryType}\n`;
+        if (deliveryType === 'Delivery') {
+            confirmMsg += `Address: ${document.getElementById('address').value.trim()}\n`;
+        }
+        if (notes) {
+            confirmMsg += `Notes: ${notes}\n`;
+        }
+        confirmMsg += `Payment Method: ${paymentModeText}\nTotal: ₱${totalNumber}`;
+
+        const modal = document.getElementById('order-confirm-modal');
+        const messageElem = document.getElementById('confirm-message');
+        messageElem.textContent = confirmMsg;
+        modal.classList.remove('hidden');
+
+        const confirmBtn = document.getElementById('confirm-submit-btn');
+        const cancelBtn = document.getElementById('confirm-cancel-btn');
+
+        confirmBtn.onclick = function() {
+            submitOrder(customerName, contactNumber, deliveryType, paymentModeText, totalNumber, totalItemsCount, notes);
+            modal.classList.add('hidden');
+        };
+        cancelBtn.onclick = function() {
+            modal.classList.add('hidden');
+        };
     });
-  }
-});
 
-document.getElementById('delivery-type').addEventListener('change', () => {
-  const deliveryType = document.getElementById('delivery-type').value;
-  const addressContainer = document.getElementById('address-container');
-  if (deliveryType === 'Delivery') {
-    addressContainer.style.display = 'block';
-  } else {
-    addressContainer.style.display = 'none';
-  }
-  updateSummary();
-});
-
-document.getElementById('proceed-order-btn').addEventListener('click', function() {
-  if (orderItems.length === 0) {
-    alert('Please add at least one item to your order.');
-    return;
-  }
-
-  const customerName = document.getElementById('customer-name').value.trim();
-  if (!customerName) {
-    alert('Please enter the customer name.');
-    return;
-  }
-
-  const contactNumber = document.getElementById('contact-number').value.trim();
-
-  const deliveryType = document.getElementById('delivery-type').value;
-  if (!deliveryType) {
-    alert('Please select a delivery type.');
-    return;
-  }
-  if (deliveryType === 'Delivery') {
-    const address = document.getElementById('address').value.trim();
-    if (!address) {
-      alert('Please enter the delivery address.');
-      return;
+    function generateOrderID() {
+        let lastOrderNumber = parseInt(localStorage.getItem('lastOrderNumber') || '999', 10);
+        lastOrderNumber++;
+        localStorage.setItem('lastOrderNumber', lastOrderNumber);
+        return lastOrderNumber;
     }
-  }
 
-  const selectedPaymentOption = document.querySelector('.payment-option.selected');
-  if (!selectedPaymentOption) {
-    alert('Please select a payment method.');
-    return;
-  }
-  const paymentModeText = selectedPaymentOption.querySelector('span').textContent.trim();
+    function submitOrder(customer, contactNumber, deliveryType, paymentMode, total, itemTotal, notes) {
+        const cart = orderItems.map(item => ({
+            ProductID: item.productId || item.key,
+            ProductName: item.name,
+            Quantity: item.quantity,
+            Size: item.size || null,
+            BasePrice: item.price,
+            AddOns: item.addons && item.addons.length > 0
+                ? item.addons.map(a => ({ AddOnID: a.AddOnID, Name: a.Name, BasePrice: a.BasePrice }))
+                : []
+        }));
 
-  const totalText = document.querySelector('.total-row.final span:last-child').textContent;
-  const totalNumber = totalText.replace(/[^0-9.]/g, '');
+        function formatDate(dateObj) {
+            const pad = (n) => (n < 10 ? '0' + n : n);
+            return dateObj.getFullYear() + '-' +
+                pad(dateObj.getMonth() + 1) + '-' +
+                pad(dateObj.getDate()) + ' ' +
+                pad(dateObj.getHours()) + ':' +
+                pad(dateObj.getMinutes()) + ':' +
+                pad(dateObj.getSeconds());
+        }
 
-  let totalItemsCount = orderItems.reduce((sum, item) => sum + item.quantity, 0);
+        const orderData = {
+            OrderID: generateOrderID(),
+            Date: formatDate(new Date()),
+            Cart: cart,
+            Customer: customer,
+            ContactNumber: contactNumber || '',
+            PaymentStatus: "Payment pending",
+            PaymentMode: paymentMode,
+            Total: parseFloat(total),
+            ItemTotal: itemTotal,
+            DeliveryStatus: deliveryType,
+            Address: (deliveryType === 'Delivery') ? document.getElementById('address').value.trim() : '',
+            Notes: notes || '',
+            FulfillmentStatus: "Preparing"
+        };
 
-  const notes = document.getElementById('notes-textarea').value.trim();
-
-  let confirmMsg = `Customer: ${customerName}\n`;
-  if (contactNumber) {
-    confirmMsg += `Contact Number: ${contactNumber}\n`;
-  }
-  confirmMsg += `Items: ${totalItemsCount} items\nDelivery Type: ${deliveryType}\n`;
-  if (deliveryType === 'Delivery') {
-    confirmMsg += `Address: ${document.getElementById('address').value.trim()}\n`;
-  }
-  if (notes) {
-    confirmMsg += `Notes: ${notes}\n`;
-  }
-  confirmMsg += `Payment Method: ${paymentModeText}\nTotal: ₱${totalNumber}`;
-
-  const modal = document.getElementById('order-confirm-modal');
-  const messageElem = document.getElementById('confirm-message');
-  messageElem.textContent = confirmMsg;
-  modal.classList.remove('hidden');
-
-  const confirmBtn = document.getElementById('confirm-submit-btn');
-  const cancelBtn = document.getElementById('confirm-cancel-btn');
-
-  confirmBtn.onclick = function() {
-    submitOrder(customerName, contactNumber, deliveryType, paymentModeText, totalNumber, totalItemsCount, notes);
-    modal.classList.add('hidden');
-  };
-  cancelBtn.onclick = function() {
-    modal.classList.add('hidden');
-  };
-});
-
-function generateOrderID() {
-  let lastOrderNumber = parseInt(localStorage.getItem('lastOrderNumber') || '999', 10);
-  lastOrderNumber++;
-  localStorage.setItem('lastOrderNumber', lastOrderNumber);
-  return lastOrderNumber;
-}
-
-function submitOrder(customer, contactNumber, deliveryType, paymentMode, total, itemTotal, notes) {
-  const cart = orderItems.map(item => ({
-    ProductID: item.productId || item.key,
-    ProductName: item.name,
-    Quantity: item.quantity,
-    Size: item.size || null,
-    BasePrice: item.price
-  }));
-
-  function formatDate(dateObj) {
-    const pad = (n) => (n < 10 ? '0' + n : n);
-    return dateObj.getFullYear() + '-' +
-      pad(dateObj.getMonth() + 1) + '-' +
-      pad(dateObj.getDate()) + ' ' +
-      pad(dateObj.getHours()) + ':' +
-      pad(dateObj.getMinutes()) + ':' +
-      pad(dateObj.getSeconds());
-  }
-
-  const orderData = {
-    OrderID: generateOrderID(),
-    Date: formatDate(new Date()),
-    Cart: cart,
-    Customer: customer,
-    ContactNumber: contactNumber || '',
-    PaymentStatus: "Payment pending",
-    PaymentMode: paymentMode,
-    Total: parseFloat(total),
-    ItemTotal: itemTotal,
-    DeliveryStatus: deliveryType,
-    Address: (deliveryType === 'Delivery') ? document.getElementById('address').value.trim() : '',
-    Notes: notes || '',
-    FulfillmentStatus: "Preparing"
-  };
-
-  fetch('/api/orders', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(orderData)
-  })
-  .then(res => {
-    if (!res.ok) {
-      throw new Error(`Network response was not ok: ${res.status} ${res.statusText}`);
+        fetch('/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderData)
+        })
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`Network response was not ok: ${res.status} ${res.statusText}`);
+                }
+                const contentType = res.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new TypeError('Oops, we haven\'t got JSON!');
+                }
+                return res.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    alert('Order submitted successfully! Your Order ID is: ' + orderData.OrderID);
+                    orderItems = [];
+                    renderOrderItems();
+                    document.getElementById('customer-name').value = '';
+                    document.getElementById('contact-number').value = '';
+                    const deliveryTypeSelect = document.getElementById('delivery-type');
+                    deliveryTypeSelect.value = 'Take-Out';
+                    const addressContainer = document.getElementById('address-container');
+                    const addressInput = document.getElementById('address');
+                    addressContainer.style.display = 'none';
+                    addressInput.value = '';
+                    document.getElementById('notes-textarea').value = '';
+                    updateSummary();
+                    const deliveryFeeDiv = document.getElementById('delivery-fee-message');
+                    if (deliveryFeeDiv) deliveryFeeDiv.remove();
+                    document.querySelectorAll('.payment-option.selected').forEach(el => {
+                        el.classList.remove('selected');
+                        const check = el.querySelector('.payment-check');
+                        check.style.backgroundColor = '#ddd';
+                        check.textContent = '';
+                    });
+                } else {
+                    alert('Failed to submit order. Please try again.');
+                    console.error(data.error || 'Unknown error from server.');
+                }
+            })
+            .catch(err => {
+                alert('Error submitting order.');
+                console.error('Fetch error:', err);
+            });
     }
-    const contentType = res.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-      throw new TypeError('Oops, we haven\'t got JSON!');
-    }
-    return res.json();
-  })
-  .then(data => {
-    if (data.success) {
-      alert('Order submitted successfully! Your Order ID is: ' + orderData.OrderID);
-      orderItems = [];
-      renderOrderItems();
-      document.getElementById('customer-name').value = '';
-      document.getElementById('contact-number').value = '';
-      const deliveryTypeSelect = document.getElementById('delivery-type');
-      deliveryTypeSelect.value = 'Take-Out';
-      const addressContainer = document.getElementById('address-container');
-      const addressInput = document.getElementById('address');
-      addressContainer.style.display = 'none';
-      addressInput.value = '';
-      document.getElementById('notes-textarea').value = '';
-      updateSummary();
-      const deliveryFeeDiv = document.getElementById('delivery-fee-message');
-      if (deliveryFeeDiv) deliveryFeeDiv.remove();
-      document.querySelectorAll('.payment-option.selected').forEach(el => {
-        el.classList.remove('selected');
-        const check = el.querySelector('.payment-check');
-        check.style.backgroundColor = '#ddd';
-        check.textContent = '';
-      });
-    } else {
-      alert('Failed to submit order. Please try again.');
-      console.error(data.error || 'Unknown error from server.');
-    }
-  })
-  .catch(err => {
-    alert('Error submitting order.');
-    console.error('Fetch error:', err);
-  });
-}
 
-document.addEventListener('DOMContentLoaded', () => {
-  updateSummary();
-});
+    document.addEventListener('DOMContentLoaded', () => {
+        updateSummary();
+    });
 
 </script>
-
 
 <style>
 html, body {
