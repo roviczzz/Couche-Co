@@ -1,7 +1,6 @@
 <style>
 
 </style>
-
 <%
 const grouped = {};
 menuItems.forEach(item => {
@@ -100,7 +99,7 @@ menuItems.forEach(item => {
             <div class="payment-title">Payment Method</div>
             <div class="payment-options">
                 <div class="payment-option" onclick="selectPayment('cash')">
-                    <span>Pay by Cash</span>
+                    <span>Cash on Hand</span>
                     <div class="payment-check" style="background-color: #ddd;"></div>
                 </div>
                 <div class="payment-option" onclick="selectPayment('epayment')">
@@ -114,11 +113,13 @@ menuItems.forEach(item => {
 </div>
 
 <div id="size-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;z-index:1000;">
-    <div style="background:white;padding:20px;border-radius:12px;min-width:300px;max-width:90vw;">
-        <h3 id="modal-product-name" style="margin-bottom:15px;"></h3>
-        <div id="size-options" style="display:flex;flex-wrap: wrap;gap:10px;"></div>
-        <div id="addon-options" style="margin-top: 18px;"></div>
-        <button onclick="closeSizeModal()" style="margin-top:15px;padding:10px 20px;border:none;border-radius:8px;background:#D4A574;color:#5a3e2b;cursor:pointer;">Cancel</button>
+    <div style="background:#fff;padding:24px 20px;border-radius:12px;min-width:260px;max-width:94vw;box-shadow:0 2px 16px rgba(0,0,0,0.10);display:flex;flex-direction:column;gap:18px;align-items:stretch;">
+        <div style="font-size:1.13rem;font-weight:600;text-align:center;" id="modal-product-name"></div>
+        <div id="size-options" style="display:flex;flex-direction:column;gap:8px;margin-bottom:0;"></div>
+        <div id="addon-options"></div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <button onclick="closeSizeModal()" style="padding:8px 18px;border:none;border-radius:7px;background:#eee;color:#5a3e2b;font-size:15px;cursor:pointer;">Cancel</button>
+        </div>
     </div>
 </div>
 
@@ -352,7 +353,7 @@ menuItems.forEach(item => {
 
     function handleProductClick(item) {
         if (item.Sizes && item.Sizes.length > 1) {
-            showSizeModal(item);
+            showSizeAndAddonModal(item);
         } else {
             let size = null;
             let price = item.BasePrice;
@@ -364,28 +365,135 @@ menuItems.forEach(item => {
         }
     }
 
-    function showSizeModal(item) {
+    function showSizeAndAddonModal(item) {
         const modal = document.getElementById('size-modal');
         const productNameElem = document.getElementById('modal-product-name');
         const optionsContainer = document.getElementById('size-options');
         productNameElem.textContent = item.Name;
         optionsContainer.innerHTML = '';
         document.getElementById('addon-options').innerHTML = '';
-        item.Sizes.forEach(sizeObj => {
-            const btn = document.createElement('button');
-            btn.textContent = `${sizeObj.Size} - ₱${Number(sizeObj.BasePrice).toFixed(2)}`;
-            btn.style.padding = '10px 15px';
-            btn.style.border = '1px solid #D4A574';
-            btn.style.color = '#5a3e2b';
-            btn.style.borderRadius = '8px';
-            btn.style.background = '#fff6f0';
-            btn.style.cursor = 'pointer';
-            btn.onclick = () => {
-                showAddonModal(item, sizeObj.Size, sizeObj.BasePrice);
-            };
-            optionsContainer.appendChild(btn);
+
+        // Render size radio buttons
+        item.Sizes.forEach((sizeObj, idx) => {
+            const label = document.createElement('label');
+            label.style.marginRight = "15px";
+            const radio = document.createElement('input');
+            radio.type = "radio";
+            radio.name = "size-choice";
+            radio.value = sizeObj.Size;
+            radio.dataset.price = sizeObj.BasePrice;
+            if (idx === 0) radio.checked = true;
+            label.appendChild(radio);
+            label.appendChild(document.createTextNode(` ${sizeObj.Size} - ₱${Number(sizeObj.BasePrice).toFixed(2)}`));
+            optionsContainer.appendChild(label);
         });
-        modal.style.display = 'flex';
+
+        // If Pastries/Bites, no add-ons
+        const lowerCategory = (item.Category || item.category || '').toLowerCase();
+        if (lowerCategory === 'pastries' || lowerCategory === 'bites') {
+            document.getElementById('addon-options').innerHTML = '';
+            setupConfirmBtnForSizeAndAddon(item);
+            modal.style.display = 'flex';
+            return;
+        }
+
+        // Fetch add-ons and render below sizes
+        fetch('/api/addons')
+            .then(res => res.json())
+            .then(addons => {
+                const addonDiv = document.getElementById('addon-options');
+                addonDiv.innerHTML = `
+                    <span style="color:#8B4513;font-weight:bold;font-size:16px;margin-bottom:8px;display:block">
+                        Add-ons (Optional)
+                    </span>
+                    <div id="addon-checkboxes" style="display:flex;flex-wrap:wrap;gap:10px;"></div>
+                `;
+                const container = addonDiv.querySelector('#addon-checkboxes');
+                if (!Array.isArray(addons) || addons.length === 0) {
+                    container.innerHTML = '<span style="font-size:12px;color:#999">No available add-ons.</span>';
+                } else {
+                    addons.forEach((addon) => {
+                        if (!(addon.IsEnabled || addon.isEnabled)) return;
+                        const label = document.createElement('label');
+                        label.style.cssText = `
+                            display: flex;
+                            align-items: center;
+                            gap: 6px;
+                            background: #f6eee7;
+                            border-radius: 6px;
+                            padding: 8px 12px;
+                            cursor: pointer;
+                            margin-bottom: 5px;
+                            border: 1px solid #e0d0c0;
+                            min-width: 120px;
+                        `;
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.value = addon.AddOnID;
+                        checkbox.dataset.name = addon.Name;
+                        checkbox.dataset.price = addon.BasePrice;
+                        label.appendChild(checkbox);
+                        const nameSpan = document.createElement('span');
+                        nameSpan.textContent = `${addon.Name} (+₱${parseFloat(addon.BasePrice).toFixed(2)})`;
+                        label.appendChild(nameSpan);
+                        container.appendChild(label);
+                    });
+                }
+                setupConfirmBtnForSizeAndAddon(item);
+                modal.style.display = 'flex';
+            })
+            .catch(() => {
+                const addonDiv = document.getElementById('addon-options');
+                addonDiv.innerHTML = `<span style="font-size:12px;color:#ff6b6b">Error loading add-ons.</span>`;
+                setupConfirmBtnForSizeAndAddon(item);
+                modal.style.display = 'flex';
+            });
+    }
+
+    function setupConfirmBtnForSizeAndAddon(item) {
+        const optionsContainer = document.getElementById('size-options');
+        // Remove any existing confirm button
+        const existingBtn = document.getElementById('modal-add-to-order-btn');
+        if (existingBtn) existingBtn.remove();
+
+        const confirmBtn = document.createElement('button');
+        confirmBtn.id = 'modal-add-to-order-btn';
+        confirmBtn.textContent = 'Add to Order';
+        confirmBtn.style.cssText = `
+            margin-top: 18px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            background: #D4A574;
+            color: #5a3e2b;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: background-color 0.2s;
+            width: 100%;
+        `;
+
+        confirmBtn.onclick = () => {
+            const selectedSizeRadio = document.querySelector('input[name="size-choice"]:checked');
+            if (!selectedSizeRadio) {
+                alert('Please select a size');
+                return;
+            }
+            const size = selectedSizeRadio.value;
+            const price = parseFloat(selectedSizeRadio.dataset.price);
+
+            const checked = Array.from(document.querySelectorAll('#addon-checkboxes input[type="checkbox"]:checked'));
+            const selectedAddons = checked.map(c => ({
+                AddOnID: c.value,
+                Name: c.dataset.name,
+                BasePrice: parseFloat(c.dataset.price)
+            }));
+
+            addToOrder(item.Name, price, size, item.Category, item.ProductID, selectedAddons);
+            closeSizeModal();
+        };
+
+        optionsContainer.appendChild(confirmBtn);
     }
 
     function showAddonModal(item, size, price) {
@@ -557,21 +665,48 @@ menuItems.forEach(item => {
         updateSummary();
     });
 
-    document.getElementById('proceed-order-btn').addEventListener('click', function() {
+    async function generateUniqueCustomerName() {
+        let existingNames = [];
+
+        try {
+            const res = await fetch('/api/orders/preparing-customers');
+            if (res.ok) {
+                existingNames = await res.json(); // array of strings
+            }
+        } catch (e) {
+        }
+
+        let name;
+        let tries = 0;
+        do {
+            name = 'Customer#' + Math.floor(10000 + Math.random() * 90000);
+            tries++;
+            if (tries > 100) break;
+        } while (existingNames.includes(name));
+        return name;
+    }
+
+    document.getElementById('proceed-order-btn').addEventListener('click', async function() {
         if (orderItems.length === 0) {
             alert('Please add at least one item to your order.');
             return;
         }
 
-        const customerName = document.getElementById('customer-name').value.trim();
-        if (!customerName) {
+        const deliveryType = document.getElementById('delivery-type').value;
+        let customerName = document.getElementById('customer-name').value.trim();
+
+        if (deliveryType !== 'Take-Out' && !customerName) {
             alert('Please enter the customer name.');
             return;
         }
 
+        if (deliveryType === 'Take-Out' && !customerName) {
+            customerName = await generateUniqueCustomerName();
+            document.getElementById('customer-name').value = customerName;
+        }
+
         const contactNumber = document.getElementById('contact-number').value.trim();
 
-        const deliveryType = document.getElementById('delivery-type').value;
         if (!deliveryType) {
             alert('Please select a delivery type.');
             return;
@@ -670,7 +805,8 @@ menuItems.forEach(item => {
             DeliveryStatus: deliveryType,
             Address: (deliveryType === 'Delivery') ? document.getElementById('address').value.trim() : '',
             Notes: notes || '',
-            FulfillmentStatus: "Preparing"
+            FulfillmentStatus: "Preparing",
+            Source: "POS"
         };
 
         fetch('/api/orders', {

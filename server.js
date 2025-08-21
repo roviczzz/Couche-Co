@@ -163,6 +163,17 @@ app.get('/api/addons', async (req, res) => {
     }
 });
 
+app.get('/api/orders/preparing-customers', async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const docs = await db.collection('Orders').find({ FulfillmentStatus: "Preparing" }).project({ Customer: 1 }).toArray();
+    await client.close();
+    res.json(docs.map(d => d.Customer));
+  } catch (err) {
+    res.status(500).json([]);
+  }
+});
 app.get('/products', isLoggedIn, nocache, async (req, res) => {
   try {
     const client = new MongoClient(uri);
