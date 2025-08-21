@@ -11,77 +11,103 @@
         .sidebar-collapsed .sidebar {
             width: 56px !important;
             min-width: 56px;
-            padding: 20px 8px;
+            padding: 20px 4px;
             transition: width 0.2s;
         }
         .sidebar-collapsed .sidebar ul li a span.label-text,
         .sidebar-collapsed .sidebar-notification-label,
         .sidebar-collapsed .sidebar-toggle-label {
-            opacity: 0;
+            opacity: 0 !important;
             pointer-events: none;
+            visibility: hidden !important;
+            width: 0 !important;
+            overflow: hidden;
         }
-        .sidebar-collapsed .sidebar ul li a i {
-            margin-right: 0;
+        .sidebar-menu ul li a i,
+        .sidebar-toggle-btn,
+        .notification i {
+            position: absolute;
+            left: 12px;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .sidebar-menu ul li a,
+        .sidebar-toggle-btn-row,
+        .sidebar-notification-row {
+            position: relative;
+            padding-left: 40px;
+            padding-right: 8px;
+        }
+        .sidebar-collapsed .sidebar-menu ul li a,
+        .sidebar-collapsed .sidebar-toggle-btn-row,
+        .sidebar-collapsed .sidebar-notification-row {
+            padding: 12px 4px;
+        }
+        .sidebar-menu ul li a span.label-text,
+        .sidebar-toggle-label,
+        .sidebar-notification-label {
+            margin-left: 0;
+            transition: opacity 0.1s ease-out, visibility 0.1s ease-out, width 0.1s ease-out;
         }
         .sidebar {
             transition: width 0.2s;
             display: flex;
             flex-direction: column;
             height: 100vh;
+            padding: 20px 8px;
         }
         .sidebar-logo {
             width: 100%;
-            height: 48px; /* Fixed height to prevent shifting */
+            height: 48px;
             display: flex;
             justify-content: center;
             align-items: center;
             margin-bottom: 18px;
-            flex-shrink: 0; /* Prevent logo container from shrinking */
+            flex-shrink: 0;
         }
         .sidebar-logo img {
             max-height: 48px;
             max-width: 100%;
             object-fit: contain;
             display: block;
-            transition: max-width 0.2s; /* Smooth transition for logo size */
+            transition: max-width 0.2s;
         }
         .sidebar-collapsed .sidebar-logo img {
-            max-width: 40px; /* Smaller logo when collapsed */
+            max-width: 40px;
         }
         .sidebar-toggle-btn-row {
             display: flex;
-            align-items: center; /* Changed back to center for proper alignment */
-            padding: 12px 14px; /* Match sidebar items padding */
+            align-items: center;
+            padding-top: 12px;
+            padding-bottom: 12px;
             text-decoration: none;
             color: #5a3e2b;
             border-radius: 6px;
             transition: background 0.1s;
-            height: 44px; /* Fixed height for consistency with sidebar items */
+            height: 44px;
             box-sizing: border-box;
-            margin-bottom: 8px; /* Match sidebar items margin */
+            margin-bottom: 8px;
             cursor: pointer;
         }
         .sidebar-toggle-btn-row:hover {
-            background: #f4e6d9; /* Match sidebar items hover */
+            background: #f4e6d9;
         }
         .sidebar-toggle-btn {
-            width: 20px; /* Match sidebar items icon width */
-            height: 20px;
             border: none;
             background: transparent;
             color: #a05c2f;
-            font-size: 18px; /* Match sidebar items icon size */
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 12px; /* Match sidebar items icon spacing */
-            flex-shrink: 0;
             line-height: 1;
             padding: 0;
+            margin: 0;
         }
         .sidebar-toggle-btn:hover {
-            background: transparent; /* Remove individual hover since parent handles it */
+            background: transparent;
         }
         .sidebar-toggle-btn:hover .fa-bars {
             display: none;
@@ -98,11 +124,10 @@
             display: none;
         }
         .sidebar-toggle-label {
-            font-size: 15px; /* Match sidebar items font size */
-            color: #5a3e2b; /* Match sidebar items color */
-            font-weight: 500; /* Match sidebar items font weight */
+            font-size: 15px;
+            color: #5a3e2b;
+            font-weight: 500;
             user-select: none;
-            transition: opacity 0.2s;
             white-space: nowrap;
             overflow: hidden;
         }
@@ -115,6 +140,9 @@
             list-style: none;
             padding: 0;
             margin: 0;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
         .sidebar-menu ul li {
             margin-bottom: 8px;
@@ -122,33 +150,24 @@
         .sidebar-menu ul li a {
             display: flex;
             align-items: center;
-            padding: 12px 14px;
+            padding-top: 12px;
+            padding-bottom: 12px;
             text-decoration: none;
             color: #5a3e2b;
             border-radius: 6px;
             transition: background 0.1s;
-            height: 44px; /* Fixed height for consistency */
+            height: 44px;
             box-sizing: border-box;
         }
         .sidebar-menu ul li a:hover,
         .sidebar-menu ul li a.active {
             background: #f4e6d9;
         }
-        .sidebar-menu ul li a i {
-            width: 20px; /* Fixed width for icons */
-            margin-right: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            flex-shrink: 0;
-        }
         .sidebar-menu ul li a span.label-text {
             font-size: 15px;
             font-weight: 500;
             white-space: nowrap;
             overflow: hidden;
-            transition: opacity 0.2s;
         }
         .sidebar-notification-wrapper {
             margin-top: auto;
@@ -161,49 +180,42 @@
         .sidebar-notification-row {
             width: 100%;
             display: flex;
-            align-items: center; /* Match sidebar items alignment */
+            align-items: center;
             justify-content: flex-start;
-            padding: 12px 14px; /* Match sidebar items padding */
+            padding-top: 12px;
+            padding-bottom: 12px;
             text-decoration: none;
             color: #5a3e2b;
             border-radius: 6px;
             transition: background 0.1s;
-            height: 44px; /* Fixed height matching sidebar items */
+            height: 44px;
             box-sizing: border-box;
             cursor: pointer;
         }
         .sidebar-notification-row:hover {
-            background: #f4e6d9; /* Match sidebar items hover */
+            background: #f4e6d9;
         }
         .notification {
-            width: 20px; /* Match sidebar items icon width */
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             color: #5e606e;
             cursor: pointer;
-            font-size: 18px; /* Match sidebar items icon size */
             user-select: none;
             outline: none;
             background: transparent;
-            position: relative;
             transition: background 0.1s;
-            margin-right: 12px; /* Match sidebar items icon spacing */
-            flex-shrink: 0;
             border: none;
             padding: 0;
+            margin: 0;
+            position: relative;
         }
         .notification:focus,
         .notification:hover {
-            background: transparent; /* Remove individual hover since parent handles it */
+            background: transparent;
         }
         .sidebar-notification-label {
-            font-size: 15px; /* Match sidebar items font size */
-            color: #5a3e2b; /* Match sidebar items color */
-            font-weight: 500; /* Match sidebar items font weight */
+            font-size: 15px;
+            color: #5a3e2b;
+            font-weight: 500;
             user-select: none;
-            transition: opacity 0.2s;
             white-space: nowrap;
             overflow: hidden;
             flex: 1 1 auto;
@@ -211,8 +223,7 @@
         .notification-dropdown {
             position: absolute;
             bottom: 50px;
-            left: 50%;
-            transform: translateX(-50%);
+            left: -8px;
             width: 260px;
             background: white;
             border-radius: 8px;
@@ -235,13 +246,23 @@
         .notification-item:hover {
             background: #f8f8f8;
         }
-
-        /* Disable transitions initially to prevent animation on page load */
         .sidebar-no-transition {
             transition: none !important;
         }
         .sidebar-no-transition * {
             transition: none !important;
+        }
+
+        .notification-item-special {
+            position: relative;
+            margin-top: auto !important;
+            margin-bottom: 0 !important;
+        }
+        .notification-item-special .notification-dropdown {
+            position: absolute;
+            bottom: 0;
+            left: -8px;
+            width: 260px;
         }
 
         @media (max-width: 1024px) {
@@ -260,16 +281,15 @@
             .sidebar {
                 width: 56px !important;
                 min-width: 56px;
-                padding: 20px 8px;
+                padding: 20px 4px;
             }
             .sidebar ul li a span.label-text,
             .sidebar-notification-label,
             .sidebar-toggle-label {
-                opacity: 0;
+                opacity: 0 !important;
                 pointer-events: none;
-            }
-            .sidebar ul li a i {
-                margin-right: 0;
+                visibility: hidden !important;
+                width: 0 !important;
             }
             .sidebar-notification-wrapper {
                 padding-bottom: 10px;
@@ -278,155 +298,138 @@
     </style>
 </head>
 <script>
-    // Set initial sidebar state BEFORE DOMContentLoaded to prevent animation
     (function() {
         try {
             const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
             if (isCollapsed) {
-                // Add class to body immediately to prevent animation
-                document.documentElement.className += ' sidebar-collapsed';
+                document.documentElement.classList.add('sidebar-collapsed');
+                if (document.body) {
+                    document.body.classList.add('sidebar-collapsed');
+                }
             }
         } catch (e) {
-            // Fallback if localStorage is not available
         }
     })();
 
     document.addEventListener('DOMContentLoaded', () => {
-        // Function to get sidebar state from localStorage
         function getSidebarState() {
             try {
                 return localStorage.getItem('sidebarCollapsed') === 'true';
             } catch (e) {
-                // Fallback if localStorage is not available
                 return false;
             }
         }
 
-        // Function to save sidebar state to localStorage
         function setSidebarState(isCollapsed) {
             try {
                 localStorage.setItem('sidebarCollapsed', isCollapsed.toString());
             } catch (e) {
-                // Fallback if localStorage is not available
                 console.warn('Unable to save sidebar state to localStorage');
             }
         }
 
-        // Function to apply sidebar state
         function applySidebarState(isCollapsed) {
             if (isCollapsed) {
                 document.body.classList.add('sidebar-collapsed');
+                document.documentElement.classList.add('sidebar-collapsed');
             } else {
                 document.body.classList.remove('sidebar-collapsed');
+                document.documentElement.classList.remove('sidebar-collapsed');
             }
         }
 
-        // Function to toggle sidebar state
         function toggleSidebar() {
             const isCurrentlyCollapsed = document.body.classList.contains('sidebar-collapsed');
             const newState = !isCurrentlyCollapsed;
-
-            // Apply the new state
             applySidebarState(newState);
-
-            // Save the new state to localStorage
             setSidebarState(newState);
         }
 
-        // Initialize sidebar state on page load (should already be set, but ensure consistency)
         const savedState = getSidebarState();
         applySidebarState(savedState);
 
-        // Enable transitions after initial state is set
         setTimeout(() => {
             document.body.classList.remove('sidebar-no-transition');
-        }, 50);
+        }, 100);
 
-        // Sidebar toggle functionality with state persistence
         const sidebarToggleRow = document.querySelector('.sidebar-toggle-btn-row');
         const sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
 
-        // Click handler for the entire toggle row
-        sidebarToggleRow.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            toggleSidebar();
-        });
-
-        // Backup click handler for the button itself (in case row handler fails)
-        sidebarToggleBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            toggleSidebar();
-        });
-
-        // Keyboard support for toggle row
-        sidebarToggleRow.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                toggleSidebar();
-            }
-        });
-
-        // Make toggle row focusable
-        sidebarToggleRow.setAttribute('tabindex', '0');
-        sidebarToggleRow.setAttribute('role', 'button');
-        sidebarToggleRow.setAttribute('aria-label', 'Toggle sidebar');
-
-        // Notification dropdown functionality
-        const notification = document.querySelector('.notification');
-        const dropdown = notification.querySelector('.notification-dropdown');
-        const notificationRow = document.querySelector('.sidebar-notification-row');
-
-        function toggleDropdown() {
-            const isHidden = dropdown.hasAttribute('hidden');
-            if (isHidden) {
-                dropdown.removeAttribute('hidden');
-                notification.setAttribute('aria-expanded', 'true');
-            } else {
-                dropdown.setAttribute('hidden', '');
-                notification.setAttribute('aria-expanded', 'false');
-            }
-        }
-
-        // Click handler for the entire notification row
-        notificationRow.addEventListener('click', (e) => {
-            // Prevent the dropdown toggle when clicking on the dropdown itself
-            if (!dropdown.contains(e.target)) {
+        if (sidebarToggleRow && sidebarToggleBtn) {
+            sidebarToggleRow.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                toggleDropdown();
-            }
-        });
+                toggleSidebar();
+            });
 
-        notification.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
+            sidebarToggleBtn.addEventListener('click', (e) => {
                 e.preventDefault();
-                toggleDropdown();
-            }
-            if (e.key === 'Escape') {
-                dropdown.setAttribute('hidden', '');
-                notification.setAttribute('aria-expanded', 'false');
-                notification.blur();
-            }
-        });
+                e.stopPropagation();
+                toggleSidebar();
+            });
 
-        // Close dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!notificationRow.contains(e.target)) {
-                dropdown.setAttribute('hidden', '');
-                notification.setAttribute('aria-expanded', 'false');
+            sidebarToggleRow.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleSidebar();
+                }
+            });
+
+            sidebarToggleRow.setAttribute('tabindex', '0');
+            sidebarToggleRow.setAttribute('role', 'button');
+            sidebarToggleRow.setAttribute('aria-label', 'Toggle sidebar');
+        }
+
+        const notificationLink = document.querySelector('a[data-notification="true"]');
+        if (notificationLink) {
+            const dropdown = notificationLink.querySelector('.notification-dropdown');
+
+            function toggleDropdown() {
+                const isHidden = dropdown.hasAttribute('hidden');
+                if (isHidden) {
+                    dropdown.removeAttribute('hidden');
+                    notificationLink.setAttribute('aria-expanded', 'true');
+                } else {
+                    dropdown.setAttribute('hidden', '');
+                    notificationLink.setAttribute('aria-expanded', 'false');
+                }
             }
-        });
 
-        // Make notification row focusable
-        notificationRow.setAttribute('tabindex', '0');
-        notificationRow.setAttribute('role', 'button');
-        notificationRow.setAttribute('aria-label', 'Open notifications');
+            notificationLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (!dropdown.contains(e.target)) {
+                    toggleDropdown();
+                }
+            });
 
-        // Debug logging (remove in production)
+            notificationLink.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleDropdown();
+                }
+                if (e.key === 'Escape') {
+                    dropdown.setAttribute('hidden', '');
+                    notificationLink.setAttribute('aria-expanded', 'false');
+                    notificationLink.blur();
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!notificationLink.contains(e.target)) {
+                    dropdown.setAttribute('hidden', '');
+                    notificationLink.setAttribute('aria-expanded', 'false');
+                }
+            });
+
+            notificationLink.setAttribute('aria-haspopup', 'true');
+            notificationLink.setAttribute('aria-expanded', 'false');
+            notificationLink.setAttribute('aria-label', 'Open notifications');
+        }
+
         console.log('Sidebar toggle handlers attached');
         console.log('Initial sidebar state:', getSidebarState());
+        console.log('Body has sidebar-collapsed class:', document.body.classList.contains('sidebar-collapsed'));
     });
 </script>
 <body class="sidebar-no-transition">
@@ -465,20 +468,19 @@
                     </a>
                 </li>
                 <% }) %>
+
+                <li class="notification-item-special">
+                    <a href="#" data-notification="true" class="notification-item-link" style="position: relative;">
+                        <i class="fa-regular fa-bell" style="color: #5e606e;"></i>
+                        <span class="label-text">Notifications</span>
+                        <div class="notification-dropdown" aria-label="Notification list" role="region" hidden>
+                            <div class="notification-item">You have 1 new order.</div>
+                            <div class="notification-item">Stock level is low for 'Coffee Beans'.</div>
+                            <div class="notification-item">New product added to the menu.</div>
+                        </div>
+                    </a>
+                </li>
             </ul>
-        </div>
-        <div class="sidebar-notification-wrapper">
-            <div class="sidebar-notification-row">
-                <button class="notification" role="button" aria-haspopup="true" aria-expanded="false" aria-label="Notifications">
-                    <i class="fa-regular fa-bell"></i>
-                    <div class="notification-dropdown" aria-label="Notification list" role="region" hidden>
-                        <div class="notification-item">You have 1 new order.</div>
-                        <div class="notification-item">Stock level is low for 'Coffee Beans'.</div>
-                        <div class="notification-item">New product added to the menu.</div>
-                    </div>
-                </button>
-                <span class="sidebar-notification-label">Notifications</span>
-            </div>
         </div>
     </div>
     <div class="main-content">
