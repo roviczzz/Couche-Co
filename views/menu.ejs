@@ -10,9 +10,26 @@ menuItems.forEach(item => {
 %>
 <div class="main-container">
     <div class="content">
-        <h1>Select Order</h1>
-        <div class="promo-banner">Buy 3 for 143</div>
-        <div id="all-products" style="max-height: calc(100vh - 150px); overflow-y: auto; padding-right: 8px; box-sizing: border-box;">
+        <div class="section-title">Choose Category</div>
+        <div style="display:flex;gap:12px;margin-bottom:32px; height:250px;">
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:110px;padding:18px 20px 10px 20px;background:#fff;border-radius:10px;box-shadow:0 1px 8px rgba(0,0,0,0.09);border:1px solid #e1e1e1;cursor:pointer;">
+                <img src="https://img.icons8.com/?size=100&id=Ssu2jHhVZPnO&format=png&color=000000" style="width:40px;height:40px;margin-bottom:8px;" alt="Coffee">
+                <span style="font-weight:600;font-size:15px;color:black;">Coffee</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:110px;padding:18px 20px 10px 20px;background:#fff;border-radius:10px;box-shadow:0 1px 8px rgba(0,0,0,0.09);border:1px solid #e1e1e1;cursor:pointer;">
+                <img src="https://img.icons8.com/?size=100&id=TD7MP3vXGsRf&format=png&color=000000" style="width:40px;height:40px;margin-bottom:8px;" alt="Fruit Teas">
+                <span style="font-weight:600;font-size:15px;color:black;">Fruit Teas</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:110px;padding:18px 20px 10px 20px;background:#fff;border-radius:10px;box-shadow:0 1px 8px rgba(0,0,0,0.09);border:1px solid #e1e1e1;cursor:pointer;">
+                <img src="https://img.icons8.com/?size=100&id=22tqa0dpdqWt&format=png&color=000000" style="width:40px;height:40px;margin-bottom:8px;" alt="Milktea">
+                <span style="font-weight:600;font-size:15px;color:black;">Milktea</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:110px;padding:18px 20px 10px 20px;background:#fff;border-radius:10px;box-shadow:0 1px 8px rgba(0,0,0,0.09);border:1px solid #e1e1e1;cursor:pointer;">
+                <img src="https://img.icons8.com/?size=100&id=4B6eJqXQoBZp&format=png&color=000000" style="width:40px;height:40px;margin-bottom:8px;" alt="Pastries">
+                <span style="font-weight:600;font-size:15px;color:black;">Pastries</span>
+            </div>
+        </div>
+        <div id="all-products" style="overflow-y: auto; padding-right: 8px; box-sizing: border-box;">
             <% Object.keys(grouped).forEach(category => { %>
                 <div class="section-title"><%= category %></div>
                 <div class="products-grid" style="margin-bottom: 20px;">
@@ -20,7 +37,7 @@ menuItems.forEach(item => {
                         <div tabindex="0" role="button" class="product-card" data-item='<%= JSON.stringify(item) %>' onclick="handleProductClick(JSON.parse(this.dataset.item))">
                             <div class="product-image">
                                 <% if (item.imagelink && item.imagelink.length > 0) { %>
-                                    <img src="<%= item.imagelink %>" alt="<%= item.Name %>" style="width: 120px; height: 120px; object-fit: cover; border-radius: 12px;">
+                                    <img src="<%= item.imagelink %>" alt="placeholder image" style="width: 120px; height: 120px; object-fit: cover; border-radius: 12px;">
                                 <% } else { %>
                                     <span style="display:inline-block;width:100px;height:100px;border-radius:12px;background:#999;line-height:100px;color:#fff;">No image</span>
                                 <% } %>
@@ -885,13 +902,13 @@ html, body {
 .content {
   flex: 1;
   padding: 20px;
+    padding-bottom: 0px;
+    padding-right: 0px;
   background-color: #f8f9fb;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   box-sizing: border-box;
-  max-height: calc(100vh - 90px);
-  padding-right: 8px;
   scrollbar-width: thin;
 }
 
@@ -918,7 +935,7 @@ html, body {
 }
 
 #all-products {
-  max-height: calc(100vh - 150px);
+  max-height: calc(100vh - 100px);
   overflow-y: auto;
   padding-right: 8px;
   box-sizing: border-box;
@@ -978,7 +995,7 @@ html, body {
   -ms-user-select: none;
   background-color: #ffe7ce;
   color: #ca651c;
-  padding: 10px 20px;
+  padding: 10px 40px;
   border-radius: 25px;
   display: inline-block;
   margin-bottom: 20px;
@@ -988,29 +1005,30 @@ html, body {
 
 .section-title {
   font-size: 28px;
-  color: #8B4513;
+  color: black;
   margin-bottom: 20px;
   font-weight: bold;
 }
 
 .product-card {
-  background-color: #fff;
-  border-radius: 10px;
-  padding: 12px 8px;
-  text-align: center;
-  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
-  border: 1px solid #ddd;
-  min-height: 220px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  transition: box-shadow 0.2s;
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 12px 8px 8px 8px;
+    text-align: center;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+    border: 1px solid #ddd;
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    cursor: pointer;
+    transition: box-shadow 0.2s;
+    position: relative;
 }
 
 .product-card:hover {
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 }
 
 .product-image img {
@@ -1023,8 +1041,8 @@ html, body {
 
 .product-name {
   font-size: 14px;
-  font-weight: 600;
-  color: #5a3e2b;
+  font-weight: 800;
+  color: black;
   margin-bottom: 6px;
   white-space: nowrap;
   overflow: hidden;
@@ -1033,9 +1051,17 @@ html, body {
 
 .product-price,
 .product-size {
-  font-size: 13px;
-  color: #7a5936;
-  margin-bottom: 6px;
+    font-size: 13px;
+    color: #2b2b2b;
+    font-weight: 600;
+    margin-bottom: 0;
+    position: absolute;
+    left: 14px;
+    bottom: 12px;
+    text-align: left;
+    width: auto;
+    background: none;
+    box-shadow: none;
 }
 
 .summary-panel {
@@ -1043,7 +1069,7 @@ html, body {
   background-color: white;
   padding: 20px;
   border-left: 1px solid #ddd;
-  max-height: 860px;
+  max-height: 100vh;
   margin-bottom: 0;
   overflow-y: auto;
   box-sizing: border-box;
