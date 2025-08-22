@@ -1,0 +1,48 @@
+[{
+  "_id": {
+    "$oid": "685f9ea26911e4021868ee20"
+  },
+  "AddOnID": "AD-PEA",
+  "Name": "Pearl",
+  "Quantity": 30,
+  "Category": "Add-ons",
+  "Allergen": "None",
+  "BasePrice": 10,
+  "isEnabled": true
+},
+{
+  "_id": {
+    "$oid": "685f9ea26911e4021868ee1f"
+  },
+  "AddOnID": "AD-NDC",
+  "Name": "Nata De Coco",
+  "Quantity": 32,
+  "Category": "Add-ons",
+  "Allergen": "None",
+  "BasePrice": 10,
+  "isEnabled": true
+},
+{
+  "_id": {
+    "$oid": "685f9ea26911e4021868ee1d"
+  },
+  "AddOnID": "AD-BOB",
+  "Name": "Boba",
+  "Quantity": 32,
+  "Category": "Add-ons",
+  "Allergen": "None",
+  "BasePrice": 10,
+  "isEnabled": true
+},
+{
+  "_id": {
+    "$oid": "685f9ea26911e4021868ee1e"
+  },
+  "AddOnID": "AD-CJL",
+  "Name": "Coffee Jelly",
+  "Quantity": 32,
+  "Category": "Add-ons",
+  "Allergen": "None",
+  "BasePrice": 10,
+  "isEnabled": true
+}]

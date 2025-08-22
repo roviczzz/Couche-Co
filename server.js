@@ -15,16 +15,15 @@ const path = require('path');
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 
 app.use(
-  session({
-    secret: '4eaf42844a1772cb12e90869666b3a929f785d5bbd6d0fc5402c95ebc8721c3bca4ac502cc2fa7ec8abcbec042202876',
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false }
-  })
+    session({
+      secret: '4eaf42844a1772cb12e90869666b3a929f785d5bbd6d0fc5402c95ebc8721c3bca4ac502cc2fa7ec8abcbec042202876',
+      resave: false,
+      saveUninitialized: true,
+      cookie: { secure: false }
+    })
 );
 
 app.use(flash());
-
 
 app.use((req, res, next) => {
   res.locals.success_msg = req.flash('success_msg');
@@ -32,6 +31,18 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use((req, res, next) => {
+  res.locals.sidebarItems = [
+    { path: '/dashboard', label: 'Home', icon: 'house' },
+    { path: '/order', label: 'Orders', icon: 'box' },
+    { path: '/menu', label: 'POS Menu', icon: 'list' },
+    { path: '/stocks', label: 'Stocks', icon: 'warehouse' },
+    { path: '/products', label: 'Products', icon: 'cart-shopping' },
+    { path: '/logout', label: 'Logout', icon: 'door-open' }
+  ];
+  res.locals.currentPage = req.path;
+  next();
+});
 
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/views');
@@ -55,7 +66,6 @@ function nocache(req, res, next) {
   next();
 }
 
-
 app.get('/', async (req, res) => {
   try {
     const client = await MongoClient.connect(uri);
@@ -74,53 +84,53 @@ app.get('/account/login', (req, res) => {
 });
 
 app.post(
-  '/account/login',
-  [
-    check('Username').notEmpty().withMessage('Username is required'),
-    check('Password').notEmpty().withMessage('Password is required'),
-  ],
-  async (req, res) => {
-    const errorsObj = {};
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      errors.array().forEach(err => {
-        errorsObj[err.param] = err;
-      });
-      return res.render('login', {
-        title: 'Login | Blessings Cafe',
-        errors: errorsObj,
-        error: null,
-        formData: req.body,
-        layout: false
-      });
-    }
-    try {
-      const client = await MongoClient.connect(uri);
-      const db = client.db('blessingscafe');
-      const users = db.collection('users');
-      const user = await users.findOne({
-        username: req.body.Username,
-        password: req.body.Password,
-      });
-      await client.close();
-      if (!user) {
+    '/account/login',
+    [
+      check('Username').notEmpty().withMessage('Username is required'),
+      check('Password').notEmpty().withMessage('Password is required'),
+    ],
+    async (req, res) => {
+      const errorsObj = {};
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        errors.array().forEach(err => {
+          errorsObj[err.param] = err;
+        });
         return res.render('login', {
           title: 'Login | Blessings Cafe',
-          errors: {},
-          error: 'Invalid username or password',
-          formData: { Username: req.body.Username },
+          errors: errorsObj,
+          error: null,
+          formData: req.body,
           layout: false
         });
       }
-      req.session.user = {
-        username: user.username,
-        email: user.email
-      };
-      res.redirect('/dashboard');
-    } catch (err) {
-      res.status(500).send('Internal Server Error');
+      try {
+        const client = await MongoClient.connect(uri);
+        const db = client.db('blessingscafe');
+        const users = db.collection('users');
+        const user = await users.findOne({
+          username: req.body.Username,
+          password: req.body.Password,
+        });
+        await client.close();
+        if (!user) {
+          return res.render('login', {
+            title: 'Login | Blessings Cafe',
+            errors: {},
+            error: 'Invalid username or password',
+            formData: { Username: req.body.Username },
+            layout: false
+          });
+        }
+        req.session.user = {
+          username: user.username,
+          email: user.email
+        };
+        res.redirect('/dashboard');
+      } catch (err) {
+        res.status(500).send('Internal Server Error');
+      }
     }
-  }
 );
 
 app.get('/account/register', (req, res) => {
@@ -128,7 +138,7 @@ app.get('/account/register', (req, res) => {
 });
 
 app.get('/dashboard', isLoggedIn, nocache, (req, res) => {
-  res.render('dashboard', { title: 'Dashboard | Blessings Cafe', user: req.session.user, currentPage: req.path });
+  res.render('dashboard', { title: 'Dashboard | Blessings Cafe', user: req.session.user });
 });
 
 app.get('/menu', isLoggedIn, nocache, async (req, res) => {
@@ -138,9 +148,40 @@ app.get('/menu', isLoggedIn, nocache, async (req, res) => {
     const menuCollection = db.collection('Menu');
     const menuItems = await menuCollection.find().toArray();
     await client.close();
-    res.render('menu', { menuItems, title: 'Menu | Blessings Cafe', user: req.session.user, currentPage: req.path });
+    res.render('menu', { menuItems, title: 'Menu | Blessings Cafe', user: req.session.user });
   } catch (err) {
     res.status(500).send('Internal Server Error');
+  }
+});
+
+app.get('/api/addons', async (req, res) => {
+  try {
+    console.log('Fetching add-ons...');
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    const addOns = await db.collection('Add-ons').find({ isEnabled: true }).toArray();
+
+    console.log('Found add-ons:', addOns.length);
+    console.log('Add-ons data:', addOns);
+
+    await client.close();
+    res.json(addOns);
+  } catch (err) {
+    console.error('Error fetching add-ons:', err);
+    res.status(500).json([]);
+  }
+});
+
+app.get('/api/orders/preparing-customers', async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const docs = await db.collection('Orders').find({ FulfillmentStatus: "Preparing" }).project({ Customer: 1 }).toArray();
+    await client.close();
+    res.json(docs.map(d => d.Customer));
+  } catch (err) {
+    res.status(500).json([]);
   }
 });
 
@@ -151,7 +192,7 @@ app.get('/products', isLoggedIn, nocache, async (req, res) => {
     const productCollection = db.collection('Menu');
     const products = await productCollection.find().toArray();
     await client.close();
-    res.render('products', { products, title: 'Products | Blessings Cafe', user: req.session.user, currentPage: req.path });
+    res.render('products', { products, title: 'Products | Blessings Cafe', user: req.session.user });
   } catch (err) {
     console.error('Error fetching products:', err);
     res.status(500).send('Internal Server Error');
@@ -160,7 +201,7 @@ app.get('/products', isLoggedIn, nocache, async (req, res) => {
 
 app.post('/toggle-availability/:id', async (req, res) => {
   const productId = req.params.id;
-  
+
   const available = req.body.available === true || req.body.available === 'true';
 
   try {
@@ -174,8 +215,8 @@ app.post('/toggle-availability/:id', async (req, res) => {
     }
 
     const result = await db.collection('Menu').updateOne(
-      { _id: new ObjectId(productId) },
-      { $set: { available: available } }
+        { _id: new ObjectId(productId) },
+        { $set: { available: available } }
     );
 
     await client.close();
@@ -204,7 +245,7 @@ app.post('/products/add', async (req, res) => {
     imagelink,
     available,
     IsEnabled,
-    BasePrice 
+    BasePrice
   } = req.body;
 
   const Sizes = [];
@@ -212,8 +253,8 @@ app.post('/products/add', async (req, res) => {
   if (size22) Sizes.push({ Size: '22oz', BasePrice: parseFloat(size22) });
 
   const ingredientsArray = Ingredients
-    ? Ingredients.split(',').map(i => i.trim())
-    : [];
+      ? Ingredients.split(',').map(i => i.trim())
+      : [];
 
   const productData = {
     ProductID,
@@ -228,17 +269,16 @@ app.post('/products/add', async (req, res) => {
     IsEnabled: IsEnabled === 'true'
   };
 
-if (Category.toLowerCase() === 'pastries' && !isNaN(parseFloat(BasePrice))) {
-  productData.BasePrice = parseFloat(BasePrice);
-}
-
+  if (Category.toLowerCase() === 'pastries' && !isNaN(parseFloat(BasePrice))) {
+    productData.BasePrice = parseFloat(BasePrice);
+  }
 
   try {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
     const productCollection = db.collection('Menu');
 
-    console.log('Submitted Form Data:', req.body); 
+    console.log('Submitted Form Data:', req.body);
 
     await productCollection.insertOne(productData);
     await client.close();
@@ -298,8 +338,8 @@ app.post('/products/edit/:id', async (req, res) => {
     }
 
     await productCollection.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: updateFields }
+        { _id: new ObjectId(id) },
+        { $set: updateFields }
     );
 
     await client.close();
@@ -311,21 +351,19 @@ app.post('/products/edit/:id', async (req, res) => {
   }
 });
 
-
-
 app.post('/delete-product/:id', async (req, res) => {
   const productId = req.params.id;
 
   try {
     const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe'); 
+    const db = client.db('blessingscafe');
     const result = await db.collection('Menu').deleteOne({ _id: new ObjectId(productId) });
 
-    await client.close(); 
+    await client.close();
 
     if (result.deletedCount === 1) {
-  req.flash('success_msg', `Product has been deleted`);
-  res.redirect('/products');} else {
+      req.flash('success_msg', `Product has been deleted`);
+      res.redirect('/products');} else {
       res.status(404).send('Product not found');
     }
   } catch (err) {
@@ -334,9 +372,8 @@ app.post('/delete-product/:id', async (req, res) => {
   }
 });
 
-
 app.get('/add-product', isLoggedIn, nocache, (req, res) => {
-  res.render('add-product', { title: 'Add Product | Blessings Cafe' , user: req.session.user, currentPage: req.path});
+  res.render('add-product', { title: 'Add Product | Blessings Cafe' , user: req.session.user});
 });
 
 app.get('/edit-product/:id', isLoggedIn, nocache, async (req, res) => {
@@ -349,15 +386,12 @@ app.get('/edit-product/:id', isLoggedIn, nocache, async (req, res) => {
 
     if (!product) return res.status(404).send('Product not found');
 
-    res.render('edit-product', { title: 'Edit Product | Blessings Cafe', product, user: req.session.user, currentPage: req.path});
+    res.render('edit-product', { title: 'Edit Product | Blessings Cafe', product, user: req.session.user});
   } catch (err) {
     console.error('Error fetching product for editing:', err);
     res.status(500).send('Internal Server Error');
   }
 });
-
-
-
 
 app.get('/stocks', isLoggedIn, nocache, async (req, res) => {
   try {
@@ -371,7 +405,6 @@ app.get('/stocks', isLoggedIn, nocache, async (req, res) => {
       ingredients,
       title: 'Stocks | Blessings Cafe',
       user: req.session.user,
-      currentPage: req.path,
       message
     });
   } catch (err) {
@@ -408,17 +441,17 @@ app.post('/stocks/edit/:id', async (req, res) => {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
     await db.collection('Ingredients').updateOne(
-      { _id: new ObjectId(id) },
-      {
-        $set: {
-          IngredientID,
-          Name,
-          Quantity: parseInt(Quantity),
-          Category,
-          Allergen,
-          isEnabled: isEnabled === 'true'
+        { _id: new ObjectId(id) },
+        {
+          $set: {
+            IngredientID,
+            Name,
+            Quantity: parseInt(Quantity),
+            Category,
+            Allergen,
+            isEnabled: isEnabled === 'true'
+          }
         }
-      }
     );
     await client.close();
     res.redirect('/stocks?msg=update_success');
@@ -442,26 +475,24 @@ app.post('/stocks/delete/:id', async (req, res) => {
   }
 });
 
-
 app.get('/order', isLoggedIn, nocache, async (req, res) => {
   try {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
 
     const ordersCollection = db.collection('Orders');
-    const menuCollection = db.collection('Menu'); 
+    const menuCollection = db.collection('Menu');
     const orders = await ordersCollection.find().toArray();
 
     const menu = await menuCollection.find().toArray();
 
     await client.close();
 
-    res.render('order', { 
-      orders, 
-      menu,              
-      title: 'Orders | Blessings Cafe', 
-      user: req.session.user, 
-      currentPage: req.path
+    res.render('order', {
+      orders,
+      menu,
+      title: 'Orders | Blessings Cafe',
+      user: req.session.user
     });
   } catch (err) {
     console.error('Error fetching orders or menu:', err);
@@ -599,16 +630,13 @@ app.patch('/orders/:OrderID/cancel', isLoggedIn, nocache, async (req, res) => {
       message: 'Order cancelled successfully',
       order: updatedOrder
     });
-    
+
   } catch (error) {
     if (client) await client.close();
     console.error('Error cancelling order:', error);
     return res.status(500).json({ error: 'Server error while cancelling order' });
   }
 });
-
-
-
 
 app.get('/orders/edit/:id', isLoggedIn, nocache, async (req, res) => {
   const orderId = req.params.id;
@@ -647,17 +675,13 @@ app.get('/orders/edit/:id', isLoggedIn, nocache, async (req, res) => {
     res.render('edit-order', {
       order,
       title: `Edit Order #${order.OrderID}`,
-      user: req.session.user,
-      currentPage: req.path
+      user: req.session.user
     });
   } catch (err) {
     console.error('Error in /orders/edit/:id:', err);
     res.status(500).send('Internal Server Error');
   }
 });
-
-
-
 
 app.get('/logout', (req, res) => {
   req.session.destroy(() => {
@@ -686,10 +710,6 @@ app.post('/api/orders', async (req, res) => {
     res.status(500).json({ success: false, error: 'Failed to save order' });
   }
 });
-
-
-
-
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);

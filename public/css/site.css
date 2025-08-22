@@ -1,20 +1,4 @@
-@font-face {
-  font-family: 'Aeonik';
-  src: url('/fonts/Aeonik-Regular.woff2') format('woff2'),
-       url('/fonts/Aeonik-Regular.woff') format('woff');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Aeonik';
-  src: url('/fonts/Aeonik-Bold.woff2') format('woff2'),
-       url('/fonts/Aeonik-Bold.woff') format('woff');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 html, body {
   height: 100%;
@@ -23,15 +7,15 @@ html, body {
 }
 
 body {
-  font-family: 'Aeonik', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 400;
-  color: #5a3e2b;
+  color: #372b2a;
   margin: 0;
   padding: 0;
   display: flex;
-  flex-direction: column; 
+  flex-direction: column;
   min-height: 100vh;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.7px;
 }
 
 .header {
@@ -92,12 +76,13 @@ body {
   border: 2px solid #e5e5e5;
   border-radius: 10px;
   background-color: white;
-  font-family: 'Aeonik', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 400;
   font-size: 16px;
   box-sizing: border-box;
   outline: none;
   transition: border-color 0.2s ease;
+  letter-spacing: -0.7px;
 }
 
 .search-input::placeholder {
@@ -110,7 +95,6 @@ body {
   border-color: #a05c2f;
   box-shadow: 0 0 5px rgba(160, 92, 47, 0.5);
 }
-
 
 .notification {
   margin-left: auto;
@@ -177,7 +161,7 @@ body {
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
   box-sizing: border-box;
   letter-spacing: 0;
-  font-family: 'Aeonik', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 400;
   position: sticky;
   top: 0;
@@ -207,7 +191,7 @@ body {
   padding: 8px 12px;
   border-radius: 8px;
   transition: background-color 0.3s ease;
-  font-family: 'Aeonik', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 .sidebar ul li a.active {
@@ -233,13 +217,15 @@ body {
   flex: 1;
   padding: 30px;
   background-color: #ffffff;
-  font-family: 'Aeonik', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 400;
+  letter-spacing: -0.7px;
 }
 
 .order-details-table {
-  font-family: 'Aeonik', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 400 !important;
+  letter-spacing: -0.7px;
 }
 
 .login-box {
@@ -253,7 +239,7 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-family: 'Aeonik', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 .login-box img {
@@ -272,7 +258,7 @@ h2 {
   margin-top: 50px;
   font-weight: 700;
   color: #5a3e2b;
-  font-family: 'Aeonik', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 label {
@@ -280,7 +266,7 @@ label {
   text-align: left;
   margin: 15px 0 5px;
   color: #333;
-  font-family: 'Aeonik', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 input[type="text"],
@@ -290,8 +276,9 @@ input[type="password"] {
   border: 1px solid #ccc;
   border-radius: 8px;
   font-size: 14px;
-  font-family: 'Aeonik', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 400;
+  letter-spacing: -0.7px;
 }
 
 .forgot {
@@ -301,7 +288,7 @@ input[type="password"] {
   font-size: 12px;
   color: #7a4e2b;
   text-decoration: none;
-  font-family: 'Aeonik', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 button {
@@ -315,7 +302,8 @@ button {
   border-radius: 12px;
   margin-top: 15px;
   cursor: pointer;
-  font-family: 'Aeonik', sans-serif;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: -0.7px;
 }
 
 button:hover {
@@ -325,19 +313,19 @@ button:hover {
 .signup {
   margin-top: 15px;
   font-size: 13px;
-  font-family: 'Aeonik', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 .signup a {
   color: #7a4e2b;
   text-decoration: none;
   font-weight: 500;
-  font-family: 'Aeonik', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 .error {
   color: red;
   font-size: 13px;
   margin-top: 10px;
-  font-family: 'Aeonik', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
