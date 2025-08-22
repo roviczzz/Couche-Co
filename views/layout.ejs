@@ -99,12 +99,26 @@
             line-height: 1;
             padding: 0;
             border-radius: 4px;
-            transform: translateY(-1px); /* Move icon up to align with text */
+            transform: translateY(-1px);
         }
 
         .sidebar-collapsed .sidebar-toggle-btn {
             margin-right: 0;
-            transform: none; /* Reset transform when collapsed */
+            transform: none;
+        }
+
+        /* Remove background highlight from icon on hover */
+        .sidebar-toggle-btn:hover,
+        .sidebar-toggle-btn:focus {
+            background: transparent !important;
+            box-shadow: none !important;
+        }
+
+        .sidebar-toggle-btn:active {
+            background: transparent !important;
+        }
+        .sidebar-toggle-btn:focus-visible {
+            outline: 2px solid #a05c2f;
         }
 
         /* Icon changes based on sidebar state, not hover */
@@ -117,7 +131,6 @@
             display: none;
         }
 
-        /* When sidebar is expanded, show left arrow */
         .sidebar:not(.sidebar-collapsed) .sidebar-toggle-btn .fa-bars {
             display: none;
         }
@@ -126,7 +139,6 @@
             display: inline-block;
         }
 
-        /* When sidebar is collapsed, show right arrow */
         .sidebar-collapsed .sidebar-toggle-btn .fa-bars,
         .sidebar-collapsed .sidebar-toggle-btn .fa-angles-left {
             display: none;
@@ -145,7 +157,7 @@
             white-space: nowrap;
             overflow: hidden;
             flex: 1;
-            line-height: 15px; /* Match font size for proper alignment */
+            line-height: 15px;
         }
 
         .sidebar-menu {
@@ -282,12 +294,12 @@
             border: none;
             padding: 0;
             border-radius: 4px;
-            transform: translateY(-1px); /* Move icon up to align with text */
+            transform: translateY(-1px);
         }
 
         .sidebar-collapsed .notification {
             margin-right: 0;
-            transform: none; /* Reset transform when collapsed */
+            transform: none;
         }
 
         .notification:focus,
@@ -304,7 +316,7 @@
             white-space: nowrap;
             overflow: hidden;
             flex: 1;
-            line-height: 15px; /* Match font size for proper alignment */
+            line-height: 15px;
         }
 
         .notification-dropdown {
@@ -353,7 +365,6 @@
             transition: none !important;
         }
 
-        /* Responsive Design */
         @media (max-width: 1024px) {
             .sidebar {
                 position: fixed;
@@ -401,7 +412,6 @@
             }
         }
 
-        /* Smooth scroll for dropdown */
         .notification-dropdown {
             scrollbar-width: thin;
             scrollbar-color: #cbd5e0 transparent;
@@ -477,11 +487,9 @@
             setSidebarState(newState);
         }
 
-        // Apply saved state
         const savedState = getSidebarState();
         applySidebarState(savedState);
 
-        // Remove no-transition class after initial load
         setTimeout(() => {
             document.body.classList.remove('sidebar-no-transition');
             document.querySelectorAll('.sidebar-no-transition').forEach(el => {
@@ -489,7 +497,6 @@
             });
         }, 100);
 
-        // Toggle functionality
         const sidebarToggleRow = document.querySelector('.sidebar-toggle-btn-row');
         const sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
 
@@ -520,7 +527,6 @@
             });
         }
 
-        // Notification dropdown functionality
         const notification = document.querySelector('.notification');
         const notificationRow = document.querySelector('.sidebar-notification-row');
 
@@ -559,7 +565,6 @@
                     }
                 });
 
-                // Close dropdown when clicking outside
                 document.addEventListener('click', (e) => {
                     if (!notificationRow.contains(e.target)) {
                         dropdown.setAttribute('hidden', '');
@@ -573,12 +578,10 @@
             }
         }
 
-        // Handle window resize
         let resizeTimer;
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(() => {
-                // Force re-evaluation of sidebar state on mobile
                 if (window.innerWidth <= 768) {
                     document.body.classList.add('sidebar-collapsed');
                 }
