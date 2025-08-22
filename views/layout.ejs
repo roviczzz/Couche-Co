@@ -20,9 +20,6 @@
             opacity: 0;
             pointer-events: none;
         }
-        .sidebar-collapsed .sidebar ul li a i {
-            margin-right: 0;
-        }
         .sidebar {
             transition: width 0.2s;
             display: flex;
@@ -31,57 +28,57 @@
         }
         .sidebar-logo {
             width: 100%;
-            height: 48px; /* Fixed height to prevent shifting */
+            height: 48px;
             display: flex;
             justify-content: center;
             align-items: center;
             margin-bottom: 18px;
-            flex-shrink: 0; /* Prevent logo container from shrinking */
+            flex-shrink: 0;
         }
         .sidebar-logo img {
             max-height: 48px;
             max-width: 100%;
             object-fit: contain;
             display: block;
-            transition: max-width 0.2s; /* Smooth transition for logo size */
+            transition: max-width 0.2s;
         }
         .sidebar-collapsed .sidebar-logo img {
-            max-width: 40px; /* Smaller logo when collapsed */
+            max-width: 40px;
         }
         .sidebar-toggle-btn-row {
             display: flex;
-            align-items: center; /* Changed back to center for proper alignment */
-            padding: 12px 14px; /* Match sidebar items padding */
+            align-items: center;
+            padding: 12px 14px;
             text-decoration: none;
             color: #5a3e2b;
             border-radius: 6px;
             transition: background 0.1s;
-            height: 44px; /* Fixed height for consistency with sidebar items */
+            height: 44px;
             box-sizing: border-box;
-            margin-bottom: 8px; /* Match sidebar items margin */
+            margin-bottom: 8px;
             cursor: pointer;
         }
         .sidebar-toggle-btn-row:hover {
-            background: #f4e6d9; /* Match sidebar items hover */
+            background: #f4e6d9;
         }
         .sidebar-toggle-btn {
-            width: 20px; /* Match sidebar items icon width */
+            width: 20px;
             height: 20px;
             border: none;
             background: transparent;
             color: #a05c2f;
-            font-size: 18px; /* Match sidebar items icon size */
+            font-size: 18px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 12px; /* Match sidebar items icon spacing */
+            margin-right: 12px;
             flex-shrink: 0;
             line-height: 1;
             padding: 0;
         }
         .sidebar-toggle-btn:hover {
-            background: transparent; /* Remove individual hover since parent handles it */
+            background: transparent;
         }
         .sidebar-toggle-btn:hover .fa-bars {
             display: none;
@@ -98,13 +95,15 @@
             display: none;
         }
         .sidebar-toggle-label {
-            font-size: 15px; /* Match sidebar items font size */
-            color: #5a3e2b; /* Match sidebar items color */
-            font-weight: 500; /* Match sidebar items font weight */
+            font-size: 15px;
+            color: #5a3e2b;
+            font-weight: 500;
             user-select: none;
             transition: opacity 0.2s;
             white-space: nowrap;
             overflow: hidden;
+            margin-bottom: -15px;
+            margin-left: -5px;
         }
         .sidebar-menu {
             flex: 1 1 auto;
@@ -127,7 +126,7 @@
             color: #5a3e2b;
             border-radius: 6px;
             transition: background 0.1s;
-            height: 44px; /* Fixed height for consistency */
+            height: 44px;
             box-sizing: border-box;
         }
         .sidebar-menu ul li a:hover,
@@ -135,7 +134,7 @@
             background: #f4e6d9;
         }
         .sidebar-menu ul li a i {
-            width: 20px; /* Fixed width for icons */
+            width: 20px;
             margin-right: 12px;
             display: flex;
             align-items: center;
@@ -161,47 +160,47 @@
         .sidebar-notification-row {
             width: 100%;
             display: flex;
-            align-items: center; /* Match sidebar items alignment */
+            align-items: center;
             justify-content: flex-start;
-            padding: 12px 14px; /* Match sidebar items padding */
+            padding: 12px 14px;
             text-decoration: none;
             color: #5a3e2b;
             border-radius: 6px;
             transition: background 0.1s;
-            height: 44px; /* Fixed height matching sidebar items */
+            height: 44px;
             box-sizing: border-box;
             cursor: pointer;
         }
         .sidebar-notification-row:hover {
-            background: #f4e6d9; /* Match sidebar items hover */
+            background: #f4e6d9;
         }
         .notification {
-            width: 20px; /* Match sidebar items icon width */
+            width: 20px;
             height: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #5e606e;
             cursor: pointer;
-            font-size: 18px; /* Match sidebar items icon size */
+            font-size: 18px;
             user-select: none;
             outline: none;
             background: transparent;
             position: relative;
             transition: background 0.1s;
-            margin-right: 12px; /* Match sidebar items icon spacing */
+            margin-right: 12px;
             flex-shrink: 0;
             border: none;
             padding: 0;
         }
         .notification:focus,
         .notification:hover {
-            background: transparent; /* Remove individual hover since parent handles it */
+            background: transparent;
         }
         .sidebar-notification-label {
-            font-size: 15px; /* Match sidebar items font size */
-            color: #5a3e2b; /* Match sidebar items color */
-            font-weight: 500; /* Match sidebar items font weight */
+            font-size: 15px;
+            color: #5a3e2b;
+            font-weight: 500;
             user-select: none;
             transition: opacity 0.2s;
             white-space: nowrap;
@@ -235,15 +234,12 @@
         .notification-item:hover {
             background: #f8f8f8;
         }
-
-        /* Disable transitions initially to prevent animation on page load */
         .sidebar-no-transition {
             transition: none !important;
         }
         .sidebar-no-transition * {
             transition: none !important;
         }
-
         @media (max-width: 1024px) {
             .sidebar {
                 position: fixed;
@@ -269,7 +265,7 @@
                 pointer-events: none;
             }
             .sidebar ul li a i {
-                margin-right: 0;
+                margin-right: 12px;
             }
             .sidebar-notification-wrapper {
                 padding-bottom: 10px;
@@ -278,41 +274,33 @@
     </style>
 </head>
 <script>
-    // Set initial sidebar state BEFORE DOMContentLoaded to prevent animation
     (function() {
         try {
             const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
             if (isCollapsed) {
-                // Add class to body immediately to prevent animation
                 document.documentElement.className += ' sidebar-collapsed';
             }
         } catch (e) {
-            // Fallback if localStorage is not available
         }
     })();
 
     document.addEventListener('DOMContentLoaded', () => {
-        // Function to get sidebar state from localStorage
         function getSidebarState() {
             try {
                 return localStorage.getItem('sidebarCollapsed') === 'true';
             } catch (e) {
-                // Fallback if localStorage is not available
                 return false;
             }
         }
 
-        // Function to save sidebar state to localStorage
         function setSidebarState(isCollapsed) {
             try {
                 localStorage.setItem('sidebarCollapsed', isCollapsed.toString());
             } catch (e) {
-                // Fallback if localStorage is not available
                 console.warn('Unable to save sidebar state to localStorage');
             }
         }
 
-        // Function to apply sidebar state
         function applySidebarState(isCollapsed) {
             if (isCollapsed) {
                 document.body.classList.add('sidebar-collapsed');
@@ -321,46 +309,35 @@
             }
         }
 
-        // Function to toggle sidebar state
         function toggleSidebar() {
             const isCurrentlyCollapsed = document.body.classList.contains('sidebar-collapsed');
             const newState = !isCurrentlyCollapsed;
-
-            // Apply the new state
             applySidebarState(newState);
-
-            // Save the new state to localStorage
             setSidebarState(newState);
         }
 
-        // Initialize sidebar state on page load (should already be set, but ensure consistency)
         const savedState = getSidebarState();
         applySidebarState(savedState);
 
-        // Enable transitions after initial state is set
         setTimeout(() => {
             document.body.classList.remove('sidebar-no-transition');
         }, 50);
 
-        // Sidebar toggle functionality with state persistence
         const sidebarToggleRow = document.querySelector('.sidebar-toggle-btn-row');
         const sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
 
-        // Click handler for the entire toggle row
         sidebarToggleRow.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
             toggleSidebar();
         });
 
-        // Backup click handler for the button itself (in case row handler fails)
         sidebarToggleBtn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
             toggleSidebar();
         });
 
-        // Keyboard support for toggle row
         sidebarToggleRow.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
@@ -368,12 +345,10 @@
             }
         });
 
-        // Make toggle row focusable
         sidebarToggleRow.setAttribute('tabindex', '0');
         sidebarToggleRow.setAttribute('role', 'button');
         sidebarToggleRow.setAttribute('aria-label', 'Toggle sidebar');
 
-        // Notification dropdown functionality
         const notification = document.querySelector('.notification');
         const dropdown = notification.querySelector('.notification-dropdown');
         const notificationRow = document.querySelector('.sidebar-notification-row');
@@ -389,9 +364,7 @@
             }
         }
 
-        // Click handler for the entire notification row
         notificationRow.addEventListener('click', (e) => {
-            // Prevent the dropdown toggle when clicking on the dropdown itself
             if (!dropdown.contains(e.target)) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -411,7 +384,6 @@
             }
         });
 
-        // Close dropdown when clicking outside
         document.addEventListener('click', (e) => {
             if (!notificationRow.contains(e.target)) {
                 dropdown.setAttribute('hidden', '');
@@ -419,14 +391,9 @@
             }
         });
 
-        // Make notification row focusable
         notificationRow.setAttribute('tabindex', '0');
         notificationRow.setAttribute('role', 'button');
         notificationRow.setAttribute('aria-label', 'Open notifications');
-
-        // Debug logging (remove in production)
-        console.log('Sidebar toggle handlers attached');
-        console.log('Initial sidebar state:', getSidebarState());
     });
 </script>
 <body class="sidebar-no-transition">
@@ -445,16 +412,6 @@
         </div>
         <div class="sidebar-menu">
             <ul>
-                <%
-                const sidebarItems = [
-                    { path: '/dashboard', label: 'Home', icon: 'house' },
-                    { path: '/order', label: 'Orders', icon: 'box' },
-                    { path: '/menu', label: 'POS Menu', icon: 'list' },
-                    { path: '/stocks', label: 'Stocks', icon: 'warehouse' },
-                    { path: '/products', label: 'Products', icon: 'cart-shopping' },
-                    { path: '/logout', label: 'Logout', icon: 'door-open' }
-                ];
-                %>
                 <% sidebarItems.forEach(item => {
                     const isActive = (currentPage === item.path);
                 %>
