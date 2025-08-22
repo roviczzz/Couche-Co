@@ -276,7 +276,7 @@ menuItems.forEach(item => {
         }
     }
 
-    function addToOrder(name, price, size = null, category = null, productId = null, addons = []) {
+    function addToOrder(name, price, size = null, category = null, productId = null, addons = [], imagelink = '') {
         const key = size ? `${name} - ${size} - ${JSON.stringify(addons.map(a => a.AddOnID).sort())}` : `${name} - ${JSON.stringify(addons.map(a => a.AddOnID).sort())}`;
         let existingItem = orderItems.find(item => item.key === key);
 
@@ -291,7 +291,8 @@ menuItems.forEach(item => {
                 key,
                 category,
                 productId,
-                addons
+                addons,
+                imagelink
             });
         }
         renderOrderItems();
@@ -318,24 +319,34 @@ menuItems.forEach(item => {
         const container = document.getElementById('order-items');
         container.innerHTML = '';
         orderItems.forEach((item, index) => {
-            const sizeLabel = item.size ? `<div class="order-size">${item.size}</div>` : '';
+            const imgSrc = item.imagelink && item.imagelink !== "null" ? item.imagelink : 'https://via.placeholder.com/50x50?text=No+Image';
+            const sizeLabel = item.size ? `<div class="order-item-size">${item.size}</div>` : '';
             const addonLabel = item.addons && item.addons.length > 0
-                ? `<div class="order-addons" style="font-size:12px;color:#a87636;margin-bottom:2px;">+ ${item.addons.map(a => a.Name).join(', ')}</div>` : '';
+                ? `<div class="order-item-addons">+ ${item.addons.map(a => a.Name).join(', ')}</div>` : '';
             const baseAddonPrice = item.addons ? item.addons.reduce((sum, ad) => sum + ad.BasePrice, 0) : 0;
             const totalPrice = ((item.price + baseAddonPrice) * item.quantity).toFixed(2);
             const itemHTML = `
-      <div class="order-item" style="border-bottom:1px solid #eee; padding-bottom:15px; margin-bottom:15px;">
-        <button class="quantity-btn remove-btn" onclick="removeItem(${index})">-</button>
-        <div class="quantity">${item.quantity}x</div>
-        <button class="quantity-btn add-btn" onclick="addItem(${index})">+</button>
-        <div class="item-details">
-          <div class="item-name">${item.name}</div>
-          ${sizeLabel}
-          ${addonLabel}
-          <div class="item-price">₱ ${totalPrice}</div>
+        <div class="order-item-custom">
+            <div class="order-item-imgwrap">
+                <img src="${imgSrc}" alt="${item.name || ''}">
+            </div>
+            <div class="order-item-info">
+                <div class="order-item-main">
+                    <div>
+                        <div class="order-item-title">${item.name}</div>
+                        ${sizeLabel}
+                        ${addonLabel}
+                    </div>
+                    <div class="order-item-price">₱ ${totalPrice}</div>
+                </div>
+                <div class="order-item-actions">
+                    <button class="quantity-btn remove-btn" onclick="removeItem(${index})">-</button>
+                    <span class="order-item-qty">${item.quantity}</span>
+                    <button class="quantity-btn add-btn" onclick="addItem(${index})">+</button>
+                </div>
+            </div>
         </div>
-      </div>
-    `;
+        `;
             container.innerHTML += itemHTML;
         });
         updateSubtotalFromItems();
@@ -507,7 +518,7 @@ menuItems.forEach(item => {
                 BasePrice: parseFloat(c.dataset.price)
             }));
 
-            addToOrder(item.Name, price, size, item.Category, item.ProductID, selectedAddons);
+            addToOrder(item.Name, price, size, item.Category, item.ProductID, selectedAddons, item.imagelink);
             closeSizeModal();
         };
 
@@ -633,7 +644,7 @@ menuItems.forEach(item => {
             }));
 
             console.log('Selected add-ons:', selectedAddons);
-            addToOrder(item.Name, price, size, item.Category, item.ProductID, selectedAddons);
+            addToOrder(item.Name, price, size, item.Category, item.ProductID, selectedAddons, item.imagelink);
             closeSizeModal();
         };
 
@@ -1271,5 +1282,107 @@ html, body {
 #confirm-cancel-btn {
   background: #ccc;
 }
+
+#order-items {
+    margin-bottom: 16px;
+}
+.order-item-custom {
+    display: flex;
+    align-items: center;
+    padding: 10px 0 10px 0;
+    border-bottom: 1px solid #eee;
+    gap: 12px;
+}
+.order-item-imgwrap {
+    min-width: 48px;
+    min-height: 48px;
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f3f3f3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    top: -20px;
+    position: relative;
+}
+.order-item-imgwrap img {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+.order-item-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.order-item-main {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+.order-item-title {
+    font-weight: 700;
+    font-size: 15px;
+    color: #222;
+    margin-bottom: 2px;
+}
+.order-item-size {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 1px;
+}
+.order-item-addons {
+    font-size: 12px;
+    color: #aa8544;
+    margin-bottom: 1px;
+}
+.order-item-price {
+    font-weight: 700;
+    font-size: 15px;
+    color: #000000;
+    white-space: nowrap;
+    margin-left: 10px;
+}
+.order-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+}
+.order-item-qty {
+    padding: 0 6px;
+    font-weight: 600;
+    font-size: 15px;
+    color: #333;
+}
+.quantity-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+    background: #f0f0f0;
+    color: #111;
+    transition: background 0.15s;
+}
+.remove-btn {
+    background-color: #ff6b6b;
+    color: white;
+}
+.add-btn {
+    background-color: #4CAF50;
+    color: white;
+}
+
 
 </style>
