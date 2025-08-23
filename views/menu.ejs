@@ -76,40 +76,40 @@ menuItems.forEach(item => {
                 <span>Total</span>
                 <span id="total" style="text-align: right;">₱ 0.00</span>
             </div>
-
-        <div class="customer-details-section" style="margin-bottom: 20px;">
-            <label for="delivery-type" style="font-weight: bold; display: block; margin-bottom: 6px; color: black;">Delivery Type</label>
-            <select id="delivery-type" style="width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; margin-bottom: 15px; cursor: pointer;">
-                <option value="Take-Out" selected>Take-Out</option>
-                <option value="Pick-Up">Pick-Up</option>
-                <option value="Delivery">Delivery</option>
-            </select>
-
-            <label for="customer-name" style="font-weight: bold; display: block; margin-bottom: 6px; color: black;">Customer Name</label>
-            <input type="text" id="customer-name" placeholder="Enter customer name" style="width: 92%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; margin-bottom: 15px;" />
-
-            <label for="contact-number" style="font-weight: bold; display: block; margin-bottom: 6px; color: black;">Contact Number</label>
-            <input type="text" id="contact-number" placeholder="Enter contact number (optional)" style="width: 92%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; margin-bottom: 15px;" />
-
-
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px;">
-                <label for="notes-textarea" style="font-weight: bold; color: black; margin: 0; user-select: none;">Notes</label>
-                <button id="toggle-notes-btn" type="button"
-                        style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="#5a3e2b" width="18" height="18" viewBox="0 0 24 24">
-                        <path d="M7 10l5 5 5-5H7z"/>
-                    </svg>
-                </button>
-            </div>
-            <textarea id="notes-textarea" maxlength="250" rows="3" placeholder="Add notes (max 250 characters)"
-                      style="width: 92%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; resize: vertical; margin-top: -10px; margin-bottom: 15px; display: none;"></textarea>
-
-            <div id="address-container" style="display: none;">
-                <label for="address" style="font-weight: bold; display: block; margin-bottom: 6px; color: #5a3e2b;">Address</label>
-                <textarea id="address" rows="3" placeholder="Enter delivery address" style="width: 92%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; resize: vertical;"></textarea>
-            </div>
-
         </div>
+            <div class="customer-details-section" style="margin-bottom: 20px;">
+                <label for="delivery-type" style="font-weight: bold; display: block; margin-bottom: 6px; color: black;">Delivery Type</label>
+                <select id="delivery-type" style="width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; margin-bottom: 15px; cursor: pointer;">
+                    <option value="Take-Out" selected>Take-Out</option>
+                    <option value="Pick-Up">Pick-Up</option>
+                    <option value="Delivery">Delivery</option>
+                </select>
+
+                <label for="customer-name" style="font-weight: bold; display: block; margin-bottom: 6px; color: black;">Customer Name</label>
+                <input type="text" id="customer-name" placeholder="Enter customer name" style="width: 92%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; margin-bottom: 15px;" />
+
+                <label for="contact-number" style="font-weight: bold; display: block; margin-bottom: 6px; color: black;">Contact Number</label>
+                <input type="text" id="contact-number" placeholder="Enter contact number (optional)" style="width: 92%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; margin-bottom: 15px;" />
+
+
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px;">
+                    <label for="notes-textarea" style="font-weight: bold; color: black; margin: 0; user-select: none;">Notes</label>
+                    <button id="toggle-notes-btn" type="button"
+                            style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="#5a3e2b" width="18" height="18" viewBox="0 0 24 24">
+                            <path d="M7 10l5 5 5-5H7z"/>
+                        </svg>
+                    </button>
+                </div>
+                <textarea id="notes-textarea" maxlength="250" rows="3" placeholder="Add notes (max 250 characters)"
+                          style="width: 92%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; resize: vertical; margin-top: -10px; margin-bottom: 15px; display: none;"></textarea>
+
+                <div id="address-container" style="display: none;">
+                    <label for="address" style="font-weight: bold; display: block; margin-bottom: 6px; color: #5a3e2b;">Address</label>
+                    <textarea id="address" rows="3" placeholder="Enter delivery address" style="width: 92%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; resize: vertical;"></textarea>
+                </div>
+
+            </div>
 
             <div class="payment-section">
                 <div class="payment-title">Payment Method</div>
@@ -123,207 +123,209 @@ menuItems.forEach(item => {
                         <div class="payment-check" style="background-color: #ddd;"></div>
                     </div>
                 </div>
-        </div>
+            </div>
             <button id="proceed-order-btn" class="proceed-btn">Proceed Order</button>
         </div>
     </div>
 
-<div id="size-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;z-index:1000;">
-    <div style="background:#fff;padding:24px 20px;border-radius:12px;min-width:260px;max-width:94vw;box-shadow:0 2px 16px rgba(0,0,0,0.10);display:flex;flex-direction:column;gap:18px;align-items:stretch;">
-        <div style="font-size:1.13rem;font-weight:600;text-align:center;" id="modal-product-name"></div>
-        <div id="size-options" style="display:flex;flex-direction:column;gap:8px;margin-bottom:0;"></div>
-        <div id="addon-options"></div>
-        <div style="display:flex;gap:10px;justify-content:flex-end;">
-            <button onclick="closeSizeModal()" style="padding:8px 18px;border:none;border-radius:7px;background:#eee;color:#5a3e2b;font-size:15px;cursor:pointer;">Cancel</button>
+    <div id="size-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;z-index:1000;">
+        <div style="background:#fff;padding:24px 20px;border-radius:12px;min-width:260px;max-width:94vw;box-shadow:0 2px 16px rgba(0,0,0,0.10);display:flex;flex-direction:column;gap:18px;align-items:stretch;">
+            <div style="font-size:1.13rem;font-weight:600;text-align:center;" id="modal-product-name"></div>
+            <div id="size-options" style="display:flex;flex-direction:column;gap:8px;margin-bottom:0;"></div>
+            <div id="addon-options"></div>
+            <div style="display:flex;gap:10px;justify-content:flex-end;">
+                <button onclick="closeSizeModal()" style="padding:8px 18px;border:none;border-radius:7px;background:#eee;color:#5a3e2b;font-size:15px;cursor:pointer;">Cancel</button>
+            </div>
         </div>
     </div>
-</div>
 
-<div id="order-confirm-modal" class="hidden">
-    <div class="modal-content">
-        <h2>Confirm your order</h2>
-        <p id="confirm-message" style="margin-bottom: 20px;"></p>
-        <button id="confirm-submit-btn">Confirm</button>
-        <button id="confirm-cancel-btn">Cancel</button>
+
+    <div id="order-confirm-modal" class="hidden">
+        <div class="modal-content">
+            <h2>Confirm your order</h2>
+            <p id="confirm-message" style="margin-bottom: 20px;"></p>
+            <button id="confirm-submit-btn">Confirm</button>
+            <button id="confirm-cancel-btn">Cancel</button>
+        </div>
     </div>
-</div>
 
 
-<script>
-    document.getElementById('toggle-notes-btn').onclick = function() {
-        const ta = document.getElementById('notes-textarea');
-        if (ta.style.display === 'block') {
-            ta.style.display = 'none';
-            ta.value = '';
-        } else {
-            ta.style.display = 'block';
-            ta.focus();
-        }
-    };
 
-    let orderItems = [];
-
-    function updateSummary() {
-        let promoQuantity = 0;
-        let promoSets = 0;
-        let pastryTotal = 0;
-        const promoItemsExp = [];
-        orderItems.forEach(item => {
-            if (item.category !== 'Pastries') {
-                for(let i = 0; i < item.quantity; i++) {
-                    promoItemsExp.push(item.price + (item.addons ? item.addons.reduce((sum, ad) => sum + ad.BasePrice, 0) : 0));
-                }
+    <script>
+        document.getElementById('toggle-notes-btn').onclick = function() {
+            const ta = document.getElementById('notes-textarea');
+            if (ta.style.display === 'block') {
+                ta.style.display = 'none';
+                ta.value = '';
             } else {
-                pastryTotal += (item.price + (item.addons ? item.addons.reduce((sum, ad) => sum + ad.BasePrice, 0) : 0)) * item.quantity;
+                ta.style.display = 'block';
+                ta.focus();
             }
-        });
-        promoQuantity = promoItemsExp.length;
-        promoSets = Math.floor(promoQuantity / 3);
-        const promoTotalPrice = promoSets * 143;
-        const leftoverCount = promoQuantity % 3;
-        let leftoverPrice = 0;
-        if(leftoverCount > 0) {
-            promoItemsExp.sort((a,b) => a - b);
-            for(let i = promoQuantity - leftoverCount; i < promoQuantity; i++) {
-                leftoverPrice += promoItemsExp[i];
+        };
+
+        let orderItems = [];
+
+        function updateSummary() {
+            let promoQuantity = 0;
+            let promoSets = 0;
+            let pastryTotal = 0;
+            const promoItemsExp = [];
+            orderItems.forEach(item => {
+                if (item.category !== 'Pastries') {
+                    for(let i = 0; i < item.quantity; i++) {
+                        promoItemsExp.push(item.price + (item.addons ? item.addons.reduce((sum, ad) => sum + ad.BasePrice, 0) : 0));
+                    }
+                } else {
+                    pastryTotal += (item.price + (item.addons ? item.addons.reduce((sum, ad) => sum + ad.BasePrice, 0) : 0)) * item.quantity;
+                }
+            });
+            promoQuantity = promoItemsExp.length;
+            promoSets = Math.floor(promoQuantity / 3);
+            const promoTotalPrice = promoSets * 143;
+            const leftoverCount = promoQuantity % 3;
+            let leftoverPrice = 0;
+            if(leftoverCount > 0) {
+                promoItemsExp.sort((a,b) => a - b);
+                for(let i = promoQuantity - leftoverCount; i < promoQuantity; i++) {
+                    leftoverPrice += promoItemsExp[i];
+                }
             }
-        }
-        let subtotalPromoApplied = promoTotalPrice + leftoverPrice + pastryTotal;
-        const deliveryType = document.getElementById('delivery-type')?.value;
-        const deliveryFee = 15;
-        const summaryTotals = document.querySelector('.summary-totals');
+            let subtotalPromoApplied = promoTotalPrice + leftoverPrice + pastryTotal;
+            const deliveryType = document.getElementById('delivery-type')?.value;
+            const deliveryFee = 15;
+            const summaryTotals = document.querySelector('.summary-totals');
 
-        const existingDeliveryFeeDiv = document.getElementById('delivery-fee-message');
-        if (existingDeliveryFeeDiv) existingDeliveryFeeDiv.remove();
+            const existingDeliveryFeeDiv = document.getElementById('delivery-fee-message');
+            if (existingDeliveryFeeDiv) existingDeliveryFeeDiv.remove();
 
-        if (deliveryType === 'Delivery') {
-            subtotalPromoApplied += deliveryFee;
-            const div = document.createElement('div');
-            div.id = 'delivery-fee-message';
-            div.style.marginTop = '10px';
-            div.style.fontWeight = 'bold';
-            div.style.color = '#a05c2f';
-            div.textContent = `Delivery Fee applied: ₱ ${deliveryFee.toFixed(2)}`;
-            summaryTotals.appendChild(div);
-        }
-
-        const promoDiv = document.getElementById('promo-applied');
-        if (!promoDiv) {
-            if (promoSets > 0) {
+            if (deliveryType === 'Delivery') {
+                subtotalPromoApplied += deliveryFee;
                 const div = document.createElement('div');
-                div.id = 'promo-applied';
+                div.id = 'delivery-fee-message';
                 div.style.marginTop = '10px';
-                div.style.display = 'flex';
-                div.style.justifyContent = 'space-between';
-                div.style.fontWeight = '400';
-                div.innerHTML = `<span>for ${promoSets * 3} items - ₱ ${(promoSets * 143).toFixed(2)}</span>`;
+                div.style.fontWeight = 'bold';
+                div.style.color = '#a05c2f';
+                div.textContent = `Delivery Fee applied: ₱ ${deliveryFee.toFixed(2)}`;
                 summaryTotals.appendChild(div);
             }
-        } else {
-            if (promoSets > 0) {
-                promoDiv.innerHTML = `<span>for ${promoSets * 3} items - ₱ ${(promoSets * 143).toFixed(2)}</span>`;
-                promoDiv.style.fontWeight = '400';
-                promoDiv.style.display = 'flex';
-                promoDiv.style.justifyContent = 'space-between';
+
+            const promoDiv = document.getElementById('promo-applied');
+            if (!promoDiv) {
+                if (promoSets > 0) {
+                    const div = document.createElement('div');
+                    div.id = 'promo-applied';
+                    div.style.marginTop = '10px';
+                    div.style.display = 'flex';
+                    div.style.justifyContent = 'space-between';
+                    div.style.fontWeight = '400';
+                    div.innerHTML = `<span>for ${promoSets * 3} items - ₱ ${(promoSets * 143).toFixed(2)}</span>`;
+                    summaryTotals.appendChild(div);
+                }
             } else {
-                promoDiv.innerHTML = '';
+                if (promoSets > 0) {
+                    promoDiv.innerHTML = `<span>for ${promoSets * 3} items - ₱ ${(promoSets * 143).toFixed(2)}</span>`;
+                    promoDiv.style.fontWeight = '400';
+                    promoDiv.style.display = 'flex';
+                    promoDiv.style.justifyContent = 'space-between';
+                } else {
+                    promoDiv.innerHTML = '';
+                }
+            }
+
+            updateSubtotalFromItems();
+
+            document.getElementById('total').textContent = `₱ ${subtotalPromoApplied.toFixed(2)}`;
+        }
+
+        function calculateTotals() {
+            const itemPriceElements = document.querySelectorAll('.item-price');
+            const quantityElements = document.querySelectorAll('.quantity');
+
+            let subtotalItems = 0;
+            let totalItems = 0;
+
+            itemPriceElements.forEach(priceEl => {
+                const priceText = priceEl.textContent || priceEl.innerText;
+                const price = parseFloat(priceText.replace(/[^0-9.]/g, ''));
+                if (!isNaN(price)) subtotalItems += price;
+            });
+
+            quantityElements.forEach(qtyEl => {
+                const qtyText = qtyEl.textContent || qtyEl.innerText;
+                const qty = parseInt(qtyText.replace(/\D/g, ''), 10);
+                if (!isNaN(qty)) totalItems += qty;
+            });
+
+            const totalItemsSpan = document.getElementById('total-items');
+
+            if(totalItemsSpan) {
+                totalItemsSpan.textContent = totalItems;
+            }
+
+            return subtotalItems;
+        }
+
+        function updateSubtotalFromItems() {
+            const subtotalSpan = document.getElementById('subtotal');
+            let subtotalItems = 0;
+            orderItems.forEach(item => {
+                subtotalItems += (item.price + (item.addons ? item.addons.reduce((sum, ad) => sum + ad.BasePrice, 0) : 0)) * item.quantity;
+            });
+            if (subtotalSpan) {
+                subtotalSpan.textContent = `₱ ${subtotalItems.toFixed(2)}`;
             }
         }
 
-        updateSubtotalFromItems();
+        function addToOrder(name, price, size = null, category = null, productId = null, addons = [], imagelink = '') {
+            const key = size ? `${name} - ${size} - ${JSON.stringify(addons.map(a => a.AddOnID).sort())}` : `${name} - ${JSON.stringify(addons.map(a => a.AddOnID).sort())}`;
+            let existingItem = orderItems.find(item => item.key === key);
 
-        document.getElementById('total').textContent = `₱ ${subtotalPromoApplied.toFixed(2)}`;
-    }
-
-    function calculateTotals() {
-        const itemPriceElements = document.querySelectorAll('.item-price');
-        const quantityElements = document.querySelectorAll('.quantity');
-
-        let subtotalItems = 0;
-        let totalItems = 0;
-
-        itemPriceElements.forEach(priceEl => {
-            const priceText = priceEl.textContent || priceEl.innerText;
-            const price = parseFloat(priceText.replace(/[^0-9.]/g, ''));
-            if (!isNaN(price)) subtotalItems += price;
-        });
-
-        quantityElements.forEach(qtyEl => {
-            const qtyText = qtyEl.textContent || qtyEl.innerText;
-            const qty = parseInt(qtyText.replace(/\D/g, ''), 10);
-            if (!isNaN(qty)) totalItems += qty;
-        });
-
-        const totalItemsSpan = document.getElementById('total-items');
-
-        if(totalItemsSpan) {
-            totalItemsSpan.textContent = totalItems;
+            if (existingItem) {
+                existingItem.quantity++;
+            } else {
+                orderItems.push({
+                    name,
+                    size,
+                    price,
+                    quantity: 1,
+                    key,
+                    category,
+                    productId,
+                    addons,
+                    imagelink
+                });
+            }
+            renderOrderItems();
+            updateSummary();
         }
 
-        return subtotalItems;
-    }
-
-    function updateSubtotalFromItems() {
-        const subtotalSpan = document.getElementById('subtotal');
-        let subtotalItems = 0;
-        orderItems.forEach(item => {
-            subtotalItems += (item.price + (item.addons ? item.addons.reduce((sum, ad) => sum + ad.BasePrice, 0) : 0)) * item.quantity;
-        });
-        if (subtotalSpan) {
-            subtotalSpan.textContent = `₱ ${subtotalItems.toFixed(2)}`;
+        function addItem(index) {
+            orderItems[index].quantity++;
+            renderOrderItems();
+            updateSummary();
         }
-    }
 
-    function addToOrder(name, price, size = null, category = null, productId = null, addons = [], imagelink = '') {
-        const key = size ? `${name} - ${size} - ${JSON.stringify(addons.map(a => a.AddOnID).sort())}` : `${name} - ${JSON.stringify(addons.map(a => a.AddOnID).sort())}`;
-        let existingItem = orderItems.find(item => item.key === key);
-
-        if (existingItem) {
-            existingItem.quantity++;
-        } else {
-            orderItems.push({
-                name,
-                size,
-                price,
-                quantity: 1,
-                key,
-                category,
-                productId,
-                addons,
-                imagelink
-            });
+        function removeItem(index) {
+            if (orderItems[index].quantity > 1) {
+                orderItems[index].quantity--;
+            } else {
+                orderItems.splice(index, 1);
+            }
+            renderOrderItems();
+            updateSummary();
         }
-        renderOrderItems();
-        updateSummary();
-    }
 
-    function addItem(index) {
-        orderItems[index].quantity++;
-        renderOrderItems();
-        updateSummary();
-    }
-
-    function removeItem(index) {
-        if (orderItems[index].quantity > 1) {
-            orderItems[index].quantity--;
-        } else {
-            orderItems.splice(index, 1);
-        }
-        renderOrderItems();
-        updateSummary();
-    }
-
-    function renderOrderItems() {
-        const container = document.getElementById('order-items');
-        container.innerHTML = '';
-        orderItems.forEach((item, index) => {
-            const imgSrc = item.imagelink && item.imagelink !== "null" ? item.imagelink : 'https://via.placeholder.com/50x50?text=No+Image';
-            const sizeLabel = item.size ? `<div class="order-item-size">${item.size}</div>` : '';
-            const addonLabel = item.addons && item.addons.length > 0
-                ? `<div class="order-item-addons">+ ${item.addons.map(a => a.Name).join(', ')}</div>` : '';
-            const baseAddonPrice = item.addons ? item.addons.reduce((sum, ad) => sum + ad.BasePrice, 0) : 0;
-            const totalPrice = ((item.price + baseAddonPrice) * item.quantity).toFixed(2);
-            const itemHTML = `
+        function renderOrderItems() {
+            const container = document.getElementById('order-items');
+            container.innerHTML = '';
+            orderItems.forEach((item, index) => {
+                const imgSrc = item.imagelink && item.imagelink !== "null" ? item.imagelink : 'https://via.placeholder.com/50x50?text=No+Image';
+                const sizeLabel = item.size ? `<div class="order-item-size">${item.size}</div>` : '';
+                const addonLabel = item.addons && item.addons.length > 0
+                    ? `<div class="order-item-addons">+ ${item.addons.map(a => a.Name).join(', ')}</div>` : '';
+                const baseAddonPrice = item.addons ? item.addons.reduce((sum, ad) => sum + ad.BasePrice, 0) : 0;
+                const totalPrice = ((item.price + baseAddonPrice) * item.quantity).toFixed(2);
+                const itemHTML = `
         <div class="order-item-custom">
             <div class="order-item-imgwrap">
                 <img src="${imgSrc}" alt="${item.name || ''}">
@@ -345,104 +347,104 @@ menuItems.forEach(item => {
             </div>
         </div>
         `;
-            container.innerHTML += itemHTML;
-        });
-        updateSubtotalFromItems();
-        calculateTotals();
-    }
-
-    function selectPayment(method) {
-        const options = document.querySelectorAll('.payment-option');
-        let targetIndex = method === 'cash' ? 0 : 1;
-        const clickedOption = options[targetIndex];
-        const isSelected = clickedOption.classList.contains('selected');
-
-        if (isSelected) {
-            clickedOption.classList.remove('selected');
-            const check = clickedOption.querySelector('.payment-check');
-            check.style.backgroundColor = '#ddd';
-            check.textContent = '';
-        } else {
-            options.forEach((option, index) => {
-                const check = option.querySelector('.payment-check');
-                if (index === targetIndex) {
-                    option.classList.add('selected');
-                    check.style.backgroundColor = '#4CAF50';
-                    check.textContent = '✓';
-                } else {
-                    option.classList.remove('selected');
-                    check.style.backgroundColor = '#ddd';
-                    check.textContent = '';
-                }
+                container.innerHTML += itemHTML;
             });
+            updateSubtotalFromItems();
+            calculateTotals();
         }
-    }
 
-    function handleProductClick(item) {
-        if (item.Sizes && item.Sizes.length > 1) {
-            showSizeAndAddonModal(item);
-        } else {
-            let size = null;
-            let price = item.BasePrice;
-            if (item.Sizes && item.Sizes.length === 1) {
-                size = item.Sizes[0].Size;
-                price = item.Sizes[0].BasePrice;
+        function selectPayment(method) {
+            const options = document.querySelectorAll('.payment-option');
+            let targetIndex = method === 'cash' ? 0 : 1;
+            const clickedOption = options[targetIndex];
+            const isSelected = clickedOption.classList.contains('selected');
+
+            if (isSelected) {
+                clickedOption.classList.remove('selected');
+                const check = clickedOption.querySelector('.payment-check');
+                check.style.backgroundColor = '#ddd';
+                check.textContent = '';
+            } else {
+                options.forEach((option, index) => {
+                    const check = option.querySelector('.payment-check');
+                    if (index === targetIndex) {
+                        option.classList.add('selected');
+                        check.style.backgroundColor = '#4CAF50';
+                        check.textContent = '✓';
+                    } else {
+                        option.classList.remove('selected');
+                        check.style.backgroundColor = '#ddd';
+                        check.textContent = '';
+                    }
+                });
             }
-            showAddonModal(item, size, price);
         }
-    }
 
-    function showSizeAndAddonModal(item) {
-        const modal = document.getElementById('size-modal');
-        const productNameElem = document.getElementById('modal-product-name');
-        const optionsContainer = document.getElementById('size-options');
-        productNameElem.textContent = item.Name;
-        optionsContainer.innerHTML = '';
-        document.getElementById('addon-options').innerHTML = '';
+        function handleProductClick(item) {
+            if (item.Sizes && item.Sizes.length > 1) {
+                showSizeAndAddonModal(item);
+            } else {
+                let size = null;
+                let price = item.BasePrice;
+                if (item.Sizes && item.Sizes.length === 1) {
+                    size = item.Sizes[0].Size;
+                    price = item.Sizes[0].BasePrice;
+                }
+                showAddonModal(item, size, price);
+            }
+        }
 
-        // Render size radio buttons
-        item.Sizes.forEach((sizeObj, idx) => {
-            const label = document.createElement('label');
-            label.style.marginRight = "15px";
-            const radio = document.createElement('input');
-            radio.type = "radio";
-            radio.name = "size-choice";
-            radio.value = sizeObj.Size;
-            radio.dataset.price = sizeObj.BasePrice;
-            if (idx === 0) radio.checked = true;
-            label.appendChild(radio);
-            label.appendChild(document.createTextNode(` ${sizeObj.Size} - ₱${Number(sizeObj.BasePrice).toFixed(2)}`));
-            optionsContainer.appendChild(label);
-        });
-
-        // If Pastries/Bites, no add-ons
-        const lowerCategory = (item.Category || item.category || '').toLowerCase();
-        if (lowerCategory === 'pastries' || lowerCategory === 'bites') {
+        function showSizeAndAddonModal(item) {
+            const modal = document.getElementById('size-modal');
+            const productNameElem = document.getElementById('modal-product-name');
+            const optionsContainer = document.getElementById('size-options');
+            productNameElem.textContent = item.Name;
+            optionsContainer.innerHTML = '';
             document.getElementById('addon-options').innerHTML = '';
-            setupConfirmBtnForSizeAndAddon(item);
-            modal.style.display = 'flex';
-            return;
-        }
 
-        // Fetch add-ons and render below sizes
-        fetch('/api/addons')
-            .then(res => res.json())
-            .then(addons => {
-                const addonDiv = document.getElementById('addon-options');
-                addonDiv.innerHTML = `
+            // Render size radio buttons
+            item.Sizes.forEach((sizeObj, idx) => {
+                const label = document.createElement('label');
+                label.style.marginRight = "15px";
+                const radio = document.createElement('input');
+                radio.type = "radio";
+                radio.name = "size-choice";
+                radio.value = sizeObj.Size;
+                radio.dataset.price = sizeObj.BasePrice;
+                if (idx === 0) radio.checked = true;
+                label.appendChild(radio);
+                label.appendChild(document.createTextNode(` ${sizeObj.Size} - ₱${Number(sizeObj.BasePrice).toFixed(2)}`));
+                optionsContainer.appendChild(label);
+            });
+
+            // If Pastries/Bites, no add-ons
+            const lowerCategory = (item.Category || item.category || '').toLowerCase();
+            if (lowerCategory === 'pastries' || lowerCategory === 'bites') {
+                document.getElementById('addon-options').innerHTML = '';
+                setupConfirmBtnForSizeAndAddon(item);
+                modal.style.display = 'flex';
+                return;
+            }
+
+            // Fetch add-ons and render below sizes
+            fetch('/api/addons')
+                .then(res => res.json())
+                .then(addons => {
+                    const addonDiv = document.getElementById('addon-options');
+                    addonDiv.innerHTML = `
                     <span style="color:#8B4513;font-weight:bold;font-size:16px;margin-bottom:8px;display:block">
                         Add-ons (Optional)
                     </span>
                     <div id="addon-checkboxes" style="display:flex;flex-wrap:wrap;gap:10px;"></div>
                 `;
-                const container = addonDiv.querySelector('#addon-checkboxes');
-                if (!Array.isArray(addons) || addons.length === 0) {
-                    container.innerHTML = '<span style="font-size:12px;color:#999">No available add-ons.</span>';
-                } else {
-                    addons.forEach((addon) => {
-                        if (!(addon.IsEnabled || addon.isEnabled)) return;
-                        const label = document.createElement('label');
-                        label.style.cssText = `
+                    const container = addonDiv.querySelector('#addon-checkboxes');
+                    if (!Array.isArray(addons) || addons.length === 0) {
+                        container.innerHTML = '<span style="font-size:12px;color:#999">No available add-ons.</span>';
+                    } else {
+                        addons.forEach((addon) => {
+                            if (!(addon.IsEnabled || addon.isEnabled)) return;
+                            const label = document.createElement('label');
+                            label.style.cssText = `
                             display: flex;
                             align-items: center;
                             gap: 6px;
@@ -454,39 +456,39 @@ menuItems.forEach(item => {
                             border: 1px solid #e0d0c0;
                             min-width: 120px;
                         `;
-                        const checkbox = document.createElement('input');
-                        checkbox.type = 'checkbox';
-                        checkbox.value = addon.AddOnID;
-                        checkbox.dataset.name = addon.Name;
-                        checkbox.dataset.price = addon.BasePrice;
-                        label.appendChild(checkbox);
-                        const nameSpan = document.createElement('span');
-                        nameSpan.textContent = `${addon.Name} (+₱${parseFloat(addon.BasePrice).toFixed(2)})`;
-                        label.appendChild(nameSpan);
-                        container.appendChild(label);
-                    });
-                }
-                setupConfirmBtnForSizeAndAddon(item);
-                modal.style.display = 'flex';
-            })
-            .catch(() => {
-                const addonDiv = document.getElementById('addon-options');
-                addonDiv.innerHTML = `<span style="font-size:12px;color:#ff6b6b">Error loading add-ons.</span>`;
-                setupConfirmBtnForSizeAndAddon(item);
-                modal.style.display = 'flex';
-            });
-    }
+                            const checkbox = document.createElement('input');
+                            checkbox.type = 'checkbox';
+                            checkbox.value = addon.AddOnID;
+                            checkbox.dataset.name = addon.Name;
+                            checkbox.dataset.price = addon.BasePrice;
+                            label.appendChild(checkbox);
+                            const nameSpan = document.createElement('span');
+                            nameSpan.textContent = `${addon.Name} (+₱${parseFloat(addon.BasePrice).toFixed(2)})`;
+                            label.appendChild(nameSpan);
+                            container.appendChild(label);
+                        });
+                    }
+                    setupConfirmBtnForSizeAndAddon(item);
+                    modal.style.display = 'flex';
+                })
+                .catch(() => {
+                    const addonDiv = document.getElementById('addon-options');
+                    addonDiv.innerHTML = `<span style="font-size:12px;color:#ff6b6b">Error loading add-ons.</span>`;
+                    setupConfirmBtnForSizeAndAddon(item);
+                    modal.style.display = 'flex';
+                });
+        }
 
-    function setupConfirmBtnForSizeAndAddon(item) {
-        const optionsContainer = document.getElementById('size-options');
-        // Remove any existing confirm button
-        const existingBtn = document.getElementById('modal-add-to-order-btn');
-        if (existingBtn) existingBtn.remove();
+        function setupConfirmBtnForSizeAndAddon(item) {
+            const optionsContainer = document.getElementById('size-options');
+            // Remove any existing confirm button
+            const existingBtn = document.getElementById('modal-add-to-order-btn');
+            if (existingBtn) existingBtn.remove();
 
-        const confirmBtn = document.createElement('button');
-        confirmBtn.id = 'modal-add-to-order-btn';
-        confirmBtn.textContent = 'Add to Order';
-        confirmBtn.style.cssText = `
+            const confirmBtn = document.createElement('button');
+            confirmBtn.id = 'modal-add-to-order-btn';
+            confirmBtn.textContent = 'Add to Order';
+            confirmBtn.style.cssText = `
             margin-top: 18px;
             padding: 12px 24px;
             border: none;
@@ -500,43 +502,43 @@ menuItems.forEach(item => {
             width: 100%;
         `;
 
-        confirmBtn.onclick = () => {
-            const selectedSizeRadio = document.querySelector('input[name="size-choice"]:checked');
-            if (!selectedSizeRadio) {
-                alert('Please select a size');
-                return;
-            }
-            const size = selectedSizeRadio.value;
-            const price = parseFloat(selectedSizeRadio.dataset.price);
+            confirmBtn.onclick = () => {
+                const selectedSizeRadio = document.querySelector('input[name="size-choice"]:checked');
+                if (!selectedSizeRadio) {
+                    alert('Please select a size');
+                    return;
+                }
+                const size = selectedSizeRadio.value;
+                const price = parseFloat(selectedSizeRadio.dataset.price);
 
-            const checked = Array.from(document.querySelectorAll('#addon-checkboxes input[type="checkbox"]:checked'));
-            const selectedAddons = checked.map(c => ({
-                AddOnID: c.value,
-                Name: c.dataset.name,
-                BasePrice: parseFloat(c.dataset.price)
-            }));
+                const checked = Array.from(document.querySelectorAll('#addon-checkboxes input[type="checkbox"]:checked'));
+                const selectedAddons = checked.map(c => ({
+                    AddOnID: c.value,
+                    Name: c.dataset.name,
+                    BasePrice: parseFloat(c.dataset.price)
+                }));
 
-            addToOrder(item.Name, price, size, item.Category, item.ProductID, selectedAddons, item.imagelink);
-            closeSizeModal();
-        };
+                addToOrder(item.Name, price, size, item.Category, item.ProductID, selectedAddons, item.imagelink);
+                closeSizeModal();
+            };
 
-        optionsContainer.appendChild(confirmBtn);
-    }
-
-    function showAddonModal(item, size, price) {
-        const modal = document.getElementById('size-modal');
-        const addonOptionsDiv = document.getElementById('addon-options');
-
-        // Hide add-ons for Pastries and Bites
-        const lowerCategory = (item.Category || item.category || '').toLowerCase();
-        if (lowerCategory === 'pastries' || lowerCategory === 'bites') {
-            addonOptionsDiv.innerHTML = '';
-            setupConfirmButton(item, size, price);
-            modal.style.display = 'flex';
-            return;
+            optionsContainer.appendChild(confirmBtn);
         }
 
-        addonOptionsDiv.innerHTML = `
+        function showAddonModal(item, size, price) {
+            const modal = document.getElementById('size-modal');
+            const addonOptionsDiv = document.getElementById('addon-options');
+
+            // Hide add-ons for Pastries and Bites
+            const lowerCategory = (item.Category || item.category || '').toLowerCase();
+            if (lowerCategory === 'pastries' || lowerCategory === 'bites') {
+                addonOptionsDiv.innerHTML = '';
+                setupConfirmButton(item, size, price);
+                modal.style.display = 'flex';
+                return;
+            }
+
+            addonOptionsDiv.innerHTML = `
         <span style="color:#8B4513;font-weight:bold;font-size:16px;margin-bottom:8px;display:block">
             Add-ons (Optional)
         </span>
@@ -545,22 +547,22 @@ menuItems.forEach(item => {
         </div>
     `;
 
-        fetch('/api/addons')
-            .then(res => {
-                if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-                return res.json();
-            })
-            .then(addons => {
-                const container = document.getElementById('addon-checkboxes');
-                if (!container) return;
-                container.innerHTML = '';
-                if (!Array.isArray(addons) || addons.length === 0) {
-                    container.innerHTML = '<span style="font-size:12px;color:#999">No available add-ons.</span>';
-                } else {
-                    addons.forEach((addon) => {
-                        if (!(addon.IsEnabled || addon.isEnabled)) return;
-                        const label = document.createElement('label');
-                        label.style.cssText = `
+            fetch('/api/addons')
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+                    return res.json();
+                })
+                .then(addons => {
+                    const container = document.getElementById('addon-checkboxes');
+                    if (!container) return;
+                    container.innerHTML = '';
+                    if (!Array.isArray(addons) || addons.length === 0) {
+                        container.innerHTML = '<span style="font-size:12px;color:#999">No available add-ons.</span>';
+                    } else {
+                        addons.forEach((addon) => {
+                            if (!(addon.IsEnabled || addon.isEnabled)) return;
+                            const label = document.createElement('label');
+                            label.style.cssText = `
                         display: flex;
                         align-items: center;
                         gap: 6px;
@@ -573,50 +575,50 @@ menuItems.forEach(item => {
                         transition: background-color 0.2s;
                         min-width: 120px;
                     `;
-                        label.onmouseover = () => label.style.backgroundColor = '#f0e6d7';
-                        label.onmouseout = () => label.style.backgroundColor = '#f6eee7';
+                            label.onmouseover = () => label.style.backgroundColor = '#f0e6d7';
+                            label.onmouseout = () => label.style.backgroundColor = '#f6eee7';
 
-                        const checkbox = document.createElement('input');
-                        checkbox.type = 'checkbox';
-                        checkbox.value = addon.AddOnID;
-                        checkbox.dataset.name = addon.Name;
-                        checkbox.dataset.price = addon.BasePrice;
-                        checkbox.style.marginRight = '4px';
+                            const checkbox = document.createElement('input');
+                            checkbox.type = 'checkbox';
+                            checkbox.value = addon.AddOnID;
+                            checkbox.dataset.name = addon.Name;
+                            checkbox.dataset.price = addon.BasePrice;
+                            checkbox.style.marginRight = '4px';
 
-                        const nameSpan = document.createElement('span');
-                        nameSpan.textContent = `${addon.Name} (+₱${parseFloat(addon.BasePrice).toFixed(2)})`;
-                        nameSpan.style.fontSize = '13px';
-                        nameSpan.style.fontWeight = '500';
+                            const nameSpan = document.createElement('span');
+                            nameSpan.textContent = `${addon.Name} (+₱${parseFloat(addon.BasePrice).toFixed(2)})`;
+                            nameSpan.style.fontSize = '13px';
+                            nameSpan.style.fontWeight = '500';
 
-                        label.appendChild(checkbox);
-                        label.appendChild(nameSpan);
-                        container.appendChild(label);
-                    });
+                            label.appendChild(checkbox);
+                            label.appendChild(nameSpan);
+                            container.appendChild(label);
+                        });
 
-                    if (container.childElementCount === 0) {
-                        container.innerHTML = '<span style="font-size:12px;color:#999">No enabled add-ons found.</span>';
+                        if (container.childElementCount === 0) {
+                            container.innerHTML = '<span style="font-size:12px;color:#999">No enabled add-ons found.</span>';
+                        }
                     }
-                }
-                setupConfirmButton(item, size, price);
-                modal.style.display = 'flex';
-            })
-            .catch(error => {
-                const container = document.getElementById('addon-checkboxes');
-                if (container) {
-                    container.innerHTML = `<span style="font-size:12px;color:#ff6b6b">Error loading add-ons: ${error.message}</span>`;
-                }
-                setupConfirmButton(item, size, price);
-                modal.style.display = 'flex';
-            });
-    }
+                    setupConfirmButton(item, size, price);
+                    modal.style.display = 'flex';
+                })
+                .catch(error => {
+                    const container = document.getElementById('addon-checkboxes');
+                    if (container) {
+                        container.innerHTML = `<span style="font-size:12px;color:#ff6b6b">Error loading add-ons: ${error.message}</span>`;
+                    }
+                    setupConfirmButton(item, size, price);
+                    modal.style.display = 'flex';
+                });
+        }
 
-    function setupConfirmButton(item, size, price) {
-        const optionsContainer = document.getElementById('size-options');
-        optionsContainer.innerHTML = '';
+        function setupConfirmButton(item, size, price) {
+            const optionsContainer = document.getElementById('size-options');
+            optionsContainer.innerHTML = '';
 
-        const confirmBtn = document.createElement('button');
-        confirmBtn.textContent = 'Add to Order';
-        confirmBtn.style.cssText = `
+            const confirmBtn = document.createElement('button');
+            confirmBtn.textContent = 'Add to Order';
+            confirmBtn.style.cssText = `
         margin-top: 15px;
         padding: 12px 24px;
         border: none;
@@ -630,756 +632,754 @@ menuItems.forEach(item => {
         width: 100%;
     `;
 
-        confirmBtn.onmouseover = () => confirmBtn.style.backgroundColor = '#B8956A';
-        confirmBtn.onmouseout = () => confirmBtn.style.backgroundColor = '#D4A574';
+            confirmBtn.onmouseover = () => confirmBtn.style.backgroundColor = '#B8956A';
+            confirmBtn.onmouseout = () => confirmBtn.style.backgroundColor = '#D4A574';
 
-        confirmBtn.onclick = () => {
-            const checked = Array.from(document.querySelectorAll('#addon-checkboxes input[type="checkbox"]:checked'));
-            const selectedAddons = checked.map(c => ({
-                AddOnID: c.value,
-                Name: c.dataset.name,
-                BasePrice: parseFloat(c.dataset.price)
-            }));
+            confirmBtn.onclick = () => {
+                const checked = Array.from(document.querySelectorAll('#addon-checkboxes input[type="checkbox"]:checked'));
+                const selectedAddons = checked.map(c => ({
+                    AddOnID: c.value,
+                    Name: c.dataset.name,
+                    BasePrice: parseFloat(c.dataset.price)
+                }));
 
-            console.log('Selected add-ons:', selectedAddons);
-            addToOrder(item.Name, price, size, item.Category, item.ProductID, selectedAddons, item.imagelink);
-            closeSizeModal();
-        };
+                console.log('Selected add-ons:', selectedAddons);
+                addToOrder(item.Name, price, size, item.Category, item.ProductID, selectedAddons, item.imagelink);
+                closeSizeModal();
+            };
 
-        optionsContainer.appendChild(confirmBtn);
-    }
-
-    function closeSizeModal() {
-        const modal = document.getElementById('size-modal');
-        modal.style.display = 'none';
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        const deliveryTypeSelect = document.getElementById('delivery-type');
-        if(deliveryTypeSelect) {
-            deliveryTypeSelect.addEventListener('change', () => {
-                const addressContainer = document.getElementById('address-container');
-                if(deliveryTypeSelect.value === 'Delivery') {
-                    addressContainer.style.display = 'block';
-                } else {
-                    addressContainer.style.display = 'none';
-                }
-                updateSummary();
-            });
-            if(deliveryTypeSelect.value === 'Delivery') {
-                document.getElementById('address-container').style.display = 'block';
-            }
-
-            const options = document.querySelectorAll('.payment-option');
-            options.forEach(option => {
-                if (!option.classList.contains('selected')) {
-                    const check = option.querySelector('.payment-check');
-                    check.style.backgroundColor = '#ddd';
-                    check.textContent = '';
-                }
-            });
-        }
-    });
-
-    document.getElementById('delivery-type').addEventListener('change', () => {
-        const deliveryType = document.getElementById('delivery-type').value;
-        const addressContainer = document.getElementById('address-container');
-        if (deliveryType === 'Delivery') {
-            addressContainer.style.display = 'block';
-        } else {
-            addressContainer.style.display = 'none';
-        }
-        updateSummary();
-    });
-
-    async function generateUniqueCustomerName() {
-        let existingNames = [];
-
-        try {
-            const res = await fetch('/api/orders/preparing-customers');
-            if (res.ok) {
-                existingNames = await res.json(); // array of strings
-            }
-        } catch (e) {
+            optionsContainer.appendChild(confirmBtn);
         }
 
-        let name;
-        let tries = 0;
-        do {
-            name = 'Customer#' + Math.floor(10000 + Math.random() * 90000);
-            tries++;
-            if (tries > 100) break;
-        } while (existingNames.includes(name));
-        return name;
-    }
-
-    document.getElementById('proceed-order-btn').addEventListener('click', async function() {
-        if (orderItems.length === 0) {
-            alert('Please add at least one item to your order.');
-            return;
+        function closeSizeModal() {
+            const modal = document.getElementById('size-modal');
+            modal.style.display = 'none';
         }
 
-        const deliveryType = document.getElementById('delivery-type').value;
-        let customerName = document.getElementById('customer-name').value.trim();
-
-        if (deliveryType !== 'Take-Out' && !customerName) {
-            alert('Please enter the customer name.');
-            return;
-        }
-
-        if (deliveryType === 'Take-Out' && !customerName) {
-            customerName = await generateUniqueCustomerName();
-            document.getElementById('customer-name').value = customerName;
-        }
-
-        const contactNumber = document.getElementById('contact-number').value.trim();
-
-        if (!deliveryType) {
-            alert('Please select a delivery type.');
-            return;
-        }
-        if (deliveryType === 'Delivery') {
-            const address = document.getElementById('address').value.trim();
-            if (!address) {
-                alert('Please enter the delivery address.');
-                return;
-            }
-        }
-
-        const selectedPaymentOption = document.querySelector('.payment-option.selected');
-        if (!selectedPaymentOption) {
-            alert('Please select a payment method.');
-            return;
-        }
-        const paymentModeText = selectedPaymentOption.querySelector('span').textContent.trim();
-
-        const totalText = document.querySelector('.total-row.final span:last-child').textContent;
-        const totalNumber = totalText.replace(/[^0-9.]/g, '');
-
-        let totalItemsCount = orderItems.reduce((sum, item) => sum + item.quantity, 0);
-
-        const notes = document.getElementById('notes-textarea').value.trim();
-
-        let confirmMsg = `Customer: ${customerName}\n`;
-        if (contactNumber) {
-            confirmMsg += `Contact Number: ${contactNumber}\n`;
-        }
-        confirmMsg += `Items: ${totalItemsCount} items\nDelivery Type: ${deliveryType}\n`;
-        if (deliveryType === 'Delivery') {
-            confirmMsg += `Address: ${document.getElementById('address').value.trim()}\n`;
-        }
-        if (notes) {
-            confirmMsg += `Notes: ${notes}\n`;
-        }
-        confirmMsg += `Payment Method: ${paymentModeText}\nTotal: ₱${totalNumber}`;
-
-        const modal = document.getElementById('order-confirm-modal');
-        const messageElem = document.getElementById('confirm-message');
-        messageElem.textContent = confirmMsg;
-        modal.classList.remove('hidden');
-
-        const confirmBtn = document.getElementById('confirm-submit-btn');
-        const cancelBtn = document.getElementById('confirm-cancel-btn');
-
-        confirmBtn.onclick = function() {
-            submitOrder(customerName, contactNumber, deliveryType, paymentModeText, totalNumber, totalItemsCount, notes);
-            modal.classList.add('hidden');
-        };
-        cancelBtn.onclick = function() {
-            modal.classList.add('hidden');
-        };
-    });
-
-    function generateOrderID() {
-        let lastOrderNumber = parseInt(localStorage.getItem('lastOrderNumber') || '999', 10);
-        lastOrderNumber++;
-        localStorage.setItem('lastOrderNumber', lastOrderNumber);
-        return lastOrderNumber;
-    }
-
-    function submitOrder(customer, contactNumber, deliveryType, paymentMode, total, itemTotal, notes) {
-        const cart = orderItems.map(item => ({
-            ProductID: item.productId || item.key,
-            ProductName: item.name,
-            Quantity: item.quantity,
-            Size: item.size || null,
-            BasePrice: item.price,
-            AddOns: item.addons && item.addons.length > 0
-                ? item.addons.map(a => ({ AddOnID: a.AddOnID, Name: a.Name, BasePrice: a.BasePrice }))
-                : []
-        }));
-
-        function formatDate(dateObj) {
-            const pad = (n) => (n < 10 ? '0' + n : n);
-            return dateObj.getFullYear() + '-' +
-                pad(dateObj.getMonth() + 1) + '-' +
-                pad(dateObj.getDate()) + ' ' +
-                pad(dateObj.getHours()) + ':' +
-                pad(dateObj.getMinutes()) + ':' +
-                pad(dateObj.getSeconds());
-        }
-
-        const orderData = {
-            OrderID: generateOrderID(),
-            Date: formatDate(new Date()),
-            Cart: cart,
-            Customer: customer,
-            ContactNumber: contactNumber || '',
-            PaymentStatus: "Payment pending",
-            PaymentMode: paymentMode,
-            Total: parseFloat(total),
-            ItemTotal: itemTotal,
-            DeliveryStatus: deliveryType,
-            Address: (deliveryType === 'Delivery') ? document.getElementById('address').value.trim() : '',
-            Notes: notes || '',
-            FulfillmentStatus: "Preparing",
-            Source: "POS"
-        };
-
-        fetch('/api/orders', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(orderData)
-        })
-            .then(res => {
-                if (!res.ok) {
-                    throw new Error(`Network response was not ok: ${res.status} ${res.statusText}`);
-                }
-                const contentType = res.headers.get('content-type');
-                if (!contentType || !contentType.includes('application/json')) {
-                    throw new TypeError('Oops, we haven\'t got JSON!');
-                }
-                return res.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    alert('Order submitted successfully! Your Order ID is: ' + orderData.OrderID);
-                    orderItems = [];
-                    renderOrderItems();
-                    document.getElementById('customer-name').value = '';
-                    document.getElementById('contact-number').value = '';
-                    const deliveryTypeSelect = document.getElementById('delivery-type');
-                    deliveryTypeSelect.value = 'Take-Out';
+        document.addEventListener('DOMContentLoaded', () => {
+            const deliveryTypeSelect = document.getElementById('delivery-type');
+            if(deliveryTypeSelect) {
+                deliveryTypeSelect.addEventListener('change', () => {
                     const addressContainer = document.getElementById('address-container');
-                    const addressInput = document.getElementById('address');
-                    addressContainer.style.display = 'none';
-                    addressInput.value = '';
-                    document.getElementById('notes-textarea').value = '';
+                    if(deliveryTypeSelect.value === 'Delivery') {
+                        addressContainer.style.display = 'block';
+                    } else {
+                        addressContainer.style.display = 'none';
+                    }
                     updateSummary();
-                    const deliveryFeeDiv = document.getElementById('delivery-fee-message');
-                    if (deliveryFeeDiv) deliveryFeeDiv.remove();
-                    document.querySelectorAll('.payment-option.selected').forEach(el => {
-                        el.classList.remove('selected');
-                        const check = el.querySelector('.payment-check');
+                });
+                if(deliveryTypeSelect.value === 'Delivery') {
+                    document.getElementById('address-container').style.display = 'block';
+                }
+
+                const options = document.querySelectorAll('.payment-option');
+                options.forEach(option => {
+                    if (!option.classList.contains('selected')) {
+                        const check = option.querySelector('.payment-check');
                         check.style.backgroundColor = '#ddd';
                         check.textContent = '';
-                    });
-                } else {
-                    alert('Failed to submit order. Please try again.');
-                    console.error(data.error || 'Unknown error from server.');
+                    }
+                });
+            }
+        });
+
+        document.getElementById('delivery-type').addEventListener('change', () => {
+            const deliveryType = document.getElementById('delivery-type').value;
+            const addressContainer = document.getElementById('address-container');
+            if (deliveryType === 'Delivery') {
+                addressContainer.style.display = 'block';
+            } else {
+                addressContainer.style.display = 'none';
+            }
+            updateSummary();
+        });
+
+        async function generateUniqueCustomerName() {
+            let existingNames = [];
+
+            try {
+                const res = await fetch('/api/orders/preparing-customers');
+                if (res.ok) {
+                    existingNames = await res.json(); // array of strings
                 }
+            } catch (e) {
+            }
+
+            let name;
+            let tries = 0;
+            do {
+                name = 'Customer#' + Math.floor(10000 + Math.random() * 90000);
+                tries++;
+                if (tries > 100) break;
+            } while (existingNames.includes(name));
+            return name;
+        }
+
+        document.getElementById('proceed-order-btn').addEventListener('click', async function() {
+            if (orderItems.length === 0) {
+                alert('Please add at least one item to your order.');
+                return;
+            }
+
+            const deliveryType = document.getElementById('delivery-type').value;
+            let customerName = document.getElementById('customer-name').value.trim();
+
+            if (deliveryType !== 'Take-Out' && !customerName) {
+                alert('Please enter the customer name.');
+                return;
+            }
+
+            if (deliveryType === 'Take-Out' && !customerName) {
+                customerName = await generateUniqueCustomerName();
+                document.getElementById('customer-name').value = customerName;
+            }
+
+            const contactNumber = document.getElementById('contact-number').value.trim();
+
+            if (!deliveryType) {
+                alert('Please select a delivery type.');
+                return;
+            }
+            if (deliveryType === 'Delivery') {
+                const address = document.getElementById('address').value.trim();
+                if (!address) {
+                    alert('Please enter the delivery address.');
+                    return;
+                }
+            }
+
+            const selectedPaymentOption = document.querySelector('.payment-option.selected');
+            if (!selectedPaymentOption) {
+                alert('Please select a payment method.');
+                return;
+            }
+            const paymentModeText = selectedPaymentOption.querySelector('span').textContent.trim();
+
+            const totalText = document.querySelector('.total-row.final span:last-child').textContent;
+            const totalNumber = totalText.replace(/[^0-9.]/g, '');
+
+            let totalItemsCount = orderItems.reduce((sum, item) => sum + item.quantity, 0);
+
+            const notes = document.getElementById('notes-textarea').value.trim();
+
+            let confirmMsg = `Customer: ${customerName}\n`;
+            if (contactNumber) {
+                confirmMsg += `Contact Number: ${contactNumber}\n`;
+            }
+            confirmMsg += `Items: ${totalItemsCount} items\nDelivery Type: ${deliveryType}\n`;
+            if (deliveryType === 'Delivery') {
+                confirmMsg += `Address: ${document.getElementById('address').value.trim()}\n`;
+            }
+            if (notes) {
+                confirmMsg += `Notes: ${notes}\n`;
+            }
+            confirmMsg += `Payment Method: ${paymentModeText}\nTotal: ₱${totalNumber}`;
+
+            const modal = document.getElementById('order-confirm-modal');
+            const messageElem = document.getElementById('confirm-message');
+            messageElem.textContent = confirmMsg;
+            modal.classList.remove('hidden');
+
+            const confirmBtn = document.getElementById('confirm-submit-btn');
+            const cancelBtn = document.getElementById('confirm-cancel-btn');
+
+            confirmBtn.onclick = function() {
+                submitOrder(customerName, contactNumber, deliveryType, paymentModeText, totalNumber, totalItemsCount, notes);
+                modal.classList.add('hidden');
+            };
+            cancelBtn.onclick = function() {
+                modal.classList.add('hidden');
+            };
+        });
+
+        function generateOrderID() {
+            let lastOrderNumber = parseInt(localStorage.getItem('lastOrderNumber') || '999', 10);
+            lastOrderNumber++;
+            localStorage.setItem('lastOrderNumber', lastOrderNumber);
+            return lastOrderNumber;
+        }
+
+        function submitOrder(customer, contactNumber, deliveryType, paymentMode, total, itemTotal, notes) {
+            const cart = orderItems.map(item => ({
+                ProductID: item.productId || item.key,
+                ProductName: item.name,
+                Quantity: item.quantity,
+                Size: item.size || null,
+                BasePrice: item.price,
+                AddOns: item.addons && item.addons.length > 0
+                    ? item.addons.map(a => ({ AddOnID: a.AddOnID, Name: a.Name, BasePrice: a.BasePrice }))
+                    : []
+            }));
+
+            function formatDate(dateObj) {
+                const pad = (n) => (n < 10 ? '0' + n : n);
+                return dateObj.getFullYear() + '-' +
+                    pad(dateObj.getMonth() + 1) + '-' +
+                    pad(dateObj.getDate()) + ' ' +
+                    pad(dateObj.getHours()) + ':' +
+                    pad(dateObj.getMinutes()) + ':' +
+                    pad(dateObj.getSeconds());
+            }
+
+            const orderData = {
+                OrderID: generateOrderID(),
+                Date: formatDate(new Date()),
+                Cart: cart,
+                Customer: customer,
+                ContactNumber: contactNumber || '',
+                PaymentStatus: "Payment pending",
+                PaymentMode: paymentMode,
+                Total: parseFloat(total),
+                ItemTotal: itemTotal,
+                DeliveryStatus: deliveryType,
+                Address: (deliveryType === 'Delivery') ? document.getElementById('address').value.trim() : '',
+                Notes: notes || '',
+                FulfillmentStatus: "Preparing",
+                Source: "POS"
+            };
+
+            fetch('/api/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(orderData)
             })
-            .catch(err => {
-                alert('Error submitting order.');
-                console.error('Fetch error:', err);
-            });
-    }
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error(`Network response was not ok: ${res.status} ${res.statusText}`);
+                    }
+                    const contentType = res.headers.get('content-type');
+                    if (!contentType || !contentType.includes('application/json')) {
+                        throw new TypeError('Oops, we haven\'t got JSON!');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        alert('Order submitted successfully! Your Order ID is: ' + orderData.OrderID);
+                        orderItems = [];
+                        renderOrderItems();
+                        document.getElementById('customer-name').value = '';
+                        document.getElementById('contact-number').value = '';
+                        const deliveryTypeSelect = document.getElementById('delivery-type');
+                        deliveryTypeSelect.value = 'Take-Out';
+                        const addressContainer = document.getElementById('address-container');
+                        const addressInput = document.getElementById('address');
+                        addressContainer.style.display = 'none';
+                        addressInput.value = '';
+                        document.getElementById('notes-textarea').value = '';
+                        updateSummary();
+                        const deliveryFeeDiv = document.getElementById('delivery-fee-message');
+                        if (deliveryFeeDiv) deliveryFeeDiv.remove();
+                        document.querySelectorAll('.payment-option.selected').forEach(el => {
+                            el.classList.remove('selected');
+                            const check = el.querySelector('.payment-check');
+                            check.style.backgroundColor = '#ddd';
+                            check.textContent = '';
+                        });
+                    } else {
+                        alert('Failed to submit order. Please try again.');
+                        console.error(data.error || 'Unknown error from server.');
+                    }
+                })
+                .catch(err => {
+                    alert('Error submitting order.');
+                    console.error('Fetch error:', err);
+                });
+        }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        updateSummary();
-    });
+        document.addEventListener('DOMContentLoaded', () => {
+            updateSummary();
+        });
 
-</script>
+    </script>
 
-<style>
-html, body {
-  height: 100%;
-  margin: 0;
-  overflow: hidden;
-}
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+        }
 
-.main-container {
-  display: flex;
-  height: 100vh;
-  min-height: calc(100vh - 70px);
-  box-sizing: border-box;
-}
+        .main-container {
+            display: flex;
+            height: 100vh;
+            min-height: calc(100vh - 70px);
+            box-sizing: border-box;
+        }
 
-.main-content {
-  padding: 0 !important;
-}
+        .main-content {
+            padding: 0 !important;
+        }
 
-.content {
-  flex: 1;
-  padding: 20px;
-    padding-bottom: 0px;
-    padding-right: 0px;
-  background-color: #f8f9fb;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  box-sizing: border-box;
-  scrollbar-width: thin;
-}
+        .content {
+            flex: 1;
+            padding: 20px;
+            padding-bottom: 0px;
+            padding-right: 0px;
+            background-color: #f8f9fb;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+        }
 
-.content::-webkit-scrollbar {
-  width: 8px;
-}
+        .content::-webkit-scrollbar {
+            width: 8px;
+        }
 
-.content::-webkit-scrollbar-thumb {
-  background-color: rgba(160, 92, 47, 0.5);
-  border-radius: 4px;
-}
+        .content::-webkit-scrollbar-thumb {
+            background-color: rgba(160, 92, 47, 0.5);
+            border-radius: 4px;
+        }
 
-.content::-webkit-scrollbar-track {
-  background: transparent;
-}
+        .content::-webkit-scrollbar-track {
+            background: transparent;
+        }
 
-.products-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 12px;
-  margin-bottom: 20px;
-  max-height: none !important;
-  overflow: visible !important;
-}
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+            max-height: none !important;
+            overflow: visible !important;
+        }
 
-#all-products {
-  overflow-y: auto;
-  padding-right: 8px;
-  box-sizing: border-box;
-  scrollbar-width: thin;
-}
+        #all-products {
+            overflow-y: auto;
+            padding-right: 8px;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+        }
 
-#all-products::-webkit-scrollbar {
-  width: 8px;
-}
+        #all-products::-webkit-scrollbar {
+            width: 8px;
+        }
 
-#all-products::-webkit-scrollbar-thumb {
-  background-color: rgba(160, 92, 47, 0.5);
-  border-radius: 4px;
-}
+        #all-products::-webkit-scrollbar-thumb {
+            background-color: rgba(160, 92, 47, 0.5);
+            border-radius: 4px;
+        }
 
-#all-products::-webkit-scrollbar-track {
-  background: transparent;
-}
+        #all-products::-webkit-scrollbar-track {
+            background: transparent;
+        }
 
-.products-grid::-webkit-scrollbar {
-  width: 8px;
-}
+        .products-grid::-webkit-scrollbar {
+            width: 8px;
+        }
 
-.products-grid::-webkit-scrollbar-thumb {
-  background-color: rgba(160, 92, 47, 0.5);
-  border-radius: 4px;
-}
+        .products-grid::-webkit-scrollbar-thumb {
+            background-color: rgba(160, 92, 47, 0.5);
+            border-radius: 4px;
+        }
 
-.products-grid::-webkit-scrollbar-track {
-  background: transparent;
-}
+        .products-grid::-webkit-scrollbar-track {
+            background: transparent;
+        }
 
-#promo-applied {
-  margin-top: 10px;
-  font-weight: normal;
-  display: flex;
-  justify-content: space-between;
-  font-weight: 400;
-  color: inherit;
-}
+        #promo-applied {
+            margin-top: 10px;
+            font-weight: normal;
+            display: flex;
+            justify-content: space-between;
+            font-weight: 400;
+            color: inherit;
+        }
 
-#promo-applied::before {
-  content: "Promo applied:";
-  font-weight: 600;
-  color: inherit;
-}
+        #promo-applied::before {
+            content: "Promo applied:";
+            font-weight: 600;
+            color: inherit;
+        }
 
-#promo-applied span {
-  font-weight: 400;
-  color: inherit;
-}
+        #promo-applied span {
+            font-weight: 400;
+            color: inherit;
+        }
 
-.promo-banner {
-  user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  background-color: #ffe7ce;
-  color: #ca651c;
-  padding: 10px 40px;
-  border-radius: 25px;
-  display: inline-block;
-  margin-bottom: 20px;
-  font-weight: bold;
-  width: 7%;
-}
+        .promo-banner {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            background-color: #ffe7ce;
+            color: #ca651c;
+            padding: 10px 40px;
+            border-radius: 25px;
+            display: inline-block;
+            margin-bottom: 20px;
+            font-weight: bold;
+            width: 7%;
+        }
 
-.section-title {
-  font-size: 28px;
-  color: black;
-  margin-bottom: 20px;
-  font-weight: bold;
-}
+        .section-title {
+            font-size: 28px;
+            color: black;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
 
-.product-card {
-    background-color: #fff;
-    border-radius: 10px;
-    padding: 12px 8px 8px 8px;
-    text-align: center;
-    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
-    border: 1px solid #ddd;
-    min-height: 220px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    cursor: pointer;
-    transition: box-shadow 0.2s;
-    position: relative;
-}
+        .product-card {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 12px 8px 8px 8px;
+            text-align: center;
+            box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+            border: 1px solid #ddd;
+            min-height: 220px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            cursor: pointer;
+            transition: box-shadow 0.2s;
+            position: relative;
+        }
 
-.product-card:hover {
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-}
+        .product-card:hover {
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
 
-.product-image img {
-  width: 100px;
-  height: 100px;
-  object-fit: contain;
-  border-radius: 6px;
-  margin-bottom: 8px;
-}
+        .product-image img {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
 
-.product-name {
-  font-size: 14px;
-  font-weight: 800;
-  color: black;
-  margin-bottom: 6px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+        .product-name {
+            font-size: 14px;
+            font-weight: 800;
+            color: black;
+            margin-bottom: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
 
-.product-price,
-.product-size {
-    font-size: 13px;
-    color: #2b2b2b;
-    font-weight: 600;
-    margin-bottom: 0;
-    position: absolute;
-    left: 14px;
-    bottom: 12px;
-    text-align: left;
-    width: auto;
-    background: none;
-    box-shadow: none;
-}
+        .product-price,
+        .product-size {
+            font-size: 13px;
+            color: #2b2b2b;
+            font-weight: 600;
+            margin-bottom: 0;
+            position: absolute;
+            left: 14px;
+            bottom: 12px;
+            text-align: left;
+            width: auto;
+            background: none;
+            box-shadow: none;
+        }
 
-.summary-panel {
-  width: 350px;
-  background-color: white;
-  padding: 20px;
-  border-left: 1px solid #ddd;
-  max-height: 100vh;
-  margin-bottom: 0;
-  overflow-y: auto;
-  box-sizing: border-box;
-  scroll-padding-bottom: 0;
-}
+        .summary-panel {
+            width: 350px;
+            background-color: white;
+            padding: 20px;
+            border-left: 1px solid #ddd;
+            max-height: 100vh;
+            margin-bottom: 0;
+            overflow-y: auto;
+            box-sizing: border-box;
+            scroll-padding-bottom: 0;
+        }
 
-.summary-title {
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 20px;
-    color: black;
-    letter-spacing: -.75px;
-}
+        .summary-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: black;
+            letter-spacing: -.75px;
+        }
 
-.order-item {
-  display: flex;
-  align-items: center;
-  margin-bottom: 15px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #eee;
-}
+        .order-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
 
-.order-item:last-child {
-  border-bottom: none !important;
-  margin-bottom: 0;
-  padding-bottom: 0;
-}
+        .order-item:last-child {
+            border-bottom: none !important;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
 
-.quantity-btn {
-  width: 32px;
-  height: 32px;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 22px;
-}
+        .quantity-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 22px;
+        }
 
-.remove-btn {
-  background-color: #ff6b6b;
-  color: white;
-  margin-right: 10px;
-}
+        .remove-btn {
+            background-color: #ff6b6b;
+            color: white;
+            margin-right: 10px;
+        }
 
-.add-btn {
-  background-color: #4CAF50;
-  color: white;
-  margin-left: 10px;
-}
+        .add-btn {
+            background-color: #4CAF50;
+            color: white;
+            margin-left: 10px;
+        }
 
-.item-details {
-  flex: 1;
-  margin: 0 10px;
-}
+        .item-details {
+            flex: 1;
+            margin: 0 10px;
+        }
 
-.item-name {
-  font-weight: bold;
-  margin-bottom: 2px;
-}
+        .item-name {
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
 
-.order-size {
-  color: #a87636;
-  font-size: 13.5px;
-  margin-bottom: 2px;
-}
+        .order-size {
+            color: #a87636;
+            font-size: 13.5px;
+            margin-bottom: 2px;
+        }
 
-.item-price {
-  color: #666;
-  font-size: 15px;
-}
+        .item-price {
+            color: #666;
+            font-size: 15px;
+        }
 
-.quantity {
-  font-weight: bold;
-  margin: 0 10px;
-}
+        .quantity {
+            font-weight: bold;
+            margin: 0 10px;
+        }
 
-.summary-totals {
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 2px solid #eee;
-}
+        .summary-totals {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+        }
 
-.total-row {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
 
-.total-row.final {
-  font-weight: bold;
-  font-size: 18px;
-  padding-top: 10px;
-  border-top: 1px solid #ddd;
-}
+        .total-row.final {
+            font-weight: bold;
+            font-size: 18px;
+            padding-top: 10px;
+            border-top: 1px solid #ddd;
+        }
 
-.payment-section {
-  margin-top: 30px;
-}
+        .payment-section {
+            margin-top: 30px;
+        }
 
-.payment-title {
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 15px;
-}
+        .payment-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
 
-.payment-options {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 20px;
-}
+        .payment-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
 
-.payment-option {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 15px;
-  border: 2px solid #ddd;
-  border-radius: 10px;
-  cursor: pointer;
-}
+        .payment-option {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            cursor: pointer;
+        }
 
-.payment-option.selected {
-  border-color: #4CAF50;
-  background-color: #f0f8f0;
-}
+        .payment-option.selected {
+            border-color: #4CAF50;
+            background-color: #f0f8f0;
+        }
 
-.payment-check {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background-color: #4CAF50;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-}
+        .payment-check {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #4CAF50;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
 
-.proceed-btn {
-  width: 100%;
-  padding: 15px;
-  background-color: black;
-  color: white;
-  border: none;
-  border-radius: 25px;
-  font-size: 18px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
+        .proceed-btn {
+            width: 100%;
+            padding: 15px;
+            background-color: black;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
 
-.proceed-btn:hover {
-  background-color: #372b2a;
-}
+        .proceed-btn:hover {
+            background-color: #372b2a;
+        }
 
-.hidden {
-  display: none !important;
-}
+        .hidden {
+            display: none !important;
+        }
 
-#order-confirm-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 2000;
-}
+        #order-confirm-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
 
-#order-confirm-modal .modal-content {
-  background: white;
-  padding: 20px 30px;
-  border-radius: 12px;
-  max-width: 400px;
-  text-align: center;
-}
+        #order-confirm-modal .modal-content {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            max-width: 400px;
+            text-align: center;
+        }
 
-#order-confirm-modal button {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  margin: 5px;
-  cursor: pointer;
-}
+        #order-confirm-modal button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            margin: 5px;
+            cursor: pointer;
+        }
 
-#confirm-submit-btn {
-  background: #4caf50;
-  color: white;
-}
+        #confirm-submit-btn {
+            background: #4caf50;
+            color: white;
+        }
 
-#confirm-cancel-btn {
-  background: #ccc;
-}
+        #confirm-cancel-btn {
+            background: #ccc;
+        }
 
-#order-items {
-    margin-bottom: 16px;
-}
-.order-item-custom {
-    display: flex;
-    align-items: center;
-    padding: 10px 0 10px 0;
-    gap: 12px;
-}
-.order-item-imgwrap {
-    min-width: 48px;
-    min-height: 48px;
-    width: 48px;
-    height: 48px;
-    border-radius: 8px;
-    overflow: hidden;
-    background: #f3f3f3;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    top: -20px;
-    position: relative;
-}
-.order-item-imgwrap img {
-    width: 48px;
-    height: 48px;
-    object-fit: cover;
-    border-radius: 8px;
-}
-.order-item-info {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-.order-item-main {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-}
-.order-item-title {
-    font-weight: 700;
-    font-size: 15px;
-    color: #222;
-    margin-bottom: 2px;
-}
-.order-item-size {
-    font-size: 13px;
-    color: #888;
-    margin-bottom: 1px;
-}
-.order-item-addons {
-    font-size: 12px;
-    color: #aa8544;
-    margin-bottom: 1px;
-}
-.order-item-price {
-    font-weight: 700;
-    font-size: 15px;
-    color: #000000;
-    white-space: nowrap;
-    margin-left: 10px;
-}
-.order-item-actions {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 4px;
-}
-.order-item-qty {
-    padding: 0 6px;
-    font-weight: 600;
-    font-size: 15px;
-    color: #333;
-}
-.quantity-btn {
-    width: 28px;
-    height: 28px;
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 18px;
-    background: #f0f0f0;
-    color: #111;
-    transition: background 0.15s;
-}
-.remove-btn {
-    background-color: #ff6b6b;
-    color: white;
-}
-.add-btn {
-    background-color: #4CAF50;
-    color: white;
-}
-
-
-</style>
+        #order-items {
+            margin-bottom: 16px;
+        }
+        .order-item-custom {
+            display: flex;
+            align-items: center;
+            padding: 10px 0 10px 0;
+            gap: 12px;
+        }
+        .order-item-imgwrap {
+            min-width: 48px;
+            min-height: 48px;
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #f3f3f3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            top: -20px;
+            position: relative;
+        }
+        .order-item-imgwrap img {
+            width: 48px;
+            height: 48px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .order-item-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .order-item-main {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .order-item-title {
+            font-weight: 700;
+            font-size: 15px;
+            color: #222;
+            margin-bottom: 2px;
+        }
+        .order-item-size {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 1px;
+        }
+        .order-item-addons {
+            font-size: 12px;
+            color: #aa8544;
+            margin-bottom: 1px;
+        }
+        .order-item-price {
+            font-weight: 700;
+            font-size: 15px;
+            color: #000000;
+            white-space: nowrap;
+            margin-left: 10px;
+        }
+        .order-item-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 4px;
+        }
+        .order-item-qty {
+            padding: 0 6px;
+            font-weight: 600;
+            font-size: 15px;
+            color: #333;
+        }
+        .quantity-btn {
+            width: 28px;
+            height: 28px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            background: #f0f0f0;
+            color: #111;
+            transition: background 0.15s;
+        }
+        .remove-btn {
+            background-color: #ff6b6b;
+            color: white;
+        }
+        .add-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+    </style>
