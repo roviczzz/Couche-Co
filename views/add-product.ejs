@@ -1,120 +1,78 @@
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-
+<!-- Add Product.ejs -->
 <style>
-  * {
-    font-family: 'Inter', sans-serif;
-  }
-
-  .form-container {
-    max-width: 500px;
-    margin: 40px auto;
-    background-color: #fff;
-    padding: 25px 30px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  }
-
-  .form-title {
-    text-align: left;
-    margin-bottom: 20px;
-    color: #333;
-    font-size: 24px;
-    font-weight: bold;
-  }
-
-  .form-label {
-    display: block;
-    margin-top: 15px;
-    font-weight: bold;
-    color: #555;
-  }
-
-  .form-input {
-    width: 100%;
-    padding: 10px;
-    margin-top: 5px;
-    font-size: 14px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    box-sizing: border-box;
-  }
-
-  .checkbox-group {
-    margin-top: 15px;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .checkbox-label {
-    font-weight: normal;
-    display: flex;
-    align-items: center;
-    margin-bottom: 5px;
-    color: #444;
-  }
-
-  .checkbox-input {
-    margin-right: 6px;
-  }
-
-  .submit-button {
-    margin-top: 25px;
-    padding: 12px;
-    width: 100%;
-    background-color: #2b8a3e;
-    color: white;
-    font-size: 15px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    text-align: center;
-  }
-
-  .submit-button:hover {
-    background-color: #247432;
-  }
+  * { font-family: 'Inter', sans-serif; }
+  .form-container { max-width: 500px; margin: 40px auto; background: #fff; padding: 25px 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+  .form-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .form-title { color: #333; font-size: 24px; font-weight: bold; }
+  .back-button { background: #6c757d; color: white; font-size: 14px; padding: 8px 14px; border: none; border-radius: 6px; cursor: pointer; text-decoration: none; }
+  .back-button:hover { background: #5a6268; }
+  .form-label { display: block; margin-top: 15px; font-weight: bold; color: #555; }
+  .form-input { width: 100%; padding: 10px; margin-top: 5px; font-size: 14px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+  .checkbox-group { margin-top: 15px; display: flex; flex-direction: column; }
+  .checkbox-label { font-weight: normal; display: flex; align-items: center; margin-bottom: 5px; color: #444; }
+  .checkbox-input { margin-right: 6px; }
+  .submit-button { margin-top: 25px; padding: 12px; width: 100%; background: #2b8a3e; color: white; font-size: 15px; border: none; border-radius: 6px; cursor: pointer; text-align: center; }
+  .submit-button:hover { background: #247432; }
 </style>
 
 <div class="main-content">
   <div class="form-container">
-    <div class="form-title">Add Product</div>
-    <form action="/products/add" method="POST">
-      
-      <label class="form-label">Product ID:</label>
-      <input class="form-input" type="text" name="ProductID" required>
+    <div class="form-header">
+      <div class="form-title">Add Product</div>
+      <a href="/products" class="back-button">← Back</a>
+    </div>
 
+    <form id="addProductForm" action="/products/add" method="POST">
+
+      <!-- Category Shortcut -->
+      <label class="form-label">Category:</label>
+      <select class="form-input" name="categoryShortcut" required>
+        <option value="">-- Select Category --</option>
+        <option value="CF">Coffee</option>
+        <option value="MT">Milktea</option>
+        <option value="FT">Fruit Tea</option>
+        <option value="BK">Pastries</option>
+      </select>
+
+      <!-- Product Code -->
+      <label class="form-label">Product Code (max 4 chars):</label>
+      <input class="form-input" type="text" name="productCode" maxlength="4" placeholder="e.g., CNC" required>
+
+      <!-- Product Name -->
       <label class="form-label">Name:</label>
       <input class="form-input" type="text" name="Name" required>
 
+      <!-- Prices -->
       <label class="form-label">16oz Price:</label>
       <input class="form-input" type="number" name="size16" step="0.01">
 
       <label class="form-label">22oz Price:</label>
       <input class="form-input" type="number" name="size22" step="0.01">
 
-      <label class="form-label">Quantity:</label>
-      <input class="form-input" type="number" name="Quantity" required>
-
+      <!-- Ingredients -->
       <label class="form-label">Ingredients (comma-separated):</label>
       <input class="form-input" type="text" name="Ingredients" placeholder="e.g., ING-COFFEE, ING-CREAMER">
 
-      <label class="form-label">Category:</label>
-      <input class="form-input" type="text" name="Category" required>
-
+      <!-- Base Price -->
       <label class="form-label">Base Price (optional for Pastries):</label>
       <input class="form-input" type="number" name="BasePrice" step="0.01">
 
+      <!-- Allergen -->
       <label class="form-label">Allergen (optional):</label>
       <input class="form-input" type="text" name="Allergen">
 
+      <!-- Image -->
       <label class="form-label">Image Link:</label>
       <input class="form-input" type="text" name="imagelink">
 
+      <!-- Enabled -->
       <div class="checkbox-group">
-        <label class="checkbox-label"><input class="checkbox-input" type="checkbox" name="available" value="true" checked> Available</label>
-        <label class="checkbox-label"><input class="checkbox-input" type="checkbox" name="IsEnabled" value="true" checked> Enabled</label>
+        <label class="checkbox-label">
+          <input class="checkbox-input" type="checkbox" name="isEnabled" value="true" checked> Enabled
+        </label>
       </div>
 
+      <!-- Submit -->
       <button class="submit-button" type="submit">Add Product</button>
     </form>
   </div>

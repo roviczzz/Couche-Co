@@ -1,0 +1,93 @@
+<div class="main-container">
+  <div class="top-bar">
+    <h1>Channels and Management</h1>
+  </div>
+
+  <div class="management-container">
+   
+    <div class="channel node-red-row">
+      <div class="left">
+        <img src="https://iili.io/F6kbcyg.png" alt="Messenger Icon" class="icon">
+        <div>
+          <p><strong>Facebook Messenger</strong></p>
+          <p class="status">Facebook page</p>
+        </div>
+      </div>
+      <div class="right">
+        <button class="open-btn" onclick="window.open('https://www.facebook.com/login', '_blank')">Login</button>
+      </div>
+    </div>
+
+    <div class="channel node-red-row">
+      <div class="left">
+        <img src="https://iili.io/F6kyBaI.png" alt="n8n Icon" class="icon">
+        <div>
+          <p><strong>n8n</strong></p>
+          <p class="status">Chatbot flow automation tool</p>
+        </div>
+      </div>
+      <div class="right">
+        <button class="open-btn" onclick="window.open('https://regularly-helped-terrapin.ngrok-free.app/', '_blank')">Open</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.main-container {
+  padding: 2rem;
+  background-color: #fff;
+  min-height: 100vh;
+}
+
+.top-bar h1 {
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+  font-weight: bold;
+}
+
+.management-container .channel {
+  display: flex;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.channel .icon {
+  width: 32px;
+  height: 32px;
+  margin-right: 14px;
+}
+
+.channel strong {
+  font-size: 1.3rem;
+}
+
+.channel .status {
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.node-red-row {
+  justify-content: space-between;
+}
+
+.node-red-row .left {
+  display: flex;
+  align-items: center;
+}
+
+.node-red-row .right {
+  margin-left: auto;
+}
+
+.open-btn {
+  background-color: #964B00;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.5rem;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+}
+</style>

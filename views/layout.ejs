@@ -639,6 +639,20 @@
         </div>
         <div class="sidebar-menu">
             <ul>
+                <%
+                    const sidebarItems = [
+                    { path: '/dashboard', label: 'Home', icon: 'house' },
+                    { path: '/order', label: 'Orders', icon: 'box' },
+                    { path: '/menu', label: 'POS Menu', icon: 'list' },
+                    { path: '/stocks', label: 'Stocks', icon: 'warehouse' },
+                    { path: '/products', label: 'Products', icon: 'cart-shopping' },
+                    { path: '/analytics', label: 'Analytics', icon: 'chart-line' },
+                    { path: '/management', label: 'Channels', icon: 'share-nodes' },
+                    { path: '/logout', label: 'Logout', icon: 'door-open' }
+                    ];
+                %>
+
+                <% sidebarItems.forEach(item => {
                 <% sidebarItems.forEach(item => {
                     const isActive = (currentPage === item.path);
                 %>

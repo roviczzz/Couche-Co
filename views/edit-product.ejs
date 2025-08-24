@@ -17,10 +17,31 @@
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   }
 
-  .form-container h2 {
-    text-align: left;
+  .header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 20px;
+  }
+
+  .form-container h2 {
+    margin: 0;
     color: #333;
+  }
+
+  .back-button {
+    padding: 8px 14px;
+    background-color: #ccc;
+    color: #333;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+  }
+
+  .back-button:hover {
+    background-color: #bbb;
   }
 
   .field-group {
@@ -77,11 +98,14 @@
     background-color: #247432;
   }
 </style>
-</style>
 
 <div class="form-container">
-  <h2>Edit Product</h2>
-  <form action="/products/edit/<%= product._id %>" method="POST">
+  <div class="header-container">
+    <h2>Edit Product</h2>
+    <a href="/products" class="back-button">← Back</a>
+  </div>
+
+  <form id="editProductForm" action="/products/edit/<%= product._id %>" method="POST">
     <div class="field-group">
       <div class="field-label">Name:</div>
       <div><input class="field-input" type="text" name="Name" value="<%= product.Name %>" required></div>
@@ -103,18 +127,22 @@
     </div>
 
     <div class="field-group">
-      <div class="field-label">Quantity:</div>
-      <div><input class="field-input" type="number" name="Quantity" value="<%= product.Quantity || '' %>" required></div>
-    </div>
-
-    <div class="field-group">
       <div class="field-label">Ingredients (comma-separated):</div>
       <div><input class="field-input" type="text" name="Ingredients" value="<%= product.Ingredients ? product.Ingredients.join(',') : '' %>"></div>
     </div>
 
+    <!-- Updated Category field -->
     <div class="field-group">
       <div class="field-label">Category:</div>
-      <div><input class="field-input" type="text" name="Category" value="<%= product.Category %>" required></div>
+      <div>
+        <select class="field-input" name="Category" required>
+          <option value="">-- Select Category --</option>
+          <option value="Coffee" <%= product.Category === 'Coffee' ? 'selected' : '' %>>Coffee</option>
+          <option value="Milktea" <%= product.Category === 'Milktea' ? 'selected' : '' %>>Milktea</option>
+          <option value="Fruit Tea" <%= product.Category === 'Fruit Tea' ? 'selected' : '' %>>Fruit Tea</option>
+          <option value="Pastries" <%= product.Category === 'Pastries' ? 'selected' : '' %>>Pastries</option>
+        </select>
+      </div>
     </div>
 
     <div class="field-group">
@@ -133,10 +161,34 @@
     </div>
 
     <div class="checkbox-group">
-      <label><input type="checkbox" name="available" value="true" <%= product.available ? 'checked' : '' %> /> Available</label>
-      <label><input type="checkbox" name="IsEnabled" value="true" <%= product.IsEnabled ? 'checked' : '' %> /> Enabled</label>
+      <label><input type="checkbox" name="isEnabled" value="true" <%= product.isEnabled ? 'checked' : '' %> /> Enabled</label>
     </div>
 
     <button class="submit-button" type="submit">Update Product</button>
   </form>
 </div>
+
+<!-- SweetAlert2 Script -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  document.getElementById('editProductForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    Swal.fire({
+      title: 'Update this product?',
+      text: "Your changes will be saved.",
+      imageUrl: 'https://iili.io/F5oAbt9.png',
+      imageWidth: 80,
+      imageHeigth: 80,
+      showCancelButton: true,
+      confirmButtonColor: '#2b8a3e',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, update it!',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.submit();
+      }
+    });
+  });
+</script>
