@@ -1,0 +1,795 @@
+<div class="settings-container">
+    <h2>Account Settings</h2>
+    
+    <div class="account-info">
+        <h3>Account Information</h3>
+        <div class="info-group">
+            <label>Username:</label>
+            <span class="info-value"><%= user.username %></span>
+        </div>
+        <% if (user.email) { %>
+        <div class="info-group">
+            <label>Email:</label>
+            <span class="info-value"><%= user.email %></span>
+        </div>
+        <% } %>
+        <div class="info-group">
+            <label>Role:</label>
+            <span class="info-value"><%= user.role %></span>
+        </div>
+        <div class="info-group">
+            <label>Last Login:</label>
+            <span class="info-value"><%= user.loginTime %></span>
+        </div>
+    </div>
+    
+    <div class="password-section">
+        <h3>Change Password</h3>
+        <form id="passwordChangeForm">
+            <div class="form-group">
+                <label for="currentPassword">Current Password <span class="required">*</span></label>
+                <input type="password" id="currentPassword" name="currentPassword" required autocomplete="current-password">
+                <div class="field-error" id="currentPasswordError"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="newPassword">New Password <span class="required">*</span></label>
+                <input type="password" id="newPassword" name="newPassword" required minlength="8" autocomplete="new-password">
+                <small class="form-help">Password must be at least 8 characters long</small>
+                <div class="field-error" id="newPasswordError"></div>
+                <div class="password-strength" id="passwordStrength"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="confirmPassword">Confirm New Password <span class="required">*</span></label>
+                <input type="password" id="confirmPassword" name="confirmPassword" required autocomplete="new-password">
+                <div class="field-error" id="confirmPasswordError"></div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="save-btn" id="saveBtn">
+                    <span class="btn-text">Save Changes</span>
+                    <span class="btn-loading" style="display: none;">
+                        <span class="spinner"></span>
+                        Saving...
+                    </span>
+                </button>
+                <button type="button" class="cancel-btn" onclick="resetForm()">Cancel</button>
+            </div>
+        </form>
+    </div>
+    
+    <div id="message" class="message-container"></div>
+    
+    <!-- Security Information -->
+    <div class="security-info">
+        <h3>Security Information</h3>
+        <div class="security-tips">
+            <h4>Password Security Tips:</h4>
+            <ul>
+                <li>Use at least 8 characters</li>
+                <li>Include uppercase and lowercase letters</li>
+                <li>Add numbers and special characters</li>
+                <li>Avoid using personal information</li>
+                <li>Don't reuse passwords from other accounts</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('passwordChangeForm');
+    const saveBtn = document.getElementById('saveBtn');
+    const btnText = saveBtn.querySelector('.btn-text');
+    const btnLoading = saveBtn.querySelector('.btn-loading');
+    const messageContainer = document.getElementById('message');
+    const passwordStrength = document.getElementById('passwordStrength');
+
+    // Real-time password strength indicator
+    document.getElementById('newPassword').addEventListener('input', function() {
+        const password = this.value;
+        const errorDiv = document.getElementById('newPasswordError');
+        
+        if (password.length > 0) {
+            const strength = calculatePasswordStrength(password);
+            showPasswordStrength(strength);
+            
+            if (password.length < 8) {
+                errorDiv.textContent = 'Password must be at least 8 characters long';
+                errorDiv.style.display = 'block';
+            } else {
+                errorDiv.style.display = 'none';
+            }
+        } else {
+            passwordStrength.innerHTML = '';
+            errorDiv.style.display = 'none';
+        }
+    });
+
+    // Real-time password matching validation
+    document.getElementById('confirmPassword').addEventListener('input', function() {
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = this.value;
+        const errorDiv = document.getElementById('confirmPasswordError');
+        
+        if (confirmPassword && newPassword !== confirmPassword) {
+            errorDiv.textContent = 'Passwords do not match';
+            errorDiv.style.display = 'block';
+        } else {
+            errorDiv.style.display = 'none';
+        }
+    });
+
+    // Form submission
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const currentPassword = document.getElementById('currentPassword').value.trim();
+        const newPassword = document.getElementById('newPassword').value.trim();
+        const confirmPassword = document.getElementById('confirmPassword').value.trim();
+        
+        // Clear previous messages and errors
+        clearMessages();
+        
+        // Client-side validation
+        let hasErrors = false;
+        
+        if (!currentPassword) {
+            showFieldError('currentPasswordError', 'Current password is required');
+            hasErrors = true;
+        }
+        
+        if (!newPassword) {
+            showFieldError('newPasswordError', 'New password is required');
+            hasErrors = true;
+        } else if (newPassword.length < 8) {
+            showFieldError('newPasswordError', 'Password must be at least 8 characters long');
+            hasErrors = true;
+        }
+        
+        if (!confirmPassword) {
+            showFieldError('confirmPasswordError', 'Please confirm your new password');
+            hasErrors = true;
+        } else if (newPassword !== confirmPassword) {
+            showFieldError('confirmPasswordError', 'Passwords do not match');
+            hasErrors = true;
+        }
+        
+        if (currentPassword === newPassword) {
+            showFieldError('newPasswordError', 'New password must be different from current password');
+            hasErrors = true;
+        }
+        
+        if (hasErrors) return;
+        
+        // Show loading state
+        setLoadingState(true);
+        
+        try {
+            const response = await fetch('/admin/change-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    currentPassword: currentPassword,
+                    newPassword: newPassword
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok && result.success) {
+                showMessage('success', result.message || 'Password changed successfully!');
+                form.reset();
+                passwordStrength.innerHTML = '';
+                
+                // Show logout suggestion after successful password change
+                setTimeout(() => {
+                    showMessage('info', 'For security purposes, you will be redirected to login with your new password in 10 seconds.');
+                    
+                    // Auto-redirect after 10 seconds
+                    setTimeout(() => {
+                        window.location.href = '/logout';
+                    }, 10000);
+                }, 3000);
+                
+            } else {
+                showMessage('error', result.message || result.error || 'Failed to change password');
+                
+                // Handle specific error cases
+                if (result.field) {
+                    showFieldError(result.field + 'Error', result.message);
+                }
+            }
+        } catch (error) {
+            console.error('Password change error:', error);
+            showMessage('error', 'Network error occurred. Please check your connection and try again.');
+        } finally {
+            setLoadingState(false);
+        }
+    });
+
+    function calculatePasswordStrength(password) {
+        let score = 0;
+        let feedback = [];
+        
+        // Length check
+        if (password.length >= 8) score += 1;
+        else feedback.push('At least 8 characters');
+        
+        // Uppercase check
+        if (/[A-Z]/.test(password)) score += 1;
+        else feedback.push('Uppercase letter');
+        
+        // Lowercase check
+        if (/[a-z]/.test(password)) score += 1;
+        else feedback.push('Lowercase letter');
+        
+        // Number check
+        if (/\d/.test(password)) score += 1;
+        else feedback.push('Number');
+        
+        // Special character check
+        if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) score += 1;
+        else feedback.push('Special character');
+        
+        return { score, feedback };
+    }
+
+    function showPasswordStrength(strength) {
+        const { score, feedback } = strength;
+        let strengthText = '';
+        let strengthClass = '';
+        
+        if (score <= 2) {
+            strengthText = 'Weak';
+            strengthClass = 'weak';
+        } else if (score <= 3) {
+            strengthText = 'Medium';
+            strengthClass = 'medium';
+        } else if (score <= 4) {
+            strengthText = 'Strong';
+            strengthClass = 'strong';
+        } else {
+            strengthText = 'Very Strong';
+            strengthClass = 'very-strong';
+        }
+        
+        passwordStrength.innerHTML = `
+            <div class="strength-indicator ${strengthClass}">
+                <div class="strength-bar">
+                    <div class="strength-fill" style="width: ${(score/5)*100}%"></div>
+                </div>
+                <span class="strength-text">Password Strength: ${strengthText}</span>
+            </div>
+        `;
+    }
+
+    function setLoadingState(loading) {
+        saveBtn.disabled = loading;
+        if (loading) {
+            btnText.style.display = 'none';
+            btnLoading.style.display = 'inline-flex';
+            saveBtn.classList.add('loading');
+        } else {
+            btnText.style.display = 'inline';
+            btnLoading.style.display = 'none';
+            saveBtn.classList.remove('loading');
+        }
+    }
+
+    function showMessage(type, message) {
+        messageContainer.innerHTML = `<div class="message ${type}">
+            <div class="message-icon">${getMessageIcon(type)}</div>
+            <div class="message-text">${message}</div>
+        </div>`;
+        messageContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        
+        // Auto-hide success messages after 8 seconds
+        if (type === 'success') {
+            setTimeout(() => {
+                if (messageContainer.querySelector('.message.success')) {
+                    messageContainer.innerHTML = '';
+                }
+            }, 8000);
+        }
+    }
+
+    function getMessageIcon(type) {
+        switch(type) {
+            case 'success': return '✅';
+            case 'error': return '❌';
+            case 'info': return 'ℹ️';
+            case 'warning': return '⚠️';
+            default: return '📢';
+        }
+    }
+
+    function showFieldError(fieldId, message) {
+        const errorDiv = document.getElementById(fieldId);
+        if (errorDiv) {
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+    }
+
+    function clearMessages() {
+        messageContainer.innerHTML = '';
+        
+        // Clear field errors
+        const errorDivs = document.querySelectorAll('.field-error');
+        errorDivs.forEach(div => {
+            div.style.display = 'none';
+            div.textContent = '';
+        });
+    }
+
+    // Global function for cancel button
+    window.resetForm = function() {
+        form.reset();
+        clearMessages();
+        passwordStrength.innerHTML = '';
+    };
+});
+</script>
+
+<style>
+.settings-container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 30px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    border: 1px solid #e0e0e0;
+}
+
+.settings-container h2 {
+    color: #2c3e50;
+    margin-bottom: 30px;
+    font-size: 32px;
+    font-weight: 700;
+    border-bottom: 4px solid #d4a574;
+    padding-bottom: 12px;
+    text-align: center;
+}
+
+.account-info {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 25px;
+    border-radius: 10px;
+    margin-bottom: 35px;
+    border-left: 5px solid #d4a574;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.account-info h3 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-size: 22px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+}
+
+.account-info h3::before {
+    margin-right: 10px;
+    font-size: 20px;
+}
+
+.info-group {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+}
+
+.info-group label {
+    font-weight: 600;
+    color: #555;
+    min-width: 120px;
+    margin-right: 15px;
+}
+
+.info-value {
+    color: #2c3e50;
+    font-weight: 500;
+    background: #ffffff;
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+}
+
+.password-section {
+    background: #ffffff;
+    border: 2px solid #f0f0f0;
+    border-radius: 10px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+}
+
+.password-section h3 {
+    color: #2c3e50;
+    margin-bottom: 25px;
+    font-size: 22px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+}
+
+.password-section h3::before {
+    margin-right: 10px;
+    font-size: 20px;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 14px;
+}
+
+.required {
+    color: #e74c3c;
+    font-weight: bold;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    background: #ffffff;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #d4a574;
+    box-shadow: 0 0 0 4px rgba(212, 165, 116, 0.15);
+    transform: translateY(-1px);
+}
+
+.form-help {
+    display: block;
+    margin-top: 6px;
+    font-size: 13px;
+    color: #6c757d;
+    font-style: italic;
+}
+
+.field-error {
+    display: none;
+    color: #e74c3c;
+    font-size: 13px;
+    margin-top: 6px;
+    font-weight: 500;
+    padding: 5px 10px;
+    background: #fdf2f2;
+    border-radius: 4px;
+    border-left: 3px solid #e74c3c;
+}
+
+.strength-indicator {
+    margin-top: 8px;
+    padding: 10px;
+    border-radius: 6px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+}
+
+.strength-bar {
+    width: 100%;
+    height: 6px;
+    background: #e9ecef;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 5px;
+}
+
+.strength-fill {
+    height: 100%;
+    transition: all 0.3s ease;
+    border-radius: 3px;
+}
+
+.strength-indicator.weak .strength-fill {
+    background: linear-gradient(90deg, #e74c3c, #c0392b);
+}
+
+.strength-indicator.medium .strength-fill {
+    background: linear-gradient(90deg, #f39c12, #e67e22);
+}
+
+.strength-indicator.strong .strength-fill {
+    background: linear-gradient(90deg, #f1c40f, #f39c12);
+}
+
+.strength-indicator.very-strong .strength-fill {
+    background: linear-gradient(90deg, #27ae60, #2ecc71);
+}
+
+.strength-text {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.strength-indicator.weak .strength-text { color: #e74c3c; }
+.strength-indicator.medium .strength-text { color: #f39c12; }
+.strength-indicator.strong .strength-text { color: #f1c40f; }
+.strength-indicator.very-strong .strength-text { color: #27ae60; }
+
+.form-actions {
+    margin-top: 35px;
+    display: flex;
+    gap: 15px;
+    justify-content: flex-start;
+}
+
+.save-btn {
+    background: linear-gradient(135deg, #d4a574 0%, #c19660 100%);
+    color: white;
+    padding: 14px 32px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    position: relative;
+    min-width: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.save-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #c19660 0%, #b8875a 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(212, 165, 116, 0.4);
+}
+
+.save-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.save-btn.loading {
+    background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+}
+
+.btn-loading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ffffff;
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.cancel-btn {
+    background: #6c757d;
+    color: white;
+    padding: 14px 32px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.cancel-btn:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4);
+}
+
+.message-container {
+    margin-top: 25px;
+}
+
+.message {
+    padding: 16px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    margin-bottom: 15px;
+    border-left: 5px solid;
+    animation: slideIn 0.4s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.message-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.message-text {
+    flex: 1;
+}
+
+.message.success {
+    background-color: #d4edda;
+    color: #155724;
+    border-left-color: #28a745;
+}
+
+.message.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border-left-color: #dc3545;
+}
+
+.message.info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border-left-color: #17a2b8;
+}
+
+.message.warning {
+    background-color: #fff3cd;
+    color: #856404;
+    border-left-color: #ffc107;
+}
+
+.security-info {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+    margin-top: 30px;
+}
+
+.security-info h3 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-size: 20px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+}
+
+.security-info h3::before {
+    content: '🛡️';
+    margin-right: 10px;
+    font-size: 18px;
+}
+
+.security-tips h4 {
+    color: #495057;
+    margin-bottom: 15px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.security-tips ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.security-tips li {
+    padding: 8px 0;
+    color: #6c757d;
+    font-size: 14px;
+    position: relative;
+    padding-left: 25px;
+}
+
+.security-tips li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: #28a745;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .settings-container {
+        margin: 10px;
+        padding: 20px;
+    }
+    
+    .settings-container h2 {
+        font-size: 26px;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .save-btn, .cancel-btn {
+        width: 100%;
+        margin-bottom: 10px;
+        justify-content: center;
+    }
+    
+    .info-group {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .info-group label {
+        margin-bottom: 5px;
+        min-width: auto;
+    }
+    
+    .info-value {
+        width: 100%;
+        margin-top: 5px;
+    }
+    
+    .account-info, .password-section {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .settings-container {
+        margin: 5px;
+        padding: 15px;
+    }
+    
+    .account-info, .password-section, .security-info {
+        padding: 15px;
+    }
+    
+    .form-group input {
+        padding: 12px 14px;
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+}
+
+/* Print styles */
+@media print {
+    .form-actions, .password-section, .security-info {
+        display: none;
+    }
+    
+    .settings-container {
+        box-shadow: none;
+        border: 1px solid #333;
+    }
+}
+</style>
