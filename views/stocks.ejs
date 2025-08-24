@@ -1,183 +1,665 @@
 <div class="stocks-container">
-  <h1>Ingredient Inventory</h1>
+  <div class="header-section">
+    <h1>Ingredient Inventory</h1>
+  </div>
 
   <% if (message) { %>
     <div id="message" class="message"></div>
   <% } %>
 
-  <form action="/stocks" method="POST" class="stocks-form-add">
-    <input type="text" name="IngredientID" placeholder="Ingredient ID" required>
-    <input type="text" name="Name" placeholder="Name" required>
-    <input type="number" name="Quantity" placeholder="Quantity" required>
-    <input type="text" name="Category" placeholder="Category" required>
-    <input type="text" name="Allergen" placeholder="Allergen" required>
-    <select name="isEnabled" required>
-      <option value="true">Enabled</option>
-      <option value="false">Disabled</option>
-    </select>
-    <button type="submit" class="stocks-add-btn">Add Ingredient</button>
-  </form>
+  <!-- Add Ingredient Button -->
+  <div class="add-ingredient-section">
+    <button id="showAddForm" class="stocks-add-btn">Add Ingredient</button>
+  </div>
 
-  <table class="stocks-table">
-    <thead>
-      <tr>
-        <th>Ingredient ID</th>
-        <th>Name</th>
-        <th>Quantity</th>
-        <th>Category</th>
-        <th>Allergen</th>
-        <th>Status</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% if (ingredients.length === 0) { %>
-        <tr><td colspan="7" class="stocks-center">No ingredients found.</td></tr>
-      <% } else { %>
-        <% ingredients.forEach(i => { %>
-          <tr>
-            <form action="/stocks/edit/<%= i._id %>" method="POST">
-              <td><input type="text" name="IngredientID" value="<%= i.IngredientID %>" required></td>
-              <td><input type="text" name="Name" value="<%= i.Name %>" required></td>
-              <td><input type="number" name="Quantity" value="<%= i.Quantity %>" required></td>
-              <td><input type="text" name="Category" value="<%= i.Category %>" required></td>
-              <td><input type="text" name="Allergen" value="<%= i.Allergen %>" required></td>
-              <td>
-                <select name="isEnabled" required>
-                  <option value="true" <%= i.isEnabled ? 'selected' : '' %>>Enabled</option>
-                  <option value="false" <%= !i.isEnabled ? 'selected' : '' %>>Disabled</option>
-                </select>
-              </td>
-              <td>
-                <button type="submit" class="stocks-btn update">Update</button>
-            </form>
-            <form action="/stocks/delete/<%= i._id %>" method="POST" style="display:inline;">
-              <button type="submit" class="stocks-btn delete">Delete</button>
-            </form>
-              </td>
-          </tr>
-        <% }) %>
-      <% } %>
-    </tbody>
-  </table>
+  <!-- Add Ingredient Form (Initially Hidden) -->
+  <div id="addIngredientForm" class="stocks-form-container" style="display: none;">
+    <h2>Add Ingredient</h2>
+    <form action="/stocks" method="POST" class="stocks-form-vertical">
+      <div class="form-group">
+        <label for="IngredientID">Ingredient ID:</label>
+        <input type="text" id="IngredientID" name="IngredientID" placeholder="Enter a unique identifier (e.g. ING-CRM)" required>
+      </div>
+
+      <div class="form-group">
+        <label for="Name">Name:</label>
+        <input type="text" id="Name" name="Name" placeholder="Enter ingredient name" required>
+      </div>
+
+      <div class="form-group">
+        <label for="Quantity">Quantity:</label>
+        <input type="number" id="Quantity" name="Quantity" placeholder="Enter quantity" required>
+      </div>
+
+      <div class="form-group">
+        <label for="Category">Category:</label>
+        <input type="text" id="Category" name="Category" placeholder="Enter category (e.g. Milktea, Add-Ons)" required>
+      </div>
+
+      <div class="form-group">
+        <label for="Allergen">Allergen (optional):</label>
+        <input type="text" id="Allergen" name="Allergen" placeholder="Enter allergen (if any)">
+      </div>
+
+      <div class="form-group checkbox-group">
+        <label>
+          <input type="checkbox" name="isAvailable" value="true" checked> Available
+        </label>
+      </div>
+
+      <div class="form-group checkbox-group">
+        <label>
+          <input type="checkbox" name="isEnabledStock" value="true" checked> Enabled
+        </label>
+      </div>
+
+      <div class="button-group">
+        <button type="submit" class="add-product-btn">Add Ingredient</button>
+        <button type="button" id="cancelAdd" class="cancel-btn">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="table-container">
+    <table class="stocks-table">
+      <thead>
+        <tr>
+          <th>Ingredient ID</th>
+          <th>Name</th>
+          <th>Quantity</th>
+          <th>Category</th>
+          <th>Allergen</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (ingredients.length === 0) { %>
+          <tr><td colspan="7" class="stocks-center">No ingredients found.</td></tr>
+        <% } else { %>
+          <% ingredients.forEach(i => { %>
+            <tr>
+              <form action="/stocks/edit/<%= i._id %>" method="POST">
+                <td><input type="text" name="IngredientID" value="<%= i.IngredientID %>" required></td>
+                <td><input type="text" name="Name" value="<%= i.Name %>" required></td>
+                <td><input type="number" name="Quantity" value="<%= i.Quantity %>" required></td>
+                <td><input type="text" name="Category" value="<%= i.Category %>" required></td>
+                <td><input type="text" name="Allergen" value="<%= i.Allergen %>" required></td>
+                <td>
+                  <select name="isEnabled" required>
+                    <option value="true" <%= i.isEnabled ? 'selected' : '' %>>Enabled</option>
+                    <option value="false" <%= !i.isEnabled ? 'selected' : '' %>>Disabled</option>
+                  </select>
+                </td>
+                <td>
+                  <button type="submit" class="stocks-btn update">Update</button>
+              </form>
+              <form action="/stocks/delete/<%= i._id %>" method="POST" style="display:inline;">
+                <button type="submit" class="stocks-btn delete">Delete</button>
+              </form>
+                </td>
+            </tr>
+          <% }) %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <style>
-  .stocks-container {
-    background: #fff;
-    max-width: 1900px;
-    margin: 30px auto;
-    letter-spacing: -.5px;
-  }
+  /* Design tokens (same palette, more polished) */
+ :root {
+  --brown: #7a4e2b;
+  --brown-dark: #5a3921;
+  --brown-light: #a06b3b;
+  --brown-gradient: linear-gradient(to bottom, #7a4e2b, #5a3921);
+  --green: #28a745;
+  --green-dark: #218838;
+  --green-gradient: linear-gradient(to bottom, #28a745, #218838);
+  --red: #dc3545;
+  --red-dark: #bd2130;
+  --red-gradient: linear-gradient(to bottom, #dc3545, #bd2130);
+  --gray: #6c757d;
+  --gray-dark: #545b62;
+  --gray-gradient: linear-gradient(to bottom, #6c757d, #545b62);
+  --white: #ffffff;
+  --bg-light: #f8f9fa;
+  --bg-lighter: #fafafa;
+  --border: #e0e0e0;
+  --border-light: #ddd;
+  --text: #333;
+  --text-light: #666;
+  --muted: #999;
 
-  .stocks-container h2 {
-    text-align: center;
-    margin-bottom: 20px;
-    color: #5a3921;
-  }
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-xs: 4px;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+  --shadow-md: 0 8px 24px rgba(0,0,0,0.12);
+  --shadow-inner: inset 0 2px 4px rgba(0,0,0,0.05);
+  --transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
 
-  .message {
-    color: #155724;
-    background-color: #d4edda;
-    border: 1px solid #c3e6cb;
-    padding: 10px 15px;
-    margin-bottom: 15px;
-    border-radius: 5px;
-    text-align: center;
-    font-weight: 600;
-  }
+/* Enhanced header */
+.header-section {
+  margin-bottom: 30px;
+  position: relative;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--border);
+}
 
-  .stocks-form-add {
-    display: flex;
-    flex-wrap: wrap;
+.header-section h1 {
+  margin: 0;
+  color: var(--brown-dark);
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+}
+
+.header-section:after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 80px;
+  height: 2px;
+  background: var(--brown);
+}
+
+/* Flash message */
+.message {
+  color: #155724;
+  background-color: #d4edda;
+  background-image: linear-gradient(to bottom, #d4edda, #c3e6cb);
+  border: 1px solid #c3e6cb;
+  border-left: 4px solid #28a745;
+  padding: 16px 20px;
+  margin: 0 0 24px 0;
+  border-radius: var(--radius-sm);
+  text-align: center;
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+  animation: fadeSlideIn var(--transition);
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Add button section */
+.add-ingredient-section {
+  text-align: center;
+  margin: 24px 0 30px;
+}
+
+.stocks-add-btn {
+  background: var(--green-gradient);
+  color: var(--white);
+  border: none;
+  padding: 14px 32px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: box-shadow var(--transition), transform var(--transition), filter var(--transition);
+  box-shadow: var(--shadow-sm), 0 1px 3px rgba(40, 167, 69, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.stocks-add-btn:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.7s;
+}
+
+.stocks-add-btn:hover {
+  box-shadow: var(--shadow-md), 0 4px 8px rgba(40, 167, 69, 0.4);
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+
+.stocks-add-btn:hover:before {
+  left: 100%;
+}
+
+.stocks-add-btn:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm), 0 1px 2px rgba(40, 167, 69, 0.4);
+}
+
+/* Enhanced Form Container - Portrait Layout */
+.stocks-form-container {
+  background-color: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 30px;
+  margin: 0 auto 30px;
+  max-width: 500px; /* Fixed width for better alignment */
+  width: 100%;
+  box-shadow: var(--shadow-md);
+  position: relative;
+}
+
+.stocks-form-container:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--brown-gradient);
+  border-top-left-radius: var(--radius);
+  border-top-right-radius: var(--radius);
+}
+
+.stocks-form-container h2 {
+  text-align: center;
+  margin: 0 0 25px 0;
+  color: var(--brown-dark);
+  font-size: 26px;
+  font-weight: 700;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+/* FIXED: Clean Portrait Layout - Single Column */
+.stocks-form-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"] {
+  padding: 14px 16px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  background-color: var(--bg-lighter);
+  transition: all var(--transition);
+  box-shadow: var(--shadow-inner);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-group input[type="text"]:hover,
+.form-group input[type="number"]:hover {
+  border-color: #bbb;
+  background-color: #f5f5f5;
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="number"]:focus {
+  outline: none;
+  border-color: var(--green);
+  background-color: var(--white);
+  box-shadow: 0 0 0 3px rgba(40,167,69,0.15);
+  transform: translateY(-1px);
+}
+
+/* Enhanced Checkboxes */
+.checkbox-group {
+  flex-direction: row;
+  align-items: center;
+  background: linear-gradient(to bottom, var(--bg-light), #eef2f7);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-inner);
+  margin: 5px 0;
+}
+
+.checkbox-group label {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 0;
+  font-size: 15px;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text);
+  user-select: none;
+  width: 100%;
+}
+
+.checkbox-group input[type="checkbox"] {
+  margin-right: 12px;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--green);
+  cursor: pointer;
+}
+
+/* Enhanced Buttons */
+.button-group {
+  display: flex;
+  gap: 16px;
+  margin-top: 20px;
+  justify-content: center;
+}
+
+.add-product-btn,
+.cancel-btn {
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition);
+  padding: 16px 32px;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+  min-width: 140px;
+}
+
+.add-product-btn:before,
+.cancel-btn:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.7s;
+}
+
+.add-product-btn:hover:before,
+.cancel-btn:hover:before {
+  left: 100%;
+}
+
+.add-product-btn {
+  background: var(--green-gradient);
+  color: var(--white);
+  box-shadow: var(--shadow-sm), 0 1px 3px rgba(40, 167, 69, 0.3);
+}
+
+.add-product-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md), 0 4px 8px rgba(40, 167, 69, 0.4);
+  filter: brightness(1.05);
+}
+
+.add-product-btn:active {
+  transform: translateY(0);
+  filter: brightness(0.95);
+}
+
+.cancel-btn {
+  background: var(--gray-gradient);
+  color: var(--white);
+}
+
+.cancel-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  filter: brightness(1.05);
+}
+
+.cancel-btn:active {
+  transform: translateY(0);
+  filter: brightness(0.95);
+}
+
+/* Enhanced Table Container */
+.table-container {
+  overflow-x: auto;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  margin-top: 30px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  width: 100%;
+}
+
+/* Enhanced Table */
+.stocks-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 14px;
+  table-layout: fixed;
+}
+
+/* Define column widths */
+.stocks-table th:nth-child(1), .stocks-table td:nth-child(1) { width: 15%; }
+.stocks-table th:nth-child(2), .stocks-table td:nth-child(2) { width: 20%; }
+.stocks-table th:nth-child(3), .stocks-table td:nth-child(3) { width: 10%; }
+.stocks-table th:nth-child(4), .stocks-table td:nth-child(4) { width: 15%; }
+.stocks-table th:nth-child(5), .stocks-table td:nth-child(5) { width: 15%; }
+.stocks-table th:nth-child(6), .stocks-table td:nth-child(6) { width: 10%; }
+.stocks-table th:nth-child(7), .stocks-table td:nth-child(7) { width: 15%; }
+
+.stocks-table th,
+.stocks-table td {
+  text-align: center;
+  padding: 16px 12px;
+  border-bottom: 1px solid var(--border);
+  word-wrap: break-word;
+}
+
+.stocks-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.stocks-table thead th {
+  background: var(--brown-gradient);
+  color: var(--white);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 16px 12px;
+  box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+}
+
+.stocks-table thead th:first-child {
+  border-top-left-radius: var(--radius-xs);
+}
+
+.stocks-table thead th:last-child {
+  border-top-right-radius: var(--radius-xs);
+}
+
+.stocks-table tbody tr {
+  transition: background-color var(--transition);
+}
+
+.stocks-table tbody tr:nth-child(even) {
+  background-color: #f7f9fc;
+}
+
+.stocks-table tbody tr:hover {
+  background-color: #eef2f7;
+}
+
+.stocks-table input[type="text"],
+.stocks-table input[type="number"],
+.stocks-table select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xs);
+  background: var(--bg-lighter);
+  transition: all var(--transition);
+  box-shadow: var(--shadow-inner);
+  font-size: 14px;
+}
+
+.stocks-table input[type="text"]:hover,
+.stocks-table input[type="number"]:hover,
+.stocks-table select:hover {
+  border-color: #bbb;
+  background-color: #f5f5f5;
+}
+
+.stocks-table input[type="text"]:focus,
+.stocks-table input[type="number"]:focus,
+.stocks-table select:focus {
+  outline: none;
+  border-color: var(--green);
+  background: var(--white);
+  box-shadow: 0 0 0 3px rgba(40,167,69,0.15);
+  transform: translateY(-1px);
+}
+
+/* Enhanced Action Buttons */
+.stocks-btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: var(--radius-xs);
+  color: var(--white);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  margin: 2px;
+  transition: all var(--transition);
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+  min-width: 80px;
+}
+
+.stocks-btn:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.7s;
+}
+
+.stocks-btn:hover:before {
+  left: 100%;
+}
+
+.stocks-btn.update {
+  background: var(--green-gradient);
+  box-shadow: var(--shadow-sm), 0 1px 3px rgba(40, 167, 69, 0.3);
+}
+
+.stocks-btn.update:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm), 0 4px 8px rgba(40, 167, 69, 0.4);
+  filter: brightness(1.05);
+}
+
+.stocks-btn.delete {
+  background: var(--red-gradient);
+  box-shadow: var(--shadow-sm), 0 1px 3px rgba(220, 53, 69, 0.3);
+}
+
+.stocks-btn.delete:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm), 0 4px 8px rgba(220, 53, 69, 0.4);
+  filter: brightness(1.05);
+}
+
+.stocks-btn:active {
+  transform: translateY(0);
+  filter: brightness(0.95);
+}
+
+.stocks-center {
+  text-align: center;
+  font-style: italic;
+  color: var(--muted);
+  padding: 25px;
+  font-size: 15px;
+  background: linear-gradient(to bottom, var(--bg-light), #eef2f7);
+}
+
+/* Enhanced Responsive Design */
+@media (max-width: 600px) {
+  .stocks-form-container {
+    max-width: 95%;
+    padding: 20px;
+  }
+  
+  .button-group {
+    flex-direction: column;
     gap: 10px;
-    justify-content: center;
-    margin-bottom: 30px;
   }
-
-  .stocks-form-add input,
-  .stocks-form-add select {
-    font-size: 14px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    width: 160px;
-  }
-
-  .stocks-add-btn {
-    background-color: #28a745;
-    color: white;
-    border: none;
-    padding: 10px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  }
-
-  .stocks-add-btn:hover {
-    background-color: #218838;
-    box-shadow: 0 0 8px rgba(40, 167, 69, 0.6);
-  }
-
-  .stocks-table {
+  
+  .add-product-btn,
+  .cancel-btn {
     width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
   }
-
-  .stocks-table th, .stocks-table td {
-    text-align: center;
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
+  
+  .header-section h1 {
+    font-size: 28px;
   }
-
-  .stocks-table th {
-    background-color: #7a4e2b;
-    color: white;
+  
+  .stocks-table thead th {
+    font-size: 13px;
+    padding: 14px 8px;
   }
+  
+  .stocks-table th,
+  .stocks-table td {
+    padding: 14px 8px;
+  }
+  
+  .stocks-btn {
+    padding: 8px 12px;
+    font-size: 12px;
+    min-width: 70px;
+  }
+}
 
+@media (max-width: 500px) {
+  .stocks-container {
+    padding: 16px 12px;
+    margin: 10px auto;
+  }
+  
+  .stocks-table {
+    font-size: 13px;
+  }
+  
   .stocks-table input[type="text"],
   .stocks-table input[type="number"],
   .stocks-table select {
-    width: 100%;
-    padding: 6px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    padding: 8px;
   }
+}
 
-  .stocks-btn {
-    padding: 6px 12px;
-    border: none;
-    border-radius: 5px;
-    color: white;
-    font-size: 13px;
-    cursor: pointer;
-    margin: 2px;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  }
-
-  .stocks-btn.update {
-    background-color: #28a745;
-  }
-
-  .stocks-btn.update:hover {
-    background-color: #1e7e34; /* Darker green */
-    box-shadow: 0 0 8px rgba(40, 167, 69, 0.6);
-  }
-
-  .stocks-btn.delete {
-    background-color: #dc3545;
-  }
-
-  .stocks-btn.delete:hover {
-    background-color: #bd2130; /* Darker red */
-    box-shadow: 0 0 8px rgba(220, 53, 69, 0.6);
-  }
-
-  .stocks-center {
-    text-align: center;
-    font-style: italic;
-    color: #999;
-  }
+/* Focus States for Accessibility */
+.stocks-add-btn:focus,
+.add-product-btn:focus,
+.cancel-btn:focus,
+.stocks-btn:focus,
+input:focus,
+select:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(40,167,69,0.25);
+}
 </style>
 
 <script>
@@ -204,8 +686,56 @@
       }
     }
 
+    // Show/Hide Add Ingredient Form
+    const showAddFormBtn = document.getElementById('showAddForm');
+    const addIngredientForm = document.getElementById('addIngredientForm');
+    const cancelAddBtn = document.getElementById('cancelAdd');
+
+    showAddFormBtn.addEventListener('click', () => {
+      addIngredientForm.style.display = 'block';
+      showAddFormBtn.style.display = 'none';
+      // Scroll to form
+      addIngredientForm.scrollIntoView({ behavior: 'smooth' });
+    });
+
+    cancelAddBtn.addEventListener('click', () => {
+      addIngredientForm.style.display = 'none';
+      showAddFormBtn.style.display = 'inline-block';
+      // Clear form fields
+      const form = addIngredientForm.querySelector('form');
+      form.reset();
+      // Reset checkboxes to checked state
+      const checkboxes = form.querySelectorAll('input[type="checkbox"]');
+      checkboxes.forEach(checkbox => checkbox.checked = true);
+    });
+
+    // Handle checkbox behavior for isEnabled
+    const form = document.querySelector('.stocks-form-vertical');
+    if (form) {
+      form.addEventListener('submit', (e) => {
+        // Handle the isEnabled field - if checkbox is checked, send 'true', otherwise 'false'
+        const enabledCheckbox = form.querySelector('input[name="isEnabledStock"]');
+        const hiddenInput = form.querySelector('input[name="isEnabled"]');
+        
+        // Remove existing hidden input if any
+        if (hiddenInput) {
+          hiddenInput.remove();
+        }
+        
+        // Create hidden input with the correct value
+        const newHiddenInput = document.createElement('input');
+        newHiddenInput.type = 'hidden';
+        newHiddenInput.name = 'isEnabled';
+        newHiddenInput.value = enabledCheckbox.checked ? 'true' : 'false';
+        form.appendChild(newHiddenInput);
+        
+        // Remove the checkbox from form submission
+        enabledCheckbox.removeAttribute('name');
+      });
+    }
+
     // Confirmation dialogs for adding ingredient
-    const addForm = document.querySelector('.stocks-form-add');
+    const addForm = document.querySelector('.stocks-form-vertical');
     if (addForm) {
       addForm.addEventListener('submit', event => {
         if (!confirm('Are you sure you want to add this ingredient?')) {

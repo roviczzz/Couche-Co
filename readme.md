@@ -36,29 +36,9 @@ To run mongodb use:
   - [ ] management
   - [ ] settings
   - [ ] forgot password
-- [ ] Chatbot
-  - [ ] cart function
-  - [ ] session
-  - [ ] clear conversation after transaction (if possible)
-  - [ ] paymongo
-  - [ ] delivery function
-  - [ ] invoice function
 - [ ] Database 
   - [ ] images 
   - [ ] descriptions [with prices]
-
-### Rovic
-- [x] connection string hide on repo
-
-### Ken
-- [ ] Analytics
-- [ ] Chatbot management 
-- [ ] Forgot password
-
-### Math
-- [ ] Discounts
-- [ ] Settings
-
 
 
 ## CREDITS:

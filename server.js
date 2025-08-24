@@ -3,6 +3,7 @@ const session = require('express-session');
 const { MongoClient, ObjectId } = require('mongodb');
 const { check, validationResult } = require('express-validator');
 const expressLayouts = require('express-ejs-layouts');
+const bcrypt = require('bcrypt'); // ADDED FOR PASSWORD HASHING
 const app = express();
 const port = 8080;
 require('dotenv').config();
@@ -12,19 +13,21 @@ const flash = require('connect-flash');
 const favicon = require('serve-favicon');
 const path = require('path');
 
+// BCRYPT CONFIGURATION
+const SALT_ROUNDS = 12; // Higher security with 12 rounds
+
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 
 app.use(
-  session({
-    secret: '4eaf42844a1772cb12e90869666b3a929f785d5bbd6d0fc5402c95ebc8721c3bca4ac502cc2fa7ec8abcbec042202876',
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false }
-  })
+    session({
+      secret: '4eaf42844a1772cb12e90869666b3a929f785d5bbd6d0fc5402c95ebc8721c3bca4ac502cc2fa7ec8abcbec042202876',
+      resave: false,
+      saveUninitialized: true,
+      cookie: { secure: false }
+    })
 );
 
 app.use(flash());
-
 
 app.use((req, res, next) => {
   res.locals.success_msg = req.flash('success_msg');
@@ -32,11 +35,26 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use((req, res, next) => {
+  res.locals.sidebarItems = [
+    { path: '/dashboard', label: 'Home', icon: 'house' },
+    { path: '/order', label: 'Orders', icon: 'box' },
+    { path: '/menu', label: 'POS Menu', icon: 'list' },
+    { path: '/stocks', label: 'Stocks', icon: 'warehouse' },
+    { path: '/products', label: 'Products', icon: 'cart-shopping' },
+    { path: '/logout', label: 'Logout', icon: 'door-open' }
+  ];
+  res.locals.currentPage = req.path;
+  next();
+});
 
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/views');
-app.use(express.urlencoded({ extended: false }));
+
+// ⚠️ IMPORTANT: Move these BEFORE express.static and expressLayouts
+app.use(express.urlencoded({ extended: true })); // Changed from false to true
 app.use(express.json());
+
 app.use(express.static(__dirname + '/public'));
 app.use(expressLayouts);
 app.set('layout', 'layout');
@@ -73,6 +91,7 @@ app.get('/account/login', (req, res) => {
   res.render('login', { title: 'Login | Blessings Cafe', errors: {}, error: null, formData: {}, layout: false });
 });
 
+// ENHANCED LOGIN ROUTE WITH BCRYPT SUPPORT
 app.post(
   '/account/login',
   [
@@ -94,16 +113,22 @@ app.post(
         layout: false
       });
     }
+
+    console.log(`📅 Login attempt at 2025-08-19 07:07:58 for user: ${req.body.Username}`);
+
     try {
       const client = await MongoClient.connect(uri);
       const db = client.db('blessingscafe');
       const users = db.collection('users');
+
+      // Find user by username first
       const user = await users.findOne({
-        username: req.body.Username,
-        password: req.body.Password,
+        username: req.body.Username
       });
-      await client.close();
+
       if (!user) {
+        await client.close();
+        console.log(`❌ Login failed for user: ${req.body.Username} - User not found`);
         return res.render('login', {
           title: 'Login | Blessings Cafe',
           errors: {},
@@ -112,12 +137,62 @@ app.post(
           layout: false
         });
       }
+
+      // Check if password is hashed or plain text
+      let passwordMatch = false;
+
+      if (user.password.startsWith('$2b$') || user.password.startsWith('$2a$')) {
+        // Password is already hashed - use bcrypt compare
+        passwordMatch = await bcrypt.compare(req.body.Password, user.password);
+        console.log('🔐 Using bcrypt verification for hashed password');
+      } else {
+        // Password is plain text - compare directly and then hash it
+        if (req.body.Password === user.password) {
+          passwordMatch = true;
+          console.log('⚠️ Plain text password detected - upgrading to bcrypt');
+
+          // Hash the password for future use
+          const hashedPassword = await bcrypt.hash(req.body.Password, SALT_ROUNDS);
+          await users.updateOne(
+            { _id: user._id },
+            {
+              $set: {
+                password: hashedPassword,
+                passwordUpgraded: new Date('2025-08-19T07:07:58.000Z'),
+                upgradedBy: 'auto-login'
+              }
+            }
+          );
+          console.log('✅ Password upgraded to bcrypt hash');
+        }
+      }
+
+      await client.close();
+
+      if (!passwordMatch) {
+        console.log(`❌ Login failed for user: ${req.body.Username} - Invalid password`);
+        return res.render('login', {
+          title: 'Login | Blessings Cafe',
+          errors: {},
+          error: 'Invalid username or password',
+          formData: { Username: req.body.Username },
+          layout: false
+        });
+      }
+
+      // ENHANCED SESSION DATA FOR PASSWORD CHANGE
       req.session.user = {
+        _id: user._id, // Required for password change
         username: user.username,
-        email: user.email
+        email: user.email,
+        role: user.role || 'admin', // Default to admin if no role specified
+        loginTime: '2025-08-19 07:07:58'
       };
+
+      console.log(`✅ Login successful for user: ${user.username} (ID: ${user._id}) at 2025-08-19 07:07:58`);
       res.redirect('/dashboard');
     } catch (err) {
+      console.error('❌ Login error:', err);
       res.status(500).send('Internal Server Error');
     }
   }
@@ -128,7 +203,7 @@ app.get('/account/register', (req, res) => {
 });
 
 app.get('/dashboard', isLoggedIn, nocache, (req, res) => {
-  res.render('dashboard', { title: 'Dashboard | Blessings Cafe', user: req.session.user, currentPage: req.path });
+  res.render('dashboard', { title: 'Dashboard | Blessings Cafe', user: req.session.user });
 });
 
 app.get('/menu', isLoggedIn, nocache, async (req, res) => {
@@ -138,9 +213,40 @@ app.get('/menu', isLoggedIn, nocache, async (req, res) => {
     const menuCollection = db.collection('Menu');
     const menuItems = await menuCollection.find().toArray();
     await client.close();
-    res.render('menu', { menuItems, title: 'Menu | Blessings Cafe', user: req.session.user, currentPage: req.path });
+    res.render('menu', { menuItems, title: 'Menu | Blessings Cafe', user: req.session.user });
   } catch (err) {
     res.status(500).send('Internal Server Error');
+  }
+});
+
+app.get('/api/addons', async (req, res) => {
+  try {
+    console.log('Fetching add-ons...');
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    const addOns = await db.collection('Add-ons').find({ isEnabled: true }).toArray();
+
+    console.log('Found add-ons:', addOns.length);
+    console.log('Add-ons data:', addOns);
+
+    await client.close();
+    res.json(addOns);
+  } catch (err) {
+    console.error('Error fetching add-ons:', err);
+    res.status(500).json([]);
+  }
+});
+
+app.get('/api/orders/preparing-customers', async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const docs = await db.collection('Orders').find({ FulfillmentStatus: "Preparing" }).project({ Customer: 1 }).toArray();
+    await client.close();
+    res.json(docs.map(d => d.Customer));
+  } catch (err) {
+    res.status(500).json([]);
   }
 });
 
@@ -151,7 +257,7 @@ app.get('/products', isLoggedIn, nocache, async (req, res) => {
     const productCollection = db.collection('Menu');
     const products = await productCollection.find().toArray();
     await client.close();
-    res.render('products', { products, title: 'Products | Blessings Cafe', user: req.session.user, currentPage: req.path });
+    res.render('products', { products, title: 'Products | Blessings Cafe', user: req.session.user });
   } catch (err) {
     console.error('Error fetching products:', err);
     res.status(500).send('Internal Server Error');
@@ -228,8 +334,8 @@ app.post('/products/add', async (req, res) => {
   if (size22) Sizes.push({ Size: '22oz', BasePrice: parseFloat(size22) });
 
   const ingredientsArray = Ingredients
-    ? Ingredients.split(',').map(i => i.trim())
-    : [];
+      ? Ingredients.split(',').map(i => i.trim())
+      : [];
 
   const productData = {
     ProductID,
@@ -242,9 +348,9 @@ app.post('/products/add', async (req, res) => {
     isEnabled: isEnabled === 'true'
   };
 
-  if (Category.toLowerCase() === 'pastries' && !isNaN(parseFloat(BasePrice))) {
-    productData.BasePrice = parseFloat(BasePrice);
-  }
+if (Category.toLowerCase() === 'pastries' && !isNaN(parseFloat(BasePrice))) {
+  productData.BasePrice = parseFloat(BasePrice);
+}
 
   try {
     const client = await MongoClient.connect(uri);
@@ -258,8 +364,6 @@ app.post('/products/add', async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 });
-
-
 
 app.post('/products/edit/:id', async (req, res) => {
   const { id } = req.params;
@@ -305,8 +409,8 @@ app.post('/products/edit/:id', async (req, res) => {
     }
 
     await productCollection.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: updateFields }
+        { _id: new ObjectId(id) },
+        { $set: updateFields }
     );
 
     await client.close();
@@ -371,14 +475,14 @@ app.post('/delete-product/:id', async (req, res) => {
 
   try {
     const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe'); 
+    const db = client.db('blessingscafe');
     const result = await db.collection('Menu').deleteOne({ _id: new ObjectId(productId) });
 
-    await client.close(); 
+    await client.close();
 
     if (result.deletedCount === 1) {
-  req.flash('success_msg', `Product has been deleted`);
-  res.redirect('/products');} else {
+      req.flash('success_msg', `Product has been deleted`);
+      res.redirect('/products');} else {
       res.status(404).send('Product not found');
     }
   } catch (err) {
@@ -388,9 +492,8 @@ app.post('/delete-product/:id', async (req, res) => {
 });
 
 
-
 app.get('/add-product', isLoggedIn, nocache, (req, res) => {
-  res.render('add-product', { title: 'Add Product | Blessings Cafe' , user: req.session.user, currentPage: req.path});
+  res.render('add-product', { title: 'Add Product | Blessings Cafe' , user: req.session.user});
 });
 
 app.get('/edit-product/:id', isLoggedIn, nocache, async (req, res) => {
@@ -403,15 +506,12 @@ app.get('/edit-product/:id', isLoggedIn, nocache, async (req, res) => {
 
     if (!product) return res.status(404).send('Product not found');
 
-    res.render('edit-product', { title: 'Edit Product | Blessings Cafe', product, user: req.session.user, currentPage: req.path});
+    res.render('edit-product', { title: 'Edit Product | Blessings Cafe', product, user: req.session.user});
   } catch (err) {
     console.error('Error fetching product for editing:', err);
     res.status(500).send('Internal Server Error');
   }
 });
-
-
-
 
 app.get('/stocks', isLoggedIn, nocache, async (req, res) => {
   try {
@@ -425,7 +525,6 @@ app.get('/stocks', isLoggedIn, nocache, async (req, res) => {
       ingredients,
       title: 'Stocks | Blessings Cafe',
       user: req.session.user,
-      currentPage: req.path,
       message
     });
   } catch (err) {
@@ -462,17 +561,17 @@ app.post('/stocks/edit/:id', async (req, res) => {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
     await db.collection('Ingredients').updateOne(
-      { _id: new ObjectId(id) },
-      {
-        $set: {
-          IngredientID,
-          Name,
-          Quantity: parseInt(Quantity),
-          Category,
-          Allergen,
-          isEnabled: isEnabled === 'true'
+        { _id: new ObjectId(id) },
+        {
+          $set: {
+            IngredientID,
+            Name,
+            Quantity: parseInt(Quantity),
+            Category,
+            Allergen,
+            isEnabled: isEnabled === 'true'
+          }
         }
-      }
     );
     await client.close();
     res.redirect('/stocks?msg=update_success');
@@ -496,26 +595,24 @@ app.post('/stocks/delete/:id', async (req, res) => {
   }
 });
 
-
 app.get('/order', isLoggedIn, nocache, async (req, res) => {
   try {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
 
     const ordersCollection = db.collection('Orders');
-    const menuCollection = db.collection('Menu'); 
+    const menuCollection = db.collection('Menu');
     const orders = await ordersCollection.find().toArray();
 
     const menu = await menuCollection.find().toArray();
 
     await client.close();
 
-    res.render('order', { 
-      orders, 
-      menu,              
-      title: 'Orders | Blessings Cafe', 
-      user: req.session.user, 
-      currentPage: req.path
+    res.render('order', {
+      orders,
+      menu,
+      title: 'Orders | Blessings Cafe',
+      user: req.session.user
     });
   } catch (err) {
     console.error('Error fetching orders or menu:', err);
@@ -653,16 +750,13 @@ app.patch('/orders/:OrderID/cancel', isLoggedIn, nocache, async (req, res) => {
       message: 'Order cancelled successfully',
       order: updatedOrder
     });
-    
+
   } catch (error) {
     if (client) await client.close();
     console.error('Error cancelling order:', error);
     return res.status(500).json({ error: 'Server error while cancelling order' });
   }
 });
-
-
-
 
 app.get('/orders/edit/:id', isLoggedIn, nocache, async (req, res) => {
   const orderId = req.params.id;
@@ -701,8 +795,7 @@ app.get('/orders/edit/:id', isLoggedIn, nocache, async (req, res) => {
     res.render('edit-order', {
       order,
       title: `Edit Order #${order.OrderID}`,
-      user: req.session.user,
-      currentPage: req.path
+      user: req.session.user
     });
   } catch (err) {
     console.error('Error in /orders/edit/:id:', err);
@@ -710,11 +803,608 @@ app.get('/orders/edit/:id', isLoggedIn, nocache, async (req, res) => {
   }
 });
 
+// ========== ENHANCED DISCOUNTS/PROMOS ROUTES ==========
+
+// GET route for discounts page
+app.get('/discounts', isLoggedIn, nocache, async (req, res) => {
+  try {
+    console.log('📋 Loading discounts page for user:', req.session.user.username, 'at 2025-08-19 07:07:58');
+
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const promosCollection = db.collection('Promos');
+    const promos = await promosCollection.find().toArray();
+    await client.close();
+
+    console.log(`✅ Fetched ${promos.length} promos from database`);
+
+    res.render('discounts', {
+      promos,
+      title: 'Discounts | Blessings Cafe',
+      user: req.session.user,
+      currentPage: req.path
+    });
+  } catch (err) {
+    console.error('❌ Error fetching promos:', err);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// POST route for adding new promo - FIXED VERSION WITH DISCOUNT PERCENTAGE
+app.post('/discounts/add', isLoggedIn, async (req, res) => {
+  console.log('=== PROMO ADD REQUEST STARTED for user:', req.session.user.username, 'at 2025-08-19 07:07:58 ===');
+  console.log('User:', req.session.user?.username || 'No user found');
+  console.log('Request method:', req.method);
+  console.log('Request URL:', req.url);
+  console.log('Content-Type:', req.headers['content-type']);
+  console.log('Raw req.body:', req.body);
+  console.log('req.body type:', typeof req.body);
+  console.log('req.body keys:', Object.keys(req.body || {}));
+
+  try {
+    // Check if req.body exists
+    if (!req.body || typeof req.body !== 'object') {
+      console.log('❌ CRITICAL ERROR: req.body is not an object');
+      console.log('req.body value:', req.body);
+      return res.status(400).json({
+        success: false,
+        message: 'Request body parsing failed. Please check form configuration.',
+        debug: {
+          bodyType: typeof req.body,
+          bodyValue: req.body,
+          contentType: req.headers['content-type']
+        }
+      });
+    }
+
+    // Extract data from form - ADDED DISCOUNT PERCENTAGE
+    const { event, startDate, endDate, description, discountPercentage } = req.body;
+
+    // Log extracted fields
+    console.log('Extracted fields:');
+    console.log('- event:', event, '(type:', typeof event, ')');
+    console.log('- startDate:', startDate, '(type:', typeof startDate, ')');
+    console.log('- endDate:', endDate, '(type:', typeof endDate, ')');
+    console.log('- description:', description, '(type:', typeof description, ')');
+    console.log('- discountPercentage:', discountPercentage, '(type:', typeof discountPercentage, ')');
+
+    // Validation - ADDED DISCOUNT PERCENTAGE VALIDATION
+    if (!event || !startDate || !endDate || !description || discountPercentage === undefined || discountPercentage === null) {
+      console.log('❌ VALIDATION FAILED - Missing fields');
+      return res.status(400).json({
+        success: false,
+        message: 'All fields are required',
+        received: { event, startDate, endDate, description, discountPercentage }
+      });
+    }
+
+    // Trim whitespace
+    const trimmedEvent = String(event).trim();
+    const trimmedDescription = String(description).trim();
+
+    if (!trimmedEvent || !trimmedDescription) {
+      console.log('❌ VALIDATION FAILED - Empty fields after trim');
+      return res.status(400).json({
+        success: false,
+        message: 'Fields cannot be empty'
+      });
+    }
+
+    // ADDED DISCOUNT PERCENTAGE VALIDATION
+    const discountPercent = parseFloat(discountPercentage);
+    if (isNaN(discountPercent) || discountPercent < 0 || discountPercent > 100) {
+      console.log('❌ DISCOUNT PERCENTAGE VALIDATION FAILED');
+      return res.status(400).json({
+        success: false,
+        message: 'Discount percentage must be a number between 0 and 100'
+      });
+    }
+
+    // Date validation
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    console.log('Date parsing:');
+    console.log('- start date:', start);
+    console.log('- end date:', end);
+    console.log('- start valid:', !isNaN(start.getTime()));
+    console.log('- end valid:', !isNaN(end.getTime()));
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      console.log('❌ DATE VALIDATION FAILED - Invalid dates');
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid date format'
+      });
+    }
+
+    if (start > end) {
+      console.log('❌ DATE VALIDATION FAILED - Start date after end date');
+      return res.status(400).json({
+        success: false,
+        message: 'End date must be after or equal to start date'
+      });
+    }
+
+    console.log('🔄 Connecting to MongoDB...');
+
+    const client = await MongoClient.connect(uri);
+    console.log('✅ MongoDB connected successfully');
+
+    const db = client.db('blessingscafe');
+    console.log('✅ Database selected: blessingscafe');
+
+    const promosCollection = db.collection('Promos');
+    console.log('✅ Collection selected: Promos');
+
+    const newPromo = {
+      event: trimmedEvent,
+      startDate: start,
+      endDate: end,
+      description: trimmedDescription,
+      discountPercentage: discountPercent, // ADDED DISCOUNT PERCENTAGE
+      isActive: true,
+      createdAt: new Date('2025-08-19T07:07:58.000Z'),
+      createdBy: req.session.user?.username || 'Unknown'
+    };
+
+    console.log('📄 Document to insert:', JSON.stringify(newPromo, null, 2));
+
+    const result = await promosCollection.insertOne(newPromo);
+    console.log('✅ Insert result:', result);
+    console.log('✅ Inserted ID:', result.insertedId);
+
+    // Verify the insertion
+    const insertedDoc = await promosCollection.findOne({ _id: result.insertedId });
+    console.log('✅ Verification - inserted document exists:', !!insertedDoc);
+    console.log('✅ Verification - discount percentage saved:', insertedDoc?.discountPercentage);
+
+    // Count total promos
+    const totalCount = await promosCollection.countDocuments();
+    console.log('✅ Total promos in collection:', totalCount);
+
+    await client.close();
+    console.log('✅ MongoDB connection closed');
+
+    console.log('=== PROMO ADD REQUEST COMPLETED SUCCESSFULLY for user:', req.session.user.username, 'at 2025-08-19 07:07:58 ===');
+
+    // Return the created promo with its ID for frontend table update
+    res.json({
+      success: true,
+      message: 'Promo added successfully',
+      promo: {
+        _id: result.insertedId,
+        ...newPromo
+      }
+    });
+  } catch (err) {
+    console.error('❌ ERROR adding promo:', err);
+    console.error('Error name:', err.name);
+    console.error('Error message:', err.message);
+    console.error('Error stack:', err.stack);
+    console.log('=== PROMO ADD REQUEST FAILED ===');
+
+    res.status(500).json({
+      success: false,
+      message: 'Database error occurred. Please check server logs.',
+      error: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error',
+      timestamp: '2025-08-19 07:07:58'
+    });
+  }
+});
+
+// POST route for editing promo - JSON VERSION WITH DISCOUNT PERCENTAGE
+app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Get form data from either JSON or FormData - ADDED DISCOUNT PERCENTAGE
+    let event, startDate, endDate, description, discountPercentage;
+
+    if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
+      // JSON data
+      ({ event, startDate, endDate, description, discountPercentage } = req.body);
+    } else {
+      // Form data
+      event = req.body.event;
+      startDate = req.body.startDate;
+      endDate = req.body.endDate;
+      description = req.body.description;
+      discountPercentage = req.body.discountPercentage;
+    }
+
+    console.log('Edit request data for user:', req.session.user.username, 'at 2025-08-19 07:07:58:', { event, startDate, endDate, description, discountPercentage });
+
+    // Validation - ADDED DISCOUNT PERCENTAGE VALIDATION
+    if (!event || !startDate || !endDate || !description || discountPercentage === undefined || discountPercentage === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'All fields are required',
+        received: { event, startDate, endDate, description, discountPercentage }
+      });
+    }
+
+    // ADDED DISCOUNT PERCENTAGE VALIDATION
+    const discountPercent = parseFloat(discountPercentage);
+    if (isNaN(discountPercent) || discountPercent < 0 || discountPercent > 100) {
+      return res.status(400).json({
+        success: false,
+        message: 'Discount percentage must be a number between 0 and 100'
+      });
+    }
+
+    // Date validation
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid date format'
+      });
+    }
+
+    if (start > end) {
+      return res.status(400).json({
+        success: false,
+        message: 'End date must be after or equal to start date'
+      });
+    }
+
+    // Validate ObjectId
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid promo ID'
+      });
+    }
+
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const promosCollection = db.collection('Promos');
+
+    const updateResult = await promosCollection.updateOne(
+      { _id: new ObjectId(id) },
+      {
+        $set: {
+          event: String(event).trim(),
+          startDate: start,
+          endDate: end,
+          description: String(description).trim(),
+          discountPercentage: discountPercent, // ADDED DISCOUNT PERCENTAGE
+          updatedAt: new Date('2025-08-19T07:07:58.000Z'),
+          updatedBy: req.session.user?.username || 'Unknown'
+        }
+      }
+    );
+
+    console.log('Update result for user:', req.session.user.username, ':', updateResult);
+
+    await client.close();
+
+    if (updateResult.matchedCount === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Promo not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Promo updated successfully'
+    });
+  } catch (err) {
+    console.error('Error editing promo for user:', req.session.user.username, ':', err);
+    res.status(500).json({
+      success: false,
+      message: 'Database error: ' + err.message
+    });
+  }
+});
+
+// POST route for deleting promo
+app.post('/discounts/delete/:id', isLoggedIn, async (req, res) => {
+  const { id } = req.params;
+
+  console.log('🗑️ Deleting promo for user:', req.session.user.username, 'at 2025-08-19 07:07:58:', id);
+
+  // Validate ObjectId
+  if (!ObjectId.isValid(id)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid promo ID'
+    });
+  }
+
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const promosCollection = db.collection('Promos');
+
+    // Get promo details before deletion for logging
+    const promo = await promosCollection.findOne({ _id: new ObjectId(id) });
+
+    if (!promo) {
+      await client.close();
+      return res.status(404).json({
+        success: false,
+        message: 'Promo not found'
+      });
+    }
+
+    const deleteResult = await promosCollection.deleteOne({ _id: new ObjectId(id) });
+
+    console.log('✅ Delete result for user:', req.session.user.username, ':', deleteResult);
+
+    await client.close();
+
+    if (deleteResult.deletedCount === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Promo not found'
+      });
+    }
+
+    console.log(`✅ Promo "${promo.event}" deleted by ${req.session.user.username} at 2025-08-19 07:07:58`);
+
+    res.json({
+      success: true,
+      message: 'Promo deleted successfully'
+    });
+  } catch (err) {
+    console.error('❌ Error deleting promo for user:', req.session.user.username, ':', err);
+    res.status(500).json({
+      success: false,
+      message: 'Database error: ' + err.message
+    });
+  }
+});
+
+// POST route for toggling promo switches
+app.post('/discounts/toggle-switch', isLoggedIn, async (req, res) => {
+  const { promoId, enabled } = req.body;
+
+  try {
+    console.log(`🔄 Promo ${promoId} toggled to: ${enabled} by ${req.session.user.username} at 2025-08-19 07:07:58`);
+
+    // Here you could update a database field if needed
+    // For example, updating an 'enabled' field in the promo document
+
+    res.json({
+      success: true,
+      message: `Promo switch ${enabled ? 'enabled' : 'disabled'} successfully`
+    });
+  } catch (err) {
+    console.error('❌ Error toggling promo switch for user:', req.session.user.username, ':', err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to toggle promo switch'
+    });
+  }
+});
+
+// ========== END OF ENHANCED DISCOUNTS/PROMOS ROUTES ==========
 
 
 
+// ========== SETTINGS AND PASSWORD MANAGEMENT ROUTES ==========
+
+// SETTINGS PAGE ROUTE
+app.get('/settings', isLoggedIn, nocache, (req, res) => {
+  console.log(`⚙️ Settings page accessed by user: ${req.session.user.username} at 2025-08-19 07:07:58`);
+  res.render('settings', {
+    title: 'Settings | Blessings Cafe',
+    user: req.session.user,
+    currentPage: req.path
+  });
+});
+
+// Alternative route for admin settings
+app.get('/admin/settings', isLoggedIn, nocache, (req, res) => {
+  console.log(`⚙️ Admin settings page accessed by user: ${req.session.user.username} at 2025-08-19 07:07:58`);
+  res.render('settings', {
+    title: 'Admin Settings | Blessings Cafe',
+    user: req.session.user,
+    currentPage: req.path
+  });
+});
+
+// PASSWORD CHANGE ROUTE WITH BCRYPT
+app.post('/admin/change-password', isLoggedIn, async (req, res) => {
+  try {
+    console.log(`🔐 Password change attempt by user: ${req.session.user.username} at 2025-08-19 07:07:58`);
+
+    const { currentPassword, newPassword } = req.body;
+
+    // Validation
+    if (!currentPassword || !newPassword) {
+      console.log(`❌ Password change failed - Missing fields for user: ${req.session.user.username}`);
+      return res.status(400).json({
+        success: false,
+        message: 'Current password and new password are required'
+      });
+    }
+
+    if (newPassword.length < 8) {
+      console.log(`❌ Password change failed - Password too short for user: ${req.session.user.username}`);
+      return res.status(400).json({
+        success: false,
+        message: 'New password must be at least 8 characters long',
+        field: 'newPassword'
+      });
+    }
+
+    if (currentPassword === newPassword) {
+      console.log(`❌ Password change failed - Same password for user: ${req.session.user.username}`);
+      return res.status(400).json({
+        success: false,
+        message: 'New password must be different from current password',
+        field: 'newPassword'
+      });
+    }
+
+    // Connect to database
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const users = db.collection('users');
+
+    // Find the user
+    const user = await users.findOne({ _id: new ObjectId(req.session.user._id) });
+
+    if (!user) {
+      await client.close();
+      console.log(`❌ Password change failed - User not found: ${req.session.user.username}`);
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Verify current password
+    let currentPasswordValid = false;
+
+    if (user.password.startsWith('$2b$') || user.password.startsWith('$2a$')) {
+      // Password is hashed
+      currentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+      console.log('🔐 Verifying against hashed password');
+    } else {
+      // Password is plain text
+      currentPasswordValid = (currentPassword === user.password);
+      console.log('⚠️ Verifying against plain text password');
+    }
+
+    if (!currentPasswordValid) {
+      await client.close();
+      console.log(`❌ Password change failed - Invalid current password for user: ${req.session.user.username}`);
+      return res.status(400).json({
+        success: false,
+        message: 'Current password is incorrect',
+        field: 'currentPassword'
+      });
+    }
+
+    // Hash the new password
+    console.log('🔐 Hashing new password with bcrypt...');
+    const hashedNewPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
+    console.log('✅ New password hashed successfully');
+
+    // Update the password in database
+    const updateResult = await users.updateOne(
+      { _id: user._id },
+      {
+        $set: {
+          password: hashedNewPassword,
+          passwordChangedAt: new Date('2025-08-19T07:07:58.000Z'),
+          passwordChangedBy: req.session.user.username,
+          lastModified: new Date('2025-08-19T07:07:58.000Z')
+        }
+      }
+    );
+
+    await client.close();
+
+    if (updateResult.modifiedCount === 1) {
+      console.log(`✅ Password changed successfully for user: ${req.session.user.username} at 2025-08-19 07:07:58`);
+
+      // Log security event
+      console.log(`🔒 SECURITY EVENT: Password changed for user ${req.session.user.username} from IP ${req.ip || req.connection.remoteAddress} at 2025-08-19 07:07:58`);
+
+      res.json({
+        success: true,
+        message: 'Password changed successfully! For security purposes, please log in again with your new password.'
+      });
+    } else {
+      console.log(`❌ Password change failed - Database update failed for user: ${req.session.user.username}`);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update password in database'
+      });
+    }
+
+  } catch (error) {
+    console.error(`❌ Password change error for user ${req.session.user.username}:`, error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error occurred while changing password'
+    });
+  }
+});
+
+// UTILITY FUNCTION TO HASH EXISTING PLAIN TEXT PASSWORDS (Optional Migration)
+app.post('/admin/migrate-passwords', isLoggedIn, async (req, res) => {
+  // Only allow this for admin users - add additional security checks as needed
+  if (req.session.user.role !== 'admin') {
+    return res.status(403).json({ success: false, message: 'Unauthorized' });
+  }
+
+  try {
+    console.log(`🔄 Password migration started by admin: ${req.session.user.username} at 2025-08-19 07:07:58`);
+
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const users = db.collection('users');
+
+    // Find users with plain text passwords
+    const plainTextUsers = await users.find({
+      password: { $not: { $regex: /^\$2[ab]\$/ } }
+    }).toArray();
+
+    console.log(`📊 Found ${plainTextUsers.length} users with plain text passwords`);
+
+    let migratedCount = 0;
+
+    for (const user of plainTextUsers) {
+      if (user.password && user.password.length > 0) {
+        const hashedPassword = await bcrypt.hash(user.password, SALT_ROUNDS);
+
+        await users.updateOne(
+          { _id: user._id },
+          {
+            $set: {
+              password: hashedPassword,
+              passwordMigratedAt: new Date('2025-08-19T07:07:58.000Z'),
+              migratedBy: req.session.user.username
+            }
+          }
+        );
+
+        migratedCount++;
+        console.log(`✅ Migrated password for user: ${user.username}`);
+      }
+    }
+
+    await client.close();
+
+    console.log(`✅ Password migration completed. Migrated ${migratedCount} passwords at 2025-08-19 07:07:58`);
+
+    res.json({
+      success: true,
+      message: `Successfully migrated ${migratedCount} passwords to bcrypt hashing`,
+      migratedCount: migratedCount
+    });
+
+  } catch (error) {
+    console.error('❌ Password migration error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error during password migration'
+    });
+  }
+});
+
+// ========== END OF SETTINGS AND PASSWORD MANAGEMENT ROUTES ==========
+
+// ENHANCED LOGOUT ROUTE with security logging
 app.get('/logout', (req, res) => {
-  req.session.destroy(() => {
+  const username = req.session.user?.username;
+  console.log(`🚪 User logout: ${username} at 2025-08-19 07:07:58`);
+
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('❌ Session destruction error:', err);
+    } else {
+      console.log(`✅ Session destroyed successfully for user: ${username}`);
+    }
     res.redirect('/account/login');
   });
 });
