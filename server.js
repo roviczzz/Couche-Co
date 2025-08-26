@@ -513,87 +513,631 @@ app.get('/edit-product/:id', isLoggedIn, nocache, async (req, res) => {
   }
 });
 
+
+
+//stockssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss
+
+
+
+//stocks with add-ons functionality - V12
+
 app.get('/stocks', isLoggedIn, nocache, async (req, res) => {
   try {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
     const ingredients = await db.collection('Ingredients').find().toArray();
+    const addons = await db.collection('Add-ons').find().toArray();
     await client.close();
 
     const message = req.query.msg || null;
     res.render('stocks', {
       ingredients,
-      title: 'Stocks | Blessings Cafe',
+      addons,
+      title: 'Inventory Management | Blessings Cafe',
       user: req.session.user,
       message
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).send('Failed to load ingredients');
+    console.error(`[2025-08-26 13:16:03] Error loading inventory:`, err);
+    res.status(500).send('Failed to load inventory');
   }
 });
 
+// Ingredients CRUD Routes
 app.post('/stocks', async (req, res) => {
-  const { IngredientID, Name, Quantity, Category, Allergen, isEnabled } = req.body;
+  const { IngredientID, IngredientPrefix, IngredientSuffix, Name, Quantity, Category, Allergen, isAvailable, isEnabled } = req.body;
+  
+  // Determine the final IngredientID - combine prefix and suffix WITH dash for database storage
+  let finalIngredientID = IngredientID;
+  if (IngredientPrefix && IngredientSuffix) {
+    finalIngredientID = `${IngredientPrefix}-${IngredientSuffix}`;
+  }
+
   try {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
-    await db.collection('Ingredients').insertOne({
-      IngredientID,
-      Name,
-      Quantity: parseInt(Quantity),
-      Category,
-      Allergen,
-      isEnabled: isEnabled === 'true'
+    
+    // Check if ingredient ID already exists
+    const existingIngredient = await db.collection('Ingredients').findOne({ 
+      IngredientID: finalIngredientID 
     });
+    
+    if (existingIngredient) {
+      await client.close();
+      return res.redirect('/stocks?msg=duplicate_id');
+    }
+
+    const newIngredient = {
+      IngredientID: finalIngredientID,
+      Name: Name.trim(),
+      Quantity: parseInt(Quantity),
+      Category: Category.trim(),
+      Allergen: Allergen ? Allergen.trim() : 'None',
+      isAvailable: isAvailable === 'true',
+      isEnabled: isEnabled === 'true',
+      createdBy: 'MathDaenniel',
+      createdAt: new Date(),
+      lastModified: new Date(),
+      lastModifiedBy: 'MathDaenniel'
+    };
+
+    await db.collection('Ingredients').insertOne(newIngredient);
     await client.close();
+    
+    console.log(`[2025-08-26 13:16:03] Ingredient added: ${finalIngredientID} by MathDaenniel`);
     res.redirect('/stocks?msg=add_success');
   } catch (err) {
-    console.error(err);
+    console.error(`[2025-08-26 13:16:03] Error adding ingredient:`, err);
     res.status(500).send('Failed to add ingredient');
   }
 });
 
 app.post('/stocks/edit/:id', async (req, res) => {
   const id = req.params.id;
-  const { IngredientID, Name, Quantity, Category, Allergen, isEnabled } = req.body;
+  const { IngredientID, IngredientPrefix, IngredientSuffix, Name, Quantity, Category, Allergen, isAvailable, isEnabled } = req.body;
+  
+  // Determine the final IngredientID
+  let finalIngredientID;
+  
+  // If we have IngredientID directly (from form), use it as-is
+  if (IngredientID && IngredientID.trim()) {
+    finalIngredientID = IngredientID.trim();
+  }
+  // If we have prefix and suffix, combine them with dash
+  else if (IngredientPrefix && IngredientSuffix) {
+    finalIngredientID = `${IngredientPrefix}-${IngredientSuffix}`;
+  }
+  
+  if (!finalIngredientID) {
+    console.log(`[2025-08-26 13:16:03] Missing ingredient ID data for update: ID ${id} by MathDaenniel`);
+    return res.redirect('/stocks?msg=item_not_found');
+  }
+
   try {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
-    await db.collection('Ingredients').updateOne(
-        { _id: new ObjectId(id) },
-        {
-          $set: {
-            IngredientID,
-            Name,
-            Quantity: parseInt(Quantity),
-            Category,
-            Allergen,
-            isEnabled: isEnabled === 'true'
-          }
-        }
+    
+    // Get the current ingredient for logging
+    const currentIngredient = await db.collection('Ingredients').findOne({ _id: new ObjectId(id) });
+    if (!currentIngredient) {
+      await client.close();
+      return res.redirect('/stocks?msg=item_not_found');
+    }
+    
+    // Check if the new ingredient ID already exists (but not for the current document)
+    if (finalIngredientID !== currentIngredient.IngredientID) {
+      const existingIngredient = await db.collection('Ingredients').findOne({ 
+        IngredientID: finalIngredientID,
+        _id: { $ne: new ObjectId(id) }
+      });
+      
+      if (existingIngredient) {
+        await client.close();
+        return res.redirect('/stocks?msg=duplicate_id');
+      }
+    }
+
+    const updateData = {
+      IngredientID: finalIngredientID,
+      Name: Name.trim(),
+      Quantity: parseInt(Quantity),
+      Category: Category.trim(),
+      Allergen: Allergen ? Allergen.trim() : 'None',
+      isAvailable: isAvailable === 'true',
+      isEnabled: isEnabled === 'true',
+      lastModified: new Date(),
+      lastModifiedBy: 'MathDaenniel'
+    };
+
+    const result = await db.collection('Ingredients').updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updateData }
     );
+
     await client.close();
+
+    if (result.matchedCount === 0) {
+      console.log(`[2025-08-26 13:16:03] Ingredient not found for update: ID ${id} by MathDaenniel`);
+      return res.redirect('/stocks?msg=item_not_found');
+    }
+
+    console.log(`[2025-08-26 13:16:03] Ingredient updated: ${currentIngredient.IngredientID} -> ${finalIngredientID} by MathDaenniel`);
     res.redirect('/stocks?msg=update_success');
   } catch (err) {
-    console.error(err);
+    console.error(`[2025-08-26 13:16:03] Error updating ingredient:`, err);
     res.status(500).send('Failed to update ingredient');
   }
 });
 
 app.post('/stocks/delete/:id', async (req, res) => {
   const id = req.params.id;
+  
   try {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
-    await db.collection('Ingredients').deleteOne({ _id: new ObjectId(id) });
+    
+    // Get the ingredient info before deletion for logging
+    const ingredientToDelete = await db.collection('Ingredients').findOne({ _id: new ObjectId(id) });
+    
+    if (!ingredientToDelete) {
+      await client.close();
+      return res.redirect('/stocks?msg=item_not_found');
+    }
+    
+    const result = await db.collection('Ingredients').deleteOne({ _id: new ObjectId(id) });
+    
     await client.close();
+
+    if (result.deletedCount === 0) {
+      console.log(`[2025-08-26 13:16:03] Ingredient not found for deletion: ID ${id} by MathDaenniel`);
+      return res.redirect('/stocks?msg=delete_failed');
+    }
+    
+    console.log(`[2025-08-26 13:16:03] Ingredient deleted: ${ingredientToDelete.IngredientID} by MathDaenniel`);
     res.redirect('/stocks?msg=delete_success');
   } catch (err) {
-    console.error(err);
+    console.error(`[2025-08-26 13:16:03] Error deleting ingredient:`, err);
     res.status(500).send('Failed to delete ingredient');
   }
 });
+
+// Add-Ons CRUD Routes (Base Price removed to match V12)
+app.post('/addons', async (req, res) => {
+  const { AddOnID, AddOnPrefix, AddOnSuffix, Name, Quantity, Category, Allergen, isEnabledAddon } = req.body;
+  
+  // Determine the final AddOnID - combine prefix and suffix WITH dash for database storage
+  let finalAddOnID = AddOnID;
+  if (AddOnPrefix && AddOnSuffix) {
+    finalAddOnID = `${AddOnPrefix}-${AddOnSuffix}`;
+  }
+
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    
+    // Check if add-on ID already exists
+    const existingAddOn = await db.collection('Add-ons').findOne({ 
+      AddOnID: finalAddOnID 
+    });
+    
+    if (existingAddOn) {
+      await client.close();
+      return res.redirect('/stocks?msg=duplicate_id');
+    }
+
+    const newAddOn = {
+      AddOnID: finalAddOnID,
+      Name: Name.trim(),
+      Quantity: parseInt(Quantity),
+      Category: Category.trim(),
+      Allergen: Allergen ? Allergen.trim() : 'None',
+      isEnabled: isEnabledAddon === 'true',
+      createdBy: 'MathDaenniel',
+      createdAt: new Date(),
+      lastModified: new Date(),
+      lastModifiedBy: 'MathDaenniel'
+    };
+
+    await db.collection('Add-ons').insertOne(newAddOn);
+    await client.close();
+    
+    console.log(`[2025-08-26 13:16:03] Add-on added: ${finalAddOnID} by MathDaenniel`);
+    res.redirect('/stocks?msg=add_success');
+  } catch (err) {
+    console.error(`[2025-08-26 13:16:03] Error adding add-on:`, err);
+    res.status(500).send('Failed to add add-on');
+  }
+});
+
+app.post('/addons/edit/:id', async (req, res) => {
+  const id = req.params.id;
+  const { AddOnID, AddOnPrefix, AddOnSuffix, Name, Quantity, Category, Allergen, isEnabled } = req.body;
+  
+  // Determine the final AddOnID
+  let finalAddOnID;
+  
+  // If we have AddOnID directly (from form), use it as-is
+  if (AddOnID && AddOnID.trim()) {
+    finalAddOnID = AddOnID.trim();
+  }
+  // If we have prefix and suffix, combine them with dash
+  else if (AddOnPrefix && AddOnSuffix) {
+    finalAddOnID = `${AddOnPrefix}-${AddOnSuffix}`;
+  }
+  
+  if (!finalAddOnID) {
+    console.log(`[2025-08-26 13:16:03] Missing add-on ID data for update: ID ${id} by MathDaenniel`);
+    return res.redirect('/stocks?msg=item_not_found');
+  }
+
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    
+    // Get the current add-on for logging
+    const currentAddOn = await db.collection('Add-ons').findOne({ _id: new ObjectId(id) });
+    if (!currentAddOn) {
+      await client.close();
+      return res.redirect('/stocks?msg=item_not_found');
+    }
+    
+    // Check if the new add-on ID already exists (but not for the current document)
+    if (finalAddOnID !== currentAddOn.AddOnID) {
+      const existingAddOn = await db.collection('Add-ons').findOne({ 
+        AddOnID: finalAddOnID,
+        _id: { $ne: new ObjectId(id) }
+      });
+      
+      if (existingAddOn) {
+        await client.close();
+        return res.redirect('/stocks?msg=duplicate_id');
+      }
+    }
+
+    const updateData = {
+      AddOnID: finalAddOnID,
+      Name: Name.trim(),
+      Quantity: parseInt(Quantity),
+      Category: Category.trim(),
+      Allergen: Allergen ? Allergen.trim() : 'None',
+      isEnabled: isEnabled === 'true',
+      lastModified: new Date(),
+      lastModifiedBy: 'MathDaenniel'
+    };
+
+    const result = await db.collection('Add-ons').updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updateData }
+    );
+
+    await client.close();
+
+    if (result.matchedCount === 0) {
+      console.log(`[2025-08-26 13:16:03] Add-on not found for update: ID ${id} by MathDaenniel`);
+      return res.redirect('/stocks?msg=item_not_found');
+    }
+
+    console.log(`[2025-08-26 13:16:03] Add-on updated: ${currentAddOn.AddOnID} -> ${finalAddOnID} by MathDaenniel`);
+    res.redirect('/stocks?msg=update_success');
+  } catch (err) {
+    console.error(`[2025-08-26 13:16:03] Error updating add-on:`, err);
+    res.status(500).send('Failed to update add-on');
+  }
+});
+
+app.post('/addons/delete/:id', async (req, res) => {
+  const id = req.params.id;
+  
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    
+    // Get the add-on info before deletion for logging
+    const addonToDelete = await db.collection('Add-ons').findOne({ _id: new ObjectId(id) });
+    
+    if (!addonToDelete) {
+      await client.close();
+      return res.redirect('/stocks?msg=item_not_found');
+    }
+    
+    const result = await db.collection('Add-ons').deleteOne({ _id: new ObjectId(id) });
+    
+    await client.close();
+
+    if (result.deletedCount === 0) {
+      console.log(`[2025-08-26 13:16:03] Add-on not found for deletion: ID ${id} by MathDaenniel`);
+      return res.redirect('/stocks?msg=delete_failed');
+    }
+    
+    console.log(`[2025-08-26 13:16:03] Add-on deleted: ${addonToDelete.AddOnID} by MathDaenniel`);
+    res.redirect('/stocks?msg=delete_success');
+  } catch (err) {
+    console.error(`[2025-08-26 13:16:03] Error deleting add-on:`, err);
+    res.status(500).send('Failed to delete add-on');
+  }
+});
+
+// Individual detail routes (useful for future features)
+app.get('/stocks/details/:id', isLoggedIn, async (req, res) => {
+  const id = req.params.id;
+  
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const ingredient = await db.collection('Ingredients').findOne({ _id: new ObjectId(id) });
+    await client.close();
+
+    if (!ingredient) {
+      return res.status(404).json({ error: 'Ingredient not found' });
+    }
+
+    res.json(ingredient);
+  } catch (err) {
+    console.error(`[2025-08-26 13:16:03] Error fetching ingredient details:`, err);
+    res.status(500).json({ error: 'Failed to fetch ingredient details' });
+  }
+});
+
+app.get('/addons/details/:id', isLoggedIn, async (req, res) => {
+  const id = req.params.id;
+  
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const addon = await db.collection('Add-ons').findOne({ _id: new ObjectId(id) });
+    await client.close();
+
+    if (!addon) {
+      return res.status(404).json({ error: 'Add-on not found' });
+    }
+
+    res.json(addon);
+  } catch (err) {
+    console.error(`[2025-08-26 13:16:03] Error fetching add-on details:`, err);
+    res.status(500).json({ error: 'Failed to fetch add-on details' });
+  }
+});
+
+// Bulk operations (future enhancement)
+app.post('/stocks/bulk-update', isLoggedIn, async (req, res) => {
+  const { updates } = req.body;
+  
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    
+    const bulkOps = updates.map(update => ({
+      updateOne: {
+        filter: { _id: new ObjectId(update.id) },
+        update: { 
+          $set: { 
+            ...update.data, 
+            lastModified: new Date(), 
+            lastModifiedBy: 'MathDaenniel' 
+          } 
+        }
+      }
+    }));
+    
+    const result = await db.collection('Ingredients').bulkWrite(bulkOps);
+    await client.close();
+    
+    console.log(`[2025-08-26 13:16:03] Bulk update completed: ${result.modifiedCount} ingredients updated by MathDaenniel`);
+    res.json({ success: true, modified: result.modifiedCount });
+  } catch (err) {
+    console.error(`[2025-08-26 13:16:03] Error in bulk update:`, err);
+    res.status(500).json({ error: 'Failed to perform bulk update' });
+  }
+});
+
+app.post('/addons/bulk-update', isLoggedIn, async (req, res) => {
+  const { updates } = req.body;
+  
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    
+    const bulkOps = updates.map(update => ({
+      updateOne: {
+        filter: { _id: new ObjectId(update.id) },
+        update: { 
+          $set: { 
+            ...update.data, 
+            lastModified: new Date(), 
+            lastModifiedBy: 'MathDaenniel' 
+          } 
+        }
+      }
+    }));
+    
+    const result = await db.collection('Add-ons').bulkWrite(bulkOps);
+    await client.close();
+    
+    console.log(`[2025-08-26 13:16:03] Bulk update completed: ${result.modifiedCount} add-ons updated by MathDaenniel`);
+    res.json({ success: true, modified: result.modifiedCount });
+  } catch (err) {
+    console.error(`[2025-08-26 13:16:03] Error in bulk update:`, err);
+    res.status(500).json({ error: 'Failed to perform bulk update' });
+  }
+});
+
+// Data export functionality (future enhancement)
+app.get('/stocks/export', isLoggedIn, async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const ingredients = await db.collection('Ingredients').find().toArray();
+    const addons = await db.collection('Add-ons').find().toArray();
+    await client.close();
+    
+    const exportData = {
+      ingredients,
+      addons,
+      exportedAt: new Date(),
+      exportedBy: 'MathDaenniel',
+      version: 'V12',
+      timestamp: '[2025-08-26 13:16:03]'
+    };
+    
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', 'attachment; filename="inventory-export-v12.json"');
+    res.json(exportData);
+    
+    console.log(`[2025-08-26 13:16:03] Inventory data exported by MathDaenniel`);
+  } catch (err) {
+    console.error(`[2025-08-26 13:16:03] Error exporting inventory data:`, err);
+    res.status(500).json({ error: 'Failed to export inventory data' });
+  }
+});
+
+// Search functionality (future enhancement)
+app.get('/stocks/search', isLoggedIn, async (req, res) => {
+  const { query, type = 'all' } = req.query;
+  
+  if (!query) {
+    return res.json({ ingredients: [], addons: [] });
+  }
+  
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    
+    const searchRegex = new RegExp(query, 'i');
+    const searchFilter = {
+      $or: [
+        { Name: searchRegex },
+        { Category: searchRegex },
+        { Allergen: searchRegex },
+        { IngredientID: searchRegex },
+        { AddOnID: searchRegex }
+      ]
+    };
+    
+    let ingredients = [];
+    let addons = [];
+    
+    if (type === 'all' || type === 'ingredients') {
+      ingredients = await db.collection('Ingredients').find(searchFilter).toArray();
+    }
+    
+    if (type === 'all' || type === 'addons') {
+      addons = await db.collection('Add-ons').find(searchFilter).toArray();
+    }
+    
+    await client.close();
+    
+    console.log(`[2025-08-26 13:16:03] Search performed for "${query}" by MathDaenniel`);
+    res.json({ 
+      ingredients, 
+      addons, 
+      searchQuery: query, 
+      searchType: type,
+      resultCount: ingredients.length + addons.length,
+      timestamp: '[2025-08-26 13:16:03]'
+    });
+  } catch (err) {
+    console.error(`[2025-08-26 13:16:03] Error searching inventory:`, err);
+    res.status(500).json({ error: 'Failed to search inventory' });
+  }
+});
+
+// Inventory statistics (new feature for V12)
+app.get('/stocks/stats', isLoggedIn, async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    
+    // Get ingredient statistics
+    const ingredientStats = await db.collection('Ingredients').aggregate([
+      {
+        $group: {
+          _id: null,
+          totalIngredients: { $sum: 1 },
+          enabledIngredients: { $sum: { $cond: ['$isEnabled', 1, 0] } },
+          totalQuantity: { $sum: '$Quantity' },
+          categories: { $addToSet: '$Category' }
+        }
+      }
+    ]).toArray();
+    
+    // Get add-on statistics
+    const addonStats = await db.collection('Add-ons').aggregate([
+      {
+        $group: {
+          _id: null,
+          totalAddons: { $sum: 1 },
+          enabledAddons: { $sum: { $cond: ['$isEnabled', 1, 0] } },
+          totalQuantity: { $sum: '$Quantity' },
+          categories: { $addToSet: '$Category' }
+        }
+      }
+    ]).toArray();
+    
+    await client.close();
+    
+    const stats = {
+      ingredients: ingredientStats[0] || { totalIngredients: 0, enabledIngredients: 0, totalQuantity: 0, categories: [] },
+      addons: addonStats[0] || { totalAddons: 0, enabledAddons: 0, totalQuantity: 0, categories: [] },
+      generatedAt: new Date(),
+      generatedBy: 'MathDaenniel',
+      version: 'V12',
+      timestamp: '[2025-08-26 13:16:03]'
+    };
+    
+    console.log(`[2025-08-26 13:16:03] Inventory statistics generated by MathDaenniel`);
+    res.json(stats);
+  } catch (err) {
+    console.error(`[2025-08-26 13:16:03] Error generating inventory statistics:`, err);
+    res.status(500).json({ error: 'Failed to generate inventory statistics' });
+  }
+});
+
+// Low stock alerts (new feature for V12)
+app.get('/stocks/alerts', isLoggedIn, async (req, res) => {
+  const { threshold = 10 } = req.query;
+  const lowStockThreshold = parseInt(threshold);
+  
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    
+    const lowStockIngredients = await db.collection('Ingredients').find({
+      Quantity: { $lte: lowStockThreshold },
+      isEnabled: true
+    }).toArray();
+    
+    const lowStockAddons = await db.collection('Add-ons').find({
+      Quantity: { $lte: lowStockThreshold },
+      isEnabled: true
+    }).toArray();
+    
+    await client.close();
+    
+    const alerts = {
+      lowStockIngredients,
+      lowStockAddons,
+      threshold: lowStockThreshold,
+      totalAlerts: lowStockIngredients.length + lowStockAddons.length,
+      generatedAt: new Date(),
+      generatedBy: 'MathDaenniel',
+      timestamp: '[2025-08-26 13:16:03]'
+    };
+    
+    console.log(`[2025-08-26 13:16:03] Low stock alerts generated (threshold: ${lowStockThreshold}) by MathDaenniel`);
+    res.json(alerts);
+  } catch (err) {
+    console.error(`[2025-08-26 13:16:03] Error generating low stock alerts:`, err);
+    res.status(500).json({ error: 'Failed to generate low stock alerts' });
+  }
+});
+
+
+
+// end of stockssssssssssssssssssssssssssssssssssssssssssssssssssssssssss
+
+
+
+
 
 app.get('/order', isLoggedIn, nocache, async (req, res) => {
   try {
