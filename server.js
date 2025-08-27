@@ -1349,10 +1349,12 @@ app.get('/orders/edit/:id', isLoggedIn, nocache, async (req, res) => {
 
 // ========== ENHANCED DISCOUNTS/PROMOS ROUTES ==========
 
+// ========== ENHANCED DISCOUNTS/PROMOS ROUTES - V12 ==========
+
 // GET route for discounts page
 app.get('/discounts', isLoggedIn, nocache, async (req, res) => {
   try {
-    console.log('📋 Loading discounts page for user:', req.session.user.username, 'at 2025-08-19 07:07:58');
+    console.log(`[2025-08-26 17:33:44] Loading discounts page for user: ${req.session.user.username} by MathDaenniel`);
 
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
@@ -1360,36 +1362,31 @@ app.get('/discounts', isLoggedIn, nocache, async (req, res) => {
     const promos = await promosCollection.find().toArray();
     await client.close();
 
-    console.log(`✅ Fetched ${promos.length} promos from database`);
+    console.log(`[2025-08-26 17:33:44] Fetched ${promos.length} promos from database by MathDaenniel`);
 
+    const message = req.query.msg || null;
     res.render('discounts', {
       promos,
-      title: 'Discounts | Blessings Cafe',
+      title: 'Promo Management | Blessings Cafe',
       user: req.session.user,
+      message,
       currentPage: req.path
     });
   } catch (err) {
-    console.error('❌ Error fetching promos:', err);
-    res.status(500).send('Internal Server Error');
+    console.error(`[2025-08-26 17:33:44] Error fetching promos:`, err, 'by MathDaenniel');
+    res.status(500).send('Failed to load promos');
   }
 });
 
-// POST route for adding new promo - FIXED VERSION WITH DISCOUNT PERCENTAGE
+// POST route for adding new promo - Enhanced for V12
 app.post('/discounts/add', isLoggedIn, async (req, res) => {
-  console.log('=== PROMO ADD REQUEST STARTED for user:', req.session.user.username, 'at 2025-08-19 07:07:58 ===');
-  console.log('User:', req.session.user?.username || 'No user found');
-  console.log('Request method:', req.method);
-  console.log('Request URL:', req.url);
-  console.log('Content-Type:', req.headers['content-type']);
-  console.log('Raw req.body:', req.body);
-  console.log('req.body type:', typeof req.body);
-  console.log('req.body keys:', Object.keys(req.body || {}));
+  console.log(`[2025-08-26 17:33:44] Promo add request started for user: ${req.session.user.username} by MathDaenniel`);
+  console.log(`[2025-08-26 17:33:44] Request body:`, req.body, 'by MathDaenniel');
 
   try {
     // Check if req.body exists
     if (!req.body || typeof req.body !== 'object') {
-      console.log('❌ CRITICAL ERROR: req.body is not an object');
-      console.log('req.body value:', req.body);
+      console.log(`[2025-08-26 17:33:44] Critical error: req.body is not an object by MathDaenniel`);
       return res.status(400).json({
         success: false,
         message: 'Request body parsing failed. Please check form configuration.',
@@ -1401,20 +1398,17 @@ app.post('/discounts/add', isLoggedIn, async (req, res) => {
       });
     }
 
-    // Extract data from form - ADDED DISCOUNT PERCENTAGE
+    // Extract data from form
     const { event, startDate, endDate, description, discountPercentage } = req.body;
 
     // Log extracted fields
-    console.log('Extracted fields:');
-    console.log('- event:', event, '(type:', typeof event, ')');
-    console.log('- startDate:', startDate, '(type:', typeof startDate, ')');
-    console.log('- endDate:', endDate, '(type:', typeof endDate, ')');
-    console.log('- description:', description, '(type:', typeof description, ')');
-    console.log('- discountPercentage:', discountPercentage, '(type:', typeof discountPercentage, ')');
+    console.log(`[2025-08-26 17:33:44] Extracted fields:`, {
+      event, startDate, endDate, description, discountPercentage
+    }, 'by MathDaenniel');
 
-    // Validation - ADDED DISCOUNT PERCENTAGE VALIDATION
+    // Validation
     if (!event || !startDate || !endDate || !description || discountPercentage === undefined || discountPercentage === null) {
-      console.log('❌ VALIDATION FAILED - Missing fields');
+      console.log(`[2025-08-26 17:33:44] Validation failed - missing fields by MathDaenniel`);
       return res.status(400).json({
         success: false,
         message: 'All fields are required',
@@ -1427,17 +1421,17 @@ app.post('/discounts/add', isLoggedIn, async (req, res) => {
     const trimmedDescription = String(description).trim();
 
     if (!trimmedEvent || !trimmedDescription) {
-      console.log('❌ VALIDATION FAILED - Empty fields after trim');
+      console.log(`[2025-08-26 17:33:44] Validation failed - empty fields after trim by MathDaenniel`);
       return res.status(400).json({
         success: false,
         message: 'Fields cannot be empty'
       });
     }
 
-    // ADDED DISCOUNT PERCENTAGE VALIDATION
+    // Discount percentage validation
     const discountPercent = parseFloat(discountPercentage);
     if (isNaN(discountPercent) || discountPercent < 0 || discountPercent > 100) {
-      console.log('❌ DISCOUNT PERCENTAGE VALIDATION FAILED');
+      console.log(`[2025-08-26 17:33:44] Discount percentage validation failed by MathDaenniel`);
       return res.status(400).json({
         success: false,
         message: 'Discount percentage must be a number between 0 and 100'
@@ -1448,14 +1442,14 @@ app.post('/discounts/add', isLoggedIn, async (req, res) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
 
-    console.log('Date parsing:');
-    console.log('- start date:', start);
-    console.log('- end date:', end);
-    console.log('- start valid:', !isNaN(start.getTime()));
-    console.log('- end valid:', !isNaN(end.getTime()));
+    console.log(`[2025-08-26 17:33:44] Date parsing:`, {
+      start, end, 
+      startValid: !isNaN(start.getTime()), 
+      endValid: !isNaN(end.getTime())
+    }, 'by MathDaenniel');
 
     if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-      console.log('❌ DATE VALIDATION FAILED - Invalid dates');
+      console.log(`[2025-08-26 17:33:44] Date validation failed - invalid dates by MathDaenniel`);
       return res.status(400).json({
         success: false,
         message: 'Invalid date format'
@@ -1463,54 +1457,65 @@ app.post('/discounts/add', isLoggedIn, async (req, res) => {
     }
 
     if (start > end) {
-      console.log('❌ DATE VALIDATION FAILED - Start date after end date');
+      console.log(`[2025-08-26 17:33:44] Date validation failed - start date after end date by MathDaenniel`);
       return res.status(400).json({
         success: false,
         message: 'End date must be after or equal to start date'
       });
     }
 
-    console.log('🔄 Connecting to MongoDB...');
+    console.log(`[2025-08-26 17:33:44] Connecting to MongoDB by MathDaenniel`);
 
     const client = await MongoClient.connect(uri);
-    console.log('✅ MongoDB connected successfully');
-
     const db = client.db('blessingscafe');
-    console.log('✅ Database selected: blessingscafe');
-
     const promosCollection = db.collection('Promos');
-    console.log('✅ Collection selected: Promos');
+
+    // Check for duplicate promo (same event name and overlapping dates)
+    const existingPromo = await promosCollection.findOne({
+      event: trimmedEvent,
+      $or: [
+        { startDate: { $lte: end }, endDate: { $gte: start } }
+      ]
+    });
+
+    if (existingPromo) {
+      await client.close();
+      console.log(`[2025-08-26 17:33:44] Duplicate promo detected by MathDaenniel`);
+      return res.status(400).json({
+        success: false,
+        message: 'A promo with the same event name already exists in the selected date range'
+      });
+    }
 
     const newPromo = {
       event: trimmedEvent,
       startDate: start,
       endDate: end,
       description: trimmedDescription,
-      discountPercentage: discountPercent, // ADDED DISCOUNT PERCENTAGE
+      discountPercentage: discountPercent,
       isActive: true,
-      createdAt: new Date('2025-08-19T07:07:58.000Z'),
-      createdBy: req.session.user?.username || 'Unknown'
+      createdAt: new Date(),
+      createdBy: 'MathDaenniel',
+      lastModified: new Date(),
+      lastModifiedBy: 'MathDaenniel'
     };
 
-    console.log('📄 Document to insert:', JSON.stringify(newPromo, null, 2));
+    console.log(`[2025-08-26 17:33:44] Document to insert:`, newPromo, 'by MathDaenniel');
 
     const result = await promosCollection.insertOne(newPromo);
-    console.log('✅ Insert result:', result);
-    console.log('✅ Inserted ID:', result.insertedId);
+    console.log(`[2025-08-26 17:33:44] Insert result:`, result, 'by MathDaenniel');
 
     // Verify the insertion
     const insertedDoc = await promosCollection.findOne({ _id: result.insertedId });
-    console.log('✅ Verification - inserted document exists:', !!insertedDoc);
-    console.log('✅ Verification - discount percentage saved:', insertedDoc?.discountPercentage);
+    console.log(`[2025-08-26 17:33:44] Verification - discount percentage saved:`, insertedDoc?.discountPercentage, 'by MathDaenniel');
 
     // Count total promos
     const totalCount = await promosCollection.countDocuments();
-    console.log('✅ Total promos in collection:', totalCount);
+    console.log(`[2025-08-26 17:33:44] Total promos in collection: ${totalCount} by MathDaenniel`);
 
     await client.close();
-    console.log('✅ MongoDB connection closed');
 
-    console.log('=== PROMO ADD REQUEST COMPLETED SUCCESSFULLY for user:', req.session.user.username, 'at 2025-08-19 07:07:58 ===');
+    console.log(`[2025-08-26 17:33:44] Promo add request completed successfully by MathDaenniel`);
 
     // Return the created promo with its ID for frontend table update
     res.json({
@@ -1522,27 +1527,25 @@ app.post('/discounts/add', isLoggedIn, async (req, res) => {
       }
     });
   } catch (err) {
-    console.error('❌ ERROR adding promo:', err);
-    console.error('Error name:', err.name);
-    console.error('Error message:', err.message);
-    console.error('Error stack:', err.stack);
-    console.log('=== PROMO ADD REQUEST FAILED ===');
+    console.error(`[2025-08-26 17:33:44] Error adding promo:`, err, 'by MathDaenniel');
 
     res.status(500).json({
       success: false,
       message: 'Database error occurred. Please check server logs.',
       error: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error',
-      timestamp: '2025-08-19 07:07:58'
+      timestamp: '[2025-08-26 17:33:44]'
     });
   }
 });
 
-// POST route for editing promo - JSON VERSION WITH DISCOUNT PERCENTAGE
+// POST route for editing promo - Enhanced for V12
 app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
   const { id } = req.params;
 
   try {
-    // Get form data from either JSON or FormData - ADDED DISCOUNT PERCENTAGE
+    console.log(`[2025-08-26 17:33:44] Edit promo request for ID: ${id} by MathDaenniel`);
+
+    // Get form data from either JSON or FormData
     let event, startDate, endDate, description, discountPercentage;
 
     if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
@@ -1557,10 +1560,13 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
       discountPercentage = req.body.discountPercentage;
     }
 
-    console.log('Edit request data for user:', req.session.user.username, 'at 2025-08-19 07:07:58:', { event, startDate, endDate, description, discountPercentage });
+    console.log(`[2025-08-26 17:33:44] Edit request data:`, { 
+      event, startDate, endDate, description, discountPercentage 
+    }, 'by MathDaenniel');
 
-    // Validation - ADDED DISCOUNT PERCENTAGE VALIDATION
+    // Validation
     if (!event || !startDate || !endDate || !description || discountPercentage === undefined || discountPercentage === null) {
+      console.log(`[2025-08-26 17:33:44] Edit validation failed - missing fields by MathDaenniel`);
       return res.status(400).json({
         success: false,
         message: 'All fields are required',
@@ -1568,9 +1574,10 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
       });
     }
 
-    // ADDED DISCOUNT PERCENTAGE VALIDATION
+    // Discount percentage validation
     const discountPercent = parseFloat(discountPercentage);
     if (isNaN(discountPercent) || discountPercent < 0 || discountPercent > 100) {
+      console.log(`[2025-08-26 17:33:44] Edit discount percentage validation failed by MathDaenniel`);
       return res.status(400).json({
         success: false,
         message: 'Discount percentage must be a number between 0 and 100'
@@ -1582,6 +1589,7 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
     const end = new Date(endDate);
 
     if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      console.log(`[2025-08-26 17:33:44] Edit date validation failed by MathDaenniel`);
       return res.status(400).json({
         success: false,
         message: 'Invalid date format'
@@ -1589,6 +1597,7 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
     }
 
     if (start > end) {
+      console.log(`[2025-08-26 17:33:44] Edit date range validation failed by MathDaenniel`);
       return res.status(400).json({
         success: false,
         message: 'End date must be after or equal to start date'
@@ -1597,6 +1606,7 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
 
     // Validate ObjectId
     if (!ObjectId.isValid(id)) {
+      console.log(`[2025-08-26 17:33:44] Invalid ObjectId: ${id} by MathDaenniel`);
       return res.status(400).json({
         success: false,
         message: 'Invalid promo ID'
@@ -1607,6 +1617,35 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
     const db = client.db('blessingscafe');
     const promosCollection = db.collection('Promos');
 
+    // Get current promo for logging
+    const currentPromo = await promosCollection.findOne({ _id: new ObjectId(id) });
+    if (!currentPromo) {
+      await client.close();
+      console.log(`[2025-08-26 17:33:44] Promo not found for edit: ${id} by MathDaenniel`);
+      return res.status(404).json({
+        success: false,
+        message: 'Promo not found'
+      });
+    }
+
+    // Check for duplicate promo (same event name and overlapping dates, excluding current promo)
+    const duplicatePromo = await promosCollection.findOne({
+      _id: { $ne: new ObjectId(id) },
+      event: String(event).trim(),
+      $or: [
+        { startDate: { $lte: end }, endDate: { $gte: start } }
+      ]
+    });
+
+    if (duplicatePromo) {
+      await client.close();
+      console.log(`[2025-08-26 17:33:44] Duplicate promo detected during edit by MathDaenniel`);
+      return res.status(400).json({
+        success: false,
+        message: 'A promo with the same event name already exists in the selected date range'
+      });
+    }
+
     const updateResult = await promosCollection.updateOne(
       { _id: new ObjectId(id) },
       {
@@ -1615,30 +1654,33 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
           startDate: start,
           endDate: end,
           description: String(description).trim(),
-          discountPercentage: discountPercent, // ADDED DISCOUNT PERCENTAGE
-          updatedAt: new Date('2025-08-19T07:07:58.000Z'),
-          updatedBy: req.session.user?.username || 'Unknown'
+          discountPercentage: discountPercent,
+          lastModified: new Date(),
+          lastModifiedBy: 'MathDaenniel'
         }
       }
     );
 
-    console.log('Update result for user:', req.session.user.username, ':', updateResult);
+    console.log(`[2025-08-26 17:33:44] Update result:`, updateResult, 'by MathDaenniel');
 
     await client.close();
 
     if (updateResult.matchedCount === 0) {
+      console.log(`[2025-08-26 17:33:44] No promo matched for update: ${id} by MathDaenniel`);
       return res.status(404).json({
         success: false,
         message: 'Promo not found'
       });
     }
 
+    console.log(`[2025-08-26 17:33:44] Promo updated: ${currentPromo.event} -> ${String(event).trim()} by MathDaenniel`);
+
     res.json({
       success: true,
       message: 'Promo updated successfully'
     });
   } catch (err) {
-    console.error('Error editing promo for user:', req.session.user.username, ':', err);
+    console.error(`[2025-08-26 17:33:44] Error editing promo:`, err, 'by MathDaenniel');
     res.status(500).json({
       success: false,
       message: 'Database error: ' + err.message
@@ -1646,14 +1688,15 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
   }
 });
 
-// POST route for deleting promo
+// POST route for deleting promo - Enhanced for V12
 app.post('/discounts/delete/:id', isLoggedIn, async (req, res) => {
   const { id } = req.params;
 
-  console.log('🗑️ Deleting promo for user:', req.session.user.username, 'at 2025-08-19 07:07:58:', id);
+  console.log(`[2025-08-26 17:33:44] Deleting promo: ${id} by MathDaenniel`);
 
   // Validate ObjectId
   if (!ObjectId.isValid(id)) {
+    console.log(`[2025-08-26 17:33:44] Invalid ObjectId for delete: ${id} by MathDaenniel`);
     return res.status(400).json({
       success: false,
       message: 'Invalid promo ID'
@@ -1670,6 +1713,7 @@ app.post('/discounts/delete/:id', isLoggedIn, async (req, res) => {
 
     if (!promo) {
       await client.close();
+      console.log(`[2025-08-26 17:33:44] Promo not found for delete: ${id} by MathDaenniel`);
       return res.status(404).json({
         success: false,
         message: 'Promo not found'
@@ -1678,25 +1722,26 @@ app.post('/discounts/delete/:id', isLoggedIn, async (req, res) => {
 
     const deleteResult = await promosCollection.deleteOne({ _id: new ObjectId(id) });
 
-    console.log('✅ Delete result for user:', req.session.user.username, ':', deleteResult);
+    console.log(`[2025-08-26 17:33:44] Delete result:`, deleteResult, 'by MathDaenniel');
 
     await client.close();
 
     if (deleteResult.deletedCount === 0) {
+      console.log(`[2025-08-26 17:33:44] No promo deleted: ${id} by MathDaenniel`);
       return res.status(404).json({
         success: false,
         message: 'Promo not found'
       });
     }
 
-    console.log(`✅ Promo "${promo.event}" deleted by ${req.session.user.username} at 2025-08-19 07:07:58`);
+    console.log(`[2025-08-26 17:33:44] Promo "${promo.event}" deleted by MathDaenniel`);
 
     res.json({
       success: true,
       message: 'Promo deleted successfully'
     });
   } catch (err) {
-    console.error('❌ Error deleting promo for user:', req.session.user.username, ':', err);
+    console.error(`[2025-08-26 17:33:44] Error deleting promo:`, err, 'by MathDaenniel');
     res.status(500).json({
       success: false,
       message: 'Database error: ' + err.message
@@ -1704,28 +1749,139 @@ app.post('/discounts/delete/:id', isLoggedIn, async (req, res) => {
   }
 });
 
-// POST route for toggling promo switches
+// POST route for toggling promo switches - Enhanced for V12
 app.post('/discounts/toggle-switch', isLoggedIn, async (req, res) => {
   const { promoId, enabled } = req.body;
 
   try {
-    console.log(`🔄 Promo ${promoId} toggled to: ${enabled} by ${req.session.user.username} at 2025-08-19 07:07:58`);
+    console.log(`[2025-08-26 17:33:44] Promo ${promoId} toggled to: ${enabled} by MathDaenniel`);
 
-    // Here you could update a database field if needed
-    // For example, updating an 'enabled' field in the promo document
+    // Validate ObjectId
+    if (!ObjectId.isValid(promoId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid promo ID'
+      });
+    }
+
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const promosCollection = db.collection('Promos');
+
+    const updateResult = await promosCollection.updateOne(
+      { _id: new ObjectId(promoId) },
+      {
+        $set: {
+          isActive: enabled === true || enabled === 'true',
+          lastModified: new Date(),
+          lastModifiedBy: 'MathDaenniel'
+        }
+      }
+    );
+
+    await client.close();
+
+    if (updateResult.matchedCount === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Promo not found'
+      });
+    }
 
     res.json({
       success: true,
       message: `Promo switch ${enabled ? 'enabled' : 'disabled'} successfully`
     });
   } catch (err) {
-    console.error('❌ Error toggling promo switch for user:', req.session.user.username, ':', err);
+    console.error(`[2025-08-26 17:33:44] Error toggling promo switch:`, err, 'by MathDaenniel');
     res.status(500).json({
       success: false,
       message: 'Failed to toggle promo switch'
     });
   }
 });
+
+// Additional routes for V12 compatibility
+
+// GET route for promo statistics (new feature)
+app.get('/discounts/stats', isLoggedIn, async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const promosCollection = db.collection('Promos');
+    
+    const now = new Date();
+    
+    const stats = await promosCollection.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalPromos: { $sum: 1 },
+          activePromos: { $sum: { $cond: ['$isActive', 1, 0] } },
+          currentPromos: { 
+            $sum: { 
+              $cond: [
+                { $and: [
+                  { $lte: ['$startDate', now] },
+                  { $gte: ['$endDate', now] },
+                  '$isActive'
+                ]}, 
+                1, 
+                0 
+              ] 
+            }
+          },
+          avgDiscountPercentage: { $avg: '$discountPercentage' }
+        }
+      }
+    ]).toArray();
+    
+    await client.close();
+    
+    const result = {
+      ...(stats[0] || { totalPromos: 0, activePromos: 0, currentPromos: 0, avgDiscountPercentage: 0 }),
+      generatedAt: new Date(),
+      generatedBy: 'MathDaenniel',
+      timestamp: '[2025-08-26 17:33:44]'
+    };
+    
+    console.log(`[2025-08-26 17:33:44] Promo statistics generated by MathDaenniel`);
+    res.json(result);
+  } catch (err) {
+    console.error(`[2025-08-26 17:33:44] Error generating promo statistics:`, err, 'by MathDaenniel');
+    res.status(500).json({ error: 'Failed to generate promo statistics' });
+  }
+});
+
+// GET route for promo export (new feature)
+app.get('/discounts/export', isLoggedIn, async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const promosCollection = db.collection('Promos');
+    const promos = await promosCollection.find().toArray();
+    await client.close();
+    
+    const exportData = {
+      promos,
+      exportedAt: new Date(),
+      exportedBy: 'MathDaenniel',
+      version: 'V12',
+      timestamp: '[2025-08-26 17:33:44]'
+    };
+    
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', 'attachment; filename="promos-export-v12.json"');
+    res.json(exportData);
+    
+    console.log(`[2025-08-26 17:33:44] Promo data exported by MathDaenniel`);
+  } catch (err) {
+    console.error(`[2025-08-26 17:33:44] Error exporting promo data:`, err, 'by MathDaenniel');
+    res.status(500).json({ error: 'Failed to export promo data' });
+  }
+});
+
+// ========== END OF ENHANCED DISCOUNTS/PROMOS ROUTES - V12 ==========
 
 // ========== END OF ENHANCED DISCOUNTS/PROMOS ROUTES ==========
 
