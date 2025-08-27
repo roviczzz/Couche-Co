@@ -1,169 +1,174 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title><%= title %></title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    html, body {
-      height: 100%;
-      margin: 0;
-      overflow: hidden;
-    }
-    .main-container {
-      display: flex;
-      height: 100vh;
-      min-height: calc(100vh - 70px);
-      box-sizing: border-box;
-      overflow: hidden;
-    }
-    .content {
-      flex: 1;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      overflow-y: auto;
-      box-sizing: border-box;
-      scrollbar-width: thin;
-    }
-    .content::-webkit-scrollbar {
-      width: 8px;
-    }
-    .content::-webkit-scrollbar-thumb {
-      background-color: rgba(160, 92, 47, 0.5);
-      border-radius: 4px;
-    }
-    .content::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    .section {
-      margin-bottom: 50px;
-    }
-    h1, h2 {
-      color: #6b3e26;
-    }
-    .chart-container {
-      max-width: 1000px;
-      margin: auto;
-    }
-    canvas {
-      width: 100% !important;
-      height: 500px !important;
-    }
-  </style>
+    <title><%= title %></title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+        }
+        .main-container {
+            display: flex;
+            height: 100vh;
+            min-height: calc(100vh - 70px);
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        .content {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+        }
+        .content::-webkit-scrollbar {
+            width: 8px;
+        }
+        .content::-webkit-scrollbar-thumb {
+            background-color: rgba(160, 92, 47, 0.5);
+            border-radius: 4px;
+        }
+        .content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .section {
+            margin-bottom: 50px;
+        }
+        h1, h2 {
+            color: #6b3e26;
+        }
+        .chart-container {
+            max-width: 1000px;
+            margin: auto;
+        }
+        canvas {
+            width: 100% !important;
+            height: 500px !important;
+        }
+    </style>
 </head>
 <body>
 <div class="main-container">
-  <div class="content">
-    <div class="section">
-      <h1>Popular Products</h1>
-      <p>
-        Below is a breakdown of the top-selling products based on recent sales data.
-        This chart helps you identify which items are most popular with your customers.
-      </p>
-      <div class="chart-container">
-        <canvas id="popularProductsChart"></canvas>
-      </div>
+    <div class="content">
+        <div class="section">
+            <h1>Popular Products</h1>
+            <p>
+                Below is a breakdown of the top-selling products based on recent sales data.
+                This chart helps you identify which items are most popular with your customers.
+            </p>
+            <div class="chart-container">
+                <canvas id="popularProductsChart"></canvas>
+            </div>
+        </div>
+        <div class="section">
+            <h1>Average Sales Per Day</h1>
+            <p>
+                This chart shows the average sales amount per order for each day, helping you see trends in customer spending.
+            </p>
+            <div class="chart-container">
+                <canvas id="averageSalesChart"></canvas>
+            </div>
+        </div>
     </div>
-    <div class="section">
-      <h1>Average Sales Per Day</h1>
-      <p>
-        This chart shows the average sales amount per order for each day, helping you see trends in customer spending.
-      </p>
-      <div class="chart-container">
-        <canvas id="averageSalesChart"></canvas>
-      </div>
-    </div>
-  </div>
-  <% /* sidebar here if any, remains unaffected by scrolling */ %>
 </div>
 <script>
-  async function drawPopularProductsChart() {
-    try {
-      const res = await fetch('/analytics/popular-products');
-      const results = await res.json();
-      const top = results.slice(0, 10);
-      const labels = top.map(r => r._id);
-      const data = top.map(r => r.totalQuantity);
-      new Chart(document.getElementById('popularProductsChart'), {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: 'Units Sold',
-            data: data,
-            backgroundColor: 'rgba(108, 52, 31, 0.8)',
-            borderWidth: 2
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { labels: { font: { size: 16 } } },
-            title: { display: true, text: 'Top 10 Products', font: { size: 20 } }
-          },
-          scales: {
-            x: {
-              ticks: { font: { size: 14 } }
-            },
-            y: {
-              beginAtZero: true,
-              ticks: { font: { size: 14 } }
-            }
-          }
+    async function drawPopularProductsChart() {
+        try {
+            const res = await fetch('/analytics/popular-products');
+            const results = await res.json();
+            const top = results.slice(0, 10);
+            const labels = top.map(r => r._id);
+            const data = top.map(r => r.totalQuantity);
+            new Chart(document.getElementById('popularProductsChart'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Units Sold',
+                        data: data,
+                        backgroundColor: 'rgba(108, 52, 31, 0.8)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { labels: { font: { size: 16 } } },
+                        title: { display: true, text: 'Top 10 Products', font: { size: 20 } }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { font: { size: 14 } }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: { font: { size: 14 } }
+                        }
+                    }
+                }
+            });
+        } catch (err) {
+            console.error('Error loading popular products chart:', err);
         }
-      });
-    } catch (err) {}
-  }
-  async function drawAverageSalesChart() {
-    try {
-      const res = await fetch('/analytics/average-sales-per-day');
-      const results = await res.json();
-      const labels = results.map(r => {
-        const dateObj = new Date(r._id);
-        return dateObj.toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric'
-        });
-      });
-      const data = results.map(r => r.avgSales);
-      new Chart(document.getElementById('averageSalesChart'), {
-        type: 'line',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: 'Average Sales (₱)',
-            data: data,
-            backgroundColor: 'rgba(108, 52, 31, 0.2)',
-            borderColor: 'rgba(108, 52, 31, 1)',
-            borderWidth: 3,
-            pointRadius: 5,
-            pointHoverRadius: 7,
-            fill: true,
-            tension: 0.3
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { labels: { font: { size: 16 } } },
-            title: { display: true, text: 'Average Sales Trend', font: { size: 20 } }
-          },
-          scales: {
-            x: {
-              ticks: { font: { size: 14 }, maxRotation: 45, minRotation: 45 }
-            },
-            y: {
-              beginAtZero: true,
-              ticks: { font: { size: 14 } }
-            }
-          }
+    }
+
+    async function drawAverageSalesChart() {
+        try {
+            const res = await fetch('/analytics/average-sales-per-day');
+            const results = await res.json();
+            const labels = results.map(r => {
+                const dateObj = new Date(r._id);
+                return dateObj.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+            });
+            const data = results.map(r => r.avgSales);
+            new Chart(document.getElementById('averageSalesChart'), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Average Sales (₱)',
+                        data: data,
+                        backgroundColor: 'rgba(108, 52, 31, 0.2)',
+                        borderColor: 'rgba(108, 52, 31, 1)',
+                        borderWidth: 3,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { labels: { font: { size: 16 } } },
+                        title: { display: true, text: 'Average Sales Trend', font: { size: 20 } }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { font: { size: 14 }, maxRotation: 45, minRotation: 45 }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: { font: { size: 14 } }
+                        }
+                    }
+                }
+            });
+        } catch (err) {
+            console.error('Error loading average sales chart:', err);
         }
-      });
-    } catch (err) {}
-  }
-  drawPopularProductsChart();
-  drawAverageSalesChart();
+    }
+
+    drawPopularProductsChart();
+    drawAverageSalesChart();
 </script>
 </body>
 </html>
