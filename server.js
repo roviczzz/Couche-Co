@@ -147,16 +147,9 @@ app.get('/account/register', (req, res) => {
     res.render('register', { errors: {}, formData: {}, error: null, layout: false })
 })
 app.get('/dashboard', isLoggedIn, nocache, async (req, res) => {
-    try {
-        const statsRes = await fetch('http://localhost:8080/analytics/dashboard-stats', {
-            headers: { cookie: req.headers.cookie || '' }
-        });
-        const stats = await statsRes.json();
-        res.render('dashboard', { title: 'Dashboard | Blessings Cafe', user: req.session.user, stats });
-    } catch (e) {
-        res.render('dashboard', { title: 'Dashboard | Blessings Cafe', user: req.session.user, stats: null });
-    }
-});
+    const stats = await getDashboardStats()
+    res.render('dashboard', { title: 'Dashboard | Blessings Cafe', user: req.session.user, stats })
+})
 app.get('/menu', isLoggedIn, nocache, async (req, res) => {
     try {
         const client = await MongoClient.connect(uri)
@@ -1302,9 +1295,10 @@ async function getDashboardStats() {
     weekAgo.setDate(weekAgo.getDate() - 7)
     const totalSalesResult = await ordersCollection.aggregate([
         { $match: { PaymentStatus: { $ne: "Cancelled" } } },
-        { $group: { _id: null, total: { $sum: "$Total" } } }
+        { $group: { _id: null, total: { $sum: "$Total" }, count: { $sum: 1 } } }
     ]).toArray()
     const totalSales = totalSalesResult.length > 0 ? totalSalesResult[0].total : 0
+    const totalOrders = totalSalesResult.length > 0 ? totalSalesResult[0].count : 0
     const weekSalesResult = await ordersCollection.aggregate([
         { $addFields: { orderDate: { $cond: { if: { $eq: [{ $type: "$Date" }, "string"] }, then: { $dateFromString: { dateString: "$Date" } }, else: "$Date" } } } },
         { $match: { orderDate: { $gte: weekAgo }, PaymentStatus: { $ne: "Cancelled" } } },
@@ -1343,6 +1337,7 @@ async function getDashboardStats() {
     const ordersTodayPercent = yesterdayOrdersCount === 0 ? 0 : Math.round(((ordersTodayCount - yesterdayOrdersCount) / yesterdayOrdersCount) * 100)
     return {
         totalSales,
+        totalOrders,
         totalSalesWeek,
         totalSalesPercent,
         incomingOrders: incomingOrdersCount,

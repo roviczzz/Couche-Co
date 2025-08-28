@@ -8,9 +8,8 @@
             <div class="icon"><i class="fa-solid fa-bag-shopping"></i></div>
             <div>
                 <div class="card-label">Total Sales</div>
-                <div class="card-sub">731 Orders</div>
-                <div class="card-value" id="total-sales-value"><%= typeof stats !== 'undefined' && stats.totalSales ? '₱' + stats.totalSales.toLocaleString('en-PH', {minimumFractionDigits:2}) : '₱0.00' %></div>
-                <div class="card-trends">
+                <div class="card-sub"><%= typeof stats !== 'undefined' && typeof stats.totalOrders !== 'undefined' ? stats.totalOrders + ' Orders' : '0 Orders' %></div>                <div class="card-value" id="total-sales-value"><%= typeof stats !== 'undefined' && stats.totalSales ? '₱' + stats.totalSales.toLocaleString('en-PH', {minimumFractionDigits:2}) : '₱0.00' %></div>
+                <div class="card-trends" id="total-sales-trends">
                     <span id="total-sales-trend" class="<%= typeof stats !== 'undefined' && stats.totalSalesPercent >= 0 ? 'trend-up' : 'trend-down' %>">
                         <%= typeof stats !== 'undefined' && typeof stats.totalSalesPercent !== 'undefined'
                                 ? (stats.totalSalesPercent > 0 ? '+' : '') + stats.totalSalesPercent + '%'
@@ -28,7 +27,7 @@
                 <div class="card-label">Incoming Orders</div>
                 <div class="card-value" id="incoming-orders-value"><%= typeof stats !== 'undefined' && typeof stats.incomingOrders !== 'undefined'
                             ? stats.incomingOrders : '0' %></div>
-                <div class="card-trends">
+                <div class="card-trends" id="incoming-orders-trends">
                     <span id="incoming-orders-trend" class="<%= typeof stats !== 'undefined' && stats.incomingOrdersPercent >= 0 ? 'trend-up' : 'trend-down' %>">
                         <%= typeof stats !== 'undefined' && typeof stats.incomingOrdersPercent !== 'undefined'
                                 ? (stats.incomingOrdersPercent > 0 ? '+' : '') + stats.incomingOrdersPercent + '%'
@@ -43,7 +42,7 @@
                 <div class="card-label">Orders Today</div>
                 <div class="card-value" id="orders-today-value"><%= typeof stats !== 'undefined' && typeof stats.ordersToday !== 'undefined'
                             ? stats.ordersToday : '0' %></div>
-                <div class="card-trends">
+                <div class="card-trends" id="orders-today-trends">
                     <span id="orders-today-trend" class="<%= typeof stats !== 'undefined' && stats.ordersTodayPercent >= 0 ? 'trend-up' : 'trend-down' %>">
                         <%= typeof stats !== 'undefined' && typeof stats.ordersTodayPercent !== 'undefined'
                                 ? (stats.ordersTodayPercent > 0 ? '+' : '') + stats.ordersTodayPercent + '%'
@@ -92,14 +91,34 @@
             document.getElementById('total-sales-trend').innerText = (stats.totalSalesPercent > 0 ? '+' : '') + (stats.totalSalesPercent || 0) + '%';
             document.getElementById('total-sales-trend').className = stats.totalSalesPercent >= 0 ? 'trend-up' : 'trend-down';
             document.getElementById('total-sales-week').innerText = (stats.totalSalesWeek || 0) + ' this week';
+
             document.getElementById('incoming-orders-value').innerText = stats.incomingOrders || 0;
             document.getElementById('incoming-orders-trend').innerText = (stats.incomingOrdersPercent > 0 ? '+' : '') + (stats.incomingOrdersPercent || 0) + '%';
             document.getElementById('incoming-orders-trend').className = stats.incomingOrdersPercent >= 0 ? 'trend-up' : 'trend-down';
+
             document.getElementById('orders-today-value').innerText = stats.ordersToday || 0;
             document.getElementById('orders-today-trend').innerText = (stats.ordersTodayPercent > 0 ? '+' : '') + (stats.ordersTodayPercent || 0) + '%';
             document.getElementById('orders-today-trend').className = stats.ordersTodayPercent >= 0 ? 'trend-up' : 'trend-down';
         } catch (err) {}
     }
+    document.addEventListener('DOMContentLoaded', function() {
+        const periodSelect = document.getElementById('performance-period');
+        if (periodSelect) {
+            periodSelect.addEventListener('change', function() {
+                drawSalesPerformanceChart(this.value);
+            });
+        }
+        const exportBtn = document.getElementById('export-performance');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', function() {
+                const period = document.getElementById('performance-period').value || '14';
+                window.open('/analytics/export-performance?days=' + period, '_blank');
+            });
+        }
+        fetchDashboardStats();
+        drawSalesPerformanceChart();
+        drawTopCategoriesChart();
+    });
     async function drawSalesPerformanceChart(days=14) {
         let results = [];
         try {
@@ -303,23 +322,6 @@
             }, 100);
         }
     }
-    document.addEventListener('DOMContentLoaded', function() {
-        const periodSelect = document.getElementById('performance-period');
-        if (periodSelect) {
-            periodSelect.addEventListener('change', function() {
-                drawSalesPerformanceChart(this.value);
-            });
-        }
-        const exportBtn = document.getElementById('export-performance');
-        if (exportBtn) {
-            exportBtn.addEventListener('click', function() {
-                const period = document.getElementById('performance-period').value || '14';
-                window.open('/analytics/export-performance?days=' + period, '_blank');
-            });
-        }
-        drawSalesPerformanceChart();
-        drawTopCategoriesChart();
-    });
 </script>
 <style>
     .dashboard-cards-grid {
