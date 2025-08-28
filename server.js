@@ -146,9 +146,17 @@ app.post('/account/login', [
 app.get('/account/register', (req, res) => {
     res.render('register', { errors: {}, formData: {}, error: null, layout: false })
 })
-app.get('/dashboard', isLoggedIn, nocache, (req, res) => {
-    res.render('dashboard', { title: 'Dashboard | Blessings Cafe', user: req.session.user })
-})
+app.get('/dashboard', isLoggedIn, nocache, async (req, res) => {
+    try {
+        const statsRes = await fetch('http://localhost:8080/analytics/dashboard-stats', {
+            headers: { cookie: req.headers.cookie || '' }
+        });
+        const stats = await statsRes.json();
+        res.render('dashboard', { title: 'Dashboard | Blessings Cafe', user: req.session.user, stats });
+    } catch (e) {
+        res.render('dashboard', { title: 'Dashboard | Blessings Cafe', user: req.session.user, stats: null });
+    }
+});
 app.get('/menu', isLoggedIn, nocache, async (req, res) => {
     try {
         const client = await MongoClient.connect(uri)
@@ -1282,6 +1290,67 @@ app.get('/analytics/export-performance', isLoggedIn, async (req, res) => {
         res.status(500).send('Error exporting data')
     }
 })
+
+async function getDashboardStats() {
+    const db = client.db('blessingscafe')
+    const ordersCollection = db.collection('Orders')
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const yesterday = new Date(today)
+    yesterday.setDate(yesterday.getDate() - 1)
+    const weekAgo = new Date(today)
+    weekAgo.setDate(weekAgo.getDate() - 7)
+    const totalSalesResult = await ordersCollection.aggregate([
+        { $match: { PaymentStatus: { $ne: "Cancelled" } } },
+        { $group: { _id: null, total: { $sum: "$Total" } } }
+    ]).toArray()
+    const totalSales = totalSalesResult.length > 0 ? totalSalesResult[0].total : 0
+    const weekSalesResult = await ordersCollection.aggregate([
+        { $addFields: { orderDate: { $cond: { if: { $eq: [{ $type: "$Date" }, "string"] }, then: { $dateFromString: { dateString: "$Date" } }, else: "$Date" } } } },
+        { $match: { orderDate: { $gte: weekAgo }, PaymentStatus: { $ne: "Cancelled" } } },
+        { $group: { _id: null, total: { $sum: "$Total" } } }
+    ]).toArray()
+    const totalSalesWeek = weekSalesResult.length > 0 ? weekSalesResult[0].total : 0
+    const prevWeekAgo = new Date(weekAgo)
+    prevWeekAgo.setDate(prevWeekAgo.getDate() - 7)
+    const prevWeekSalesResult = await ordersCollection.aggregate([
+        { $addFields: { orderDate: { $cond: { if: { $eq: [{ $type: "$Date" }, "string"] }, then: { $dateFromString: { dateString: "$Date" } }, else: "$Date" } } } },
+        { $match: { orderDate: { $gte: prevWeekAgo, $lt: weekAgo }, PaymentStatus: { $ne: "Cancelled" } } },
+        { $group: { _id: null, total: { $sum: "$Total" } } }
+    ]).toArray()
+    const prevWeekSales = prevWeekSalesResult.length > 0 ? prevWeekSalesResult[0].total : 0
+    const totalSalesPercent = prevWeekSales === 0 ? 100 : Math.round(((totalSalesWeek - prevWeekSales) / prevWeekSales) * 100)
+    const incomingOrdersCount = await ordersCollection.countDocuments({ FulfillmentStatus: { $nin: ["Completed", "Cancelled"] } })
+    const yesterdayIncomingResult = await ordersCollection.aggregate([
+        { $addFields: { orderDate: { $cond: { if: { $eq: [{ $type: "$Date" }, "string"] }, then: { $dateFromString: { dateString: "$Date" } }, else: "$Date" } } } },
+        { $match: { FulfillmentStatus: { $nin: ["Completed", "Cancelled"] }, orderDate: { $gte: yesterday, $lt: today } } },
+        { $count: "count" }
+    ]).toArray()
+    const yesterdayIncomingOrdersCount = yesterdayIncomingResult.length > 0 ? yesterdayIncomingResult[0].count : 0
+    const incomingOrdersPercent = yesterdayIncomingOrdersCount === 0 ? 0 : Math.round(((incomingOrdersCount - yesterdayIncomingOrdersCount) / yesterdayIncomingOrdersCount) * 100)
+    const ordersTodayResult = await ordersCollection.aggregate([
+        { $addFields: { orderDate: { $cond: { if: { $eq: [{ $type: "$Date" }, "string"] }, then: { $dateFromString: { dateString: "$Date" } }, else: "$Date" } } } },
+        { $match: { orderDate: { $gte: today } } },
+        { $count: "count" }
+    ]).toArray()
+    const ordersTodayCount = ordersTodayResult.length > 0 ? ordersTodayResult[0].count : 0
+    const yesterdayOrdersResult = await ordersCollection.aggregate([
+        { $addFields: { orderDate: { $cond: { if: { $eq: [{ $type: "$Date" }, "string"] }, then: { $dateFromString: { dateString: "$Date" } }, else: "$Date" } } } },
+        { $match: { orderDate: { $gte: yesterday, $lt: today } } },
+        { $count: "count" }
+    ]).toArray()
+    const yesterdayOrdersCount = yesterdayOrdersResult.length > 0 ? yesterdayOrdersResult[0].count : 0
+    const ordersTodayPercent = yesterdayOrdersCount === 0 ? 0 : Math.round(((ordersTodayCount - yesterdayOrdersCount) / yesterdayOrdersCount) * 100)
+    return {
+        totalSales,
+        totalSalesWeek,
+        totalSalesPercent,
+        incomingOrders: incomingOrdersCount,
+        incomingOrdersPercent,
+        ordersToday: ordersTodayCount,
+        ordersTodayPercent
+    }
+}
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`)
 })

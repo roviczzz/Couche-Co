@@ -1,6 +1,7 @@
 <div class="dashboard-cards-grid">
     <div class="dashboard-header-greeting" style="margin-bottom:18px;font-size:35px;font-weight:600;color:black;">
-        Hello, <%= typeof user !== 'undefined' && user.name ? user.name : 'there' %>! <br> <a style="font-size: 16px;color: #838384; font-weight: 400;">Here are today's stats!</a>
+        Hello, <%= typeof user !== 'undefined' && user.name ? user.name : 'there' %>! <br>
+        <a style="font-size: 16px;color: #838384; font-weight: 400;">Here are today's stats!</a>
     </div>
     <div class="main-summary-cards">
         <div class="summary-card total-sales">
@@ -8,10 +9,16 @@
             <div>
                 <div class="card-label">Total Sales</div>
                 <div class="card-sub">731 Orders</div>
-                <div class="card-value" id="total-sales-value">₱0.00</div>
+                <div class="card-value" id="total-sales-value"><%= typeof stats !== 'undefined' && stats.totalSales ? '₱' + stats.totalSales.toLocaleString('en-PH', {minimumFractionDigits:2}) : '₱0.00' %></div>
                 <div class="card-trends">
-                    <span id="total-sales-trend" class="trend-up">+0%</span>
-                    <span id="total-sales-week">0 this week</span>
+                    <span id="total-sales-trend" class="<%= typeof stats !== 'undefined' && stats.totalSalesPercent >= 0 ? 'trend-up' : 'trend-down' %>">
+                        <%= typeof stats !== 'undefined' && typeof stats.totalSalesPercent !== 'undefined'
+                                ? (stats.totalSalesPercent > 0 ? '+' : '') + stats.totalSalesPercent + '%'
+                                : '+0%' %>
+                    </span>
+                    <span id="total-sales-week"><%= typeof stats !== 'undefined' && typeof stats.totalSalesWeek !== 'undefined'
+                                ? stats.totalSalesWeek + ' this week'
+                                : '0 this week' %></span>
                 </div>
             </div>
         </div>
@@ -19,9 +26,14 @@
             <div class="icon"><i class="fa-solid fa-box"></i></div>
             <div>
                 <div class="card-label">Incoming Orders</div>
-                <div class="card-value" id="incoming-orders-value">0</div>
+                <div class="card-value" id="incoming-orders-value"><%= typeof stats !== 'undefined' && typeof stats.incomingOrders !== 'undefined'
+                            ? stats.incomingOrders : '0' %></div>
                 <div class="card-trends">
-                    <span id="incoming-orders-trend" class="trend-up">+0%</span>
+                    <span id="incoming-orders-trend" class="<%= typeof stats !== 'undefined' && stats.incomingOrdersPercent >= 0 ? 'trend-up' : 'trend-down' %>">
+                        <%= typeof stats !== 'undefined' && typeof stats.incomingOrdersPercent !== 'undefined'
+                                ? (stats.incomingOrdersPercent > 0 ? '+' : '') + stats.incomingOrdersPercent + '%'
+                                : '+0%' %>
+                    </span>
                 </div>
             </div>
         </div>
@@ -29,9 +41,14 @@
             <div class="icon"><i class="fa-solid fa-calendar-day"></i></div>
             <div>
                 <div class="card-label">Orders Today</div>
-                <div class="card-value" id="orders-today-value">0</div>
+                <div class="card-value" id="orders-today-value"><%= typeof stats !== 'undefined' && typeof stats.ordersToday !== 'undefined'
+                            ? stats.ordersToday : '0' %></div>
                 <div class="card-trends">
-                    <span id="orders-today-trend" class="trend-up">+0%</span>
+                    <span id="orders-today-trend" class="<%= typeof stats !== 'undefined' && stats.ordersTodayPercent >= 0 ? 'trend-up' : 'trend-down' %>">
+                        <%= typeof stats !== 'undefined' && typeof stats.ordersTodayPercent !== 'undefined'
+                                ? (stats.ordersTodayPercent > 0 ? '+' : '') + stats.ordersTodayPercent + '%'
+                                : '+0%' %>
+                    </span>
                 </div>
             </div>
         </div>
@@ -300,7 +317,6 @@
                 window.open('/analytics/export-performance?days=' + period, '_blank');
             });
         }
-        fetchDashboardStats();
         drawSalesPerformanceChart();
         drawTopCategoriesChart();
     });
@@ -410,6 +426,7 @@
         font-size: 13px;
         padding: 5px 15px;
         cursor: pointer;
+        margin-top: 3px;
     }
     .period-select {
         border: 1px solid #d2a679;
