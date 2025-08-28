@@ -37,29 +37,30 @@
         </div>
     </div>
     <div class="performance-cards-row">
-        <div class="card sales-performance">
-            <div class="card-header-row">
+        <div class="card sales-performance" style="min-height:540px;position:relative;">
+            <div class="card-header-row" style="margin-bottom:0;">
                 <span class="card-label">Sales Performance</span>
                 <div class="card-actions">
-                    <button id="export-performance" class="action-btn">Export data</button>
-                    <select id="performance-period" class="period-select">
+                    <select id="performance-period" class="period-select" style="margin-right:8px;">
                         <option value="7">Last 7 Days</option>
                         <option value="14" selected>Last 14 Days</option>
                         <option value="30">Last 30 Days</option>
                     </select>
+                    <button id="export-performance" class="action-btn">Export data</button>
                 </div>
             </div>
-            <canvas id="salesPerformanceChart" height="115"></canvas>
+            <div style="height:426px;width:100%;display:flex;align-items:center;">
+                <canvas id="salesPerformanceChart" height="426" style="width:100% !important; height:426px !important; max-height:426px !important;"></canvas>
+            </div>
+            <div id="sales-performance-info"></div>
         </div>
-        <div class="card top-categories">
+        <div class="card top-categories" style="min-height:540px;display:flex;flex-direction:column;">
             <div class="card-label">Top Categories</div>
-            <div class="top-categories-chart-container">
-                <canvas id="topCategoriesChart" width="120" height="120"></canvas>
+            <div class="top-categories-chart-container" style="height:220px;display:flex;align-items:center;justify-content:center;">
+                <canvas id="topCategoriesChart" width="120" height="120" style="max-width:150px;max-height:150px;"></canvas>
                 <div id="categories-loading-indicator" class="chart-loading">Loading categories...</div>
             </div>
-            <section id="top-categories-section">
-                <div id="top-categories-list"></div>
-            </section>
+            <div id="top-categories-list" style="flex:1 1 0;margin-top:8px;max-height:280px;overflow-y:auto;width:100%;min-width:0;box-sizing:border-box;"></div>
         </div>
     </div>
 </div>
@@ -83,50 +84,80 @@
         } catch (err) {}
     }
     async function drawSalesPerformanceChart(days=14) {
+        let results = [];
         try {
             const res = await fetch('/analytics/sales-performance?days=' + days);
-            const results = await res.json();
-            const labels = results.map(r => r.date);
-            const earnings = results.map(r => r.earnings);
-            const costs = results.map(r => r.costs);
-            if(window.salesPerformanceChart) window.salesPerformanceChart.destroy();
-            window.salesPerformanceChart = new Chart(document.getElementById('salesPerformanceChart'), {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Earnings',
-                            data: earnings,
-                            backgroundColor: 'rgba(108,52,31,0.1)',
-                            borderColor: 'rgba(108,52,31,1)',
-                            tension: 0.3,
-                            borderWidth: 2,
-                            pointRadius: 2
-                        },
-                        {
-                            label: 'Costs',
-                            data: costs,
-                            backgroundColor: 'rgba(180,180,180,0.08)',
-                            borderColor: '#999',
-                            tension: 0.3,
-                            borderWidth: 2,
-                            pointRadius: 2
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { display: true, labels: { font: { size: 14 } } }
-                    },
-                    scales: {
-                        x: { ticks: { font: { size: 11 } } },
-                        y: { beginAtZero: true, ticks: { font: { size: 11 } } }
-                    }
-                }
-            });
+            if (res.ok) {
+                results = await res.json();
+            }
         } catch (err) {}
+        if (!Array.isArray(results) || !results.length) {
+            results = [];
+        }
+        const chartElement = document.getElementById('salesPerformanceChart');
+        if (!chartElement) return;
+        if (window.salesPerformanceChart && typeof window.salesPerformanceChart.destroy === 'function') window.salesPerformanceChart.destroy();
+        const labels = results.map(r => r.date);
+        const earnings = results.map(r => r.earnings);
+        const costs = results.map(r => r.costs);
+        window.salesPerformanceChart = new Chart(chartElement, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Earnings',
+                        data: earnings,
+                        backgroundColor: 'rgba(108,52,31,0.1)',
+                        borderColor: 'rgba(108,52,31,1)',
+                        tension: 0.3,
+                        borderWidth: 2,
+                        pointRadius: 2
+                    },
+                    {
+                        label: 'Costs',
+                        data: costs,
+                        backgroundColor: 'rgba(180,180,180,0.08)',
+                        borderColor: '#999',
+                        tension: 0.3,
+                        borderWidth: 2,
+                        pointRadius: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                aspectRatio: 2.2,
+                plugins: {
+                    legend: { display: true, labels: { font: { size: 14 } } },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                if (context.dataset.label === 'Earnings') {
+                                    return `Earnings: ₱${context.parsed.y.toLocaleString('en-PH', {minimumFractionDigits:2})}`;
+                                } else if (context.dataset.label === 'Costs') {
+                                    return `Costs: ₱${context.parsed.y.toLocaleString('en-PH', {minimumFractionDigits:2})}`;
+                                }
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: { ticks: { font: { size: 11 } } },
+                    y: { beginAtZero: true, ticks: { font: { size: 11 } } }
+                }
+            }
+        });
+        let totalEarnings = earnings.reduce((a, b) => a + b, 0);
+        let totalOrders = results.reduce((a, b) => a + (b.orders || 0), 0);
+        let avgEarnings = earnings.length ? (totalEarnings / earnings.length) : 0;
+        let infoHtml = `<div style="font-size:13px;color:#6b3e26;margin-top:10px;">
+            <b>Total Earnings:</b> ₱${totalEarnings.toLocaleString('en-PH', {minimumFractionDigits:2})}<br>
+            <b>Total Orders:</b> ${totalOrders}<br>
+            <b>Avg Earnings/Day:</b> ₱${avgEarnings.toLocaleString('en-PH', {minimumFractionDigits:2})}
+        </div>`;
+        document.getElementById('sales-performance-info').innerHTML = infoHtml;
     }
     async function drawTopCategoriesChart() {
         const loadingIndicator = document.getElementById('categories-loading-indicator');
@@ -391,38 +422,35 @@
     .sales-performance {
         flex: 2 0 0;
         min-width: 340px;
+        min-height: 540px;
     }
     .top-categories {
         flex: 1 0 0;
         min-width: 240px;
         align-items: flex-start;
         position: relative;
+        min-height: 540px;
+        justify-content: flex-start;
     }
     .top-categories-chart-container {
         width: 100%;
         display: flex;
         justify-content: center;
-        margin-bottom: 20px;
+        align-items: center;
+        margin-bottom: 0;
         margin-top: 15px;
         position: relative;
-        height: 140px;
-    }
-    #top-categories-section {
-        width: 100%;
-        max-width: 450px;
-        margin: 0 auto;
-        box-sizing: border-box;
-        display: block;
-        padding: 0 8px 0 0;
-        overflow-x: hidden;
+        height: 220px;
     }
     #top-categories-list {
         margin-top: 8px;
         max-height: 280px;
         overflow-y: auto;
-        width: 100%;
         padding-right: 5px;
+        width: 100%;
+        min-width: 0;
         box-sizing: border-box;
+        transition: width 0.2s;
     }
     #top-categories-list::-webkit-scrollbar {
         width: 4px;
@@ -442,7 +470,6 @@
         transition: all 0.2s ease;
         cursor: pointer;
         position: relative;
-        background: transparent;
     }
     .cat-row:hover {
         background-color: rgba(107, 62, 38, 0.05);
@@ -505,15 +532,14 @@
     }
     @media (max-width: 1150px) {
         .main-summary-cards, .performance-cards-row { flex-direction: column; gap: 22px; }
-        .sales-performance, .top-categories { min-width: 0; }
-        #top-categories-section { max-width: 100%; }
+        .sales-performance, .top-categories { min-width: 0; min-height: 420px; }
+        .top-categories-chart-container { height: 180px; }
     }
     @media (max-width: 768px) {
         .top-categories-chart-container {
             height: 120px;
             margin-bottom: 15px;
         }
-        #top-categories-section { max-width: 100%; }
         .cat-row {
             font-size: 12px;
             margin-bottom: 6px;
@@ -528,12 +554,13 @@
         .cat-percent {
             font-size: 10px;
         }
+        .sales-performance, .top-categories { min-height: 320px; }
     }
     @media (max-width: 700px) {
         .dashboard-cards-grid { gap: 18px; }
         .main-summary-cards, .performance-cards-row { flex-direction: column; gap: 14px; }
         .summary-card, .card { padding: 17px 12px 15px 12px; }
         .card-label { font-size: 16px; }
-        #top-categories-section { max-width: 320px; }
+        .sales-performance, .top-categories { min-height: 220px; }
     }
 </style>
