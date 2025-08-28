@@ -57,7 +57,9 @@
                 <canvas id="topCategoriesChart" width="120" height="120"></canvas>
                 <div id="categories-loading-indicator" class="chart-loading">Loading categories...</div>
             </div>
-            <div id="top-categories-list"></div>
+            <section id="top-categories-section">
+                <div id="top-categories-list"></div>
+            </section>
         </div>
     </div>
 </div>
@@ -78,9 +80,7 @@
             document.getElementById('orders-today-value').innerText = stats.ordersToday || 0;
             document.getElementById('orders-today-trend').innerText = (stats.ordersTodayPercent > 0 ? '+' : '') + (stats.ordersTodayPercent || 0) + '%';
             document.getElementById('orders-today-trend').className = stats.ordersTodayPercent >= 0 ? 'trend-up' : 'trend-down';
-        } catch (err) {
-            console.error('Error fetching dashboard stats:', err);
-        }
+        } catch (err) {}
     }
     async function drawSalesPerformanceChart(days=14) {
         try {
@@ -126,112 +126,22 @@
                     }
                 }
             });
-        } catch (err) {
-            console.error('Error drawing sales performance chart:', err);
-        }
+        } catch (err) {}
     }
-
-    async function getCategoryStatsFromOrders() {
-        console.log('Generating category stats from orders and menu data');
-
-        const menuMap = {
-            'MT-TAR': { Name: 'Taro', Category: 'Milktea', BasePrice: 45 },
-            'MT-MAT': { Name: 'Matcha', Category: 'Milktea', BasePrice: 45 },
-            'MT-OKI': { Name: 'Okinawa', Category: 'Milktea', BasePrice: 45 },
-            'MT-DAL': { Name: 'Dalgona', Category: 'Milktea', BasePrice: 45 },
-            'MT-HER': { Name: 'Hersheys', Category: 'Milktea', BasePrice: 45 },
-            'MT-WIN': { Name: 'Wintermelon', Category: 'Milktea', BasePrice: 45 },
-            'MT-SCA': { Name: 'Salted Caramel', Category: 'Milktea', BasePrice: 45 },
-            'MT-CNC': { Name: 'Cookies N Cream', Category: 'Milktea', BasePrice: 45 },
-            'MT-BFO': { Name: 'Black Forest', Category: 'Milktea', BasePrice: 45 },
-            'CF-CAR': { Name: 'Caramel', Category: 'Coffee', BasePrice: 59 },
-            'CF-HAZ': { Name: 'Hazelnut', Category: 'Coffee', BasePrice: 59 },
-            'CF-TON': { Name: 'Toffee Nut', Category: 'Coffee', BasePrice: 59 },
-            'CF-MAC': { Name: 'Macademia Nut', Category: 'Coffee', BasePrice: 59 },
-            'CF-SPL': { Name: 'Spanish Latte', Category: 'Coffee', BasePrice: 59 },
-            'CF-SCA': { Name: 'Salted Caramel', Category: 'Coffee', BasePrice: 59 },
-            'CF-WCH': { Name: 'White Chocolate', Category: 'Coffee', BasePrice: 59 },
-            'FT-STR': { Name: 'Strawberry', Category: 'Fruit Tea', BasePrice: 39 },
-            'FT-GAP': { Name: 'Green Apple', Category: 'Fruit Tea', BasePrice: 39 },
-            'FT-MAN': { Name: 'Mango', Category: 'Fruit Tea', BasePrice: 39 },
-            'FT-PAF': { Name: 'Passion Fruit', Category: 'Fruit Tea', BasePrice: 39 },
-            'BK-CUP': { Name: 'Cupcake', Category: 'Pastries', BasePrice: 25 },
-            'BK-CRN': { Name: 'Crinkles', Category: 'Pastries', BasePrice: 15 },
-            'BK-COO': { Name: 'Cookies', Category: 'Pastries', BasePrice: 20 },
-            'BK-WAF': { Name: 'Waffles', Category: 'Pastries', BasePrice: 120 }
-        };
-
-        const categoryTotals = {};
-
-        const sampleOrders = [
-            { OrderID: 1002, Cart: [{ ProductID: 'CF-SPL', Quantity: 1, BasePrice: 59 }, { ProductID: 'MT-MAT', Quantity: 1, BasePrice: 55 }] },
-            { OrderID: 1003, Cart: [{ ProductID: 'FT-STR', Quantity: 1, BasePrice: 39 }, { ProductID: 'FT-GAP', Quantity: 1, BasePrice: 39 }, { ProductID: 'BK-CRN', Quantity: 1, BasePrice: 15 }] },
-            { OrderID: 1004, Cart: [{ ProductID: 'CF-SPL', Quantity: 1, BasePrice: 59 }, { ProductID: 'MT-OKI', Quantity: 1, BasePrice: 55 }, { ProductID: 'MT-MAT', Quantity: 1, BasePrice: 45 }] },
-            { OrderID: 1005, Cart: [{ ProductID: 'BK-WAF', Quantity: 2, BasePrice: 120 }] },
-            { OrderID: 1006, Cart: [{ ProductID: 'CF-WCH', Quantity: 1, BasePrice: 59 }, { ProductID: 'CF-SCA', Quantity: 1, BasePrice: 59 }] },
-            { OrderID: 1000, Cart: [{ ProductID: 'MT-BFO', Quantity: 1, BasePrice: 45 }] },
-            { OrderID: 1007, Cart: [{ ProductID: 'CF-SPL', Quantity: 1, BasePrice: 59 }] },
-            { OrderID: 1026, Cart: [{ ProductID: 'CF-HAZ', Quantity: 1, BasePrice: 59 }] }
-        ];
-
-        sampleOrders.forEach(order => {
-            if (!order.Cart) return;
-
-            order.Cart.forEach(item => {
-                const menuItem = menuMap[item.ProductID];
-                if (!menuItem) return;
-
-                const category = menuItem.Category;
-                if (!categoryTotals[category]) {
-                    categoryTotals[category] = { name: category, value: 0, quantity: 0, orderCount: 0 };
-                }
-
-                categoryTotals[category].value += item.BasePrice * item.Quantity;
-                categoryTotals[category].quantity += item.Quantity;
-                categoryTotals[category].orderCount += 1;
-            });
-        });
-
-        const categories = Object.values(categoryTotals).sort((a, b) => b.value - a.value);
-        console.log('Generated categories:', categories);
-        return categories;
-    }
-
     async function drawTopCategoriesChart() {
         const loadingIndicator = document.getElementById('categories-loading-indicator');
         if (loadingIndicator) loadingIndicator.style.display = 'flex';
-
         let categories = [];
-
         try {
-            console.log('Attempting to fetch from /analytics/top-categories');
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 3000);
-
-            const res = await fetch('/analytics/top-categories', {
-                signal: controller.signal,
-                headers: { 'Content-Type': 'application/json' }
-            });
-
-            clearTimeout(timeoutId);
-
+            const res = await fetch('/analytics/top-categories');
             if (res.ok) {
                 categories = await res.json();
-                console.log('API response categories:', categories);
-
-                if (!categories || !Array.isArray(categories) || categories.length === 0) {
-                    throw new Error('Empty or invalid API response');
+                if (!Array.isArray(categories) || !categories.length || !categories[0].name) {
+                    categories = [];
                 }
-            } else {
-                throw new Error('API request failed with status: ' + res.status);
             }
-        } catch (error) {
-            console.log('API failed, using local data generation:', error.message);
-            categories = await getCategoryStatsFromOrders();
-        }
-
-        if (!categories || categories.length === 0) {
-            console.log('Using fallback data');
+        } catch (error) {}
+        if (!categories.length) {
             categories = [
                 { name: 'Coffee', value: 295, quantity: 5, orderCount: 5 },
                 { name: 'Milktea', value: 200, quantity: 4, orderCount: 4 },
@@ -239,28 +149,15 @@
                 { name: 'Fruit Tea', value: 78, quantity: 2, orderCount: 2 }
             ];
         }
-
         const chartElement = document.getElementById('topCategoriesChart');
-        if (!chartElement) {
-            console.error('Chart canvas element not found');
-            return;
-        }
-
-        if (window.topCategoriesChart) {
-            window.topCategoriesChart.destroy();
-        }
-
+        if (!chartElement) return;
+        if (window.topCategoriesChart && typeof window.topCategoriesChart.destroy === 'function') window.topCategoriesChart.destroy();
         const labels = categories.map(c => c.name || 'Unnamed');
         const values = categories.map(c => c.value || 0);
         const orderCounts = categories.map(c => c.orderCount || 0);
         const quantities = categories.map(c => c.quantity || 0);
-
         const colors = ['#6d4f2c','#a05c2f','#c1a97b','#e3dac9','#d2a679','#9d7a56','#b7966c','#8b7355'];
-
-        if (loadingIndicator) {
-            loadingIndicator.style.display = 'none';
-        }
-
+        if (loadingIndicator) loadingIndicator.style.display = 'none';
         window.topCategoriesChart = new Chart(chartElement, {
             type: 'doughnut',
             data: {
@@ -310,31 +207,27 @@
                 }
             }
         });
-
         const totalValue = values.reduce((sum, val) => sum + val, 0) || 1;
         let listHtml = '';
-
         for(let i = 0; i < labels.length; i++) {
             const percentage = ((values[i] / totalValue) * 100).toFixed(1);
             listHtml += `
-                <div class="cat-row" data-category="${labels[i]}">
-                    <div class="cat-info">
-                        <span class="cat-dot" style="background:${colors[i % colors.length]}"></span>
-                        <span class="cat-name">${labels[i]}</span>
-                    </div>
-                    <div class="cat-details">
-                        <span class="cat-val">₱${values[i].toLocaleString('en-PH', {minimumFractionDigits:0})}</span>
-                        <span class="cat-percent">${percentage}%</span>
-                        <span class="cat-orders">${orderCounts[i] || 0} orders</span>
-                    </div>
+            <div class="cat-row" data-category="${labels[i]}">
+                <div class="cat-info">
+                    <span class="cat-dot" style="background:${colors[i % colors.length]}"></span>
+                    <span class="cat-name">${labels[i]}</span>
                 </div>
-            `;
+                <div class="cat-details">
+                    <span class="cat-val">₱${values[i].toLocaleString('en-PH', {minimumFractionDigits:0})}</span>
+                    <span class="cat-percent">${percentage}%</span>
+                    <span class="cat-orders">${orderCounts[i] || 0} orders</span>
+                </div>
+            </div>
+        `;
         }
-
         const listElement = document.getElementById('top-categories-list');
         if (listElement) {
             listElement.innerHTML = listHtml;
-
             setTimeout(() => {
                 document.querySelectorAll('.cat-row').forEach((row, index) => {
                     row.addEventListener('mouseenter', () => {
@@ -345,41 +238,30 @@
                                     index: index
                                 }]);
                                 window.topCategoriesChart.update('none');
-                            } catch (e) {
-                                console.error('Chart interaction error:', e);
-                            }
+                            } catch (e) {}
                         }
                         row.style.backgroundColor = 'rgba(107, 62, 38, 0.05)';
                     });
-
                     row.addEventListener('mouseleave', () => {
                         if (window.topCategoriesChart) {
                             try {
                                 window.topCategoriesChart.setActiveElements([]);
                                 window.topCategoriesChart.update('none');
-                            } catch (e) {
-                                console.error('Chart interaction error:', e);
-                            }
+                            } catch (e) {}
                         }
                         row.style.backgroundColor = 'transparent';
                     });
                 });
             }, 100);
         }
-
-        console.log('Top categories chart rendered successfully');
     }
-
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('Dashboard loading...');
-
         const periodSelect = document.getElementById('performance-period');
         if (periodSelect) {
             periodSelect.addEventListener('change', function() {
                 drawSalesPerformanceChart(this.value);
             });
         }
-
         const exportBtn = document.getElementById('export-performance');
         if (exportBtn) {
             exportBtn.addEventListener('click', function() {
@@ -387,7 +269,6 @@
                 window.open('/analytics/export-performance?days=' + period, '_blank');
             });
         }
-
         fetchDashboardStats();
         drawSalesPerformanceChart();
         drawTopCategoriesChart();
@@ -526,11 +407,22 @@
         position: relative;
         height: 140px;
     }
+    #top-categories-section {
+        width: 100%;
+        max-width: 450px;
+        margin: 0 auto;
+        box-sizing: border-box;
+        display: block;
+        padding: 0 8px 0 0;
+        overflow-x: hidden;
+    }
     #top-categories-list {
         margin-top: 8px;
-        max-height: 200px;
+        max-height: 280px;
         overflow-y: auto;
+        width: 100%;
         padding-right: 5px;
+        box-sizing: border-box;
     }
     #top-categories-list::-webkit-scrollbar {
         width: 4px;
@@ -550,6 +442,7 @@
         transition: all 0.2s ease;
         cursor: pointer;
         position: relative;
+        background: transparent;
     }
     .cat-row:hover {
         background-color: rgba(107, 62, 38, 0.05);
@@ -613,12 +506,14 @@
     @media (max-width: 1150px) {
         .main-summary-cards, .performance-cards-row { flex-direction: column; gap: 22px; }
         .sales-performance, .top-categories { min-width: 0; }
+        #top-categories-section { max-width: 100%; }
     }
     @media (max-width: 768px) {
         .top-categories-chart-container {
             height: 120px;
             margin-bottom: 15px;
         }
+        #top-categories-section { max-width: 100%; }
         .cat-row {
             font-size: 12px;
             margin-bottom: 6px;
@@ -639,5 +534,6 @@
         .main-summary-cards, .performance-cards-row { flex-direction: column; gap: 14px; }
         .summary-card, .card { padding: 17px 12px 15px 12px; }
         .card-label { font-size: 16px; }
+        #top-categories-section { max-width: 320px; }
     }
 </style>
