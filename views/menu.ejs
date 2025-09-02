@@ -13,19 +13,19 @@ menuItems.forEach(item => {
         <div id="all-products" style="overflow-y: auto; padding-right: 8px; box-sizing: border-box;">
             <div class="section-title">Choose Category</div>
             <div style="display:flex;gap:12px;margin-bottom:32px; height:150px;">
-                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:110px;padding:18px 20px 10px 20px;background:#fff;border-radius:10px;box-shadow:0 1px 8px rgba(0,0,0,0.09);border:1px solid #e1e1e1;cursor:pointer;">
+                <div onclick="scrollToCategory('Coffee')" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:110px;padding:18px 20px 10px 20px;background:#fff;border-radius:10px;box-shadow:0 1px 8px rgba(0,0,0,0.09);border:1px solid #e1e1e1;cursor:pointer;">
                     <img src="https://img.icons8.com/?size=100&id=Ssu2jHhVZPnO&format=png&color=000000" style="width:40px;height:40px;margin-bottom:8px;" alt="Coffee">
                     <span style="font-weight:600;font-size:15px;color:black;">Coffee</span>
                 </div>
-                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:110px;padding:18px 20px 10px 20px;background:#fff;border-radius:10px;box-shadow:0 1px 8px rgba(0,0,0,0.09);border:1px solid #e1e1e1;cursor:pointer;">
-                    <img src="https://img.icons8.com/?size=100&id=TD7MP3vXGsRf&format=png&color=000000" style="width:40px;height:40px;margin-bottom:8px;" alt="Fruit Teas">
-                    <span style="font-weight:600;font-size:15px;color:black;">Fruit Teas</span>
+                <div onclick="scrollToCategory('Fruit Tea')" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:110px;padding:18px 20px 10px 20px;background:#fff;border-radius:10px;box-shadow:0 1px 8px rgba(0,0,0,0.09);border:1px solid #e1e1e1;cursor:pointer;">
+                    <img src="https://img.icons8.com/?size=100&id=TD7MP3vXGsRf&format=png&color=000000" style="width:40px;height:40px;margin-bottom:8px;" alt="Fruit Tea">
+                    <span style="font-weight:600;font-size:15px;color:black;">Fruit Tea</span>
                 </div>
-                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:110px;padding:18px 20px 10px 20px;background:#fff;border-radius:10px;box-shadow:0 1px 8px rgba(0,0,0,0.09);border:1px solid #e1e1e1;cursor:pointer;">
+                <div onclick="scrollToCategory('Milktea')" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:110px;padding:18px 20px 10px 20px;background:#fff;border-radius:10px;box-shadow:0 1px 8px rgba(0,0,0,0.09);border:1px solid #e1e1e1;cursor:pointer;">
                     <img src="https://img.icons8.com/?size=100&id=22tqa0dpdqWt&format=png&color=000000" style="width:40px;height:40px;margin-bottom:8px;" alt="Milktea">
                     <span style="font-weight:600;font-size:15px;color:black;">Milktea</span>
                 </div>
-                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:110px;padding:18px 20px 10px 20px;background:#fff;border-radius:10px;box-shadow:0 1px 8px rgba(0,0,0,0.09);border:1px solid #e1e1e1;cursor:pointer;">
+                <div onclick="scrollToCategory('Pastries')" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:110px;padding:18px 20px 10px 20px;background:#fff;border-radius:10px;box-shadow:0 1px 8px rgba(0,0,0,0.09);border:1px solid #e1e1e1;cursor:pointer;">
                     <img src="https://img.icons8.com/?size=100&id=4B6eJqXQoBZp&format=png&color=000000" style="width:40px;height:40px;margin-bottom:8px;" alt="Pastries">
                     <span style="font-weight:600;font-size:15px;color:black;">Pastries</span>
                 </div>
@@ -140,12 +140,19 @@ menuItems.forEach(item => {
 </div>
 
 <div id="size-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;z-index:1000;">
-    <div style="background:#fff;padding:24px 20px;border-radius:12px;min-width:260px;max-width:94vw;box-shadow:0 2px 16px rgba(0,0,0,0.10);display:flex;flex-direction:column;gap:18px;align-items:stretch;">
-        <div style="font-size:1.13rem;font-weight:600;text-align:center;" id="modal-product-name"></div>
-        <div id="size-options" style="display:flex;flex-direction:column;gap:8px;margin-bottom:0;"></div>
-        <div id="addon-options"></div>
-        <div style="display:flex;gap:10px;justify-content:flex-end;">
-            <button onclick="closeSizeModal()" style="padding:8px 18px;border:none;border-radius:7px;background:#eee;color:#5a3e2b;font-size:15px;cursor:pointer;">Cancel</button>
+    <div style="background:#fff;border-radius:16px;min-width:320px;max-width:450px;width:90vw;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.15);display:flex;flex-direction:column;">
+        <div style="padding:24px 24px 16px 24px;border-bottom:1px solid #f0f0f0;">
+            <div style="font-size:1.25rem;font-weight:700;text-align:center;color:#2c2c2c;" id="modal-product-name"></div>
+        </div>
+
+        <div style="padding:20px 24px;flex:1;overflow-y:auto;">
+            <div id="size-options" style="margin-bottom:24px;"></div>
+            <div id="addon-options"></div>
+        </div>
+
+        <div style="padding:16px 24px 24px 24px;border-top:1px solid #f0f0f0;display:flex;flex-direction:row;gap:12px;">
+            <button id="modal-add-to-order-btn" style="flex:1;padding:12px;border:none;border-radius:8px;background:#8B4513;color:#fff;font-size:15px;font-weight:600;cursor:pointer;transition:all 0.2s;">Add Order</button>
+            <button onclick="closeSizeModal()" style="flex:1;padding:12px;border:2px solid #ddd;border-radius:8px;background:#fff;color:#666;font-size:15px;font-weight:600;cursor:pointer;transition:all 0.2s;">Cancel</button>
         </div>
     </div>
 </div>
@@ -246,6 +253,16 @@ menuItems.forEach(item => {
         updateSubtotalFromItems();
 
         document.getElementById('total').textContent = `₱ ${subtotalPromoApplied.toFixed(2)}`;
+    }
+
+    function scrollToCategory(categoryName) {
+        const categoryElements = document.querySelectorAll('.section-title');
+        for (let element of categoryElements) {
+            if (element.textContent.trim() === categoryName) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                break;
+            }
+        }
     }
 
     function calculateTotals() {
@@ -488,48 +505,46 @@ menuItems.forEach(item => {
     }
 
     function setupConfirmBtnForSizeAndAddon(item) {
-        const optionsContainer = document.getElementById('size-options');
-        const existingBtn = document.getElementById('modal-add-to-order-btn');
-        if (existingBtn) existingBtn.remove();
+        const confirmBtn = document.getElementById('modal-add-to-order-btn');
+        if (confirmBtn) {
+            confirmBtn.onclick = () => {
+                const selectedSizeRadio = document.querySelector('input[name="size-choice"]:checked');
+                if (!selectedSizeRadio) {
+                    alert('Please select a size');
+                    return;
+                }
+                const size = selectedSizeRadio.value;
+                const price = parseFloat(selectedSizeRadio.dataset.price);
 
-        const confirmBtn = document.createElement('button');
-        confirmBtn.id = 'modal-add-to-order-btn';
-        confirmBtn.textContent = 'Add to Order';
-        confirmBtn.style.cssText = `
-            margin-top: 18px;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            background: #D4A574;
-            color: #5a3e2b;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 14px;
-            transition: background-color 0.2s;
-            width: 100%;
-        `;
+                const checked = Array.from(document.querySelectorAll('#addon-checkboxes input[type="checkbox"]:checked'));
+                const selectedAddons = checked.map(c => ({
+                    AddOnID: c.value,
+                    Name: c.dataset.name,
+                    BasePrice: parseFloat(c.dataset.price)
+                }));
 
-        confirmBtn.onclick = () => {
-            const selectedSizeRadio = document.querySelector('input[name="size-choice"]:checked');
-            if (!selectedSizeRadio) {
-                alert('Please select a size');
-                return;
-            }
-            const size = selectedSizeRadio.value;
-            const price = parseFloat(selectedSizeRadio.dataset.price);
+                addToOrder(item.Name, price, size, item.Category, item.ProductID, selectedAddons, item.imagelink);
+                closeSizeModal();
+            };
+        }
+    }
 
-            const checked = Array.from(document.querySelectorAll('#addon-checkboxes input[type="checkbox"]:checked'));
-            const selectedAddons = checked.map(c => ({
-                AddOnID: c.value,
-                Name: c.dataset.name,
-                BasePrice: parseFloat(c.dataset.price)
-            }));
+    function setupConfirmButton(item, size, price) {
+        const confirmBtn = document.getElementById('modal-add-to-order-btn');
+        if (confirmBtn) {
+            confirmBtn.onclick = () => {
+                const checked = Array.from(document.querySelectorAll('#addon-checkboxes input[type="checkbox"]:checked'));
+                const selectedAddons = checked.map(c => ({
+                    AddOnID: c.value,
+                    Name: c.dataset.name,
+                    BasePrice: parseFloat(c.dataset.price)
+                }));
 
-            addToOrder(item.Name, price, size, item.Category, item.ProductID, selectedAddons, item.imagelink);
-            closeSizeModal();
-        };
-
-        optionsContainer.appendChild(confirmBtn);
+                console.log('Selected add-ons:', selectedAddons);
+                addToOrder(item.Name, price, size, item.Category, item.ProductID, selectedAddons, item.imagelink);
+                closeSizeModal();
+            };
+        }
     }
 
     function showAddonModal(item, size, price) {
@@ -619,42 +634,21 @@ menuItems.forEach(item => {
     }
 
     function setupConfirmButton(item, size, price) {
-        const optionsContainer = document.getElementById('size-options');
-        optionsContainer.innerHTML = '';
+        const confirmBtn = document.getElementById('modal-add-to-order-btn');
+        if (confirmBtn) {
+            confirmBtn.onclick = () => {
+                const checked = Array.from(document.querySelectorAll('#addon-checkboxes input[type="checkbox"]:checked'));
+                const selectedAddons = checked.map(c => ({
+                    AddOnID: c.value,
+                    Name: c.dataset.name,
+                    BasePrice: parseFloat(c.dataset.price)
+                }));
 
-        const confirmBtn = document.createElement('button');
-        confirmBtn.textContent = 'Add to Order';
-        confirmBtn.style.cssText = `
-        margin-top: 15px;
-        padding: 12px 24px;
-        border: none;
-        border-radius: 8px;
-        background: #D4A574;
-        color: #5a3e2b;
-        cursor: pointer;
-        font-weight: bold;
-        font-size: 14px;
-        transition: background-color 0.2s;
-        width: 100%;
-    `;
-
-        confirmBtn.onmouseover = () => confirmBtn.style.backgroundColor = '#B8956A';
-        confirmBtn.onmouseout = () => confirmBtn.style.backgroundColor = '#D4A574';
-
-        confirmBtn.onclick = () => {
-            const checked = Array.from(document.querySelectorAll('#addon-checkboxes input[type="checkbox"]:checked'));
-            const selectedAddons = checked.map(c => ({
-                AddOnID: c.value,
-                Name: c.dataset.name,
-                BasePrice: parseFloat(c.dataset.price)
-            }));
-
-            console.log('Selected add-ons:', selectedAddons);
-            addToOrder(item.Name, price, size, item.Category, item.ProductID, selectedAddons, item.imagelink);
-            closeSizeModal();
-        };
-
-        optionsContainer.appendChild(confirmBtn);
+                console.log('Selected add-ons:', selectedAddons);
+                addToOrder(item.Name, price, size, item.Category, item.ProductID, selectedAddons, item.imagelink);
+                closeSizeModal();
+            };
+        }
     }
 
     function closeSizeModal() {
