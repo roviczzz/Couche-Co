@@ -538,7 +538,7 @@ app.get('/stocks', isLoggedIn, nocache, async (req, res) => {
       message
     });
   } catch (err) {
-    console.error(`[2025-08-26 13:16:03] Error loading inventory:`, err);
+    console.error(`[2025-09-03 15:26:01] Error loading inventory:`, err);
     res.status(500).send('Failed to load inventory');
   }
 });
@@ -575,19 +575,17 @@ app.post('/stocks', async (req, res) => {
       Allergen: Allergen ? Allergen.trim() : 'None',
       isAvailable: isAvailable === 'true',
       isEnabled: isEnabled === 'true',
-      createdBy: 'MathDaenniel',
       createdAt: new Date(),
-      lastModified: new Date(),
-      lastModifiedBy: 'MathDaenniel'
+      lastModified: new Date()
     };
 
     await db.collection('Ingredients').insertOne(newIngredient);
     await client.close();
     
-    console.log(`[2025-08-26 13:16:03] Ingredient added: ${finalIngredientID} by MathDaenniel`);
+    console.log(`[2025-09-03 15:26:01] Ingredient added: ${finalIngredientID} by MathDaenniel`);
     res.redirect('/stocks?msg=add_success');
   } catch (err) {
-    console.error(`[2025-08-26 13:16:03] Error adding ingredient:`, err);
+    console.error(`[2025-09-03 15:26:01] Error adding ingredient:`, err);
     res.status(500).send('Failed to add ingredient');
   }
 });
@@ -609,7 +607,7 @@ app.post('/stocks/edit/:id', async (req, res) => {
   }
   
   if (!finalIngredientID) {
-    console.log(`[2025-08-26 13:16:03] Missing ingredient ID data for update: ID ${id} by MathDaenniel`);
+    console.log(`[2025-09-03 15:26:01] Missing ingredient ID data for update: ID ${id} by MathDaenniel`);
     return res.redirect('/stocks?msg=item_not_found');
   }
 
@@ -645,8 +643,7 @@ app.post('/stocks/edit/:id', async (req, res) => {
       Allergen: Allergen ? Allergen.trim() : 'None',
       isAvailable: isAvailable === 'true',
       isEnabled: isEnabled === 'true',
-      lastModified: new Date(),
-      lastModifiedBy: 'MathDaenniel'
+      lastModified: new Date()
     };
 
     const result = await db.collection('Ingredients').updateOne(
@@ -657,14 +654,14 @@ app.post('/stocks/edit/:id', async (req, res) => {
     await client.close();
 
     if (result.matchedCount === 0) {
-      console.log(`[2025-08-26 13:16:03] Ingredient not found for update: ID ${id} by MathDaenniel`);
+      console.log(`[2025-09-03 15:26:01] Ingredient not found for update: ID ${id} by MathDaenniel`);
       return res.redirect('/stocks?msg=item_not_found');
     }
 
-    console.log(`[2025-08-26 13:16:03] Ingredient updated: ${currentIngredient.IngredientID} -> ${finalIngredientID} by MathDaenniel`);
+    console.log(`[2025-09-03 15:26:01] Ingredient updated: ${currentIngredient.IngredientID} -> ${finalIngredientID} by MathDaenniel`);
     res.redirect('/stocks?msg=update_success');
   } catch (err) {
-    console.error(`[2025-08-26 13:16:03] Error updating ingredient:`, err);
+    console.error(`[2025-09-03 15:26:01] Error updating ingredient:`, err);
     res.status(500).send('Failed to update ingredient');
   }
 });
@@ -689,19 +686,19 @@ app.post('/stocks/delete/:id', async (req, res) => {
     await client.close();
 
     if (result.deletedCount === 0) {
-      console.log(`[2025-08-26 13:16:03] Ingredient not found for deletion: ID ${id} by MathDaenniel`);
+      console.log(`[2025-09-03 15:26:01] Ingredient not found for deletion: ID ${id} by MathDaenniel`);
       return res.redirect('/stocks?msg=delete_failed');
     }
     
-    console.log(`[2025-08-26 13:16:03] Ingredient deleted: ${ingredientToDelete.IngredientID} by MathDaenniel`);
+    console.log(`[2025-09-03 15:26:01] Ingredient deleted: ${ingredientToDelete.IngredientID} by MathDaenniel`);
     res.redirect('/stocks?msg=delete_success');
   } catch (err) {
-    console.error(`[2025-08-26 13:16:03] Error deleting ingredient:`, err);
+    console.error(`[2025-09-03 15:26:01] Error deleting ingredient:`, err);
     res.status(500).send('Failed to delete ingredient');
   }
 });
 
-// Add-Ons CRUD Routes (Base Price removed to match V12)
+// Add-Ons CRUD Routes
 app.post('/addons', async (req, res) => {
   const { AddOnID, AddOnPrefix, AddOnSuffix, Name, Quantity, Category, Allergen, isEnabledAddon } = req.body;
   
@@ -732,19 +729,17 @@ app.post('/addons', async (req, res) => {
       Category: Category.trim(),
       Allergen: Allergen ? Allergen.trim() : 'None',
       isEnabled: isEnabledAddon === 'true',
-      createdBy: 'MathDaenniel',
       createdAt: new Date(),
-      lastModified: new Date(),
-      lastModifiedBy: 'MathDaenniel'
+      lastModified: new Date()
     };
 
     await db.collection('Add-ons').insertOne(newAddOn);
     await client.close();
     
-    console.log(`[2025-08-26 13:16:03] Add-on added: ${finalAddOnID} by MathDaenniel`);
+    console.log(`[2025-09-03 15:26:01] Add-on added: ${finalAddOnID} by MathDaenniel`);
     res.redirect('/stocks?msg=add_success');
   } catch (err) {
-    console.error(`[2025-08-26 13:16:03] Error adding add-on:`, err);
+    console.error(`[2025-09-03 15:26:01] Error adding add-on:`, err);
     res.status(500).send('Failed to add add-on');
   }
 });
@@ -766,7 +761,7 @@ app.post('/addons/edit/:id', async (req, res) => {
   }
   
   if (!finalAddOnID) {
-    console.log(`[2025-08-26 13:16:03] Missing add-on ID data for update: ID ${id} by MathDaenniel`);
+    console.log(`[2025-09-03 15:26:01] Missing add-on ID data for update: ID ${id} by MathDaenniel`);
     return res.redirect('/stocks?msg=item_not_found');
   }
 
@@ -801,8 +796,7 @@ app.post('/addons/edit/:id', async (req, res) => {
       Category: Category.trim(),
       Allergen: Allergen ? Allergen.trim() : 'None',
       isEnabled: isEnabled === 'true',
-      lastModified: new Date(),
-      lastModifiedBy: 'MathDaenniel'
+      lastModified: new Date()
     };
 
     const result = await db.collection('Add-ons').updateOne(
@@ -813,14 +807,14 @@ app.post('/addons/edit/:id', async (req, res) => {
     await client.close();
 
     if (result.matchedCount === 0) {
-      console.log(`[2025-08-26 13:16:03] Add-on not found for update: ID ${id} by MathDaenniel`);
+      console.log(`[2025-09-03 15:26:01] Add-on not found for update: ID ${id} by MathDaenniel`);
       return res.redirect('/stocks?msg=item_not_found');
     }
 
-    console.log(`[2025-08-26 13:16:03] Add-on updated: ${currentAddOn.AddOnID} -> ${finalAddOnID} by MathDaenniel`);
+    console.log(`[2025-09-03 15:26:01] Add-on updated: ${currentAddOn.AddOnID} -> ${finalAddOnID} by MathDaenniel`);
     res.redirect('/stocks?msg=update_success');
   } catch (err) {
-    console.error(`[2025-08-26 13:16:03] Error updating add-on:`, err);
+    console.error(`[2025-09-03 15:26:01] Error updating add-on:`, err);
     res.status(500).send('Failed to update add-on');
   }
 });
@@ -845,14 +839,14 @@ app.post('/addons/delete/:id', async (req, res) => {
     await client.close();
 
     if (result.deletedCount === 0) {
-      console.log(`[2025-08-26 13:16:03] Add-on not found for deletion: ID ${id} by MathDaenniel`);
+      console.log(`[2025-09-03 15:26:01] Add-on not found for deletion: ID ${id} by MathDaenniel`);
       return res.redirect('/stocks?msg=delete_failed');
     }
     
-    console.log(`[2025-08-26 13:16:03] Add-on deleted: ${addonToDelete.AddOnID} by MathDaenniel`);
+    console.log(`[2025-09-03 15:26:01] Add-on deleted: ${addonToDelete.AddOnID} by MathDaenniel`);
     res.redirect('/stocks?msg=delete_success');
   } catch (err) {
-    console.error(`[2025-08-26 13:16:03] Error deleting add-on:`, err);
+    console.error(`[2025-09-03 15:26:01] Error deleting add-on:`, err);
     res.status(500).send('Failed to delete add-on');
   }
 });
@@ -873,7 +867,7 @@ app.get('/stocks/details/:id', isLoggedIn, async (req, res) => {
 
     res.json(ingredient);
   } catch (err) {
-    console.error(`[2025-08-26 13:16:03] Error fetching ingredient details:`, err);
+    console.error(`[2025-09-03 15:26:01] Error fetching ingredient details:`, err);
     res.status(500).json({ error: 'Failed to fetch ingredient details' });
   }
 });
@@ -893,7 +887,7 @@ app.get('/addons/details/:id', isLoggedIn, async (req, res) => {
 
     res.json(addon);
   } catch (err) {
-    console.error(`[2025-08-26 13:16:03] Error fetching add-on details:`, err);
+    console.error(`[2025-09-03 15:26:01] Error fetching add-on details:`, err);
     res.status(500).json({ error: 'Failed to fetch add-on details' });
   }
 });
@@ -912,8 +906,7 @@ app.post('/stocks/bulk-update', isLoggedIn, async (req, res) => {
         update: { 
           $set: { 
             ...update.data, 
-            lastModified: new Date(), 
-            lastModifiedBy: 'MathDaenniel' 
+            lastModified: new Date()
           } 
         }
       }
@@ -922,10 +915,10 @@ app.post('/stocks/bulk-update', isLoggedIn, async (req, res) => {
     const result = await db.collection('Ingredients').bulkWrite(bulkOps);
     await client.close();
     
-    console.log(`[2025-08-26 13:16:03] Bulk update completed: ${result.modifiedCount} ingredients updated by MathDaenniel`);
+    console.log(`[2025-09-03 15:26:01] Bulk update completed: ${result.modifiedCount} ingredients updated by MathDaenniel`);
     res.json({ success: true, modified: result.modifiedCount });
   } catch (err) {
-    console.error(`[2025-08-26 13:16:03] Error in bulk update:`, err);
+    console.error(`[2025-09-03 15:26:01] Error in bulk update:`, err);
     res.status(500).json({ error: 'Failed to perform bulk update' });
   }
 });
@@ -943,8 +936,7 @@ app.post('/addons/bulk-update', isLoggedIn, async (req, res) => {
         update: { 
           $set: { 
             ...update.data, 
-            lastModified: new Date(), 
-            lastModifiedBy: 'MathDaenniel' 
+            lastModified: new Date()
           } 
         }
       }
@@ -953,10 +945,10 @@ app.post('/addons/bulk-update', isLoggedIn, async (req, res) => {
     const result = await db.collection('Add-ons').bulkWrite(bulkOps);
     await client.close();
     
-    console.log(`[2025-08-26 13:16:03] Bulk update completed: ${result.modifiedCount} add-ons updated by MathDaenniel`);
+    console.log(`[2025-09-03 15:26:01] Bulk update completed: ${result.modifiedCount} add-ons updated by MathDaenniel`);
     res.json({ success: true, modified: result.modifiedCount });
   } catch (err) {
-    console.error(`[2025-08-26 13:16:03] Error in bulk update:`, err);
+    console.error(`[2025-09-03 15:26:01] Error in bulk update:`, err);
     res.status(500).json({ error: 'Failed to perform bulk update' });
   }
 });
@@ -975,17 +967,17 @@ app.get('/stocks/export', isLoggedIn, async (req, res) => {
       addons,
       exportedAt: new Date(),
       exportedBy: 'MathDaenniel',
-      version: 'V12',
-      timestamp: '[2025-08-26 13:16:03]'
+      version: 'V3.0',
+      timestamp: '[2025-09-03 15:26:01]'
     };
     
     res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Content-Disposition', 'attachment; filename="inventory-export-v12.json"');
+    res.setHeader('Content-Disposition', 'attachment; filename="inventory-export-v3.json"');
     res.json(exportData);
     
-    console.log(`[2025-08-26 13:16:03] Inventory data exported by MathDaenniel`);
+    console.log(`[2025-09-03 15:26:01] Inventory data exported by MathDaenniel`);
   } catch (err) {
-    console.error(`[2025-08-26 13:16:03] Error exporting inventory data:`, err);
+    console.error(`[2025-09-03 15:26:01] Error exporting inventory data:`, err);
     res.status(500).json({ error: 'Failed to export inventory data' });
   }
 });
@@ -1026,22 +1018,22 @@ app.get('/stocks/search', isLoggedIn, async (req, res) => {
     
     await client.close();
     
-    console.log(`[2025-08-26 13:16:03] Search performed for "${query}" by MathDaenniel`);
+    console.log(`[2025-09-03 15:26:01] Search performed for "${query}" by MathDaenniel`);
     res.json({ 
       ingredients, 
       addons, 
       searchQuery: query, 
       searchType: type,
       resultCount: ingredients.length + addons.length,
-      timestamp: '[2025-08-26 13:16:03]'
+      timestamp: '[2025-09-03 15:26:01]'
     });
   } catch (err) {
-    console.error(`[2025-08-26 13:16:03] Error searching inventory:`, err);
+    console.error(`[2025-09-03 15:26:01] Error searching inventory:`, err);
     res.status(500).json({ error: 'Failed to search inventory' });
   }
 });
 
-// Inventory statistics (new feature for V12)
+// Inventory statistics (new feature for V3.0)
 app.get('/stocks/stats', isLoggedIn, async (req, res) => {
   try {
     const client = await MongoClient.connect(uri);
@@ -1080,19 +1072,19 @@ app.get('/stocks/stats', isLoggedIn, async (req, res) => {
       addons: addonStats[0] || { totalAddons: 0, enabledAddons: 0, totalQuantity: 0, categories: [] },
       generatedAt: new Date(),
       generatedBy: 'MathDaenniel',
-      version: 'V12',
-      timestamp: '[2025-08-26 13:16:03]'
+      version: 'V3.0',
+      timestamp: '[2025-09-03 15:26:01]'
     };
     
-    console.log(`[2025-08-26 13:16:03] Inventory statistics generated by MathDaenniel`);
+    console.log(`[2025-09-03 15:26:01] Inventory statistics generated by MathDaenniel`);
     res.json(stats);
   } catch (err) {
-    console.error(`[2025-08-26 13:16:03] Error generating inventory statistics:`, err);
+    console.error(`[2025-09-03 15:26:01] Error generating inventory statistics:`, err);
     res.status(500).json({ error: 'Failed to generate inventory statistics' });
   }
 });
 
-// Low stock alerts (new feature for V12)
+// Low stock alerts (new feature for V3.0)
 app.get('/stocks/alerts', isLoggedIn, async (req, res) => {
   const { threshold = 10 } = req.query;
   const lowStockThreshold = parseInt(threshold);
@@ -1120,19 +1112,83 @@ app.get('/stocks/alerts', isLoggedIn, async (req, res) => {
       totalAlerts: lowStockIngredients.length + lowStockAddons.length,
       generatedAt: new Date(),
       generatedBy: 'MathDaenniel',
-      timestamp: '[2025-08-26 13:16:03]'
+      timestamp: '[2025-09-03 15:26:01]'
     };
     
-    console.log(`[2025-08-26 13:16:03] Low stock alerts generated (threshold: ${lowStockThreshold}) by MathDaenniel`);
+    console.log(`[2025-09-03 15:26:01] Low stock alerts generated (threshold: ${lowStockThreshold}) by MathDaenniel`);
     res.json(alerts);
   } catch (err) {
-    console.error(`[2025-08-26 13:16:03] Error generating low stock alerts:`, err);
+    console.error(`[2025-09-03 15:26:01] Error generating low stock alerts:`, err);
     res.status(500).json({ error: 'Failed to generate low stock alerts' });
   }
 });
 
+// Category management (new feature for V3.0)
+app.get('/stocks/categories', isLoggedIn, async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    
+    const ingredientCategories = await db.collection('Ingredients').distinct('Category');
+    const addonCategories = await db.collection('Add-ons').distinct('Category');
+    
+    await client.close();
+    
+    const categories = {
+      ingredients: ingredientCategories.filter(cat => cat && cat.trim()),
+      addons: addonCategories.filter(cat => cat && cat.trim()),
+      all: [...new Set([...ingredientCategories, ...addonCategories])].filter(cat => cat && cat.trim()),
+      generatedAt: new Date(),
+      generatedBy: 'MathDaenniel',
+      timestamp: '[2025-09-03 15:26:01]'
+    };
+    
+    console.log(`[2025-09-03 15:26:01] Categories retrieved by MathDaenniel`);
+    res.json(categories);
+  } catch (err) {
+    console.error(`[2025-09-03 15:26:01] Error retrieving categories:`, err);
+    res.status(500).json({ error: 'Failed to retrieve categories' });
+  }
+});
 
-
+// Health check endpoint (new feature for V3.0)
+app.get('/stocks/health', isLoggedIn, async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    
+    // Test database connectivity
+    await db.admin().ping();
+    
+    // Get collection stats
+    const ingredientCount = await db.collection('Ingredients').countDocuments();
+    const addonCount = await db.collection('Add-ons').countDocuments();
+    
+    await client.close();
+    
+    const healthStatus = {
+      status: 'healthy',
+      database: 'connected',
+      ingredients: ingredientCount,
+      addons: addonCount,
+      version: 'V3.0',
+      timestamp: new Date(),
+      checkedBy: 'MathDaenniel'
+    };
+    
+    console.log(`[2025-09-03 15:26:01] Health check performed by MathDaenniel`);
+    res.json(healthStatus);
+  } catch (err) {
+    console.error(`[2025-09-03 15:26:01] Health check failed:`, err);
+    res.status(500).json({ 
+      status: 'unhealthy',
+      database: 'disconnected',
+      error: err.message,
+      timestamp: new Date(),
+      checkedBy: 'MathDaenniel'
+    });
+  }
+});
 // end of stockssssssssssssssssssssssssssssssssssssssssssssssssssssssssss
 
 
@@ -1883,7 +1939,7 @@ app.get('/discounts/export', isLoggedIn, async (req, res) => {
 
 // ========== END OF ENHANCED DISCOUNTS/PROMOS ROUTES - V12 ==========
 
-// ========== END OF ENHANCED DISCOUNTS/PROMOS ROUTES ==========
+
 
 
 

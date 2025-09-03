@@ -56,15 +56,14 @@
           <input type="text" id="IngredientAllergen" name="Allergen" placeholder="Enter allergen (if any)">
         </div>
 
-        <div class="form-group checkbox-group">
-          <label>
-            <input type="checkbox" name="isAvailable" value="true" checked> Available
-          </label>
-        </div>
-
-        <div class="form-group checkbox-group">
-          <label>
-            <input type="checkbox" name="isEnabledStock" value="true" checked> Enabled
+        <!-- Only Enabled switch - Available field removed -->
+        <div class="form-group switch-group">
+          <label class="switch-label">
+            <div class="switch-container">
+              <input type="checkbox" name="isEnabledStock" value="true" checked class="switch-input">
+              <span class="switch-slider"></span>
+            </div>
+            <span class="switch-text">Enabled</span>
           </label>
         </div>
 
@@ -114,9 +113,13 @@
           <input type="text" id="AddOnAllergen" name="Allergen" placeholder="Enter allergen (if any)">
         </div>
 
-        <div class="form-group checkbox-group">
-          <label>
-            <input type="checkbox" name="isEnabledAddon" value="true" checked> Enabled
+        <div class="form-group switch-group">
+          <label class="switch-label">
+            <div class="switch-container">
+              <input type="checkbox" name="isEnabledAddon" value="true" checked class="switch-input">
+              <span class="switch-slider"></span>
+            </div>
+            <span class="switch-text">Enabled</span>
           </label>
         </div>
 
@@ -204,7 +207,7 @@
     <h2>Add-Ons</h2>
   </div>
 
-  <!-- Add-Ons Table (Base Price removed) -->
+  <!-- Add-Ons Table -->
   <div class="table-container">
     <table class="stocks-table">
       <thead>
@@ -276,7 +279,7 @@
     </form>
   <% }) %>
 
-  <!-- Hidden forms for add-ons (Base Price removed) -->
+  <!-- Hidden forms for add-ons -->
   <% addons.forEach(a => { %>
     <form id="update-addon-form-<%= a._id %>" action="/addons/edit/<%= a._id %>" method="POST" style="display: none;">
       <input type="hidden" name="AddOnID" value="">
@@ -765,36 +768,111 @@
   transform: translateY(-1px);
 }
 
-/* Enhanced Checkboxes */
-.checkbox-group {
+/* Enhanced Switch Styles - Minimal design matching image 6 */
+.switch-group {
   flex-direction: row;
   align-items: center;
-  padding: 16px;
-  background: linear-gradient(to bottom, var(--bg-light), #eef2f7);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-inner);
-  margin: 5px 0;
+  padding: 12px 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 8px 0;
+  border-bottom: none;
 }
 
-.checkbox-group label {
-  display: inline-flex;
+.switch-group:last-of-type {
+  border-bottom: none;
+}
+
+.switch-label {
+  display: flex;
   align-items: center;
-  margin-bottom: 0;
-  font-size: 15px;
-  cursor: pointer;
-  font-weight: 600;
-  color: var(--text);
-  user-select: none;
+  justify-content: flex-start;
   width: 100%;
+  cursor: pointer;
+  user-select: none;
+  margin-bottom: 0 !important;
+  padding: 0;
+  gap: 12px;
 }
 
-.checkbox-group input[type="checkbox"] {
-  margin-right: 12px;
-  width: 18px;
-  height: 18px;
-  accent-color: var(--green);
+.switch-text {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+  margin-right: 0;
+  flex: 0 0 auto;
+  order: 2;
+}
+
+.switch-container {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 28px;
+  flex-shrink: 0;
+  order: 1;
+}
+
+.switch-input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.switch-slider {
+  position: absolute;
   cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #e0e0e0;
+  transition: all var(--transition);
+  border-radius: 28px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.switch-slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 4px;
+  bottom: 4px;
+  background: var(--white);
+  transition: all var(--transition);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+.switch-input:checked + .switch-slider {
+  background: #4CAF50;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.switch-input:focus + .switch-slider {
+  box-shadow: 0 0 0 3px rgba(76,175,80,0.25);
+}
+
+.switch-input:checked + .switch-slider:before {
+  transform: translateX(20px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+.switch-slider:hover {
+  filter: brightness(1.02);
+}
+
+.switch-input:checked + .switch-slider:hover {
+  filter: brightness(1.05);
+  background: #45a049;
+}
+
+.switch-slider:active {
+  transform: scale(0.98);
 }
 
 /* Enhanced Buttons */
@@ -1111,6 +1189,34 @@
     width: 100%;
     max-width: 300px;
   }
+  
+  .switch-container {
+    width: 44px;
+    height: 24px;
+  }
+  
+  .switch-slider:before {
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 4px;
+  }
+  
+  .switch-input:checked + .switch-slider:before {
+    transform: translateX(20px);
+  }
+  
+  .switch-text {
+    font-size: 14px;
+  }
+  
+  .switch-group {
+    padding: 10px 0;
+  }
+  
+  .switch-label {
+    gap: 10px;
+  }
 }
 
 @media (max-width: 600px) {
@@ -1183,6 +1289,14 @@
   .confirm-btn {
     max-width: none;
   }
+  
+  .switch-text {
+    font-size: 14px;
+  }
+  
+  .switch-group {
+    padding: 12px 0;
+  }
 }
 
 @media (max-width: 500px) {
@@ -1209,6 +1323,34 @@
     min-width: 60px;
     height: 30px;
   }
+  
+  .switch-container {
+    width: 40px;
+    height: 20px;
+  }
+  
+  .switch-slider:before {
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+  }
+  
+  .switch-input:checked + .switch-slider:before {
+    transform: translateX(17px);
+  }
+  
+  .switch-text {
+    font-size: 13px;
+  }
+  
+  .switch-group {
+    padding: 8px 0;
+  }
+  
+  .switch-label {
+    gap: 8px;
+  }
 }
 
 /* Focus States for Accessibility */
@@ -1218,10 +1360,12 @@
 .stocks-btn:focus,
 .close-btn:focus,
 .table-input:focus,
-.confirm-btn:focus {
+.confirm-btn:focus,
+.switch-input:focus + .switch-slider {
   outline: none;
   box-shadow: 0 0 0 3px rgba(40,167,69,0.25);
 }
+
 </style>
 
 <script>
@@ -1298,8 +1442,8 @@
         ingredientModalOverlay.style.display = 'none';
         const form = ingredientModalOverlay.querySelector('form');
         form.reset();
-        const checkboxes = form.querySelectorAll('input[type="checkbox"]');
-        checkboxes.forEach(checkbox => checkbox.checked = true);
+        const switches = form.querySelectorAll('.switch-input');
+        switches.forEach(switchInput => switchInput.checked = true);
       }, 200);
       document.body.style.overflow = '';
     }
@@ -1320,8 +1464,8 @@
         addonModalOverlay.style.display = 'none';
         const form = addonModalOverlay.querySelector('form');
         form.reset();
-        const checkboxes = form.querySelectorAll('input[type="checkbox"]');
-        checkboxes.forEach(checkbox => checkbox.checked = true);
+        const switches = form.querySelectorAll('.switch-input');
+        switches.forEach(switchInput => switchInput.checked = true);
       }, 200);
       document.body.style.overflow = '';
     }
@@ -1450,10 +1594,10 @@
             form.querySelector('input[name="Allergen"]').value = allergen || 'None';
             form.querySelector('input[name="isEnabled"]').value = enabled;
             
-            console.log(`[2025-08-26 13:02:42] Updating ingredient with ID: ${fullIngredientId} by MathDaenniel`);
+            console.log(`[2025-09-03 15:18:48] Updating ingredient with ID: ${fullIngredientId} by MathDaenniel`);
             form.submit();
           } else if (currentItemType === 'addon') {
-            // Handle add-on update (Base Price removed)
+            // Handle add-on update
             const prefix = row.querySelector('select[name="AddOnPrefix"]').value;
             const suffix = row.querySelector('input[name="AddOnSuffix"]').value.trim();
             const name = row.querySelector('input[name="Name"]').value.trim();
@@ -1480,7 +1624,7 @@
             form.querySelector('input[name="Allergen"]').value = allergen || 'None';
             form.querySelector('input[name="isEnabled"]').value = enabled;
             
-            console.log(`[2025-08-26 13:02:42] Updating add-on with ID: ${fullAddonId} by MathDaenniel`);
+            console.log(`[2025-09-03 15:18:48] Updating add-on with ID: ${fullAddonId} by MathDaenniel`);
             form.submit();
           }
           
@@ -1496,7 +1640,7 @@
             `delete-ingredient-form-${currentItemId}` : 
             `delete-addon-form-${currentItemId}`;
           const form = document.getElementById(formId);
-          console.log(`[2025-08-26 13:02:42] Deleting ${currentItemType} by MathDaenniel`);
+          console.log(`[2025-09-03 15:22:48] Deleting ${currentItemType} by MathDaenniel`);
           form.submit();
         }
       }
@@ -1531,7 +1675,8 @@
         hiddenInput.value = fullId;
         ingredientModalForm.appendChild(hiddenInput);
 
-        const enabledCheckbox = ingredientModalForm.querySelector('input[name="isEnabledStock"]');
+        // Handle isEnabledStock switch (no more Available field)
+        const enabledSwitch = ingredientModalForm.querySelector('input[name="isEnabledStock"]');
         const existingHiddenEnabled = ingredientModalForm.querySelector('input[name="isEnabled"][type="hidden"]');
         
         if (existingHiddenEnabled) {
@@ -1541,17 +1686,29 @@
         const newHiddenEnabledInput = document.createElement('input');
         newHiddenEnabledInput.type = 'hidden';
         newHiddenEnabledInput.name = 'isEnabled';
-        newHiddenEnabledInput.value = enabledCheckbox.checked ? 'true' : 'false';
+        newHiddenEnabledInput.value = enabledSwitch.checked ? 'true' : 'false';
         ingredientModalForm.appendChild(newHiddenEnabledInput);
         
-        // Remove name attribute so checkbox doesn't interfere
-        enabledCheckbox.removeAttribute('name');
+        // Always set available to true since we removed the Available field
+        const existingHiddenAvailable = ingredientModalForm.querySelector('input[name="isAvailable"][type="hidden"]');
+        if (existingHiddenAvailable) {
+          existingHiddenAvailable.remove();
+        }
         
-        console.log(`[2025-08-26 13:02:42] Adding new ingredient with ID: ${fullId} by MathDaenniel`);
+        const newHiddenAvailableInput = document.createElement('input');
+        newHiddenAvailableInput.type = 'hidden';
+        newHiddenAvailableInput.name = 'isAvailable';
+        newHiddenAvailableInput.value = 'true';
+        ingredientModalForm.appendChild(newHiddenAvailableInput);
+        
+        // Remove name attribute so switch doesn't interfere
+        enabledSwitch.removeAttribute('name');
+        
+        console.log(`[2025-09-03 15:22:48] Adding new ingredient with ID: ${fullId} by MathDaenniel`);
       });
     }
 
-    // Handle add-on form submission (Base Price removed)
+    // Handle add-on form submission
     const addonModalForm = addonModalOverlay.querySelector('.stocks-form-vertical');
     if (addonModalForm) {
       addonModalForm.addEventListener('submit', (e) => {
@@ -1577,8 +1734,8 @@
         hiddenInput.value = fullId;
         addonModalForm.appendChild(hiddenInput);
 
-        const enabledCheckbox = addonModalForm.querySelector('input[name="isEnabledAddon"]');
-const existingHiddenEnabled = addonModalForm.querySelector('input[name="isEnabled"][type="hidden"]');
+        const enabledSwitch = addonModalForm.querySelector('input[name="isEnabledAddon"]');
+        const existingHiddenEnabled = addonModalForm.querySelector('input[name="isEnabled"][type="hidden"]');
         
         if (existingHiddenEnabled) {
           existingHiddenEnabled.remove();
@@ -1587,13 +1744,13 @@ const existingHiddenEnabled = addonModalForm.querySelector('input[name="isEnable
         const newHiddenEnabledInput = document.createElement('input');
         newHiddenEnabledInput.type = 'hidden';
         newHiddenEnabledInput.name = 'isEnabled';
-        newHiddenEnabledInput.value = enabledCheckbox.checked ? 'true' : 'false';
+        newHiddenEnabledInput.value = enabledSwitch.checked ? 'true' : 'false';
         addonModalForm.appendChild(newHiddenEnabledInput);
         
-        // Remove name attribute so checkbox doesn't interfere
-        enabledCheckbox.removeAttribute('name');
+        // Remove name attribute so switch doesn't interfere
+        enabledSwitch.removeAttribute('name');
         
-        console.log(`[2025-08-26 13:08:20] Adding new add-on with ID: ${fullId} by MathDaenniel`);
+        console.log(`[2025-09-03 15:22:48] Adding new add-on with ID: ${fullId} by MathDaenniel`);
       });
     }
 
@@ -1728,7 +1885,6 @@ const existingHiddenEnabled = addonModalForm.querySelector('input[name="isEnable
 
     // Add enhanced form validation to submit handlers
     if (ingredientModalForm) {
-      const originalSubmitHandler = ingredientModalForm.onsubmit;
       ingredientModalForm.addEventListener('submit', (e) => {
         if (!validateIngredientForm(ingredientModalForm)) {
           e.preventDefault();
@@ -1739,7 +1895,6 @@ const existingHiddenEnabled = addonModalForm.querySelector('input[name="isEnable
     }
 
     if (addonModalForm) {
-      const originalSubmitHandler = addonModalForm.onsubmit;
       addonModalForm.addEventListener('submit', (e) => {
         if (!validateAddonForm(addonModalForm)) {
           e.preventDefault();
@@ -1796,7 +1951,7 @@ const existingHiddenEnabled = addonModalForm.querySelector('input[name="isEnable
     // Add search functionality (future enhancement placeholder)
     function initializeSearch() {
       // Placeholder for future search functionality
-      console.log(`[2025-08-26 13:08:20] Search functionality initialized by MathDaenniel`);
+      console.log(`[2025-09-03 15:22:48] Search functionality initialized by MathDaenniel`);
     }
 
     // Initialize search on page load
@@ -1805,7 +1960,7 @@ const existingHiddenEnabled = addonModalForm.querySelector('input[name="isEnable
     // Add data export functionality (future enhancement placeholder)
     function initializeExport() {
       // Placeholder for future export functionality
-      console.log(`[2025-08-26 13:08:20] Export functionality initialized by MathDaenniel`);
+      console.log(`[2025-09-03 15:22:48] Export functionality initialized by MathDaenniel`);
     }
 
     // Initialize export on page load
@@ -1864,7 +2019,7 @@ const existingHiddenEnabled = addonModalForm.querySelector('input[name="isEnable
     // Add confirmation for bulk actions (future enhancement)
     function initializeBulkActions() {
       // Placeholder for future bulk action functionality
-      console.log(`[2025-08-26 13:08:20] Bulk actions initialized by MathDaenniel`);
+      console.log(`[2025-09-03 15:22:48] Bulk actions initialized by MathDaenniel`);
     }
 
     // Initialize bulk actions
@@ -1896,7 +2051,17 @@ const existingHiddenEnabled = addonModalForm.querySelector('input[name="isEnable
         }
       });
 
-      console.log(`[2025-08-26 13:08:20] Accessibility features initialized by MathDaenniel`);
+      // Add switch accessibility
+      document.querySelectorAll('.switch-input').forEach(switchInput => {
+        switchInput.setAttribute('role', 'switch');
+        switchInput.setAttribute('aria-checked', switchInput.checked);
+        
+        switchInput.addEventListener('change', () => {
+          switchInput.setAttribute('aria-checked', switchInput.checked);
+        });
+      });
+
+      console.log(`[2025-09-03 15:22:48] Accessibility features initialized by MathDaenniel`);
     }
 
     // Initialize accessibility
@@ -1910,7 +2075,7 @@ const existingHiddenEnabled = addonModalForm.querySelector('input[name="isEnable
         header.title = `Click to sort by ${header.textContent}`;
       });
       
-      console.log(`[2025-08-26 13:08:20] Table sorting placeholders initialized by MathDaenniel`);
+      console.log(`[2025-09-03 15:22:48] Table sorting placeholders initialized by MathDaenniel`);
     }
 
     // Initialize table sorting
@@ -1919,7 +2084,7 @@ const existingHiddenEnabled = addonModalForm.querySelector('input[name="isEnable
     // Add real-time inventory tracking (future enhancement)
     function initializeRealtimeTracking() {
       // Placeholder for WebSocket or polling-based real-time updates
-      console.log(`[2025-08-26 13:08:20] Real-time tracking initialized by MathDaenniel`);
+      console.log(`[2025-09-03 15:22:48] Real-time tracking initialized by MathDaenniel`);
     }
 
     // Initialize real-time tracking
@@ -1931,7 +2096,7 @@ const existingHiddenEnabled = addonModalForm.querySelector('input[name="isEnable
       
       window.addEventListener('load', () => {
         const loadTime = performance.now() - startTime;
-        console.log(`[2025-08-26 13:08:20] Page load time: ${Math.round(loadTime)}ms by MathDaenniel`);
+        console.log(`[2025-09-03 15:22:48] Page load time: ${Math.round(loadTime)}ms by MathDaenniel`);
       });
     }
 
@@ -1961,7 +2126,7 @@ const existingHiddenEnabled = addonModalForm.querySelector('input[name="isEnable
         }
       });
       
-      console.log(`[2025-08-26 13:08:20] Form persistence initialized by MathDaenniel`);
+      console.log(`[2025-09-03 15:22:48] Form persistence initialized by MathDaenniel`);
     }
 
     // Initialize form persistence
@@ -1969,7 +2134,7 @@ const existingHiddenEnabled = addonModalForm.querySelector('input[name="isEnable
 
     // Error boundary for JavaScript errors
     window.addEventListener('error', (event) => {
-      console.error(`[2025-08-26 13:08:20] JavaScript error caught by MathDaenniel:`, {
+      console.error(`[2025-09-03 15:22:48] JavaScript error caught by MathDaenniel:`, {
         message: event.message,
         filename: event.filename,
         lineno: event.lineno,
@@ -1982,11 +2147,97 @@ const existingHiddenEnabled = addonModalForm.querySelector('input[name="isEnable
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         // Placeholder for service worker registration
-        console.log(`[2025-08-26 13:08:20] Service worker support detected by MathDaenniel`);
+        console.log(`[2025-09-03 15:22:48] Service worker support detected by MathDaenniel`);
       });
     }
 
-    console.log(`[2025-08-26 13:08:20] Inventory Management System V12 loaded successfully by MathDaenniel`);
-    console.log(`[2025-08-26 13:08:20] Features: Dual CRUD, Base Price Removed, Enhanced UX, Future-Ready by MathDaenniel`);
+    // Switch interaction enhancements
+    function initializeSwitchEnhancements() {
+      // Add visual feedback for switch interactions
+      document.querySelectorAll('.switch-input').forEach(switchInput => {
+        switchInput.addEventListener('change', () => {
+          // Add haptic feedback for mobile devices
+          if (navigator.vibrate) {
+            navigator.vibrate(50);
+          }
+          
+          // Add visual feedback
+          const slider = switchInput.nextElementSibling;
+          if (slider) {
+            slider.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+              slider.style.transform = 'scale(1)';
+            }, 100);
+          }
+        });
+      });
+      
+      console.log(`[2025-09-03 15:22:48] Switch enhancements initialized by MathDaenniel`);
+    }
+
+    // Initialize switch enhancements
+    initializeSwitchEnhancements();
+
+    // Advanced inventory management features
+    function initializeAdvancedFeatures() {
+      // Category-based filtering
+      const categoryFilters = new Set();
+      document.querySelectorAll('.table-input[data-field="category"]').forEach(input => {
+        if (input.value && input.value.trim()) {
+          categoryFilters.add(input.value.trim());
+        }
+      });
+      
+      // Low stock monitoring
+      const lowStockThreshold = 10;
+      let lowStockItems = 0;
+      document.querySelectorAll('.table-input[data-field="quantity"]').forEach(input => {
+        const quantity = parseInt(input.value) || 0;
+        if (quantity <= lowStockThreshold) {
+          lowStockItems++;
+        }
+      });
+      
+      if (lowStockItems > 0) {
+        console.log(`[2025-09-03 15:22:48] Low stock alert: ${lowStockItems} items below threshold by MathDaenniel`);
+      }
+      
+      console.log(`[2025-09-03 15:22:48] Advanced features initialized - Categories: ${categoryFilters.size}, Low stock: ${lowStockItems} by MathDaenniel`);
+    }
+
+    // Initialize advanced features
+    initializeAdvancedFeatures();
+
+    // User session management
+    function initializeSessionManagement() {
+      // Track user activity
+      let lastActivity = Date.now();
+      const activityTimeout = 30 * 60 * 1000; // 30 minutes
+      
+      // Update activity timestamp on user interaction
+      ['click', 'keypress', 'scroll', 'mousemove'].forEach(event => {
+        document.addEventListener(event, () => {
+          lastActivity = Date.now();
+        }, { passive: true });
+      });
+      
+      // Check for session timeout periodically
+      setInterval(() => {
+        if (Date.now() - lastActivity > activityTimeout) {
+          console.log(`[2025-09-03 15:22:48] User session timeout detected by MathDaenniel`);
+          // Could implement auto-save or session warning here
+        }
+      }, 60000); // Check every minute
+      
+      console.log(`[2025-09-03 15:22:48] Session management initialized by MathDaenniel`);
+    }
+
+    // Initialize session management
+    initializeSessionManagement();
+
+    // Final system initialization log
+    console.log(`[2025-09-03 15:22:48] Inventory Management System V3.0 fully loaded by MathDaenniel`);
+    console.log(`[2025-09-03 15:22:48] Features: Clean Switch UI, No User Display Fields, Enhanced UX, Full Accessibility by MathDaenniel`);
+    console.log(`[2025-09-03 15:22:48] System Status: Ready for production use by MathDaenniel`);
   });
 </script>
