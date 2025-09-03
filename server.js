@@ -1507,6 +1507,31 @@ app.get('/analytics/average-sales-per-day', async (req, res) => {
   }
 });
 
+// Autocomplete search for ingredients
+app.get("/ingredients/search", async (req, res) => {
+  try {
+    const query = req.query.q || "";
+
+    const db = client.db("blessingscafe");
+
+    // Search inside Ingredients collection (field: Name)
+    const results = await db.collection("Ingredients").distinct("Name", {
+      Name: { $regex: query, $options: "i" }
+    });
+
+    res.json(results.slice(0, 50)); // return up to 50 results
+  } catch (err) {
+    console.error("Error in /ingredients/search:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+
+
+
+
+
+
 
 // Analytics page
 app.get('/analytics', isLoggedIn, nocache, (req, res) => {

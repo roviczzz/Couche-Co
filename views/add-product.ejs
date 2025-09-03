@@ -8,12 +8,12 @@
   }
 
   .form-container {
-    max-width: 550px;
-    margin: 60px auto;
+    max-width: 700px;
+    margin: 50px auto;
     background: #fffdf9;
-    padding: 35px 40px;
+    padding: 40px 45px;
     border-radius: 16px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
     animation: fadeIn 0.5s ease;
   }
 
@@ -21,46 +21,26 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 25px;
-    position: relative;
+    margin-bottom: 30px;
   }
 
   .form-title {
     color: #3a2415;
-    font-size: 26px;
+    font-size: 28px;
     font-weight: 700;
-  }
-
-  .back-button {
-    position: absolute;
-    left: 0;
-    background: transparent;
-    color: #c62828;
-    font-size: 14px;
-    padding: 8px 14px;
-    border: 2px solid #c62828;
-    border-radius: 8px;
-    cursor: pointer;
-    text-decoration: none;
-    transition: 0.3s;
-  }
-
-  .back-button:hover {
-    background: #c62828;
-    color: white;
   }
 
   .form-label {
     display: block;
-    margin-top: 18px;
+    margin-top: 20px;
     font-weight: 600;
     color: #4e342e;
-    font-size: 14px;
+    font-size: 15px;
   }
 
-  .form-input {
+  .form-input, select {
     width: 100%;
-    padding: 12px;
+    padding: 14px;
     margin-top: 6px;
     font-size: 15px;
     border: 1px solid #d7ccc8;
@@ -69,85 +49,131 @@
     transition: border-color 0.3s, box-shadow 0.3s;
   }
 
-  .form-input:focus {
+  .form-input:focus, select:focus {
     outline: none;
     border-color: #8d6e63;
     box-shadow: 0 0 6px rgba(141,110,99,0.4);
   }
 
-  /* ✅ Custom Checkbox */
-  .checkbox-group {
-    margin-top: 20px;
+  .price-row {
+    display: flex;
+    gap: 16px;
+    margin-top: 6px;
+  }
+  .price-row input {
+    flex: 1;
   }
 
-  .custom-checkbox {
+  .chip-container {
+    position: relative; /* fix dropdown alignment */
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    border: 1px solid #d7ccc8;
+    border-radius: 10px;
+    padding: 0 12px;
+    height: 48px;
+    align-items: center;
+    box-sizing: border-box;
+    cursor: text;
+  }
+
+  .chip {
+    background: #efebe9;
+    border-radius: 20px;
+    padding: 6px 12px;
     display: flex;
     align-items: center;
-    cursor: pointer;
-    user-select: none;
-    position: relative;
+    gap: 6px;
+    font-size: 14px;
   }
 
-  .custom-checkbox input {
+  .chip span {
+    cursor: pointer;
+    color: #c62828;
+    font-weight: bold;
+  }
+
+  .chip-input {
+    border: none;
+    outline: none;
+    flex: 1;
+    min-width: 120px;
+    font-size: 14px;
+  }
+
+  /* Suggestions dropdown aligned to chip container */
+  #suggestions {
+    background: #fff;
+    border: 1px solid #ccc;
+    border-top: none;
+    max-height: 150px;
+    overflow-y: auto;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    box-sizing: border-box;
+    border-radius: 0 0 10px 10px;
+  }
+  #suggestions div {
+    padding: 8px 12px;
+    cursor: pointer;
+  }
+  #suggestions div:hover {
+    background: #f0f0f0;
+  }
+
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 26px;
+  }
+  .switch input {
     opacity: 0;
     width: 0;
     height: 0;
+  }
+  .slider {
     position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #c62828;
+    transition: 0.3s;
+    border-radius: 26px;
   }
-
-  .checkmark {
-    height: 20px; 
-    width: 20px;
-    background-color: #eee;
-    border-radius: 5px;
-    border: 2px solid #aaa;
-    transition: all 0.3s;
-    margin-right: 10px;
-    flex-shrink: 0;
-  }
-
-  .custom-checkbox:hover .checkmark {
-    border-color: #2e7d32;
-  }
-
-  .custom-checkbox input:checked ~ .checkmark {
-    background-color: #2e7d32;
-    border-color: #2e7d32;
-  }
-
-  .checkmark:after {
+  .slider::before {
+    position: absolute;
     content: "";
-    position: absolute;
-    display: none;
+    height: 22px;
+    width: 22px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
   }
-
-  .custom-checkbox input:checked ~ .checkmark:after {
-    display: block;
+  .switch input:checked + .slider {
+    background-color: #2e7d32;
   }
-
-  .custom-checkbox .checkmark:after {
-    left: 6px;
-    top: 2px;
-    width: 5px;
-    height: 10px;
-    border: solid white;
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
+  .switch input:checked + .slider::before {
+    transform: translateX(24px);
   }
-
-  .checkbox-label {
-    font-weight: 600;
-    color: #5d4037;
-    font-size: 14px;
-    line-height: 20px; /* ✅ matches checkbox height */
+  .toggle {
+    margin-top: 25px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
   }
 
   .submit-button {
-    margin-top: 28px;
-    padding: 14px;
     width: 100%;
-    background: #2e7d32;
-    color: white;
+    padding: 16px;
     font-size: 16px;
     border: none;
     border-radius: 10px;
@@ -155,10 +181,25 @@
     font-weight: 600;
     letter-spacing: 0.5px;
     transition: transform 0.2s, background 0.3s;
+    display: inline-block;
+    text-align: center;
+    text-decoration: none;
+    color: white;
   }
-
-  .submit-button:hover {
+  .submit-button.add {
+    background: #2e7d32;
+    margin-top: 20px;
+  }
+  .submit-button.add:hover {
     background: #1b5e20;
+    transform: translateY(-2px);
+  }
+  .submit-button.cancel {
+    background: #c62828;
+    margin-top: 12px;
+  }
+  .submit-button.cancel:hover {
+    background: #9b1c1c;
     transform: translateY(-2px);
   }
 
@@ -171,7 +212,6 @@
 <div class="main-content">
   <div class="form-container">
     <div class="form-header">
-      <a href="/products" class="back-button">← Back</a>
       <div class="form-title">Add Product</div>
     </div>
 
@@ -179,7 +219,7 @@
 
       <!-- Category -->
       <label class="form-label">Category</label>
-      <select class="form-input" name="categoryShortcut" required>
+      <select class="form-input" name="categoryShortcut" id="categorySelect" required>
         <option value="">-- Select Category --</option>
         <option value="CF">Coffee</option>
         <option value="MT">Milktea</option>
@@ -192,43 +232,133 @@
       <input class="form-input" type="text" name="productCode" maxlength="4" placeholder="e.g., CNC" required>
 
       <!-- Product Name -->
-      <label class="form-label">Name</label>
+      <label class="form-label">Product Name</label>
       <input class="form-input" type="text" name="Name" required>
 
-      <!-- Prices -->
-      <label class="form-label">16oz Price</label>
-      <input class="form-input" type="number" name="size16" step="0.01">
-
-      <label class="form-label">22oz Price</label>
-      <input class="form-input" type="number" name="size22" step="0.01">
+      <!-- Inline Prices -->
+      <div id="priceRow">
+        <label class="form-label">Prices</label>
+        <div class="price-row">
+          <input class="form-input" type="number" name="size16" step="0.01" placeholder="16oz">
+          <input class="form-input" type="number" name="size22" step="0.01" placeholder="22oz">
+        </div>
+      </div>
 
       <!-- Ingredients -->
-      <label class="form-label">Ingredients (comma-separated)</label>
-      <input class="form-input" type="text" name="Ingredients" placeholder="e.g., ING-COFFEE, ING-CREAMER">
+      <label class="form-label">Ingredients</label>
+      <div class="chip-container" id="chipContainer">
+        <input type="text" id="chipInput" class="chip-input" placeholder="Type ingredient...">
+        <div id="suggestions"></div>
+      </div>
+      <input type="hidden" name="Ingredients" id="hiddenIngredients">
 
       <!-- Base Price -->
-      <label class="form-label">Base Price (optional for Pastries)</label>
-      <input class="form-input" type="number" name="BasePrice" step="0.01">
+      <div id="basePriceContainer" style="display: none;">
+        <label class="form-label">Base Price (Pastries only)</label>
+        <input class="form-input" type="number" name="BasePrice" step="0.01">
+      </div>
 
       <!-- Allergen -->
       <label class="form-label">Allergen (optional)</label>
-      <input class="form-input" type="text" name="Allergen">
+      <select class="form-input" name="Allergen">
+        <option value="">-- Select Allergen --</option>
+        <option value="Peanut">Peanut</option>
+        <option value="Tree Nut">Tree Nut</option>
+        <option value="Dairy">Dairy</option>
+      </select>
 
       <!-- Image -->
       <label class="form-label">Image Link</label>
       <input class="form-input" type="text" name="imagelink">
 
-      <!-- Enabled (Styled Checkbox) -->
-      <div class="checkbox-group">
-        <label class="custom-checkbox">
+      <!-- Enabled Toggle -->
+      <div class="toggle">
+        <label class="switch">
           <input type="checkbox" name="isEnabled" value="true" checked>
-          <span class="checkmark"></span>
-          <span class="checkbox-label">Enabled</span>
+          <span class="slider"></span>
         </label>
+        <span>Enabled</span>
       </div>
 
-      <!-- Submit -->
-      <button class="submit-button" type="submit"> Add Product</button>
+      <!-- Buttons -->
+      <button type="submit" class="submit-button add">Add Product</button>
+      <button type="button" class="submit-button cancel" onclick="window.location.href='/products'">Cancel</button>
     </form>
   </div>
 </div>
+
+<script>
+  const chipContainer = document.getElementById("chipContainer");
+  const chipInput = document.getElementById("chipInput");
+  const hiddenIngredients = document.getElementById("hiddenIngredients");
+  const suggestionsBox = document.getElementById("suggestions");
+  const categorySelect = document.getElementById("categorySelect");
+  const basePriceContainer = document.getElementById("basePriceContainer");
+  const priceRow = document.getElementById("priceRow");
+
+  let ingredients = [];
+
+  function updateHiddenInput() {
+    hiddenIngredients.value = ingredients.join(", ");
+  }
+
+  function addChip(value) {
+    if (!value || ingredients.includes(value)) return;
+    ingredients.push(value);
+    const chip = document.createElement("div");
+    chip.className = "chip";
+    chip.innerHTML = `${value} <span>&times;</span>`;
+    chip.querySelector("span").addEventListener("click", () => {
+      ingredients = ingredients.filter(i => i !== value);
+      chip.remove();
+      updateHiddenInput();
+    });
+    chipContainer.insertBefore(chip, chipInput);
+    chipInput.value = "";
+    updateHiddenInput();
+  }
+
+  chipInput.addEventListener("input", async () => {
+    const query = chipInput.value.trim();
+    suggestionsBox.innerHTML = "";
+    if (query.length === 0) return;
+    try {
+      const res = await fetch(`/ingredients/search?q=${encodeURIComponent(query)}`);
+      const results = await res.json();
+      results.forEach(item => {
+        const div = document.createElement("div");
+        div.textContent = item;
+        div.addEventListener("click", () => {
+          addChip(item);
+          suggestionsBox.innerHTML = "";
+        });
+        suggestionsBox.appendChild(div);
+      });
+    } catch (err) {
+      console.error("Autocomplete error:", err);
+    }
+  });
+
+  chipInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && chipInput.value.trim() !== "") {
+      e.preventDefault();
+      addChip(chipInput.value.trim());
+    }
+  });
+
+  document.addEventListener("click", (e) => {
+    if (e.target !== chipInput) {
+      suggestionsBox.innerHTML = "";
+    }
+  });
+
+  categorySelect.addEventListener("change", () => {
+    if (categorySelect.value === "BK") {
+      basePriceContainer.style.display = "block";
+      priceRow.style.display = "none";
+    } else {
+      basePriceContainer.style.display = "none";
+      priceRow.style.display = "block";
+    }
+  });
+</script>
