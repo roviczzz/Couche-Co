@@ -867,6 +867,7 @@ async function connectDB() {
     ordersCollection = db.collection('Orders')
     menuCollection = db.collection('Menu')
 }
+
 connectDB()
     .then(() => console.log("Connected to MongoDB"))
     .catch(err => console.error("DB connection error:", err))
@@ -887,6 +888,7 @@ async function getPopularProducts() {
         return []
     }
 }
+
 app.get('/analytics/popular-products', async (req, res) => {
     try {
         const results = await getPopularProducts()
@@ -896,32 +898,55 @@ app.get('/analytics/popular-products', async (req, res) => {
     }
 })
 app.get('/analytics/average-sales-per-day', async (req, res) => {
-    try {
-        const salesPerDay = await ordersCollection.aggregate([
-            {
-                $addFields: {
-                    parsedDate: {
-                        $cond: {
-                            if: { $eq: [{ $type: "$Date" }, "string"] },
-                            then: { $dateFromString: { dateString: "$Date" } },
-                            else: "$Date"
-                        }
-                    }
-                }
-            },
-            {
-                $group: {
-                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$parsedDate" } },
-                    avgSales: { $avg: "$Total" }
-                }
-            },
-            { $sort: { _id: 1 } }
-        ]).toArray()
-        res.json(salesPerDay)
-    } catch (err) {
-        res.status(500).send("Error fetching average sales per day")
-    }
-})
+  try {
+    const salesPerDay = await ordersCollection.aggregate([
+      {
+        $addFields: {
+          parsedDate: {
+            $cond: {
+              if: { $eq: [{ $type: "$Date" }, "string"] },
+              then: { $dateFromString: { dateString: "$Date" } },
+              else: "$Date"
+            }
+          }
+        }
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$parsedDate" } },
+          avgSales: { $avg: "$Total" }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]).toArray();
+
+    res.json(salesPerDay);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error fetching average sales per day");
+  }
+});
+
+// Autocomplete search for ingredients
+app.get("/ingredients/search", async (req, res) => {
+  try {
+    const query = req.query.q || "";
+
+    const db = client.db("blessingscafe");
+
+    // Search inside Ingredients collection (field: Name)
+    const results = await db.collection("Ingredients").distinct("Name", {
+      Name: { $regex: query, $options: "i" }
+    });
+
+    res.json(results.slice(0, 50)); // return up to 50 results
+  } catch (err) {
+    console.error("Error in /ingredients/search:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// Analytics page
 app.get('/analytics', isLoggedIn, nocache, (req, res) => {
     res.render('analytics', {
         title: 'Analytics | Blessings Cafe',
