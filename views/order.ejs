@@ -89,6 +89,74 @@
     border-left-color: #a05c2f;
   }
 
+  .cancelled-orders-section {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+  }
+
+  .cancelled-orders-section h2 {
+    margin: 0 0 15px 0;
+    font-size: 18px;
+    color: #dc3545;
+    font-weight: 600;
+  }
+
+  .cancelled-orders-list {
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .cancelled-order-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    margin-bottom: 8px;
+    background-color: #fff;
+    border-radius: 6px;
+    border-left: 4px solid #dc3545;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+
+  .cancelled-order-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .cancelled-order-id {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 3px;
+  }
+
+  .cancelled-order-customer {
+    font-size: 14px;
+    color: #666;
+  }
+
+  .cancelled-order-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-restore {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  .btn-restore:hover {
+    background-color: #218838;
+  }
+
   .order-detail-panel {
     flex: 0 0 0px;
     width: 0px;
@@ -555,6 +623,12 @@
         <% } %>
         </tbody>
       </table>
+
+      <div class="cancelled-orders-section" id="cancelledOrdersSection" style="display: none;">
+        <h2>Cancelled Orders</h2>
+        <div class="cancelled-orders-list" id="cancelledOrdersList">
+        </div>
+      </div>
     </div>
   </div>
 
@@ -612,10 +686,13 @@
   const closePanelBtn = document.getElementById('closePanelBtn');
   const successMessage = document.getElementById('successMessage');
   const errorMessage = document.getElementById('errorMessage');
+  const cancelledOrdersSection = document.getElementById('cancelledOrdersSection');
+  const cancelledOrdersList = document.getElementById('cancelledOrdersList');
 
   let currentOrder = null;
   let selectedRowIndex = null;
   let isTransitioning = false;
+  let cancelledOrders = [];
 
   function formatCurrency(value) {
     return '₱ ' + Number(value).toFixed(2);
@@ -687,6 +764,69 @@
     html += '</ul>';
     return html;
   }
+
+  function addToCancelledOrders(order) {
+    const existingIndex = cancelledOrders.findIndex(co => co.OrderID === order.OrderID);
+    if (existingIndex === -1) {
+      cancelledOrders.push({ ...order });
+      renderCancelledOrders();
+    }
+  }
+
+  function removeFromCancelledOrders(orderID) {
+    const index = cancelledOrders.findIndex(co => co.OrderID === orderID);
+    if (index !== -1) {
+      cancelledOrders.splice(index, 1);
+      renderCancelledOrders();
+    }
+  }
+
+  function renderCancelledOrders() {
+    if (cancelledOrders.length === 0) {
+      cancelledOrdersSection.style.display = 'none';
+      return;
+    }
+
+    cancelledOrdersSection.style.display = 'block';
+    cancelledOrdersList.innerHTML = '';
+
+    cancelledOrders.forEach(order => {
+      const orderItem = document.createElement('div');
+      orderItem.className = 'cancelled-order-item';
+      orderItem.innerHTML = `
+        <div class="cancelled-order-info">
+          <div class="cancelled-order-id">#${order.OrderID || 'N/A'}</div>
+          <div class="cancelled-order-customer">${order.Customer || order.customer || 'N/A'}</div>
+        </div>
+        <div class="cancelled-order-actions">
+          <button class="btn-restore" onclick="restoreOrder('${order.OrderID}')">Restore</button>
+        </div>
+      `;
+      cancelledOrdersList.appendChild(orderItem);
+    });
+  }
+
+  function restoreOrder(orderID) {
+    const orderIndex = orders.findIndex(o => o.OrderID === orderID);
+    if (orderIndex !== -1) {
+      orders[orderIndex].PaymentStatus = 'Pending';
+      orders[orderIndex].paymentStatus = 'Pending';
+      orders[orderIndex].FulfillmentStatus = 'Preparing';
+      orders[orderIndex].fulfillmentStatus = 'Preparing';
+
+      removeFromCancelledOrders(orderID);
+      renderOrdersTable();
+
+      if (currentOrder && currentOrder.OrderID === orderID) {
+        currentOrder = orders[orderIndex];
+        showOrderDetails(currentOrder, selectedRowIndex);
+      }
+
+      showMessage('Order restored successfully!');
+    }
+  }
+
+  window.restoreOrder = restoreOrder;
 
   function showOrderDetails(order, rowIndex) {
     if (isTransitioning) return;
@@ -905,15 +1045,21 @@
 
     if (orders.length === 0) {
       ordersTableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 20px;">No orders found.</td></tr>`;
+      renderCancelledOrders();
       return;
     }
 
-    orders.forEach((order, index) => {
+    const activeOrders = orders.filter(order =>
+            (order.FulfillmentStatus !== 'Cancelled' && order.fulfillmentStatus !== 'Cancelled') ||
+            (!order.FulfillmentStatus && !order.fulfillmentStatus)
+    );
+
+    activeOrders.forEach((order, index) => {
       const paymentBadge = getPaymentStatusBadge(order.PaymentStatus || order.paymentStatus);
       const fulfillmentBadge = getFulfillmentStatusBadge(order.FulfillmentStatus || order.fulfillmentStatus);
 
       ordersTableBody.innerHTML += `
-      <tr class="order-row ${selectedRowIndex === index ? 'selected' : ''}" data-idx="${index}">
+      <tr class="order-row ${selectedRowIndex === index ? 'selected' : ''}" data-idx="${orders.indexOf(order)}">
         <td>${order.OrderID ? '#' + order.OrderID : 'N/A'}</td>
         <td>${order.Date ? new Date(order.Date).toLocaleString()
               : order.date ? new Date(order.date).toLocaleString() : 'N/A'}</td>
@@ -928,6 +1074,7 @@
     });
 
     initRowEventListeners();
+    renderCancelledOrders();
   }
 
   function clearSortArrows() {
@@ -1024,27 +1171,15 @@
       setLoading(true);
 
       try {
-        const orderID = currentOrder.OrderID;
-
-        if (!orderID && orderID !== 0) {
-          throw new Error('Order ID is missing');
-        }
-
-        const response = await fetch(`/orders/${orderID}/fulfillment`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ FulfillmentStatus: selectedStatus })
-        });
-
-        const responseData = await response.json();
-
-        if (!response.ok) {
-          throw new Error(responseData.error || `Server returned ${response.status}`);
-        }
-
         currentOrder.FulfillmentStatus = selectedStatus;
+        currentOrder.fulfillmentStatus = selectedStatus;
+
+        if (selectedStatus === 'Cancelled') {
+          currentOrder.PaymentStatus = 'Cancelled';
+          currentOrder.paymentStatus = 'Cancelled';
+          addToCancelledOrders(currentOrder);
+        }
+
         showOrderDetails(currentOrder, selectedRowIndex);
         renderOrdersTable();
 
@@ -1070,22 +1205,6 @@
     setLoading(true);
 
     try {
-      const orderID = currentOrder.OrderID;
-
-      const response = await fetch(`/orders/${orderID}/payment-status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ PaymentStatus: 'Completed' })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || `Update failed with status ${response.status}`);
-      }
-
       currentOrder.PaymentStatus = 'Completed';
       currentOrder.paymentStatus = 'Completed';
       showOrderDetails(currentOrder, selectedRowIndex);
@@ -1107,33 +1226,24 @@
       return;
     }
 
-    if (!confirm('Are you sure you want to cancel this order? This action cannot be undone.')) {
+    if (!confirm('Are you sure you want to cancel this order? This action will move it to cancelled orders.')) {
       return;
     }
 
     setLoading(true);
 
     try {
-      const orderID = currentOrder.OrderID;
-
-      const response = await fetch(`/orders/${orderID}/cancel`, {
-        method: 'PATCH'
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || `Cancel request failed with status ${response.status}`);
-      }
-
       currentOrder.PaymentStatus = 'Cancelled';
       currentOrder.paymentStatus = 'Cancelled';
       currentOrder.FulfillmentStatus = 'Cancelled';
       currentOrder.fulfillmentStatus = 'Cancelled';
+
+      addToCancelledOrders(currentOrder);
+
       showOrderDetails(currentOrder, selectedRowIndex);
       renderOrdersTable();
 
-      showMessage('Order successfully cancelled.');
+      showMessage('Order successfully cancelled and moved to cancelled orders.');
 
     } catch (error) {
       console.error('Failed to cancel order:', error);
