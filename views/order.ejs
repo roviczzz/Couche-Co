@@ -978,6 +978,7 @@
     let address = order.Address || order.address || 'N/A';
     let customer = order.Customer || order.customer || 'N/A';
     let contact = order.ContactNumber || order.contactNumber || 'N/A';
+    let source = order.Source || order.source || 'N/A';
     const deliveryFee = 15;
 
     const productsSubtotal = calculateOrderTotals(order);
@@ -1001,6 +1002,10 @@
         <div class="info-item">
           <span class="info-label">Date:</span>
           <span class="info-value">${orderDate}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Source:</span>
+          <span class="info-value">${source}</span>
         </div>
         <div class="info-item">
           <span class="info-label">Payment Status:</span>
@@ -1599,6 +1604,7 @@
           <h3>Order Information</h3>
           <p><strong>Order ID:</strong> ${currentOrder.OrderID || 'N/A'}</p>
           <p><strong>Date:</strong> ${orderDate}</p>
+          <p><strong>Source:</strong> ${currentOrder.Source || currentOrder.source || 'N/A'}</p>
           <p><strong>Payment Status:</strong> ${currentOrder.PaymentStatus || currentOrder.paymentStatus || 'N/A'}</p>
           <p><strong>Fulfillment Status:</strong> ${currentOrder.FulfillmentStatus || currentOrder.fulfillmentStatus || 'N/A'}</p>
         </div>
