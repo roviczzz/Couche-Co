@@ -335,6 +335,44 @@
     font-size: 15px;
   }
 
+  .product-addons {
+    margin-top: 8px;
+    padding-left: 12px;
+    border-left: 3px solid #f0f0f0;
+  }
+
+  .addon-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+    font-size: 13px;
+    color: #777;
+  }
+
+  .addon-name {
+    font-style: italic;
+  }
+
+  .addon-price {
+    font-weight: 600;
+    color: #a05c2f;
+  }
+
+  .promo-label {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin: 16px 0;
+    border: 1px solid #c3e6cb;
+    font-weight: bold;
+    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
   .summary-totals {
     background-color: #f9f9f9;
     border-radius: 8px;
@@ -596,7 +634,7 @@
         <% } else { %>
           <% orders.slice(1).forEach((order, index) => { %>
             <tr class="order-row" data-idx="<%= index %>">
-              <td><%= order.OrderID ? '#' + order.OrderID : 'N/A' %></td>
+              <td><%= order.OrderID || 'N/A' %></td>
               <td>
                 <% if(order.Date) { %>
                   <%= new Date(order.Date).toLocaleString() %>
@@ -740,29 +778,100 @@
     return { price: 0, size: null };
   }
 
+  function calculatePromoInfo(order) {
+    if (!order.Cart || !order.Cart.length) {
+      return { promoSets: 0, promoSavings: 0 };
+    }
+
+    let drinkCount = 0;
+    order.Cart.forEach(item => {
+      const itemCategory = item.Category || '';
+      if (itemCategory.toLowerCase() !== 'pastries') {
+        drinkCount += Number(item.Quantity) || 0;
+      }
+    });
+
+    const promoSets = Math.floor(drinkCount / 3);
+    const promoSavings = promoSets > 0 ? (promoSets * 143) : 0;
+
+    return { promoSets, promoSavings, drinkCount };
+  }
+
   function createProductList(order) {
     if (!order.Cart || !order.Cart.length) {
       return '<p style="text-align: center; color: #999; padding: 20px;">No products in this order.</p>';
     }
 
+    const { promoSets, promoSavings, drinkCount } = calculatePromoInfo(order);
+
     let html = '<ul>';
     order.Cart.forEach(item => {
       const quantity = Number(item.Quantity) || 0;
       const sizeLabel = item.Size || null;
-      const { price, size } = getPriceAndSize(item.ProductName, sizeLabel);
-      const totalPrice = price * quantity;
+      const basePrice = Number(item.BasePrice) || 0;
+
+      let addOnsTotal = 0;
+      let addOnsHtml = '';
+
+      if (item.AddOns && item.AddOns.length > 0) {
+        addOnsHtml = '<div class="product-addons">';
+        item.AddOns.forEach(addon => {
+          const addonPrice = Number(addon.BasePrice) || 0;
+          addOnsTotal += addonPrice;
+          addOnsHtml += `
+            <div class="addon-item">
+              <span class="addon-name">+ ${addon.Name || 'Unknown Add-on'}</span>
+              <span class="addon-price">${formatCurrency(addonPrice)}</span>
+            </div>
+          `;
+        });
+        addOnsHtml += '</div>';
+      }
+
+      const itemTotal = (basePrice + addOnsTotal) * quantity;
 
       html += `<li>
-      <span class="product-name">${item.ProductName || 'N/A'}</span>
-      <div class="product-quantity-price">
-        <span><strong>Size:</strong> ${size || 'N/A'}</span>
-        <span><strong>Qty:</strong> ${quantity}</span>
-        <span class="product-price">${formatCurrency(totalPrice)}</span>
-      </div>
-    </li>`;
+        <span class="product-name">${item.ProductName || 'N/A'}</span>
+        <div class="product-quantity-price">
+          <span><strong>Size:</strong> ${sizeLabel || 'N/A'}</span>
+          <span><strong>Qty:</strong> ${quantity}</span>
+          <span class="product-price">${formatCurrency(itemTotal)}</span>
+        </div>
+        ${addOnsHtml}
+      </li>`;
     });
     html += '</ul>';
+
+    if (promoSets > 0) {
+      html += `<div class="promo-label">
+        <span>🎉 Promo Applied: ${promoSets} set${promoSets > 1 ? 's' : ''} of 3 drinks - ₱143 each</span>
+        <span>-₱${promoSavings}</span>
+      </div>`;
+    }
+
     return html;
+  }
+
+  function calculateOrderTotals(order) {
+    let productsSubtotal = 0;
+
+    if (order.Cart && order.Cart.length) {
+      order.Cart.forEach(item => {
+        const quantity = Number(item.Quantity) || 0;
+        const basePrice = Number(item.BasePrice) || 0;
+
+        let addOnsTotal = 0;
+        if (item.AddOns && item.AddOns.length > 0) {
+          item.AddOns.forEach(addon => {
+            addOnsTotal += Number(addon.BasePrice) || 0;
+          });
+        }
+
+        productsSubtotal += (basePrice + addOnsTotal) * quantity;
+      });
+    }
+
+    return productsSubtotal;
   }
 
   function addToCancelledOrders(order) {
@@ -795,7 +904,7 @@
       orderItem.className = 'cancelled-order-item';
       orderItem.innerHTML = `
         <div class="cancelled-order-info">
-          <div class="cancelled-order-id">#${order.OrderID || 'N/A'}</div>
+          <div class="cancelled-order-id">${order.OrderID || 'N/A'}</div>
           <div class="cancelled-order-customer">${order.Customer || order.customer || 'N/A'}</div>
         </div>
         <div class="cancelled-order-actions">
@@ -806,23 +915,48 @@
     });
   }
 
-  function restoreOrder(orderID) {
-    const orderIndex = orders.findIndex(o => o.OrderID === orderID);
-    if (orderIndex !== -1) {
-      orders[orderIndex].PaymentStatus = 'Pending';
-      orders[orderIndex].paymentStatus = 'Pending';
-      orders[orderIndex].FulfillmentStatus = 'Preparing';
-      orders[orderIndex].fulfillmentStatus = 'Preparing';
+  async function restoreOrder(orderID) {
+    try {
+      setLoading(true);
 
-      removeFromCancelledOrders(orderID);
-      renderOrdersTable();
+      const response = await fetch(`/orders/${orderID}/restore`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          PaymentStatus: 'Pending',
+          FulfillmentStatus: 'Preparing'
+        })
+      });
 
-      if (currentOrder && currentOrder.OrderID === orderID) {
-        currentOrder = orders[orderIndex];
-        showOrderDetails(currentOrder, selectedRowIndex);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed to restore order: ${response.statusText}`);
       }
 
-      showMessage('Order restored successfully!');
+      const orderIndex = orders.findIndex(o => o.OrderID == orderID);
+      if (orderIndex !== -1) {
+        orders[orderIndex].PaymentStatus = 'Pending';
+        orders[orderIndex].paymentStatus = 'Pending';
+        orders[orderIndex].FulfillmentStatus = 'Preparing';
+        orders[orderIndex].fulfillmentStatus = 'Preparing';
+
+        removeFromCancelledOrders(orderID);
+        renderOrdersTable();
+
+        if (currentOrder && currentOrder.OrderID == orderID) {
+          currentOrder = orders[orderIndex];
+          showOrderDetails(currentOrder, selectedRowIndex);
+        }
+
+        showMessage('Order restored successfully!');
+      }
+    } catch (error) {
+      console.error('Failed to restore order:', error);
+      showMessage('Failed to restore order: ' + error.message, true);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -846,15 +980,7 @@
     let contact = order.ContactNumber || order.contactNumber || 'N/A';
     const deliveryFee = 15;
 
-    let productsSubtotal = 0;
-    if (order.Cart && order.Cart.length) {
-      order.Cart.forEach(item => {
-        const quantity = Number(item.Quantity) || 0;
-        const { price } = getPriceAndSize(item.ProductName, item.Size);
-        productsSubtotal += price * quantity;
-      });
-    }
-
+    const productsSubtotal = calculateOrderTotals(order);
     const hasDelivery = (order.DeliveryStatus === 'Delivery' || order.DeliveryStatus === 'delivery');
     const totalPriceValue = order.Total ? Number(order.Total) : productsSubtotal + (hasDelivery ? deliveryFee : 0);
 
@@ -870,7 +996,7 @@
       <div class="info-grid">
         <div class="info-item">
           <span class="info-label">Order ID:</span>
-          <span class="info-value">#${order.OrderID || 'N/A'}</span>
+          <span class="info-value">${order.OrderID || 'N/A'}</span>
         </div>
         <div class="info-item">
           <span class="info-label">Date:</span>
@@ -1060,7 +1186,7 @@
 
       ordersTableBody.innerHTML += `
       <tr class="order-row ${selectedRowIndex === index ? 'selected' : ''}" data-idx="${orders.indexOf(order)}">
-        <td>${order.OrderID ? '#' + order.OrderID : 'N/A'}</td>
+        <td>${order.OrderID || 'N/A'}</td>
         <td>${order.Date ? new Date(order.Date).toLocaleString()
               : order.date ? new Date(order.date).toLocaleString() : 'N/A'}</td>
         <td>${order.Customer || order.customer || 'N/A'}</td>
@@ -1171,6 +1297,26 @@
       setLoading(true);
 
       try {
+        const orderID = currentOrder.OrderID;
+
+        if (!orderID) {
+          throw new Error('Order ID is missing');
+        }
+
+        const response = await fetch(`/orders/${orderID}/fulfillment`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ FulfillmentStatus: selectedStatus })
+        });
+
+        const responseData = await response.json();
+
+        if (!response.ok) {
+          throw new Error(responseData.error || `Server returned ${response.status}`);
+        }
+
         currentOrder.FulfillmentStatus = selectedStatus;
         currentOrder.fulfillmentStatus = selectedStatus;
 
@@ -1205,6 +1351,22 @@
     setLoading(true);
 
     try {
+      const orderID = currentOrder.OrderID;
+
+      const response = await fetch(`/orders/${orderID}/payment-status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ PaymentStatus: 'Completed' })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || `Update failed with status ${response.status}`);
+      }
+
       currentOrder.PaymentStatus = 'Completed';
       currentOrder.paymentStatus = 'Completed';
       showOrderDetails(currentOrder, selectedRowIndex);
@@ -1233,6 +1395,21 @@
     setLoading(true);
 
     try {
+      const orderID = currentOrder.OrderID;
+
+      const response = await fetch(`/orders/${orderID}/cancel`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || `Cancel request failed with status ${response.status}`);
+      }
+
       currentOrder.PaymentStatus = 'Cancelled';
       currentOrder.paymentStatus = 'Cancelled';
       currentOrder.FulfillmentStatus = 'Cancelled';
@@ -1275,6 +1452,7 @@
          <th style="border: 1px solid #ddd; padding: 12px; text-align: center;">Size</th>
          <th style="border: 1px solid #ddd; padding: 12px; text-align: center;">Quantity</th>
          <th style="border: 1px solid #ddd; padding: 12px; text-align: right;">Unit Price</th>
+         <th style="border: 1px solid #ddd; padding: 12px; text-align: right;">Add-ons</th>
          <th style="border: 1px solid #ddd; padding: 12px; text-align: right;">Total</th>
        </tr>
      </thead><tbody>`;
@@ -1284,22 +1462,42 @@
     if (currentOrder.Cart && currentOrder.Cart.length) {
       currentOrder.Cart.forEach(item => {
         const quantity = Number(item.Quantity) || 0;
-        const { price, size } = getPriceAndSize(item.ProductName, item.Size);
-        const totalPrice = price * quantity;
-        subtotal += totalPrice;
+        const basePrice = Number(item.BasePrice) || 0;
+
+        let addOnsTotal = 0;
+        let addOnsText = 'None';
+
+        if (item.AddOns && item.AddOns.length > 0) {
+          addOnsText = item.AddOns.map(addon => {
+            const addonPrice = Number(addon.BasePrice) || 0;
+            addOnsTotal += addonPrice;
+            return `${addon.Name} (${formatCurrency(addonPrice)})`;
+          }).join(', ');
+        }
+
+        const itemTotal = (basePrice + addOnsTotal) * quantity;
+        subtotal += itemTotal;
 
         productsHtml += `<tr>
         <td style="border: 1px solid #ddd; padding: 10px;">${item.ProductName || 'N/A'}</td>
-        <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">${size || 'N/A'}</td>
+        <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">${item.Size || 'N/A'}</td>
         <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">${quantity}</td>
-        <td style="border: 1px solid #ddd; padding: 10px; text-align: right;">${formatCurrency(price)}</td>
-        <td style="border: 1px solid #ddd; padding: 10px; text-align: right;">${formatCurrency(totalPrice)}</td>
+        <td style="border: 1px solid #ddd; padding: 10px; text-align: right;">${formatCurrency(basePrice)}</td>
+        <td style="border: 1px solid #ddd; padding: 10px; text-align: right;">${addOnsText}</td>
+        <td style="border: 1px solid #ddd; padding: 10px; text-align: right;">${formatCurrency(itemTotal)}</td>
       </tr>`;
       });
     } else {
-      productsHtml += `<tr><td colspan="5" style="text-align:center; padding: 20px; border: 1px solid #ddd;">No products in the order.</td></tr>`;
+      productsHtml += `<tr><td colspan="6" style="text-align:center; padding: 20px; border: 1px solid #ddd;">No products in the order.</td></tr>`;
     }
     productsHtml += '</tbody></table>';
+
+    const { promoSets, promoSavings } = calculatePromoInfo(currentOrder);
+    if (promoSets > 0) {
+      productsHtml += `<div style="margin: 20px 0; padding: 10px; background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 5px; color: #155724;">
+        <strong>🎉 Promo Applied: ${promoSets} set${promoSets > 1 ? 's' : ''} of 3 drinks - ₱143 each (Total Savings: ₱${promoSavings})</strong>
+      </div>`;
+    }
 
     const hasDelivery = (currentOrder.DeliveryStatus && currentOrder.DeliveryStatus.toLowerCase() === 'delivery');
     const deliveryCharge = hasDelivery ? 15 : 0;
@@ -1308,7 +1506,7 @@
     const invoiceHtml = `
     <html>
     <head>
-      <title>Invoice for Order #${currentOrder.OrderID || 'N/A'}</title>
+      <title>Invoice for Order ${currentOrder.OrderID || 'N/A'}</title>
       <style>
         body {
           font-family: 'Arial', sans-serif;
@@ -1393,13 +1591,13 @@
     <body>
       <div class="header">
         <h1>Blessings Cafe</h1>
-        <h2>Invoice #${currentOrder.OrderID || 'N/A'}</h2>
+        <h2>Invoice ${currentOrder.OrderID || 'N/A'}</h2>
       </div>
 
       <div class="info-section">
         <div class="info-block">
           <h3>Order Information</h3>
-          <p><strong>Order ID:</strong> #${currentOrder.OrderID || 'N/A'}</p>
+          <p><strong>Order ID:</strong> ${currentOrder.OrderID || 'N/A'}</p>
           <p><strong>Date:</strong> ${orderDate}</p>
           <p><strong>Payment Status:</strong> ${currentOrder.PaymentStatus || currentOrder.paymentStatus || 'N/A'}</p>
           <p><strong>Fulfillment Status:</strong> ${currentOrder.FulfillmentStatus || currentOrder.fulfillmentStatus || 'N/A'}</p>

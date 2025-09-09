@@ -1,203 +1,5 @@
 [{
   "_id": {
-    "$oid": "688710daa0d28e21676d2fa4"
-  },
-  "OrderID": 1002,
-  "Date": "2025-07-28 13:55:30",
-  "Cart": [
-    {
-      "ProductID": "CF-SPL",
-      "ProductName": "Spanish Latte",
-      "Quantity": 1,
-      "Size": "16oz",
-      "BasePrice": 59
-    },
-    {
-      "ProductID": "MT-MAT",
-      "ProductName": "Matcha",
-      "Quantity": 1,
-      "Size": "22oz",
-      "BasePrice": 55
-    }
-  ],
-  "Customer": "Caryl Ganda",
-  "ContactNumber": "096718253715",
-  "PaymentStatus": "Completed",
-  "PaymentMode": "E-Payment",
-  "Total": 129,
-  "ItemTotal": 2,
-  "DeliveryStatus": "Delivery",
-  "Address": "asdad",
-  "Notes": "less ice pls no caffeine",
-  "FulfillmentStatus": "Completed"
-},
-{
-  "_id": {
-    "$oid": "68874328aaf626199894de61"
-  },
-  "OrderID": 1003,
-  "Date": "2025-07-28 17:30:15",
-  "Cart": [
-    {
-      "ProductID": "FT-STR",
-      "ProductName": "Strawberry",
-      "Quantity": 1,
-      "Size": "22oz",
-      "BasePrice": 39
-    },
-    {
-      "ProductID": "FT-GAP",
-      "ProductName": "Green Apple",
-      "Quantity": 1,
-      "Size": "22oz",
-      "BasePrice": 39
-    },
-    {
-      "ProductID": "BK-CRN",
-      "ProductName": "Crinkles",
-      "Quantity": 1,
-      "Size": null,
-      "BasePrice": 15
-    }
-  ],
-  "Customer": "Ken Divino",
-  "ContactNumber": "091283781",
-  "PaymentStatus": "Payment pending",
-  "PaymentMode": "E-Payment",
-  "Total": 108,
-  "ItemTotal": 3,
-  "DeliveryStatus": "Delivery",
-  "Address": "Dasmarinas Etivac",
-  "Notes": "less ice",
-  "FulfillmentStatus": "Preparing"
-},
-{
-  "_id": {
-    "$oid": "68874346aaf626199894de62"
-  },
-  "OrderID": 1004,
-  "Date": "2025-07-28 17:30:46",
-  "Cart": [
-    {
-      "ProductID": "CF-SPL",
-      "ProductName": "Spanish Latte",
-      "Quantity": 1,
-      "Size": "16oz",
-      "BasePrice": 59
-    },
-    {
-      "ProductID": "MT-OKI",
-      "ProductName": "Okinawa",
-      "Quantity": 1,
-      "Size": "22oz",
-      "BasePrice": 55
-    },
-    {
-      "ProductID": "MT-MAT",
-      "ProductName": "Matcha",
-      "Quantity": 1,
-      "Size": "16oz",
-      "BasePrice": 45
-    }
-  ],
-  "Customer": "Math Dela Rosa",
-  "ContactNumber": "098687126381",
-  "PaymentStatus": "Payment pending",
-  "PaymentMode": "Pay by Cash",
-  "Total": 143,
-  "ItemTotal": 3,
-  "DeliveryStatus": "Pick-Up",
-  "Address": "",
-  "Notes": "",
-  "FulfillmentStatus": "Preparing"
-},
-{
-  "_id": {
-    "$oid": "68874362aaf626199894de63"
-  },
-  "OrderID": 1005,
-  "Date": "2025-07-28 17:31:13",
-  "Cart": [
-    {
-      "ProductID": "BK-WAF",
-      "ProductName": "Waffles",
-      "Quantity": 2,
-      "Size": null,
-      "BasePrice": 120
-    }
-  ],
-  "Customer": "Rovic Rodriguez",
-  "ContactNumber": "09812536715",
-  "PaymentStatus": "Payment pending",
-  "PaymentMode": "Pay by Cash",
-  "Total": 240,
-  "ItemTotal": 2,
-  "DeliveryStatus": "Take-Out",
-  "Address": "",
-  "Notes": "",
-  "FulfillmentStatus": "Preparing"
-},
-{
-  "_id": {
-    "$oid": "688743ecaaf626199894de64"
-  },
-  "OrderID": 1006,
-  "Date": "2025-07-28 17:33:31",
-  "Cart": [
-    {
-      "ProductID": "CF-WCH",
-      "ProductName": "White Chocolate",
-      "Quantity": 1,
-      "Size": "16oz",
-      "BasePrice": 59
-    },
-    {
-      "ProductID": "CF-SCA",
-      "ProductName": "Salted Caramel",
-      "Quantity": 1,
-      "Size": "16oz",
-      "BasePrice": 59
-    }
-  ],
-  "Customer": "John Arellado",
-  "ContactNumber": "098172381",
-  "PaymentStatus": "Payment pending",
-  "PaymentMode": "Pay by Cash",
-  "Total": 118,
-  "ItemTotal": 2,
-  "DeliveryStatus": "Pick-Up",
-  "Address": "",
-  "Notes": "",
-  "FulfillmentStatus": "Preparing"
-},
-{
-  "_id": {
-    "$oid": "688797f52f0b3b0903e1b4c7"
-  },
-  "OrderID": 1000,
-  "Date": "2025-07-28 23:32:05",
-  "Cart": [
-    {
-      "ProductID": "MT-BFO",
-      "ProductName": "Black Forest",
-      "Quantity": 1,
-      "Size": "16oz",
-      "BasePrice": 45
-    }
-  ],
-  "Customer": "math",
-  "ContactNumber": "09271927312",
-  "PaymentStatus": "Payment pending",
-  "PaymentMode": "Pay by Cash",
-  "Total": 45,
-  "ItemTotal": 1,
-  "DeliveryStatus": "Take-Out",
-  "Address": "",
-  "Notes": "",
-  "FulfillmentStatus": "Preparing"
-},
-{
-  "_id": {
     "$oid": "689c8b04557a4ebbed269786"
   },
   "OrderID": "0813201045-BLESSINGSCAFE",
@@ -220,14 +22,14 @@
   ],
   "Customer": "24048945674713783",
   "ContactNumber": "09232780957",
-  "PaymentStatus": "Completed",
+  "PaymentStatus": "Cancelled",
   "PaymentMode": "E-PAYMENT",
   "Total": 94,
   "ItemTotal": 2,
   "DeliveryStatus": "Delivery",
   "Address": "asd, Alapan I-A, Imus",
   "Notes": "",
-  "FulfillmentStatus": "Preparing",
+  "FulfillmentStatus": "Cancelled",
   "Source": "Chatbot"
 },
 {
@@ -247,14 +49,14 @@
   ],
   "Customer": "24048945674713783",
   "ContactNumber": "",
-  "PaymentStatus": "Pending",
+  "PaymentStatus": "Completed",
   "PaymentMode": "E-Payment",
   "Total": 25,
   "ItemTotal": 1,
   "DeliveryStatus": "Pick-Up",
   "Address": "",
   "Notes": "",
-  "FulfillmentStatus": "Preparing",
+  "FulfillmentStatus": "Completed",
   "Source": "Chatbot"
 },
 {
@@ -313,51 +115,114 @@
 },
 {
   "_id": {
-    "$oid": "68a3fa90c2fff98099ece9b4"
+    "$oid": "68b67a558f9347b6a7f78bcc"
   },
-  "OrderID": "0819121516-BLESSINGSCAFE",
-  "Date": "2025-08-19 12:05:19",
+  "OrderID": "0902130212-BLESSINGSCAFE",
+  "Date": "2025-09-02 13:02:12",
+  "Cart": [
+    {
+      "ProductID": "MT-MAT",
+      "ProductName": "Matcha",
+      "Quantity": 1,
+      "Size": "16oz",
+      "BasePrice": 45,
+      "AddOns": []
+    }
+  ],
+  "Customer": "Customer#93875",
+  "ContactNumber": "",
+  "PaymentStatus": "Payment pending",
+  "PaymentMode": "Cash on Hand",
+  "Total": 45,
+  "ItemTotal": 1,
+  "DeliveryStatus": "Take-Out",
+  "Address": "",
+  "Notes": "",
+  "FulfillmentStatus": "Preparing",
+  "Source": "POS"
+},
+{
+  "_id": {
+    "$oid": "68b67a7b8f9347b6a7f78bcd"
+  },
+  "OrderID": "0902130250-BLESSINGSCAFE",
+  "Date": "2025-09-02 13:02:50",
+  "Cart": [
+    {
+      "ProductID": "MT-MAT",
+      "ProductName": "Matcha",
+      "Quantity": 1,
+      "Size": "16oz",
+      "BasePrice": 45,
+      "AddOns": [
+        {
+          "AddOnID": "AON-CJL",
+          "Name": "Coffee Jelly",
+          "BasePrice": 10
+        }
+      ]
+    }
+  ],
+  "Customer": "Customer#73757",
+  "ContactNumber": "",
+  "PaymentStatus": "Payment pending",
+  "PaymentMode": "Cash on Hand",
+  "Total": 55,
+  "ItemTotal": 1,
+  "DeliveryStatus": "Take-Out",
+  "Address": "",
+  "Notes": "",
+  "FulfillmentStatus": "Preparing",
+  "Source": "POS"
+},
+{
+  "_id": {
+    "$oid": "68b67d158f9347b6a7f78bce"
+  },
+  "OrderID": "0902131356-BLESSINGSCAFE",
+  "Date": "2025-09-02 13:13:56",
+  "Cart": [
+    {
+      "ProductID": "MT-MAT",
+      "ProductName": "Matcha",
+      "Quantity": 1,
+      "Size": "16oz",
+      "BasePrice": 45,
+      "AddOns": []
+    }
+  ],
+  "Customer": "asd",
+  "ContactNumber": "",
+  "PaymentStatus": "Payment pending",
+  "PaymentMode": "Cash on Hand",
+  "Total": 65,
+  "ItemTotal": 1,
+  "DeliveryStatus": "Delivery",
+  "Address": "asd, Toclong, Kawit Cavite",
+  "Notes": "",
+  "FulfillmentStatus": "Preparing",
+  "Source": "POS"
+},
+{
+  "_id": {
+    "$oid": "68bfae1dfa71e63aaa3573aa"
+  },
+  "OrderID": "0909123332-BLESSINGSCAFE",
+  "Date": "2025-09-09 12:33:32",
   "Cart": [
     {
       "ProductID": "CF-SPL",
       "ProductName": "Spanish Latte",
       "Quantity": 1,
       "Size": "16oz",
-      "BasePrice": 59
-    }
-  ],
-  "Customer": "23885464881046110",
-  "ContactNumber": "09297639163",
-  "PaymentStatus": "Completed",
-  "PaymentMode": "E-PAYMENT",
-  "Total": null,
-  "ItemTotal": 1,
-  "DeliveryStatus": "Delivery",
-  "Address": "I miss u street, Alapan I-A, Imus",
-  "Notes": "Hihi",
-  "FulfillmentStatus": "Preparing",
-  "Source": "Chatbot"
-},
-{
-  "_id": {
-    "$oid": "68a6deb3667bea2e63da4bc0"
-  },
-  "OrderID": 1026,
-  "Date": "2025-08-21 16:54:11",
-  "Cart": [
-    {
-      "ProductID": "CF-HAZ",
-      "ProductName": "Hazelnut",
-      "Quantity": 1,
-      "Size": "16oz",
       "BasePrice": 59,
       "AddOns": []
     }
   ],
-  "Customer": "Customer#93814",
+  "Customer": "Customer#72727",
   "ContactNumber": "",
   "PaymentStatus": "Payment pending",
-  "PaymentMode": "E-Payment",
+  "PaymentMode": "Cash on Hand",
   "Total": 59,
   "ItemTotal": 1,
   "DeliveryStatus": "Take-Out",
@@ -368,10 +233,10 @@
 },
 {
   "_id": {
-    "$oid": "68a842a9281197e36e45d2ac"
+    "$oid": "68bfb3a108ec37fd9b5d24d9"
   },
-  "OrderID": 1007,
-  "Date": "2025-08-22 18:12:56",
+  "OrderID": "0909125704-BLESSINGSCAFE",
+  "Date": "2025-09-09 12:57:04",
   "Cart": [
     {
       "ProductID": "CF-SPL",
@@ -379,29 +244,257 @@
       "Quantity": 1,
       "Size": "16oz",
       "BasePrice": 59,
+      "AddOns": []
+    }
+  ],
+  "Customer": "Ken Divino",
+  "ContactNumber": "09123865812",
+  "PaymentStatus": "Payment pending",
+  "PaymentMode": "Cash on Hand",
+  "Total": 59,
+  "ItemTotal": 1,
+  "DeliveryStatus": "Take-Out",
+  "Address": "",
+  "Notes": "",
+  "FulfillmentStatus": "Preparing",
+  "Source": "POS"
+},
+{
+  "_id": {
+    "$oid": "68bfb3cf08ec37fd9b5d24da"
+  },
+  "OrderID": "0909125750-BLESSINGSCAFE",
+  "Date": "2025-09-09 12:57:50",
+  "Cart": [
+    {
+      "ProductID": "CF-HAZ",
+      "ProductName": "Hazelnut",
+      "Quantity": 1,
+      "Size": "16oz",
+      "BasePrice": 59,
+      "AddOns": []
+    },
+    {
+      "ProductID": "MT-OKI",
+      "ProductName": "Okinawa",
+      "Quantity": 1,
+      "Size": "16oz",
+      "BasePrice": 45,
       "AddOns": [
         {
-          "AddOnID": "AD-NDC",
-          "Name": "Nata De Coco",
+          "AddOnID": "AON-PEA",
+          "Name": "Pearl",
           "BasePrice": 10
         }
       ]
     },
     {
-      "ProductID": "test2121",
-      "ProductName": "Tarontados",
-      "Quantity": 1,
+      "ProductID": "MT-MAT",
+      "ProductName": "Matcha",
+      "Quantity": 2,
       "Size": "16oz",
-      "BasePrice": 12,
-      "AddOns": []
+      "BasePrice": 45,
+      "AddOns": [
+        {
+          "AddOnID": "AON-BOB",
+          "Name": "Boba",
+          "BasePrice": 10
+        }
+      ]
     }
   ],
-  "Customer": "Customer#45031",
+  "Customer": "Math Dela Rosa",
   "ContactNumber": "",
   "PaymentStatus": "Payment pending",
   "PaymentMode": "Cash on Hand",
-  "Total": 81,
-  "ItemTotal": 2,
+  "Total": 202,
+  "ItemTotal": 4,
+  "DeliveryStatus": "Take-Out",
+  "Address": "",
+  "Notes": "",
+  "FulfillmentStatus": "Preparing",
+  "Source": "POS"
+},
+{
+  "_id": {
+    "$oid": "68bfb42808ec37fd9b5d24db"
+  },
+  "OrderID": "0909125920-BLESSINGSCAFE",
+  "Date": "2025-09-09 12:59:20",
+  "Cart": [
+    {
+      "ProductID": "CF-SPL",
+      "ProductName": "Spanish Latte",
+      "Quantity": 1,
+      "Size": "16oz",
+      "BasePrice": 59,
+      "AddOns": []
+    },
+    {
+      "ProductID": "MT-OKI",
+      "ProductName": "Okinawa",
+      "Quantity": 1,
+      "Size": "16oz",
+      "BasePrice": 45,
+      "AddOns": []
+    },
+    {
+      "ProductID": "MT-DAL",
+      "ProductName": "Dalgona",
+      "Quantity": 1,
+      "Size": "16oz",
+      "BasePrice": 45,
+      "AddOns": []
+    }
+  ],
+  "Customer": "John Arellado",
+  "ContactNumber": "",
+  "PaymentStatus": "Payment pending",
+  "PaymentMode": "Cash on Hand",
+  "Total": 143,
+  "ItemTotal": 3,
+  "DeliveryStatus": "Take-Out",
+  "Address": "",
+  "Notes": "",
+  "FulfillmentStatus": "Preparing",
+  "Source": "POS"
+},
+{
+  "_id": {
+    "$oid": "68bfb5ae08ec37fd9b5d24dc"
+  },
+  "OrderID": "0909130549-BLESSINGSCAFE",
+  "Date": "2025-09-09 13:05:49",
+  "Cart": [
+    {
+      "ProductID": "CF-HAZ",
+      "ProductName": "Hazelnut",
+      "Quantity": 1,
+      "Size": "16oz",
+      "BasePrice": 59,
+      "AddOns": []
+    },
+    {
+      "ProductID": "MT-OKI",
+      "ProductName": "Okinawa",
+      "Quantity": 1,
+      "Size": "16oz",
+      "BasePrice": 45,
+      "AddOns": []
+    },
+    {
+      "ProductID": "MT-MAT",
+      "ProductName": "Matcha",
+      "Quantity": 2,
+      "Size": "16oz",
+      "BasePrice": 45,
+      "AddOns": []
+    }
+  ],
+  "Customer": "Customer#79574",
+  "ContactNumber": "",
+  "PaymentStatus": "Payment pending",
+  "PaymentMode": "Cash on Hand",
+  "Total": 202,
+  "ItemTotal": 4,
+  "DeliveryStatus": "Take-Out",
+  "Address": "",
+  "Notes": "",
+  "FulfillmentStatus": "Preparing",
+  "Source": "POS"
+},
+{
+  "_id": {
+    "$oid": "68bfb63708ec37fd9b5d24dd"
+  },
+  "OrderID": "0909130807-BLESSINGSCAFE",
+  "Date": "2025-09-09 13:08:07",
+  "Cart": [
+    {
+      "ProductID": "MT-DAL",
+      "ProductName": "Dalgona",
+      "Quantity": 1,
+      "Size": "16oz",
+      "BasePrice": 45,
+      "AddOns": [
+        {
+          "AddOnID": "AON-PEA",
+          "Name": "Pearl",
+          "BasePrice": 10
+        }
+      ]
+    }
+  ],
+  "Customer": "Customer#61731",
+  "ContactNumber": "",
+  "PaymentStatus": "Payment pending",
+  "PaymentMode": "Cash on Hand",
+  "Total": 55,
+  "ItemTotal": 1,
+  "DeliveryStatus": "Take-Out",
+  "Address": "",
+  "Notes": "",
+  "FulfillmentStatus": "Preparing",
+  "Source": "POS"
+},
+{
+  "_id": {
+    "$oid": "68bfb68508ec37fd9b5d24de"
+  },
+  "OrderID": "0909130924-BLESSINGSCAFE",
+  "Date": "2025-09-09 13:09:24",
+  "Cart": [
+    {
+      "ProductID": "MT-OKI",
+      "ProductName": "Okinawa",
+      "Quantity": 1,
+      "Size": "16oz",
+      "BasePrice": 45,
+      "AddOns": []
+    },
+    {
+      "ProductID": "MT-DAL",
+      "ProductName": "Dalgona",
+      "Quantity": 1,
+      "Size": "16oz",
+      "BasePrice": 45,
+      "AddOns": []
+    },
+    {
+      "ProductID": "MT-TAR",
+      "ProductName": "Taro",
+      "Quantity": 1,
+      "Size": "16oz",
+      "BasePrice": 45,
+      "AddOns": [
+        {
+          "AddOnID": "AON-PEA",
+          "Name": "Pearl",
+          "BasePrice": 10
+        }
+      ]
+    },
+    {
+      "ProductID": "MT-OKI",
+      "ProductName": "Okinawa",
+      "Quantity": 1,
+      "Size": "16oz",
+      "BasePrice": 45,
+      "AddOns": [
+        {
+          "AddOnID": "AON-PEA",
+          "Name": "Pearl",
+          "BasePrice": 10
+        }
+      ]
+    }
+  ],
+  "Customer": "Customer#18864",
+  "ContactNumber": "",
+  "PaymentStatus": "Payment pending",
+  "PaymentMode": "Cash on Hand",
+  "Total": 198,
+  "ItemTotal": 4,
   "DeliveryStatus": "Take-Out",
   "Address": "",
   "Notes": "",

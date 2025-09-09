@@ -1068,29 +1068,38 @@ app.get('/order', isLoggedIn, nocache, async (req, res) => {
         res.status(500).send('Internal Server Error')
     }
 })
+
 app.patch('/orders/:OrderID/fulfillment', isLoggedIn, nocache, async (req, res) => {
     const { OrderID } = req.params
     const { FulfillmentStatus } = req.body
+
     if (!FulfillmentStatus) {
         return res.status(400).json({ error: 'FulfillmentStatus is required' })
     }
-    const orderIDNumber = Number(OrderID)
-    if (isNaN(orderIDNumber)) {
+
+    // Remove the number conversion - use OrderID as string
+    if (!OrderID || OrderID.trim() === '') {
         return res.status(400).json({ error: 'Invalid OrderID format' })
     }
+
     let client
     try {
         client = await MongoClient.connect(uri)
         const db = client.db('blessingscafe')
         const ordersCollection = db.collection('Orders')
-        const filter = { OrderID: orderIDNumber }
+
+        // Use string OrderID directly
+        const filter = { OrderID: OrderID }
         const updateDoc = { $set: { FulfillmentStatus } }
+
         const updateResult = await ordersCollection.updateOne(filter, updateDoc)
         const updatedOrder = await ordersCollection.findOne(filter)
+
         if (!updatedOrder) {
             await client.close()
-            return res.status(404).json({ error: `Order with ID ${orderIDNumber} not found` })
+            return res.status(404).json({ error: `Order with ID ${OrderID} not found` })
         }
+
         await client.close()
         return res.status(200).json({
             success: true,
@@ -1102,29 +1111,38 @@ app.patch('/orders/:OrderID/fulfillment', isLoggedIn, nocache, async (req, res) 
         return res.status(500).json({ error: 'Server error while updating order' })
     }
 })
+
 app.patch('/orders/:OrderID/payment-status', isLoggedIn, nocache, async (req, res) => {
     const { OrderID } = req.params
     const { PaymentStatus } = req.body
+
     if (!PaymentStatus) {
         return res.status(400).json({ error: 'PaymentStatus is required' })
     }
-    const orderIDNumber = Number(OrderID)
-    if (isNaN(orderIDNumber)) {
+
+    // Remove the number conversion - use OrderID as string
+    if (!OrderID || OrderID.trim() === '') {
         return res.status(400).json({ error: 'Invalid OrderID format' })
     }
+
     let client
     try {
         client = await MongoClient.connect(uri)
         const db = client.db('blessingscafe')
         const ordersCollection = db.collection('Orders')
-        const filter = { OrderID: orderIDNumber }
+
+        // Use string OrderID directly
+        const filter = { OrderID: OrderID }
         const updateDoc = { $set: { PaymentStatus } }
+
         const updateResult = await ordersCollection.updateOne(filter, updateDoc)
         const updatedOrder = await ordersCollection.findOne(filter)
+
         if (!updatedOrder) {
             await client.close()
-            return res.status(404).json({ error: `Order with ID ${orderIDNumber} not found` })
+            return res.status(404).json({ error: `Order with ID ${OrderID} not found` })
         }
+
         await client.close()
         return res.status(200).json({
             success: true,
@@ -1136,30 +1154,38 @@ app.patch('/orders/:OrderID/payment-status', isLoggedIn, nocache, async (req, re
         return res.status(500).json({ error: 'Server error while updating order' })
     }
 })
+
 app.patch('/orders/:OrderID/cancel', isLoggedIn, nocache, async (req, res) => {
     const { OrderID } = req.params
-    const orderIDNumber = Number(OrderID)
-    if (isNaN(orderIDNumber)) {
+
+    // Remove the number conversion - use OrderID as string
+    if (!OrderID || OrderID.trim() === '') {
         return res.status(400).json({ error: 'Invalid OrderID format' })
     }
+
     let client
     try {
         client = await MongoClient.connect(uri)
         const db = client.db('blessingscafe')
         const ordersCollection = db.collection('Orders')
-        const filter = { OrderID: orderIDNumber }
+
+        // Use string OrderID directly
+        const filter = { OrderID: OrderID }
         const updateDoc = {
             $set: {
                 PaymentStatus: 'Cancelled',
                 FulfillmentStatus: 'Cancelled'
             }
         }
+
         const updateResult = await ordersCollection.updateOne(filter, updateDoc)
         const updatedOrder = await ordersCollection.findOne(filter)
+
         if (!updatedOrder) {
             await client.close()
-            return res.status(404).json({ error: `Order with ID ${orderIDNumber} not found` })
+            return res.status(404).json({ error: `Order with ID ${OrderID} not found` })
         }
+
         await client.close()
         return res.status(200).json({
             success: true,
@@ -1171,6 +1197,50 @@ app.patch('/orders/:OrderID/cancel', isLoggedIn, nocache, async (req, res) => {
         return res.status(500).json({ error: 'Server error while cancelling order' })
     }
 })
+
+app.patch('/orders/:OrderID/restore', isLoggedIn, nocache, async (req, res) => {
+    const { OrderID } = req.params
+
+    // Remove the number conversion - use OrderID as string
+    if (!OrderID || OrderID.trim() === '') {
+        return res.status(400).json({ error: 'Invalid OrderID format' })
+    }
+
+    let client
+    try {
+        client = await MongoClient.connect(uri)
+        const db = client.db('blessingscafe')
+        const ordersCollection = db.collection('Orders')
+
+        // Use string OrderID directly
+        const filter = { OrderID: OrderID }
+        const updateDoc = {
+            $set: {
+                PaymentStatus: 'Pending',
+                FulfillmentStatus: 'Preparing'
+            }
+        }
+
+        const updateResult = await ordersCollection.updateOne(filter, updateDoc)
+        const updatedOrder = await ordersCollection.findOne(filter)
+
+        if (!updatedOrder) {
+            await client.close()
+            return res.status(404).json({ error: `Order with ID ${OrderID} not found` })
+        }
+
+        await client.close()
+        return res.status(200).json({
+            success: true,
+            message: 'Order restored successfully',
+            order: updatedOrder
+        })
+    } catch (error) {
+        if (client) await client.close()
+        return res.status(500).json({ error: 'Server error while restoring order' })
+    }
+})
+
 app.get('/orders/edit/:id', isLoggedIn, nocache, async (req, res) => {
   const orderId = req.params.id;
 
