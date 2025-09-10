@@ -1403,46 +1403,78 @@ app.get('/orders/edit/:id', isLoggedIn, nocache, async (req, res) => {
   }
 });
 
-// ========== ENHANCED DISCOUNTS/PROMOS ROUTES ==========
 
-// ========== ENHANCED DISCOUNTS/PROMOS ROUTES - V12 ==========
+// ========== ENHANCED DISCOUNTS/PROMOS ROUTES - V5 ALIGNMENT ==========
 
-// GET route for discounts page
+// GET route for discounts page - Enhanced for Active Promos Section
 app.get('/discounts', isLoggedIn, nocache, async (req, res) => {
   try {
-    console.log(`[2025-08-26 17:33:44] Loading discounts page for user: ${req.session.user.username} by MathDaenniel`);
+    console.log(`[2025-09-10 14:17:11] Loading discounts page for user: ${req.session.user.username} by MathDaenniel`);
 
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
     const promosCollection = db.collection('Promos');
-    const promos = await promosCollection.find().toArray();
+    
+    // Fetch all promos with additional metadata for active promos section
+    const promos = await promosCollection.find().sort({ createdAt: -1 }).toArray();
+    
+    // Calculate active promos statistics for enhanced UI
+    const now = new Date();
+    const activePromos = promos.filter(promo => {
+      const startDate = new Date(promo.startDate);
+      const endDate = new Date(promo.endDate);
+      return now >= startDate && now <= endDate && promo.isActive !== false;
+    });
+    
+    const upcomingPromos = promos.filter(promo => {
+      const startDate = new Date(promo.startDate);
+      return now < startDate && promo.isActive !== false;
+    });
+    
+    const expiredPromos = promos.filter(promo => {
+      const endDate = new Date(promo.endDate);
+      return now > endDate;
+    });
+    
     await client.close();
 
-    console.log(`[2025-08-26 17:33:44] Fetched ${promos.length} promos from database by MathDaenniel`);
+    console.log(`[2025-09-10 14:17:11] Fetched ${promos.length} promos from database by MathDaenniel`);
+    console.log(`[2025-09-10 14:17:11] Active: ${activePromos.length}, Upcoming: ${upcomingPromos.length}, Expired: ${expiredPromos.length} by MathDaenniel`);
 
     const message = req.query.msg || null;
+    
     res.render('discounts', {
       promos,
+      activePromos,
+      upcomingPromos,
+      expiredPromos,
+      promoStats: {
+        total: promos.length,
+        active: activePromos.length,
+        upcoming: upcomingPromos.length,
+        expired: expiredPromos.length
+      },
       title: 'Promo Management | Blessings Cafe',
       user: req.session.user,
       message,
-      currentPage: req.path
+      currentPage: req.path,
+      currentDate: now.toISOString()
     });
   } catch (err) {
-    console.error(`[2025-08-26 17:33:44] Error fetching promos:`, err, 'by MathDaenniel');
+    console.error(`[2025-09-10 14:17:11] Error fetching promos:`, err, 'by MathDaenniel');
     res.status(500).send('Failed to load promos');
   }
 });
 
-// POST route for adding new promo - Enhanced for V12
+// POST route for adding new promo - Enhanced for Active Promos Section
 app.post('/discounts/add', isLoggedIn, async (req, res) => {
-  console.log(`[2025-08-26 17:33:44] Promo add request started for user: ${req.session.user.username} by MathDaenniel`);
-  console.log(`[2025-08-26 17:33:44] Request body:`, req.body, 'by MathDaenniel');
+  console.log(`[2025-09-10 14:17:11] Promo add request started for user: ${req.session.user.username} by MathDaenniel`);
+  console.log(`[2025-09-10 14:17:11] Request body:`, req.body, 'by MathDaenniel');
 
   try {
     // Check if req.body exists
     if (!req.body || typeof req.body !== 'object') {
-      console.log(`[2025-08-26 17:33:44] Critical error: req.body is not an object by MathDaenniel`);
+      console.log(`[2025-09-10 14:17:11] Critical error: req.body is not an object by MathDaenniel`);
       return res.status(400).json({
         success: false,
         message: 'Request body parsing failed. Please check form configuration.',
@@ -1458,13 +1490,13 @@ app.post('/discounts/add', isLoggedIn, async (req, res) => {
     const { event, startDate, endDate, description, discountPercentage } = req.body;
 
     // Log extracted fields
-    console.log(`[2025-08-26 17:33:44] Extracted fields:`, {
+    console.log(`[2025-09-10 14:17:11] Extracted fields:`, {
       event, startDate, endDate, description, discountPercentage
     }, 'by MathDaenniel');
 
-    // Validation
+    // Enhanced validation for Active Promos Section
     if (!event || !startDate || !endDate || !description || discountPercentage === undefined || discountPercentage === null) {
-      console.log(`[2025-08-26 17:33:44] Validation failed - missing fields by MathDaenniel`);
+      console.log(`[2025-09-10 14:17:11] Validation failed - missing fields by MathDaenniel`);
       return res.status(400).json({
         success: false,
         message: 'All fields are required',
@@ -1477,35 +1509,36 @@ app.post('/discounts/add', isLoggedIn, async (req, res) => {
     const trimmedDescription = String(description).trim();
 
     if (!trimmedEvent || !trimmedDescription) {
-      console.log(`[2025-08-26 17:33:44] Validation failed - empty fields after trim by MathDaenniel`);
+      console.log(`[2025-09-10 14:17:11] Validation failed - empty fields after trim by MathDaenniel`);
       return res.status(400).json({
         success: false,
         message: 'Fields cannot be empty'
       });
     }
 
-    // Discount percentage validation
+    // Enhanced discount percentage validation
     const discountPercent = parseFloat(discountPercentage);
     if (isNaN(discountPercent) || discountPercent < 0 || discountPercent > 100) {
-      console.log(`[2025-08-26 17:33:44] Discount percentage validation failed by MathDaenniel`);
+      console.log(`[2025-09-10 14:17:11] Discount percentage validation failed by MathDaenniel`);
       return res.status(400).json({
         success: false,
         message: 'Discount percentage must be a number between 0 and 100'
       });
     }
 
-    // Date validation
+    // Enhanced date validation
     const start = new Date(startDate);
     const end = new Date(endDate);
+    const now = new Date();
 
-    console.log(`[2025-08-26 17:33:44] Date parsing:`, {
-      start, end, 
+    console.log(`[2025-09-10 14:17:11] Date parsing:`, {
+      start, end, now,
       startValid: !isNaN(start.getTime()), 
       endValid: !isNaN(end.getTime())
     }, 'by MathDaenniel');
 
     if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-      console.log(`[2025-08-26 17:33:44] Date validation failed - invalid dates by MathDaenniel`);
+      console.log(`[2025-09-10 14:17:11] Date validation failed - invalid dates by MathDaenniel`);
       return res.status(400).json({
         success: false,
         message: 'Invalid date format'
@@ -1513,36 +1546,42 @@ app.post('/discounts/add', isLoggedIn, async (req, res) => {
     }
 
     if (start > end) {
-      console.log(`[2025-08-26 17:33:44] Date validation failed - start date after end date by MathDaenniel`);
+      console.log(`[2025-09-10 14:17:11] Date validation failed - start date after end date by MathDaenniel`);
       return res.status(400).json({
         success: false,
         message: 'End date must be after or equal to start date'
       });
     }
 
-    console.log(`[2025-08-26 17:33:44] Connecting to MongoDB by MathDaenniel`);
+    // Warning for past dates (but allow them)
+    if (end < now) {
+      console.log(`[2025-09-10 14:17:11] Warning: Creating promo with past end date by MathDaenniel`);
+    }
+
+    console.log(`[2025-09-10 14:17:11] Connecting to MongoDB by MathDaenniel`);
 
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
     const promosCollection = db.collection('Promos');
 
-    // Check for duplicate promo (same event name and overlapping dates)
-    const existingPromo = await promosCollection.findOne({
+    // Enhanced duplicate check - Allow same event name but warn about overlapping dates
+    const overlappingPromo = await promosCollection.findOne({
       event: trimmedEvent,
       $or: [
         { startDate: { $lte: end }, endDate: { $gte: start } }
       ]
     });
 
-    if (existingPromo) {
+    if (overlappingPromo) {
       await client.close();
-      console.log(`[2025-08-26 17:33:44] Duplicate promo detected by MathDaenniel`);
+      console.log(`[2025-09-10 14:17:11] Overlapping promo detected by MathDaenniel`);
       return res.status(400).json({
         success: false,
-        message: 'A promo with the same event name already exists in the selected date range'
+        message: `A promo with the name "${trimmedEvent}" already exists with overlapping dates. Please choose different dates or modify the event name.`
       });
     }
 
+    // Enhanced promo object with metadata for Active Promos Section
     const newPromo = {
       event: trimmedEvent,
       startDate: start,
@@ -1550,56 +1589,69 @@ app.post('/discounts/add', isLoggedIn, async (req, res) => {
       description: trimmedDescription,
       discountPercentage: discountPercent,
       isActive: true,
+      status: getPromoStatus(start, end, now),
       createdAt: new Date(),
-      createdBy: 'MathDaenniel',
+      createdBy: req.session.user.username || 'MathDaenniel',
       lastModified: new Date(),
-      lastModifiedBy: 'MathDaenniel'
+      lastModifiedBy: req.session.user.username || 'MathDaenniel',
+      version: 'V5'
     };
 
-    console.log(`[2025-08-26 17:33:44] Document to insert:`, newPromo, 'by MathDaenniel');
+    console.log(`[2025-09-10 14:17:11] Document to insert:`, newPromo, 'by MathDaenniel');
 
     const result = await promosCollection.insertOne(newPromo);
-    console.log(`[2025-08-26 17:33:44] Insert result:`, result, 'by MathDaenniel');
+    console.log(`[2025-09-10 14:17:11] Insert result:`, result, 'by MathDaenniel');
 
-    // Verify the insertion
+    // Verify the insertion and get complete document
     const insertedDoc = await promosCollection.findOne({ _id: result.insertedId });
-    console.log(`[2025-08-26 17:33:44] Verification - discount percentage saved:`, insertedDoc?.discountPercentage, 'by MathDaenniel');
+    console.log(`[2025-09-10 14:17:11] Verification - discount percentage saved:`, insertedDoc?.discountPercentage, 'by MathDaenniel');
 
-    // Count total promos
+    // Enhanced statistics for Active Promos Section
     const totalCount = await promosCollection.countDocuments();
-    console.log(`[2025-08-26 17:33:44] Total promos in collection: ${totalCount} by MathDaenniel`);
+    const activeCount = await promosCollection.countDocuments({
+      startDate: { $lte: now },
+      endDate: { $gte: now },
+      isActive: true
+    });
+
+    console.log(`[2025-09-10 14:17:11] Total promos: ${totalCount}, Active promos: ${activeCount} by MathDaenniel`);
 
     await client.close();
 
-    console.log(`[2025-08-26 17:33:44] Promo add request completed successfully by MathDaenniel`);
+    console.log(`[2025-09-10 14:17:11] Promo add request completed successfully by MathDaenniel`);
 
-    // Return the created promo with its ID for frontend table update
+    // Return enhanced response with status information
     res.json({
       success: true,
       message: 'Promo added successfully',
       promo: {
         _id: result.insertedId,
         ...newPromo
+      },
+      stats: {
+        total: totalCount,
+        active: activeCount,
+        status: newPromo.status
       }
     });
   } catch (err) {
-    console.error(`[2025-08-26 17:33:44] Error adding promo:`, err, 'by MathDaenniel');
+    console.error(`[2025-09-10 14:17:11] Error adding promo:`, err, 'by MathDaenniel');
 
     res.status(500).json({
       success: false,
       message: 'Database error occurred. Please check server logs.',
       error: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error',
-      timestamp: '[2025-08-26 17:33:44]'
+      timestamp: '[2025-09-10 14:17:11]'
     });
   }
 });
 
-// POST route for editing promo - Enhanced for V12
+// POST route for editing promo - Enhanced for Active Promos Section
 app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
   const { id } = req.params;
 
   try {
-    console.log(`[2025-08-26 17:33:44] Edit promo request for ID: ${id} by MathDaenniel`);
+    console.log(`[2025-09-10 14:17:11] Edit promo request for ID: ${id} by MathDaenniel`);
 
     // Get form data from either JSON or FormData
     let event, startDate, endDate, description, discountPercentage;
@@ -1616,13 +1668,13 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
       discountPercentage = req.body.discountPercentage;
     }
 
-    console.log(`[2025-08-26 17:33:44] Edit request data:`, { 
+    console.log(`[2025-09-10 14:17:11] Edit request data:`, { 
       event, startDate, endDate, description, discountPercentage 
     }, 'by MathDaenniel');
 
-    // Validation
+    // Enhanced validation
     if (!event || !startDate || !endDate || !description || discountPercentage === undefined || discountPercentage === null) {
-      console.log(`[2025-08-26 17:33:44] Edit validation failed - missing fields by MathDaenniel`);
+      console.log(`[2025-09-10 14:17:11] Edit validation failed - missing fields by MathDaenniel`);
       return res.status(400).json({
         success: false,
         message: 'All fields are required',
@@ -1630,22 +1682,23 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
       });
     }
 
-    // Discount percentage validation
+    // Enhanced discount percentage validation
     const discountPercent = parseFloat(discountPercentage);
     if (isNaN(discountPercent) || discountPercent < 0 || discountPercent > 100) {
-      console.log(`[2025-08-26 17:33:44] Edit discount percentage validation failed by MathDaenniel`);
+      console.log(`[2025-09-10 14:17:11] Edit discount percentage validation failed by MathDaenniel`);
       return res.status(400).json({
         success: false,
         message: 'Discount percentage must be a number between 0 and 100'
       });
     }
 
-    // Date validation
+    // Enhanced date validation
     const start = new Date(startDate);
     const end = new Date(endDate);
+    const now = new Date();
 
     if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-      console.log(`[2025-08-26 17:33:44] Edit date validation failed by MathDaenniel`);
+      console.log(`[2025-09-10 14:17:11] Edit date validation failed by MathDaenniel`);
       return res.status(400).json({
         success: false,
         message: 'Invalid date format'
@@ -1653,7 +1706,7 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
     }
 
     if (start > end) {
-      console.log(`[2025-08-26 17:33:44] Edit date range validation failed by MathDaenniel`);
+      console.log(`[2025-09-10 14:17:11] Edit date range validation failed by MathDaenniel`);
       return res.status(400).json({
         success: false,
         message: 'End date must be after or equal to start date'
@@ -1662,7 +1715,7 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
 
     // Validate ObjectId
     if (!ObjectId.isValid(id)) {
-      console.log(`[2025-08-26 17:33:44] Invalid ObjectId: ${id} by MathDaenniel`);
+      console.log(`[2025-09-10 14:17:11] Invalid ObjectId: ${id} by MathDaenniel`);
       return res.status(400).json({
         success: false,
         message: 'Invalid promo ID'
@@ -1677,14 +1730,14 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
     const currentPromo = await promosCollection.findOne({ _id: new ObjectId(id) });
     if (!currentPromo) {
       await client.close();
-      console.log(`[2025-08-26 17:33:44] Promo not found for edit: ${id} by MathDaenniel`);
+      console.log(`[2025-09-10 14:17:11] Promo not found for edit: ${id} by MathDaenniel`);
       return res.status(404).json({
         success: false,
         message: 'Promo not found'
       });
     }
 
-    // Check for duplicate promo (same event name and overlapping dates, excluding current promo)
+    // Enhanced duplicate check - excluding current promo
     const duplicatePromo = await promosCollection.findOne({
       _id: { $ne: new ObjectId(id) },
       event: String(event).trim(),
@@ -1695,13 +1748,16 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
 
     if (duplicatePromo) {
       await client.close();
-      console.log(`[2025-08-26 17:33:44] Duplicate promo detected during edit by MathDaenniel`);
+      console.log(`[2025-09-10 14:17:11] Duplicate promo detected during edit by MathDaenniel`);
       return res.status(400).json({
         success: false,
-        message: 'A promo with the same event name already exists in the selected date range'
+        message: `A promo with the name "${String(event).trim()}" already exists with overlapping dates. Please choose different dates or modify the event name.`
       });
     }
 
+    // Enhanced update with status calculation
+    const newStatus = getPromoStatus(start, end, now);
+    
     const updateResult = await promosCollection.updateOne(
       { _id: new ObjectId(id) },
       {
@@ -1711,32 +1767,46 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
           endDate: end,
           description: String(description).trim(),
           discountPercentage: discountPercent,
+          status: newStatus,
           lastModified: new Date(),
-          lastModifiedBy: 'MathDaenniel'
+          lastModifiedBy: req.session.user.username || 'MathDaenniel',
+          version: 'V5'
         }
       }
     );
 
-    console.log(`[2025-08-26 17:33:44] Update result:`, updateResult, 'by MathDaenniel');
+    console.log(`[2025-09-10 14:17:11] Update result:`, updateResult, 'by MathDaenniel');
+
+    // Get updated statistics for Active Promos Section
+    const activeCount = await promosCollection.countDocuments({
+      startDate: { $lte: now },
+      endDate: { $gte: now },
+      isActive: true
+    });
 
     await client.close();
 
     if (updateResult.matchedCount === 0) {
-      console.log(`[2025-08-26 17:33:44] No promo matched for update: ${id} by MathDaenniel`);
+      console.log(`[2025-09-10 14:17:11] No promo matched for update: ${id} by MathDaenniel`);
       return res.status(404).json({
         success: false,
         message: 'Promo not found'
       });
     }
 
-    console.log(`[2025-08-26 17:33:44] Promo updated: ${currentPromo.event} -> ${String(event).trim()} by MathDaenniel`);
+    console.log(`[2025-09-10 14:17:11] Promo updated: ${currentPromo.event} -> ${String(event).trim()} by MathDaenniel`);
+    console.log(`[2025-09-10 14:17:11] Status changed: ${currentPromo.status || 'undefined'} -> ${newStatus} by MathDaenniel`);
 
     res.json({
       success: true,
-      message: 'Promo updated successfully'
+      message: 'Promo updated successfully',
+      stats: {
+        active: activeCount,
+        status: newStatus
+      }
     });
   } catch (err) {
-    console.error(`[2025-08-26 17:33:44] Error editing promo:`, err, 'by MathDaenniel');
+    console.error(`[2025-09-10 14:17:11] Error editing promo:`, err, 'by MathDaenniel');
     res.status(500).json({
       success: false,
       message: 'Database error: ' + err.message
@@ -1744,15 +1814,15 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
   }
 });
 
-// POST route for deleting promo - Enhanced for V12
+// POST route for deleting promo - Enhanced for Active Promos Section
 app.post('/discounts/delete/:id', isLoggedIn, async (req, res) => {
   const { id } = req.params;
 
-  console.log(`[2025-08-26 17:33:44] Deleting promo: ${id} by MathDaenniel`);
+  console.log(`[2025-09-10 14:17:11] Deleting promo: ${id} by MathDaenniel`);
 
   // Validate ObjectId
   if (!ObjectId.isValid(id)) {
-    console.log(`[2025-08-26 17:33:44] Invalid ObjectId for delete: ${id} by MathDaenniel`);
+    console.log(`[2025-09-10 14:17:11] Invalid ObjectId for delete: ${id} by MathDaenniel`);
     return res.status(400).json({
       success: false,
       message: 'Invalid promo ID'
@@ -1769,35 +1839,60 @@ app.post('/discounts/delete/:id', isLoggedIn, async (req, res) => {
 
     if (!promo) {
       await client.close();
-      console.log(`[2025-08-26 17:33:44] Promo not found for delete: ${id} by MathDaenniel`);
+      console.log(`[2025-09-10 14:17:11] Promo not found for delete: ${id} by MathDaenniel`);
       return res.status(404).json({
         success: false,
         message: 'Promo not found'
       });
+    }
+
+    // Check if promo is currently active before deletion
+    const now = new Date();
+    const isCurrentlyActive = now >= new Date(promo.startDate) && now <= new Date(promo.endDate) && promo.isActive;
+    
+    if (isCurrentlyActive) {
+      console.log(`[2025-09-10 14:17:11] Warning: Deleting currently active promo "${promo.event}" by MathDaenniel`);
     }
 
     const deleteResult = await promosCollection.deleteOne({ _id: new ObjectId(id) });
 
-    console.log(`[2025-08-26 17:33:44] Delete result:`, deleteResult, 'by MathDaenniel');
+    console.log(`[2025-09-10 14:17:11] Delete result:`, deleteResult, 'by MathDaenniel');
+
+    // Get updated statistics after deletion
+    const totalCount = await promosCollection.countDocuments();
+    const activeCount = await promosCollection.countDocuments({
+      startDate: { $lte: now },
+      endDate: { $gte: now },
+      isActive: true
+    });
 
     await client.close();
 
     if (deleteResult.deletedCount === 0) {
-      console.log(`[2025-08-26 17:33:44] No promo deleted: ${id} by MathDaenniel`);
+      console.log(`[2025-09-10 14:17:11] No promo deleted: ${id} by MathDaenniel`);
       return res.status(404).json({
         success: false,
         message: 'Promo not found'
       });
     }
 
-    console.log(`[2025-08-26 17:33:44] Promo "${promo.event}" deleted by MathDaenniel`);
+    console.log(`[2025-09-10 14:17:11] Promo "${promo.event}" deleted (was ${promo.status || 'unknown status'}) by MathDaenniel`);
 
     res.json({
       success: true,
-      message: 'Promo deleted successfully'
+      message: 'Promo deleted successfully',
+      deletedPromo: {
+        event: promo.event,
+        status: promo.status,
+        wasActive: isCurrentlyActive
+      },
+      stats: {
+        total: totalCount,
+        active: activeCount
+      }
     });
   } catch (err) {
-    console.error(`[2025-08-26 17:33:44] Error deleting promo:`, err, 'by MathDaenniel');
+    console.error(`[2025-09-10 14:17:11] Error deleting promo:`, err, 'by MathDaenniel');
     res.status(500).json({
       success: false,
       message: 'Database error: ' + err.message
@@ -1805,12 +1900,47 @@ app.post('/discounts/delete/:id', isLoggedIn, async (req, res) => {
   }
 });
 
-// POST route for toggling promo switches - Enhanced for V12
+// Enhanced GET route for active promos data (new for V5)
+app.get('/discounts/active', isLoggedIn, async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const promosCollection = db.collection('Promos');
+    
+    const now = new Date();
+    
+    // Get currently active promos
+    const activePromos = await promosCollection.find({
+      startDate: { $lte: now },
+      endDate: { $gte: now },
+      isActive: { $ne: false }
+    }).sort({ discountPercentage: -1 }).toArray();
+    
+    await client.close();
+    
+    console.log(`[2025-09-10 14:17:11] Active promos API called, returned ${activePromos.length} promos by MathDaenniel`);
+    
+    res.json({
+      success: true,
+      activePromos,
+      count: activePromos.length,
+      timestamp: now.toISOString()
+    });
+  } catch (err) {
+    console.error(`[2025-09-10 14:17:11] Error fetching active promos:`, err, 'by MathDaenniel');
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch active promos'
+    });
+  }
+});
+
+// Enhanced POST route for toggling promo switches
 app.post('/discounts/toggle-switch', isLoggedIn, async (req, res) => {
   const { promoId, enabled } = req.body;
 
   try {
-    console.log(`[2025-08-26 17:33:44] Promo ${promoId} toggled to: ${enabled} by MathDaenniel`);
+    console.log(`[2025-09-10 14:17:11] Promo ${promoId} toggled to: ${enabled} by MathDaenniel`);
 
     // Validate ObjectId
     if (!ObjectId.isValid(promoId)) {
@@ -1824,16 +1954,38 @@ app.post('/discounts/toggle-switch', isLoggedIn, async (req, res) => {
     const db = client.db('blessingscafe');
     const promosCollection = db.collection('Promos');
 
+    // Get current promo to calculate new status
+    const currentPromo = await promosCollection.findOne({ _id: new ObjectId(promoId) });
+    if (!currentPromo) {
+      await client.close();
+      return res.status(404).json({
+        success: false,
+        message: 'Promo not found'
+      });
+    }
+
+    const isEnabled = enabled === true || enabled === 'true';
+    const now = new Date();
+    const newStatus = isEnabled ? getPromoStatus(new Date(currentPromo.startDate), new Date(currentPromo.endDate), now) : 'disabled';
+
     const updateResult = await promosCollection.updateOne(
       { _id: new ObjectId(promoId) },
       {
         $set: {
-          isActive: enabled === true || enabled === 'true',
+          isActive: isEnabled,
+          status: newStatus,
           lastModified: new Date(),
-          lastModifiedBy: 'MathDaenniel'
+          lastModifiedBy: req.session.user.username || 'MathDaenniel'
         }
       }
     );
+
+    // Get updated active count
+    const activeCount = await promosCollection.countDocuments({
+      startDate: { $lte: now },
+      endDate: { $gte: now },
+      isActive: true
+    });
 
     await client.close();
 
@@ -1844,12 +1996,18 @@ app.post('/discounts/toggle-switch', isLoggedIn, async (req, res) => {
       });
     }
 
+    console.log(`[2025-09-10 14:17:11] Promo "${currentPromo.event}" status: ${newStatus} by MathDaenniel`);
+
     res.json({
       success: true,
-      message: `Promo switch ${enabled ? 'enabled' : 'disabled'} successfully`
+      message: `Promo switch ${enabled ? 'enabled' : 'disabled'} successfully`,
+      newStatus,
+      stats: {
+        active: activeCount
+      }
     });
   } catch (err) {
-    console.error(`[2025-08-26 17:33:44] Error toggling promo switch:`, err, 'by MathDaenniel');
+    console.error(`[2025-09-10 14:17:11] Error toggling promo switch:`, err, 'by MathDaenniel');
     res.status(500).json({
       success: false,
       message: 'Failed to toggle promo switch'
@@ -1857,9 +2015,7 @@ app.post('/discounts/toggle-switch', isLoggedIn, async (req, res) => {
   }
 });
 
-// Additional routes for V12 compatibility
-
-// GET route for promo statistics (new feature)
+// Enhanced GET route for promo statistics
 app.get('/discounts/stats', isLoggedIn, async (req, res) => {
   try {
     const client = await MongoClient.connect(uri);
@@ -1870,24 +2026,36 @@ app.get('/discounts/stats', isLoggedIn, async (req, res) => {
     
     const stats = await promosCollection.aggregate([
       {
+        $addFields: {
+          isCurrentlyActive: {
+            $and: [
+              { $lte: ['$startDate', now] },
+              { $gte: ['$endDate', now] },
+              { $ne: ['$isActive', false] }
+            ]
+          },
+          isUpcoming: {
+            $and: [
+              { $gt: ['$startDate', now] },
+              { $ne: ['$isActive', false] }
+            ]
+          },
+          isExpired: {
+            $lt: ['$endDate', now]
+          }
+        }
+      },
+      {
         $group: {
           _id: null,
           totalPromos: { $sum: 1 },
           activePromos: { $sum: { $cond: ['$isActive', 1, 0] } },
-          currentPromos: { 
-            $sum: { 
-              $cond: [
-                { $and: [
-                  { $lte: ['$startDate', now] },
-                  { $gte: ['$endDate', now] },
-                  '$isActive'
-                ]}, 
-                1, 
-                0 
-              ] 
-            }
-          },
-          avgDiscountPercentage: { $avg: '$discountPercentage' }
+          currentPromos: { $sum: { $cond: ['$isCurrentlyActive', 1, 0] } },
+          upcomingPromos: { $sum: { $cond: ['$isUpcoming', 1, 0] } },
+          expiredPromos: { $sum: { $cond: ['$isExpired', 1, 0] } },
+          avgDiscountPercentage: { $avg: '$discountPercentage' },
+          maxDiscountPercentage: { $max: '$discountPercentage' },
+          minDiscountPercentage: { $min: '$discountPercentage' }
         }
       }
     ]).toArray();
@@ -1895,49 +2063,97 @@ app.get('/discounts/stats', isLoggedIn, async (req, res) => {
     await client.close();
     
     const result = {
-      ...(stats[0] || { totalPromos: 0, activePromos: 0, currentPromos: 0, avgDiscountPercentage: 0 }),
+      ...(stats[0] || { 
+        totalPromos: 0, 
+        activePromos: 0, 
+        currentPromos: 0, 
+        upcomingPromos: 0, 
+        expiredPromos: 0,
+        avgDiscountPercentage: 0,
+        maxDiscountPercentage: 0,
+        minDiscountPercentage: 0
+      }),
       generatedAt: new Date(),
-      generatedBy: 'MathDaenniel',
-      timestamp: '[2025-08-26 17:33:44]'
+      generatedBy: req.session.user.username || 'MathDaenniel',
+      timestamp: '[2025-09-10 14:17:11]',
+      version: 'V5'
     };
     
-    console.log(`[2025-08-26 17:33:44] Promo statistics generated by MathDaenniel`);
+    console.log(`[2025-09-10 14:17:11] Enhanced promo statistics generated by MathDaenniel`);
     res.json(result);
   } catch (err) {
-    console.error(`[2025-08-26 17:33:44] Error generating promo statistics:`, err, 'by MathDaenniel');
+    console.error(`[2025-09-10 14:17:11] Error generating promo statistics:`, err, 'by MathDaenniel');
     res.status(500).json({ error: 'Failed to generate promo statistics' });
   }
 });
 
-// GET route for promo export (new feature)
+// Enhanced GET route for promo export
 app.get('/discounts/export', isLoggedIn, async (req, res) => {
   try {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
     const promosCollection = db.collection('Promos');
-    const promos = await promosCollection.find().toArray();
+    const promos = await promosCollection.find().sort({ createdAt: -1 }).toArray();
+    
+    const now = new Date();
+    
+    // Enhanced export with categorized data
+    const categorizedPromos = {
+      active: promos.filter(p => {
+        const start = new Date(p.startDate);
+        const end = new Date(p.endDate);
+        return now >= start && now <= end && p.isActive !== false;
+      }),
+      upcoming: promos.filter(p => {
+        const start = new Date(p.startDate);
+        return now < start && p.isActive !== false;
+      }),
+      expired: promos.filter(p => {
+        const end = new Date(p.endDate);
+        return now > end;
+      })
+    };
+    
     await client.close();
     
     const exportData = {
       promos,
+      categorizedPromos,
+      stats: {
+        total: promos.length,
+        active: categorizedPromos.active.length,
+        upcoming: categorizedPromos.upcoming.length,
+        expired: categorizedPromos.expired.length
+      },
       exportedAt: new Date(),
-      exportedBy: 'MathDaenniel',
-      version: 'V12',
-      timestamp: '[2025-08-26 17:33:44]'
+      exportedBy: req.session.user.username || 'MathDaenniel',
+      version: 'V5',
+      timestamp: '[2025-09-10 14:17:11]'
     };
     
     res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Content-Disposition', 'attachment; filename="promos-export-v12.json"');
+    res.setHeader('Content-Disposition', 'attachment; filename="promos-export-v5-enhanced.json"');
     res.json(exportData);
     
-    console.log(`[2025-08-26 17:33:44] Promo data exported by MathDaenniel`);
+    console.log(`[2025-09-10 14:17:11] Enhanced promo data exported by MathDaenniel`);
   } catch (err) {
-    console.error(`[2025-08-26 17:33:44] Error exporting promo data:`, err, 'by MathDaenniel');
+    console.error(`[2025-09-10 14:17:11] Error exporting promo data:`, err, 'by MathDaenniel');
     res.status(500).json({ error: 'Failed to export promo data' });
   }
 });
 
-// ========== END OF ENHANCED DISCOUNTS/PROMOS ROUTES - V12 ==========
+// Helper function to determine promo status
+function getPromoStatus(startDate, endDate, currentDate) {
+  if (currentDate < startDate) {
+    return 'upcoming';
+  } else if (currentDate >= startDate && currentDate <= endDate) {
+    return 'active';
+  } else {
+    return 'expired';
+  }
+}
+
+// ========== END OF ENHANCED DISCOUNTS/PROMOS ROUTES - V5 ==========
 
 
 

@@ -12,45 +12,115 @@
     <button id="addPromoBtn" class="stocks-add-btn">Add Promo</button>
   </div>
 
-  <!-- Enhanced Permanent Promos Section -->
-  <div class="permanent-promos-enhanced">
-    <div class="permanent-promos-header">
-      <h3>
-        Permanent Promos
-        <span class="promo-badge">Active</span>
-      </h3>
-      <!-- REMOVED: permanent-count div -->
-    </div>
-    
-    <div class="permanent-promos-grid">
-      <!-- Buy 3 For 143 Promo Card -->
-      <div class="permanent-promo-card featured">
-        <div class="promo-card-header">
-          <div class="promo-icon-large">🥤</div>
-          <div class="promo-status-dot active"></div>
+  <!-- Enhanced Promo Sections Container -->
+  <div class="promo-sections-container">
+    <!-- Enhanced Permanent Promos Section -->
+    <div class="permanent-promos-enhanced">
+      <div class="permanent-promos-header">
+        <h3>
+          Permanent Promos
+          <span class="promo-badge">Active</span>
+        </h3>
+      </div>
+      
+      <div class="permanent-promos-grid">
+        <!-- Buy 3 For 143 Promo Card -->
+        <div class="permanent-promo-card featured">
+          <div class="promo-card-header">
+            <div class="promo-icon-large">🥤</div>
+            <div class="promo-status-dot active"></div>
+          </div>
+          <div class="promo-card-content">
+            <h4 class="promo-title">Buy 3 For ₱143</h4>
+            <p class="promo-description">Get any 3 beverages for only ₱143. Perfect for sharing with friends!</p>
+          </div>
         </div>
-        <div class="promo-card-content">
-          <h4 class="promo-title">Buy 3 For ₱143</h4>
-          <p class="promo-description">Get any 3 beverages for only ₱143. Perfect for sharing with friends!</p>
-          <!-- REMOVED: promo-details section -->
+
+        <!-- Buy 1 Take 1 Promo Card -->
+        <div class="permanent-promo-card special">
+          <div class="promo-card-header">
+            <div class="promo-icon-large">🧋</div>
+            <div class="promo-status-dot active"></div>
+          </div>
+          <div class="promo-card-content">
+            <h4 class="promo-title">Buy 1 Take 1</h4>
+            <p class="promo-description">Purchase the same type of beverage and get another one absolutely free!</p>
+          </div>
         </div>
       </div>
-
-      <!-- Buy 1 Take 1 Promo Card -->
-      <div class="permanent-promo-card special">
-        <div class="promo-card-header">
-          <div class="promo-icon-large">🧋</div>
-          <div class="promo-status-dot active"></div>
-        </div>
-        <div class="promo-card-content">
-          <h4 class="promo-title">Buy 1 Take 1</h4>
-          <p class="promo-description">Purchase the same type of beverage and get another one absolutely free!</p>
-          <!-- REMOVED: promo-details section -->
-        </div>
-      </div>
     </div>
 
-    <!-- REMOVED: permanent-stats-bar section entirely -->
+    <!-- Enhanced Active Promos Section -->
+    <div class="active-promos-enhanced">
+      <div class="active-promos-header">
+        <h3>
+          Active Promos
+          <span class="promo-badge active-count" id="activePromosCount">
+            <% if (promos && promos.length > 0) { %>
+              <%= promos.filter(promo => {
+                const now = new Date();
+                const startDate = new Date(promo.startDate);
+                const endDate = new Date(promo.endDate);
+                return now >= startDate && now <= endDate;
+              }).length %>
+            <% } else { %>
+              0
+            <% } %>
+          </span>
+        </h3>
+      </div>
+      
+      <div class="active-promos-grid" id="activePromosGrid">
+        <% if (promos && promos.length > 0) { %>
+          <% 
+          const now = new Date();
+          const activePromos = promos.filter(promo => {
+            const startDate = new Date(promo.startDate);
+            const endDate = new Date(promo.endDate);
+            return now >= startDate && now <= endDate;
+          });
+          %>
+          
+          <% if (activePromos.length > 0) { %>
+            <% activePromos.forEach((promo, index) => { %>
+              <div class="active-promo-card <%= index % 3 === 0 ? 'featured' : index % 3 === 1 ? 'special' : 'standard' %>" data-promo-id="<%= promo._id %>">
+                <div class="promo-card-header">
+                  <div class="promo-icon-large">🥤</div>
+                  <div class="promo-status-dot active"></div>
+                  <div class="promo-discount-badge"><%= promo.discountPercentage %>% OFF</div>
+                </div>
+                <div class="promo-card-content">
+                  <h4 class="promo-title"><%= promo.event %></h4>
+                  <p class="promo-description"><%= promo.description %></p>
+                  <div class="promo-dates">
+                    <div class="promo-date-item">
+                      <span class="date-label">Started:</span>
+                      <span class="date-value"><%= new Date(promo.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></span>
+                    </div>
+                    <div class="promo-date-item">
+                      <span class="date-label">Ends:</span>
+                      <span class="date-value"><%= new Date(promo.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            <% }) %>
+          <% } else { %>
+            <div class="no-active-promos">
+              <div class="no-promos-icon">📅</div>
+              <h4>No Active Promos</h4>
+              <p>There are currently no active promotional offers. Check back later or add new promos!</p>
+            </div>
+          <% } %>
+        <% } else { %>
+          <div class="no-active-promos">
+            <div class="no-promos-icon">📅</div>
+            <h4>No Active Promos</h4>
+            <p>There are currently no active promotional offers. Check back later or add new promos!</p>
+          </div>
+        <% } %>
+      </div>
+    </div>
   </div>
 
   <!-- Modal Overlay for Add Promo -->
@@ -293,16 +363,25 @@
   }
 
   /* =============================================== */
-  /* ENHANCED PERMANENT PROMOS SECTION - V4 MINIMAL */
+  /* PROMO SECTIONS CONTAINER */
   /* =============================================== */
 
-  /* Enhanced Permanent Promos Section */
+  .promo-sections-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 35px;
+  }
+
+  /* =============================================== */
+  /* ENHANCED PERMANENT PROMOS SECTION */
+  /* =============================================== */
+
   .permanent-promos-enhanced {
     background: linear-gradient(135deg, var(--bg-light) 0%, #f0f4f8 100%);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 25px;
-    margin-bottom: 35px;
     box-shadow: var(--shadow-md);
     position: relative;
     overflow: hidden;
@@ -320,7 +399,6 @@
     border-top-right-radius: var(--radius);
   }
 
-  /* Enhanced Header - SIMPLIFIED WITHOUT ICON */
   .permanent-promos-header {
     margin-bottom: 25px;
     padding-bottom: 15px;
@@ -338,8 +416,6 @@
     letter-spacing: -0.3px;
   }
 
-  /* REMOVED: .promo-icon styles */
-
   .promo-badge {
     background: linear-gradient(135deg, var(--green), var(--green-dark));
     color: var(--white);
@@ -352,17 +428,12 @@
     box-shadow: 0 2px 6px rgba(40, 167, 69, 0.3);
   }
 
-  /* REMOVED: .permanent-count styles */
-
-  /* Enhanced Grid Layout */
   .permanent-promos-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 20px;
-    margin-bottom: 0; /* UPDATED: No stats bar below */
+    grid-template-columns: 1fr;
+    gap: 15px;
   }
 
-  /* Enhanced Promo Cards - MINIMAL VERSION */
   .permanent-promo-card {
     background: var(--white);
     border: 1px solid var(--border-light);
@@ -402,12 +473,139 @@
     height: 5px;
   }
 
+  /* =============================================== */
+  /* ENHANCED ACTIVE PROMOS SECTION */
+  /* =============================================== */
+
+  .active-promos-enhanced {
+    background: linear-gradient(135deg, #f8fafc 0%, #e3f2fd 100%);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 25px;
+    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .active-promos-enhanced:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--blue), #4285f4, var(--green));
+    border-top-left-radius: var(--radius);
+    border-top-right-radius: var(--radius);
+  }
+
+  .active-promos-header {
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--border-light);
+  }
+
+  .active-promos-header h3 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    color: var(--brown-dark);
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+
+  .promo-badge.active-count {
+    background: linear-gradient(135deg, var(--blue), #4285f4);
+    color: var(--white);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 6px rgba(0, 123, 255, 0.3);
+    min-width: 20px;
+    text-align: center;
+  }
+
+  .active-promos-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 8px;
+  }
+
+  .active-promos-grid::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .active-promos-grid::-webkit-scrollbar-track {
+    background: var(--bg-light);
+    border-radius: 3px;
+  }
+
+  .active-promos-grid::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+  }
+
+  .active-promos-grid::-webkit-scrollbar-thumb:hover {
+    background: var(--gray);
+  }
+
+  .active-promo-card {
+    background: var(--white);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    padding: 18px;
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .active-promo-card:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    transition: all var(--transition);
+  }
+
+  .active-promo-card.featured:before {
+    background: linear-gradient(90deg, var(--blue), #4285f4);
+  }
+
+  .active-promo-card.special:before {
+    background: linear-gradient(90deg, var(--green), var(--green-dark));
+  }
+
+  .active-promo-card.standard:before {
+    background: linear-gradient(90deg, var(--brown), var(--brown-light));
+  }
+
+  .active-promo-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--blue);
+  }
+
+  .active-promo-card:hover:before {
+    height: 5px;
+  }
+
   /* Card Header */
   .promo-card-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 15px;
+    position: relative;
   }
 
   .promo-icon-large {
@@ -438,7 +636,23 @@
     100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
   }
 
-  /* Card Content - MINIMAL VERSION WITHOUT DETAILS */
+  .promo-discount-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: linear-gradient(135deg, #ff6b35, #f7931e);
+    color: var(--white);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+    transform: rotate(12deg);
+  }
+
+  /* Card Content */
   .promo-card-content {
     margin-bottom: 0;
   }
@@ -446,22 +660,87 @@
   .promo-title {
     margin: 0 0 8px 0;
     color: var(--brown-dark);
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
     letter-spacing: -0.2px;
+    line-height: 1.3;
   }
 
   .promo-description {
-    margin: 0;
+    margin: 0 0 15px 0;
     color: var(--text-light);
-    font-size: 14px;
-    line-height: 1.5;
+    font-size: 13px;
+    line-height: 1.4;
   }
 
-  /* REMOVED: promo-details, promo-detail-item, detail-label, detail-value styles */
-  /* REMOVED: permanent-stats-bar, stat-item, stat-icon, stat-content, stat-label, stat-value, stat-divider styles */
+  .promo-dates {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  .promo-date-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .date-label {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .date-value {
+    font-size: 12px;
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  /* No Active Promos State */
+  .no-active-promos {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-light);
+  }
+
+  .no-promos-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.6;
+  }
+
+  .no-active-promos h4 {
+    margin: 0 0 8px 0;
+    color: var(--text);
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .no-active-promos p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    max-width: 280px;
+    margin: 0 auto;
+  }
 
   /* Animation for enhanced visual appeal */
+  .active-promo-card {
+    animation: fadeSlideUp 0.6s ease-out;
+  }
+
+  .active-promo-card:nth-child(2) {
+    animation-delay: 0.1s;
+  }
+
+  .active-promo-card:nth-child(3) {
+    animation-delay: 0.2s;
+  }
+
   .permanent-promo-card {
     animation: fadeSlideUp 0.6s ease-out;
   }
@@ -480,27 +759,6 @@
       transform: translateY(0);
     }
   }
-
-  /* Enhanced Responsive Design for Permanent Promos */
-  @media (max-width: 768px) {
-    .permanent-promos-grid {
-      grid-template-columns: 1fr;
-    }
-    
-    .permanent-promos-header h3 {
-      font-size: 20px;
-    }
-  }
-
-  @media (max-width: 600px) {
-    .permanent-promos-enhanced {
-      padding: 20px 15px;
-    }
-  }
-
-  /* =============================================== */
-  /* END OF ENHANCED PERMANENT PROMOS SECTION       */
-  /* =============================================== */
 
   /* Modal Overlay - EXACTLY from stocks.ejs */
   .modal-overlay {
@@ -1037,6 +1295,13 @@
   }
 
   /* Enhanced Responsive Design */
+  @media (max-width: 1200px) {
+    .promo-sections-container {
+      grid-template-columns: 1fr;
+      gap: 25px;
+    }
+  }
+
   @media (max-width: 768px) {
     .add-ingredient-section {
       margin: 20px 0;
@@ -1045,6 +1310,20 @@
     .stocks-add-btn {
       width: 100%;
       max-width: 300px;
+    }
+
+    .permanent-promos-enhanced,
+    .active-promos-enhanced {
+      padding: 20px;
+    }
+
+    .permanent-promos-header h3,
+    .active-promos-header h3 {
+      font-size: 20px;
+    }
+
+    .active-promos-grid {
+      max-height: 300px;
     }
   }
 
@@ -1108,6 +1387,33 @@
 
     .confirm-btn {
       max-width: none;
+    }
+
+    .permanent-promos-enhanced,
+    .active-promos-enhanced {
+      padding: 15px;
+    }
+
+    .promo-card-header {
+      margin-bottom: 12px;
+    }
+
+    .promo-icon-large {
+      font-size: 28px;
+      padding: 6px;
+    }
+
+    .promo-title {
+      font-size: 15px;
+    }
+
+    .promo-description {
+      font-size: 12px;
+    }
+
+    .promo-dates {
+      grid-template-columns: 1fr;
+      gap: 8px;
     }
   }
 
@@ -1252,34 +1558,84 @@ document.addEventListener('DOMContentLoaded', function() {
     document.body.style.overflow = '';
   }
 
-  // Event Listeners
-  addPromoBtn.addEventListener('click', showPromoModal);
-  cancelPromoBtn.addEventListener('click', hidePromoModal);
-  closePromoModalBtn.addEventListener('click', hidePromoModal);
-
-  // Close modals when clicking on overlay
-  promoModalOverlay.addEventListener('click', (e) => {
-    if (e.target === promoModalOverlay) {
-      hidePromoModal();
-    }
-  });
-
-  confirmationModal.addEventListener('click', (e) => {
-    if (e.target === confirmationModal) {
-      hideConfirmationModal();
-    }
-  });
-
-  // Close modals with Escape key
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      if (confirmationModal.classList.contains('show')) {
-        hideConfirmationModal();
-      } else if (promoModalOverlay.classList.contains('show')) {
-        hidePromoModal();
+  // Update Active Promos Section
+  function updateActivePromosSection() {
+    const activePromosGrid = document.getElementById('activePromosGrid');
+    const activePromosCount = document.getElementById('activePromosCount');
+    
+    // Get all rows from the table
+    const rows = document.querySelectorAll('#promoTableBody tr[data-promo-id]');
+    const now = new Date();
+    const activePromos = [];
+    
+    rows.forEach(row => {
+      const startDateInput = row.querySelector('.start-date-input');
+      const endDateInput = row.querySelector('.end-date-input');
+      const eventInput = row.querySelector('.event-input');
+      const descriptionInput = row.querySelector('.description-input');
+      const discountInput = row.querySelector('.discount-percentage-input');
+      
+      if (startDateInput && endDateInput && eventInput && descriptionInput && discountInput) {
+        const startDate = new Date(startDateInput.value);
+        const endDate = new Date(endDateInput.value);
+        
+        if (now >= startDate && now <= endDate) {
+          activePromos.push({
+            _id: row.dataset.promoId,
+            event: eventInput.value,
+            description: descriptionInput.value,
+            discountPercentage: discountInput.value,
+            startDate: startDateInput.value,
+            endDate: endDateInput.value
+          });
+        }
       }
+    });
+    
+    // Update count
+    activePromosCount.textContent = activePromos.length;
+    
+    // Update grid content
+    if (activePromos.length > 0) {
+      activePromosGrid.innerHTML = activePromos.map((promo, index) => {
+        const cardClass = index % 3 === 0 ? 'featured' : index % 3 === 1 ? 'special' : 'standard';
+        const startDate = new Date(promo.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const endDate = new Date(promo.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        
+        return `
+          <div class="active-promo-card ${cardClass}" data-promo-id="${promo._id}">
+            <div class="promo-card-header">
+              <div class="promo-icon-large">🥤</div>
+              <div class="promo-status-dot active"></div>
+              <div class="promo-discount-badge">${promo.discountPercentage}% OFF</div>
+            </div>
+            <div class="promo-card-content">
+              <h4 class="promo-title">${promo.event}</h4>
+              <p class="promo-description">${promo.description}</p>
+              <div class="promo-dates">
+                <div class="promo-date-item">
+                  <span class="date-label">Started:</span>
+                  <span class="date-value">${startDate}</span>
+                </div>
+                <div class="promo-date-item">
+                  <span class="date-label">Ends:</span>
+                  <span class="date-value">${endDate}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    } else {
+      activePromosGrid.innerHTML = `
+        <div class="no-active-promos">
+          <div class="no-promos-icon">📅</div>
+          <h4>No Active Promos</h4>
+          <p>There are currently no active promotional offers. Check back later or add new promos!</p>
+        </div>
+      `;
     }
-  });
+  }
 
   // Date validation
   function validateDates(startDate, endDate) {
@@ -1289,7 +1645,7 @@ document.addEventListener('DOMContentLoaded', function() {
     return true;
   }
 
-  // Form validation
+   // Form validation (continued from line 1659)
   function validateForm() {
     const event = document.getElementById('eventInput').value.trim();
     const description = document.getElementById('descriptionInput').value.trim();
@@ -1366,6 +1722,9 @@ document.addEventListener('DOMContentLoaded', function() {
     `;
     
     tableBody.appendChild(newRow);
+    
+    // Update active promos section after adding new row
+    setTimeout(() => updateActivePromosSection(), 100);
   }
 
   // Handle Save Promo
@@ -1392,7 +1751,7 @@ document.addEventListener('DOMContentLoaded', function() {
       endDate: endDate
     };
     
-    console.log(`[2025-08-27 14:57:14] Saving promo with payload:`, payload, 'by MathDaenniel');
+    console.log(`[2025-09-10 14:15:15] Saving promo with payload:`, payload, 'by MathDaenniel');
     
     // Disable button to prevent double submission
     saveBtn.disabled = true;
@@ -1405,14 +1764,14 @@ document.addEventListener('DOMContentLoaded', function() {
       },
       body: JSON.stringify(payload)
     })
-       .then(response => {
+    .then(response => {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       return response.json();
     })
     .then(data => {
-      console.log(`[2025-08-27 14:57:14] Server response:`, data, 'by MathDaenniel');
+      console.log(`[2025-09-10 14:15:15] Server response:`, data, 'by MathDaenniel');
       if (data.success) {
         // Add the new promo to the table
         if (data.promo) {
@@ -1430,7 +1789,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     })
     .catch(error => {
-      console.error(`[2025-08-27 14:57:14] Fetch error:`, error, 'by MathDaenniel');
+      console.error(`[2025-09-10 14:15:15] Fetch error:`, error, 'by MathDaenniel');
       alert('Error connecting to server. Please try again.');
     })
     .finally(() => {
@@ -1490,7 +1849,7 @@ document.addEventListener('DOMContentLoaded', function() {
           discountPercentage: discountPercentage
         };
         
-        console.log(`[2025-08-27 14:57:14] Update payload:`, payload, 'by MathDaenniel');
+        console.log(`[2025-09-10 14:15:15] Update payload:`, payload, 'by MathDaenniel');
         
         fetch(`/discounts/edit/${currentPromoId}`, {
           method: 'POST',
@@ -1501,15 +1860,19 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => response.json())
         .then(data => {
-          console.log(`[2025-08-27 14:57:14] Update response:`, data, 'by MathDaenniel');
+          console.log(`[2025-09-10 14:15:15] Update response:`, data, 'by MathDaenniel');
           if (data.success) {
-            window.location.href = '/discounts?msg=update_success';
+            // Update active promos section before redirect
+            updateActivePromosSection();
+            setTimeout(() => {
+              window.location.href = '/discounts?msg=update_success';
+            }, 500);
           } else {
             alert(data.message || 'Error updating promo');
           }
         })
         .catch(error => {
-          console.error(`[2025-08-27 14:57:14] Error:`, error, 'by MathDaenniel');
+          console.error(`[2025-09-10 14:15:15] Error:`, error, 'by MathDaenniel');
           alert('Error updating promo');
         });
         
@@ -1530,17 +1893,21 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
           if (data.success) {
-            window.location.href = '/discounts?msg=delete_success';
+            // Update active promos section before redirect
+            updateActivePromosSection();
+            setTimeout(() => {
+              window.location.href = '/discounts?msg=delete_success';
+            }, 500);
           } else {
             alert(data.message || 'Error deleting promo');
           }
         })
         .catch(error => {
-          console.error(`[2025-08-27 14:57:14] Error:`, error, 'by MathDaenniel');
+          console.error(`[2025-09-10 14:15:15] Error:`, error, 'by MathDaenniel');
           alert('Error deleting promo');
         });
         
-        console.log(`[2025-08-27 14:57:14] Deleting promo by MathDaenniel`);
+        console.log(`[2025-09-10 14:15:15] Deleting promo by MathDaenniel`);
       }
     }
     hideConfirmationModal();
@@ -1560,6 +1927,11 @@ document.addEventListener('DOMContentLoaded', function() {
       } else {
         e.target.classList.remove('modified');
       }
+      
+      // Update active promos section when dates change
+      if (e.target.classList.contains('start-date-input') || e.target.classList.contains('end-date-input')) {
+        setTimeout(() => updateActivePromosSection(), 100);
+      }
     }
   });
 
@@ -1573,6 +1945,38 @@ document.addEventListener('DOMContentLoaded', function() {
         e.target.classList.remove('highlight-fade');
       } else {
         e.target.classList.remove('modified');
+      }
+      
+      // Update active promos section when any field changes
+      setTimeout(() => updateActivePromosSection(), 100);
+    }
+  });
+
+  // Event Listeners
+  addPromoBtn.addEventListener('click', showPromoModal);
+  cancelPromoBtn.addEventListener('click', hidePromoModal);
+  closePromoModalBtn.addEventListener('click', hidePromoModal);
+
+  // Close modals when clicking on overlay
+  promoModalOverlay.addEventListener('click', (e) => {
+    if (e.target === promoModalOverlay) {
+      hidePromoModal();
+    }
+  });
+
+  confirmationModal.addEventListener('click', (e) => {
+    if (e.target === confirmationModal) {
+      hideConfirmationModal();
+    }
+  });
+
+  // Close modals with Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (confirmationModal.classList.contains('show')) {
+        hideConfirmationModal();
+      } else if (promoModalOverlay.classList.contains('show')) {
+        hidePromoModal();
       }
     }
   });
@@ -1600,8 +2004,62 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  console.log(`[2025-08-27 14:57:14] Promo Management System V4 loaded successfully by MathDaenniel`);
-  console.log(`[2025-08-27 14:57:14] Features: Minimal Design, Clean Cards, Professional UI by MathDaenniel`);
-  console.log(`[2025-08-27 14:57:14] Changes: Removed emoji, stats bar, details sections, count badge by MathDaenniel`);
+  // Real-time active promos update
+  function startActivePromosMonitoring() {
+    // Initial update
+    updateActivePromosSection();
+    
+    // Update every minute to catch time-based changes
+    setInterval(() => {
+      updateActivePromosSection();
+    }, 60000); // 60 seconds
+  }
+
+  // Enhanced promo card interactions
+  document.addEventListener('click', (e) => {
+    // Click on active promo cards to highlight corresponding table row
+    if (e.target.closest('.active-promo-card')) {
+      const promoCard = e.target.closest('.active-promo-card');
+      const promoId = promoCard.dataset.promoId;
+      
+      if (promoId) {
+        const tableRow = document.querySelector(`tr[data-promo-id="${promoId}"]`);
+        if (tableRow) {
+          // Smooth scroll to table
+          tableRow.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+          });
+          
+          // Add temporary highlight
+          tableRow.style.backgroundColor = '#e3f2fd';
+          tableRow.style.transition = 'background-color 0.5s ease';
+          
+          setTimeout(() => {
+            tableRow.style.backgroundColor = '';
+          }, 2000);
+        }
+      }
+    }
+  });
+
+  // Initialize active promos monitoring
+  startActivePromosMonitoring();
+
+  // Page visibility change handler - update when user returns to tab
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      updateActivePromosSection();
+    }
+  });
+
+  // Handle window focus - update when user switches back to window
+  window.addEventListener('focus', () => {
+    updateActivePromosSection();
+  });
+
+  console.log(`[2025-09-10 14:15:15] Enhanced Promo Management System V5 loaded successfully by MathDaenniel`);
+  console.log(`[2025-09-10 14:15:15] Features: Active Promos Section, Real-time Updates, Card Interactions by MathDaenniel`);
+  console.log(`[2025-09-10 14:15:15] Active Features: Auto-refresh, Table highlighting, Responsive design by MathDaenniel`);
 });
 </script>
