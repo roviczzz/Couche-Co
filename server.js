@@ -253,11 +253,43 @@ app.get('/api/orders/preparing-customers', async (req, res) => {
 app.get('/products', isLoggedIn, nocache, async (req, res) => {
   try {
     const client = new MongoClient(uri);
+    await client.connect();
     const db = client.db('blessingscafe');
+
     const productCollection = db.collection('Menu');
+    const ingredientCollection = db.collection('Ingredients');
+
+    // Get all products
     const products = await productCollection.find().toArray();
+
+    // Collect all ingredient IDs from all products
+    const allIngredientIDs = products.flatMap(p => p.Ingredients || []);
+
+    // Fetch ingredient documents
+    const ingredientDocs = await ingredientCollection
+      .find({ IngredientID: { $in: allIngredientIDs } })
+      .project({ IngredientID: 1, Name: 1, _id: 0 })
+      .toArray();
+
+    // Map IngredientID to Name
+    const ingredientMap = {};
+    ingredientDocs.forEach(i => {
+      ingredientMap[i.IngredientID] = i.Name;
+    });
+
+    // Replace ingredient IDs with names
+    const productsWithIngredientNames = products.map(p => ({
+      ...p,
+      Ingredients: (p.Ingredients || []).map(id => ingredientMap[id] || id)
+    }));
+
     await client.close();
-    res.render('products', { products, title: 'Products | Blessings Cafe', user: req.session.user });
+
+    res.render('products', { 
+      products: productsWithIngredientNames, 
+      title: 'Products | Blessings Cafe', 
+      user: req.session.user 
+    });
   } catch (err) {
     console.error('Error fetching products:', err);
     res.status(500).send('Internal Server Error');
@@ -365,62 +397,8 @@ if (Category.toLowerCase() === 'pastries' && !isNaN(parseFloat(BasePrice))) {
   }
 });
 
-app.post('/products/edit/:id', async (req, res) => {
-  const { id } = req.params;
-  const {
-    Name,
-    Price,
-    Category,
-    imagelink,
-    BasePrice,
-    size16,
-    size22,
-    Ingredients,
-    Allergen,
-    isEnabled
-  } = req.body;
 
-  try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const productCollection = db.collection('Menu');
 
-    const updateFields = {
-      Name,
-      Price: parseFloat(Price),
-      Category,
-      imagelink,
-      Allergen: Allergen || '',
-      isEnabled: isEnabled === 'true',
-      Ingredients: Ingredients ? Ingredients.split(',').map(i => i.trim()) : [],
-    };
-
-    if (Category.toLowerCase() === 'pastries' && BasePrice) {
-      updateFields.BasePrice = parseFloat(BasePrice);
-    }
-
-    if (size16 || size22) {
-      const Sizes = [];
-      if (size16) Sizes.push({ Size: '16oz', BasePrice: parseFloat(size16) });
-      if (size22) Sizes.push({ Size: '22oz', BasePrice: parseFloat(size22) });
-      updateFields.Sizes = Sizes;
-    } else {
-      updateFields.Sizes = [];
-    }
-
-    await productCollection.updateOne(
-        { _id: new ObjectId(id) },
-        { $set: updateFields }
-    );
-
-    await client.close();
-    req.flash('success_msg', `${Name} has been updated`);
-    res.redirect('/products');
-  } catch (err) {
-    console.error('Error editing product:', err);
-    res.status(500).send('Internal Server Error');
-  }
-});
 
 app.get('/management', async (req, res) => {
   res.render('management', {
@@ -496,22 +474,110 @@ app.get('/add-product', isLoggedIn, nocache, (req, res) => {
   res.render('add-product', { title: 'Add Product | Blessings Cafe' , user: req.session.user});
 });
 
-app.get('/edit-product/:id', isLoggedIn, nocache, async (req, res) => {
+app.post('/products/edit/:id', async (req, res) => {
   const { id } = req.params;
+  const {
+    Name,
+    Price,
+    Category,
+    imagelink,
+    BasePrice,
+    size16,
+    size22,
+    Ingredients,
+    Allergen,
+    isEnabled
+  } = req.body;
+
   try {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
-    const product = await db.collection('Menu').findOne({ _id: new ObjectId(id) });
+    const productCollection = db.collection('Menu');
+
+    const updateFields = {
+      Name,
+      Category,
+      imagelink,
+      Allergen: Allergen || '',
+      isEnabled: isEnabled === 'true',
+    };
+
+    // Save IngredientIDs (array)
+    if (Ingredients) {
+      updateFields.Ingredients = Array.isArray(Ingredients) ? Ingredients : [Ingredients];
+    } else {
+      updateFields.Ingredients = [];
+    }
+
+    // Handle Prices
+    if (Category.toLowerCase() === 'pastries' && BasePrice) {
+      updateFields.BasePrice = parseFloat(BasePrice);
+    }
+    if (size16 || size22) {
+      const Sizes = [];
+      if (size16) Sizes.push({ Size: '16oz', BasePrice: parseFloat(size16) });
+      if (size22) Sizes.push({ Size: '22oz', BasePrice: parseFloat(size22) });
+      updateFields.Sizes = Sizes;
+    } else {
+      updateFields.Sizes = [];
+    }
+
+    await productCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updateFields }
+    );
+
     await client.close();
-
-    if (!product) return res.status(404).send('Product not found');
-
-    res.render('edit-product', { title: 'Edit Product | Blessings Cafe', product, user: req.session.user});
+    req.flash('success_msg', `${Name} has been updated`);
+    res.redirect('/products');
   } catch (err) {
-    console.error('Error fetching product for editing:', err);
+    console.error('Error editing product:', err);
     res.status(500).send('Internal Server Error');
   }
 });
+
+// ✅ Edit product page with ingredient name lookup
+app.get('/edit-product/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const productCollection = db.collection('Menu');
+    const ingredientsCollection = db.collection('Ingredients');
+
+    // Fetch product by ID
+    const product = await productCollection.findOne({ _id: new ObjectId(id) });
+
+    if (!product) {
+      await client.close();
+      return res.status(404).send('Product not found');
+    }
+
+    // Lookup ingredient names based on stored IngredientIDs
+    let ingredientDetails = [];
+    if (Array.isArray(product.Ingredients) && product.Ingredients.length > 0) {
+      ingredientDetails = await ingredientsCollection
+        .find({ IngredientID: { $in: product.Ingredients } })
+        .toArray();
+    }
+
+    await client.close();
+
+    // Always pass ingredientDetails as an array
+    res.render('edit-product', {
+      product,
+      ingredientDetails: ingredientDetails || [] // crash-proof
+    });
+  } catch (err) {
+    console.error('Error loading edit product:', err);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+
+
+
 
 app.get('/stocks', isLoggedIn, nocache, async (req, res) => {
   try {
@@ -1511,27 +1577,21 @@ app.get('/analytics/average-sales-per-day', async (req, res) => {
 app.get("/ingredients/search", async (req, res) => {
   try {
     const query = req.query.q || "";
-
     const db = client.db("blessingscafe");
 
-    // Search inside Ingredients collection (field: Name)
-    const results = await db.collection("Ingredients").distinct("Name", {
-      Name: { $regex: query, $options: "i" }
-    });
+    // Search for ingredients that match the Name
+    const results = await db.collection("Ingredients")
+      .find({ Name: { $regex: query, $options: "i" }, isEnabled: true })
+      .project({ IngredientID: 1, Name: 1, _id: 0 })
+      .limit(50)
+      .toArray();
 
-    res.json(results.slice(0, 50)); // return up to 50 results
+    res.json(results); // return array of objects
   } catch (err) {
     console.error("Error in /ingredients/search:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
-
-
-
-
-
-
-
 
 // Analytics page
 app.get('/analytics', isLoggedIn, nocache, (req, res) => {
