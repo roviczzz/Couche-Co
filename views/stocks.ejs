@@ -1,11 +1,12 @@
-<div class="stocks-container">
-  <div class="header-section">
-    <h1>Inventory Management</h1>
-  </div>
+<div class="main-container">
+  <div class="stocks-container">
+    <div class="header-section">
+      <h1>Ingredient Inventory</h1>
+    </div>
 
-  <% if (message) { %>
-    <div id="message" class="message"></div>
-  <% } %>
+    <% if (message) { %>
+      <div id="message" class="message"></div>
+    <% } %>
 
   <!-- Add Buttons Section -->
   <div class="add-buttons-section">
@@ -147,10 +148,9 @@
     </div>
   </div>
 
-  <!-- Ingredients Table -->
-  <div class="table-container">
-    <table class="stocks-table">
-      <thead>
+    <div class="table-container">
+      <table class="stocks-table">
+        <thead>
         <tr>
           <th>Ingredient ID</th>
           <th>Name</th>
@@ -160,12 +160,12 @@
           <th>Status</th>
           <th>Actions</th>
         </tr>
-      </thead>
-      <tbody>
+        </thead>
+        <tbody>
         <% if (ingredients.length === 0) { %>
           <tr><td colspan="7" class="stocks-center">No ingredients found.</td></tr>
         <% } else { %>
-          <% ingredients.forEach(i => { 
+          <% ingredients.forEach(i => {
             const parts = i.IngredientID.split('-');
             const prefix = parts[0] || 'ING';
             const suffix = parts[1] || '';
@@ -225,7 +225,7 @@
         <% if (addons.length === 0) { %>
           <tr><td colspan="7" class="stocks-center">No add-ons found.</td></tr>
         <% } else { %>
-          <% addons.forEach(a => { 
+          <% addons.forEach(a => {
             const parts = a.AddOnID.split('-');
             const prefix = parts[0] || 'AON';
             const suffix = parts[1] || '';
@@ -258,8 +258,9 @@
             </tr>
           <% }) %>
         <% } %>
-      </tbody>
-    </table>
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <!-- Hidden forms for ingredients -->
@@ -1184,36 +1185,36 @@
     flex-direction: column;
     align-items: center;
   }
-  
+
   .stocks-add-btn {
     width: 100%;
     max-width: 300px;
   }
-  
+
   .switch-container {
     width: 44px;
     height: 24px;
   }
-  
+
   .switch-slider:before {
     height: 16px;
     width: 16px;
     left: 4px;
     bottom: 4px;
   }
-  
+
   .switch-input:checked + .switch-slider:before {
     transform: translateX(20px);
   }
-  
+
   .switch-text {
     font-size: 14px;
   }
-  
+
   .switch-group {
     padding: 10px 0;
   }
-  
+
   .switch-label {
     gap: 10px;
   }
@@ -1224,39 +1225,39 @@
     margin: 10px;
     max-width: calc(100vw - 20px);
   }
-  
+
   .stocks-form-vertical {
     padding: 20px;
   }
-  
+
   .button-group {
     flex-direction: column;
     gap: 10px;
   }
-  
+
   .add-product-btn,
   .cancel-btn {
     width: 100%;
   }
-  
+
   .header-section h1 {
     font-size: 28px;
   }
-  
+
   .section-header h2 {
     font-size: 20px;
   }
-  
+
   .stocks-table thead th {
     font-size: 11px;
     padding: 12px 6px;
   }
-  
+
   .stocks-table th,
   .stocks-table td {
     padding: 10px 4px;
   }
-  
+
   .stocks-btn {
     padding: 8px 12px;
     font-size: 11px;
@@ -1289,11 +1290,11 @@
   .confirm-btn {
     max-width: none;
   }
-  
+
   .switch-text {
     font-size: 14px;
   }
-  
+
   .switch-group {
     padding: 12px 0;
   }
@@ -1304,11 +1305,11 @@
     padding: 16px 12px;
     margin: 10px auto;
   }
-  
+
   .stocks-table {
     font-size: 12px;
   }
-  
+
   .table-input {
     padding: 6px;
     height: 30px;
@@ -1323,31 +1324,31 @@
     min-width: 60px;
     height: 30px;
   }
-  
+
   .switch-container {
     width: 40px;
     height: 20px;
   }
-  
+
   .switch-slider:before {
     height: 14px;
     width: 14px;
     left: 3px;
     bottom: 3px;
   }
-  
+
   .switch-input:checked + .switch-slider:before {
     transform: translateX(17px);
   }
-  
+
   .switch-text {
     font-size: 13px;
   }
-  
+
   .switch-group {
     padding: 8px 0;
   }
-  
+
   .switch-label {
     gap: 8px;
   }
@@ -1387,7 +1388,7 @@
 
       if (text) {
         messageDiv.textContent = text;
-        
+
         // Change styling for error messages
         if (msg === 'duplicate_id' || msg === 'delete_failed' || msg === 'item_not_found' || msg === 'item_in_use') {
           messageDiv.classList.add('error');
@@ -1475,9 +1476,9 @@
       currentAction = action;
       currentItemId = itemId;
       currentItemType = itemType;
-      
+
       const itemLabel = itemType === 'ingredient' ? 'ingredient' : 'add-on';
-      
+
       if (action === 'update') {
         confirmationTitle.textContent = `Update ${itemLabel.charAt(0).toUpperCase() + itemLabel.slice(1)}`;
         confirmationMessage.textContent = `Are you sure you want to update this ${itemLabel} with the current values?`;
@@ -1553,7 +1554,7 @@
         const action = e.target.dataset.action;
         const itemId = e.target.dataset.itemId;
         const itemType = e.target.dataset.type;
-        
+
         showConfirmationModal(action, itemId, itemType);
       }
     });
@@ -1565,7 +1566,7 @@
           // Get the row containing this item
           const updateButton = document.querySelector(`[data-item-id="${currentItemId}"][data-action="update"]`);
           const row = updateButton.closest('tr');
-          
+
           if (currentItemType === 'ingredient') {
             // Handle ingredient update
             const prefix = row.querySelector('select[name="IngredientPrefix"]').value;
@@ -1575,16 +1576,16 @@
             const category = row.querySelector('input[name="Category"]').value.trim();
             const allergen = row.querySelector('input[name="Allergen"]').value.trim();
             const enabled = row.querySelector('select[name="isEnabled"]').value;
-            
+
             if (!prefix || !suffix || !name || !quantity || !category) {
               alert('Please fill in all required fields.');
               hideConfirmationModal();
               return;
             }
-            
+
             const form = document.getElementById(`update-ingredient-form-${currentItemId}`);
             const fullIngredientId = `${prefix}-${suffix}`;
-            
+
             form.querySelector('input[name="IngredientID"]').value = fullIngredientId;
             form.querySelector('input[name="IngredientPrefix"]').value = prefix;
             form.querySelector('input[name="IngredientSuffix"]').value = suffix;
@@ -1593,7 +1594,7 @@
             form.querySelector('input[name="Category"]').value = category;
             form.querySelector('input[name="Allergen"]').value = allergen || 'None';
             form.querySelector('input[name="isEnabled"]').value = enabled;
-            
+
             console.log(`[2025-09-03 15:18:48] Updating ingredient with ID: ${fullIngredientId} by MathDaenniel`);
             form.submit();
           } else if (currentItemType === 'addon') {
@@ -1605,16 +1606,16 @@
             const category = row.querySelector('input[name="Category"]').value.trim();
             const allergen = row.querySelector('input[name="Allergen"]').value.trim();
             const enabled = row.querySelector('select[name="isEnabled"]').value;
-            
+
             if (!prefix || !suffix || !name || !quantity || !category) {
               alert('Please fill in all required fields.');
               hideConfirmationModal();
               return;
             }
-            
+
             const form = document.getElementById(`update-addon-form-${currentItemId}`);
             const fullAddonId = `${prefix}-${suffix}`;
-            
+
             form.querySelector('input[name="AddOnID"]').value = fullAddonId;
             form.querySelector('input[name="AddOnPrefix"]').value = prefix;
             form.querySelector('input[name="AddOnSuffix"]').value = suffix;
@@ -1623,21 +1624,21 @@
             form.querySelector('input[name="Category"]').value = category;
             form.querySelector('input[name="Allergen"]').value = allergen || 'None';
             form.querySelector('input[name="isEnabled"]').value = enabled;
-            
+
             console.log(`[2025-09-03 15:18:48] Updating add-on with ID: ${fullAddonId} by MathDaenniel`);
             form.submit();
           }
-          
+
           // Remove highlight classes from all inputs in the row
           const inputs = row.querySelectorAll('.table-input');
           inputs.forEach(input => {
             input.classList.remove('modified');
             input.classList.add('highlight-fade');
           });
-          
+
         } else if (currentAction === 'delete') {
-          const formId = currentItemType === 'ingredient' ? 
-            `delete-ingredient-form-${currentItemId}` : 
+          const formId = currentItemType === 'ingredient' ?
+            `delete-ingredient-form-${currentItemId}` :
             `delete-addon-form-${currentItemId}`;
           const form = document.getElementById(formId);
           console.log(`[2025-09-03 15:22:48] Deleting ${currentItemType} by MathDaenniel`);
@@ -1655,20 +1656,20 @@
       ingredientModalForm.addEventListener('submit', (e) => {
         const prefix = ingredientModalForm.querySelector('select[name="IngredientPrefix"]').value;
         const suffix = ingredientModalForm.querySelector('input[name="IngredientSuffix"]').value.trim();
-        
+
         if (!prefix || !suffix) {
           alert('Please provide both prefix and suffix for the ingredient ID.');
           e.preventDefault();
           return;
         }
-        
+
         const fullId = `${prefix}-${suffix}`;
-        
+
         const existingHiddenId = ingredientModalForm.querySelector('input[name="IngredientID"][type="hidden"]');
         if (existingHiddenId) {
           existingHiddenId.remove();
         }
-        
+
         const hiddenInput = document.createElement('input');
         hiddenInput.type = 'hidden';
         hiddenInput.name = 'IngredientID';
@@ -1678,32 +1679,32 @@
         // Handle isEnabledStock switch (no more Available field)
         const enabledSwitch = ingredientModalForm.querySelector('input[name="isEnabledStock"]');
         const existingHiddenEnabled = ingredientModalForm.querySelector('input[name="isEnabled"][type="hidden"]');
-        
+
         if (existingHiddenEnabled) {
           existingHiddenEnabled.remove();
         }
-        
+
         const newHiddenEnabledInput = document.createElement('input');
         newHiddenEnabledInput.type = 'hidden';
         newHiddenEnabledInput.name = 'isEnabled';
         newHiddenEnabledInput.value = enabledSwitch.checked ? 'true' : 'false';
         ingredientModalForm.appendChild(newHiddenEnabledInput);
-        
+
         // Always set available to true since we removed the Available field
         const existingHiddenAvailable = ingredientModalForm.querySelector('input[name="isAvailable"][type="hidden"]');
         if (existingHiddenAvailable) {
           existingHiddenAvailable.remove();
         }
-        
+
         const newHiddenAvailableInput = document.createElement('input');
         newHiddenAvailableInput.type = 'hidden';
         newHiddenAvailableInput.name = 'isAvailable';
         newHiddenAvailableInput.value = 'true';
         ingredientModalForm.appendChild(newHiddenAvailableInput);
-        
+
         // Remove name attribute so switch doesn't interfere
         enabledSwitch.removeAttribute('name');
-        
+
         console.log(`[2025-09-03 15:22:48] Adding new ingredient with ID: ${fullId} by MathDaenniel`);
       });
     }
@@ -1714,20 +1715,20 @@
       addonModalForm.addEventListener('submit', (e) => {
         const prefix = addonModalForm.querySelector('select[name="AddOnPrefix"]').value;
         const suffix = addonModalForm.querySelector('input[name="AddOnSuffix"]').value.trim();
-        
+
         if (!prefix || !suffix) {
           alert('Please provide both prefix and suffix for the add-on ID.');
           e.preventDefault();
           return;
         }
-        
+
         const fullId = `${prefix}-${suffix}`;
-        
+
         const existingHiddenId = addonModalForm.querySelector('input[name="AddOnID"][type="hidden"]');
         if (existingHiddenId) {
           existingHiddenId.remove();
         }
-        
+
         const hiddenInput = document.createElement('input');
         hiddenInput.type = 'hidden';
         hiddenInput.name = 'AddOnID';
@@ -1736,20 +1737,20 @@
 
         const enabledSwitch = addonModalForm.querySelector('input[name="isEnabledAddon"]');
         const existingHiddenEnabled = addonModalForm.querySelector('input[name="isEnabled"][type="hidden"]');
-        
+
         if (existingHiddenEnabled) {
           existingHiddenEnabled.remove();
         }
-        
+
         const newHiddenEnabledInput = document.createElement('input');
         newHiddenEnabledInput.type = 'hidden';
         newHiddenEnabledInput.name = 'isEnabled';
         newHiddenEnabledInput.value = enabledSwitch.checked ? 'true' : 'false';
         addonModalForm.appendChild(newHiddenEnabledInput);
-        
+
         // Remove name attribute so switch doesn't interfere
         enabledSwitch.removeAttribute('name');
-        
+
         console.log(`[2025-09-03 15:22:48] Adding new add-on with ID: ${fullId} by MathDaenniel`);
       });
     }
@@ -1759,7 +1760,7 @@
       if (e.target.classList.contains('table-input')) {
         const originalValue = e.target.dataset.original;
         const currentValue = e.target.value;
-        
+
         if (currentValue !== originalValue) {
           e.target.classList.add('modified');
           e.target.classList.remove('highlight-fade');
@@ -1773,7 +1774,7 @@
       if (e.target.classList.contains('table-input')) {
         const originalValue = e.target.dataset.original;
         const currentValue = e.target.value;
-        
+
         if (currentValue !== originalValue) {
           e.target.classList.add('modified');
           e.target.classList.remove('highlight-fade');
@@ -1805,13 +1806,13 @@
         e.preventDefault();
         showIngredientModal();
       }
-      
+
       // Ctrl/Cmd + O for Add-Ons
       if ((e.ctrlKey || e.metaKey) && e.key === 'o' && !e.target.matches('input, textarea')) {
         e.preventDefault();
         showAddonModal();
       }
-      
+
       // Enter key for confirmation modal proceed
       if (e.key === 'Enter' && confirmationModal.classList.contains('show')) {
         e.preventDefault();
@@ -1823,7 +1824,7 @@
     function showSuccessAnimation(element) {
       element.style.transform = 'scale(0.95)';
       element.style.opacity = '0.8';
-      
+
       setTimeout(() => {
         element.style.transform = 'scale(1)';
         element.style.opacity = '1';
@@ -1834,52 +1835,52 @@
     function validateIngredientForm(form) {
       const requiredFields = ['IngredientPrefix', 'IngredientSuffix', 'Name', 'Quantity', 'Category'];
       const missingFields = [];
-      
+
       requiredFields.forEach(fieldName => {
         const field = form.querySelector(`[name="${fieldName}"]`);
         if (!field || !field.value.trim()) {
           missingFields.push(fieldName.replace('Ingredient', ''));
         }
       });
-      
+
       if (missingFields.length > 0) {
         alert(`Please fill in the following required fields: ${missingFields.join(', ')}`);
         return false;
       }
-      
+
       // Validate quantity is positive
       const quantityField = form.querySelector('[name="Quantity"]');
       if (quantityField && parseInt(quantityField.value) < 0) {
         alert('Quantity cannot be negative.');
         return false;
       }
-      
+
       return true;
     }
 
     function validateAddonForm(form) {
       const requiredFields = ['AddOnPrefix', 'AddOnSuffix', 'Name', 'Quantity', 'Category'];
       const missingFields = [];
-      
+
       requiredFields.forEach(fieldName => {
         const field = form.querySelector(`[name="${fieldName}"]`);
         if (!field || !field.value.trim()) {
           missingFields.push(fieldName.replace('AddOn', ''));
         }
       });
-      
+
       if (missingFields.length > 0) {
         alert(`Please fill in the following required fields: ${missingFields.join(', ')}`);
         return false;
       }
-      
+
       // Validate quantity is positive
       const quantityField = form.querySelector('[name="Quantity"]');
       if (quantityField && parseInt(quantityField.value) < 0) {
         alert('Quantity cannot be negative.');
         return false;
       }
-      
+
       return true;
     }
 
@@ -1923,19 +1924,19 @@
 
     // Prevent form double-submission
     let isSubmitting = false;
-    
+
     function handleFormSubmission(form) {
       if (isSubmitting) {
         return false;
       }
-      
+
       isSubmitting = true;
-      
+
       // Re-enable after 3 seconds to prevent permanent lock
       setTimeout(() => {
         isSubmitting = false;
       }, 3000);
-      
+
       return true;
     }
 
@@ -1984,7 +1985,7 @@
       if (e.target.classList.contains('table-input')) {
         const originalValue = e.target.dataset.original;
         const currentValue = e.target.value;
-        
+
         if (currentValue !== originalValue) {
           e.target.classList.add('modified');
           e.target.classList.remove('highlight-fade');
@@ -1999,7 +2000,7 @@
       const originalText = button.textContent;
       button.textContent = 'Loading...';
       button.disabled = true;
-      
+
       return () => {
         button.textContent = originalText;
         button.disabled = false;
@@ -2010,7 +2011,7 @@
     document.querySelectorAll('.stocks-btn').forEach(button => {
       button.addEventListener('click', () => {
         const resetLoading = showLoadingState(button);
-        
+
         // Reset after 5 seconds as fallback
         setTimeout(resetLoading, 5000);
       });
@@ -2055,7 +2056,7 @@
       document.querySelectorAll('.switch-input').forEach(switchInput => {
         switchInput.setAttribute('role', 'switch');
         switchInput.setAttribute('aria-checked', switchInput.checked);
-        
+
         switchInput.addEventListener('change', () => {
           switchInput.setAttribute('aria-checked', switchInput.checked);
         });
@@ -2074,7 +2075,7 @@
         header.style.cursor = 'pointer';
         header.title = `Click to sort by ${header.textContent}`;
       });
-      
+
       console.log(`[2025-09-03 15:22:48] Table sorting placeholders initialized by MathDaenniel`);
     }
 
@@ -2093,7 +2094,7 @@
     // Performance monitoring
     function initializePerformanceMonitoring() {
       const startTime = performance.now();
-      
+
       window.addEventListener('load', () => {
         const loadTime = performance.now() - startTime;
         console.log(`[2025-09-03 15:22:48] Page load time: ${Math.round(loadTime)}ms by MathDaenniel`);
@@ -2106,26 +2107,26 @@
     // Data persistence for form drafts (future enhancement)
     function initializeFormPersistence() {
       const forms = [ingredientModalForm, addonModalForm];
-      
+
       forms.forEach((form, index) => {
         if (form) {
           const formType = index === 0 ? 'ingredient' : 'addon';
           const storageKey = `draft_${formType}_form`;
-          
+
           // Save draft on input
           form.addEventListener('input', debounce(() => {
             const formData = new FormData(form);
             const data = Object.fromEntries(formData);
             localStorage.setItem(storageKey, JSON.stringify(data));
           }, 1000));
-          
+
           // Clear draft on successful submit
           form.addEventListener('submit', () => {
             localStorage.removeItem(storageKey);
           });
         }
       });
-      
+
       console.log(`[2025-09-03 15:22:48] Form persistence initialized by MathDaenniel`);
     }
 
@@ -2160,7 +2161,7 @@
           if (navigator.vibrate) {
             navigator.vibrate(50);
           }
-          
+
           // Add visual feedback
           const slider = switchInput.nextElementSibling;
           if (slider) {
@@ -2171,7 +2172,7 @@
           }
         });
       });
-      
+
       console.log(`[2025-09-03 15:22:48] Switch enhancements initialized by MathDaenniel`);
     }
 
@@ -2187,7 +2188,7 @@
           categoryFilters.add(input.value.trim());
         }
       });
-      
+
       // Low stock monitoring
       const lowStockThreshold = 10;
       let lowStockItems = 0;
@@ -2197,11 +2198,11 @@
           lowStockItems++;
         }
       });
-      
+
       if (lowStockItems > 0) {
         console.log(`[2025-09-03 15:22:48] Low stock alert: ${lowStockItems} items below threshold by MathDaenniel`);
       }
-      
+
       console.log(`[2025-09-03 15:22:48] Advanced features initialized - Categories: ${categoryFilters.size}, Low stock: ${lowStockItems} by MathDaenniel`);
     }
 
@@ -2213,14 +2214,14 @@
       // Track user activity
       let lastActivity = Date.now();
       const activityTimeout = 30 * 60 * 1000; // 30 minutes
-      
+
       // Update activity timestamp on user interaction
       ['click', 'keypress', 'scroll', 'mousemove'].forEach(event => {
         document.addEventListener(event, () => {
           lastActivity = Date.now();
         }, { passive: true });
       });
-      
+
       // Check for session timeout periodically
       setInterval(() => {
         if (Date.now() - lastActivity > activityTimeout) {
@@ -2228,7 +2229,7 @@
           // Could implement auto-save or session warning here
         }
       }, 60000); // Check every minute
-      
+
       console.log(`[2025-09-03 15:22:48] Session management initialized by MathDaenniel`);
     }
 

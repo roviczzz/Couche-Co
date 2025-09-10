@@ -1,280 +1,286 @@
 <style>
-html, body {
-  height: 100%;
-  margin: 0;
-}
+  html, body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+  }
 
-thead th {
-  text-align: left;
-}
+  .layout-container {
+    display: flex;
+    gap: 24px;
+    margin-top: 20px;
+    height: calc(100vh - 40px);
+    box-sizing: border-box;
+    overflow: hidden;
+  }
 
-table {
-  border-collapse: collapse;
-  width: 100%;
-  margin-top: 20px;
-}
+  .orders-table-container {
+    position: relative;
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    min-width: 0;
+  }
 
-th, td {
-  border: none !important;
-  padding: 12px 14px;
-}
+  .orders-table-scroll {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overflow-x: auto;
+    min-width: 0;
+    width: 100%;
+    display: block;
+    position: absolute;
+    top: 74px;
+    bottom: 0;
+    right: 0;
+    left: 0;
+  }
 
-tbody tr {
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  border-bottom: 8px solid transparent;
-}
+  .orders-table-container > h1 {
+    flex-shrink: 0;
+  }
 
-tbody tr:hover {
-  background-color: #f0f0f0;
-  border-bottom-color: transparent;
-}
+  .orders-table-container table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 1200px;
+    table-layout: fixed;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+  }
 
-#fulfillmentDropdown ul li:hover {
-  background-color: #f0f0f0;
-}
+  .orders-table-container table thead {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+    background-color: #f9f9f9;
+    color: #505255;
+  }
 
+  .orders-table-container table tbody {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+  }
 
-.layout-container {
-  display: flex;
-  gap: 24px;
-  margin-top: 20px;
-  height: calc(100vh - 40px);
-  box-sizing: border-box;
-}
+  th, td {
+    border: none !important;
+    padding: 12px 14px;
+  }
 
-.orders-table-container {
-  flex: 2;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow: hidden;
-}
+  tbody tr {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    border-bottom: 8px solid transparent;
+  }
 
-.orders-table-container > h1 {
-  flex-shrink: 0;
-}
+  tbody tr:hover {
+    background-color: #f0f0f0;
+    border-bottom-color: transparent;
+  }
 
-.orders-table-container table {
-  border-collapse: collapse;
-  width: 100%;
-  flex-shrink: 0;
-  table-layout: fixed;
-  user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-}
+  #fulfillmentDropdown ul li:hover {
+    background-color: #f0f0f0;
+  }
 
-.orders-table-container table thead,
-.orders-table-container table tbody tr {
-  display: table;
-  width: 100%;
-  table-layout: fixed;
-}
+  .order-detail-panel {
+    flex: 1;
+    max-width: 400px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+    padding: 24px 26px;
+    display: none;
+    flex-direction: column;
+    height: 100%;
+    overflow-y: auto;
+    position: sticky;
+    top: 20px;
+    font-family: 'Aeonik', sans-serif;
+    color: #5a3e2b;
+    font-size: 15px;
+    line-height: 1.5;
+  }
 
-.orders-table-container table tbody {
-  display: block;
-  height: calc(100% - 38px);
-  overflow-y: auto;
-}
+  .order-detail-panel h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-weight: 700;
+    border-bottom: 1.5px solid #ddd;
+    padding-bottom: 8px;
+    font-size: 18px;
+  }
 
-.order-detail-panel {
-  flex: 1;
-  max-width: 400px;
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
-  padding: 24px 26px;
-  display: none;
-  flex-direction: column;
-  height: 100%;
-  overflow-y: auto;
-  position: sticky;
-  top: 20px;
-  font-family: 'Aeonik', sans-serif;
-  color: #5a3e2b;
-  font-size: 15px;
-  line-height: 1.5;
-}
+  .order-detail-section {
+    margin-bottom: 24px;
+  }
 
-.order-detail-panel h2 {
-  margin-top: 0;
-  margin-bottom: 20px;
-  font-weight: 700;
-  border-bottom: 1.5px solid #ddd;
-  padding-bottom: 8px;
-  font-size: 18px;
-}
+  .order-detail-section h3 {
+    margin: 10px 0 14px;
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: 0.1px;
+  }
 
-.order-detail-section {
-  margin-bottom: 24px;
-}
+  .order-detail-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
 
-.order-detail-section h3 {
-  margin: 10px 0 14px;
-  font-weight: 700;
-  font-size: 17px;
-  letter-spacing: 0.1px;
-}
+  .order-detail-section ul li {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 12px;
+    border-bottom: 1px solid #eee;
+    font-weight: 500;
+    background-color: transparent;
+  }
 
-.order-detail-section ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
+  .order-detail-section ul li:nth-child(even) {
+    background-color: #f0f0f0;
+  }
 
-.order-detail-section ul li {
-  display: flex;
-  flex-direction: column;
-  padding: 8px 12px;
-  border-bottom: 1px solid #eee;
-  font-weight: 500;
-  background-color: transparent;
-}
+  .order-detail-section ul li span.product-name {
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
 
-.order-detail-section ul li:nth-child(even) {
-  background-color: #f0f0f0;
-}
+  .order-detail-section ul li span.product-quantity-price {
+    font-size: 14px;
+    color: #5a3e2b;
+    display: flex;
+    justify-content: flex-start;
+    gap: 12px;
+  }
 
-.order-detail-section ul li span.product-name {
-  font-weight: 600;
-  margin-bottom: 4px;
-}
+  .order-detail-section ul li span.product-price {
+    margin-left: auto;
+    font-weight: 600;
+    color: #5a3e2b;
+  }
 
-.order-detail-section ul li span.product-quantity-price {
-  font-size: 14px;
-  color: #5a3e2b;
-  display: flex;
-  justify-content: flex-start;
-  gap: 12px;
-}
+  .product-quantity-price {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    font-size: 14px;
+    color: #5a3e2b;
+    align-items: center;
+  }
 
-.order-detail-section ul li span.product-price {
-  margin-left: auto;
-  font-weight: 600;
-  color: #5a3e2b;
-}
+  .product-price {
+    margin-left: auto;
+    font-weight: 600;
+    color: #5a3e2b;
+  }
 
-.product-quantity-price {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  font-size: 14px;
-  color: #5a3e2b;
-  align-items: center;
-}
+  .order-detail-buttons {
+    margin-top: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
 
-.product-price {
-  margin-left: auto;
-  font-weight: 600;
-  color: #5a3e2b;
-}
+  .btn-accent {
+    flex: 1 1 calc(50% - 14px);
+    background-color: #a05c2f;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 14px 0;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    text-align: center;
+    font-size: 15px;
+  }
 
-.order-detail-buttons {
-  margin-top: auto;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-}
+  .btn-accent:hover {
+    background-color: #7a3f1c;
+  }
 
-.btn-accent {
-  flex: 1 1 calc(50% - 14px);
-  background-color: #a05c2f;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 14px 0;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  text-align: center;
-  font-size: 15px;
-}
+  .btn-full-width {
+    flex: 1 1 100%;
+  }
 
-.btn-accent:hover {
-  background-color: #7a3f1c;
-}
+  .edit-label {
+    flex: 1 1 100%;
+    text-align: center;
+    padding: 14px 0;
+    color: #5e606e;
+    font-weight: 700;
+    user-select: none;
+    cursor: pointer;
+    font-size: 15px;
+    text-decoration: underline;
+  }
 
-.btn-full-width {
-  flex: 1 1 100%;
-}
+  .edit-label:hover {
+    color: #7a3f1c;
+  }
 
-.edit-label {
-  flex: 1 1 100%;
-  text-align: center;
-  padding: 14px 0;
-  color: #5e606e;
-  font-weight: 700;
-  user-select: none;
-  cursor: pointer;
-  font-size: 15px;
-  text-decoration: underline;
-}
+  .status-payment {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 12px;
+    color: white;
+    min-width: 72px;
+    text-align: center;
+    user-select: text;
+  }
 
-.edit-label:hover {
-  color: #7a3f1c;
-}
+  .status-pending {
+    background-color: #f0ad4e;
+  }
+  .status-complete {
+    background-color: #5cb85c;
+  }
+  .status-cancelled {
+    background-color: #d9534f;
+  }
 
-.status-payment {
-  display: inline-block;
-  padding: 3px 8px;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 12px;
-  color: white;
-  min-width: 72px;
-  text-align: center;
-  user-select: text;
-}
+  .status-fulfillment {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 12px;
+    color: white;
+    min-width: 96px;
+    text-align: center;
+    user-select: text;
+  }
 
-.status-pending {
-  background-color: #f0ad4e;
-}
-.status-complete {
-  background-color: #5cb85c;
-}
-.status-cancelled {
-  background-color: #d9534f;
-}
+  .status-ful-cancelled {
+    background-color: #d9534f;
+  }
 
-.status-fulfillment {
-  display: inline-block;
-  padding: 3px 8px;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 12px;
-  color: white;
-  min-width: 96px;
-  text-align: center;
-  user-select: text;
-}
+  .status-preparing {
+    background-color: #f0ad4e;
+  }
 
-.status-ful-cancelled {
-  background-color: #d9534f;
-}
+  .status-in-delivery {
+    background-color: #0275d8;
+  }
 
-.status-preparing {
-  background-color: #f0ad4e;
-}
-
-.status-in-delivery {
-  background-color: #0275d8;
-}
-
-.status-completed {
-  background-color: #5cb85c;
-}
-
+  .status-completed {
+    background-color: #5cb85c;
+  }
 </style>
 
 <div class="layout-container">
-
   <div class="orders-table-container">
     <h1>Order Details</h1>
-
-    <table>
-      <thead style="background-color: #f9f9f9; color: #505255;">
+    <div class="orders-table-scroll">
+      <table>
+        <thead>
         <tr>
           <th data-column="orderid">OrderID</th>
           <th data-column="created">Created</th>
@@ -285,8 +291,8 @@ tbody tr:hover {
           <th data-column="items">Items</th>
           <th data-column="fulfillment">Fulfillment</th>
         </tr>
-      </thead>
-      <tbody>
+        </thead>
+        <tbody>
         <% if (orders.length === 0) { %>
           <tr>
             <td colspan="8" style="text-align:center; padding: 20px;">No orders found.</td>
@@ -319,8 +325,9 @@ tbody tr:hover {
             </tr>
           <% }); %>
         <% } %>
-      </tbody>
-    </table>
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <aside class="order-detail-panel" id="orderDetailPanel" aria-live="polite" aria-label="Order details panel">
@@ -328,26 +335,23 @@ tbody tr:hover {
     <div id="orderSummaryContent">
       <p>Select an order to see details.</p>
     </div>
-
     <div class="order-detail-buttons" id="orderDetailButtons" style="display:none; position: relative;">
-    <button class="btn-accent" id="confirmPaymentBtn">Confirm Payment</button>
-    <button class="btn-accent" id="fulfillOrderBtn">Fulfill Order</button>
-    <button class="btn-accent" id="cancelOrderBtn">Cancel Order</button>
-    <button class="btn-accent" id="printInvoiceBtn">Print Invoice</button>
-    <!-- <a href="#" class="edit-label" id="editOrderLink">Edit Order</a> -->
-
-    <div id="fulfillmentDropdown" style="display:none; position: absolute; bottom: 48px; right: 0; background: white; border: 1px solid #ccc; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 10; font-size: 14px;">
-      <ul style="list-style:none; margin:0; padding:8px 0; width: 160px;">
-        <li class="fulfill-option" data-status="Cancelled" style="padding: 8px 16px; cursor: pointer;">Cancelled</li>
-        <li class="fulfill-option" data-status="Preparing" style="padding: 8px 16px; cursor: pointer;">Preparing</li>
-        <li class="fulfill-option" data-status="In Delivery" style="padding: 8px 16px; cursor: pointer;">In Delivery</li>
-        <li class="fulfill-option" data-status="Completed" style="padding: 8px 16px; cursor: pointer;">Completed</li>
-      </ul>
+      <button class="btn-accent" id="confirmPaymentBtn">Confirm Payment</button>
+      <button class="btn-accent" id="fulfillOrderBtn">Fulfill Order</button>
+      <button class="btn-accent" id="cancelOrderBtn">Cancel Order</button>
+      <button class="btn-accent" id="printInvoiceBtn">Print Invoice</button>
+      <div id="fulfillmentDropdown" style="display:none; position: absolute; bottom: 48px; right: 0; background: white; border: 1px solid #ccc; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 10; font-size: 14px;">
+        <ul style="list-style:none; margin:0; padding:8px 0; width: 160px;">
+          <li class="fulfill-option" data-status="Cancelled" style="padding: 8px 16px; cursor: pointer;">Cancelled</li>
+          <li class="fulfill-option" data-status="Preparing" style="padding: 8px 16px; cursor: pointer;">Preparing</li>
+          <li class="fulfill-option" data-status="In Delivery" style="padding: 8px 16px; cursor: pointer;">In Delivery</li>
+          <li class="fulfill-option" data-status="Completed" style="padding: 8px 16px; cursor: pointer;">Completed</li>
+        </ul>
+      </div>
     </div>
-  </div>
   </aside>
-
 </div>
+
 
 <script type="application/json" id="orders-data"><%- JSON.stringify(orders || []) %></script>
 <script type="application/json" id="menu-data"><%- JSON.stringify(menu || []) %></script>
@@ -409,7 +413,7 @@ function createProductList(order) {
       <span class="product-name">${item.ProductName || 'N/A'}</span>
       <span class="product-quantity-price">
         <strong>${size ? size : 'Size N/A'}</strong> &nbsp;&nbsp;
-        Qty: ${quantity} 
+        Qty: ${quantity}
         <span class="product-price">${formatCurrency(totalPrice)}</span>
       </span>
     </li>`;
@@ -460,7 +464,7 @@ function showOrderDetails(order) {
 
   const subtotalHtml = `
     <p style="display: flex; justify-content: space-between; font-weight: 600; font-size: 15px; margin-top: 10px;">
-      <span>Subtotal:</span> 
+      <span>Subtotal:</span>
       <span>₱ ${productsSubtotal.toFixed(2)}</span>
     </p>
   `;
@@ -477,7 +481,7 @@ function showOrderDetails(order) {
 
   const totalHtml = `
     <p style="display: flex; justify-content: space-between; font-weight: 700; font-size: 16px; margin-top: 12px;">
-      <span>Total:</span> 
+      <span>Total:</span>
       <span>₱ ${totalPriceValue.toFixed(2)}</span>
     </p>
   `;
@@ -526,7 +530,6 @@ function showOrderDetails(order) {
   orderDetailPanel.style.display = 'flex';
   editOrderLink.href = `/orders/edit/${order._id || ''}`;
 }
-
 document.querySelectorAll('.order-row').forEach(row => {
   row.addEventListener('click', () => {
     const idx = parseInt(row.dataset.idx, 10);
@@ -714,11 +717,11 @@ fulfillmentDropdown.querySelectorAll('.fulfill-option').forEach(option => {
         const orderID = currentOrder.OrderID;
         console.log('Updating order ID:', orderID, 'to status:', selectedStatus);
         console.log('Current order object:', currentOrder);
-        
+
         if (!orderID && orderID !== 0) {
           throw new Error('Order ID is missing');
         }
-        
+
         const response = await fetch(`/orders/${orderID}/fulfillment`, {
           method: 'PATCH',
           headers: {
@@ -726,23 +729,23 @@ fulfillmentDropdown.querySelectorAll('.fulfill-option').forEach(option => {
           },
           body: JSON.stringify({ FulfillmentStatus: selectedStatus })
         });
-        
+
         const responseData = await response.json();
         console.log('Server response:', responseData);
-        
+
         if (!response.ok) {
           throw new Error(responseData.error || `Server returned ${response.status}`);
         }
-        
+
         currentOrder.FulfillmentStatus = selectedStatus;
         showOrderDetails(currentOrder);
         renderOrdersTable();
-        
+
         console.log('Update successful:', responseData.message);
-        
+
         const successMsg = responseData.message || 'Fulfillment status updated successfully';
         alert(successMsg);
-        
+
       } catch (error) {
         console.error('Update error:', error);
         console.error('Current order:', currentOrder);
@@ -752,7 +755,7 @@ fulfillmentDropdown.querySelectorAll('.fulfill-option').forEach(option => {
       console.error('No current order selected');
       alert('No order selected');
     }
-    
+
     fulfillmentDropdown.style.display = 'none';
   });
 });
@@ -764,7 +767,7 @@ confirmPaymentBtn.addEventListener('click', async () => {
     return;
   }
   const orderID = currentOrder.OrderID;
-  
+
   try {
     const response = await fetch(`/orders/${orderID}/payment-status`, {
       method: 'PATCH',

@@ -1,57 +1,585 @@
-<div class="dashboard">
-    <div class="dashboard-header">
-        <div class="left-section">
-            <h2>Dashboard</h2>
-        </div>
-        <div class="right-section">
-            <div class="date-time">
-                <div>
-                    <% 
-                        let months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-                        let now = new Date();
-                    %>
-                    <%= months[now.getMonth()] + ' ' + ('0'+now.getDate()).slice(-2) + ', ' + now.getFullYear() %>
+<div class="dashboard-cards-grid">
+    <div class="dashboard-header-greeting" style="margin-bottom:18px;font-size:35px;font-weight:600;color:black;">
+        Hello, <%= typeof user !== 'undefined' && user.name ? user.name : 'there' %>! <br>
+        <a style="font-size: 16px;color: #838384; font-weight: 400;">Here are today's stats!</a>
+    </div>
+    <div class="main-summary-cards">
+        <div class="summary-card total-sales">
+            <div class="icon"><i class="fa-solid fa-bag-shopping"></i></div>
+            <div>
+                <div class="card-label">Total Sales</div>
+                <div class="card-sub"><%= typeof stats !== 'undefined' && typeof stats.totalOrders !== 'undefined' ? stats.totalOrders + ' Orders' : '0 Orders' %></div>                <div class="card-value" id="total-sales-value"><%= typeof stats !== 'undefined' && stats.totalSales ? '₱' + stats.totalSales.toLocaleString('en-PH', {minimumFractionDigits:2}) : '₱0.00' %></div>
+                <div class="card-trends" id="total-sales-trends">
+                    <span id="total-sales-trend" class="<%= typeof stats !== 'undefined' && stats.totalSalesPercent >= 0 ? 'trend-up' : 'trend-down' %>">
+                        <%= typeof stats !== 'undefined' && typeof stats.totalSalesPercent !== 'undefined'
+                                ? (stats.totalSalesPercent > 0 ? '+' : '') + stats.totalSalesPercent + '%'
+                                : '+0%' %>
+                    </span>
+                    <span id="total-sales-week"><%= typeof stats !== 'undefined' && typeof stats.totalSalesWeek !== 'undefined'
+                                ? stats.totalSalesWeek + ' this week'
+                                : '0 this week' %></span>
                 </div>
-                <div class="time">
-                    <%
-                        let hr = now.getHours() % 12 || 12;
-                        let min = ('0'+now.getMinutes()).slice(-2);
-                        let ampm = now.getHours() >= 12 ? 'PM' : 'AM';
-                    %>
-                    <%= hr + ':' + min + ' ' + ampm %>
+            </div>
+        </div>
+        <div class="summary-card incoming-orders">
+            <div class="icon"><i class="fa-solid fa-box"></i></div>
+            <div>
+                <div class="card-label">Incoming Orders</div>
+                <div class="card-value" id="incoming-orders-value"><%= typeof stats !== 'undefined' && typeof stats.incomingOrders !== 'undefined'
+                            ? stats.incomingOrders : '0' %></div>
+                <div class="card-trends" id="incoming-orders-trends">
+                    <span id="incoming-orders-trend" class="<%= typeof stats !== 'undefined' && stats.incomingOrdersPercent >= 0 ? 'trend-up' : 'trend-down' %>">
+                        <%= typeof stats !== 'undefined' && typeof stats.incomingOrdersPercent !== 'undefined'
+                                ? (stats.incomingOrdersPercent > 0 ? '+' : '') + stats.incomingOrdersPercent + '%'
+                                : '+0%' %>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="summary-card orders-today">
+            <div class="icon"><i class="fa-solid fa-calendar-day"></i></div>
+            <div>
+                <div class="card-label">Orders Today</div>
+                <div class="card-value" id="orders-today-value"><%= typeof stats !== 'undefined' && typeof stats.ordersToday !== 'undefined'
+                            ? stats.ordersToday : '0' %></div>
+                <div class="card-trends" id="orders-today-trends">
+                    <span id="orders-today-trend" class="<%= typeof stats !== 'undefined' && stats.ordersTodayPercent >= 0 ? 'trend-up' : 'trend-down' %>">
+                        <%= typeof stats !== 'undefined' && typeof stats.ordersTodayPercent !== 'undefined'
+                                ? (stats.ordersTodayPercent > 0 ? '+' : '') + stats.ordersTodayPercent + '%'
+                                : '+0%' %>
+                    </span>
                 </div>
             </div>
         </div>
     </div>
-    <div class="cards">
-        <div class="card">
-            <h4>Incoming Orders</h4>
-            <h1>2</h1>
+    <div class="performance-cards-row">
+        <div class="card sales-performance" style="min-height:540px;position:relative;">
+            <div class="card-header-row" style="margin-bottom:0;">
+                <span class="card-label">Sales Performance</span>
+                <div class="card-actions">
+                    <select id="performance-period" class="period-select" style="margin-right:8px;">
+                        <option value="7">Last 7 Days</option>
+                        <option value="14" selected>Last 14 Days</option>
+                        <option value="30">Last 30 Days</option>
+                    </select>
+                    <button id="export-performance" class="action-btn">Export data</button>
+                </div>
+            </div>
+            <div style="height:426px;width:100%;display:flex;align-items:center;">
+                <canvas id="salesPerformanceChart" height="426" style="width:100% !important; height:426px !important; max-height:426px !important;"></canvas>
+            </div>
+            <div id="sales-performance-info"></div>
         </div>
-        <div class="card">
-            <h4>Complete Orders</h4>
-            <h1>27</h1>
-        </div>
-        <div class="card">
-            <h4>Cups Sold Today</h4>
-            <h1>29</h1>
+        <div class="card top-categories" style="min-height:540px;display:flex;flex-direction:column;">
+            <div class="card-label">Top Categories</div>
+            <div class="top-categories-chart-container" style="height:220px;display:flex;align-items:center;justify-content:center;">
+                <canvas id="topCategoriesChart" width="120" height="120" style="max-width:150px;max-height:150px;"></canvas>
+                <div id="categories-loading-indicator" class="chart-loading">Loading categories...</div>
+            </div>
+            <div id="top-categories-list" style="flex:1 1 0;margin-top:8px;max-height:280px;overflow-y:auto;width:100%;min-width:0;box-sizing:border-box;"></div>
         </div>
     </div>
 </div>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    async function fetchDashboardStats() {
+        try {
+            const res = await fetch('/analytics/dashboard-stats');
+            const stats = await res.json();
+            document.getElementById('total-sales-value').innerText = '₱' + (stats.totalSales || 0).toLocaleString('en-PH', {minimumFractionDigits:2});
+            document.getElementById('total-sales-trend').innerText = (stats.totalSalesPercent > 0 ? '+' : '') + (stats.totalSalesPercent || 0) + '%';
+            document.getElementById('total-sales-trend').className = stats.totalSalesPercent >= 0 ? 'trend-up' : 'trend-down';
+            document.getElementById('total-sales-week').innerText = (stats.totalSalesWeek || 0) + ' this week';
+
+            document.getElementById('incoming-orders-value').innerText = stats.incomingOrders || 0;
+            document.getElementById('incoming-orders-trend').innerText = (stats.incomingOrdersPercent > 0 ? '+' : '') + (stats.incomingOrdersPercent || 0) + '%';
+            document.getElementById('incoming-orders-trend').className = stats.incomingOrdersPercent >= 0 ? 'trend-up' : 'trend-down';
+
+            document.getElementById('orders-today-value').innerText = stats.ordersToday || 0;
+            document.getElementById('orders-today-trend').innerText = (stats.ordersTodayPercent > 0 ? '+' : '') + (stats.ordersTodayPercent || 0) + '%';
+            document.getElementById('orders-today-trend').className = stats.ordersTodayPercent >= 0 ? 'trend-up' : 'trend-down';
+        } catch (err) {}
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        const periodSelect = document.getElementById('performance-period');
+        if (periodSelect) {
+            periodSelect.addEventListener('change', function() {
+                drawSalesPerformanceChart(this.value);
+            });
+        }
+        const exportBtn = document.getElementById('export-performance');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', function() {
+                const period = document.getElementById('performance-period').value || '14';
+                window.open('/analytics/export-performance?days=' + period, '_blank');
+            });
+        }
+        fetchDashboardStats();
+        drawSalesPerformanceChart();
+        drawTopCategoriesChart();
+    });
+    async function drawSalesPerformanceChart(days=14) {
+        let results = [];
+        try {
+            const res = await fetch('/analytics/sales-performance?days=' + days);
+            if (res.ok) {
+                results = await res.json();
+            }
+        } catch (err) {}
+        if (!Array.isArray(results) || !results.length) {
+            results = [];
+        }
+        const chartElement = document.getElementById('salesPerformanceChart');
+        if (!chartElement) return;
+        if (window.salesPerformanceChart && typeof window.salesPerformanceChart.destroy === 'function') window.salesPerformanceChart.destroy();
+        const labels = results.map(r => r.date);
+        const earnings = results.map(r => r.earnings);
+        const costs = results.map(r => r.costs);
+        window.salesPerformanceChart = new Chart(chartElement, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Earnings',
+                        data: earnings,
+                        backgroundColor: 'rgba(108,52,31,0.1)',
+                        borderColor: 'rgba(108,52,31,1)',
+                        tension: 0.3,
+                        borderWidth: 2,
+                        pointRadius: 2
+                    },
+                    {
+                        label: 'Costs',
+                        data: costs,
+                        backgroundColor: 'rgba(180,180,180,0.08)',
+                        borderColor: '#999',
+                        tension: 0.3,
+                        borderWidth: 2,
+                        pointRadius: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                aspectRatio: 2.2,
+                plugins: {
+                    legend: { display: true, labels: { font: { size: 14 } } },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                if (context.dataset.label === 'Earnings') {
+                                    return `Earnings: ₱${context.parsed.y.toLocaleString('en-PH', {minimumFractionDigits:2})}`;
+                                } else if (context.dataset.label === 'Costs') {
+                                    return `Costs: ₱${context.parsed.y.toLocaleString('en-PH', {minimumFractionDigits:2})}`;
+                                }
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: { ticks: { font: { size: 11 } } },
+                    y: { beginAtZero: true, ticks: { font: { size: 11 } } }
+                }
+            }
+        });
+        let totalEarnings = earnings.reduce((a, b) => a + b, 0);
+        let totalOrders = results.reduce((a, b) => a + (b.orders || 0), 0);
+        let avgEarnings = earnings.length ? (totalEarnings / earnings.length) : 0;
+        let infoHtml = `<div style="font-size:13px;color:#6b3e26;margin-top:10px;">
+            <b>Total Earnings:</b> ₱${totalEarnings.toLocaleString('en-PH', {minimumFractionDigits:2})}<br>
+            <b>Total Orders:</b> ${totalOrders}<br>
+            <b>Avg Earnings/Day:</b> ₱${avgEarnings.toLocaleString('en-PH', {minimumFractionDigits:2})}
+        </div>`;
+        document.getElementById('sales-performance-info').innerHTML = infoHtml;
+    }
+    async function drawTopCategoriesChart() {
+        const loadingIndicator = document.getElementById('categories-loading-indicator');
+        if (loadingIndicator) loadingIndicator.style.display = 'flex';
+        let categories = [];
+        try {
+            const res = await fetch('/analytics/top-categories');
+            if (res.ok) {
+                categories = await res.json();
+                if (!Array.isArray(categories) || !categories.length || !categories[0].name) {
+                    categories = [];
+                }
+            }
+        } catch (error) {}
+        if (!categories.length) {
+            categories = [
+                { name: 'Coffee', value: 295, quantity: 5, orderCount: 5 },
+                { name: 'Milktea', value: 200, quantity: 4, orderCount: 4 },
+                { name: 'Pastries', value: 255, quantity: 4, orderCount: 3 },
+                { name: 'Fruit Tea', value: 78, quantity: 2, orderCount: 2 }
+            ];
+        }
+        const chartElement = document.getElementById('topCategoriesChart');
+        if (!chartElement) return;
+        if (window.topCategoriesChart && typeof window.topCategoriesChart.destroy === 'function') window.topCategoriesChart.destroy();
+        const labels = categories.map(c => c.name || 'Unnamed');
+        const values = categories.map(c => c.value || 0);
+        const orderCounts = categories.map(c => c.orderCount || 0);
+        const quantities = categories.map(c => c.quantity || 0);
+        const colors = ['#6d4f2c','#a05c2f','#c1a97b','#e3dac9','#d2a679','#9d7a56','#b7966c','#8b7355'];
+        if (loadingIndicator) loadingIndicator.style.display = 'none';
+        window.topCategoriesChart = new Chart(chartElement, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: colors.slice(0, labels.length),
+                    borderWidth: 3,
+                    borderColor: '#ffffff',
+                    hoverBorderWidth: 4,
+                    hoverBorderColor: '#6b3e26'
+                }]
+            },
+            options: {
+                cutout: '65%',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(107, 62, 38, 0.95)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: '#6b3e26',
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        displayColors: true,
+                        callbacks: {
+                            label: function(context) {
+                                const idx = context.dataIndex;
+                                const total = values.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : '0.0';
+                                return [
+                                    `Sales: ₱${context.parsed.toLocaleString('en-PH')}`,
+                                    `Items: ${quantities[idx] || 0}`,
+                                    `Orders: ${orderCounts[idx] || 0}`,
+                                    `Share: ${percentage}%`
+                                ];
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    animateRotate: true,
+                    duration: 1500,
+                    easing: 'easeInOutCubic'
+                }
+            }
+        });
+        const totalValue = values.reduce((sum, val) => sum + val, 0) || 1;
+        let listHtml = '';
+        for(let i = 0; i < labels.length; i++) {
+            const percentage = ((values[i] / totalValue) * 100).toFixed(1);
+            listHtml += `
+            <div class="cat-row" data-category="${labels[i]}">
+                <div class="cat-info">
+                    <span class="cat-dot" style="background:${colors[i % colors.length]}"></span>
+                    <span class="cat-name">${labels[i]}</span>
+                </div>
+                <div class="cat-details">
+                    <span class="cat-val">₱${values[i].toLocaleString('en-PH', {minimumFractionDigits:0})}</span>
+                    <span class="cat-percent">${percentage}%</span>
+                    <span class="cat-orders">${orderCounts[i] || 0} orders</span>
+                </div>
+            </div>
+        `;
+        }
+        const listElement = document.getElementById('top-categories-list');
+        if (listElement) {
+            listElement.innerHTML = listHtml;
+            setTimeout(() => {
+                document.querySelectorAll('.cat-row').forEach((row, index) => {
+                    row.addEventListener('mouseenter', () => {
+                        if (window.topCategoriesChart) {
+                            try {
+                                window.topCategoriesChart.setActiveElements([{
+                                    datasetIndex: 0,
+                                    index: index
+                                }]);
+                                window.topCategoriesChart.update('none');
+                            } catch (e) {}
+                        }
+                        row.style.backgroundColor = 'rgba(107, 62, 38, 0.05)';
+                    });
+                    row.addEventListener('mouseleave', () => {
+                        if (window.topCategoriesChart) {
+                            try {
+                                window.topCategoriesChart.setActiveElements([]);
+                                window.topCategoriesChart.update('none');
+                            } catch (e) {}
+                        }
+                        row.style.backgroundColor = 'transparent';
+                    });
+                });
+            }, 100);
+        }
+    }
+</script>
 <style>
-.dashboard-header { display: flex; justify-content: space-between; align-items: center; }
-.left-section h2 { font-size: 28px; font-weight: 600; }
-.right-section { display: flex; align-items: center; gap: 20px; }
-.notification { position: relative; font-size: 22px; cursor: pointer; }
-.notification .badge { position: absolute; top: -8px; right: -10px; background-color: #d9534f; color: white; border-radius: 50%; padding: 4px 8px; font-size: 10px; }
-.date-time { text-align: right; font-weight: 600; font-size: 14px; }
-.date-time .time { font-size: 36px; color: #7a3f1c; }
-.search-bar { display: flex; margin: 20px 0; gap: 10px; }
-.search-bar input { flex: 1; padding: 10px; font-size: 14px; border-radius: 8px; border: 1px solid #ccc; }
-.search-bar button { background-color: #a05c2f; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; }
-.search-bar button:hover { background-color: #7a3f1c; }
-.cards { display: flex; gap: 20px; margin-top: 30px; }
-.card { background-color: #ffe4c4; border-radius: 20px; padding: 20px; flex: 1; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; }
-.card h4 { font-size: 16px; margin-bottom: 10px; }
-.card h1 { font-size: 40px; font-weight: bold; color: #a05c2f; }
+    .dashboard-cards-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 26px;
+        margin-top: 32px;
+    }
+    .dashboard-header-greeting {
+        margin-bottom: 18px;
+        font-size: 25px;
+        font-weight: 600;
+        color: #7a3f1c;
+    }
+    .main-summary-cards {
+        display: flex;
+        gap: 24px;
+    }
+    .summary-card {
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 6px 24px rgba(160,92,47,0.08);
+        padding: 25px 26px 22px 26px;
+        display: flex;
+        align-items: center;
+        min-width: 220px;
+        flex: 1 0 0;
+        gap: 18px;
+        position: relative;
+    }
+    .summary-card .icon {
+        background: #ffe4c4;
+        border-radius: 12px;
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        color: #a05c2f;
+        margin-right: 10px;
+    }
+    .summary-card .card-label {
+        font-size: 15px;
+        font-weight: 500;
+        color: #7a3f1c;
+    }
+    .summary-card .card-sub {
+        font-size: 13px;
+        color: #bcb3a6;
+        margin-bottom: 7px;
+    }
+    .summary-card .card-value {
+        font-size: 32px;
+        font-weight: 600;
+        color: #2d1f19;
+    }
+    .summary-card .card-trends {
+        margin-top: 7px;
+        font-size: 13px;
+        color: #999;
+        display: flex;
+        gap: 13px;
+        align-items: center;
+    }
+    .trend-up { color: #3d9656; }
+    .trend-down { color: #e85959; }
+    .performance-cards-row {
+        display: flex;
+        gap: 24px;
+    }
+    .card {
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 6px 24px rgba(160,92,47,0.08);
+        padding: 28px 24px 24px 24px;
+        flex: 1 0 0;
+        min-width: 0;
+        min-height: 220px;
+        display: flex;
+        flex-direction: column;
+    }
+    .card-header-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+    }
+    .card-label {
+        font-size: 18px;
+        font-weight: 600;
+        color: #6b3e26;
+    }
+    .card-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .action-btn {
+        border: none;
+        background: #e3dac9;
+        color: #a05c2f;
+        border-radius: 6px;
+        font-size: 13px;
+        padding: 5px 15px;
+        cursor: pointer;
+        margin-top: 3px;
+    }
+    .period-select {
+        border: 1px solid #d2a679;
+        border-radius: 6px;
+        font-size: 13px;
+        color: #7a3f1c;
+        background: #fff;
+        padding: 5px 10px;
+    }
+    .sales-performance {
+        flex: 2 0 0;
+        min-width: 340px;
+        min-height: 540px;
+    }
+    .top-categories {
+        flex: 1 0 0;
+        min-width: 240px;
+        align-items: flex-start;
+        position: relative;
+        min-height: 540px;
+        justify-content: flex-start;
+    }
+    .top-categories-chart-container {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 0;
+        margin-top: 15px;
+        position: relative;
+        height: 220px;
+    }
+    #top-categories-list {
+        margin-top: 8px;
+        max-height: 280px;
+        overflow-y: auto;
+        padding-right: 5px;
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        transition: width 0.2s;
+    }
+    #top-categories-list::-webkit-scrollbar {
+        width: 4px;
+    }
+    #top-categories-list::-webkit-scrollbar-thumb {
+        background: rgba(160, 92, 47, 0.3);
+        border-radius: 2px;
+    }
+    .cat-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 13px;
+        margin-bottom: 8px;
+        padding: 6px 8px;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        position: relative;
+    }
+    .cat-row:hover {
+        background-color: rgba(107, 62, 38, 0.05);
+        transform: translateX(2px);
+    }
+    .cat-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex: 1;
+    }
+    .cat-dot {
+        width: 12px;
+        height: 12px;
+        display: inline-block;
+        border-radius: 50%;
+        margin-right: 0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        flex-shrink: 0;
+    }
+    .cat-name {
+        font-weight: 500;
+        color: #6b3e26;
+        font-size: 13px;
+    }
+    .cat-details {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 2px;
+    }
+    .cat-val {
+        font-size: 13px;
+        font-weight: 600;
+        color: #6b3e26;
+    }
+    .cat-percent {
+        font-size: 11px;
+        color: #999;
+        font-weight: 400;
+    }
+    .cat-orders {
+        font-size: 11px;
+        color: #bcb3a6;
+        font-weight: 400;
+    }
+    .chart-loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 140px;
+        width: 100%;
+        color: #999;
+        font-size: 14px;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 8px;
+    }
+    @media (max-width: 1150px) {
+        .main-summary-cards, .performance-cards-row { flex-direction: column; gap: 22px; }
+        .sales-performance, .top-categories { min-width: 0; min-height: 420px; }
+        .top-categories-chart-container { height: 180px; }
+    }
+    @media (max-width: 768px) {
+        .top-categories-chart-container {
+            height: 120px;
+            margin-bottom: 15px;
+        }
+        .cat-row {
+            font-size: 12px;
+            margin-bottom: 6px;
+            padding: 5px 6px;
+        }
+        .cat-name {
+            font-size: 12px;
+        }
+        .cat-val {
+            font-size: 12px;
+        }
+        .cat-percent {
+            font-size: 10px;
+        }
+        .sales-performance, .top-categories { min-height: 320px; }
+    }
+    @media (max-width: 700px) {
+        .dashboard-cards-grid { gap: 18px; }
+        .main-summary-cards, .performance-cards-row { flex-direction: column; gap: 14px; }
+        .summary-card, .card { padding: 17px 12px 15px 12px; }
+        .card-label { font-size: 16px; }
+        .sales-performance, .top-categories { min-height: 220px; }
+    }
 </style>
