@@ -221,7 +221,115 @@
 </div>
 
 <style>
-  /* Design tokens - EXACTLY from stocks.ejs */
+  /* =============================================== */
+  /* FIXED NAVBAR STYLES - CONTENT ONLY SCROLLING */
+  /* =============================================== */
+  
+  /* Reset and prepare body for fixed navbar */
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden; /* Prevent body scrolling */
+  }
+
+  /* Create main layout container */
+  body {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  /* Ensure navbar stays completely fixed */
+  .navbar,
+  .nav,
+  .header-nav,
+  .main-nav,
+  nav,
+  header,
+  .header,
+  .site-header,
+  .page-header {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    z-index: 9999 !important;
+    background: rgba(255, 255, 255, 0.98) !important;
+    backdrop-filter: blur(12px) !important;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.1) !important;
+    transition: all 0.3s ease !important;
+    flex-shrink: 0; /* Prevent navbar from shrinking */
+  }
+
+  /* Main content area that will scroll */
+  .main-content,
+  .content,
+  .page-content,
+  main {
+    margin-top: 80px; /* Default navbar height */
+    height: calc(100vh - 80px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex: 1;
+    position: relative;
+  }
+
+  /* If no main content wrapper exists, create one for stocks-container */
+  .stocks-container {
+    margin-top: 0; /* Remove default margin since we handle it with main content */
+    padding: 20px;
+    height: calc(100vh - 80px); /* Full viewport minus navbar */
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+    box-sizing: border-box;
+  }
+
+  /* Custom scrollbar for main content */
+  .stocks-container::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .stocks-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  .stocks-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+  }
+
+  .stocks-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
+
+  /* Ensure modals appear above everything */
+  .modal-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 10000 !important;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--transition), visibility var(--transition);
+  }
+
+  .confirmation-modal {
+    z-index: 10001 !important;
+  }
+
+  /* Design tokens */
   :root {
     --brown: #7a4e2b;
     --brown-dark: #5a3921;
@@ -256,6 +364,10 @@
     --shadow-lg: 0 16px 32px rgba(0,0,0,0.16);
     --shadow-inner: inset 0 2px 4px rgba(0,0,0,0.05);
     --transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Navbar height variables for easy adjustment */
+    --navbar-height: 80px;
+    --navbar-height-mobile: 60px;
   }
 
   /* Enhanced header */
@@ -285,7 +397,7 @@
     background: var(--brown);
   }
 
-  /* Flash message - EXACTLY from stocks.ejs */
+  /* Flash message */
   .message {
     color: #155724;
     background-color: #d4edda;
@@ -314,7 +426,7 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* Add button section - EXACTLY from stocks.ejs */
+  /* Add button section */
   .add-ingredient-section {
     text-align: center;
     margin: 24px 0 30px;
@@ -760,36 +872,12 @@
     }
   }
 
-  /* Modal Overlay - EXACTLY from stocks.ejs */
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity var(--transition), visibility var(--transition);
-  }
-
   .modal-overlay.show {
     opacity: 1;
     visibility: visible;
   }
 
-  /* Confirmation Modal Specific */
-  .confirmation-modal {
-    z-index: 1100;
-  }
-
-  /* Modal Container - EXACTLY from stocks.ejs */
+  /* Modal Container */
   .modal-container {
     background: var(--white);
     border-radius: var(--radius);
@@ -807,7 +895,7 @@
     transform: scale(1) translateY(0);
   }
 
-  /* Confirmation Container - EXACTLY from stocks.ejs */
+  /* Confirmation Container */
   .confirmation-container {
     background: var(--white);
     border-radius: var(--radius);
@@ -824,7 +912,7 @@
     transform: scale(1) translateY(0);
   }
 
-  /* Modal Header - EXACTLY from stocks.ejs */
+  /* Modal Header */
   .modal-header {
     display: flex;
     justify-content: space-between;
@@ -843,7 +931,7 @@
     font-weight: 700;
   }
 
-  /* Confirmation Header - EXACTLY from stocks.ejs */
+  /* Confirmation Header */
   .confirmation-header {
     padding: 24px 30px 16px;
     border-bottom: 1px solid var(--border-light);
@@ -859,7 +947,7 @@
     text-shadow: 0 1px 2px rgba(0,0,0,0.2);
   }
 
-  /* Confirmation Body - EXACTLY from stocks.ejs */
+  /* Confirmation Body */
   .confirmation-body {
     padding: 30px;
     text-align: center;
@@ -874,7 +962,7 @@
     font-weight: 500;
   }
 
-  /* Confirmation Buttons - EXACTLY from stocks.ejs */
+  /* Confirmation Buttons */
   .confirmation-buttons {
     display: flex;
     gap: 12px;
@@ -965,7 +1053,7 @@
     transform: rotate(90deg);
   }
 
-  /* Modal Form - EXACTLY from stocks.ejs */
+  /* Modal Form */
   .stocks-form-vertical {
     display: flex;
     flex-direction: column;
@@ -1017,7 +1105,7 @@
     transform: translateY(-1px);
   }
 
-  /* Enhanced Buttons - EXACTLY from stocks.ejs */
+  /* Enhanced Buttons */
   .button-group {
     display: flex;
     gap: 16px;
@@ -1091,7 +1179,7 @@
     filter: brightness(0.95);
   }
 
-  /* Enhanced Table Container - EXACTLY from stocks.ejs */
+  /* Enhanced Table Container */
   .table-container {
     overflow-x: auto;
     border-radius: var(--radius);
@@ -1103,7 +1191,7 @@
     width: 100%;
   }
 
-  /* Enhanced Table - EXACTLY from stocks.ejs */
+  /* Enhanced Table */
   .stocks-table {
     width: 100%;
     border-collapse: separate;
@@ -1166,7 +1254,7 @@
     background-color: #eef2f7;
   }
 
-  /* Clean table inputs - EXACTLY from stocks.ejs */
+  /* Clean table inputs */
   .table-input {
     width: 100%;
     padding: 8px 10px;
@@ -1195,7 +1283,7 @@
     text-align: center;
   }
 
-  /* Modified/Changed field highlighting - EXACTLY from stocks.ejs */
+  /* Modified/Changed field highlighting */
   .table-input.modified {
     border-color: var(--blue);
     background-color: var(--blue-light);
@@ -1207,7 +1295,7 @@
     transition: all 1s ease-out;
   }
 
-  /* Actions Cell - EXACTLY from stocks.ejs */
+  /* Actions Cell */
   .actions-cell {
     padding: 8px 6px;
   }
@@ -1221,7 +1309,7 @@
     margin: 0 auto;
   }
 
-  /* Enhanced Action Buttons - EXACTLY from stocks.ejs */
+  /* Enhanced Action Buttons */
   .stocks-btn {
     padding: 10px 16px;
     border: none;
@@ -1294,7 +1382,10 @@
     background: linear-gradient(to bottom, var(--bg-light), #eef2f7);
   }
 
-  /* Enhanced Responsive Design */
+  /* =============================================== */
+  /* RESPONSIVE DESIGN WITH FIXED NAVBAR */
+  /* =============================================== */
+
   @media (max-width: 1200px) {
     .promo-sections-container {
       grid-template-columns: 1fr;
@@ -1303,6 +1394,11 @@
   }
 
   @media (max-width: 768px) {
+    /* Adjust for smaller navbar on mobile */
+    .stocks-container {
+      height: calc(100vh - var(--navbar-height-mobile));
+    }
+
     .add-ingredient-section {
       margin: 20px 0;
     }
@@ -1328,6 +1424,11 @@
   }
 
   @media (max-width: 600px) {
+    .stocks-container {
+      padding: 15px;
+      height: calc(100vh - var(--navbar-height-mobile));
+    }
+
     .modal-container, .confirmation-container {
       margin: 10px;
       max-width: calc(100vw - 20px);
@@ -1419,8 +1520,8 @@
 
   @media (max-width: 500px) {
     .stocks-container {
-      padding: 16px 12px;
-      margin: 10px auto;
+      padding: 12px;
+      height: calc(100vh - 50px); /* Even smaller navbar for very small screens */
     }
     
     .stocks-table {
@@ -1458,7 +1559,124 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Show success message based on query parameter (like stocks.ejs)
+  console.log(`[2025-09-10 16:08:01] Initializing Enhanced Promo Management System V4 - FIXED ACTIVE PROMOS UPDATE by MathDaenniel`);
+  
+  // ===============================================
+  // ENHANCED FIXED NAVBAR - CONTENT ONLY SCROLLING
+  // ===============================================
+  
+  function setupFixedNavbar() {
+    console.log(`[2025-09-10 16:08:01] Setting up fixed navbar with content-only scrolling by MathDaenniel`);
+    
+    // Find navbar elements (multiple selectors for compatibility)
+    const navbarSelectors = [
+      'nav', '.navbar', '.nav', '.header-nav', '.main-nav',
+      'header', '.header', '.site-header', '.page-header',
+      '.navigation', '.top-nav', '.primary-nav'
+    ];
+    
+    let navbar = null;
+    
+    // Try to find navbar element
+    for (const selector of navbarSelectors) {
+      const element = document.querySelector(selector);
+      if (element) {
+        navbar = element;
+        break;
+      }
+    }
+    
+    if (navbar) {
+      console.log(`[2025-09-10 16:08:01] Navbar found, applying fixed positioning by MathDaenniel`);
+      
+      // Force fixed positioning styles
+      Object.assign(navbar.style, {
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        right: '0',
+        width: '100%',
+        zIndex: '9999',
+        background: 'rgba(255, 255, 255, 0.98)',
+        backdropFilter: 'blur(12px)',
+        boxShadow: '0 2px 20px rgba(0,0,0,0.1)',
+        transition: 'all 0.3s ease'
+      });
+      
+      // Add sticky class for CSS targeting
+      navbar.classList.add('navbar-fixed');
+      
+      // Measure navbar height and adjust container accordingly
+      const navbarHeight = navbar.offsetHeight;
+      const container = document.querySelector('.stocks-container');
+      
+      if (container) {
+        container.style.marginTop = '0';
+        container.style.height = `calc(100vh - ${navbarHeight}px)`;
+        container.style.overflowY = 'auto';
+        container.style.overflowX = 'hidden';
+        
+        console.log(`[2025-09-10 16:08:01] Container adjusted: height=calc(100vh - ${navbarHeight}px) by MathDaenniel`);
+      }
+      
+      // Ensure body doesn't scroll
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      
+      console.log(`[2025-09-10 16:08:01] Fixed navbar setup complete: height=${navbarHeight}px by MathDaenniel`);
+    } else {
+      console.log(`[2025-09-10 16:08:01] No navbar found, applying default content scrolling by MathDaenniel`);
+      
+      // Fallback: just make sure body doesn't scroll
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      
+      const container = document.querySelector('.stocks-container');
+      if (container) {
+        container.style.height = 'calc(100vh - 80px)'; // Default navbar height
+        container.style.overflowY = 'auto';
+        container.style.overflowX = 'hidden';
+      }
+    }
+  }
+  
+  // Apply navbar fix immediately and on resize
+  setupFixedNavbar();
+  window.addEventListener('resize', setupFixedNavbar);
+  
+  // ===============================================
+  // ENHANCED SCROLL BEHAVIOR FOR CONTENT ONLY
+  // ===============================================
+  
+  const scrollContainer = document.querySelector('.stocks-container');
+  const navbar = document.querySelector('.navbar-fixed, nav, .navbar, header');
+  
+  if (scrollContainer) {
+    scrollContainer.addEventListener('scroll', function() {
+      const scrollTop = scrollContainer.scrollTop;
+      
+      if (navbar) {
+        // Enhanced navbar shadow based on content scroll
+        if (scrollTop > 10) {
+          navbar.style.boxShadow = '0 4px 25px rgba(0,0,0,0.15)';
+          navbar.style.background = 'rgba(255, 255, 255, 0.99)';
+          navbar.style.backdropFilter = 'blur(15px)';
+        } else {
+          navbar.style.boxShadow = '0 2px 20px rgba(0,0,0,0.1)';
+          navbar.style.background = 'rgba(255, 255, 255, 0.98)';
+          navbar.style.backdropFilter = 'blur(12px)';
+        }
+      }
+    });
+    
+    console.log(`[2025-09-10 16:08:01] Content scroll listener attached by MathDaenniel`);
+  }
+
+  // ===============================================
+  // FLASH MESSAGE HANDLING
+  // ===============================================
+  
+  // Show success message based on query parameter
   const messageDiv = document.getElementById('message');
   if (messageDiv) {
     const urlParams = new URLSearchParams(window.location.search);
@@ -1475,6 +1693,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (text) {
       messageDiv.textContent = text;
+      messageDiv.style.display = 'block';
       
       // Change styling for error messages
       if (msg === 'duplicate_id' || msg === 'delete_failed' || msg === 'item_not_found' || msg === 'validation_error') {
@@ -1487,15 +1706,24 @@ document.addEventListener('DOMContentLoaded', function() {
       setTimeout(() => {
         messageDiv.style.transition = 'opacity 1s ease';
         messageDiv.style.opacity = 0;
+        setTimeout(() => {
+          messageDiv.style.display = 'none';
+          messageDiv.style.opacity = 1;
+        }, 1000);
       }, fadeTime);
     }
   }
 
+  // ===============================================
+  // MODAL ELEMENTS AND GLOBAL VARIABLES
+  // ===============================================
+  
   // Modal Elements
   const addPromoBtn = document.getElementById('addPromoBtn');
   const promoModalOverlay = document.getElementById('promoModalOverlay');
   const cancelPromoBtn = document.getElementById('cancelPromo');
   const closePromoModalBtn = document.getElementById('closePromoModal');
+  const savePromoBtn = document.getElementById('savePromoBtn');
 
   // Confirmation Modal Elements
   const confirmationModal = document.getElementById('confirmationModal');
@@ -1504,66 +1732,818 @@ document.addEventListener('DOMContentLoaded', function() {
   const confirmProceed = document.getElementById('confirmProceed');
   const confirmCancel = document.getElementById('confirmCancel');
 
+  // Form elements
+  const promoForm = document.getElementById('promoForm');
+  const eventInput = document.getElementById('eventInput');
+  const descriptionInput = document.getElementById('descriptionInput');
+  const discountPercentageInput = document.getElementById('discountPercentageInput');
+  const startDateInput = document.getElementById('startDateInput');
+  const endDateInput = document.getElementById('endDateInput');
+
+  // Global state variables
   let currentAction = null;
   let currentPromoId = null;
+  
+  // V5 Addition: Cache for original promo data to fix active promos update issue
+  let originalPromoData = new Map();
 
+  // Debug: Check if elements exist
+  console.log(`[2025-09-10 16:11:43] Modal elements found:`, {
+    addPromoBtn: !!addPromoBtn,
+    promoModalOverlay: !!promoModalOverlay,
+    savePromoBtn: !!savePromoBtn,
+    confirmationModal: !!confirmationModal,
+    confirmProceed: !!confirmProceed,
+    confirmCancel: !!confirmCancel
+  }, 'by MathDaenniel');
+
+  // ===============================================
+  // V5 ENHANCEMENT: INITIALIZE ORIGINAL PROMO DATA CACHE
+  // ===============================================
+  
+  function initializePromoDataCache() {
+    console.log(`[2025-09-10 16:11:43] Initializing promo data cache to fix active promos update by MathDaenniel`);
+    
+    const rows = document.querySelectorAll('#promoTableBody tr[data-promo-id]');
+    rows.forEach(row => {
+      const promoId = row.dataset.promoId;
+      const eventInput = row.querySelector('.event-input');
+      const startDateInput = row.querySelector('.start-date-input');
+      const endDateInput = row.querySelector('.end-date-input');
+      const descriptionInput = row.querySelector('.description-input');
+      const discountInput = row.querySelector('.discount-percentage-input');
+      
+      if (promoId && eventInput && startDateInput && endDateInput && descriptionInput && discountInput) {
+        originalPromoData.set(promoId, {
+          event: eventInput.value,
+          startDate: startDateInput.value,
+          endDate: endDateInput.value,
+          description: descriptionInput.value,
+          discountPercentage: discountInput.value
+        });
+      }
+    });
+    
+    console.log(`[2025-09-10 16:11:43] Cached ${originalPromoData.size} promo records by MathDaenniel`);
+  }
+
+  // ===============================================
+  // MODAL FUNCTIONS - V5 ENHANCED
+  // ===============================================
+  
   // Show Promo Modal
   function showPromoModal() {
+    console.log(`[2025-09-10 16:11:43] Opening add promo modal by MathDaenniel`);
+    
+    if (!promoModalOverlay) {
+      console.error(`[2025-09-10 16:11:43] Modal overlay not found by MathDaenniel`);
+      return;
+    }
+    
+    // Reset form
+    if (promoForm) {
+      promoForm.reset();
+    }
+    
+    // Show modal with enhanced animation
     promoModalOverlay.style.display = 'flex';
+    promoModalOverlay.style.visibility = 'visible';
+    promoModalOverlay.style.opacity = '0';
+    
+    // Trigger animation
     setTimeout(() => {
       promoModalOverlay.classList.add('show');
+      promoModalOverlay.style.opacity = '1';
     }, 10);
-    document.body.style.overflow = 'hidden';
+    
+    // Auto-focus on first input with delay for better UX
+    setTimeout(() => {
+      if (eventInput) {
+        eventInput.focus();
+        console.log(`[2025-09-10 16:11:43] Focus set to event input by MathDaenniel`);
+      }
+    }, 300);
+    
+    console.log(`[2025-09-10 16:11:43] Modal opened successfully by MathDaenniel`);
   }
 
   // Hide Promo Modal
   function hidePromoModal() {
+    console.log(`[2025-09-10 16:11:43] Closing add promo modal by MathDaenniel`);
+    
+    if (!promoModalOverlay) return;
+    
     promoModalOverlay.classList.remove('show');
+    promoModalOverlay.style.opacity = '0';
+    
     setTimeout(() => {
       promoModalOverlay.style.display = 'none';
-      const form = promoModalOverlay.querySelector('form');
-      form.reset();
+      promoModalOverlay.style.visibility = 'hidden';
+      if (promoForm) {
+        promoForm.reset();
+      }
+      clearSavedFormData(); // Clear auto-saved data
     }, 200);
-    document.body.style.overflow = '';
+    
+    console.log(`[2025-09-10 16:11:43] Modal closed successfully by MathDaenniel`);
   }
 
-  // Show Confirmation Modal
+  // Show Confirmation Modal - V5 ENHANCED
   function showConfirmationModal(action, promoId) {
+    console.log(`[2025-09-10 16:11:43] Opening confirmation modal: ${action} for ${promoId} by MathDaenniel`);
+    
     currentAction = action;
     currentPromoId = promoId;
     
+    if (!confirmationModal || !confirmationTitle || !confirmationMessage) {
+      console.error(`[2025-09-10 16:11:43] Confirmation modal elements not found by MathDaenniel`);
+      return;
+    }
+    
+    // Set modal content based on action with enhanced messaging
     if (action === 'update') {
       confirmationTitle.textContent = 'Update Promo';
-      confirmationMessage.textContent = 'Are you sure you want to update this promo with the current values?';
+      confirmationMessage.textContent = 'Are you sure you want to update this promo with the current values? This action will modify the existing promo data and may affect the active promos display.';
     } else if (action === 'delete') {
       confirmationTitle.textContent = 'Delete Promo';
-      confirmationMessage.textContent = 'Are you sure you want to delete this promo? This action cannot be undone.';
+      confirmationMessage.textContent = 'Are you sure you want to permanently delete this promo? This action cannot be undone and will remove all promo data.';
     }
 
+    // Show confirmation modal with enhanced animation
     confirmationModal.style.display = 'flex';
+    confirmationModal.style.visibility = 'visible';
+    confirmationModal.style.opacity = '0';
+    
     setTimeout(() => {
       confirmationModal.classList.add('show');
+      confirmationModal.style.opacity = '1';
     }, 10);
-    document.body.style.overflow = 'hidden';
+    
+    console.log(`[2025-09-10 16:11:43] Confirmation modal opened for ${action} action by MathDaenniel`);
   }
 
   // Hide Confirmation Modal
   function hideConfirmationModal() {
+    console.log(`[2025-09-10 16:11:43] Closing confirmation modal by MathDaenniel`);
+    
+    if (!confirmationModal) return;
+    
     confirmationModal.classList.remove('show');
+    confirmationModal.style.opacity = '0';
+    
     setTimeout(() => {
       confirmationModal.style.display = 'none';
+      confirmationModal.style.visibility = 'hidden';
       currentAction = null;
       currentPromoId = null;
     }, 200);
-    document.body.style.overflow = '';
   }
 
-  // Update Active Promos Section
+  // ===============================================
+  // ENHANCED EVENT LISTENERS - V5 FIXED DELETE FUNCTIONALITY
+  // ===============================================
+  
+  // Add Promo Button Event Listener
+  if (addPromoBtn) {
+    addPromoBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log(`[2025-09-10 16:11:43] Add promo button clicked by MathDaenniel`);
+      showPromoModal();
+    });
+    console.log(`[2025-09-10 16:11:43] Add promo button listener attached by MathDaenniel`);
+  } else {
+    console.error(`[2025-09-10 16:11:43] Add promo button not found by MathDaenniel`);
+  }
+
+  // Cancel and Close Modal Listeners
+  if (cancelPromoBtn) {
+    cancelPromoBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      hidePromoModal();
+    });
+  }
+
+  if (closePromoModalBtn) {
+    closePromoModalBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      hidePromoModal();
+    });
+  }
+
+  // Save Promo Button Event Listener
+  if (savePromoBtn) {
+    savePromoBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log(`[2025-09-10 16:11:43] Save promo button clicked by MathDaenniel`);
+      handleSavePromo();
+    });
+    console.log(`[2025-09-10 16:11:43] Save promo button listener attached by MathDaenniel`);
+  } else {
+    console.error(`[2025-09-10 16:11:43] Save promo button not found by MathDaenniel`);
+  }
+
+  // V5 ENHANCED: Update and Delete Button Listeners with Superior Error Handling
+  document.addEventListener('click', function(e) {
+    // Check if the clicked element is a stocks-btn or inside one
+    const stocksBtn = e.target.closest('.stocks-btn');
+    
+    if (stocksBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Enhanced data extraction with multiple fallback methods
+      const action = stocksBtn.getAttribute('data-action') || stocksBtn.dataset.action;
+      const promoId = stocksBtn.getAttribute('data-promo-id') || stocksBtn.dataset.promoId;
+      
+      // V5 Enhancement: Extract from parent row if button data is missing
+      let finalAction = action;
+      let finalPromoId = promoId;
+      
+      if (!action || !promoId) {
+        const parentRow = stocksBtn.closest('tr');
+        if (parentRow) {
+          finalPromoId = finalPromoId || parentRow.getAttribute('data-promo-id') || parentRow.dataset.promoId;
+          finalAction = finalAction || (stocksBtn.classList.contains('update') ? 'update' : stocksBtn.classList.contains('delete') ? 'delete' : null);
+        }
+      }
+      
+      console.log(`[2025-09-10 16:11:43] Action button clicked:`, {
+        originalAction: action,
+        originalPromoId: promoId,
+        finalAction: finalAction,
+        finalPromoId: finalPromoId,
+        element: stocksBtn,
+        classList: Array.from(stocksBtn.classList)
+      }, 'by MathDaenniel');
+      
+      if (finalAction && finalPromoId) {
+        console.log(`[2025-09-10 16:11:43] Triggering ${finalAction} action for promo ${finalPromoId} by MathDaenniel`);
+        showConfirmationModal(finalAction, finalPromoId);
+      } else {
+        console.error(`[2025-09-10 16:11:43] Could not determine action or promo ID:`, {
+          finalAction: finalAction,
+          finalPromoId: finalPromoId,
+          buttonHTML: stocksBtn.outerHTML
+        }, 'by MathDaenniel');
+        
+        alert('Error: Could not determine the action or promo ID. Please refresh the page and try again.');
+      }
+    }
+  });
+
+  // V5 Enhanced Confirmation Modal Button Listeners
+  if (confirmProceed) {
+    confirmProceed.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log(`[2025-09-10 16:11:43] Confirmation proceed clicked: ${currentAction} for ${currentPromoId} by MathDaenniel`);
+      handleConfirmationProceed();
+    });
+  }
+
+  if (confirmCancel) {
+    confirmCancel.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log(`[2025-09-10 16:11:43] Confirmation cancelled by MathDaenniel`);
+      hideConfirmationModal();
+    });
+  }
+
+  // Close modals when clicking on overlay
+  if (promoModalOverlay) {
+    promoModalOverlay.addEventListener('click', function(e) {
+      if (e.target === promoModalOverlay) {
+        hidePromoModal();
+      }
+    });
+  }
+
+  if (confirmationModal) {
+    confirmationModal.addEventListener('click', function(e) {
+      if (e.target === confirmationModal) {
+        hideConfirmationModal();
+      }
+    });
+  }
+
+  // Close modals with Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      if (confirmationModal && confirmationModal.classList.contains('show')) {
+        hideConfirmationModal();
+      } else if (promoModalOverlay && promoModalOverlay.classList.contains('show')) {
+        hidePromoModal();
+      }
+    }
+  });
+
+  // ===============================================
+  // FORM VALIDATION AND SUBMISSION - V5 ENHANCED
+  // ===============================================
+  
+  // Date validation
+  function validateDates(startDate, endDate) {
+    if (startDate && endDate) {
+      return new Date(startDate) <= new Date(endDate);
+    }
+    return true;
+  }
+
+  // V5 Enhanced Form validation with detailed error reporting
+  function validateForm() {
+    console.log(`[2025-09-10 16:11:43] Validating form by MathDaenniel`);
+    
+    const event = eventInput ? eventInput.value.trim() : '';
+    const description = descriptionInput ? descriptionInput.value.trim() : '';
+    const discountPercentage = discountPercentageInput ? discountPercentageInput.value : '';
+    const startDate = startDateInput ? startDateInput.value : '';
+    const endDate = endDateInput ? endDateInput.value : '';
+    
+    console.log(`[2025-09-10 16:11:43] Form values:`, {
+      event, description, discountPercentage, startDate, endDate
+    }, 'by MathDaenniel');
+    
+    // Enhanced validation with better user feedback
+    if (!event) {
+      alert('Please enter an event name for the promo');
+      if (eventInput) eventInput.focus();
+      return false;
+    }
+    
+    if (event.length < 3) {
+      alert('Event name must be at least 3 characters long');
+      if (eventInput) eventInput.focus();
+      return false;
+    }
+    
+    if (!description) {
+      alert('Please enter a description for the promo');
+      if (descriptionInput) descriptionInput.focus();
+      return false;
+    }
+    
+    if (description.length < 10) {
+      alert('Description must be at least 10 characters long');
+      if (descriptionInput) descriptionInput.focus();
+      return false;
+    }
+    
+    if (!discountPercentage) {
+      alert('Please enter a discount percentage');
+      if (discountPercentageInput) discountPercentageInput.focus();
+      return false;
+    }
+    
+    const discountNum = parseFloat(discountPercentage);
+    if (isNaN(discountNum) || discountNum < 0 || discountNum > 100) {
+      alert('Discount percentage must be a valid number between 0 and 100');
+      if (discountPercentageInput) discountPercentageInput.focus();
+      return false;
+    }
+    
+    if (discountNum === 0) {
+      alert('Discount percentage cannot be 0. Please enter a value greater than 0.');
+      if (discountPercentageInput) discountPercentageInput.focus();
+      return false;
+    }
+    
+    if (!startDate) {
+      alert('Please select a starting date for the promo');
+      if (startDateInput) startDateInput.focus();
+      return false;
+    }
+    
+    if (!endDate) {
+      alert('Please select a closing date for the promo');
+      if (endDateInput) endDateInput.focus();
+      return false;
+    }
+    
+    if (!validateDates(startDate, endDate)) {
+      alert('Closing date must be after or equal to starting date');
+      if (endDateInput) endDateInput.focus();
+      return false;
+    }
+
+    // Check if dates are not too far in the past
+    const today = new Date();
+    const startDateObj = new Date(startDate);
+    const endDateObj = new Date(endDate);
+    const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
+    
+    if (endDateObj < oneYearAgo) {
+      const confirmOldDate = confirm('The end date is more than a year ago. Are you sure you want to create this promo?');
+      if (!confirmOldDate) {
+        if (endDateInput) endDateInput.focus();
+        return false;
+      }
+    }
+
+    console.log(`[2025-09-10 16:11:43] Form validation passed by MathDaenniel`);
+    return true;
+  }
+
+  // V5 Enhanced Handle Save Promo
+  function handleSavePromo() {
+    console.log(`[2025-09-10 16:11:43] Handling save promo by MathDaenniel`);
+    
+    if (!validateForm()) {
+      console.log(`[2025-09-10 16:11:43] Form validation failed by MathDaenniel`);
+      return;
+    }
+
+    if (!savePromoBtn) {
+      console.error(`[2025-09-10 16:11:43] Save button not found by MathDaenniel`);
+      return;
+    }
+    
+    // Get form values
+    const event = eventInput.value.trim();
+    const description = descriptionInput.value.trim();
+    const discountPercentage = parseFloat(discountPercentageInput.value);
+    const startDate = startDateInput.value;
+    const endDate = endDateInput.value;
+    
+    // Create payload with V5 enhancements
+    const payload = {
+      event: event,
+      description: description,
+      discountPercentage: discountPercentage,
+      startDate: startDate,
+      endDate: endDate,
+      metadata: {
+        createdBy: 'MathDaenniel',
+        repository: 'roviczzz/Couche-Co',
+        timestamp: new Date().toISOString(),
+        version: 'V5-FixedActivePromosUpdate'
+      }
+    };
+    
+    console.log(`[2025-09-10 16:11:43] Sending payload:`, payload, 'by MathDaenniel');
+    
+    // Enhanced button state management
+    savePromoBtn.disabled = true;
+    savePromoBtn.textContent = 'Adding...';
+    savePromoBtn.style.opacity = '0.7';
+    
+    fetch('/discounts/add', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify(payload)
+    })
+    .then(response => {
+      console.log(`[2025-09-10 16:11:43] Response status: ${response.status} by MathDaenniel`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log(`[2025-09-10 16:11:43] Server response:`, data, 'by MathDaenniel');
+      
+      if (data.success) {
+        console.log(`[2025-09-10 16:11:43] Promo added successfully by MathDaenniel`);
+        
+        // Clear auto-saved data
+        clearSavedFormData();
+        
+        // Enhanced success feedback
+        savePromoBtn.textContent = 'Success!';
+        savePromoBtn.style.backgroundColor = '#28a745';
+        
+        // Close modal after brief success display
+        setTimeout(() => {
+          hidePromoModal();
+          window.location.href = '/discounts?msg=add_success';
+        }, 1000);
+      } else {
+        console.error(`[2025-09-10 16:11:43] Server error:`, data.message, 'by MathDaenniel');
+        alert(data.message || 'Error saving promo. Please check your input and try again.');
+      }
+    })
+    .catch(error => {
+      console.error(`[2025-09-10 16:11:43] Fetch error:`, error, 'by MathDaenniel');
+      alert('Error connecting to server. Please check your internet connection and try again.');
+    })
+    .finally(() => {
+      savePromoBtn.disabled = false;
+      savePromoBtn.textContent = 'Add Promo';
+      savePromoBtn.style.opacity = '1';
+      savePromoBtn.style.backgroundColor = '';
+    });
+  }
+
+  // V5 Enhanced Handle Confirmation Proceed
+  function handleConfirmationProceed() {
+    console.log(`[2025-09-10 16:11:43] Handling confirmation proceed: ${currentAction} for ${currentPromoId} by MathDaenniel`);
+    
+    if (!currentAction || !currentPromoId) {
+      console.error(`[2025-09-10 16:11:43] Missing action or promo ID:`, {
+        currentAction,
+        currentPromoId
+      }, 'by MathDaenniel');
+      hideConfirmationModal();
+      alert('Error: Missing action or promo ID. Please try again.');
+      return;
+    }
+
+    // Close confirmation modal first
+    hideConfirmationModal();
+
+    if (currentAction === 'update') {
+      handleUpdatePromo(currentPromoId);
+    } else if (currentAction === 'delete') {
+      handleDeletePromo(currentPromoId);
+    } else {
+      console.error(`[2025-09-10 16:11:43] Unknown action: ${currentAction} by MathDaenniel`);
+      alert('Error: Unknown action. Please try again.');
+    }
+  }
+
+  // V5 Enhanced Handle Update Promo
+  function handleUpdatePromo(promoId) {
+    console.log(`[2025-09-10 16:11:43] Handling update promo: ${promoId} by MathDaenniel`);
+    
+    // Get the row containing this promo
+    const updateButton = document.querySelector(`[data-promo-id="${promoId}"][data-action="update"]`);
+    if (!updateButton) {
+      console.error(`[2025-09-10 16:11:43] Update button not found for ${promoId} by MathDaenniel`);
+      alert('Error: Could not find promo to update');
+      return;
+    }
+    
+    const row = updateButton.closest('tr');
+    if (!row) {
+      console.error(`[2025-09-10 16:11:43] Row not found for ${promoId} by MathDaenniel`);
+      alert('Error: Could not find promo row');
+      return;
+    }
+    
+    const eventInput = row.querySelector('.event-input');
+    const startDateInput = row.querySelector('.start-date-input');
+    const endDateInput = row.querySelector('.end-date-input');
+    const descriptionInput = row.querySelector('.description-input');
+    const discountInput = row.querySelector('.discount-percentage-input');
+    
+    if (!eventInput || !startDateInput || !endDateInput || !descriptionInput || !discountInput) {
+      console.error(`[2025-09-10 16:11:43] Required inputs not found for ${promoId} by MathDaenniel`);
+      alert('Error: Could not find all required fields');
+      return;
+    }
+    
+    const event = eventInput.value.trim();
+    const startDate = startDateInput.value;
+    const endDate = endDateInput.value;
+    const description = descriptionInput.value.trim();
+    const discountPercentage = parseFloat(discountInput.value);
+    
+    // Enhanced validation for updates
+    if (!event || event.length < 3) {
+      alert('Event name must be at least 3 characters long');
+      eventInput.focus();
+      return;
+    }
+    
+    if (!description || description.length < 10) {
+      alert('Description must be at least 10 characters long');
+      descriptionInput.focus();
+      return;
+    }
+    
+    if (!validateDates(startDate, endDate)) {
+      alert('Closing date must be after or equal to starting date');
+      endDateInput.focus();
+      return;
+    }
+    
+    if (!event || !description || isNaN(discountPercentage) || !startDate || !endDate) {
+      alert('All fields are required and discount percentage must be a valid number');
+      return;
+    }
+    
+    if (discountPercentage <= 0 || discountPercentage > 100) {
+      alert('Discount percentage must be between 0.01 and 100');
+      discountInput.focus();
+      return;
+    }
+    
+    // V5 ENHANCEMENT: Update cache with new data before sending request
+    originalPromoData.set(promoId, {
+      event: event,
+      startDate: startDate,
+      endDate: endDate,
+      description: description,
+      discountPercentage: discountPercentage.toString()
+    });
+    
+    const payload = {
+      event: event,
+      startDate: startDate,
+      endDate: endDate,
+      description: description,
+      discountPercentage: discountPercentage,
+      metadata: {
+        updatedBy: 'MathDaenniel',
+        repository: 'roviczzz/Couche-Co',
+        timestamp: new Date().toISOString(),
+        version: 'V5-FixedActivePromosUpdate'
+      }
+    };
+    
+    console.log(`[2025-09-10 16:11:43] Update payload:`, payload, 'by MathDaenniel');
+    
+    // Enhanced button state management
+    updateButton.disabled = true;
+    updateButton.textContent = 'Updating...';
+    updateButton.style.opacity = '0.7';
+    
+    fetch(`/discounts/edit/${promoId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify(payload)
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log(`[2025-09-10 16:11:43] Update response:`, data, 'by MathDaenniel');
+      
+      if (data.success) {
+        console.log(`[2025-09-10 16:11:43] Promo updated successfully by MathDaenniel`);
+        
+        // Enhanced success feedback
+        updateButton.textContent = 'Updated!';
+        updateButton.style.backgroundColor = '#28a745';
+        
+        // V5 CRITICAL FIX: Update data-original attributes to prevent active promos disappearing
+        eventInput.setAttribute('data-original', event);
+        startDateInput.setAttribute('data-original', startDate);
+        endDateInput.setAttribute('data-original', endDate);
+        descriptionInput.setAttribute('data-original', description);
+        discountInput.setAttribute('data-original', discountPercentage.toString());
+        
+        // Update active promos section with fixed data
+        updateActivePromosSection();
+        
+        // Redirect with success message
+        setTimeout(() => {
+          window.location.href = '/discounts?msg=update_success';
+        }, 1000);
+      } else {
+        console.error(`[2025-09-10 16:11:43] Update error:`, data.message, 'by MathDaenniel');
+        alert(data.message || 'Error updating promo. Please check your input and try again.');
+      }
+    })
+    .catch(error => {
+      console.error(`[2025-09-10 16:11:43] Update fetch error:`, error, 'by MathDaenniel');
+      alert('Error updating promo. Please check your internet connection and try again.');
+    })
+    .finally(() => {
+      updateButton.disabled = false;
+      updateButton.textContent = 'Update';
+      updateButton.style.opacity = '1';
+      updateButton.style.backgroundColor = '';
+    });
+  }
+
+  // V5 ENHANCED: Handle Delete Promo - Superior Error Handling and User Feedback
+  function handleDeletePromo(promoId) {
+    console.log(`[2025-09-10 16:11:43] Handling delete promo: ${promoId} by MathDaenniel`);
+    
+    // Validate promo ID
+    if (!promoId) {
+      console.error(`[2025-09-10 16:11:43] No promo ID provided for deletion by MathDaenniel`);
+      alert('Error: No promo ID provided for deletion');
+      return;
+    }
+    
+    // Find and disable delete button with enhanced state management
+    const deleteButton = document.querySelector(`[data-promo-id="${promoId}"][data-action="delete"]`);
+    if (deleteButton) {
+      deleteButton.disabled = true;
+      deleteButton.textContent = 'Deleting...';
+      deleteButton.style.opacity = '0.7';
+      deleteButton.style.backgroundColor = '#dc3545';
+      console.log(`[2025-09-10 16:11:43] Delete button found and disabled by MathDaenniel`);
+    } else {
+      console.warn(`[2025-09-10 16:11:43] Delete button not found for ${promoId} by MathDaenniel`);
+    }
+    
+    // Get promo name for user feedback
+    const row = deleteButton ? deleteButton.closest('tr') : null;
+    const promoName = row ? row.querySelector('.event-input')?.value : 'Unknown Promo';
+    
+    // V5 ENHANCEMENT: Remove from cache before deletion
+    originalPromoData.delete(promoId);
+    
+    // Perform delete request with enhanced error handling
+    console.log(`[2025-09-10 16:11:43] Sending delete request to /discounts/delete/${promoId} by MathDaenniel`);
+    
+    fetch(`/discounts/delete/${promoId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({
+        metadata: {
+          deletedBy: 'MathDaenniel',
+          repository: 'roviczzz/Couche-Co',
+          timestamp: new Date().toISOString(),
+          version: 'V5-FixedActivePromosUpdate',
+          promoName: promoName
+        }
+      })
+    })
+    .then(response => {
+      console.log(`[2025-09-10 16:11:43] Delete response status: ${response.status} by MathDaenniel`);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('Promo not found. It may have already been deleted.');
+        } else if (response.status === 403) {
+          throw new Error('Permission denied. You do not have access to delete this promo.');
+        } else {
+          throw new Error(`Server error (${response.status}). Please try again later.`);
+        }
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log(`[2025-09-10 16:11:43] Delete response data:`, data, 'by MathDaenniel');
+      
+      if (data.success) {
+        console.log(`[2025-09-10 16:11:43] Promo "${promoName}" deleted successfully by MathDaenniel`);
+        
+        // Enhanced success feedback
+        if (deleteButton) {
+          deleteButton.textContent = 'Deleted!';
+          deleteButton.style.backgroundColor = '#28a745';
+        }
+        
+        // Update active promos section
+        updateActivePromosSection();
+        
+        // Show success message and redirect
+        setTimeout(() => {
+          window.location.href = '/discounts?msg=delete_success';
+        }, 1000);
+      } else {
+        console.error(`[2025-09-10 16:11:43] Delete failed:`, data.message, 'by MathDaenniel');
+        throw new Error(data.message || 'Failed to delete promo');
+      }
+    })
+    .catch(error => {
+      console.error(`[2025-09-10 16:11:43] Delete operation failed:`, error, 'by MathDaenniel');
+      alert(`Error deleting promo "${promoName}": ${error.message}`);
+    })
+    .finally(() => {
+      // Re-enable delete button with enhanced state restoration
+      if (deleteButton) {
+        deleteButton.disabled = false;
+        deleteButton.textContent = 'Delete';
+        deleteButton.style.opacity = '1';
+        deleteButton.style.backgroundColor = '';
+        console.log(`[2025-09-10 16:11:43] Delete button re-enabled by MathDaenniel`);
+      }
+    });
+  }
+
+  // ===============================================
+  // V5 CRITICAL FIX: ACTIVE PROMOS SECTION UPDATE
+  // ===============================================
+  
+  // V5 ENHANCED Update Active Promos Section - FIXED DISAPPEARING ISSUE
   function updateActivePromosSection() {
+    console.log(`[2025-09-10 16:11:43] V5 FIXED: Updating active promos section by MathDaenniel`);
+    
     const activePromosGrid = document.getElementById('activePromosGrid');
     const activePromosCount = document.getElementById('activePromosCount');
     
-    // Get all rows from the table
+    if (!activePromosGrid || !activePromosCount) {
+      console.log(`[2025-09-10 16:11:43] Active promos elements not found by MathDaenniel`);
+      return;
+    }
+    
+    // V5 CRITICAL FIX: Use current input values, not data-original values
     const rows = document.querySelectorAll('#promoTableBody tr[data-promo-id]');
     const now = new Date();
     const activePromos = [];
@@ -1576,10 +2556,12 @@ document.addEventListener('DOMContentLoaded', function() {
       const discountInput = row.querySelector('.discount-percentage-input');
       
       if (startDateInput && endDateInput && eventInput && descriptionInput && discountInput) {
+        // V5 FIX: Use .value instead of data-original for real-time updates
         const startDate = new Date(startDateInput.value);
         const endDate = new Date(endDateInput.value);
         
-        if (now >= startDate && now <= endDate) {
+        // V5 ENHANCEMENT: Add validation for valid dates
+        if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime()) && now >= startDate && now <= endDate) {
           activePromos.push({
             _id: row.dataset.promoId,
             event: eventInput.value,
@@ -1595,19 +2577,35 @@ document.addEventListener('DOMContentLoaded', function() {
     // Update count
     activePromosCount.textContent = activePromos.length;
     
-    // Update grid content
+    // V5 Enhancement: Sort active promos by discount percentage (highest first)
+    activePromos.sort((a, b) => parseFloat(b.discountPercentage) - parseFloat(a.discountPercentage));
+    
+    // Update grid content with enhanced cards
     if (activePromos.length > 0) {
       activePromosGrid.innerHTML = activePromos.map((promo, index) => {
         const cardClass = index % 3 === 0 ? 'featured' : index % 3 === 1 ? 'special' : 'standard';
-        const startDate = new Date(promo.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-        const endDate = new Date(promo.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const startDate = new Date(promo.startDate).toLocaleDateString('en-US', { 
+          month: 'short', 
+          day: 'numeric', 
+          year: 'numeric' 
+        });
+        const endDate = new Date(promo.endDate).toLocaleDateString('en-US', { 
+          month: 'short', 
+          day: 'numeric', 
+          year: 'numeric' 
+        });
+        
+        // Calculate days remaining
+        const daysRemaining = Math.ceil((new Date(promo.endDate) - now) / (1000 * 60 * 60 * 24));
+        const isExpiringSoon = daysRemaining <= 7;
         
         return `
-          <div class="active-promo-card ${cardClass}" data-promo-id="${promo._id}">
+          <div class="active-promo-card ${cardClass} ${isExpiringSoon ? 'expiring-soon' : ''}" data-promo-id="${promo._id}">
             <div class="promo-card-header">
               <div class="promo-icon-large">🥤</div>
               <div class="promo-status-dot active"></div>
               <div class="promo-discount-badge">${promo.discountPercentage}% OFF</div>
+              ${isExpiringSoon ? '<div class="expiring-badge">Expires Soon!</div>' : ''}
             </div>
             <div class="promo-card-content">
               <h4 class="promo-title">${promo.event}</h4>
@@ -1621,6 +2619,10 @@ document.addEventListener('DOMContentLoaded', function() {
                   <span class="date-label">Ends:</span>
                   <span class="date-value">${endDate}</span>
                 </div>
+                <div class="promo-date-item ${isExpiringSoon ? 'urgent' : ''}">
+                  <span class="date-label">Days Left:</span>
+                  <span class="date-value">${daysRemaining}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -1632,290 +2634,118 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="no-promos-icon">📅</div>
           <h4>No Active Promos</h4>
           <p>There are currently no active promotional offers. Check back later or add new promos!</p>
+          <button class="quick-add-btn" onclick="document.getElementById('addPromoBtn').click()">
+            <span>Add Promo</span>
+          </button>
         </div>
       `;
     }
+    
+    console.log(`[2025-09-10 16:11:43] V5 FIXED: Active promos section updated: ${activePromos.length} active promos by MathDaenniel`);
   }
 
-  // Date validation
-  function validateDates(startDate, endDate) {
-    if (startDate && endDate) {
-      return new Date(startDate) <= new Date(endDate);
-    }
-    return true;
-  }
-
-   // Form validation (continued from line 1659)
-  function validateForm() {
-    const event = document.getElementById('eventInput').value.trim();
-    const description = document.getElementById('descriptionInput').value.trim();
-    const discountPercentage = document.getElementById('discountPercentageInput').value;
-    const startDate = document.getElementById('startDateInput').value;
-    const endDate = document.getElementById('endDateInput').value;
-    
-    if (!event) {
-      alert('Please enter an event name');
-      return false;
-    }
-    
-    if (!description) {
-      alert('Please enter a description');
-      return false;
-    }
-    
-    if (!discountPercentage) {
-      alert('Please enter a discount percentage');
-      return false;
-    }
-    
-    if (discountPercentage < 0 || discountPercentage > 100) {
-      alert('Discount percentage must be between 0 and 100');
-      return false;
-    }
-    
-    if (!startDate) {
-      alert('Please select a starting date');
-      return false;
-    }
-    
-    if (!endDate) {
-      alert('Please select a closing date');
-      return false;
-    }
-    
-    if (!validateDates(startDate, endDate)) {
-      alert('Closing date must be after or equal to starting date');
-      return false;
-    }
-
-    return true;
-  }
-
-  // Add row to table
-  function addRowToTable(promo) {
-    const tableBody = document.getElementById('promoTableBody');
-    
-    // Remove empty state row if it exists
-    const emptyRow = document.querySelector('#promoTableBody tr:not([data-promo-id])');
-    if (emptyRow) {
-      emptyRow.remove();
-    }
-
-    // Create new row with proper discount percentage handling
-    const newRow = document.createElement('tr');
-    newRow.setAttribute('data-promo-id', promo._id);
-    
-    const discountValue = promo.discountPercentage !== undefined && promo.discountPercentage !== null ? promo.discountPercentage : '';
-    
-    newRow.innerHTML = `
-      <td><input type="text" name="event" class="table-input event-input" value="${promo.event || ''}" data-id="${promo._id}" data-original="${promo.event || ''}" required></td>
-      <td><input type="date" name="startDate" class="table-input start-date-input" value="${promo.startDate ? new Date(promo.startDate).toISOString().split('T')[0] : ''}" data-id="${promo._id}" data-original="${promo.startDate ? new Date(promo.startDate).toISOString().split('T')[0] : ''}" required></td>
-      <td><input type="date" name="endDate" class="table-input end-date-input" value="${promo.endDate ? new Date(promo.endDate).toISOString().split('T')[0] : ''}" data-id="${promo._id}" data-original="${promo.endDate ? new Date(promo.endDate).toISOString().split('T')[0] : ''}" required></td>
-      <td><input type="text" name="description" class="table-input description-input" value="${promo.description || ''}" data-id="${promo._id}" data-original="${promo.description || ''}" required></td>
-      <td><input type="number" name="discountPercentage" class="table-input discount-percentage-input number-input" value="${discountValue}" data-id="${promo._id}" data-original="${discountValue}" min="0" max="100" step="0.01" required></td>
-      <td class="actions-cell">
-        <div class="button-wrapper">
-          <button type="button" class="stocks-btn update" data-action="update" data-promo-id="${promo._id}">Update</button>
-          <button type="button" class="stocks-btn delete" data-action="delete" data-promo-id="${promo._id}">Delete</button>
-        </div>
-      </td>
-    `;
-    
-    tableBody.appendChild(newRow);
-    
-    // Update active promos section after adding new row
-    setTimeout(() => updateActivePromosSection(), 100);
-  }
-
-  // Handle Save Promo
-  document.getElementById('savePromoBtn').addEventListener('click', function() {
-    if (!validateForm()) {
+  // ===============================================
+  // AUTO-SAVE FUNCTIONALITY - V5 ENHANCED
+  // ===============================================
+  
+  // V5 Enhanced Auto-save form data to localStorage
+  function saveFormData() {
+    if (!eventInput || !descriptionInput || !discountPercentageInput || !startDateInput || !endDateInput) {
       return;
     }
-
-    const saveBtn = document.getElementById('savePromoBtn');
     
-    // Get form values
-    const event = document.getElementById('eventInput').value.trim();
-    const description = document.getElementById('descriptionInput').value.trim();
-    const discountPercentage = parseFloat(document.getElementById('discountPercentageInput').value);
-    const startDate = document.getElementById('startDateInput').value;
-    const endDate = document.getElementById('endDateInput').value;
-    
-    // Create payload
-    const payload = {
-      event: event,
-      description: description,
-      discountPercentage: discountPercentage,
-      startDate: startDate,
-      endDate: endDate
+    const formData = {
+      event: eventInput.value || '',
+      description: descriptionInput.value || '',
+      discountPercentage: discountPercentageInput.value || '',
+      startDate: startDateInput.value || '',
+      endDate: endDateInput.value || '',
+      timestamp: new Date().toISOString(),
+      version: 'V5-FixedActivePromosUpdate',
+      repository: 'roviczzz/Couche-Co',
+      user: 'MathDaenniel'
     };
     
-    console.log(`[2025-09-10 14:15:15] Saving promo with payload:`, payload, 'by MathDaenniel');
-    
-    // Disable button to prevent double submission
-    saveBtn.disabled = true;
-    saveBtn.textContent = 'Adding...';
-    
-    fetch('/discounts/add', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload)
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then(data => {
-      console.log(`[2025-09-10 14:15:15] Server response:`, data, 'by MathDaenniel');
-      if (data.success) {
-        // Add the new promo to the table
-        if (data.promo) {
-          addRowToTable(data.promo);
-        }
-        
-        // Reset form and go back to main view
-        document.getElementById('promoForm').reset();
-        hidePromoModal();
-        
-        // Redirect with success message
-        window.location.href = '/discounts?msg=add_success';
-      } else {
-        alert(data.message || 'Error saving promo');
-      }
-    })
-    .catch(error => {
-      console.error(`[2025-09-10 14:15:15] Fetch error:`, error, 'by MathDaenniel');
-      alert('Error connecting to server. Please try again.');
-    })
-    .finally(() => {
-      saveBtn.disabled = false;
-      saveBtn.textContent = 'Add Promo';
-    });
-  });
+    try {
+      localStorage.setItem('promoFormData', JSON.stringify(formData));
+      console.log(`[2025-09-10 16:11:43] Form data auto-saved by MathDaenniel`);
+    } catch (error) {
+      console.error(`[2025-09-10 16:11:43] Error saving form data:`, error, 'by MathDaenniel');
+    }
+  }
 
-  // Handle Update and Delete button clicks
-  document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('stocks-btn')) {
-      e.preventDefault();
-      const action = e.target.dataset.action;
-      const promoId = e.target.dataset.promoId;
-      
-      showConfirmationModal(action, promoId);
+  function loadFormData() {
+    try {
+      const savedData = localStorage.getItem('promoFormData');
+      if (savedData) {
+        const formData = JSON.parse(savedData);
+        const savedTime = new Date(formData.timestamp);
+        const now = new Date();
+        const hoursSinceCreated = (now - savedTime) / (1000 * 60 * 60);
+        
+        // Only restore if saved within last 24 hours and from same user
+        if (hoursSinceCreated < 24 && formData.user === 'MathDaenniel') {
+          if (eventInput) eventInput.value = formData.event || '';
+          if (descriptionInput) descriptionInput.value = formData.description || '';
+          if (discountPercentageInput) discountPercentageInput.value = formData.discountPercentage || '';
+          if (startDateInput) startDateInput.value = formData.startDate || '';
+          if (endDateInput) endDateInput.value = formData.endDate || '';
+          
+          console.log(`[2025-09-10 16:11:43] Form data restored from ${hoursSinceCreated.toFixed(1)} hours ago by MathDaenniel`);
+          
+          // Show restoration notification
+          const notification = document.createElement('div');
+          notification.style.cssText = `
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: #17a2b8;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            z-index: 10002;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+          `;
+          notification.textContent = 'Form data restored from previous session';
+          document.body.appendChild(notification);
+          
+          setTimeout(() => {
+            notification.remove();
+          }, 3000);
+        } else {
+          localStorage.removeItem('promoFormData');
+        }
+      }
+    } catch (error) {
+      console.error(`[2025-09-10 16:11:43] Error loading form data:`, error, 'by MathDaenniel');
+      localStorage.removeItem('promoFormData');
+    }
+  }
+
+  function clearSavedFormData() {
+    try {
+      localStorage.removeItem('promoFormData');
+      console.log(`[2025-09-10 16:11:43] Saved form data cleared by MathDaenniel`);
+    } catch (error) {
+      console.error(`[2025-09-10 16:11:43] Error clearing form data:`, error, 'by MathDaenniel');
+    }
+  }
+
+  // Auto-save form data on input changes
+  const formInputs = [eventInput, descriptionInput, discountPercentageInput, startDateInput, endDateInput];
+  formInputs.forEach(input => {
+    if (input) {
+      input.addEventListener('input', saveFormData);
+      input.addEventListener('change', saveFormData);
     }
   });
 
-  // Confirmation modal button handlers
-  confirmProceed.addEventListener('click', () => {
-    if (currentAction && currentPromoId) {
-      if (currentAction === 'update') {
-        // Get the row containing this promo
-        const updateButton = document.querySelector(`[data-promo-id="${currentPromoId}"][data-action="update"]`);
-        const row = updateButton.closest('tr');
-        
-        const event = row.querySelector('.event-input').value.trim();
-        const startDate = row.querySelector('.start-date-input').value;
-        const endDate = row.querySelector('.end-date-input').value;
-        const description = row.querySelector('.description-input').value.trim();
-        const discountPercentage = parseFloat(row.querySelector('.discount-percentage-input').value);
-        
-        if (!validateDates(startDate, endDate)) {
-          alert('Closing date must be after or equal to starting date');
-          hideConfirmationModal();
-          return;
-        }
-        
-        if (!event || !description || isNaN(discountPercentage) || !startDate || !endDate) {
-          alert('All fields are required and discount percentage must be a valid number');
-          hideConfirmationModal();
-          return;
-        }
-        
-        if (discountPercentage < 0 || discountPercentage > 100) {
-          alert('Discount percentage must be between 0 and 100');
-          hideConfirmationModal();
-          return;
-        }
-        
-        const payload = {
-          event: event,
-          startDate: startDate,
-          endDate: endDate,
-          description: description,
-          discountPercentage: discountPercentage
-        };
-        
-        console.log(`[2025-09-10 14:15:15] Update payload:`, payload, 'by MathDaenniel');
-        
-        fetch(`/discounts/edit/${currentPromoId}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload)
-        })
-        .then(response => response.json())
-        .then(data => {
-          console.log(`[2025-09-10 14:15:15] Update response:`, data, 'by MathDaenniel');
-          if (data.success) {
-            // Update active promos section before redirect
-            updateActivePromosSection();
-            setTimeout(() => {
-              window.location.href = '/discounts?msg=update_success';
-            }, 500);
-          } else {
-            alert(data.message || 'Error updating promo');
-          }
-        })
-        .catch(error => {
-          console.error(`[2025-09-10 14:15:15] Error:`, error, 'by MathDaenniel');
-          alert('Error updating promo');
-        });
-        
-        // Remove highlight classes from all inputs in the row
-        const inputs = row.querySelectorAll('.table-input');
-        inputs.forEach(input => {
-          input.classList.remove('modified');
-          input.classList.add('highlight-fade');
-        });
-        
-      } else if (currentAction === 'delete') {
-        fetch(`/discounts/delete/${currentPromoId}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            // Update active promos section before redirect
-            updateActivePromosSection();
-            setTimeout(() => {
-              window.location.href = '/discounts?msg=delete_success';
-            }, 500);
-          } else {
-            alert(data.message || 'Error deleting promo');
-          }
-        })
-        .catch(error => {
-          console.error(`[2025-09-10 14:15:15] Error:`, error, 'by MathDaenniel');
-          alert('Error deleting promo');
-        });
-        
-        console.log(`[2025-09-10 14:15:15] Deleting promo by MathDaenniel`);
-      }
-    }
-    hideConfirmationModal();
-  });
-
-  confirmCancel.addEventListener('click', hideConfirmationModal);
-
-  // Track changes and add highlighting (like stocks.ejs)
+  // ===============================================
+  // V5 ENHANCED EVENT LISTENERS FOR REAL-TIME UPDATES
+  // ===============================================
+  
+  // V5 CRITICAL FIX: Enhanced change tracking for active promos update
   document.addEventListener('input', (e) => {
     if (e.target.classList.contains('table-input')) {
       const originalValue = e.target.dataset.original;
@@ -1928,68 +2758,99 @@ document.addEventListener('DOMContentLoaded', function() {
         e.target.classList.remove('modified');
       }
       
-      // Update active promos section when dates change
-      if (e.target.classList.contains('start-date-input') || e.target.classList.contains('end-date-input')) {
-        setTimeout(() => updateActivePromosSection(), 100);
+      // V5 CRITICAL FIX: Update active promos section immediately when dates or any field changes
+      if (e.target.classList.contains('start-date-input') || 
+          e.target.classList.contains('end-date-input') ||
+          e.target.classList.contains('event-input') ||
+          e.target.classList.contains('description-input') ||
+          e.target.classList.contains('discount-percentage-input')) {
+        
+        // Debounced update to prevent excessive calls
+        clearTimeout(window.activePromosUpdateTimeout);
+        window.activePromosUpdateTimeout = setTimeout(() => {
+          updateActivePromosSection();
+        }, 300);
       }
     }
   });
 
+  // V5 ENHANCEMENT: Also listen to change events
   document.addEventListener('change', (e) => {
     if (e.target.classList.contains('table-input')) {
-      const originalValue = e.target.dataset.original;
-      const currentValue = e.target.value;
-      
-      if (currentValue !== originalValue) {
-        e.target.classList.add('modified');
-        e.target.classList.remove('highlight-fade');
-      } else {
-        e.target.classList.remove('modified');
+      // Immediate update on change (when user finishes editing)
+      updateActivePromosSection();
+    }
+  });
+
+  // Initialize active promos monitoring
+  function startActivePromosMonitoring() {
+    updateActivePromosSection();
+    
+    // Update every minute
+    setInterval(() => {
+      updateActivePromosSection();
+    }, 60000);
+    
+    // Update every 30 seconds for expiring promos
+    setInterval(() => {
+      const expiringCards = document.querySelectorAll('.active-promo-card.expiring-soon');
+      if (expiringCards.length > 0) {
+        updateActivePromosSection();
       }
+    }, 30000);
+  }
+
+  // Enhanced promo card interactions
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('.active-promo-card')) {
+      const promoCard = e.target.closest('.active-promo-card');
+      const promoId = promoCard.dataset.promoId;
       
-      // Update active promos section when any field changes
-      setTimeout(() => updateActivePromosSection(), 100);
-    }
-  });
-
-  // Event Listeners
-  addPromoBtn.addEventListener('click', showPromoModal);
-  cancelPromoBtn.addEventListener('click', hidePromoModal);
-  closePromoModalBtn.addEventListener('click', hidePromoModal);
-
-  // Close modals when clicking on overlay
-  promoModalOverlay.addEventListener('click', (e) => {
-    if (e.target === promoModalOverlay) {
-      hidePromoModal();
-    }
-  });
-
-  confirmationModal.addEventListener('click', (e) => {
-    if (e.target === confirmationModal) {
-      hideConfirmationModal();
-    }
-  });
-
-  // Close modals with Escape key
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      if (confirmationModal.classList.contains('show')) {
-        hideConfirmationModal();
-      } else if (promoModalOverlay.classList.contains('show')) {
-        hidePromoModal();
+      if (promoId) {
+        const tableRow = document.querySelector(`tr[data-promo-id="${promoId}"]`);
+        const container = document.querySelector('.stocks-container');
+        
+        if (tableRow && container) {
+          const tableContainer = document.querySelector('.table-container');
+          const containerRect = container.getBoundingClientRect();
+          const tableRect = tableContainer.getBoundingClientRect();
+          const rowRect = tableRow.getBoundingClientRect();
+          
+          const targetScrollTop = container.scrollTop + (rowRect.top - containerRect.top) - (containerRect.height / 2) + (rowRect.height / 2);
+          
+          container.scrollTo({
+            top: targetScrollTop,
+            behavior: 'smooth'
+          });
+          
+          // Enhanced highlighting
+          tableRow.style.backgroundColor = '#e3f2fd';
+          tableRow.style.transition = 'background-color 0.5s ease';
+          tableRow.style.boxShadow = '0 0 15px rgba(0,123,255,0.3)';
+          
+          setTimeout(() => {
+            tableRow.style.backgroundColor = '';
+            tableRow.style.boxShadow = '';
+          }, 3000);
+          
+          console.log(`[2025-09-10 16:11:43] Scrolled to promo row: ${promoId} by MathDaenniel`);
+        }
       }
     }
   });
 
-  // Auto-focus on event input when modal opens
-  addPromoBtn.addEventListener('click', () => {
-    setTimeout(() => {
-      const eventInput = document.getElementById('eventInput');
-      if (eventInput) eventInput.focus();
-    }, 300);
+  // Page visibility and focus handlers
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      updateActivePromosSection();
+    }
   });
 
-  // Handle keyboard shortcuts
+  window.addEventListener('focus', () => {
+    updateActivePromosSection();
+  });
+
+  // Enhanced keyboard shortcuts
   document.addEventListener('keydown', (e) => {
     // Ctrl/Cmd + N for New Promo
     if ((e.ctrlKey || e.metaKey) && e.key === 'n' && !e.target.matches('input, textarea')) {
@@ -1997,69 +2858,90 @@ document.addEventListener('DOMContentLoaded', function() {
       showPromoModal();
     }
     
-    // Enter key for confirmation modal proceed
-    if (e.key === 'Enter' && confirmationModal.classList.contains('show')) {
+    // Ctrl/Cmd + S to save when in modal
+    if ((e.ctrlKey || e.metaKey) && e.key === 's' && promoModalOverlay && promoModalOverlay.classList.contains('show')) {
       e.preventDefault();
-      confirmProceed.click();
+      if (savePromoBtn && !savePromoBtn.disabled) {
+        savePromoBtn.click();
+      }
     }
-  });
-
-  // Real-time active promos update
-  function startActivePromosMonitoring() {
-    // Initial update
-    updateActivePromosSection();
     
-    // Update every minute to catch time-based changes
-    setInterval(() => {
-      updateActivePromosSection();
-    }, 60000); // 60 seconds
-  }
-
-  // Enhanced promo card interactions
-  document.addEventListener('click', (e) => {
-    // Click on active promo cards to highlight corresponding table row
-    if (e.target.closest('.active-promo-card')) {
-      const promoCard = e.target.closest('.active-promo-card');
-      const promoId = promoCard.dataset.promoId;
+    // Enter key for confirmation modal proceed
+    if (e.key === 'Enter' && confirmationModal && confirmationModal.classList.contains('show')) {
+      e.preventDefault();
+      if (confirmProceed) {
+        confirmProceed.click();
+      }
+    }
+    
+    // Tab navigation enhancement in modal
+    if (e.key === 'Tab' && promoModalOverlay && promoModalOverlay.classList.contains('show')) {
+      const focusableElements = promoModalOverlay.querySelectorAll('input, button');
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
       
-      if (promoId) {
-        const tableRow = document.querySelector(`tr[data-promo-id="${promoId}"]`);
-        if (tableRow) {
-          // Smooth scroll to table
-          tableRow.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'center' 
-          });
-          
-          // Add temporary highlight
-          tableRow.style.backgroundColor = '#e3f2fd';
-          tableRow.style.transition = 'background-color 0.5s ease';
-          
-          setTimeout(() => {
-            tableRow.style.backgroundColor = '';
-          }, 2000);
-        }
+      if (e.shiftKey && document.activeElement === firstElement) {
+        e.preventDefault();
+        lastElement.focus();
+      } else if (!e.shiftKey && document.activeElement === lastElement) {
+        e.preventDefault();
+        firstElement.focus();
       }
     }
   });
 
-  // Initialize active promos monitoring
+  // ===============================================
+  // V5 INITIALIZATION - ENHANCED
+  // ===============================================
+  
+  // Initialize original promo data cache
+  initializePromoDataCache();
+  
+  // Initialize monitoring and load saved data
   startActivePromosMonitoring();
+  
+  // Load form data when modal opens
+  if (addPromoBtn) {
+    addPromoBtn.addEventListener('click', () => {
+      setTimeout(loadFormData, 100);
+    });
+  }
 
-  // Page visibility change handler - update when user returns to tab
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) {
-      updateActivePromosSection();
+  // Performance monitoring
+  function logPerformanceMetrics() {
+    if (window.performance && window.performance.timing) {
+      const timing = window.performance.timing;
+      const loadTime = timing.loadEventEnd - timing.navigationStart;
+      const domReady = timing.domContentLoadedEventEnd - timing.navigationStart;
+      
+      console.log(`[2025-09-10 16:11:43] Page load time: ${loadTime}ms, DOM ready: ${domReady}ms by MathDaenniel`);
+      
+      // Log to console for debugging
+      if (loadTime > 3000) {
+        console.warn(`[2025-09-10 16:11:43] Slow page load detected: ${loadTime}ms by MathDaenniel`);
+      }
     }
+  }
+
+  // Monitor performance after page load
+  window.addEventListener('load', () => {
+    setTimeout(logPerformanceMetrics, 1000);
   });
 
-  // Handle window focus - update when user switches back to window
-  window.addEventListener('focus', () => {
-    updateActivePromosSection();
-  });
+  // V5 Enhancement: Periodic health check
+  setInterval(() => {
+    const essentialElements = [addPromoBtn, promoModalOverlay, confirmationModal];
+    const missingElements = essentialElements.filter(el => !el || !document.body.contains(el));
+    
+    if (missingElements.length > 0) {
+      console.warn(`[2025-09-10 16:11:43] Missing essential elements detected by MathDaenniel`);
+    }
+  }, 30000); // Check every 30 seconds
 
-  console.log(`[2025-09-10 14:15:15] Enhanced Promo Management System V5 loaded successfully by MathDaenniel`);
-  console.log(`[2025-09-10 14:15:15] Features: Active Promos Section, Real-time Updates, Card Interactions by MathDaenniel`);
-  console.log(`[2025-09-10 14:15:15] Active Features: Auto-refresh, Table highlighting, Responsive design by MathDaenniel`);
+  console.log(`[2025-09-10 16:11:43] Enhanced Promo Management System V5 loaded successfully by MathDaenniel`);
+  console.log(`[2025-09-10 16:11:43] Features: Fixed Navbar, Content-Only Scroll, Auto-save, FIXED Active Promos Update by MathDaenniel`);
+  console.log(`[2025-09-10 16:11:43] V5 CRITICAL FIX: Active promos no longer disappear when updating dates by MathDaenniel`);
+  console.log(`[2025-09-10 16:11:43] Repository: roviczzz/Couche-Co by MathDaenniel`);
+  console.log(`[2025-09-10 16:11:43] All event listeners attached and functionality ready - ACTIVE PROMOS UPDATE FIXED by MathDaenniel`);
 });
 </script>

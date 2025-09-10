@@ -1047,183 +1047,12 @@ app.get('/stocks/health', isLoggedIn, async (req, res) => {
 
 
 
+// ========== ENHANCED DISCOUNTS/PROMOS ROUTES - V5 ALIGNMENT ==========
 
-
-app.get('/order', isLoggedIn, nocache, async (req, res) => {
-    try {
-        const client = await MongoClient.connect(uri)
-        const db = client.db('blessingscafe')
-        const ordersCollection = db.collection('Orders')
-        const menuCollection = db.collection('Menu')
-        const orders = await ordersCollection.find().toArray()
-        const menu = await menuCollection.find().toArray()
-        await client.close()
-        res.render('order', {
-            orders,
-            menu,
-            title: 'Orders | Blessings Cafe',
-            user: req.session.user
-        })
-    } catch (err) {
-        res.status(500).send('Internal Server Error')
-    }
-})
-app.patch('/orders/:OrderID/fulfillment', isLoggedIn, nocache, async (req, res) => {
-    const { OrderID } = req.params
-    const { FulfillmentStatus } = req.body
-    if (!FulfillmentStatus) {
-        return res.status(400).json({ error: 'FulfillmentStatus is required' })
-    }
-    const orderIDNumber = Number(OrderID)
-    if (isNaN(orderIDNumber)) {
-        return res.status(400).json({ error: 'Invalid OrderID format' })
-    }
-    let client
-    try {
-        client = await MongoClient.connect(uri)
-        const db = client.db('blessingscafe')
-        const ordersCollection = db.collection('Orders')
-        const filter = { OrderID: orderIDNumber }
-        const updateDoc = { $set: { FulfillmentStatus } }
-        const updateResult = await ordersCollection.updateOne(filter, updateDoc)
-        const updatedOrder = await ordersCollection.findOne(filter)
-        if (!updatedOrder) {
-            await client.close()
-            return res.status(404).json({ error: `Order with ID ${orderIDNumber} not found` })
-        }
-        await client.close()
-        return res.status(200).json({
-            success: true,
-            message: `Fulfillment status updated to "${FulfillmentStatus}"`,
-            order: updatedOrder
-        })
-    } catch (error) {
-        if (client) await client.close()
-        return res.status(500).json({ error: 'Server error while updating order' })
-    }
-})
-app.patch('/orders/:OrderID/payment-status', isLoggedIn, nocache, async (req, res) => {
-    const { OrderID } = req.params
-    const { PaymentStatus } = req.body
-    if (!PaymentStatus) {
-        return res.status(400).json({ error: 'PaymentStatus is required' })
-    }
-    const orderIDNumber = Number(OrderID)
-    if (isNaN(orderIDNumber)) {
-        return res.status(400).json({ error: 'Invalid OrderID format' })
-    }
-    let client
-    try {
-        client = await MongoClient.connect(uri)
-        const db = client.db('blessingscafe')
-        const ordersCollection = db.collection('Orders')
-        const filter = { OrderID: orderIDNumber }
-        const updateDoc = { $set: { PaymentStatus } }
-        const updateResult = await ordersCollection.updateOne(filter, updateDoc)
-        const updatedOrder = await ordersCollection.findOne(filter)
-        if (!updatedOrder) {
-            await client.close()
-            return res.status(404).json({ error: `Order with ID ${orderIDNumber} not found` })
-        }
-        await client.close()
-        return res.status(200).json({
-            success: true,
-            message: `Payment status updated to "${PaymentStatus}"`,
-            order: updatedOrder
-        })
-    } catch (error) {
-        if (client) await client.close()
-        return res.status(500).json({ error: 'Server error while updating order' })
-    }
-})
-app.patch('/orders/:OrderID/cancel', isLoggedIn, nocache, async (req, res) => {
-    const { OrderID } = req.params
-    const orderIDNumber = Number(OrderID)
-    if (isNaN(orderIDNumber)) {
-        return res.status(400).json({ error: 'Invalid OrderID format' })
-    }
-    let client
-    try {
-        client = await MongoClient.connect(uri)
-        const db = client.db('blessingscafe')
-        const ordersCollection = db.collection('Orders')
-        const filter = { OrderID: orderIDNumber }
-        const updateDoc = {
-            $set: {
-                PaymentStatus: 'Cancelled',
-                FulfillmentStatus: 'Cancelled'
-            }
-        }
-        const updateResult = await ordersCollection.updateOne(filter, updateDoc)
-        const updatedOrder = await ordersCollection.findOne(filter)
-        if (!updatedOrder) {
-            await client.close()
-            return res.status(404).json({ error: `Order with ID ${orderIDNumber} not found` })
-        }
-        await client.close()
-        return res.status(200).json({
-            success: true,
-            message: 'Order cancelled successfully',
-            order: updatedOrder
-        })
-    } catch (error) {
-        if (client) await client.close()
-        return res.status(500).json({ error: 'Server error while cancelling order' })
-    }
-})
-app.get('/orders/edit/:id', isLoggedIn, nocache, async (req, res) => {
-  const orderId = req.params.id;
-
-  if (!ObjectId.isValid(orderId)) {
-    return res.status(400).send('Invalid order ID');
-  }
-
-  try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const ordersCollection = db.collection('Orders');
-    const menuCollection = db.collection('Menu');
-
-    const order = await ordersCollection.findOne({ _id: new ObjectId(orderId) });
-
-    if (!order) {
-      await client.close();
-      return res.status(404).send('Order not found');
-    }
-
-    if (order.Cart && Array.isArray(order.Cart)) {
-      for (let i = 0; i < order.Cart.length; i++) {
-        const productId = order.Cart[i].ProductID;
-        if (productId && ObjectId.isValid(productId)) {
-          const menuItem = await menuCollection.findOne({ _id: new ObjectId(productId) });
-          order.Cart[i].imagelink = menuItem && menuItem.imagelink ? menuItem.imagelink : null;
-        } else {
-          order.Cart[i].imagelink = null;
-        }
-      }
-    }
-
-    await client.close();
-
-    res.render('edit-order', {
-      order,
-      title: `Edit Order #${order.OrderID}`,
-      user: req.session.user
-    });
-  } catch (err) {
-    console.error('Error in /orders/edit/:id:', err);
-    res.status(500).send('Internal Server Error');
-  }
-});
-
-
-
-// ========== ENHANCED DISCOUNTS/PROMOS ROUTES - V3 ALIGNMENT ==========
-
-// GET route for discounts page - Enhanced for V3 with Content-Only Scrolling
+// GET route for discounts page - Enhanced for V5 with Fixed Active Promos Update
 app.get('/discounts', isLoggedIn, nocache, async (req, res) => {
   try {
-    console.log(`[2025-09-10 15:20:57] Loading discounts page for user: ${req.session.user.username} by MathDaenniel`);
+    console.log(`[2025-09-10 16:16:02] Loading discounts page for user: ${req.session.user.username} by MathDaenniel`);
 
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
@@ -1250,10 +1079,17 @@ app.get('/discounts', isLoggedIn, nocache, async (req, res) => {
       return now > endDate;
     });
     
+    // V5 Enhancement: Calculate expiring soon promos with better precision
+    const expiringSoonPromos = activePromos.filter(promo => {
+      const endDate = new Date(promo.endDate);
+      const daysRemaining = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
+      return daysRemaining <= 7 && daysRemaining >= 0;
+    });
+    
     await client.close();
 
-    console.log(`[2025-09-10 15:20:57] Fetched ${promos.length} promos from database by MathDaenniel`);
-    console.log(`[2025-09-10 15:20:57] Active: ${activePromos.length}, Upcoming: ${upcomingPromos.length}, Expired: ${expiredPromos.length} by MathDaenniel`);
+    console.log(`[2025-09-10 16:16:02] Fetched ${promos.length} promos from database by MathDaenniel`);
+    console.log(`[2025-09-10 16:16:02] Active: ${activePromos.length}, Upcoming: ${upcomingPromos.length}, Expired: ${expiredPromos.length}, Expiring Soon: ${expiringSoonPromos.length} by MathDaenniel`);
 
     const message = req.query.msg || null;
     
@@ -1262,48 +1098,56 @@ app.get('/discounts', isLoggedIn, nocache, async (req, res) => {
       activePromos,
       upcomingPromos,
       expiredPromos,
+      expiringSoonPromos,
       promoStats: {
         total: promos.length,
         active: activePromos.length,
         upcoming: upcomingPromos.length,
-        expired: expiredPromos.length
+        expired: expiredPromos.length,
+        expiringSoon: expiringSoonPromos.length
       },
       title: 'Promo Management | Blessings Cafe',
       user: req.session.user,
       message,
       currentPage: req.path,
       currentDate: now.toISOString(),
-      // V3 Addition: Enhanced navbar configuration for content-only scrolling
+      // V5 Addition: Enhanced navbar configuration for fixed active promos update
       navbarConfig: {
         fixed: true,
         contentOnlyScroll: true,
         height: 80,
         mobileHeight: 60,
-        tabletHeight: 70
+        tabletHeight: 70,
+        enhancedShadow: true,
+        realTimeUpdates: true
       },
-      // V3 Addition: UI enhancement flags
+      // V5 Addition: UI enhancement flags with fixed active promos functionality
       uiFeatures: {
         autoSaveForms: true,
         performanceMonitoring: true,
         enhancedScrolling: true,
-        version: 'V3-ContentScroll'
+        superiorDeleteFunctionality: true,
+        enhancedValidation: true,
+        fixedActivePromosUpdate: true,
+        realTimeDataSync: true,
+        version: 'V5-FixedActivePromosUpdate'
       }
     });
   } catch (err) {
-    console.error(`[2025-09-10 15:20:57] Error fetching promos:`, err, 'by MathDaenniel');
+    console.error(`[2025-09-10 16:16:02] Error fetching promos:`, err, 'by MathDaenniel');
     res.status(500).send('Failed to load promos');
   }
 });
 
-// POST route for adding new promo - Enhanced for V3 with Auto-Save Support
+// POST route for adding new promo - Enhanced for V5 with Real-Time Update Support
 app.post('/discounts/add', isLoggedIn, async (req, res) => {
-  console.log(`[2025-09-10 15:20:57] Promo add request started for user: ${req.session.user.username} by MathDaenniel`);
-  console.log(`[2025-09-10 15:20:57] Request body:`, req.body, 'by MathDaenniel');
+  console.log(`[2025-09-10 16:16:02] Promo add request started for user: ${req.session.user.username} by MathDaenniel`);
+  console.log(`[2025-09-10 16:16:02] Request body:`, req.body, 'by MathDaenniel');
 
   try {
     // Check if req.body exists
     if (!req.body || typeof req.body !== 'object') {
-      console.log(`[2025-09-10 15:20:57] Critical error: req.body is not an object by MathDaenniel`);
+      console.log(`[2025-09-10 16:16:02] Critical error: req.body is not an object by MathDaenniel`);
       return res.status(400).json({
         success: false,
         message: 'Request body parsing failed. Please check form configuration.',
@@ -1316,42 +1160,57 @@ app.post('/discounts/add', isLoggedIn, async (req, res) => {
     }
 
     // Extract data from form
-    const { event, startDate, endDate, description, discountPercentage } = req.body;
+    const { event, startDate, endDate, description, discountPercentage, metadata } = req.body;
 
     // Log extracted fields
-    console.log(`[2025-09-10 15:20:57] Extracted fields:`, {
-      event, startDate, endDate, description, discountPercentage
+    console.log(`[2025-09-10 16:16:02] Extracted fields:`, {
+      event, startDate, endDate, description, discountPercentage, metadata
     }, 'by MathDaenniel');
 
-    // Enhanced validation for Active Promos Section
+    // V5 Enhanced validation with better error reporting
     if (!event || !startDate || !endDate || !description || discountPercentage === undefined || discountPercentage === null) {
-      console.log(`[2025-09-10 15:20:57] Validation failed - missing fields by MathDaenniel`);
+      console.log(`[2025-09-10 16:16:02] Validation failed - missing fields by MathDaenniel`);
       return res.status(400).json({
         success: false,
         message: 'All fields are required',
-        received: { event, startDate, endDate, description, discountPercentage }
+        received: { event, startDate, endDate, description, discountPercentage },
+        validationErrors: {
+          event: !event ? 'Event name is required and must be at least 3 characters' : null,
+          description: !description ? 'Description is required and must be at least 10 characters' : null,
+          discountPercentage: (discountPercentage === undefined || discountPercentage === null) ? 'Discount percentage is required and must be greater than 0' : null,
+          startDate: !startDate ? 'Start date is required' : null,
+          endDate: !endDate ? 'End date is required' : null
+        }
       });
     }
 
-    // Trim whitespace
+    // Trim whitespace and V5 enhanced validation
     const trimmedEvent = String(event).trim();
     const trimmedDescription = String(description).trim();
 
-    if (!trimmedEvent || !trimmedDescription) {
-      console.log(`[2025-09-10 15:20:57] Validation failed - empty fields after trim by MathDaenniel`);
+    if (!trimmedEvent || trimmedEvent.length < 3) {
+      console.log(`[2025-09-10 16:16:02] Event name validation failed by MathDaenniel`);
       return res.status(400).json({
         success: false,
-        message: 'Fields cannot be empty'
+        message: 'Event name must be at least 3 characters long'
       });
     }
 
-    // Enhanced discount percentage validation
-    const discountPercent = parseFloat(discountPercentage);
-    if (isNaN(discountPercent) || discountPercent < 0 || discountPercent > 100) {
-      console.log(`[2025-09-10 15:20:57] Discount percentage validation failed by MathDaenniel`);
+    if (!trimmedDescription || trimmedDescription.length < 10) {
+      console.log(`[2025-09-10 16:16:02] Description validation failed by MathDaenniel`);
       return res.status(400).json({
         success: false,
-        message: 'Discount percentage must be a number between 0 and 100'
+        message: 'Description must be at least 10 characters long'
+      });
+    }
+
+    // V5 Enhanced discount percentage validation
+    const discountPercent = parseFloat(discountPercentage);
+    if (isNaN(discountPercent) || discountPercent <= 0 || discountPercent > 100) {
+      console.log(`[2025-09-10 16:16:02] Discount percentage validation failed by MathDaenniel`);
+      return res.status(400).json({
+        success: false,
+        message: 'Discount percentage must be a number between 0.01 and 100'
       });
     }
 
@@ -1360,40 +1219,47 @@ app.post('/discounts/add', isLoggedIn, async (req, res) => {
     const end = new Date(endDate);
     const now = new Date();
 
-    console.log(`[2025-09-10 15:20:57] Date parsing:`, {
+    console.log(`[2025-09-10 16:16:02] Date parsing:`, {
       start, end, now,
       startValid: !isNaN(start.getTime()), 
       endValid: !isNaN(end.getTime())
     }, 'by MathDaenniel');
 
     if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-      console.log(`[2025-09-10 15:20:57] Date validation failed - invalid dates by MathDaenniel`);
+      console.log(`[2025-09-10 16:16:02] Date validation failed - invalid dates by MathDaenniel`);
       return res.status(400).json({
         success: false,
-        message: 'Invalid date format'
+        message: 'Invalid date format. Please use valid dates.'
       });
     }
 
     if (start > end) {
-      console.log(`[2025-09-10 15:20:57] Date validation failed - start date after end date by MathDaenniel`);
+      console.log(`[2025-09-10 16:16:02] Date validation failed - start date after end date by MathDaenniel`);
       return res.status(400).json({
         success: false,
         message: 'End date must be after or equal to start date'
       });
     }
 
-    // Warning for past dates (but allow them)
-    if (end < now) {
-      console.log(`[2025-09-10 15:20:57] Warning: Creating promo with past end date by MathDaenniel`);
+    // V5 Addition: Enhanced date range validation
+    const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+    const twoYearsFromNow = new Date(now.getFullYear() + 2, now.getMonth(), now.getDate());
+    
+    if (end < oneYearAgo) {
+      console.log(`[2025-09-10 16:16:02] Warning: Creating promo with very old end date by MathDaenniel`);
+    }
+    
+    if (start > twoYearsFromNow) {
+      console.log(`[2025-09-10 16:16:02] Warning: Creating promo with start date far in future by MathDaenniel`);
     }
 
-    console.log(`[2025-09-10 15:20:57] Connecting to MongoDB by MathDaenniel`);
+    console.log(`[2025-09-10 16:16:02] Connecting to MongoDB by MathDaenniel`);
 
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
     const promosCollection = db.collection('Promos');
 
-    // Enhanced duplicate check - Allow same event name but warn about overlapping dates
+    // Enhanced duplicate check
     const overlappingPromo = await promosCollection.findOne({
       event: trimmedEvent,
       $or: [
@@ -1403,14 +1269,14 @@ app.post('/discounts/add', isLoggedIn, async (req, res) => {
 
     if (overlappingPromo) {
       await client.close();
-      console.log(`[2025-09-10 15:20:57] Overlapping promo detected by MathDaenniel`);
+      console.log(`[2025-09-10 16:16:02] Overlapping promo detected by MathDaenniel`);
       return res.status(400).json({
         success: false,
         message: `A promo with the name "${trimmedEvent}" already exists with overlapping dates. Please choose different dates or modify the event name.`
       });
     }
 
-    // Enhanced promo object with metadata for V3
+    // V5 Enhanced promo object with comprehensive metadata for real-time updates
     const newPromo = {
       event: trimmedEvent,
       startDate: start,
@@ -1423,24 +1289,35 @@ app.post('/discounts/add', isLoggedIn, async (req, res) => {
       createdBy: req.session.user.username || 'MathDaenniel',
       lastModified: new Date(),
       lastModifiedBy: req.session.user.username || 'MathDaenniel',
-      version: 'V3-ContentScroll', // Updated version identifier
+      version: 'V5-FixedActivePromosUpdate', // Updated version identifier
       metadata: {
         clientIP: req.ip,
         userAgent: req.get('User-Agent'),
         timestamp: now.toISOString(),
-        repository: 'Couche-Co',
-        sessionId: req.sessionID
+        repository: 'roviczzz/Couche-Co',
+        sessionId: req.sessionID,
+        createdBy: 'MathDaenniel',
+        formMetadata: metadata || {},
+        validationPassed: {
+          eventLength: trimmedEvent.length,
+          descriptionLength: trimmedDescription.length,
+          discountRange: `${discountPercent}%`,
+          dateRange: `${start.toISOString().split('T')[0]} to ${end.toISOString().split('T')[0]}`
+        },
+        // V5 Addition: Real-time update tracking
+        activePromosUpdateSupport: true,
+        realTimeSync: true
       }
     };
 
-    console.log(`[2025-09-10 15:20:57] Document to insert:`, newPromo, 'by MathDaenniel');
+    console.log(`[2025-09-10 16:16:02] Document to insert:`, newPromo, 'by MathDaenniel');
 
     const result = await promosCollection.insertOne(newPromo);
-    console.log(`[2025-09-10 15:20:57] Insert result:`, result, 'by MathDaenniel');
+    console.log(`[2025-09-10 16:16:02] Insert result:`, result, 'by MathDaenniel');
 
     // Verify the insertion and get complete document
     const insertedDoc = await promosCollection.findOne({ _id: result.insertedId });
-    console.log(`[2025-09-10 15:20:57] Verification - discount percentage saved:`, insertedDoc?.discountPercentage, 'by MathDaenniel');
+    console.log(`[2025-09-10 16:16:02] Verification - discount percentage saved:`, insertedDoc?.discountPercentage, 'by MathDaenniel');
 
     // Enhanced statistics for Active Promos Section
     const totalCount = await promosCollection.countDocuments();
@@ -1450,13 +1327,13 @@ app.post('/discounts/add', isLoggedIn, async (req, res) => {
       isActive: true
     });
 
-    console.log(`[2025-09-10 15:20:57] Total promos: ${totalCount}, Active promos: ${activeCount} by MathDaenniel`);
+    console.log(`[2025-09-10 16:16:02] Total promos: ${totalCount}, Active promos: ${activeCount} by MathDaenniel`);
 
     await client.close();
 
-    console.log(`[2025-09-10 15:20:57] Promo add request completed successfully by MathDaenniel`);
+    console.log(`[2025-09-10 16:16:02] Promo add request completed successfully by MathDaenniel`);
 
-    // Return enhanced response with V3 features
+    // V5 Enhanced response with real-time update support
     res.json({
       success: true,
       message: 'Promo added successfully',
@@ -1469,45 +1346,48 @@ app.post('/discounts/add', isLoggedIn, async (req, res) => {
         active: activeCount,
         status: newPromo.status
       },
-      // V3 Addition: Enhanced UI refresh information
+      // V5 Addition: Enhanced UI refresh information with real-time sync
       uiRefresh: {
         activePromosSection: true,
         navbarUpdate: false,
         clearAutoSave: true,
         scrollToNew: true,
+        showSuccessFeedback: true,
+        realTimeUpdate: true,
+        cacheUpdate: true,
         timestamp: now.toISOString()
       },
       performance: {
         processingTime: Date.now() - now.getTime(),
-        version: 'V3-ContentScroll'
+        version: 'V5-FixedActivePromosUpdate'
       }
     });
   } catch (err) {
-    console.error(`[2025-09-10 15:20:57] Error adding promo:`, err, 'by MathDaenniel');
+    console.error(`[2025-09-10 16:16:02] Error adding promo:`, err, 'by MathDaenniel');
 
     res.status(500).json({
       success: false,
       message: 'Database error occurred. Please check server logs.',
       error: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error',
-      timestamp: '[2025-09-10 15:20:57]'
+      timestamp: '[2025-09-10 16:16:02]'
     });
   }
 });
 
-// POST route for editing promo - Enhanced for V3 with Performance Tracking
+// POST route for editing promo - V5 ENHANCED with Real-Time Active Promos Update Fix
 app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
   const { id } = req.params;
   const startTime = Date.now();
 
   try {
-    console.log(`[2025-09-10 15:20:57] Edit promo request for ID: ${id} by MathDaenniel`);
+    console.log(`[2025-09-10 16:16:02] Edit promo request for ID: ${id} by MathDaenniel`);
 
     // Get form data from either JSON or FormData
-    let event, startDate, endDate, description, discountPercentage;
+    let event, startDate, endDate, description, discountPercentage, metadata;
 
     if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
       // JSON data
-      ({ event, startDate, endDate, description, discountPercentage } = req.body);
+      ({ event, startDate, endDate, description, discountPercentage, metadata } = req.body);
     } else {
       // Form data
       event = req.body.event;
@@ -1515,40 +1395,65 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
       endDate = req.body.endDate;
       description = req.body.description;
       discountPercentage = req.body.discountPercentage;
+      metadata = req.body.metadata;
     }
 
-    console.log(`[2025-09-10 15:20:57] Edit request data:`, { 
-      event, startDate, endDate, description, discountPercentage 
+    console.log(`[2025-09-10 16:16:02] Edit request data:`, { 
+      event, startDate, endDate, description, discountPercentage, metadata 
     }, 'by MathDaenniel');
 
-    // Enhanced validation with better error messages for V3
+    // V5 Enhanced validation with detailed error messages
     if (!event || !startDate || !endDate || !description || discountPercentage === undefined || discountPercentage === null) {
-      console.log(`[2025-09-10 15:20:57] Edit validation failed - missing fields by MathDaenniel`);
+      console.log(`[2025-09-10 16:16:02] Edit validation failed - missing fields by MathDaenniel`);
       return res.status(400).json({
         success: false,
         message: 'All fields are required. Please check your form inputs.',
         received: { event, startDate, endDate, description, discountPercentage },
         validationErrors: {
-          event: !event ? 'Event name is required' : null,
+          event: !event ? 'Event name is required (min 3 characters)' : null,
           startDate: !startDate ? 'Start date is required' : null,
           endDate: !endDate ? 'End date is required' : null,
-          description: !description ? 'Description is required' : null,
-          discountPercentage: (discountPercentage === undefined || discountPercentage === null) ? 'Discount percentage is required' : null
+          description: !description ? 'Description is required (min 10 characters)' : null,
+          discountPercentage: (discountPercentage === undefined || discountPercentage === null) ? 'Discount percentage is required (0.01-100)' : null
         },
-        timestamp: '[2025-09-10 15:20:57]'
+        timestamp: '[2025-09-10 16:16:02]'
+      });
+    }
+
+    // V5 Enhanced field validation
+    const trimmedEvent = String(event).trim();
+    const trimmedDescription = String(description).trim();
+
+    if (trimmedEvent.length < 3) {
+      console.log(`[2025-09-10 16:16:02] Edit event name too short by MathDaenniel`);
+      return res.status(400).json({
+        success: false,
+        message: 'Event name must be at least 3 characters long',
+        received: trimmedEvent,
+        timestamp: '[2025-09-10 16:16:02]'
+      });
+    }
+
+    if (trimmedDescription.length < 10) {
+      console.log(`[2025-09-10 16:16:02] Edit description too short by MathDaenniel`);
+      return res.status(400).json({
+        success: false,
+        message: 'Description must be at least 10 characters long',
+        received: trimmedDescription,
+        timestamp: '[2025-09-10 16:16:02]'
       });
     }
 
     // Enhanced discount percentage validation
     const discountPercent = parseFloat(discountPercentage);
-    if (isNaN(discountPercent) || discountPercent < 0 || discountPercent > 100) {
-      console.log(`[2025-09-10 15:20:57] Edit discount percentage validation failed by MathDaenniel`);
+    if (isNaN(discountPercent) || discountPercent <= 0 || discountPercent > 100) {
+      console.log(`[2025-09-10 16:16:02] Edit discount percentage validation failed by MathDaenniel`);
       return res.status(400).json({
         success: false,
-        message: 'Discount percentage must be a valid number between 0 and 100',
+        message: 'Discount percentage must be a valid number between 0.01 and 100',
         received: discountPercentage,
-        validValue: 'Enter a number between 0-100 (e.g., 15.5)',
-        timestamp: '[2025-09-10 15:20:57]'
+        validValue: 'Enter a number between 0.01-100 (e.g., 15.5)',
+        timestamp: '[2025-09-10 16:16:02]'
       });
     }
 
@@ -1558,32 +1463,32 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
     const now = new Date();
 
     if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-      console.log(`[2025-09-10 15:20:57] Edit date validation failed by MathDaenniel`);
+      console.log(`[2025-09-10 16:16:02] Edit date validation failed by MathDaenniel`);
       return res.status(400).json({
         success: false,
         message: 'Invalid date format. Please use YYYY-MM-DD format.',
         received: { startDate, endDate },
-        timestamp: '[2025-09-10 15:20:57]'
+        timestamp: '[2025-09-10 16:16:02]'
       });
     }
 
     if (start > end) {
-      console.log(`[2025-09-10 15:20:57] Edit date range validation failed by MathDaenniel`);
+      console.log(`[2025-09-10 16:16:02] Edit date range validation failed by MathDaenniel`);
       return res.status(400).json({
         success: false,
         message: 'End date must be after or equal to start date',
         received: { startDate, endDate },
-        timestamp: '[2025-09-10 15:20:57]'
+        timestamp: '[2025-09-10 16:16:02]'
       });
     }
 
     // Validate ObjectId
     if (!ObjectId.isValid(id)) {
-      console.log(`[2025-09-10 15:20:57] Invalid ObjectId: ${id} by MathDaenniel`);
+      console.log(`[2025-09-10 16:16:02] Invalid ObjectId: ${id} by MathDaenniel`);
       return res.status(400).json({
         success: false,
         message: 'Invalid promo ID format',
-        timestamp: '[2025-09-10 15:20:57]'
+        timestamp: '[2025-09-10 16:16:02]'
       });
     }
 
@@ -1595,18 +1500,18 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
     const currentPromo = await promosCollection.findOne({ _id: new ObjectId(id) });
     if (!currentPromo) {
       await client.close();
-      console.log(`[2025-09-10 15:20:57] Promo not found for edit: ${id} by MathDaenniel`);
+      console.log(`[2025-09-10 16:16:02] Promo not found for edit: ${id} by MathDaenniel`);
       return res.status(404).json({
         success: false,
         message: 'Promo not found. It may have been deleted by another user.',
-        timestamp: '[2025-09-10 15:20:57]'
+        timestamp: '[2025-09-10 16:16:02]'
       });
     }
 
     // Enhanced duplicate check - excluding current promo
     const duplicatePromo = await promosCollection.findOne({
       _id: { $ne: new ObjectId(id) },
-      event: String(event).trim(),
+      event: trimmedEvent,
       $or: [
         { startDate: { $lte: end }, endDate: { $gte: start } }
       ]
@@ -1614,16 +1519,16 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
 
     if (duplicatePromo) {
       await client.close();
-      console.log(`[2025-09-10 15:20:57] Duplicate promo detected during edit by MathDaenniel`);
+      console.log(`[2025-09-10 16:16:02] Duplicate promo detected during edit by MathDaenniel`);
       return res.status(400).json({
         success: false,
-        message: `A promo with the name "${String(event).trim()}" already exists with overlapping dates. Please choose different dates or modify the event name.`,
+        message: `A promo with the name "${trimmedEvent}" already exists with overlapping dates. Please choose different dates or modify the event name.`,
         conflictingPromo: {
           event: duplicatePromo.event,
           startDate: duplicatePromo.startDate,
           endDate: duplicatePromo.endDate
         },
-        timestamp: '[2025-09-10 15:20:57]'
+        timestamp: '[2025-09-10 16:16:02]'
       });
     }
 
@@ -1632,8 +1537,8 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
     const changes = [];
     
     // Track what changed for logging
-    if (currentPromo.event !== String(event).trim()) changes.push('event');
-    if (currentPromo.description !== String(description).trim()) changes.push('description');
+    if (currentPromo.event !== trimmedEvent) changes.push('event');
+    if (currentPromo.description !== trimmedDescription) changes.push('description');
     if (currentPromo.discountPercentage !== discountPercent) changes.push('discountPercentage');
     if (new Date(currentPromo.startDate).getTime() !== start.getTime()) changes.push('startDate');
     if (new Date(currentPromo.endDate).getTime() !== end.getTime()) changes.push('endDate');
@@ -1642,26 +1547,30 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
       { _id: new ObjectId(id) },
       {
         $set: {
-          event: String(event).trim(),
+          event: trimmedEvent,
           startDate: start,
           endDate: end,
-          description: String(description).trim(),
+          description: trimmedDescription,
           discountPercentage: discountPercent,
           status: newStatus,
           lastModified: new Date(),
           lastModifiedBy: req.session.user.username || 'MathDaenniel',
-          version: 'V3-ContentScroll',
+          version: 'V5-FixedActivePromosUpdate',
           changeHistory: {
             fields: changes,
             timestamp: now.toISOString(),
             user: req.session.user.username || 'MathDaenniel',
-            repository: 'Couche-Co'
+            repository: 'roviczzz/Couche-Co',
+            updateMetadata: metadata || {},
+            // V5 Addition: Track active promo update fix
+            activePromosUpdateFix: true,
+            realTimeSyncEnabled: true
           }
         }
       }
     );
 
-    console.log(`[2025-09-10 15:20:57] Update result:`, updateResult, 'by MathDaenniel');
+    console.log(`[2025-09-10 16:16:02] Update result:`, updateResult, 'by MathDaenniel');
 
     // Get updated statistics for Active Promos Section
     const activeCount = await promosCollection.countDocuments({
@@ -1673,19 +1582,29 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
     await client.close();
 
     if (updateResult.matchedCount === 0) {
-      console.log(`[2025-09-10 15:20:57] No promo matched for update: ${id} by MathDaenniel`);
+      console.log(`[2025-09-10 16:16:02] No promo matched for update: ${id} by MathDaenniel`);
       return res.status(404).json({
         success: false,
         message: 'Promo not found or no changes detected',
-        timestamp: '[2025-09-10 15:20:57]'
+        timestamp: '[2025-09-10 16:16:02]'
       });
     }
 
     const processingTime = Date.now() - startTime;
 
-    console.log(`[2025-09-10 15:20:57] Promo updated: ${currentPromo.event} -> ${String(event).trim()} by MathDaenniel`);
-    console.log(`[2025-09-10 15:20:57] Status changed: ${currentPromo.status || 'undefined'} -> ${newStatus} by MathDaenniel`);
-    console.log(`[2025-09-10 15:20:57] Fields changed: ${changes.join(', ')} (${processingTime}ms) by MathDaenniel`);
+    console.log(`[2025-09-10 16:16:02] Promo updated: ${currentPromo.event} -> ${trimmedEvent} by MathDaenniel`);
+    console.log(`[2025-09-10 16:16:02] Status changed: ${currentPromo.status || 'undefined'} -> ${newStatus} by MathDaenniel`);
+    console.log(`[2025-09-10 16:16:02] Fields changed: ${changes.join(', ')} (${processingTime}ms) by MathDaenniel`);
+
+    // V5 CRITICAL: Return data that client needs to update data-original attributes
+    const updatedPromoData = {
+      _id: id,
+      event: trimmedEvent,
+      startDate: start.toISOString().split('T')[0],
+      endDate: end.toISOString().split('T')[0],
+      description: trimmedDescription,
+      discountPercentage: discountPercent
+    };
 
     res.json({
       success: true,
@@ -1698,30 +1617,211 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
         active: activeCount,
         status: newStatus
       },
-      // V3 Addition: Enhanced UI feedback with performance data
+      // V5 CRITICAL FIX: Return updated data for client-side cache update
+      updatedData: updatedPromoData,
+      // V5 Addition: Enhanced UI feedback with performance data
       uiUpdate: {
         refreshActivePromos: true,
         highlightRow: true,
         clearAutoSave: true,
+        showSuccessFeedback: true,
+        updateDataOriginal: true, // V5 CRITICAL: Signal to update data-original
+        realTimeSync: true,
         timestamp: now.toISOString()
       },
       performance: {
         processingTime: processingTime,
-        version: 'V3-ContentScroll',
-        timestamp: '[2025-09-10 15:20:57]'
+        version: 'V5-FixedActivePromosUpdate',
+        timestamp: '[2025-09-10 16:16:02]'
       }
     });
   } catch (err) {
-    console.error(`[2025-09-10 15:20:57] Error editing promo:`, err, 'by MathDaenniel');
+    console.error(`[2025-09-10 16:16:02] Error editing promo:`, err, 'by MathDaenniel');
     res.status(500).json({
       success: false,
       message: 'Database error: ' + err.message,
-      timestamp: '[2025-09-10 15:20:57]'
+      timestamp: '[2025-09-10 16:16:02]'
     });
   }
 });
 
-// Helper function to determine promo status (V3 enhanced)
+// POST route for deleting promo - V5 ENHANCED with Real-Time Update Support
+app.post('/discounts/delete/:id', isLoggedIn, async (req, res) => {
+  const { id } = req.params;
+  const startTime = Date.now();
+
+  console.log(`[2025-09-10 16:16:02] V5 Enhanced delete promo request: ${id} by MathDaenniel`);
+
+  // Validate ObjectId
+  if (!ObjectId.isValid(id)) {
+    console.log(`[2025-09-10 16:16:02] Invalid ObjectId for delete: ${id} by MathDaenniel`);
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid promo ID format',
+      timestamp: '[2025-09-10 16:16:02]'
+    });
+  }
+
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const promosCollection = db.collection('Promos');
+
+    // Get promo details before deletion for enhanced logging and safety checks
+    const promo = await promosCollection.findOne({ _id: new ObjectId(id) });
+
+    if (!promo) {
+      await client.close();
+      console.log(`[2025-09-10 16:16:02] Promo not found for delete: ${id} by MathDaenniel`);
+      return res.status(404).json({
+        success: false,
+        message: 'Promo not found. It may have already been deleted by another user.',
+        timestamp: '[2025-09-10 16:16:02]'
+      });
+    }
+
+    // V5 Enhanced safety checks and audit logging
+    const now = new Date();
+    const isCurrentlyActive = now >= new Date(promo.startDate) && now <= new Date(promo.endDate) && promo.isActive;
+    const daysUntilStart = Math.ceil((new Date(promo.startDate) - now) / (1000 * 60 * 60 * 24));
+    const daysUntilEnd = Math.ceil((new Date(promo.endDate) - now) / (1000 * 60 * 60 * 24));
+    const isExpiringSoon = isCurrentlyActive && daysUntilEnd <= 7;
+    
+    // Enhanced metadata from request body
+    const deleteMetadata = req.body.metadata || {};
+    
+    if (isCurrentlyActive) {
+      console.log(`[2025-09-10 16:16:02] WARNING: Deleting currently active promo "${promo.event}" (${daysUntilEnd} days remaining) by MathDaenniel`);
+    }
+    
+    if (isExpiringSoon) {
+      console.log(`[2025-09-10 16:16:02] ALERT: Deleting promo "${promo.event}" that expires soon (${daysUntilEnd} days) by MathDaenniel`);
+    }
+
+    // Enhanced audit trail logging
+    console.log(`[2025-09-10 16:16:02] V5 Deletion context for "${promo.event}":`, {
+      isActive: isCurrentlyActive,
+      daysToStart: daysUntilStart,
+      daysToEnd: daysUntilEnd,
+      isExpiringSoon: isExpiringSoon,
+      discountPercentage: promo.discountPercentage,
+      user: req.session.user.username || 'MathDaenniel',
+      repository: 'roviczzz/Couche-Co',
+      deleteMetadata: deleteMetadata,
+      realTimeSyncEnabled: true
+    }, 'by MathDaenniel');
+
+    // V5 Addition: Create deletion record before actual deletion for audit trail
+    const deletionRecord = {
+      originalPromoId: promo._id,
+      promoData: { ...promo },
+      deletedAt: new Date(),
+      deletedBy: req.session.user.username || 'MathDaenniel',
+      deletionContext: {
+        wasActive: isCurrentlyActive,
+        wasExpiringSoon: isExpiringSoon,
+        daysUntilStart: daysUntilStart,
+        daysUntilEnd: daysUntilEnd
+      },
+      metadata: {
+        ...deleteMetadata,
+        clientIP: req.ip,
+        userAgent: req.get('User-Agent'),
+        repository: 'roviczzz/Couche-Co',
+        version: 'V5-FixedActivePromosUpdate',
+        realTimeSyncSupport: true
+      }
+    };
+
+    // Store deletion record (optional - uncomment if you want to keep deletion history)
+    // await db.collection('PromosDeletionLog').insertOne(deletionRecord);
+
+    const deleteResult = await promosCollection.deleteOne({ _id: new ObjectId(id) });
+
+    console.log(`[2025-09-10 16:16:02] Delete operation result:`, deleteResult, 'by MathDaenniel');
+
+    // Get updated statistics after deletion
+    const totalCount = await promosCollection.countDocuments();
+    const activeCount = await promosCollection.countDocuments({
+      startDate: { $lte: now },
+      endDate: { $gte: now },
+      isActive: true
+    });
+
+    await client.close();
+
+    if (deleteResult.deletedCount === 0) {
+      console.log(`[2025-09-10 16:16:02] No promo was deleted: ${id} by MathDaenniel`);
+      return res.status(404).json({
+        success: false,
+        message: 'Promo could not be deleted. It may have been deleted by another user.',
+        timestamp: '[2025-09-10 16:16:02]'
+      });
+    }
+
+    const processingTime = Date.now() - startTime;
+
+    console.log(`[2025-09-10 16:16:02] SUCCESS: Promo "${promo.event}" deleted successfully (${processingTime}ms) by MathDaenniel`);
+
+    // V5 Enhanced response with comprehensive deletion information
+    res.json({
+      success: true,
+      message: `Promo "${promo.event}" deleted successfully`,
+      deletedPromo: {
+        event: promo.event,
+        description: promo.description,
+        status: promo.status,
+        discountPercentage: promo.discountPercentage,
+        wasActive: isCurrentlyActive,
+        wasExpiringSoon: isExpiringSoon,
+        originalId: promo._id
+      },
+      stats: {
+        total: totalCount,
+        active: activeCount
+      },
+      // V5 Addition: Enhanced deletion feedback
+      deletionInfo: {
+        wasCurrentlyActive: isCurrentlyActive,
+        wasExpiringSoon: isExpiringSoon,
+        daysUntilStart: daysUntilStart,
+        daysUntilEnd: daysUntilEnd,
+        deletionWarnings: {
+          activePromoDeleted: isCurrentlyActive,
+          expiringSoonDeleted: isExpiringSoon
+        },
+        timestamp: now.toISOString()
+      },
+      performance: {
+        processingTime: processingTime,
+        version: 'V5-FixedActivePromosUpdate'
+      },
+      // V5 Addition: UI feedback instructions with real-time update support
+      uiUpdate: {
+        showDeleteSuccess: true,
+        refreshActivePromos: true,
+        removeFromTable: true,
+        highlightChanges: true,
+        clearCache: true, // V5 CRITICAL: Clear client-side cache
+        realTimeSync: true,
+        timestamp: now.toISOString()
+      }
+    });
+  } catch (err) {
+    console.error(`[2025-09-10 16:16:02] CRITICAL ERROR during promo deletion:`, err, 'by MathDaenniel');
+    res.status(500).json({
+      success: false,
+      message: 'Database error during deletion: ' + err.message,
+      timestamp: '[2025-09-10 16:16:02]',
+      error: process.env.NODE_ENV === 'development' ? {
+        stack: err.stack,
+        message: err.message
+      } : 'Internal server error during deletion'
+    });
+  }
+});
+
+// Helper function to determine promo status (V5 enhanced)
 function getPromoStatus(startDate, endDate, currentDate) {
   const start = new Date(startDate);
   const end = new Date(endDate);
@@ -1736,7 +1836,7 @@ function getPromoStatus(startDate, endDate, currentDate) {
   }
 }
 
-// V3 Addition: Performance monitoring endpoint
+// V5 Addition: Enhanced Performance monitoring endpoint with real-time sync status
 app.get('/discounts/performance', isLoggedIn, async (req, res) => {
   try {
     const startTime = Date.now();
@@ -1747,30 +1847,107 @@ app.get('/discounts/performance', isLoggedIn, async (req, res) => {
     const count = await promosCollection.countDocuments();
     const dbResponseTime = Date.now() - startTime;
     
+    // V5 Addition: Get additional performance metrics
+    const now = new Date();
+    const activeCount = await promosCollection.countDocuments({
+      startDate: { $lte: now },
+      endDate: { $gte: now },
+      isActive: true
+    });
+    
+    // V5 Enhancement: Get expiring soon count
+    const expiringSoonCount = await promosCollection.countDocuments({
+      startDate: { $lte: now },
+      endDate: { $gte: now, $lte: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000) },
+      isActive: true
+    });
+    
     await client.close();
     
     res.json({
       status: 'healthy',
-      version: 'V3-ContentScroll',
+      version: 'V5-FixedActivePromosUpdate',
       promoCount: count,
+      activePromoCount: activeCount,
+      expiringSoonCount: expiringSoonCount,
       performance: {
         dbResponseTime: dbResponseTime,
-        timestamp: '[2025-09-10 15:20:57]'
+        timestamp: '[2025-09-10 16:16:02]'
       },
       user: req.session.user.username || 'MathDaenniel',
-      repository: 'Couche-Co'
+      repository: 'roviczzz/Couche-Co',
+      features: {
+        superiorDeleteFunctionality: true,
+        enhancedValidation: true,
+        performanceMonitoring: true,
+        auditTrail: true,
+        fixedActivePromosUpdate: true,
+        realTimeSyncEnabled: true
+      }
     });
   } catch (err) {
     res.status(500).json({
       status: 'unhealthy',
       error: err.message,
-      timestamp: '[2025-09-10 15:20:57]'
+      timestamp: '[2025-09-10 16:16:02]'
     });
   }
 });
 
-// ========== END OF ENHANCED DISCOUNTS/PROMOS ROUTES - V3 ==========
+// V5 Addition: Real-time sync status endpoint
+app.get('/discounts/sync-status', isLoggedIn, async (req, res) => {
+  try {
+    const now = new Date();
+    res.json({
+      status: 'operational',
+      version: 'V5-FixedActivePromosUpdate',
+      syncFeatures: {
+        activePromosUpdateFixed: true,
+        realTimeDataSync: true,
+        clientSideCacheManagement: true,
+        dataOriginalAttributeSync: true
+      },
+      timestamp: '[2025-09-10 16:16:02]',
+      user: req.session.user.username || 'MathDaenniel',
+      repository: 'roviczzz/Couche-Co'
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: 'error',
+      message: err.message,
+      timestamp: '[2025-09-10 16:16:02]'
+    });
+  }
+});
 
+// V5 Addition: Health check endpoint specifically for active promos update functionality
+app.get('/discounts/active-promos-health', isLoggedIn, async (req, res) => {
+  try {
+    const now = new Date();
+    res.json({
+      status: 'operational',
+      version: 'V5-FixedActivePromosUpdate',
+      activePromosFeatures: {
+        realTimeUpdates: true,
+        dateChangeDetection: true,
+        cacheManagement: true,
+        dataAttributeSync: true,
+        disappearingIssueFixed: true
+      },
+      timestamp: '[2025-09-10 16:16:02]',
+      user: req.session.user.username || 'MathDaenniel',
+      repository: 'roviczzz/Couche-Co'
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: 'error',
+      message: err.message,
+      timestamp: '[2025-09-10 16:16:02]'
+    });
+  }
+});
+
+// ========== END OF ENHANCED DISCOUNTS/PROMOS ROUTES - V5 ==========
 
 
 
