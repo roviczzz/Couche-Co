@@ -9,7 +9,7 @@
 <div class="main-container">
   <div class="top-bar">
     <h1>Product Management</h1>
-    <button id="openAddModal" class="add-btn">+ Add Product</button>
+    <button id="openAddModal" class="fab-btn">+</button>
   </div>
 
   <% if (success_msg) { %>
@@ -23,6 +23,7 @@
         <% grouped[category].forEach(product => { %>
           <div class="product-card <%= product.isEnabled ? 'enabled' : '' %>" 
               data-id="<%= product._id %>" 
+              data-category="<%= product.Category %>" 
               data-enabled="<%= product.isEnabled %>">
             <div class="product-image">
               <% if (product.imagelink && product.imagelink !== "placeholder") { %>
@@ -89,7 +90,7 @@
         <input type="hidden" name="Ingredients" id="hiddenIngredients">
       </div>
 
-      <div id="basePriceContainer" class="form-group" style="display: none;">
+      <div id="basePriceContainer" class="form-group hidden">
         <label class="form-label">Base Price (Pastries only)</label>
         <input class="form-input" type="number" name="BasePrice" step="0.01">
       </div>
@@ -125,43 +126,107 @@
   </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div id="deleteConfirm" class="custom-confirm hidden">
+<!-- Edit Product Modal -->
+<div id="editProductModal" class="custom-confirm hidden">
+  <div class="confirm-box add-form-box">
+    <h2>Edit Product</h2>
+    <form id="editProductForm" method="POST">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <input type="text" id="editCategoryDisplay" class="form-input readonly-input" readonly>
+          <input type="hidden" id="editCategoryHidden" name="Category">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Product Name</label>
+          <input class="form-input" type="text" name="Name" id="editName" required>
+        </div>
+      </div>
+
+      <!-- Price Row -->
+      <div id="editPriceRow" class="form-group">
+        <label class="form-label">Prices</label>
+        <div class="price-row">
+          <input class="form-input" type="number" name="size16" id="editSize16" step="0.01" placeholder="16oz">
+          <input class="form-input" type="number" name="size22" id="editSize22" step="0.01" placeholder="22oz">
+        </div>
+      </div>
+
+      <!-- Base Price -->
+      <div id="editBasePriceContainer" class="form-group hidden">
+        <label class="form-label">Base Price (Pastries only)</label>
+        <input class="form-input" type="number" name="BasePrice" id="editBasePrice" step="0.01">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Allergen (optional)</label>
+        <select class="form-input" name="Allergen" id="editAllergen">
+          <option value="">-- Select Allergen --</option>
+          <option value="Peanut">Peanut</option>
+          <option value="Tree Nut">Tree Nut</option>
+          <option value="Dairy">Dairy</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Image Link</label>
+        <input class="form-input" type="text" name="imagelink" id="editImage">
+      </div>
+
+      <div class="form-group toggle">
+        <label class="switch">
+          <input type="checkbox" name="isEnabled" id="editEnabled" value="true">
+          <span class="slider"></span>
+        </label>
+        <span>Enabled</span>
+      </div>
+
+      <div class="btn-row">
+        <button type="submit" class="submit-button add">Update Product</button>
+        <button type="button" id="cancelEdit" class="submit-button cancel">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Delete Modal -->
+<div id="deleteConfirmModal" class="custom-confirm hidden">
   <div class="confirm-box">
     <p>Are you sure you want to delete this product?</p>
     <div class="button-group">
-      <button id="confirmDeleteYes" class="yes-btn">Yes</button>
-      <button id="confirmDeleteNo" class="no-btn">No</button>
+      <button class="yes-btn" id="confirmDelete">Yes</button>
+      <button class="no-btn" id="cancelDelete">No</button>
     </div>
   </div>
 </div>
 
-<!-- Enable/Disable Confirmation Modal -->
-<div id="toggleConfirm" class="custom-confirm hidden">
+<!-- Toggle Confirm Modal -->
+<div id="toggleConfirmModal" class="custom-confirm hidden">
   <div class="confirm-box">
-    <p id="toggleMessage"></p>
+    <p>Are you sure you want to enable/disable this product?</p>
     <div class="button-group">
-      <button id="confirmToggleYes" class="yes-btn">Yes</button>
-      <button id="confirmToggleNo" class="no-btn">No</button>
+      <button class="yes-btn" id="confirmToggle">Yes</button>
+      <button class="no-btn" id="cancelToggle">No</button>
     </div>
   </div>
 </div>
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
-    // Modal open/close
-    const modal = document.getElementById("addProductModal");
-    document.getElementById("openAddModal").addEventListener("click", () => modal.classList.remove("hidden"));
-    document.getElementById("cancelAdd").addEventListener("click", () => modal.classList.add("hidden"));
+    // ---------- ADD PRODUCT MODAL ----------
+    const addModal = document.getElementById("addProductModal");
+    document.getElementById("openAddModal").addEventListener("click", () => addModal.classList.remove("hidden"));
+    document.getElementById("cancelAdd").addEventListener("click", () => addModal.classList.add("hidden"));
 
-    // Ingredient chips + autocomplete
+    // ---------- INGREDIENT CHIPS ----------
     const chipContainer = document.getElementById("chipContainer");
     const chipInput = document.getElementById("chipInput");
     const hiddenIngredients = document.getElementById("hiddenIngredients");
     const suggestionsBox = document.getElementById("suggestions");
 
-    let ingredients = [];       // store IngredientIDs
-    let ingredientMap = {};     // map ID -> Name for display
+    let ingredients = [];
+    let ingredientMap = {};
 
     function updateHiddenInput() { hiddenIngredients.value = ingredients.join(","); }
 
@@ -194,7 +259,7 @@
         const results = await res.json();
         results.forEach(item => {
           const div = document.createElement("div");
-          div.textContent = item.Name; // show Name
+          div.textContent = item.Name;
           div.addEventListener("click", () => {
             addChip(item.IngredientID, item.Name);
             suggestionsBox.innerHTML = "";
@@ -207,23 +272,86 @@
     chipInput.addEventListener("keydown", e => { if (e.key === "Enter") e.preventDefault(); });
     document.addEventListener("click", e => { if (e.target !== chipInput) suggestionsBox.innerHTML = ""; });
 
-    // Category toggle
+    // ---------- ADD CATEGORY TOGGLE ----------
     const categorySelect = document.getElementById("categorySelect");
     const basePriceContainer = document.getElementById("basePriceContainer");
     const priceRow = document.getElementById("priceRow");
     categorySelect.addEventListener("change", () => {
-      if (categorySelect.value === "BK") {
-        basePriceContainer.style.display = "block";
-        priceRow.style.display = "none";
+      if (categorySelect.value === "Pastries") {
+        basePriceContainer.classList.remove("hidden");
+        priceRow.classList.add("hidden");
       } else {
-        basePriceContainer.style.display = "none";
-        priceRow.style.display = "block";
+        basePriceContainer.classList.add("hidden");
+        priceRow.classList.remove("hidden");
       }
     });
 
-    // Delete modal
+    // ---------- EDIT PRODUCT MODAL ----------
+    const editModal = document.getElementById("editProductModal");
+    const editForm = document.getElementById("editProductForm");
+    const editBasePriceContainer = document.getElementById("editBasePriceContainer");
+    const editPriceRow = document.getElementById("editPriceRow");
+
+    function toggleEditFields() {
+      if (editCategorySelect.value === "Pastries") {
+        editBasePriceContainer.classList.remove("hidden");
+        editPriceRow.classList.add("hidden");
+      } else {
+        editBasePriceContainer.classList.add("hidden");
+        editPriceRow.classList.remove("hidden");
+      }
+    }
+
+    document.querySelectorAll(".edit-btn").forEach(btn => {
+      btn.addEventListener("click", e => {
+        e.preventDefault();
+
+        const card = btn.closest(".product-card");
+        const id = card.dataset.id;
+        const name = card.querySelector(".product-name").textContent;
+        const category = card.dataset.category; // ✅ now from data-attribute
+        const enabled = card.dataset.enabled === "true";
+
+        // Fill form
+        editForm.action = `/products/edit/${id}`;
+        const editNameField = document.getElementById("editName");
+        editNameField.value = name;
+        editNameField.readOnly = true; // ✅ lock product name
+        editNameField.classList.add("readonly-input");
+
+        document.getElementById("editCategoryDisplay").value = category;
+        document.getElementById("editCategoryHidden").value = category;
+        document.getElementById("editEnabled").checked = enabled;
+
+        // Fetch extra details
+        fetch(`/api/products/${id}`)
+          .then(res => res.json())
+          .then(p => {
+            if (p.Sizes) {
+              const size16 = p.Sizes.find(s => s.Size === "16oz");
+              const size22 = p.Sizes.find(s => s.Size === "22oz");
+              document.getElementById("editSize16").value = size16 ? size16.BasePrice : "";
+              document.getElementById("editSize22").value = size22 ? size22.BasePrice : "";
+            }
+            if (p.BasePrice) document.getElementById("editBasePrice").value = p.BasePrice;
+            document.getElementById("editAllergen").value = p.Allergen || "";
+            document.getElementById("editImage").value = p.imagelink || "";
+
+            toggleEditFields(); // ✅ update price/base fields
+          });
+
+        // Show modal
+        editModal.classList.remove("hidden");
+      });
+    });
+
+    document.getElementById("cancelEdit").addEventListener("click", () => {
+      editModal.classList.add("hidden");
+    });
+
+    // ---------- DELETE MODAL ----------
     let deleteUrl = "";
-    const deleteModal = document.getElementById("deleteConfirm");
+    const deleteModal = document.getElementById("deleteConfirmModal");
     document.querySelectorAll(".delete-btn").forEach(btn => {
       btn.addEventListener("click", e => {
         e.preventDefault();
@@ -231,33 +359,34 @@
         deleteModal.classList.remove("hidden");
       });
     });
-    document.getElementById("confirmDeleteYes").addEventListener("click", () => {
-      fetch(deleteUrl, { method: "POST" }).then(res => res.ok ? location.reload() : alert("Failed"));
+    document.getElementById("confirmDelete").addEventListener("click", () => {
+      fetch(deleteUrl, { method: "POST" })
+        .then(res => res.ok ? location.reload() : alert("Failed"));
       deleteModal.classList.add("hidden");
     });
-    document.getElementById("confirmDeleteNo").addEventListener("click", () => {
-      deleteModal.classList.add("hidden"); deleteUrl = "";
+    document.getElementById("cancelDelete").addEventListener("click", () => {
+      deleteModal.classList.add("hidden");
+      deleteUrl = "";
     });
 
-    // Enable/Disable modal
+    // ---------- TOGGLE MODAL ----------
     let toggleProductId = "";
     let toggleEnabled = false;
-    const toggleModal = document.getElementById("toggleConfirm");
-    const toggleMessage = document.getElementById("toggleMessage");
+    const toggleModal = document.getElementById("toggleConfirmModal");
 
     document.querySelectorAll(".product-card").forEach(card => {
       card.addEventListener("click", e => {
         if (e.target.closest(".action-buttons")) return;
         toggleProductId = card.getAttribute("data-id");
         toggleEnabled = card.getAttribute("data-enabled") === "true";
-        toggleMessage.textContent = toggleEnabled
+        toggleModal.querySelector("p").textContent = toggleEnabled
           ? "Do you want to disable this product?"
           : "Do you want to enable this product?";
         toggleModal.classList.remove("hidden");
       });
     });
 
-    document.getElementById("confirmToggleYes").addEventListener("click", () => {
+    document.getElementById("confirmToggle").addEventListener("click", () => {
       fetch(`/toggle-availability/${toggleProductId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -265,124 +394,185 @@
       }).then(res => res.ok ? location.reload() : alert("Failed"));
       toggleModal.classList.add("hidden");
     });
-    document.getElementById("confirmToggleNo").addEventListener("click", () => {
-      toggleModal.classList.add("hidden"); toggleProductId = "";
+    document.getElementById("cancelToggle").addEventListener("click", () => {
+      toggleModal.classList.add("hidden");
+      toggleProductId = "";
     });
   });
 </script>
 
+
+
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+  body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background-color: #faf9f7; color: #333; }
+  .hidden { display: none !important; }
 
-  body {
-    font-family: 'Inter', sans-serif;
-    margin: 0;
-    padding: 0;
-  }
-  .main-container {
-    width: 100%;
-    min-height: 100vh;
-    box-sizing: border-box;
-  }
-
-.top-bar {
-  display: flex;
-  justify-content: space-between; /* keep title left, button right */
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.top-bar h1 {
-  font-size: 28px;
-  font-weight: 700;
+body {
+  font-family: 'Inter', sans-serif;
   margin: 0;
+  padding: 0;
+  background-color: #faf9f7; /* soft neutral bg */
   color: #333;
 }
 
+/* MAIN CONTAINER */
+.main-container {
+  padding: 24px;
+  width: 100%;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* --- TOP BAR --- */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 24px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  margin-bottom: 32px;
+}
+
+.top-bar h1 {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+  color: #2c1810;
+}
+
+/* Add Button */
 .add-btn {
-  background-color: #8B4513;
+  background: linear-gradient(135deg, #8B4513, #a0522d);
   color: #fff;
-  padding: 10px 18px;
+  padding: 10px 20px;
   font-size: 15px;
   font-weight: 600;
-  border-radius: 8px;
-  text-decoration: none;
-  display: inline-block;   /* prevents full width */
-  width: auto !important;  /* override any full-width */
-  max-width: fit-content;  /* shrink to content size */
-  white-space: nowrap;     /* keeps text in one line */
-  transition: background 0.2s ease;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s ease;
 }
 
 .add-btn:hover {
-  background-color: #a0522d;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
+}
+
+/* --- DASHBOARD CARDS --- */
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+}
+
+.stat-card h2 {
+  font-size: 28px;
+  margin: 0;
+  color: #8B4513;
+}
+
+.stat-card p {
+  font-size: 14px;
+  color: #666;
+  margin: 8px 0 0;
+}
+
+/* --- SECTION TITLES --- */
+.section-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #8B4513;
+  margin: 30px 0 15px;
+}
+
+/* --- PRODUCT GRID --- */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.product-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #eee;
+  padding: 18px;
+  text-align: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.product-card:hover {
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+  transform: translateY(-4px);
+}
+
+.product-card.enabled {
+  border: 2px solid #8B4513;
+  box-shadow: 0 0 16px rgba(139, 69, 19, 0.25);
+}
+
+.product-image {
+  width: 100%;
+  max-width: 200px;
+  height: 200px;
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 0 auto 12px;
+  background: #f3f3f3;
+}
+
+.product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.readonly-input {
+  background-color: #f0f0f0;
+  color: #777;
+  cursor: not-allowed;
 }
 
 
+.product-name {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
 
-  .section-title {
-    font-size: 24px;
-    color: #8B4513;
-    margin-bottom: 15px;
-    font-weight: bold;
-  }
-  .products-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 20px;
-    margin-bottom: 40px;
-  }
-  .product-card {
-    background-color: #fff;
-    border-radius: 15px;
-    border: 2px solid #ddd;
-    box-shadow: 0 1px 6px rgba(0,0,0,0.08);
-    padding: 20px;
-    text-align: center;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    cursor: pointer;
-  }
-  .product-card.enabled {
-    border: 2px solid #8B4513;
-    box-shadow: 0 0 12px rgba(139, 69, 19, 0.4);
-  }
-  .product-image {
-    width: 100%;
-    max-width: 200px;
-    height: 200px;
-    background-color: #999;
-    border-radius: 10px;
-    margin: 0 auto 15px;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .product-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 10px;
-  }
-  .product-name {
-    font-size: 16px;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 12px;
-  }
 .action-buttons {
-  display: flex;               /* horizontal layout */
-  gap: 10px;                   /* space between buttons */
-  justify-content: center;     /* center buttons in card */
+  display: flex;
+  gap: 10px;
+  justify-content: center;
   margin-top: 10px;
-  align-items: center; 
+  align-items: center;
 }
 
 .action-buttons a,
 .action-buttons button {
   flex: 1;
-  max-width: 80px;
-  height: 32px;
+  max-width: 100px;      /* keeps them compact */
+  height: 32px;         /* small like before */
   font-size: 13px;
   font-weight: 600;
   border-radius: 6px;
@@ -393,302 +583,388 @@
   text-decoration: none;
   line-height: 1;
   box-sizing: border-box;
-  padding: 0;            /* reset default padding */
-  margin: 0;             /* reset default margin */
-  border: none;          /* remove default border on button */
-  vertical-align: middle; /* helps <a> align with <button> */
+  padding: 0;
+  margin: 0;
+  border: none;
+  vertical-align: middle;
 }
 
 .edit-btn {
   background-color: #8B4513;
-  color: white;
-  
+  color: #fff;
 }
+
 .edit-btn:hover {
   background-color: #a0522d;
 }
 
 .delete-btn {
   background-color: #e74c3c;
-  color: white;
+  color: #fff;
 }
+
 .delete-btn:hover {
   background-color: #c0392b;
 }
 
+/* --- TOAST --- */
+.toast-flash {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #4CAF50;
+  color: white;
+  padding: 14px 28px;
+  border-radius: 8px;
+  box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
+  font-size: 15px;
+  z-index: 9999;
+  animation: fadeInDown 0.5s ease;
+}
 
-  .toast-flash {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: #4CAF50;
-    color: white;
-    padding: 16px 30px;
-    border-radius: 8px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-    font-size: 16px;
-    z-index: 9999;
-    animation: fadeInDown 0.5s ease;
-  }
-  @keyframes fadeInDown {
-    from { opacity: 0; top: 0; }
-    to { opacity: 1; top: 20px; }
-  }
-  .custom-confirm {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background-color: rgba(0,0,0,0.4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10000;
-  }
-  .confirm-box {
-    background-color: white;
-    padding: 20px 30px;
-    border-radius: 10px;
-    text-align: center;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-    max-width: 300px;
-    width: 90%;
-  }
-  .button-group {
-    margin-top: 20px;
-    display: flex;
-    justify-content: space-between;
+@keyframes fadeInDown {
+  from { opacity: 0; top: 0; }
+  to { opacity: 1; top: 20px; }
+}
+
+/* --- MODALS --- */
+.custom-confirm {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.confirm-box, .add-form-box {
+  background: #fff;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  animation: scaleIn 0.3s ease;
+  width: 90%;
+  max-width: 700px;
+  text-align: center;
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.button-group {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+.price-row {
+  display: flex;
+  gap: 20px; /* same effect */
+}
+.price-row .form-input {
+  flex: 1; /* makes both inputs equal width */
+}
+
+.yes-btn, .no-btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+.yes-btn {
+  background: #8B4513;
+  color: #fff;
+}
+
+.no-btn {
+  background: #e74c3c;
+  color: #fff;
+}
+
+/* --- FORM ELEMENTS --- */
+.form-group {
+  margin-bottom: 18px;
+  text-align: left;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #5a4636;
+}
+
+.form-input, .chip-input, select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s ease;
+  background-color: #fff;
+}
+
+.form-input:focus, .chip-input:focus, select:focus {
+  border-color: #8B4513;
+}
+
+/* Ingredient Chips */
+.chip-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 8px;
+  background: #fff;
+  min-height: 48px;
+  position: relative;
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  background-color: #f1e0d6;
+  border-radius: 16px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #3b2d1f;
+}
+
+.chip span {
+  margin-left: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* Suggestions dropdown */
+#suggestions {
+  position: absolute;
+  background: #fff;
+  box-shadow:0 6px 18px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  margin-top: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  width: calc(100% - 18px);
+}
+
+#suggestions div {
+  padding: 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+  color: #333;              
+  font-size: 14px;    
+}
+
+#suggestions div:hover {
+  background: #f8f1eb;
+  color: #000;
+}
+
+/* Submit buttons */
+.submit-button {
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.submit-button.add {
+  background-color: #09731d;
+  color: #fff;
+}
+
+.submit-button.add:hover {
+  background-color: #004f0e;
+}
+
+.submit-button.cancel {
+  background-color: #e74c3c;
+  color: #fff;
+}
+
+.submit-button.cancel:hover {
+  background-color: #9f1708;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+
+/* Toggle switch */
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+}
+
+.switch input { display: none; }
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0;
+  right: 0; bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 24px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #0a8408;
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 768px) {
+  .top-bar {
+    flex-direction: column;
     gap: 10px;
-  }
-  .yes-btn {
-    background-color: #8B4513;
-    color: white;
-    padding: 8px 16px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-  .no-btn {
-    background-color: #e74c3c;
-    color: white;
-    padding: 8px 16px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-  .hidden {
-    display: none;
-  }
-
-  /* Add Product Modal Styling */
-  .add-form-box {
-    background-color: #fffaf2;
-    padding: 30px;
-    border-radius: 12px;
-    width: 90%;
-    max-width: 1000px;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
-  }
-
-  .add-form-box h2 {
     text-align: center;
-    margin-bottom: 25px;
-    font-weight: 600;
-    color: #3b2d1f;
   }
 
-  .form-group {
-    margin-bottom: 18px;
-    text-align: left;
+  .dashboard-cards {
+    grid-template-columns: 1fr;
   }
 
-  .form-label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 500;
-    color: #5a4636;
+  .products-grid {
+    grid-template-columns: 1fr 1fr;
   }
-
-  .form-input, 
-  .chip-input, 
-  select {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 14px;
-    outline: none;
-    transition: border-color 0.2s ease;
-    background-color: #fff;
-  }
-
-  .form-input:focus, 
-  .chip-input:focus, 
-  select:focus {
-    border-color: #8B4513;
-  }
-
-  .price-row {
-    display: flex;
-    gap: 12px;
-  }
-
-  .chip-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    align-items: center;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 8px;
-    background: #fff;
-    min-height: 48px;
-    position: relative;
-  }
-
-  .chip {
-    display: flex;
-    align-items: center;
-    background-color: #f1e0d6;
-    border-radius: 16px;
-    padding: 6px 12px;
-    font-size: 13px;
-    font-weight: 500;
-    color: #3b2d1f;
-  }
-
-  .chip span {
-    margin-left: 8px;
-    cursor: pointer;
-    font-weight: bold;
-  }
-
-  #suggestions {
-    position: absolute;
-    background: #fff;
-    border: none;
-    box-shadow:0 6px 18px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    margin-top: 4px;
-    max-height: 200px;
-    overflow-y: auto;
-    z-index: 1000;
-    width: calc(100% - 18px);
-  }
-
-  #suggestions div {
-    padding: 10px;
-    cursor: pointer;
-    transition: background 0.2s;
-    color: #333;              
-    font-size: 14px;    
-  }
-
-  #suggestions div:hover {
-    background: #f8f1eb;
-    color: #000;
-  }
-
-  .btn-row {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 20px;
-  }
-
-  .submit-button {
-    padding: 12px 24px;
-    border-radius: 8px;
-    border: none;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: transform 0.2s ease;
-  }
-
-  .submit-button.add {
-    background-color: #09731d;
-    color: #fff;
-  }
-
-  .submit-button.add:hover {
-    background-color: #004f0e;
-  }
-
-  .submit-button.cancel {
-    background-color: #e74c3c;
-    color: #fff;
-  }
-
-  .submit-button.cancel:hover {
-    background-color: #9f1708;
-  }
-
-  .form-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 18px;
-  }
-
-  .toggle {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-top: 12px;
-  }
-
-  .switch {
-    position: relative;
-    display: inline-block;
-    width: 50px;
-    height: 24px;
-  }
-
-  .switch input { display: none; }
-
-  .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0; left: 0;
-    right: 0; bottom: 0;
-    background-color: #ccc;
-    transition: .4s;
-    border-radius: 24px;
-  }
-
-  .slider:before {
-    position: absolute;
-    content: "";
-    height: 18px;
-    width: 18px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    transition: .4s;
-    border-radius: 50%;
-  }
-
-  input:checked + .slider {
-    background-color: #0a8408;
-  }
-
-  input:checked + .slider:before {
-    transform: translateX(26px);
-  }
-
-  /* Remove black border/outline on focus for all inputs & selects */
-input:focus, select:focus, textarea:focus {
-  outline: none !important;
-  box-shadow: none !important;
-  border: 1px solid #ccc; /* keep a clean light border */
 }
 
-/* If you’re using a tag/ingredient plugin, target its class too */
-.ingredients-input,
-.ingredients-input:focus {
-  outline: none !important;
-  box-shadow: none !important;
-  border: 1px solid #ccc !important;
+@media (max-width: 480px) {
+  .products-grid {
+    grid-template-columns: 1fr;
+  }
 }
+
+.fab-btn {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #8B4513;
+  color: white;
+  font-size: 28px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+  transition: background 0.2s ease, transform 0.2s ease;
+  z-index: 1000;
+}
+
+.fab-btn:hover {
+  background-color: #a0522d;
+  transform: scale(1.05);
+}
+
+.add-btn {
+  background-color: #8B4513;
+  color: white;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 6px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.2s ease;
+}
+
+.add-btn:hover {
+  background-color: #a0522d;
+}
+
+#editProductModal .form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+#editProductModal .form-grid > .form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+#editProductModal .form-grid > .form-group > .form-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#editProductModal .form-grid > .form-group:first-child .form-input,
+#editProductModal .form-grid > .form-group:nth-child(2) .form-input {
+  
+  min-width: 0;
+}
+
+.custom-confirm.hidden {
+  display: none !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+}
+
+.custom-confirm:not(.hidden) {
+  pointer-events: auto;
+}
+
+#suggestions, #editSuggestions {
+  z-index: 1100;
+}
+
+.products-grid, .product-card {
+  z-index: 1;
+  position: relative;
+}
+
+.action-buttons {
+  z-index: 2;
+  position: relative;
+}
+
+
 </style>

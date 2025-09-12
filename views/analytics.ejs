@@ -1,152 +1,516 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title><%= title %></title>
+  
+  <title>Analytics | Blessings Cafe</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-    
     body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #f8f6f3 0%, #f1ede6 100%);
+      min-height: 100vh;
+      color: #2d2d2d;
+      line-height: 1.6;
     }
-    h1, h2 {
+
+    .header {
+      background: linear-gradient(135deg, #6b3e26 0%, #8b4513 100%);
+      color: white;
+      padding: 2rem 0;
+      box-shadow: 0 4px 20px rgba(107, 62, 38, 0.15);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    .header-content {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .cafe-logo {
+      width: 48px;
+      height: 48px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      opacity: 0.9;
+      font-weight: 400;
+      margin-top: 0.25rem;
+    }
+
+    .main-content {
+      padding: 3rem 0;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .stats-card {
+      background: white;
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(107, 62, 38, 0.1);
+    }
+
+    .stat-number {
+      font-size: 2rem;
+      font-weight: 700;
       color: #6b3e26;
+      margin-bottom: 0.25rem;
     }
+
+    .stat-label {
+      color: #666;
+      font-weight: 500;
+    }
+
     .section {
-      margin-bottom: 50px;
+      background: white;
+      border-radius: 20px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+      border: 1px solid rgba(107, 62, 38, 0.08);
+      transition: all 0.3s ease;
     }
-    /* Chart container styling */
+
+    .section:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+    }
+
+    .section-header {
+      margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #6b3e26;
+      margin-bottom: 0.5rem;
+    }
+
+    .section-description {
+      color: #666;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
     .chart-container {
-      max-width: 1000px; /* bigger */
-      margin: auto;
+      position: relative;
+      margin: 1rem 0;
+      background: #fefefe;
+      border-radius: 12px;
+      padding: 1rem;
+      border: 1px solid #f0f0f0;
     }
+
     canvas {
       width: 100% !important;
-      height: 500px !important; /* taller */
+      height: 400px !important;
+    }
+
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 400px;
+      color: #6b3e26;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #6b3e26;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 1rem;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .insights-panel {
+      background: linear-gradient(135deg, #6b3e26 0%, #8b4513 100%);
+      color: white;
+      border-radius: 20px;
+      padding: 2rem;
+      margin-top: 2rem;
+    }
+
+    .insights-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .insight-item {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 1.5rem;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+    }
+
+    .insight-title {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .insight-value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #ffd700;
+    }
+
+    @media (max-width: 768px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .container {
+        padding: 0 1rem;
+      }
+      
+      .section {
+        padding: 1.5rem;
+      }
+      
+      canvas {
+        height: 300px !important;
+      }
+    }
+
+    .error-message {
+      background: #fee;
+      color: #c33;
+      padding: 1rem;
+      border-radius: 8px;
+      border-left: 4px solid #c33;
     }
   </style>
 </head>
 <body>
-
-  <div class="section">
-    <h1>Popular Products</h1>
-    <p>
-      Below is a breakdown of the top-selling products based on recent sales data.
-      This chart helps you identify which items are most popular with your customers.
-    </p>
-    <div class="chart-container">
-      <canvas id="popularProductsChart"></canvas>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <div class="cafe-logo">☕</div>
+        <div>
+          <h1>Analytics Dashboard</h1>
+          <div class="subtitle">Blessings Cafe Business Insights</div>
+        </div>
+      </div>
     </div>
-  </div>
+  </header>
 
-  <div class="section">
-    <h1>Average Sales Per Day</h1>
-    <p>
-      This chart shows the average sales amount per order for each day, helping you see trends in customer spending.
-    </p>
-    <div class="chart-container">
-      <canvas id="averageSalesChart"></canvas>
+  <main class="main-content">
+    <div class="container">
+      <div class="dashboard-grid">
+        <div class="stats-card">
+          <div class="stat-number" id="totalProducts">--</div>
+          <div class="stat-label">Active Products</div>
+        </div>
+        <div class="stats-card">
+          <div class="stat-number" id="avgDailySales">₱--</div>
+          <div class="stat-label">Avg Daily Sales</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <h2 class="section-title">Popular Products</h2>
+          <p class="section-description">
+            Track your best-performing menu items based on recent sales data. 
+            Understanding product popularity helps optimize inventory and menu planning.
+          </p>
+        </div>
+        <div class="chart-container">
+          <div class="loading" id="popularProductsLoading">
+            <div class="spinner"></div>
+            Loading popular products...
+          </div>
+          <canvas id="popularProductsChart" style="display: none;"></canvas>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <h2 class="section-title">Sales Trend Analysis</h2>
+          <p class="section-description">
+            Monitor your daily average sales performance over time. 
+            This trend analysis helps identify patterns and growth opportunities.
+          </p>
+        </div>
+        <div class="chart-container">
+          <div class="loading" id="averageSalesLoading">
+            <div class="spinner"></div>
+            Analyzing sales trends...
+          </div>
+          <canvas id="averageSalesChart" style="display: none;"></canvas>
+        </div>
+      </div>
+
+      <div class="insights-panel">
+        <h2 style="margin-bottom: 0.5rem; font-size: 1.5rem;">Quick Insights</h2>
+        <p style="opacity: 0.9; margin-bottom: 0;">Key metrics at a glance</p>
+        <div class="insights-grid">
+          <div class="insight-item">
+            <div class="insight-title">Top Product</div>
+            <div class="insight-value" id="topProduct">Loading...</div>
+          </div>
+          <div class="insight-item">
+            <div class="insight-title">Sales Trend</div>
+            <div class="insight-value" id="salesTrend">Loading...</div>
+          </div>
+          <div class="insight-item">
+            <div class="insight-title">Peak Day</div>
+            <div class="insight-value" id="peakDay">Loading...</div>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
+  </main>
 
   <script>
+    // Enhanced chart configuration
+    Chart.defaults.font.family = 'Inter';
+    Chart.defaults.font.size = 13;
+    Chart.defaults.color = '#4a4a4a';
+
+    let popularProductsData = [];
+    let salesTrendData = [];
+
     async function drawPopularProductsChart() {
+      const loadingEl = document.getElementById('popularProductsLoading');
+      const chartEl = document.getElementById('popularProductsChart');
+      
       try {
         const res = await fetch('/analytics/popular-products');
         const results = await res.json();
+        popularProductsData = results;
 
         const top = results.slice(0, 10);
         const labels = top.map(r => r._id);
         const data = top.map(r => r.totalQuantity);
 
-        new Chart(document.getElementById('popularProductsChart'), {
+        // Update stats
+        document.getElementById('totalProducts').textContent = results.length;
+        document.getElementById('topProduct').textContent = top[0]?._id || 'N/A';
+
+        // Hide loading, show chart
+        loadingEl.style.display = 'none';
+        chartEl.style.display = 'block';
+
+        new Chart(chartEl, {
           type: 'bar',
           data: {
             labels: labels,
             datasets: [{
               label: 'Units Sold',
               data: data,
-              backgroundColor: 'rgba(108, 52, 31, 0.8)',
-              borderWidth: 2
+              backgroundColor: 'rgba(107, 62, 38, 0.8)',
+              borderColor: 'rgba(107, 62, 38, 1)',
+              borderWidth: 2,
+              borderRadius: 6,
+              borderSkipped: false,
             }]
           },
           options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
-              legend: { labels: { font: { size: 16 } } },
-              title: { display: true, text: 'Top 10 Products', font: { size: 20 } }
+              legend: { 
+                labels: { 
+                  font: { size: 14, weight: '500' },
+                  usePointStyle: true,
+                  padding: 20
+                } 
+              },
+              title: { 
+                display: true, 
+                text: 'Top 10 Products by Sales Volume', 
+                font: { size: 16, weight: '600' },
+                color: '#6b3e26',
+                padding: 20
+              }
             },
             scales: {
               x: {
-                ticks: { font: { size: 14 } }
+                ticks: { 
+                  font: { size: 12 },
+                  maxRotation: 45,
+                  color: '#666'
+                },
+                grid: {
+                  display: false
+                }
               },
               y: { 
                 beginAtZero: true,
-                ticks: { font: { size: 14 } }
+                ticks: { 
+                  font: { size: 12 },
+                  color: '#666'
+                },
+                grid: {
+                  color: 'rgba(0,0,0,0.05)'
+                }
               }
+            },
+            interaction: {
+              intersect: false,
+              mode: 'index'
             }
           }
         });
       } catch (err) {
         console.error('Chart error', err);
+        loadingEl.innerHTML = '<div class="error-message">Failed to load popular products data. Please try refreshing the page.</div>';
       }
     }
 
     async function drawAverageSalesChart() {
+      const loadingEl = document.getElementById('averageSalesLoading');
+      const chartEl = document.getElementById('averageSalesChart');
+      
       try {
         const res = await fetch('/analytics/average-sales-per-day');
         const results = await res.json();
+        salesTrendData = results;
 
         const labels = results.map(r => {
           const dateObj = new Date(r._id);
           return dateObj.toLocaleDateString('en-US', {
             month: 'short',
-            day: 'numeric',
-            year: 'numeric'
+            day: 'numeric'
           });
         });
 
         const data = results.map(r => r.avgSales);
 
-        new Chart(document.getElementById('averageSalesChart'), {
+        // Calculate insights
+        const avgSales = data.reduce((a, b) => a + b, 0) / data.length;
+        const maxSales = Math.max(...data);
+        const maxIndex = data.indexOf(maxSales);
+        const trend = data[data.length - 1] > data[0] ? '↗ Growing' : '↘ Declining';
+
+        // Update stats
+        document.getElementById('avgDailySales').textContent = `₱${avgSales.toFixed(0)}`;
+        document.getElementById('salesTrend').textContent = trend;
+        document.getElementById('peakDay').textContent = labels[maxIndex];
+
+        // Hide loading, show chart
+        loadingEl.style.display = 'none';
+        chartEl.style.display = 'block';
+
+        new Chart(chartEl, {
           type: 'line',
           data: {
             labels: labels,
             datasets: [{
               label: 'Average Sales (₱)',
               data: data,
-              backgroundColor: 'rgba(108, 52, 31, 0.2)',
-              borderColor: 'rgba(108, 52, 31, 1)',
-              borderWidth: 3,
-              pointRadius: 5,
-              pointHoverRadius: 7,
+              backgroundColor: 'rgba(0, 128, 96, 0.1)',
+              borderColor: '#008060',
+              borderWidth: 2,
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: '#008060',
+              pointBorderWidth: 2,
+              pointRadius: 4,
+              pointHoverRadius: 6,
               fill: true,
-              tension: 0.3
+              tension: 0.4
             }]
           },
           options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
-              legend: { labels: { font: { size: 16 } } },
-              title: { display: true, text: 'Average Sales Trend', font: { size: 20 } }
+              legend: { 
+                display: false
+              },
+              title: { 
+                display: false
+              }
             },
             scales: {
               x: {
-                ticks: { font: { size: 14 }, maxRotation: 45, minRotation: 45 }
+                ticks: { 
+                  font: { size: 11 }, 
+                  maxRotation: 45, 
+                  minRotation: 0,
+                  color: '#6d7175'
+                },
+                grid: {
+                  display: false
+                },
+                border: {
+                  display: false
+                }
               },
               y: {
                 beginAtZero: true,
-                ticks: { font: { size: 14 } }
+                ticks: { 
+                  font: { size: 11 },
+                  color: '#6d7175',
+                  callback: function(value) {
+                    return '₱' + value.toLocaleString();
+                  }
+                },
+                grid: {
+                  color: '#f1f2f3',
+                  drawBorder: false
+                },
+                border: {
+                  display: false
+                }
               }
+            },
+            interaction: {
+              intersect: false,
+              mode: 'index'
             }
           }
         });
       } catch (err) {
         console.error('Average sales chart error', err);
+        loadingEl.innerHTML = '<div class="error-message">Failed to load sales trend data. Please try refreshing the page.</div>';
       }
     }
 
+    // Initialize charts
     drawPopularProductsChart();
     drawAverageSalesChart();
   </script>

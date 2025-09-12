@@ -478,13 +478,11 @@ app.post('/products/edit/:id', async (req, res) => {
   const { id } = req.params;
   const {
     Name,
-    Price,
     Category,
     imagelink,
     BasePrice,
     size16,
     size22,
-    Ingredients,
     Allergen,
     isEnabled
   } = req.body;
@@ -494,6 +492,7 @@ app.post('/products/edit/:id', async (req, res) => {
     const db = client.db('blessingscafe');
     const productCollection = db.collection('Menu');
 
+    // Build updateFields — only include fields we really want to change
     const updateFields = {
       Name,
       Category,
@@ -502,25 +501,19 @@ app.post('/products/edit/:id', async (req, res) => {
       isEnabled: isEnabled === 'true',
     };
 
-    // Save IngredientIDs (array)
-    if (Ingredients) {
-      updateFields.Ingredients = Array.isArray(Ingredients) ? Ingredients : [Ingredients];
-    } else {
-      updateFields.Ingredients = [];
-    }
-
-    // Handle Prices
-    if (Category.toLowerCase() === 'pastries' && BasePrice) {
+    // Only update BasePrice if category is pastries
+    if (Category && Category.toLowerCase() === 'pastries' && BasePrice) {
       updateFields.BasePrice = parseFloat(BasePrice);
     }
+
+    // Only update Sizes if user provided values
     if (size16 || size22) {
       const Sizes = [];
       if (size16) Sizes.push({ Size: '16oz', BasePrice: parseFloat(size16) });
       if (size22) Sizes.push({ Size: '22oz', BasePrice: parseFloat(size22) });
       updateFields.Sizes = Sizes;
-    } else {
-      updateFields.Sizes = [];
     }
+    // else → don’t touch existing Sizes in MongoDB
 
     await productCollection.updateOne(
       { _id: new ObjectId(id) },
@@ -535,6 +528,7 @@ app.post('/products/edit/:id', async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 });
+
 
 // ✅ Edit product page with ingredient name lookup
 app.get('/edit-product/:id', async (req, res) => {
@@ -575,8 +569,36 @@ app.get('/edit-product/:id', async (req, res) => {
   }
 });
 
+// ✅ API endpoint for modal edit
+app.get('/api/products/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const productCollection = db.collection('Menu');
+    const ingredientsCollection = db.collection('Ingredients');
 
+    const product = await productCollection.findOne({ _id: new ObjectId(id) });
+    if (!product) return res.status(404).send('Not found');
 
+    let ingredientDetails = [];
+    if (Array.isArray(product.Ingredients) && product.Ingredients.length > 0) {
+      ingredientDetails = await ingredientsCollection
+        .find({ IngredientID: { $in: product.Ingredients } })
+        .toArray();
+    }
+
+    res.json({
+      ...product,
+      IngredientsDetails: ingredientDetails
+    });
+
+    client.close();
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error fetching product');
+  }
+});
 
 
 app.get('/stocks', isLoggedIn, nocache, async (req, res) => {
