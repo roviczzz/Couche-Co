@@ -1000,6 +1000,10 @@
           <span class="info-value">${order.OrderID || 'N/A'}</span>
         </div>
         <div class="info-item">
+          <span class="info-label">Xendit Payment ID:</span>
+          <span class="info-value">${order.XenditPaymentID || 'N/A'}</span>
+        </div>
+        <div class="info-item">
           <span class="info-label">Date:</span>
           <span class="info-value">${orderDate}</span>
         </div>
@@ -1603,6 +1607,7 @@
         <div class="info-block">
           <h3>Order Information</h3>
           <p><strong>Order ID:</strong> ${currentOrder.OrderID || 'N/A'}</p>
+          <p><strong>Xendit Payment ID:</strong> ${currentOrder.XenditPaymentID || 'N/A'}</p>
           <p><strong>Date:</strong> ${orderDate}</p>
           <p><strong>Source:</strong> ${currentOrder.Source || currentOrder.source || 'N/A'}</p>
           <p><strong>Payment Status:</strong> ${currentOrder.PaymentStatus || currentOrder.paymentStatus || 'N/A'}</p>
