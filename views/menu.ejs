@@ -167,7 +167,38 @@ menuItems.forEach(item => {
     </div>
 </div>
 
-
+<!-- Xendit Payment Modal -->
+<div id="xendit-payment-modal" class="hidden">
+    <div class="modal-content" style="max-width: 500px; width: 90%;">
+        <h2>Complete Payment</h2>
+        <p>Please complete your payment using the QR code or link below:</p>
+        <div id="payment-link-container" style="margin: 20px 0; text-align: center;">
+            <div id="loading-payment" style="margin: 20px 0;">
+                <div class="spinner"></div>
+                <p>Generating payment link...</p>
+            </div>
+            <div id="payment-details" class="hidden">
+                <p><strong>Amount:</strong> ₱<span id="payment-amount"></span></p>
+                <div style="margin: 15px 0;">
+                    <a id="payment-link" href="#" target="_blank" style="display: inline-block; padding: 12px 24px; background: #007bff; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                        Open Payment Link
+                    </a>
+                </div>
+                <p style="font-size: 14px; color: #666; margin-top: 15px;">
+                    The payment link will open in a new window. Please complete the payment and return to this page.
+                </p>
+            </div>
+        </div>
+        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+            <button id="check-payment-status" class="hidden" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                Check Payment Status
+            </button>
+            <button id="close-payment-modal" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
 
 <script>
     document.getElementById('toggle-notes-btn').onclick = function() {
@@ -182,6 +213,7 @@ menuItems.forEach(item => {
     };
 
     let orderItems = [];
+    let currentPaymentId = null;
 
     function updateSummary() {
         let promoQuantity = 0;
@@ -656,15 +688,131 @@ menuItems.forEach(item => {
         modal.style.display = 'none';
     }
 
+    // Xendit Payment Functions
+    async function createXenditPayment(orderData) {
+        try {
+            const items = orderData.Cart.flatMap(item => {
+                let baseItems = [{
+                    name: item.ProductName,
+                    quantity: item.Quantity,
+                    price: item.BasePrice,
+                    category: orderData.DeliveryStatus === 'Delivery' ? 'Food' : 'Food'
+                }];
+
+                if (item.AddOns && item.AddOns.length > 0) {
+                    item.AddOns.forEach(addon => {
+                        baseItems.push({
+                            name: `Add-on: ${addon.Name}`,
+                            quantity: 1,
+                            price: addon.BasePrice,
+                            category: "Add-ons"
+                        });
+                    });
+                }
+
+                return baseItems;
+            });
+
+            if (orderData.DeliveryStatus === 'Delivery') {
+                const deliveryFee = 20;
+                items.push({
+                    name: "Delivery Fee",
+                    quantity: 1,
+                    price: deliveryFee,
+                    category: "Service"
+                });
+            }
+
+            const amount = items.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity)), 0);
+
+            const invoicePayload = {
+                external_id: orderData.OrderID,
+                description: "Blessings Cafe Payment",
+                merchant_profile_picture_url: "https://i.imgur.com/jgjiwnv.png",
+                items: items,
+                amount: amount,
+                customer_name: orderData.Customer,
+                customer_phone: orderData.ContactNumber || "",
+                should_send_email: false,
+                payment_methods: ["QRPH"],
+                invoice_duration: 600
+            };
+
+            const response = await fetch('/api/xendit/create-payment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(invoicePayload)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Error creating Xendit payment:', error);
+            throw error;
+        }
+    }
+
+    async function checkPaymentStatus(paymentId) {
+        try {
+            const response = await fetch(`/api/xendit/check-payment/${paymentId}`);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Error checking payment status:', error);
+            throw error;
+        }
+    }
+
+    function showXenditPaymentModal(paymentData) {
+        const modal = document.getElementById('xendit-payment-modal');
+        const loadingDiv = document.getElementById('loading-payment');
+        const paymentDetails = document.getElementById('payment-details');
+        const paymentAmountSpan = document.getElementById('payment-amount');
+        const paymentLink = document.getElementById('payment-link');
+        const checkStatusBtn = document.getElementById('check-payment-status');
+
+        loadingDiv.classList.add('hidden');
+        paymentDetails.classList.remove('hidden');
+
+        paymentAmountSpan.textContent = paymentData.amount.toFixed(2);
+        paymentLink.href = paymentData.invoice_url;
+
+        currentPaymentId = paymentData.id;
+        checkStatusBtn.classList.remove('hidden');
+
+        modal.classList.remove('hidden');
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         const deliveryTypeSelect = document.getElementById('delivery-type');
         if(deliveryTypeSelect) {
             deliveryTypeSelect.addEventListener('change', () => {
                 const addressContainer = document.getElementById('address-container');
-                if(deliveryTypeSelect.value === 'Delivery') {
+                const cashOption = document.querySelector('.payment-option:nth-child(1)');
+                if (deliveryTypeSelect.value === 'Delivery') {
                     addressContainer.style.display = 'block';
+                    cashOption.classList.add('disabled');
+                    cashOption.style.pointerEvents = 'none';
+                    cashOption.style.opacity = '0.5';
+                    // Deselect if selected
+                    if (cashOption.classList.contains('selected')) {
+                        cashOption.classList.remove('selected');
+                        const check = cashOption.querySelector('.payment-check');
+                        check.style.backgroundColor = '#ddd';
+                        check.textContent = '';
+                    }
                 } else {
                     addressContainer.style.display = 'none';
+                    cashOption.classList.remove('disabled');
+                    cashOption.style.pointerEvents = '';
+                    cashOption.style.opacity = '';
                 }
                 updateSummary();
             });
@@ -681,15 +829,81 @@ menuItems.forEach(item => {
                 }
             });
         }
+
+        // Xendit modal event listeners
+        document.getElementById('close-payment-modal').addEventListener('click', () => {
+            document.getElementById('xendit-payment-modal').classList.add('hidden');
+            currentPaymentId = null;
+        });
+
+        document.getElementById('check-payment-status').addEventListener('click', async () => {
+            if (!currentPaymentId) return;
+
+            try {
+                const status = await checkPaymentStatus(currentPaymentId);
+                if (status.status === 'PAID') {
+                    // Update payment status in database
+                    await fetch('/api/orders/update-payment-status', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ paymentId: currentPaymentId, status: 'Completed' })
+                    });
+
+                    alert('Payment successful! Your order has been confirmed.');
+                    document.getElementById('xendit-payment-modal').classList.add('hidden');
+
+                    // Reset form
+                    orderItems = [];
+                    renderOrderItems();
+                    document.getElementById('customer-name').value = '';
+                    document.getElementById('contact-number').value = '';
+                    const deliveryTypeSelect = document.getElementById('delivery-type');
+                    deliveryTypeSelect.value = 'Take-Out';
+                    const addressContainer = document.getElementById('address-container');
+                    addressContainer.style.display = 'none';
+                    document.getElementById('street-address').value = '';
+                    document.getElementById('area-select').value = '';
+                    document.getElementById('notes-textarea').value = '';
+                    updateSummary();
+
+                    document.querySelectorAll('.payment-option.selected').forEach(el => {
+                        el.classList.remove('selected');
+                        const check = el.querySelector('.payment-check');
+                        check.style.backgroundColor = '#ddd';
+                        check.textContent = '';
+                    });
+
+                    currentPaymentId = null;
+                } else {
+                    alert('Payment not yet completed. Please complete the payment and try again.');
+                }
+            } catch (error) {
+                alert('Error checking payment status. Please try again.');
+            }
+        });
     });
 
     document.getElementById('delivery-type').addEventListener('change', () => {
         const deliveryType = document.getElementById('delivery-type').value;
         const addressContainer = document.getElementById('address-container');
+        const cashOption = document.querySelector('.payment-option:nth-child(1)');
         if (deliveryType === 'Delivery') {
             addressContainer.style.display = 'block';
+            cashOption.classList.add('disabled');
+            cashOption.style.pointerEvents = 'none';
+            cashOption.style.opacity = '0.5';
+            // Deselect if selected
+            if (cashOption.classList.contains('selected')) {
+                cashOption.classList.remove('selected');
+                const check = cashOption.querySelector('.payment-check');
+                check.style.backgroundColor = '#ddd';
+                check.textContent = '';
+            }
         } else {
             addressContainer.style.display = 'none';
+            cashOption.classList.remove('disabled');
+            cashOption.style.pointerEvents = '';
+            cashOption.style.opacity = '';
         }
         updateSummary();
     });
@@ -763,36 +977,132 @@ menuItems.forEach(item => {
 
         const notes = document.getElementById('notes-textarea').value.trim();
 
-        let confirmMsg = `Customer: ${customerName}\n`;
-        if (contactNumber) {
-            confirmMsg += `Contact Number: ${contactNumber}\n`;
-        }
-        confirmMsg += `Items: ${totalItemsCount} items\nDelivery Type: ${deliveryType}\n`;
-        if (deliveryType === 'Delivery') {
-            const streetAddress = document.getElementById('street-address').value.trim();
-            const selectedArea = document.getElementById('area-select').value;
-            confirmMsg += `Address: ${streetAddress}, ${selectedArea}\n`;
-        }
-        if (notes) {
-            confirmMsg += `Notes: ${notes}\n`;
-        }
-        confirmMsg += `Payment Method: ${paymentModeText}\nTotal: ₱${totalNumber}`;
+        // Check if E-Payment is selected
+        if (paymentModeText === 'E-Payment') {
+            // Show confirmation first, then proceed with Xendit payment
+            let confirmMsg = `Customer: ${customerName}\n`;
+            if (contactNumber) {
+                confirmMsg += `Contact Number: ${contactNumber}\n`;
+            }
+            confirmMsg += `Items: ${totalItemsCount} items\nDelivery Type: ${deliveryType}\n`;
+            if (deliveryType === 'Delivery') {
+                const streetAddress = document.getElementById('street-address').value.trim();
+                const selectedArea = document.getElementById('area-select').value;
+                confirmMsg += `Address: ${streetAddress}, ${selectedArea}\n`;
+            }
+            if (notes) {
+                confirmMsg += `Notes: ${notes}\n`;
+            }
+            confirmMsg += `Payment Method: ${paymentModeText}\nTotal: ₱${totalNumber}\n\nYou will be redirected to payment gateway.`;
 
-        const modal = document.getElementById('order-confirm-modal');
-        const messageElem = document.getElementById('confirm-message');
-        messageElem.textContent = confirmMsg;
-        modal.classList.remove('hidden');
+            if (confirm(confirmMsg)) {
+                // Prepare order data for Xendit
+                const cart = orderItems.map(item => ({
+                    ProductID: item.productId || item.key,
+                    ProductName: item.name,
+                    Quantity: item.quantity,
+                    Size: item.size || null,
+                    BasePrice: item.price,
+                    AddOns: item.addons && item.addons.length > 0
+                        ? item.addons.map(a => ({ AddOnID: a.AddOnID, Name: a.Name, BasePrice: a.BasePrice }))
+                        : []
+                }));
 
-        const confirmBtn = document.getElementById('confirm-submit-btn');
-        const cancelBtn = document.getElementById('confirm-cancel-btn');
+                let address = '';
+                if (deliveryType === 'Delivery') {
+                    const streetAddress = document.getElementById('street-address').value.trim();
+                    const selectedArea = document.getElementById('area-select').value;
+                    address = `${streetAddress}, ${selectedArea}`;
+                }
 
-        confirmBtn.onclick = function() {
-            submitOrder(customerName, contactNumber, deliveryType, paymentModeText, totalNumber, totalItemsCount, notes);
-            modal.classList.add('hidden');
-        };
-        cancelBtn.onclick = function() {
-            modal.classList.add('hidden');
-        };
+                const orderData = {
+                    OrderID: generateOrderID(),
+                    Date: formatDate(new Date()),
+                    Cart: cart,
+                    Customer: customerName,
+                    ContactNumber: contactNumber || '',
+                    PaymentStatus: "Payment pending",
+                    PaymentMode: paymentModeText,
+                    Total: parseFloat(totalNumber),
+                    ItemTotal: totalItemsCount,
+                    DeliveryStatus: deliveryType,
+                    Address: address,
+                    Notes: notes || '',
+                    FulfillmentStatus: "Preparing",
+                    Source: "POS"
+                };
+
+                try {
+                    // Show payment modal with loading
+                    const modal = document.getElementById('xendit-payment-modal');
+                    const loadingDiv = document.getElementById('loading-payment');
+                    const paymentDetails = document.getElementById('payment-details');
+
+                    loadingDiv.classList.remove('hidden');
+                    paymentDetails.classList.add('hidden');
+                    modal.classList.remove('hidden');
+
+                    // Create Xendit payment
+                    const paymentData = await createXenditPayment(orderData);
+
+                    // Show payment details
+                    showXenditPaymentModal(paymentData);
+
+                    // Submit order to backend
+                    const response = await fetch('/api/orders', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ...orderData, XenditPaymentID: paymentData.id })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Network response was not ok: ${response.status} ${response.statusText}`);
+                    }
+
+                    const result = await response.json();
+                    if (!result.success) {
+                        throw new Error(result.error || 'Unknown error from server.');
+                    }
+
+                } catch (error) {
+                    console.error('Error processing payment:', error);
+                    alert('Error processing payment. Please try again.');
+                    document.getElementById('xendit-payment-modal').classList.add('hidden');
+                }
+            }
+        } else {
+            // Cash payment - show regular confirmation
+            let confirmMsg = `Customer: ${customerName}\n`;
+            if (contactNumber) {
+                confirmMsg += `Contact Number: ${contactNumber}\n`;
+            }
+            confirmMsg += `Items: ${totalItemsCount} items\nDelivery Type: ${deliveryType}\n`;
+            if (deliveryType === 'Delivery') {
+                const streetAddress = document.getElementById('street-address').value.trim();
+                const selectedArea = document.getElementById('area-select').value;
+                confirmMsg += `Address: ${streetAddress}, ${selectedArea}\n`;
+            }
+            if (notes) {
+                confirmMsg += `Notes: ${notes}\n`;
+            }
+            confirmMsg += `Payment Method: ${paymentModeText}\nTotal: ₱${totalNumber}`;
+
+            const modal = document.getElementById('order-confirm-modal');
+            const messageElem = document.getElementById('confirm-message');
+            messageElem.textContent = confirmMsg;
+            modal.classList.remove('hidden');
+
+            const confirmBtn = document.getElementById('confirm-submit-btn');
+            const cancelBtn = document.getElementById('confirm-cancel-btn');
+
+            confirmBtn.onclick = function() {
+                submitOrder(customerName, contactNumber, deliveryType, paymentModeText, totalNumber, totalItemsCount, notes);
+                modal.classList.add('hidden');
+            };
+            cancelBtn.onclick = function() {
+                modal.classList.add('hidden');
+            };
+        }
     });
 
     function generateOrderID() {
@@ -804,6 +1114,16 @@ menuItems.forEach(item => {
         const second = String(now.getSeconds()).padStart(2, '0');
 
         return `${month}${day}${hour}${minute}${second}-BLESSINGSCAFE`;
+    }
+
+    function formatDate(dateObj) {
+        const pad = (n) => (n < 10 ? '0' + n : n);
+        return dateObj.getFullYear() + '-' +
+            pad(dateObj.getMonth() + 1) + '-' +
+            pad(dateObj.getDate()) + ' ' +
+            pad(dateObj.getHours()) + ':' +
+            pad(dateObj.getMinutes()) + ':' +
+            pad(dateObj.getSeconds());
     }
 
     function submitOrder(customer, contactNumber, deliveryType, paymentMode, total, itemTotal, notes) {
@@ -818,16 +1138,6 @@ menuItems.forEach(item => {
                 : []
         }));
 
-        function formatDate(dateObj) {
-            const pad = (n) => (n < 10 ? '0' + n : n);
-            return dateObj.getFullYear() + '-' +
-                pad(dateObj.getMonth() + 1) + '-' +
-                pad(dateObj.getDate()) + ' ' +
-                pad(dateObj.getHours()) + ':' +
-                pad(dateObj.getMinutes()) + ':' +
-                pad(dateObj.getSeconds());
-        }
-
         let address = '';
         if (deliveryType === 'Delivery') {
             const streetAddress = document.getElementById('street-address').value.trim();
@@ -841,7 +1151,7 @@ menuItems.forEach(item => {
             Cart: cart,
             Customer: customer,
             ContactNumber: contactNumber || '',
-            PaymentStatus: "Payment pending",
+            PaymentStatus: paymentMode === 'Cash on Hand' ? "Payment pending" : "Payment pending",
             PaymentMode: paymentMode,
             Total: parseFloat(total),
             ItemTotal: itemTotal,
@@ -1258,7 +1568,7 @@ menuItems.forEach(item => {
         display: none !important;
     }
 
-    #order-confirm-modal {
+    #order-confirm-modal, #xendit-payment-modal {
         position: fixed;
         top: 0;
         left: 0;
@@ -1271,15 +1581,17 @@ menuItems.forEach(item => {
         z-index: 2000;
     }
 
-    #order-confirm-modal .modal-content {
+    #order-confirm-modal .modal-content, #xendit-payment-modal .modal-content {
         background: white;
         padding: 20px 30px;
         border-radius: 12px;
         max-width: 400px;
         text-align: center;
+        max-height: 80vh;
+        overflow-y: auto;
     }
 
-    #order-confirm-modal button {
+    #order-confirm-modal button, #xendit-payment-modal button {
         padding: 10px 20px;
         border: none;
         border-radius: 8px;
@@ -1295,6 +1607,30 @@ menuItems.forEach(item => {
 
     #confirm-cancel-btn {
         background: #ccc;
+    }
+
+    /* Xendit Payment Modal Specific Styles */
+    .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #3498db;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    #payment-link {
+        transition: background-color 0.3s;
+    }
+
+    #payment-link:hover {
+        background-color: #0056b3 !important;
     }
 
     #order-items {
