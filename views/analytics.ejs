@@ -4,248 +4,344 @@
   
   <title>Analytics | Blessings Cafe</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+ <style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
 
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: linear-gradient(135deg, #f8f6f3 0%, #f1ede6 100%);
-      min-height: 100vh;
-      color: #2d2d2d;
-      line-height: 1.6;
-    }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #fafafa;
+    min-height: 100vh;
+    color: #202223;
+    line-height: 1.5;
+  }
 
-    .header {
-      background: linear-gradient(135deg, #6b3e26 0%, #8b4513 100%);
-      color: white;
-      padding: 2rem 0;
-      box-shadow: 0 4px 20px rgba(107, 62, 38, 0.15);
-    }
+  /* Header */
+  .header {
+    background: hwb(0 100% 0%);
+    border-bottom: 1px solid #e1e3e5;
+    padding: 1.5rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
 
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 2rem;
-    }
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
 
-    .header-content {
-      display: flex;
-      align-items: center;
+  .brand-section {
+  display: flex;
+  flex-direction: column;  
+  align-items: center;   
+  gap: 0.25rem;
+  text-align: center;     
+}
+
+
+
+  h1 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #202223;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+ .date-range {
+  color: #6d7175;
+  font-size: 0.875rem;
+  font-style: italic;    
+  font-weight: 400;       
+}
+ 
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+ 
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+  }
+
+  .stats-card {
+    background: #ffffff;
+    border: 1px solid #e1e3e5;
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stats-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #8b5a2b 0%, #a0632c 100%);
+  }
+
+  .stats-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+
+  .stat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+  }
+
+  .stat-label {
+    color: #6d7175;
+    font-weight: 500;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .stat-icon {
+    width: 20px;
+    height: 20px;
+    color: #8b5a2b;
+  }
+
+  .stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #202223;
+    margin-bottom: 0.25rem;
+  }
+
+  .stat-change {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #00a47c;
+  }
+
+  /* Section styling */
+  .section {
+    background: #ffffff;
+    border: 1px solid #e1e3e5;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    box-shadow: #6d7175;
+  }
+
+  .section-header {
+    padding: 1.5rem 1.5rem 0 1.5rem;
+    border-bottom: 1px solid #f1f2f3;
+    margin-bottom: 0;
+    padding-bottom: 1.5rem;
+  }
+
+  .section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #202223;
+    margin-bottom: 0.25rem;
+  }
+
+  .section-description {
+    color: #6d7175;
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  /* Chart container */
+  .chart-container {
+    position: relative;
+    padding: 1.5rem;
+    min-height: 400px;
+  }
+
+  canvas {
+    width: 100% !important;
+    height: 350px !important;
+  }
+
+  /* Loading spinner and error */
+  .loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 350px;
+    color: #6d7175;
+  }
+
+  .spinner {
+    width: 24px;
+    height: 24px;
+    border: 2px solid #f1f2f3;
+    border-top: 2px solid #8b5a2b;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 0.75rem;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .error-message {
+    background: #fef7f0;
+    color: #bf4f36;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #fcd9cf;
+    font-size: 0.875rem;
+  }
+
+  /* Insights panel */
+  .insights-panel {
+    background: #ffffff;
+    border: 1px solid #e1e3e5;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .insights-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .insights-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #202223;
+    margin-bottom: 0.25rem;
+  }
+
+  .insights-subtitle {
+    color: #6d7175;
+    font-size: 0.875rem;
+  }
+
+  .insights-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .insight-item {
+    background: #fafbfb;
+    padding: 1.25rem;
+    border-radius: 8px;
+    border: 1px solid #f1f2f3;
+    transition: all 0.2s ease;
+  }
+
+  .insight-item:hover {
+    background: #f6f6f7;
+    border-color: #e1e3e5;
+  }
+
+  .insight-title {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    color: #6d7175;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .insight-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #8b5a2b;
+  }
+
+  /* Responsive design */
+  @media (max-width: 768px) {
+    .dashboard-grid {
+      grid-template-columns: 1fr;
       gap: 1rem;
     }
-
-    .cafe-logo {
-      width: 48px;
-      height: 48px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
+    .container {
+      padding: 0 1rem;
     }
-
-    h1 {
-      font-size: 2rem;
-      font-weight: 700;
-      margin: 0;
-    }
-
-    .subtitle {
-      font-size: 1rem;
-      opacity: 0.9;
-      font-weight: 400;
-      margin-top: 0.25rem;
-    }
-
-    .main-content {
-      padding: 3rem 0;
-    }
-
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 2rem;
-      margin-bottom: 2rem;
-    }
-
-    .stats-card {
-      background: white;
-      border-radius: 16px;
-      padding: 1.5rem;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-      border: 1px solid rgba(107, 62, 38, 0.1);
-    }
-
-    .stat-number {
-      font-size: 2rem;
-      font-weight: 700;
-      color: #6b3e26;
-      margin-bottom: 0.25rem;
-    }
-
-    .stat-label {
-      color: #666;
-      font-weight: 500;
-    }
-
-    .section {
-      background: white;
-      border-radius: 20px;
-      padding: 2rem;
-      margin-bottom: 2rem;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
-      border: 1px solid rgba(107, 62, 38, 0.08);
-      transition: all 0.3s ease;
-    }
-
-    .section:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
-    }
-
-    .section-header {
-      margin-bottom: 1.5rem;
-    }
-
-    .section-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #6b3e26;
-      margin-bottom: 0.5rem;
-    }
-
-    .section-description {
-      color: #666;
-      font-size: 0.95rem;
-      line-height: 1.5;
-    }
-
+    .section-header,
     .chart-container {
-      position: relative;
-      margin: 1rem 0;
-      background: #fefefe;
-      border-radius: 12px;
       padding: 1rem;
-      border: 1px solid #f0f0f0;
     }
-
-    canvas {
-      width: 100% !important;
-      height: 400px !important;
-    }
-
-    .loading {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 400px;
-      color: #6b3e26;
-    }
-
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #6b3e26;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-right: 1rem;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
     .insights-panel {
-      background: linear-gradient(135deg, #6b3e26 0%, #8b4513 100%);
-      color: white;
-      border-radius: 20px;
-      padding: 2rem;
-      margin-top: 2rem;
-    }
-
-    .insights-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1.5rem;
-      margin-top: 1.5rem;
-    }
-
-    .insight-item {
-      background: rgba(255, 255, 255, 0.1);
-      padding: 1.5rem;
-      border-radius: 12px;
-      backdrop-filter: blur(10px);
-    }
-
-    .insight-title {
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-    }
-
-    .insight-value {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: #ffd700;
-    }
-
-    @media (max-width: 768px) {
-      .dashboard-grid {
-        grid-template-columns: 1fr;
-      }
-      
-      .container {
-        padding: 0 1rem;
-      }
-      
-      .section {
-        padding: 1.5rem;
-      }
-      
-      canvas {
-        height: 300px !important;
-      }
-    }
-
-    .error-message {
-      background: #fee;
-      color: #c33;
       padding: 1rem;
-      border-radius: 8px;
-      border-left: 4px solid #c33;
     }
-  </style>
+    canvas {
+      height: 280px !important;
+    }
+    .loading {
+      height: 280px;
+    }
+    .header-content {
+      flex-direction: column;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+    h1 {
+      font-size: 1.5rem;
+    }
+  }
+</style>
+
 </head>
 <body>
   <header class="header">
-    <div class="container">
-      <div class="header-content">
-        <div class="cafe-logo">☕</div>
-        <div>
-          <h1>Analytics Dashboard</h1>
-          <div class="subtitle">Blessings Cafe Business Insights</div>
-        </div>
+  <div class="container">
+    <div class="header-content">
+      <div class="brand-section">
+        <h1>Analytics</h1>
+        <div class="date-range">Last 30 days</div>
       </div>
     </div>
-  </header>
+  </div>
+</header>
 
   <main class="main-content">
     <div class="container">
       <div class="dashboard-grid">
         <div class="stats-card">
+          <div class="stat-header">
+            <div class="stat-label">Active Products</div>
+            <svg class="stat-icon" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
+            </svg>
+          </div>
           <div class="stat-number" id="totalProducts">--</div>
-          <div class="stat-label">Active Products</div>
+          <div class="stat-change">Active in menu</div>
         </div>
+        
         <div class="stats-card">
+          <div class="stat-header">
+            <div class="stat-label">Avg Daily Sales</div>
+            <svg class="stat-icon" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"></path>
+            </svg>
+          </div>
           <div class="stat-number" id="avgDailySales">₱--</div>
-          <div class="stat-label">Avg Daily Sales</div>
+          <div class="stat-change">Revenue per day</div>
         </div>
       </div>
 
@@ -253,8 +349,7 @@
         <div class="section-header">
           <h2 class="section-title">Popular Products</h2>
           <p class="section-description">
-            Track your best-performing menu items based on recent sales data. 
-            Understanding product popularity helps optimize inventory and menu planning.
+            Your best-performing menu items based on recent sales data. Use this to optimize inventory and identify trending items.
           </p>
         </div>
         <div class="chart-container">
@@ -270,8 +365,7 @@
         <div class="section-header">
           <h2 class="section-title">Sales Trend Analysis</h2>
           <p class="section-description">
-            Monitor your daily average sales performance over time. 
-            This trend analysis helps identify patterns and growth opportunities.
+            Daily average sales performance over time. Monitor patterns, seasonal trends, and growth opportunities.
           </p>
         </div>
         <div class="chart-container">
@@ -284,8 +378,10 @@
       </div>
 
       <div class="insights-panel">
-        <h2 style="margin-bottom: 0.5rem; font-size: 1.5rem;">Quick Insights</h2>
-        <p style="opacity: 0.9; margin-bottom: 0;">Key metrics at a glance</p>
+        <div class="insights-header">
+          <h2 class="insights-title">Quick Insights</h2>
+          <p class="insights-subtitle">Key performance indicators at a glance</p>
+        </div>
         <div class="insights-grid">
           <div class="insight-item">
             <div class="insight-title">Top Product</div>
@@ -305,10 +401,10 @@
   </main>
 
   <script>
-    // Enhanced chart configuration
+    // Enhanced chart configuration with Shopify-inspired styling
     Chart.defaults.font.family = 'Inter';
-    Chart.defaults.font.size = 13;
-    Chart.defaults.color = '#4a4a4a';
+    Chart.defaults.font.size = 12;
+    Chart.defaults.color = '#6d7175';
 
     let popularProductsData = [];
     let salesTrendData = [];
@@ -341,10 +437,10 @@
             datasets: [{
               label: 'Units Sold',
               data: data,
-              backgroundColor: 'rgba(107, 62, 38, 0.8)',
-              borderColor: 'rgba(107, 62, 38, 1)',
-              borderWidth: 2,
-              borderRadius: 6,
+              backgroundColor: '#8b5a2b',
+              borderColor: '#8b5a2b',
+              borderWidth: 0,
+              borderRadius: 4,
               borderSkipped: false,
             }]
           },
@@ -353,51 +449,56 @@
             maintainAspectRatio: false,
             plugins: {
               legend: { 
-                labels: { 
-                  font: { size: 14, weight: '500' },
-                  usePointStyle: true,
-                  padding: 20
-                } 
+                display: false
               },
               title: { 
-                display: true, 
-                text: 'Top 10 Products by Sales Volume', 
-                font: { size: 16, weight: '600' },
-                color: '#6b3e26',
-                padding: 20
+                display: false
               }
             },
             scales: {
               x: {
                 ticks: { 
-                  font: { size: 12 },
-                  maxRotation: 45,
-                  color: '#666'
+                  font: { size: 11, weight: '500' },
+                  maxRotation: 0,
+                  color: '#6d7175'
                 },
                 grid: {
+                  display: false
+                },
+                border: {
                   display: false
                 }
               },
               y: { 
                 beginAtZero: true,
                 ticks: { 
-                  font: { size: 12 },
-                  color: '#666'
+                  font: { size: 11, weight: '500' },
+                  color: '#6d7175',
+                  stepSize: 1
                 },
                 grid: {
-                  color: 'rgba(0,0,0,0.05)'
+                  color: '#f1f2f3',
+                  drawBorder: false
+                },
+                border: {
+                  display: false
                 }
               }
             },
             interaction: {
               intersect: false,
               mode: 'index'
+            },
+            elements: {
+              bar: {
+                borderRadius: 4
+              }
             }
           }
         });
       } catch (err) {
         console.error('Chart error', err);
-        loadingEl.innerHTML = '<div class="error-message">Failed to load popular products data. Please try refreshing the page.</div>';
+        loadingEl.innerHTML = '<div class="error-message">Failed to load popular products data. Please refresh the page.</div>';
       }
     }
 
@@ -442,16 +543,17 @@
             datasets: [{
               label: 'Average Sales (₱)',
               data: data,
-              backgroundColor: 'rgba(0, 128, 96, 0.1)',
-              borderColor: '#008060',
+              backgroundColor: 'rgba(139, 90, 43, 0.08)',
+              borderColor: '#8b5a2b',
               borderWidth: 2,
               pointBackgroundColor: '#ffffff',
-              pointBorderColor: '#008060',
+              pointBorderColor: '#8b5a2b',
               pointBorderWidth: 2,
               pointRadius: 4,
               pointHoverRadius: 6,
+              pointHoverBorderWidth: 3,
               fill: true,
-              tension: 0.4
+              tension: 0.3
             }]
           },
           options: {
@@ -468,9 +570,8 @@
             scales: {
               x: {
                 ticks: { 
-                  font: { size: 11 }, 
-                  maxRotation: 45, 
-                  minRotation: 0,
+                  font: { size: 11, weight: '500' }, 
+                  maxRotation: 0, 
                   color: '#6d7175'
                 },
                 grid: {
@@ -483,7 +584,7 @@
               y: {
                 beginAtZero: true,
                 ticks: { 
-                  font: { size: 11 },
+                  font: { size: 11, weight: '500' },
                   color: '#6d7175',
                   callback: function(value) {
                     return '₱' + value.toLocaleString();
@@ -506,7 +607,7 @@
         });
       } catch (err) {
         console.error('Average sales chart error', err);
-        loadingEl.innerHTML = '<div class="error-message">Failed to load sales trend data. Please try refreshing the page.</div>';
+        loadingEl.innerHTML = '<div class="error-message">Failed to load sales trend data. Please refresh the page.</div>';
       }
     }
 
