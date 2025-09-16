@@ -89,74 +89,6 @@
     border-left-color: #a05c2f;
   }
 
-  .cancelled-orders-section {
-    margin-top: 30px;
-    padding: 20px;
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    border: 1px solid #dee2e6;
-  }
-
-  .cancelled-orders-section h2 {
-    margin: 0 0 15px 0;
-    font-size: 18px;
-    color: #dc3545;
-    font-weight: 600;
-  }
-
-  .cancelled-orders-list {
-    max-height: 200px;
-    overflow-y: auto;
-  }
-
-  .cancelled-order-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 15px;
-    margin-bottom: 8px;
-    background-color: #fff;
-    border-radius: 6px;
-    border-left: 4px solid #dc3545;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  }
-
-  .cancelled-order-info {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .cancelled-order-id {
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 3px;
-  }
-
-  .cancelled-order-customer {
-    font-size: 14px;
-    color: #666;
-  }
-
-  .cancelled-order-actions {
-    display: flex;
-    gap: 8px;
-  }
-
-  .btn-restore {
-    background-color: #28a745;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    padding: 6px 12px;
-    font-size: 12px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-  }
-
-  .btn-restore:hover {
-    background-color: #218838;
-  }
-
   .order-detail-panel {
     flex: 0 0 0px;
     width: 0px;
@@ -581,6 +513,100 @@
     display: none;
   }
 
+  .completed-orders-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+  }
+
+  .completed-orders-modal-content {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 800px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  }
+
+  .completed-orders-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 12px;
+  }
+
+  .completed-orders-modal-header h2 {
+    margin: 0;
+    color: #28a745;
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  .modal-close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #999;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    width: 30px;
+  }
+
+  .modal-close-btn:hover {
+    background-color: #f0f0f0;
+    color: #333;
+  }
+
+  .completed-orders-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+
+  .view-all-completed-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  .view-all-completed-btn:hover {
+    background-color: #218838;
+  }
+
+  .view-all-completed-btn.mini {
+    padding: 4px 10px;
+    font-size: 11px;
+    height: 28px;
+    min-width: 28px;
+    width: auto;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+
   @media (max-width: 1024px) {
     .layout-container {
       flex-direction: column;
@@ -607,6 +633,82 @@
       width: 100%;
     }
   }
+
+  .cancel-confirmation-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+  }
+
+  .cancel-confirmation-modal-content {
+    background: white;
+    border-radius: 8px;
+    padding: 24px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    position: relative;
+  }
+
+  .cancel-confirmation-modal-header {
+    margin-bottom: 16px;
+  }
+
+  .cancel-confirmation-modal-header h2 {
+    margin: 0;
+    font-size: 18px;
+    color: #dc3545;
+    font-weight: 600;
+  }
+
+  .cancel-confirmation-modal-body {
+    margin-bottom: 24px;
+    font-size: 14px;
+    color: #333;
+  }
+
+  .cancel-confirmation-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+  }
+
+  .btn-confirm-cancel {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  .btn-confirm-cancel:hover {
+    background-color: #c82333;
+  }
+
+  .btn-cancel {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  .btn-cancel:hover {
+    background-color: #5a6268;
+  }
 </style>
 
 <div class="layout-container">
@@ -632,7 +734,7 @@
             <td colspan="8" style="text-align:center; padding: 20px;">No orders found.</td>
           </tr>
         <% } else { %>
-          <% orders.slice(1).forEach((order, index) => { %>
+          <% orders.forEach((order, index) => { %>
             <tr class="order-row" data-idx="<%= index %>">
               <td><%= order.OrderID || 'N/A' %></td>
               <td>
@@ -662,10 +764,12 @@
         </tbody>
       </table>
 
-      <div class="cancelled-orders-section" id="cancelledOrdersSection" style="display: none;">
-        <h2>Cancelled Orders</h2>
-        <div class="cancelled-orders-list" id="cancelledOrdersList">
+      <div class="completed-orders-section" id="completedOrdersSection" style="margin-top: 30px; padding: 20px; background-color: #eaf7ea; border-radius: 8px; border: 1px solid #b6e2b6;">
+        <div class="completed-orders-section-header">
+          <h2 style="color: #28a745; font-size: 18px; font-weight: 600; margin: 0;">Completed Orders Today</h2>
+          <button class="view-all-completed-btn mini" id="viewAllCompletedBtn" style="padding:4px 10px; font-size:11px; height:28px; min-width:28px;">&#128065;</button>
         </div>
+        <div class="completed-orders-list" id="completedOrdersList"></div>
       </div>
     </div>
   </div>
@@ -699,7 +803,6 @@
 
       <div id="fulfillmentDropdown">
         <ul>
-          <li class="fulfill-option" data-status="Cancelled">Cancelled</li>
           <li class="fulfill-option" data-status="Preparing">Preparing</li>
           <li class="fulfill-option" data-status="In Delivery">In Delivery</li>
           <li class="fulfill-option" data-status="Completed">Completed</li>
@@ -709,12 +812,37 @@
   </aside>
 </div>
 
+<div class="completed-orders-modal" id="completedOrdersModal">
+  <div class="completed-orders-modal-content">
+    <div class="completed-orders-modal-header">
+      <h2>All Completed Orders</h2>
+      <button class="modal-close-btn" id="closeCompletedOrdersModal">&times;</button>
+    </div>
+    <div class="completed-orders-list" id="modalCompletedOrdersList"></div>
+  </div>
+</div>
+
+<div class="cancel-confirmation-modal" id="cancelConfirmationModal">
+  <div class="cancel-confirmation-modal-content">
+    <div class="cancel-confirmation-modal-header">
+      <h2>Confirm Order Cancellation</h2>
+    </div>
+    <div class="cancel-confirmation-modal-body">
+      <p>Are you sure you want to cancel this order? This action cannot be undone.</p>
+    </div>
+    <div class="cancel-confirmation-modal-footer">
+      <button class="btn-cancel" id="cancelOrderModalBtn">Cancel Order</button>
+      <button class="btn-confirm-cancel" id="closeCancelModalBtn">Close</button>
+    </div>
+  </div>
+</div>
+
 <script type="application/json" id="orders-data"><%- JSON.stringify(orders || []) %></script>
 <script type="application/json" id="menu-data"><%- JSON.stringify(menu || []) %></script>
 
 <script>
   const ordersData = JSON.parse(document.getElementById('orders-data').textContent || '[]');
-  const orders = ordersData.slice(1);
+  const orders = ordersData;
   const menu = JSON.parse(document.getElementById('menu-data').textContent || '[]');
   const orderDetailPanel = document.getElementById('orderDetailPanel');
   const orderSummaryContent = document.getElementById('orderSummaryContent');
@@ -891,14 +1019,14 @@
   }
 
   function renderCancelledOrders() {
+    if (!cancelledOrdersSection || !cancelledOrdersList) return;
     if (cancelledOrders.length === 0) {
       cancelledOrdersSection.style.display = 'none';
+      cancelledOrdersList.innerHTML = '';
       return;
     }
-
     cancelledOrdersSection.style.display = 'block';
     cancelledOrdersList.innerHTML = '';
-
     cancelledOrders.forEach(order => {
       const orderItem = document.createElement('div');
       orderItem.className = 'cancelled-order-item';
@@ -912,6 +1040,52 @@
         </div>
       `;
       cancelledOrdersList.appendChild(orderItem);
+    });
+  }
+
+  const completedOrdersSection = document.createElement('div');
+  const completedOrdersList = document.createElement('div');
+
+  function renderCompletedOrders() {
+    const completedOrders = orders.filter(order => {
+      const pay = (order.PaymentStatus || order.paymentStatus || '').toLowerCase();
+      const full = (order.FulfillmentStatus || order.fulfillmentStatus || '').toLowerCase();
+      return pay === 'completed' && full === 'completed';
+    }).sort((a, b) => {
+      const dateA = new Date(a.Date || a.date || 0).getTime();
+      const dateB = new Date(b.Date || b.date || 0).getTime();
+      return dateB - dateA;
+    });
+    const section = document.getElementById('completedOrdersSection');
+    const list = document.getElementById('completedOrdersList');
+    // Always show the section
+    section.style.display = 'block';
+    list.innerHTML = '';
+    if (!completedOrders.length) {
+      list.innerHTML = '<p style="text-align:center;color:#999;">No completed orders found.</p>';
+      return;
+    }
+    completedOrders.forEach(order => {
+      const item = document.createElement('div');
+      item.className = 'completed-order-item';
+      item.style.display = 'flex';
+      item.style.justifyContent = 'space-between';
+      item.style.alignItems = 'center';
+      item.style.padding = '10px 15px';
+      item.style.marginBottom = '8px';
+      item.style.backgroundColor = '#fff';
+      item.style.borderRadius = '6px';
+      item.style.borderLeft = '4px solid #28a745';
+      item.style.boxShadow = '0 1px 3px rgba(0,0,0,0.07)';
+      item.innerHTML = `
+        <div style="display: flex; flex-direction: column;">
+          <div style="font-weight: 600; color: #333; margin-bottom: 3px;">${order.OrderID || 'N/A'}</div>
+          <div style="font-size: 14px; color: #666;">${order.Customer || order.customer || 'N/A'}</div>
+          <div style="font-size: 13px; color: #888;">${order.Date ? new Date(order.Date).toLocaleString() : (order.date ? new Date(order.date).toLocaleString() : 'N/A')}</div>
+        </div>
+        <div style="font-size: 13px; color: #28a745; font-weight: 600;">Completed</div>
+      `;
+      list.appendChild(item);
     });
   }
 
@@ -970,7 +1144,8 @@
     selectedRowIndex = rowIndex;
 
     document.querySelectorAll('.order-row').forEach(r => r.classList.remove('selected'));
-    const selectedRow = document.querySelector(`.order-row[data-idx="${rowIndex}"]`);
+
+    const selectedRow = document.querySelectorAll('.order-row')[rowIndex];
     if (selectedRow) {
       selectedRow.classList.add('selected');
     }
@@ -1069,6 +1244,11 @@
     orderSummaryContent.innerHTML = summaryHtml;
     orderDetailButtons.style.display = 'flex';
     orderDetailPanel.classList.add('show');
+
+    const isCancelled = (order.FulfillmentStatus === 'Cancelled' || order.fulfillmentStatus === 'Cancelled');
+    orderDetailButtons.querySelectorAll('button').forEach(btn => {
+      btn.disabled = isCancelled;
+    });
 
     setTimeout(() => {
       isTransitioning = false;
@@ -1181,13 +1361,18 @@
     if (orders.length === 0) {
       ordersTableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 20px;">No orders found.</td></tr>`;
       renderCancelledOrders();
+      renderCompletedOrders();
       return;
     }
 
-    const activeOrders = orders.filter(order =>
-            (order.FulfillmentStatus !== 'Cancelled' && order.fulfillmentStatus !== 'Cancelled') ||
-            (!order.FulfillmentStatus && !order.fulfillmentStatus)
-    );
+    const activeOrders = orders.filter(order => {
+      const isCancelled = (order.FulfillmentStatus === 'Cancelled' || order.fulfillmentStatus === 'Cancelled');
+      const paymentCompleted = (order.PaymentStatus || order.paymentStatus || '').toLowerCase() === 'completed';
+      const fulfillmentCompleted = (order.FulfillmentStatus || order.fulfillmentStatus || '').toLowerCase() === 'completed';
+      const bothCompleted = paymentCompleted && fulfillmentCompleted;
+
+      return !isCancelled && !bothCompleted;
+    });
 
     activeOrders.forEach((order, index) => {
       const paymentBadge = getPaymentStatusBadge(order.PaymentStatus || order.paymentStatus);
@@ -1210,6 +1395,7 @@
 
     initRowEventListeners();
     renderCancelledOrders();
+    renderCompletedOrders();
   }
 
   function clearSortArrows() {
@@ -1396,47 +1582,51 @@
       showMessage('No order selected', true);
       return;
     }
-
-    if (!confirm('Are you sure you want to cancel this order? This action will move it to cancelled orders.')) {
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const orderID = currentOrder.OrderID;
-
-      const response = await fetch(`/orders/${orderID}/cancel`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || `Cancel request failed with status ${response.status}`);
+    const cancelModal = document.getElementById('cancelConfirmationModal');
+    cancelModal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    const confirmCancelBtn = document.getElementById('cancelOrderModalBtn');
+    confirmCancelBtn.onclick = async () => {
+      if (!currentOrder) {
+        showMessage('No order selected', true);
+        return;
       }
-
-      currentOrder.PaymentStatus = 'Cancelled';
-      currentOrder.paymentStatus = 'Cancelled';
-      currentOrder.FulfillmentStatus = 'Cancelled';
-      currentOrder.fulfillmentStatus = 'Cancelled';
-
-      addToCancelledOrders(currentOrder);
-
-      showOrderDetails(currentOrder, selectedRowIndex);
-      renderOrdersTable();
-
-      showMessage('Order successfully cancelled and moved to cancelled orders.');
-
-    } catch (error) {
-      console.error('Failed to cancel order:', error);
-      showMessage('Failed to cancel order: ' + error.message, true);
-    } finally {
-      setLoading(false);
-    }
+      setLoading(true);
+      try {
+        const orderID = currentOrder.OrderID;
+        const response = await fetch(`/orders/${orderID}/cancel`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || `Cancel request failed with status ${response.status}`);
+        }
+        currentOrder.PaymentStatus = 'Cancelled';
+        currentOrder.paymentStatus = 'Cancelled';
+        currentOrder.FulfillmentStatus = 'Cancelled';
+        currentOrder.fulfillmentStatus = 'Cancelled';
+        addToCancelledOrders(currentOrder);
+        renderOrdersTable();
+        if (cancelledOrdersSection) cancelledOrdersSection.style.display = 'none';
+        hideOrderDetails();
+        showMessage('Order successfully cancelled and moved to cancelled orders.');
+      } catch (error) {
+        console.error('Failed to cancel order:', error);
+        showMessage('Failed to cancel order: ' + error.message, true);
+      } finally {
+        setLoading(false);
+        cancelModal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+      }
+    };
+    const closeCancelModalBtn = document.getElementById('closeCancelModalBtn');
+    closeCancelModalBtn.onclick = () => {
+      cancelModal.style.display = 'none';
+      document.body.style.overflow = 'auto';
+    };
   });
 
   printInvoiceBtn.addEventListener('click', () => {
@@ -1664,6 +1854,109 @@
     if (e.key === 'Escape' && orderDetailPanel.classList.contains('show')) {
       hideOrderDetails();
     }
+  });
+
+  const completedOrdersModal = document.getElementById('completedOrdersModal');
+  const closeCompletedOrdersModal = document.getElementById('closeCompletedOrdersModal');
+  const modalCompletedOrdersList = document.getElementById('modalCompletedOrdersList');
+
+  function openCompletedOrdersModal() {
+    const completedOrders = orders.filter(order => {
+      const pay = (order.PaymentStatus || order.paymentStatus || '').toLowerCase();
+      const full = (order.FulfillmentStatus || order.fulfillmentStatus || '').toLowerCase();
+      return pay === 'completed' && full === 'completed';
+    }).sort((a, b) => {
+      const dateA = new Date(a.Date || a.date || 0).getTime();
+      const dateB = new Date(b.Date || b.date || 0).getTime();
+      return dateB - dateA;
+    });
+
+    modalCompletedOrdersList.innerHTML = '';
+
+    if (completedOrders.length === 0) {
+      modalCompletedOrdersList.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">No completed orders found.</p>';
+    } else {
+      completedOrders.forEach(order => {
+        const orderDate = new Date(order.Date || order.date || 0);
+        const isToday = isOrderFromToday(orderDate);
+
+        const item = document.createElement('div');
+        item.style.display = 'flex';
+        item.style.justifyContent = 'space-between';
+        item.style.alignItems = 'center';
+        item.style.padding = '15px 20px';
+        item.style.marginBottom = '10px';
+        item.style.backgroundColor = '#fff';
+        item.style.borderRadius = '8px';
+        item.style.borderLeft = '4px solid #28a745';
+        item.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+        item.style.transition = 'transform 0.2s ease, box-shadow 0.2s ease';
+        item.style.cursor = 'pointer';
+
+        item.addEventListener('mouseenter', () => {
+          item.style.transform = 'translateY(-2px)';
+          item.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+        });
+
+        item.addEventListener('mouseleave', () => {
+          item.style.transform = 'translateY(0)';
+          item.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+        });
+
+        item.innerHTML = `
+          <div style="display: flex; flex-direction: column;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+              <span style="font-weight: 600; color: #333; font-size: 16px;">${order.OrderID || 'N/A'}</span>
+              ${isToday ? '<span style="background-color: #28a745; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">TODAY</span>' : ''}
+            </div>
+            <div style="font-size: 14px; color: #666; margin-bottom: 3px;">${order.Customer || order.customer || 'N/A'}</div>
+            <div style="font-size: 13px; color: #888;">${orderDate.toLocaleString()}</div>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
+            <div style="font-size: 16px; color: #28a745; font-weight: 600;">
+              ${order.Total !== undefined && order.Total !== null ? formatCurrency(order.Total) : 'N/A'}
+            </div>
+            <div style="font-size: 12px; color: #28a745; font-weight: 600; padding: 4px 8px; background-color: #d4edda; border-radius: 4px;">
+              Completed
+            </div>
+          </div>
+        `;
+
+        modalCompletedOrdersList.appendChild(item);
+      });
+    }
+
+    completedOrdersModal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeCompletedOrders() {
+    completedOrdersModal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+  }
+
+  function isOrderFromToday(orderDate) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return orderDate >= today && orderDate < tomorrow;
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    renderCompletedOrders();
+    var viewAllBtn = document.getElementById('viewAllCompletedBtn');
+    if (viewAllBtn) {
+      viewAllBtn.addEventListener('click', openCompletedOrdersModal);
+    }
+    if (closeCompletedOrdersModal) {
+      closeCompletedOrdersModal.addEventListener('click', closeCompletedOrders);
+    }
+    document.addEventListener('click', (e) => {
+      if (completedOrdersModal.style.display === 'flex' && !completedOrdersModal.contains(e.target) && e.target !== viewAllBtn) {
+        closeCompletedOrders();
+      }
+    });
   });
 
   renderOrdersTable();

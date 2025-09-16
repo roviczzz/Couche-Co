@@ -1205,17 +1205,18 @@ app.patch('/orders/:OrderID/cancel', isLoggedIn, nocache, async (req, res) => {
         const ordersCollection = db.collection('Orders')
 
         const filter = { OrderID: OrderID }
-        const updateDoc = {
-            $set: {
-                PaymentStatus: 'Cancelled',
-                FulfillmentStatus: 'Cancelled'
-            }
+
+        // First check if the order exists
+        const existingOrder = await ordersCollection.findOne(filter)
+        if (!existingOrder) {
+            await client.close()
+            return res.status(404).json({ error: `Order with ID ${OrderID} not found` })
         }
 
-        const updateResult = await ordersCollection.updateOne(filter, updateDoc)
-        const updatedOrder = await ordersCollection.findOne(filter)
+        // Delete the order from the database
+        const deleteResult = await ordersCollection.deleteOne(filter)
 
-        if (!updatedOrder) {
+        if (deleteResult.deletedCount === 0) {
             await client.close()
             return res.status(404).json({ error: `Order with ID ${OrderID} not found` })
         }
@@ -1223,8 +1224,8 @@ app.patch('/orders/:OrderID/cancel', isLoggedIn, nocache, async (req, res) => {
         await client.close()
         return res.status(200).json({
             success: true,
-            message: 'Order cancelled successfully',
-            order: updatedOrder
+            message: 'Order cancelled and deleted successfully',
+            deletedOrderID: OrderID
         })
     } catch (error) {
         if (client) await client.close()
@@ -2097,7 +2098,8 @@ app.get('/analytics/sales-performance', isLoggedIn, async (req, res) => {
                 $group: {
                     _id: { $dateToString: { format: "%Y-%m-%d", date: "$orderDate" } },
                     earnings: { $sum: "$Total" },
-                    count: { $sum: 1 }
+                    costs: { $sum: { $multiply: ["$Total", 0.6] } },
+                    orders: { $sum: 1 }
                 }
             },
             { $sort: { _id: 1 } }
@@ -2117,8 +2119,8 @@ app.get('/analytics/sales-performance', isLoggedIn, async (req, res) => {
                 return {
                     date: dateStr,
                     earnings: dateMap[dateStr].earnings || 0,
-                    costs: dateMap[dateStr].earnings * 0.6 || 0,
-                    orders: dateMap[dateStr].count || 0
+                    costs: dateMap[dateStr].costs || 0,
+                    orders: dateMap[dateStr].orders || 0
                 }
             } else {
                 return {
