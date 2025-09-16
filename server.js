@@ -1967,8 +1967,6 @@ app.post('/api/orders/update-payment-status', async (req, res) => {
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ success: false, error: 'Database error.' });
-    } finally {
-        await client.close();
     }
 });
 

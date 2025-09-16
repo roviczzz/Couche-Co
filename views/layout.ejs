@@ -459,6 +459,42 @@
         .notification-dropdown[aria-label] {
             display: none !important;
         }
+        .sidebar-group-label {
+          margin: 18px 0 6px 0;
+          padding-left: 4px;
+          font-size: 12px;
+          color: #a05c2f;
+          font-weight: 700;
+          letter-spacing: 0.5px;
+          text-transform: uppercase;
+          opacity: 0.7;
+          height: 18px;
+          line-height: 18px;
+          transition: opacity 0.2s, visibility 0.2s;
+        }
+        .sidebar-collapsed .sidebar-group-label {
+          color: transparent;
+          opacity: 0;
+          visibility: hidden;
+          height: 8px;
+          line-height: 8px;
+          margin: 8px 0 2px 0;
+          padding-left: 0;
+        }
+        .sidebar-group-divider {
+          border: none;
+          border-top: 1px solid #eee;
+          margin: 10px 0 0 0;
+          height: 0;
+          width: 100%;
+          background: none;
+          transition: opacity 0.2s;
+        }
+        .sidebar-collapsed .sidebar-group-divider {
+          margin: 4px 0 0 0;
+          border-top: 1px solid #f3f3f3;
+          opacity: 0.7;
+        }
     </style>
 </head>
 <script>
@@ -639,30 +675,62 @@
         </div>
         <div class="sidebar-menu">
             <ul>
-                <%
-                    const sidebarItems = [
-                    { path: '/dashboard', label: 'Home', icon: 'house' },
-                    { path: '/order', label: 'Orders', icon: 'box' },
-                    { path: '/menu', label: 'POS Menu', icon: 'list' },
-                    { path: '/stocks', label: 'Stocks', icon: 'warehouse' },
-                    { path: '/products', label: 'Products', icon: 'cart-shopping' },
-                    { path: '/analytics', label: 'Analytics', icon: 'chart-line' },
-                    { path: '/management', label: 'Channels', icon: 'share-nodes' },
-                    { path: '/discounts', label: 'Discounts', icon: 'percent' },
-                    { path: '/settings', label: 'Settings', icon: 'cog' },
-                    { path: '/logout', label: 'Logout', icon: 'door-open' }
-                    ];
+                <% /* Grouped sidebar items by category */
+                   const sidebarGroups = [
+                     {
+                       label: 'Main',
+                       items: [
+                         { path: '/dashboard', label: 'Home', icon: 'house' },
+                         { path: '/order', label: 'Orders', icon: 'cart-flatbed' },
+                         { path: '/menu', label: 'POS Menu', icon: 'cash-register' }
+                       ]
+                     },
+                     {
+                       label: 'Inventory',
+                       items: [
+                         { path: '/stocks', label: 'Stocks', icon: 'warehouse' },
+                         { path: '/products', label: 'Products', icon: 'cart-shopping' }
+                       ]
+                     },
+                     {
+                       label: 'Analytics',
+                       items: [
+                         { path: '/analytics', label: 'Analytics', icon: 'chart-line' }
+                       ]
+                     },
+                     {
+                       label: 'Management',
+                       items: [
+                         { path: '/management', label: 'Channels', icon: 'share-nodes' },
+                         { path: '/discounts', label: 'Discounts', icon: 'percent' },
+                         { path: '/settings', label: 'Settings', icon: 'cog' }
+                       ]
+                     },
+                     {
+                       label: 'Account',
+                       items: [
+                         { path: '/logout', label: 'Logout', icon: 'door-open' }
+                       ]
+                     }
+                   ];
                 %>
-
-                <% sidebarItems.forEach(item => {
-                    const isActive = (currentPage === item.path);
-                %>
-                <li>
-                    <a href="<%= item.path %>" class="<%= isActive ? 'active' : '' %>">
+                <% sidebarGroups.forEach((group, groupIdx) => { %>
+                  <% if (groupIdx > 0) { %>
+                    <li class="sidebar-group-divider"></li>
+                  <% } %>
+                  <li class="sidebar-group-label">
+                    <span class="sidebar-group-label-text"><%= group.label %></span>
+                  </li>
+                  <% group.items.forEach(item => {
+                       const isActive = (currentPage === item.path);
+                  %>
+                    <li>
+                      <a href="<%= item.path %>" class="<%= isActive ? 'active' : '' %>">
                         <i class="fa-solid fa-<%= item.icon %>"></i>
                         <span class="label-text"><%= item.label %></span>
-                    </a>
-                </li>
+                      </a>
+                    </li>
+                  <% }) %>
                 <% }) %>
             </ul>
         </div>

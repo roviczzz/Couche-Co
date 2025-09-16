@@ -557,18 +557,24 @@
   .modal-close-btn {
     background: none;
     border: none;
-    font-size: 24px;
+    font-size: 28px;
+    color: var(--gray, #999);
     cursor: pointer;
-    color: #999;
-    padding: 4px;
-    border-radius: 4px;
-    transition: all 0.2s ease;
-    width: 30px;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    line-height: 1;
   }
 
   .modal-close-btn:hover {
-    background-color: #f0f0f0;
+    background: #f8f9fa;
     color: #333;
+    transform: rotate(90deg);
   }
 
   .completed-orders-section-header {
