@@ -87,10 +87,10 @@
         <div class="form-group">
           <label for="AddOnID">Add-On ID:</label>
           <div class="ingredient-id-group">
-            <div class="prefix-display">AON</div>
+            <div class="prefix-display">ADD</div>
             <input type="text" id="AddOnSuffix" name="AddOnSuffix" placeholder="Enter unique ID (e.g. PEARLS)" required>
           </div>
-          <input type="hidden" name="AddOnPrefix" value="AON">
+          <input type="hidden" name="AddOnPrefix" value="ADD">
         </div>
 
         <div class="form-group">
@@ -225,13 +225,13 @@
         <% } else { %>
           <% addons.forEach(a => {
             const parts = a.AddOnID.split('-');
-            const prefix = parts[0] || 'AON';
+            const prefix = parts[0] || 'ADD';
             const suffix = parts[1] || '';
           %>
             <tr>
                 <td class="ingredient-id-cell">
                   <div class="ingredient-id-group-table">
-                    <div class="prefix-display-table">AON</div>
+                    <div class="prefix-display-table">ADD</div>
                     <input type="text" name="AddOnSuffix" value="<%= suffix %>" class="table-input suffix-input" data-field="suffix" data-original="<%= suffix %>" required>
                   </div>
                 </td>
@@ -280,7 +280,7 @@
   <% addons.forEach(a => { %>
     <form id="update-addon-form-<%= a._id %>" action="/addons/edit/<%= a._id %>" method="POST" style="display: none;">
       <input type="hidden" name="AddOnID" value="">
-      <input type="hidden" name="AddOnPrefix" value="AON">
+      <input type="hidden" name="AddOnPrefix" value="ADD">
       <input type="hidden" name="AddOnSuffix" value="">
       <input type="hidden" name="Name" value="">
       <input type="hidden" name="Quantity" value="">
@@ -1904,8 +1904,8 @@
               console.log(`[2025-09-16 07:32:51] Updating ingredient with ID: ${fullIngredientId} by MathDaenniel`);
               form.submit();
             } else if (currentItemType === 'addon') {
-              // Handle add-on update - Fixed prefix is AON
-              const prefix = 'AON';
+              // Handle add-on update - Fixed prefix is ADD
+              const prefix = 'ADD';
               const suffix = row.querySelector('input[name="AddOnSuffix"]').value.trim();
               const name = row.querySelector('input[name="Name"]').value.trim();
               const quantity = row.querySelector('input[name="Quantity"]').value;
@@ -2028,7 +2028,7 @@
       addonModalForm.addEventListener('submit', (e) => {
         console.log(`[2025-09-16 07:32:51] Add-on form submission by MathDaenniel`);
         
-        const prefix = 'AON'; // Fixed prefix
+        const prefix = 'ADD'; // Fixed prefix
         const suffix = addonModalForm.querySelector('input[name="AddOnSuffix"]').value.trim();
 
         if (!suffix) {
