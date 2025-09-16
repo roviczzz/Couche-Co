@@ -12,45 +12,115 @@
     <button id="addPromoBtn" class="stocks-add-btn">Add Promo</button>
   </div>
 
-  <!-- Enhanced Permanent Promos Section -->
-  <div class="permanent-promos-enhanced">
-    <div class="permanent-promos-header">
-      <h3>
-        Permanent Promos
-        <span class="promo-badge">Active</span>
-      </h3>
-      <!-- REMOVED: permanent-count div -->
-    </div>
-    
-    <div class="permanent-promos-grid">
-      <!-- Buy 3 For 143 Promo Card -->
-      <div class="permanent-promo-card featured">
-        <div class="promo-card-header">
-          <div class="promo-icon-large">🥤</div>
-          <div class="promo-status-dot active"></div>
+  <!-- Enhanced Promo Sections Container -->
+  <div class="promo-sections-container">
+    <!-- Enhanced Permanent Promos Section -->
+    <div class="permanent-promos-enhanced">
+      <div class="permanent-promos-header">
+        <h3>
+          Permanent Promos
+          <span class="promo-badge">Active</span>
+        </h3>
+      </div>
+      
+      <div class="permanent-promos-grid">
+        <!-- Buy 3 For 143 Promo Card -->
+        <div class="permanent-promo-card featured">
+          <div class="promo-card-header">
+            <div class="promo-icon-large">🥤</div>
+            <div class="promo-status-dot active"></div>
+          </div>
+          <div class="promo-card-content">
+            <h4 class="promo-title">Buy 3 For ₱143</h4>
+            <p class="promo-description">Get any 3 beverages for only ₱143. Perfect for sharing with friends!</p>
+          </div>
         </div>
-        <div class="promo-card-content">
-          <h4 class="promo-title">Buy 3 For ₱143</h4>
-          <p class="promo-description">Get any 3 beverages for only ₱143. Perfect for sharing with friends!</p>
-          <!-- REMOVED: promo-details section -->
+
+        <!-- Buy 1 Take 1 Promo Card -->
+        <div class="permanent-promo-card special">
+          <div class="promo-card-header">
+            <div class="promo-icon-large">🧋</div>
+            <div class="promo-status-dot active"></div>
+          </div>
+          <div class="promo-card-content">
+            <h4 class="promo-title">Buy 1 Take 1</h4>
+            <p class="promo-description">Purchase the same type of beverage and get another one absolutely free!</p>
+          </div>
         </div>
       </div>
-
-      <!-- Buy 1 Take 1 Promo Card -->
-      <div class="permanent-promo-card special">
-        <div class="promo-card-header">
-          <div class="promo-icon-large">🧋</div>
-          <div class="promo-status-dot active"></div>
-        </div>
-        <div class="promo-card-content">
-          <h4 class="promo-title">Buy 1 Take 1</h4>
-          <p class="promo-description">Purchase the same type of beverage and get another one absolutely free!</p>
-          <!-- REMOVED: promo-details section -->
-        </div>
-      </div>
     </div>
 
-    <!-- REMOVED: permanent-stats-bar section entirely -->
+    <!-- Enhanced Active Promos Section -->
+    <div class="active-promos-enhanced">
+      <div class="active-promos-header">
+        <h3>
+          Active Promos
+          <span class="promo-badge active-count" id="activePromosCount">
+            <% if (promos && promos.length > 0) { %>
+              <%= promos.filter(promo => {
+                const now = new Date();
+                const startDate = new Date(promo.startDate);
+                const endDate = new Date(promo.endDate);
+                return now >= startDate && now <= endDate;
+              }).length %>
+            <% } else { %>
+              0
+            <% } %>
+          </span>
+        </h3>
+      </div>
+      
+      <div class="active-promos-grid" id="activePromosGrid">
+        <% if (promos && promos.length > 0) { %>
+          <% 
+          const now = new Date();
+          const activePromos = promos.filter(promo => {
+            const startDate = new Date(promo.startDate);
+            const endDate = new Date(promo.endDate);
+            return now >= startDate && now <= endDate;
+          });
+          %>
+          
+          <% if (activePromos.length > 0) { %>
+            <% activePromos.forEach((promo, index) => { %>
+              <div class="active-promo-card <%= index % 3 === 0 ? 'featured' : index % 3 === 1 ? 'special' : 'standard' %>" data-promo-id="<%= promo._id %>">
+                <div class="promo-card-header">
+                  <div class="promo-icon-large">🥤</div>
+                  <div class="promo-status-dot active"></div>
+                  <div class="promo-discount-badge"><%= promo.discountPercentage %>% OFF</div>
+                </div>
+                <div class="promo-card-content">
+                  <h4 class="promo-title"><%= promo.event %></h4>
+                  <p class="promo-description"><%= promo.description %></p>
+                  <div class="promo-dates">
+                    <div class="promo-date-item">
+                      <span class="date-label">Started:</span>
+                      <span class="date-value"><%= new Date(promo.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></span>
+                    </div>
+                    <div class="promo-date-item">
+                      <span class="date-label">Ends:</span>
+                      <span class="date-value"><%= new Date(promo.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            <% }) %>
+          <% } else { %>
+            <div class="no-active-promos">
+              <div class="no-promos-icon">📅</div>
+              <h4>No Active Promos</h4>
+              <p>There are currently no active promotional offers. Check back later or add new promos!</p>
+            </div>
+          <% } %>
+        <% } else { %>
+          <div class="no-active-promos">
+            <div class="no-promos-icon">📅</div>
+            <h4>No Active Promos</h4>
+            <p>There are currently no active promotional offers. Check back later or add new promos!</p>
+          </div>
+        <% } %>
+      </div>
+    </div>
   </div>
 
   <!-- Modal Overlay for Add Promo -->
@@ -151,7 +221,115 @@
 </div>
 
 <style>
-  /* Design tokens - EXACTLY from stocks.ejs */
+  /* =============================================== */
+  /* FIXED NAVBAR STYLES - CONTENT ONLY SCROLLING */
+  /* =============================================== */
+  
+  /* Reset and prepare body for fixed navbar */
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden; /* Prevent body scrolling */
+  }
+
+  /* Create main layout container */
+  body {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  /* Ensure navbar stays completely fixed */
+  .navbar,
+  .nav,
+  .header-nav,
+  .main-nav,
+  nav,
+  header,
+  .header,
+  .site-header,
+  .page-header {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    z-index: 9999 !important;
+    background: rgba(255, 255, 255, 0.98) !important;
+    backdrop-filter: blur(12px) !important;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.1) !important;
+    transition: all 0.3s ease !important;
+    flex-shrink: 0; /* Prevent navbar from shrinking */
+  }
+
+  /* Main content area that will scroll */
+  .main-content,
+  .content,
+  .page-content,
+  main {
+    margin-top: 80px; /* Default navbar height */
+    height: calc(100vh - 80px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex: 1;
+    position: relative;
+  }
+
+  /* If no main content wrapper exists, create one for stocks-container */
+  .stocks-container {
+    margin-top: 0; /* Remove default margin since we handle it with main content */
+    padding: 20px;
+    height: calc(100vh - 80px); /* Full viewport minus navbar */
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+    box-sizing: border-box;
+  }
+
+  /* Custom scrollbar for main content */
+  .stocks-container::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .stocks-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  .stocks-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+  }
+
+  .stocks-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
+
+  /* Ensure modals appear above everything */
+  .modal-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 10000 !important;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--transition), visibility var(--transition);
+  }
+
+  .confirmation-modal {
+    z-index: 10001 !important;
+  }
+
+  /* Design tokens */
   :root {
     --brown: #7a4e2b;
     --brown-dark: #5a3921;
@@ -186,6 +364,10 @@
     --shadow-lg: 0 16px 32px rgba(0,0,0,0.16);
     --shadow-inner: inset 0 2px 4px rgba(0,0,0,0.05);
     --transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Navbar height variables for easy adjustment */
+    --navbar-height: 80px;
+    --navbar-height-mobile: 60px;
   }
 
   /* Enhanced header */
@@ -215,7 +397,7 @@
     background: var(--brown);
   }
 
-  /* Flash message - EXACTLY from stocks.ejs */
+  /* Flash message */
   .message {
     color: #155724;
     background-color: #d4edda;
@@ -244,7 +426,7 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* Add button section - EXACTLY from stocks.ejs */
+  /* Add button section */
   .add-ingredient-section {
     text-align: center;
     margin: 24px 0 30px;
@@ -293,16 +475,25 @@
   }
 
   /* =============================================== */
-  /* ENHANCED PERMANENT PROMOS SECTION - V4 MINIMAL */
+  /* PROMO SECTIONS CONTAINER */
   /* =============================================== */
 
-  /* Enhanced Permanent Promos Section */
+  .promo-sections-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 35px;
+  }
+
+  /* =============================================== */
+  /* ENHANCED PERMANENT PROMOS SECTION */
+  /* =============================================== */
+
   .permanent-promos-enhanced {
     background: linear-gradient(135deg, var(--bg-light) 0%, #f0f4f8 100%);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 25px;
-    margin-bottom: 35px;
     box-shadow: var(--shadow-md);
     position: relative;
     overflow: hidden;
@@ -320,7 +511,6 @@
     border-top-right-radius: var(--radius);
   }
 
-  /* Enhanced Header - SIMPLIFIED WITHOUT ICON */
   .permanent-promos-header {
     margin-bottom: 25px;
     padding-bottom: 15px;
@@ -338,8 +528,6 @@
     letter-spacing: -0.3px;
   }
 
-  /* REMOVED: .promo-icon styles */
-
   .promo-badge {
     background: linear-gradient(135deg, var(--green), var(--green-dark));
     color: var(--white);
@@ -352,17 +540,12 @@
     box-shadow: 0 2px 6px rgba(40, 167, 69, 0.3);
   }
 
-  /* REMOVED: .permanent-count styles */
-
-  /* Enhanced Grid Layout */
   .permanent-promos-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 20px;
-    margin-bottom: 0; /* UPDATED: No stats bar below */
+    grid-template-columns: 1fr;
+    gap: 15px;
   }
 
-  /* Enhanced Promo Cards - MINIMAL VERSION */
   .permanent-promo-card {
     background: var(--white);
     border: 1px solid var(--border-light);
@@ -402,12 +585,149 @@
     height: 5px;
   }
 
+  /* =============================================== */
+  /* ENHANCED ACTIVE PROMOS SECTION */
+  /* =============================================== */
+
+  .active-promos-enhanced {
+    background: linear-gradient(135deg, #f8fafc 0%, #e3f2fd 100%);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 25px;
+    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .active-promos-enhanced:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--blue), #4285f4, var(--green));
+    border-top-left-radius: var(--radius);
+    border-top-right-radius: var(--radius);
+  }
+
+  .active-promos-header {
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--border-light);
+  }
+
+  .active-promos-header h3 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    color: var(--brown-dark);
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+
+  .promo-badge.active-count {
+    background: linear-gradient(135deg, var(--blue), #4285f4);
+    color: var(--white);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 6px rgba(0, 123, 255, 0.3);
+    min-width: 20px;
+    text-align: center;
+  }
+
+  .active-promos-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 8px;
+  }
+
+  .active-promos-grid::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .active-promos-grid::-webkit-scrollbar-track {
+    background: var(--bg-light);
+    border-radius: 3px;
+  }
+
+  .active-promos-grid::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+  }
+
+  .active-promos-grid::-webkit-scrollbar-thumb:hover {
+    background: var(--gray);
+  }
+
+  .active-promo-card {
+    background: var(--white);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    padding: 18px;
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition);
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .active-promo-card:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    transition: all var(--transition);
+  }
+
+  .active-promo-card.featured:before {
+    background: linear-gradient(90deg, var(--blue), #4285f4);
+  }
+
+  .active-promo-card.special:before {
+    background: linear-gradient(90deg, var(--green), var(--green-dark));
+  }
+
+  .active-promo-card.standard:before {
+    background: linear-gradient(90deg, var(--brown), var(--brown-light));
+  }
+
+  .active-promo-card.expiring-soon {
+    border-color: #ff6b35;
+    box-shadow: 0 0 15px rgba(255, 107, 53, 0.2);
+  }
+
+  .active-promo-card.expiring-soon:before {
+    background: linear-gradient(90deg, #ff6b35, #f7931e) !important;
+  }
+
+  .active-promo-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--blue);
+  }
+
+  .active-promo-card:hover:before {
+    height: 5px;
+  }
+
   /* Card Header */
   .promo-card-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 15px;
+    position: relative;
   }
 
   .promo-icon-large {
@@ -438,7 +758,44 @@
     100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
   }
 
-  /* Card Content - MINIMAL VERSION WITHOUT DETAILS */
+  .promo-discount-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: linear-gradient(135deg, #ff6b35, #f7931e);
+    color: var(--white);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+    transform: rotate(12deg);
+  }
+
+  .expiring-badge {
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    background: linear-gradient(135deg, #ff4757, #ff3742);
+    color: var(--white);
+    font-size: 9px;
+    font-weight: 700;
+    padding: 3px 6px;
+    border-radius: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    box-shadow: 0 2px 6px rgba(255, 71, 87, 0.4);
+    animation: pulse-urgent 1.5s infinite;
+  }
+
+  @keyframes pulse-urgent {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+  }
+
+  /* Card Content */
   .promo-card-content {
     margin-bottom: 0;
   }
@@ -446,22 +803,110 @@
   .promo-title {
     margin: 0 0 8px 0;
     color: var(--brown-dark);
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
     letter-spacing: -0.2px;
+    line-height: 1.3;
   }
 
   .promo-description {
-    margin: 0;
+    margin: 0 0 15px 0;
     color: var(--text-light);
-    font-size: 14px;
-    line-height: 1.5;
+    font-size: 13px;
+    line-height: 1.4;
   }
 
-  /* REMOVED: promo-details, promo-detail-item, detail-label, detail-value styles */
-  /* REMOVED: permanent-stats-bar, stat-item, stat-icon, stat-content, stat-label, stat-value, stat-divider styles */
+  .promo-dates {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .promo-date-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .promo-date-item.urgent {
+    color: #ff4757;
+    font-weight: 700;
+  }
+
+  .date-label {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .date-value {
+    font-size: 12px;
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  /* No Active Promos State */
+  .no-active-promos {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-light);
+  }
+
+  .no-promos-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.6;
+  }
+
+  .no-active-promos h4 {
+    margin: 0 0 8px 0;
+    color: var(--text);
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .no-active-promos p {
+    margin: 0 0 16px 0;
+    font-size: 14px;
+    line-height: 1.5;
+    max-width: 280px;
+    margin: 0 auto 16px;
+  }
+
+  .quick-add-btn {
+    background: var(--green-gradient);
+    color: var(--white);
+    border: none;
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all var(--transition);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .quick-add-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
 
   /* Animation for enhanced visual appeal */
+  .active-promo-card {
+    animation: fadeSlideUp 0.6s ease-out;
+  }
+
+  .active-promo-card:nth-child(2) {
+    animation-delay: 0.1s;
+  }
+
+  .active-promo-card:nth-child(3) {
+    animation-delay: 0.2s;
+  }
+
   .permanent-promo-card {
     animation: fadeSlideUp 0.6s ease-out;
   }
@@ -481,57 +926,12 @@
     }
   }
 
-  /* Enhanced Responsive Design for Permanent Promos */
-  @media (max-width: 768px) {
-    .permanent-promos-grid {
-      grid-template-columns: 1fr;
-    }
-    
-    .permanent-promos-header h3 {
-      font-size: 20px;
-    }
-  }
-
-  @media (max-width: 600px) {
-    .permanent-promos-enhanced {
-      padding: 20px 15px;
-    }
-  }
-
-  /* =============================================== */
-  /* END OF ENHANCED PERMANENT PROMOS SECTION       */
-  /* =============================================== */
-
-  /* Modal Overlay - EXACTLY from stocks.ejs */
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity var(--transition), visibility var(--transition);
-  }
-
   .modal-overlay.show {
     opacity: 1;
     visibility: visible;
   }
 
-  /* Confirmation Modal Specific */
-  .confirmation-modal {
-    z-index: 1100;
-  }
-
-  /* Modal Container - EXACTLY from stocks.ejs */
+  /* Modal Container */
   .modal-container {
     background: var(--white);
     border-radius: var(--radius);
@@ -549,7 +949,7 @@
     transform: scale(1) translateY(0);
   }
 
-  /* Confirmation Container - EXACTLY from stocks.ejs */
+  /* Confirmation Container */
   .confirmation-container {
     background: var(--white);
     border-radius: var(--radius);
@@ -566,7 +966,7 @@
     transform: scale(1) translateY(0);
   }
 
-  /* Modal Header - EXACTLY from stocks.ejs */
+  /* Modal Header */
   .modal-header {
     display: flex;
     justify-content: space-between;
@@ -585,7 +985,7 @@
     font-weight: 700;
   }
 
-  /* Confirmation Header - EXACTLY from stocks.ejs */
+  /* Confirmation Header */
   .confirmation-header {
     padding: 24px 30px 16px;
     border-bottom: 1px solid var(--border-light);
@@ -601,7 +1001,7 @@
     text-shadow: 0 1px 2px rgba(0,0,0,0.2);
   }
 
-  /* Confirmation Body - EXACTLY from stocks.ejs */
+  /* Confirmation Body */
   .confirmation-body {
     padding: 30px;
     text-align: center;
@@ -616,7 +1016,7 @@
     font-weight: 500;
   }
 
-  /* Confirmation Buttons - EXACTLY from stocks.ejs */
+  /* Confirmation Buttons */
   .confirmation-buttons {
     display: flex;
     gap: 12px;
@@ -707,7 +1107,7 @@
     transform: rotate(90deg);
   }
 
-  /* Modal Form - EXACTLY from stocks.ejs */
+  /* Modal Form */
   .stocks-form-vertical {
     display: flex;
     flex-direction: column;
@@ -759,7 +1159,7 @@
     transform: translateY(-1px);
   }
 
-  /* Enhanced Buttons - EXACTLY from stocks.ejs */
+  /* Enhanced Buttons */
   .button-group {
     display: flex;
     gap: 16px;
@@ -833,7 +1233,7 @@
     filter: brightness(0.95);
   }
 
-  /* Enhanced Table Container - EXACTLY from stocks.ejs */
+  /* Enhanced Table Container */
   .table-container {
     overflow-x: auto;
     border-radius: var(--radius);
@@ -845,7 +1245,7 @@
     width: 100%;
   }
 
-  /* Enhanced Table - EXACTLY from stocks.ejs */
+  /* Enhanced Table */
   .stocks-table {
     width: 100%;
     border-collapse: separate;
@@ -908,7 +1308,7 @@
     background-color: #eef2f7;
   }
 
-  /* Clean table inputs - EXACTLY from stocks.ejs */
+  /* Clean table inputs */
   .table-input {
     width: 100%;
     padding: 8px 10px;
@@ -937,7 +1337,7 @@
     text-align: center;
   }
 
-  /* Modified/Changed field highlighting - EXACTLY from stocks.ejs */
+  /* Modified/Changed field highlighting */
   .table-input.modified {
     border-color: var(--blue);
     background-color: var(--blue-light);
@@ -949,7 +1349,7 @@
     transition: all 1s ease-out;
   }
 
-  /* Actions Cell - EXACTLY from stocks.ejs */
+  /* Actions Cell */
   .actions-cell {
     padding: 8px 6px;
   }
@@ -963,7 +1363,7 @@
     margin: 0 auto;
   }
 
-  /* Enhanced Action Buttons - EXACTLY from stocks.ejs */
+  /* Enhanced Action Buttons */
   .stocks-btn {
     padding: 10px 16px;
     border: none;
@@ -1036,8 +1436,23 @@
     background: linear-gradient(to bottom, var(--bg-light), #eef2f7);
   }
 
-  /* Enhanced Responsive Design */
+  /* =============================================== */
+  /* RESPONSIVE DESIGN WITH FIXED NAVBAR */
+  /* =============================================== */
+
+  @media (max-width: 1200px) {
+    .promo-sections-container {
+      grid-template-columns: 1fr;
+      gap: 25px;
+    }
+  }
+
   @media (max-width: 768px) {
+    /* Adjust for smaller navbar on mobile */
+    .stocks-container {
+      height: calc(100vh - var(--navbar-height-mobile));
+    }
+
     .add-ingredient-section {
       margin: 20px 0;
     }
@@ -1046,9 +1461,33 @@
       width: 100%;
       max-width: 300px;
     }
+
+    .permanent-promos-enhanced,
+    .active-promos-enhanced {
+      padding: 20px;
+    }
+
+    .permanent-promos-header h3,
+    .active-promos-header h3 {
+      font-size: 20px;
+    }
+
+    .active-promos-grid {
+      max-height: 300px;
+    }
+
+    .promo-dates {
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
   }
 
   @media (max-width: 600px) {
+    .stocks-container {
+      padding: 15px;
+      height: calc(100vh - var(--navbar-height-mobile));
+    }
+
     .modal-container, .confirmation-container {
       margin: 10px;
       max-width: calc(100vw - 20px);
@@ -1109,12 +1548,39 @@
     .confirm-btn {
       max-width: none;
     }
+
+    .permanent-promos-enhanced,
+    .active-promos-enhanced {
+      padding: 15px;
+    }
+
+    .promo-card-header {
+      margin-bottom: 12px;
+    }
+
+    .promo-icon-large {
+      font-size: 28px;
+      padding: 6px;
+    }
+
+    .promo-title {
+      font-size: 15px;
+    }
+
+    .promo-description {
+      font-size: 12px;
+    }
+
+    .promo-dates {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
   }
 
   @media (max-width: 500px) {
     .stocks-container {
-      padding: 16px 12px;
-      margin: 10px auto;
+      padding: 12px;
+      height: calc(100vh - 50px); /* Even smaller navbar for very small screens */
     }
     
     .stocks-table {
@@ -1152,7 +1618,124 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Show success message based on query parameter (like stocks.ejs)
+  console.log(`[2025-09-16 08:06:10] Initializing Enhanced Promo Management System V7 - COMPLETE ACTIVE PROMOS FIX by MathDaenniel`);
+  console.log(`[2025-09-16 08:06:10] Repository: roviczzz/Couche-Co by MathDaenniel`);
+  
+  // ===============================================
+  // ENHANCED FIXED NAVBAR - CONTENT ONLY SCROLLING
+  // ===============================================
+  
+  function setupFixedNavbar() {
+    console.log(`[2025-09-16 08:06:10] Setting up fixed navbar with content-only scrolling by MathDaenniel`);
+    
+    // Find navbar elements (multiple selectors for compatibility)
+    const navbarSelectors = [
+      'nav', '.navbar', '.nav', '.header-nav', '.main-nav',
+      'header', '.header', '.site-header', '.page-header',
+      '.navigation', '.top-nav', '.primary-nav'
+    ];
+    
+    let navbar = null;
+    
+    // Try to find navbar element
+    for (const selector of navbarSelectors) {
+      const element = document.querySelector(selector);
+      if (element) {
+        navbar = element;
+        break;
+      }
+    }
+    
+    if (navbar) {
+      console.log(`[2025-09-16 08:06:10] Navbar found, applying fixed positioning by MathDaenniel`);
+      
+      // Force fixed positioning styles
+      Object.assign(navbar.style, {
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        right: '0',
+        width: '100%',
+        zIndex: '9999',
+        background: 'rgba(255, 255, 255, 0.98)',
+        backdropFilter: 'blur(12px)',
+        boxShadow: '0 2px 20px rgba(0,0,0,0.1)',
+        transition: 'all 0.3s ease'
+      });
+      
+      // Add sticky class for CSS targeting
+      navbar.classList.add('navbar-fixed');
+      
+      // Measure navbar height and adjust container accordingly
+      const navbarHeight = navbar.offsetHeight;
+      const container = document.querySelector('.stocks-container');
+      
+      if (container) {
+        container.style.marginTop = '0';
+        container.style.height = `calc(100vh - ${navbarHeight}px)`;
+        container.style.overflowY = 'auto';
+        container.style.overflowX = 'hidden';
+        
+        console.log(`[2025-09-16 08:06:10] Container adjusted: height=calc(100vh - ${navbarHeight}px) by MathDaenniel`);
+      }
+      
+      // Ensure body doesn't scroll
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      
+      console.log(`[2025-09-16 08:06:10] Fixed navbar setup complete: height=${navbarHeight}px by MathDaenniel`);
+    } else {
+      console.log(`[2025-09-16 08:06:10] No navbar found, applying default content scrolling by MathDaenniel`);
+      
+      // Fallback: just make sure body doesn't scroll
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      
+      const container = document.querySelector('.stocks-container');
+      if (container) {
+        container.style.height = 'calc(100vh - 80px)'; // Default navbar height
+        container.style.overflowY = 'auto';
+        container.style.overflowX = 'hidden';
+      }
+    }
+  }
+  
+  // Apply navbar fix immediately and on resize
+  setupFixedNavbar();
+  window.addEventListener('resize', setupFixedNavbar);
+  
+  // ===============================================
+  // ENHANCED SCROLL BEHAVIOR FOR CONTENT ONLY
+  // ===============================================
+    const scrollContainer = document.querySelector('.stocks-container');
+  const navbar = document.querySelector('.navbar-fixed, nav, .navbar, header');
+  
+  if (scrollContainer) {
+    scrollContainer.addEventListener('scroll', function() {
+      const scrollTop = scrollContainer.scrollTop;
+      
+      if (navbar) {
+        // Enhanced navbar shadow based on content scroll
+        if (scrollTop > 10) {
+          navbar.style.boxShadow = '0 4px 25px rgba(0,0,0,0.15)';
+          navbar.style.background = 'rgba(255, 255, 255, 0.99)';
+          navbar.style.backdropFilter = 'blur(15px)';
+        } else {
+          navbar.style.boxShadow = '0 2px 20px rgba(0,0,0,0.1)';
+          navbar.style.background = 'rgba(255, 255, 255, 0.98)';
+          navbar.style.backdropFilter = 'blur(12px)';
+        }
+      }
+    });
+    
+    console.log(`[2025-09-16 08:11:58] Content scroll listener attached by MathDaenniel`);
+  }
+
+  // ===============================================
+  // FLASH MESSAGE HANDLING
+  // ===============================================
+  
+  // Show success message based on query parameter
   const messageDiv = document.getElementById('message');
   if (messageDiv) {
     const urlParams = new URLSearchParams(window.location.search);
@@ -1169,6 +1752,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (text) {
       messageDiv.textContent = text;
+      messageDiv.style.display = 'block';
       
       // Change styling for error messages
       if (msg === 'duplicate_id' || msg === 'delete_failed' || msg === 'item_not_found' || msg === 'validation_error') {
@@ -1181,15 +1765,24 @@ document.addEventListener('DOMContentLoaded', function() {
       setTimeout(() => {
         messageDiv.style.transition = 'opacity 1s ease';
         messageDiv.style.opacity = 0;
+        setTimeout(() => {
+          messageDiv.style.display = 'none';
+          messageDiv.style.opacity = 1;
+        }, 1000);
       }, fadeTime);
     }
   }
 
+  // ===============================================
+  // MODAL ELEMENTS AND GLOBAL VARIABLES
+  // ===============================================
+  
   // Modal Elements
   const addPromoBtn = document.getElementById('addPromoBtn');
   const promoModalOverlay = document.getElementById('promoModalOverlay');
   const cancelPromoBtn = document.getElementById('cancelPromo');
   const closePromoModalBtn = document.getElementById('closePromoModal');
+  const savePromoBtn = document.getElementById('savePromoBtn');
 
   // Confirmation Modal Elements
   const confirmationModal = document.getElementById('confirmationModal');
@@ -1198,89 +1791,509 @@ document.addEventListener('DOMContentLoaded', function() {
   const confirmProceed = document.getElementById('confirmProceed');
   const confirmCancel = document.getElementById('confirmCancel');
 
+  // Form elements
+  const promoForm = document.getElementById('promoForm');
+  const eventInput = document.getElementById('eventInput');
+  const descriptionInput = document.getElementById('descriptionInput');
+  const discountPercentageInput = document.getElementById('discountPercentageInput');
+  const startDateInput = document.getElementById('startDateInput');
+  const endDateInput = document.getElementById('endDateInput');
+
+  // Global state variables
   let currentAction = null;
   let currentPromoId = null;
+  
+  // V8 Addition: Enhanced cache for original promo data to fix active promos update issue
+  let originalPromoData = new Map();
+  let updateActivePromosTimeout = null;
 
+  // Debug: Check if elements exist
+  console.log(`[2025-09-16 08:11:58] Modal elements found:`, {
+    addPromoBtn: !!addPromoBtn,
+    promoModalOverlay: !!promoModalOverlay,
+    savePromoBtn: !!savePromoBtn,
+    confirmationModal: !!confirmationModal,
+    confirmProceed: !!confirmProceed,
+    confirmCancel: !!confirmCancel
+  }, 'by MathDaenniel');
+
+  // ===============================================
+  // V8 ENHANCEMENT: INITIALIZE ORIGINAL PROMO DATA CACHE
+  // ===============================================
+  
+  function initializePromoDataCache() {
+    console.log(`[2025-09-16 08:11:58] V8 Initializing promo data cache to fix active promos update by MathDaenniel`);
+    
+    const rows = document.querySelectorAll('#promoTableBody tr[data-promo-id]');
+    rows.forEach(row => {
+      const promoId = row.dataset.promoId;
+      const eventInput = row.querySelector('.event-input');
+      const startDateInput = row.querySelector('.start-date-input');
+      const endDateInput = row.querySelector('.end-date-input');
+      const descriptionInput = row.querySelector('.description-input');
+      const discountInput = row.querySelector('.discount-percentage-input');
+      
+      if (promoId && eventInput && startDateInput && endDateInput && descriptionInput && discountInput) {
+        originalPromoData.set(promoId, {
+          event: eventInput.value,
+          startDate: startDateInput.value,
+          endDate: endDateInput.value,
+          description: descriptionInput.value,
+          discountPercentage: discountInput.value
+        });
+      }
+    });
+    
+    console.log(`[2025-09-16 08:11:58] V8 Cached ${originalPromoData.size} promo records by MathDaenniel`);
+  }
+
+  // ===============================================
+  // V8 CRITICAL FIX: ACTIVE PROMOS SECTION UPDATE
+  // ===============================================
+  
+  // V8 ENHANCED Update Active Promos Section - COMPLETE FIX FOR DISAPPEARING ISSUE
+  function updateActivePromosSection() {
+    console.log(`[2025-09-16 08:11:58] V8 CRITICAL FIX: Updating active promos section by MathDaenniel`);
+    
+    const activePromosGrid = document.getElementById('activePromosGrid');
+    const activePromosCount = document.getElementById('activePromosCount');
+    
+    if (!activePromosGrid || !activePromosCount) {
+      console.log(`[2025-09-16 08:11:58] Active promos elements not found by MathDaenniel`);
+      return;
+    }
+    
+    // V8 CRITICAL FIX: Enhanced date validation and processing
+    const rows = document.querySelectorAll('#promoTableBody tr[data-promo-id]');
+    const now = new Date();
+    const activePromos = [];
+    
+    console.log(`[2025-09-16 08:11:58] V8 Processing ${rows.length} promo rows for active status by MathDaenniel`);
+    
+    rows.forEach((row, index) => {
+      const promoId = row.dataset.promoId;
+      const startDateInput = row.querySelector('.start-date-input');
+      const endDateInput = row.querySelector('.end-date-input');
+      const eventInput = row.querySelector('.event-input');
+      const descriptionInput = row.querySelector('.description-input');
+      const discountInput = row.querySelector('.discount-percentage-input');
+      
+      if (startDateInput && endDateInput && eventInput && descriptionInput && discountInput) {
+        // V8 CRITICAL FIX: Enhanced date processing with better validation
+        const startDateValue = startDateInput.value;
+        const endDateValue = endDateInput.value;
+        
+        console.log(`[2025-09-16 08:11:58] V8 Processing promo ${promoId}: start=${startDateValue}, end=${endDateValue} by MathDaenniel`);
+        
+        // V8 FIX: Only process if both dates are valid and not empty
+        if (startDateValue && endDateValue && startDateValue.trim() && endDateValue.trim()) {
+          const startDate = new Date(startDateValue + 'T00:00:00');
+          const endDate = new Date(endDateValue + 'T23:59:59');
+          
+          // V8 ENHANCEMENT: Better date validation with debugging
+          const isValidStartDate = !isNaN(startDate.getTime()) && startDate instanceof Date;
+          const isValidEndDate = !isNaN(endDate.getTime()) && endDate instanceof Date;
+          
+          console.log(`[2025-09-16 08:11:58] V8 Date validation for ${promoId}: startValid=${isValidStartDate}, endValid=${isValidEndDate} by MathDaenniel`);
+          
+          if (isValidStartDate && isValidEndDate) {
+            const isActive = now >= startDate && now <= endDate;
+            
+            console.log(`[2025-09-16 08:11:58] V8 Promo ${promoId} active status: ${isActive} (now: ${now.toISOString()}, start: ${startDate.toISOString()}, end: ${endDate.toISOString()}) by MathDaenniel`);
+            
+            if (isActive) {
+              const promoData = {
+                _id: promoId,
+                event: eventInput.value || 'Unnamed Event',
+                description: descriptionInput.value || 'No description',
+                discountPercentage: discountInput.value || '0',
+                startDate: startDateValue,
+                endDate: endDateValue
+              };
+              
+              activePromos.push(promoData);
+              console.log(`[2025-09-16 08:11:58] V8 Added active promo: ${promoData.event} by MathDaenniel`);
+            }
+          } else {
+            console.warn(`[2025-09-16 08:11:58] V8 Invalid dates for promo ${promoId} by MathDaenniel`);
+          }
+        } else {
+          console.warn(`[2025-09-16 08:11:58] V8 Missing or empty date values for promo ${promoId} by MathDaenniel`);
+        }
+      } else {
+        console.warn(`[2025-09-16 08:11:58] V8 Missing input elements for promo ${promoId} by MathDaenniel`);
+      }
+    });
+    
+    console.log(`[2025-09-16 08:11:58] V8 Found ${activePromos.length} active promos by MathDaenniel`);
+    
+    // Update count with animation
+    const currentCount = parseInt(activePromosCount.textContent) || 0;
+    const newCount = activePromos.length;
+    
+    if (currentCount !== newCount) {
+      activePromosCount.style.transform = 'scale(1.2)';
+      activePromosCount.style.transition = 'transform 0.3s ease';
+      setTimeout(() => {
+        activePromosCount.textContent = newCount;
+        activePromosCount.style.transform = 'scale(1)';
+      }, 150);
+    }
+    
+    // V8 Enhancement: Sort active promos by discount percentage (highest first)
+    activePromos.sort((a, b) => parseFloat(b.discountPercentage) - parseFloat(a.discountPercentage));
+    
+    // Update grid content with enhanced cards
+    if (activePromos.length > 0) {
+      const promoCardsHTML = activePromos.map((promo, index) => {
+        const cardClass = index % 3 === 0 ? 'featured' : index % 3 === 1 ? 'special' : 'standard';
+        
+        // V8 ENHANCEMENT: Better date formatting with error handling
+        let startDateFormatted = 'Invalid Date';
+        let endDateFormatted = 'Invalid Date';
+        let daysRemaining = 0;
+        
+        try {
+          const startDate = new Date(promo.startDate);
+          const endDate = new Date(promo.endDate);
+          
+          if (!isNaN(startDate.getTime())) {
+            startDateFormatted = startDate.toLocaleDateString('en-US', { 
+              month: 'short', 
+              day: 'numeric', 
+              year: 'numeric' 
+            });
+          }
+          
+          if (!isNaN(endDate.getTime())) {
+            endDateFormatted = endDate.toLocaleDateString('en-US', { 
+              month: 'short', 
+              day: 'numeric', 
+              year: 'numeric' 
+            });
+            
+            daysRemaining = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
+          }
+        } catch (error) {
+          console.error(`[2025-09-16 08:11:58] V8 Date formatting error for promo ${promo._id}:`, error, 'by MathDaenniel');
+        }
+        
+        const isExpiringSoon = daysRemaining <= 7 && daysRemaining > 0;
+        
+        return `
+          <div class="active-promo-card ${cardClass} ${isExpiringSoon ? 'expiring-soon' : ''}" data-promo-id="${promo._id}">
+            <div class="promo-card-header">
+              <div class="promo-icon-large">🥤</div>
+              <div class="promo-status-dot active"></div>
+              <div class="promo-discount-badge">${promo.discountPercentage}% OFF</div>
+              ${isExpiringSoon ? '<div class="expiring-badge">Expires Soon!</div>' : ''}
+            </div>
+            <div class="promo-card-content">
+              <h4 class="promo-title">${promo.event}</h4>
+              <p class="promo-description">${promo.description}</p>
+              <div class="promo-dates">
+                <div class="promo-date-item">
+                  <span class="date-label">Started:</span>
+                  <span class="date-value">${startDateFormatted}</span>
+                </div>
+                <div class="promo-date-item">
+                  <span class="date-label">Ends:</span>
+                  <span class="date-value">${endDateFormatted}</span>
+                </div>
+                <div class="promo-date-item ${isExpiringSoon ? 'urgent' : ''}">
+                  <span class="date-label">Days Left:</span>
+                  <span class="date-value">${Math.max(0, daysRemaining)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      activePromosGrid.innerHTML = promoCardsHTML;
+    } else {
+      activePromosGrid.innerHTML = `
+        <div class="no-active-promos">
+          <div class="no-promos-icon">📅</div>
+          <h4>No Active Promos</h4>
+          <p>There are currently no active promotional offers. Check back later or add new promos!</p>
+          <button class="quick-add-btn" onclick="document.getElementById('addPromoBtn').click()">
+            <span>Add Promo</span>
+          </button>
+        </div>
+      `;
+    }
+    
+    console.log(`[2025-09-16 08:11:58] V8 CRITICAL FIX COMPLETE: Active promos section updated with ${activePromos.length} active promos by MathDaenniel`);
+  }
+
+  // V8 ENHANCEMENT: Advanced debounced update function to prevent excessive calls
+  function debounceUpdateActivePromos(delay = 300) {
+    clearTimeout(updateActivePromosTimeout);
+    updateActivePromosTimeout = setTimeout(() => {
+      updateActivePromosSection();
+    }, delay);
+  }
+
+  // ===============================================
+  // MODAL FUNCTIONS - V8 ENHANCED
+  // ===============================================
+  
   // Show Promo Modal
   function showPromoModal() {
+    console.log(`[2025-09-16 08:11:58] V8 Opening add promo modal by MathDaenniel`);
+    
+    if (!promoModalOverlay) {
+      console.error(`[2025-09-16 08:11:58] Modal overlay not found by MathDaenniel`);
+      return;
+    }
+    
+    // Reset form
+    if (promoForm) {
+      promoForm.reset();
+    }
+    
+    // Show modal with enhanced animation
     promoModalOverlay.style.display = 'flex';
+    promoModalOverlay.style.visibility = 'visible';
+    promoModalOverlay.style.opacity = '0';
+    
+    // Trigger animation
     setTimeout(() => {
       promoModalOverlay.classList.add('show');
+      promoModalOverlay.style.opacity = '1';
     }, 10);
-    document.body.style.overflow = 'hidden';
+    
+    // Auto-focus on first input with delay for better UX
+    setTimeout(() => {
+      if (eventInput) {
+        eventInput.focus();
+        console.log(`[2025-09-16 08:11:58] V8 Focus set to event input by MathDaenniel`);
+      }
+    }, 300);
+    
+    console.log(`[2025-09-16 08:11:58] V8 Modal opened successfully by MathDaenniel`);
   }
 
   // Hide Promo Modal
   function hidePromoModal() {
+    console.log(`[2025-09-16 08:11:58] V8 Closing add promo modal by MathDaenniel`);
+    
+    if (!promoModalOverlay) return;
+    
     promoModalOverlay.classList.remove('show');
+    promoModalOverlay.style.opacity = '0';
+    
     setTimeout(() => {
       promoModalOverlay.style.display = 'none';
-      const form = promoModalOverlay.querySelector('form');
-      form.reset();
+      promoModalOverlay.style.visibility = 'hidden';
+      if (promoForm) {
+        promoForm.reset();
+      }
+      clearSavedFormData(); // Clear auto-saved data
     }, 200);
-    document.body.style.overflow = '';
+    
+    console.log(`[2025-09-16 08:11:58] V8 Modal closed successfully by MathDaenniel`);
   }
 
-  // Show Confirmation Modal
+  // Show Confirmation Modal - V8 ENHANCED
   function showConfirmationModal(action, promoId) {
+    console.log(`[2025-09-16 08:11:58] V8 Opening confirmation modal: ${action} for ${promoId} by MathDaenniel`);
+    
     currentAction = action;
     currentPromoId = promoId;
     
+    if (!confirmationModal || !confirmationTitle || !confirmationMessage) {
+      console.error(`[2025-09-16 08:11:58] Confirmation modal elements not found by MathDaenniel`);
+      return;
+    }
+    
+    // Set modal content based on action with enhanced messaging
     if (action === 'update') {
       confirmationTitle.textContent = 'Update Promo';
-      confirmationMessage.textContent = 'Are you sure you want to update this promo with the current values?';
+      confirmationMessage.textContent = 'Are you sure you want to update this promo with the current values? This action will modify the existing promo data and refresh the active promos display.';
     } else if (action === 'delete') {
       confirmationTitle.textContent = 'Delete Promo';
-      confirmationMessage.textContent = 'Are you sure you want to delete this promo? This action cannot be undone.';
+      confirmationMessage.textContent = 'Are you sure you want to permanently delete this promo? This action cannot be undone and will remove all promo data.';
     }
 
+    // Show confirmation modal with enhanced animation
     confirmationModal.style.display = 'flex';
+    confirmationModal.style.visibility = 'visible';
+    confirmationModal.style.opacity = '0';
+    
     setTimeout(() => {
       confirmationModal.classList.add('show');
+      confirmationModal.style.opacity = '1';
     }, 10);
-    document.body.style.overflow = 'hidden';
+    
+    console.log(`[2025-09-16 08:11:58] V8 Confirmation modal opened for ${action} action by MathDaenniel`);
   }
 
   // Hide Confirmation Modal
   function hideConfirmationModal() {
+    console.log(`[2025-09-16 08:11:58] V8 Closing confirmation modal by MathDaenniel`);
+    
+    if (!confirmationModal) return;
+    
     confirmationModal.classList.remove('show');
+    confirmationModal.style.opacity = '0';
+    
     setTimeout(() => {
       confirmationModal.style.display = 'none';
+      confirmationModal.style.visibility = 'hidden';
       currentAction = null;
       currentPromoId = null;
     }, 200);
-    document.body.style.overflow = '';
   }
 
-  // Event Listeners
-  addPromoBtn.addEventListener('click', showPromoModal);
-  cancelPromoBtn.addEventListener('click', hidePromoModal);
-  closePromoModalBtn.addEventListener('click', hidePromoModal);
+  // ===============================================
+  // ENHANCED EVENT LISTENERS - V8 FIXED DELETE FUNCTIONALITY
+  // ===============================================
+  
+  // Add Promo Button Event Listener
+  if (addPromoBtn) {
+    addPromoBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log(`[2025-09-16 08:11:58] V8 Add promo button clicked by MathDaenniel`);
+      showPromoModal();
+    });
+    console.log(`[2025-09-16 08:11:58] V8 Add promo button listener attached by MathDaenniel`);
+  } else {
+    console.error(`[2025-09-16 08:11:58] Add promo button not found by MathDaenniel`);
+  }
+
+  // Cancel and Close Modal Listeners
+  if (cancelPromoBtn) {
+    cancelPromoBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      hidePromoModal();
+    });
+  }
+
+  if (closePromoModalBtn) {
+    closePromoModalBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      hidePromoModal();
+    });
+  }
+
+  // Save Promo Button Event Listener
+  if (savePromoBtn) {
+    savePromoBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log(`[2025-09-16 08:11:58] V8 Save promo button clicked by MathDaenniel`);
+      handleSavePromo();
+    });
+    console.log(`[2025-09-16 08:11:58] V8 Save promo button listener attached by MathDaenniel`);
+  } else {
+    console.error(`[2025-09-16 08:11:58] Save promo button not found by MathDaenniel`);
+  }
+
+  // V8 ENHANCED: Update and Delete Button Listeners with Superior Error Handling
+  document.addEventListener('click', function(e) {
+    // Check if the clicked element is a stocks-btn or inside one
+    const stocksBtn = e.target.closest('.stocks-btn');
+    
+    if (stocksBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Enhanced data extraction with multiple fallback methods
+      const action = stocksBtn.getAttribute('data-action') || stocksBtn.dataset.action;
+      const promoId = stocksBtn.getAttribute('data-promo-id') || stocksBtn.dataset.promoId;
+      
+      // V8 Enhancement: Extract from parent row if button data is missing
+      let finalAction = action;
+      let finalPromoId = promoId;
+      
+      if (!action || !promoId) {
+        const parentRow = stocksBtn.closest('tr');
+        if (parentRow) {
+          finalPromoId = finalPromoId || parentRow.getAttribute('data-promo-id') || parentRow.dataset.promoId;
+          finalAction = finalAction || (stocksBtn.classList.contains('update') ? 'update' : stocksBtn.classList.contains('delete') ? 'delete' : null);
+        }
+      }
+      
+      console.log(`[2025-09-16 08:11:58] V8 Action button clicked:`, {
+        originalAction: action,
+        originalPromoId: promoId,
+        finalAction: finalAction,
+        finalPromoId: finalPromoId,
+        element: stocksBtn,
+        classList: Array.from(stocksBtn.classList)
+      }, 'by MathDaenniel');
+      
+      if (finalAction && finalPromoId) {
+        console.log(`[2025-09-16 08:11:58] V8 Triggering ${finalAction} action for promo ${finalPromoId} by MathDaenniel`);
+        showConfirmationModal(finalAction, finalPromoId);
+      } else {
+        console.error(`[2025-09-16 08:11:58] V8 Could not determine action or promo ID:`, {
+          finalAction: finalAction,
+          finalPromoId: finalPromoId,
+          buttonHTML: stocksBtn.outerHTML
+        }, 'by MathDaenniel');
+        
+        alert('Error: Could not determine the action or promo ID. Please refresh the page and try again.');
+      }
+    }
+  });
+
+  // V8 Enhanced Confirmation Modal Button Listeners
+  if (confirmProceed) {
+    confirmProceed.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log(`[2025-09-16 08:11:58] V8 Confirmation proceed clicked: ${currentAction} for ${currentPromoId} by MathDaenniel`);
+      handleConfirmationProceed();
+    });
+  }
+
+  if (confirmCancel) {
+    confirmCancel.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log(`[2025-09-16 08:11:58] V8 Confirmation cancelled by MathDaenniel`);
+      hideConfirmationModal();
+    });
+  }
 
   // Close modals when clicking on overlay
-  promoModalOverlay.addEventListener('click', (e) => {
-    if (e.target === promoModalOverlay) {
-      hidePromoModal();
-    }
-  });
+  if (promoModalOverlay) {
+    promoModalOverlay.addEventListener('click', function(e) {
+      if (e.target === promoModalOverlay) {
+        hidePromoModal();
+      }
+    });
+  }
 
-  confirmationModal.addEventListener('click', (e) => {
-    if (e.target === confirmationModal) {
-      hideConfirmationModal();
-    }
-  });
+  if (confirmationModal) {
+    confirmationModal.addEventListener('click', function(e) {
+      if (e.target === confirmationModal) {
+        hideConfirmationModal();
+      }
+    });
+  }
 
   // Close modals with Escape key
-  document.addEventListener('keydown', (e) => {
+  document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
-      if (confirmationModal.classList.contains('show')) {
+      if (confirmationModal && confirmationModal.classList.contains('show')) {
         hideConfirmationModal();
-      } else if (promoModalOverlay.classList.contains('show')) {
+      } else if (promoModalOverlay && promoModalOverlay.classList.contains('show')) {
         hidePromoModal();
       }
     }
   });
 
+  // ===============================================
+  // FORM VALIDATION AND SUBMISSION - V8 ENHANCED
+  // ===============================================
+  
   // Date validation
   function validateDates(startDate, endDate) {
     if (startDate && endDate) {
@@ -1289,266 +2302,524 @@ document.addEventListener('DOMContentLoaded', function() {
     return true;
   }
 
-  // Form validation
+  // V8 Enhanced Form validation with detailed error reporting
   function validateForm() {
-    const event = document.getElementById('eventInput').value.trim();
-    const description = document.getElementById('descriptionInput').value.trim();
-    const discountPercentage = document.getElementById('discountPercentageInput').value;
-    const startDate = document.getElementById('startDateInput').value;
-    const endDate = document.getElementById('endDateInput').value;
+    console.log(`[2025-09-16 08:11:58] V8 Validating form by MathDaenniel`);
     
+    const event = eventInput ? eventInput.value.trim() : '';
+    const description = descriptionInput ? descriptionInput.value.trim() : '';
+    const discountPercentage = discountPercentageInput ? discountPercentageInput.value : '';
+    const startDate = startDateInput ? startDateInput.value : '';
+    const endDate = endDateInput ? endDateInput.value : '';
+    
+    console.log(`[2025-09-16 08:11:58] V8 Form values:`, {
+      event, description, discountPercentage, startDate, endDate
+    }, 'by MathDaenniel');
+    
+    // Enhanced validation with better user feedback
     if (!event) {
-      alert('Please enter an event name');
+      alert('Please enter an event name for the promo');
+      if (eventInput) eventInput.focus();
+      return false;
+    }
+    
+    if (event.length < 3) {
+      alert('Event name must be at least 3 characters long');
+      if (eventInput) eventInput.focus();
       return false;
     }
     
     if (!description) {
-      alert('Please enter a description');
+      alert('Please enter a description for the promo');
+      if (descriptionInput) descriptionInput.focus();
+      return false;
+    }
+    
+    if (description.length < 10) {
+      alert('Description must be at least 10 characters long');
+      if (descriptionInput) descriptionInput.focus();
       return false;
     }
     
     if (!discountPercentage) {
       alert('Please enter a discount percentage');
+      if (discountPercentageInput) discountPercentageInput.focus();
       return false;
     }
     
-    if (discountPercentage < 0 || discountPercentage > 100) {
-      alert('Discount percentage must be between 0 and 100');
+    const discountNum = parseFloat(discountPercentage);
+    if (isNaN(discountNum) || discountNum < 0 || discountNum > 100) {
+      alert('Discount percentage must be a valid number between 0 and 100');
+      if (discountPercentageInput) discountPercentageInput.focus();
+      return false;
+    }
+    
+    if (discountNum === 0) {
+      alert('Discount percentage cannot be 0. Please enter a value greater than 0.');
+      if (discountPercentageInput) discountPercentageInput.focus();
       return false;
     }
     
     if (!startDate) {
-      alert('Please select a starting date');
+      alert('Please select a starting date for the promo');
+      if (startDateInput) startDateInput.focus();
       return false;
     }
     
     if (!endDate) {
-      alert('Please select a closing date');
+      alert('Please select a closing date for the promo');
+      if (endDateInput) endDateInput.focus();
       return false;
     }
     
     if (!validateDates(startDate, endDate)) {
       alert('Closing date must be after or equal to starting date');
+      if (endDateInput) endDateInput.focus();
       return false;
     }
 
+    // Check if dates are not too far in the past
+    const today = new Date();
+    const startDateObj = new Date(startDate);
+    const endDateObj = new Date(endDate);
+    const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
+    
+    if (endDateObj < oneYearAgo) {
+      const confirmOldDate = confirm('The end date is more than a year ago. Are you sure you want to create this promo?');
+      if (!confirmOldDate) {
+        if (endDateInput) endDateInput.focus();
+        return false;
+      }
+    }
+
+    console.log(`[2025-09-16 08:11:58] V8 Form validation passed by MathDaenniel`);
     return true;
   }
 
-  // Add row to table
-  function addRowToTable(promo) {
-    const tableBody = document.getElementById('promoTableBody');
+  // V8 Enhanced Handle Save Promo
+  function handleSavePromo() {
+    console.log(`[2025-09-16 08:11:58] V8 Handling save promo by MathDaenniel`);
     
-    // Remove empty state row if it exists
-    const emptyRow = document.querySelector('#promoTableBody tr:not([data-promo-id])');
-    if (emptyRow) {
-      emptyRow.remove();
-    }
-
-    // Create new row with proper discount percentage handling
-    const newRow = document.createElement('tr');
-    newRow.setAttribute('data-promo-id', promo._id);
-    
-    const discountValue = promo.discountPercentage !== undefined && promo.discountPercentage !== null ? promo.discountPercentage : '';
-    
-    newRow.innerHTML = `
-      <td><input type="text" name="event" class="table-input event-input" value="${promo.event || ''}" data-id="${promo._id}" data-original="${promo.event || ''}" required></td>
-      <td><input type="date" name="startDate" class="table-input start-date-input" value="${promo.startDate ? new Date(promo.startDate).toISOString().split('T')[0] : ''}" data-id="${promo._id}" data-original="${promo.startDate ? new Date(promo.startDate).toISOString().split('T')[0] : ''}" required></td>
-      <td><input type="date" name="endDate" class="table-input end-date-input" value="${promo.endDate ? new Date(promo.endDate).toISOString().split('T')[0] : ''}" data-id="${promo._id}" data-original="${promo.endDate ? new Date(promo.endDate).toISOString().split('T')[0] : ''}" required></td>
-      <td><input type="text" name="description" class="table-input description-input" value="${promo.description || ''}" data-id="${promo._id}" data-original="${promo.description || ''}" required></td>
-      <td><input type="number" name="discountPercentage" class="table-input discount-percentage-input number-input" value="${discountValue}" data-id="${promo._id}" data-original="${discountValue}" min="0" max="100" step="0.01" required></td>
-      <td class="actions-cell">
-        <div class="button-wrapper">
-          <button type="button" class="stocks-btn update" data-action="update" data-promo-id="${promo._id}">Update</button>
-          <button type="button" class="stocks-btn delete" data-action="delete" data-promo-id="${promo._id}">Delete</button>
-        </div>
-      </td>
-    `;
-    
-    tableBody.appendChild(newRow);
-  }
-
-  // Handle Save Promo
-  document.getElementById('savePromoBtn').addEventListener('click', function() {
     if (!validateForm()) {
+      console.log(`[2025-09-16 08:11:58] V8 Form validation failed by MathDaenniel`);
       return;
     }
 
-    const saveBtn = document.getElementById('savePromoBtn');
+    if (!savePromoBtn) {
+      console.error(`[2025-09-16 08:11:58] Save button not found by MathDaenniel`);
+      return;
+    }
     
     // Get form values
-    const event = document.getElementById('eventInput').value.trim();
-    const description = document.getElementById('descriptionInput').value.trim();
-    const discountPercentage = parseFloat(document.getElementById('discountPercentageInput').value);
-    const startDate = document.getElementById('startDateInput').value;
-    const endDate = document.getElementById('endDateInput').value;
+    const event = eventInput.value.trim();
+    const description = descriptionInput.value.trim();
+    const discountPercentage = parseFloat(discountPercentageInput.value);
+    const startDate = startDateInput.value;
+    const endDate = endDateInput.value;
     
-    // Create payload
+    // Create payload with V8 enhancements
     const payload = {
       event: event,
       description: description,
       discountPercentage: discountPercentage,
       startDate: startDate,
-      endDate: endDate
+      endDate: endDate,
+      metadata: {
+        createdBy: 'MathDaenniel',
+        repository: 'roviczzz/Couche-Co',
+        timestamp: new Date().toISOString(),
+        version: 'V8-CompleteActivePromosFixture'
+      }
     };
     
-    console.log(`[2025-08-27 14:57:14] Saving promo with payload:`, payload, 'by MathDaenniel');
+    console.log(`[2025-09-16 08:11:58] V8 Sending payload:`, payload, 'by MathDaenniel');
     
-    // Disable button to prevent double submission
-    saveBtn.disabled = true;
-    saveBtn.textContent = 'Adding...';
+    // Enhanced button state management
+    savePromoBtn.disabled = true;
+    savePromoBtn.textContent = 'Adding...';
+    savePromoBtn.style.opacity = '0.7';
     
     fetch('/discounts/add', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
       },
       body: JSON.stringify(payload)
     })
-       .then(response => {
+    .then(response => {
+      console.log(`[2025-09-16 08:11:58] V8 Response status: ${response.status} by MathDaenniel`);
+      
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       return response.json();
     })
     .then(data => {
-      console.log(`[2025-08-27 14:57:14] Server response:`, data, 'by MathDaenniel');
+      console.log(`[2025-09-16 08:11:58] V8 Server response:`, data, 'by MathDaenniel');
+      
       if (data.success) {
-        // Add the new promo to the table
-        if (data.promo) {
-          addRowToTable(data.promo);
-        }
+        console.log(`[2025-09-16 08:11:58] V8 Promo added successfully by MathDaenniel`);
         
-        // Reset form and go back to main view
-        document.getElementById('promoForm').reset();
-        hidePromoModal();
+        // Clear auto-saved data
+        clearSavedFormData();
         
-        // Redirect with success message
-        window.location.href = '/discounts?msg=add_success';
+        // Enhanced success feedback
+        savePromoBtn.textContent = 'Success!';
+        savePromoBtn.style.backgroundColor = '#28a745';
+        
+        // Close modal after brief success display
+        setTimeout(() => {
+          hidePromoModal();
+          window.location.href = '/discounts?msg=add_success';
+        }, 1000);
       } else {
-        alert(data.message || 'Error saving promo');
+        console.error(`[2025-09-16 08:11:58] V8 Server error:`, data.message, 'by MathDaenniel');
+        alert(data.message || 'Error saving promo. Please check your input and try again.');
       }
     })
     .catch(error => {
-      console.error(`[2025-08-27 14:57:14] Fetch error:`, error, 'by MathDaenniel');
-      alert('Error connecting to server. Please try again.');
+      console.error(`[2025-09-16 08:11:58] V8 Fetch error:`, error, 'by MathDaenniel');
+      alert('Error connecting to server. Please check your internet connection and try again.');
     })
     .finally(() => {
-      saveBtn.disabled = false;
-      saveBtn.textContent = 'Add Promo';
+      savePromoBtn.disabled = false;
+      savePromoBtn.textContent = 'Add Promo';
+      savePromoBtn.style.opacity = '1';
+      savePromoBtn.style.backgroundColor = '';
     });
-  });
+  }
 
-  // Handle Update and Delete button clicks
-  document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('stocks-btn')) {
-      e.preventDefault();
-      const action = e.target.dataset.action;
-      const promoId = e.target.dataset.promoId;
-      
-      showConfirmationModal(action, promoId);
+  // V8 Enhanced Handle Confirmation Proceed
+  function handleConfirmationProceed() {
+    console.log(`[2025-09-16 08:11:58] V8 Handling confirmation proceed: ${currentAction} for ${currentPromoId} by MathDaenniel`);
+    
+    if (!currentAction || !currentPromoId) {
+      console.error(`[2025-09-16 08:11:58] V8 Missing action or promo ID:`, {
+        currentAction,
+        currentPromoId
+      }, 'by MathDaenniel');
+      hideConfirmationModal();
+      alert('Error: Missing action or promo ID. Please try again.');
+      return;
     }
-  });
 
-  // Confirmation modal button handlers
-  confirmProceed.addEventListener('click', () => {
-    if (currentAction && currentPromoId) {
-      if (currentAction === 'update') {
-        // Get the row containing this promo
-        const updateButton = document.querySelector(`[data-promo-id="${currentPromoId}"][data-action="update"]`);
-        const row = updateButton.closest('tr');
+    // Close confirmation modal first
+    hideConfirmationModal();
+
+    if (currentAction === 'update') {
+      handleUpdatePromo(currentPromoId);
+    } else if (currentAction === 'delete') {
+      handleDeletePromo(currentPromoId);
+    } else {
+      console.error(`[2025-09-16 08:11:58] V8 Unknown action: ${currentAction} by MathDaenniel`);
+      alert('Error: Unknown action. Please try again.');
+    }
+  }
+
+  // V8 Enhanced Handle Update Promo with COMPLETE ACTIVE PROMOS FIX
+  function handleUpdatePromo(promoId) {
+    console.log(`[2025-09-16 08:11:58] V8 COMPLETE FIX: Handling update promo: ${promoId} by MathDaenniel`);
+    
+    // Get the row containing this promo
+    const updateButton = document.querySelector(`[data-promo-id="${promoId}"][data-action="update"]`);
+    if (!updateButton) {
+      console.error(`[2025-09-16 08:11:58] V8 Update button not found for ${promoId} by MathDaenniel`);
+      alert('Error: Could not find promo to update');
+      return;
+    }
+    
+    const row = updateButton.closest('tr');
+    if (!row) {
+      console.error(`[2025-09-16 08:11:58] V8 Row not found for ${promoId} by MathDaenniel`);
+      alert('Error: Could not find promo row');
+      return;
+    }
+    
+    const eventInput = row.querySelector('.event-input');
+    const startDateInput = row.querySelector('.start-date-input');
+    const endDateInput = row.querySelector('.end-date-input');
+    const descriptionInput = row.querySelector('.description-input');
+    const discountInput = row.querySelector('.discount-percentage-input');
+    
+    if (!eventInput || !startDateInput || !endDateInput || !descriptionInput || !discountInput) {
+      console.error(`[2025-09-16 08:11:58] V8 Required inputs not found for ${promoId} by MathDaenniel`);
+      alert('Error: Could not find all required fields');
+      return;
+    }
+    
+    const event = eventInput.value.trim();
+    const startDate = startDateInput.value;
+    const endDate = endDateInput.value;
+    const description = descriptionInput.value.trim();
+    const discountPercentage = parseFloat(discountInput.value);
+    
+    // Enhanced validation for updates
+    if (!event || event.length < 3) {
+      alert('Event name must be at least 3 characters long');
+      eventInput.focus();
+      return;
+    }
+    
+    if (!description || description.length < 10) {
+      alert('Description must be at least 10 characters long');
+      descriptionInput.focus();
+      return;
+    }
+    
+    if (!startDate || !endDate) {
+      alert('Both start date and end date are required');
+      return;
+    }
+    
+    if (new Date(startDate) > new Date(endDate)) {
+      alert('End date must be after or equal to start date');
+      endDateInput.focus();
+      return;
+    }
+    
+    if (!event || !description || isNaN(discountPercentage) || !startDate || !endDate) {
+      alert('All fields are required and discount percentage must be a valid number');
+      return;
+    }
+    
+    if (discountPercentage <= 0 || discountPercentage > 100) {
+      alert('Discount percentage must be between 0.01 and 100');
+      discountInput.focus();
+      return;
+    }
+    
+    // V8 CRITICAL FIX: Store original values before update
+    const originalValues = {
+      event: eventInput.getAttribute('data-original'),
+      startDate: startDateInput.getAttribute('data-original'),
+      endDate: endDateInput.getAttribute('data-original'),
+      description: descriptionInput.getAttribute('data-original'),
+      discountPercentage: discountInput.getAttribute('data-original')
+    };
+    
+    console.log(`[2025-09-16 08:11:58] V8 CRITICAL: Stored original values for rollback:`, originalValues, 'by MathDaenniel');
+    
+    const payload = {
+      event: event,
+      startDate: startDate,
+      endDate: endDate,
+      description: description,
+      discountPercentage: discountPercentage,
+      metadata: {
+        updatedBy: 'MathDaenniel',
+        repository: 'roviczzz/Couche-Co',
+        timestamp: new Date().toISOString(),
+        version: 'V8-CompleteActivePromosFixture'
+      }
+    };
+    
+    console.log(`[2025-09-16 08:11:58] V8 Update payload:`, payload, 'by MathDaenniel');
+    
+    // Enhanced button state management
+    updateButton.disabled = true;
+    updateButton.textContent = 'Updating...';
+    updateButton.style.opacity = '0.7';
+    
+    fetch(`/discounts/edit/${promoId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify(payload)
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log(`[2025-09-16 08:11:58] V8 Update response:`, data, 'by MathDaenniel');
+      
+      if (data.success) {
+        console.log(`[2025-09-16 08:11:58] V8 Promo updated successfully by MathDaenniel`);
         
-        const event = row.querySelector('.event-input').value.trim();
-        const startDate = row.querySelector('.start-date-input').value;
-        const endDate = row.querySelector('.end-date-input').value;
-        const description = row.querySelector('.description-input').value.trim();
-        const discountPercentage = parseFloat(row.querySelector('.discount-percentage-input').value);
+        // Enhanced success feedback
+        updateButton.textContent = 'Updated!';
+        updateButton.style.backgroundColor = '#28a745';
         
-        if (!validateDates(startDate, endDate)) {
-          alert('Closing date must be after or equal to starting date');
-          hideConfirmationModal();
-          return;
-        }
+        // V8 CRITICAL FIX: Update data-original attributes IMMEDIATELY after successful update
+        eventInput.setAttribute('data-original', event);
+        startDateInput.setAttribute('data-original', startDate);
+        endDateInput.setAttribute('data-original', endDate);
+        descriptionInput.setAttribute('data-original', description);
+        discountInput.setAttribute('data-original', discountPercentage.toString());
         
-        if (!event || !description || isNaN(discountPercentage) || !startDate || !endDate) {
-          alert('All fields are required and discount percentage must be a valid number');
-          hideConfirmationModal();
-          return;
-        }
-        
-        if (discountPercentage < 0 || discountPercentage > 100) {
-          alert('Discount percentage must be between 0 and 100');
-          hideConfirmationModal();
-          return;
-        }
-        
-        const payload = {
+        // V8 CRITICAL FIX: Update cache with new values
+        originalPromoData.set(promoId, {
           event: event,
           startDate: startDate,
           endDate: endDate,
           description: description,
-          discountPercentage: discountPercentage
-        };
-        
-        console.log(`[2025-08-27 14:57:14] Update payload:`, payload, 'by MathDaenniel');
-        
-        fetch(`/discounts/edit/${currentPromoId}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload)
-        })
-        .then(response => response.json())
-        .then(data => {
-          console.log(`[2025-08-27 14:57:14] Update response:`, data, 'by MathDaenniel');
-          if (data.success) {
-            window.location.href = '/discounts?msg=update_success';
-          } else {
-            alert(data.message || 'Error updating promo');
-          }
-        })
-        .catch(error => {
-          console.error(`[2025-08-27 14:57:14] Error:`, error, 'by MathDaenniel');
-          alert('Error updating promo');
+          discountPercentage: discountPercentage.toString()
         });
         
-        // Remove highlight classes from all inputs in the row
-        const inputs = row.querySelectorAll('.table-input');
-        inputs.forEach(input => {
-          input.classList.remove('modified');
-          input.classList.add('highlight-fade');
-        });
+        console.log(`[2025-09-16 08:11:58] V8 CRITICAL: Updated data-original attributes and cache for promo ${promoId} by MathDaenniel`);
         
-      } else if (currentAction === 'delete') {
-        fetch(`/discounts/delete/${currentPromoId}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            window.location.href = '/discounts?msg=delete_success';
-          } else {
-            alert(data.message || 'Error deleting promo');
-          }
-        })
-        .catch(error => {
-          console.error(`[2025-08-27 14:57:14] Error:`, error, 'by MathDaenniel');
-          alert('Error deleting promo');
-        });
+        // V8 CRITICAL FIX: Force immediate update of active promos section with no delay
+        updateActivePromosSection();
         
-        console.log(`[2025-08-27 14:57:14] Deleting promo by MathDaenniel`);
+        console.log(`[2025-09-16 08:11:58] V8 CRITICAL: Active promos section immediately updated after successful promo update by MathDaenniel`);
+        
+        // Redirect with success message after a brief delay
+        setTimeout(() => {
+          window.location.href = '/discounts?msg=update_success';
+        }, 1500);
+      } else {
+        console.error(`[2025-09-16 08:11:58] V8 Update error:`, data.message, 'by MathDaenniel');
+        
+        // V8 CRITICAL FIX: Rollback values on failure
+        eventInput.value = originalValues.event;
+        startDateInput.value = originalValues.startDate;
+        endDateInput.value = originalValues.endDate;
+        descriptionInput.value = originalValues.description;
+        discountInput.value = originalValues.discountPercentage;
+        
+        updateActivePromosSection(); // Update with rolled back values
+        
+        alert(data.message || 'Error updating promo. Values have been restored. Please check your input and try again.');
       }
+    })
+    .catch(error => {
+      console.error(`[2025-09-16 08:11:58] V8 Update fetch error:`, error, 'by MathDaenniel');
+      
+      // V8 CRITICAL FIX: Rollback values on network error
+      eventInput.value = originalValues.event;
+      startDateInput.value = originalValues.startDate;
+      endDateInput.value = originalValues.endDate;
+      descriptionInput.value = originalValues.description;
+      discountInput.value = originalValues.discountPercentage;
+      
+      updateActivePromosSection(); // Update with rolled back values
+      
+      alert('Error updating promo. Values have been restored. Please check your internet connection and try again.');
+    })
+    .finally(() => {
+      updateButton.disabled = false;
+      updateButton.textContent = 'Update';
+      updateButton.style.opacity = '1';
+      updateButton.style.backgroundColor = '';
+    });
+  }
+
+  // V8 ENHANCED: Handle Delete Promo - Superior Error Handling and User Feedback
+  function handleDeletePromo(promoId) {
+    console.log(`[2025-09-16 08:11:58] V8 Handling delete promo: ${promoId} by MathDaenniel`);
+    
+    // Validate promo ID
+    if (!promoId) {
+      console.error(`[2025-09-16 08:11:58] V8 No promo ID provided for deletion by MathDaenniel`);
+      alert('Error: No promo ID provided for deletion');
+      return;
     }
-    hideConfirmationModal();
-  });
+    
+    // Find and disable delete button with enhanced state management
+    const deleteButton = document.querySelector(`[data-promo-id="${promoId}"][data-action="delete"]`);
+    if (deleteButton) {
+      deleteButton.disabled = true;
+      deleteButton.textContent = 'Deleting...';
+      deleteButton.style.opacity = '0.7';
+      deleteButton.style.backgroundColor = '#dc3545';
+      console.log(`[2025-09-16 08:11:58] V8 Delete button found and disabled by MathDaenniel`);
+    } else {
+      console.warn(`[2025-09-16 08:11:58] V8 Delete button not found for ${promoId} by MathDaenniel`);
+    }
+    
+    // Get promo name for user feedback
+    const row = deleteButton ? deleteButton.closest('tr') : null;
+    const promoName = row ? row.querySelector('.event-input')?.value : 'Unknown Promo';
+    
+    // V8 ENHANCEMENT: Remove from cache before deletion
+    originalPromoData.delete(promoId);
+    
+    // Perform delete request with enhanced error handling
+    console.log(`[2025-09-16 08:11:58] V8 Sending delete request to /discounts/delete/${promoId} by MathDaenniel`);
+    
+    fetch(`/discounts/delete/${promoId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({
+        metadata: {
+          deletedBy: 'MathDaenniel',
+          repository: 'roviczzz/Couche-Co',
+          timestamp: new Date().toISOString(),
+          version: 'V8-CompleteActivePromosFixture',
+          promoName: promoName
+        }
+      })
+    })
+    .then(response => {
+      console.log(`[2025-09-16 08:11:58] V8 Delete response status: ${response.status} by MathDaenniel`);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('Promo not found. It may have already been deleted.');
+        } else if (response.status === 403) {
+          throw new Error('Permission denied. You do not have access to delete this promo.');
+        } else {
+          throw new Error(`Server error (${response.status}). Please try again later.`);
+        }
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log(`[2025-09-16 08:11:58] V8 Delete response data:`, data, 'by MathDaenniel');
+      
+      if (data.success) {
+        console.log(`[2025-09-16 08:11:58] V8 Promo "${promoName}" deleted successfully by MathDaenniel`);
+        
+        // Enhanced success feedback
+        if (deleteButton) {
+          deleteButton.textContent = 'Deleted!';
+          deleteButton.style.backgroundColor = '#28a745';
+        }
+        
+        // V8 CRITICAL FIX: Update active promos section immediately
+        updateActivePromosSection();
+        
+        // Show success message and redirect
+        setTimeout(() => {
+          window.location.href = '/discounts?msg=delete_success';
+        }, 1000);
+      } else {
+        console.error(`[2025-09-16 08:11:58] V8 Delete failed:`, data.message, 'by MathDaenniel');
+        throw new Error(data.message || 'Failed to delete promo');
+      }
+    })
+    .catch(error => {
+      console.error(`[2025-09-16 08:11:58] V8 Delete operation failed:`, error, 'by MathDaenniel');
+      alert(`Error deleting promo "${promoName}": ${error.message}`);
+    })
+    .finally(() => {
+      // Re-enable delete button with enhanced state restoration
+      if (deleteButton) {
+        deleteButton.disabled = false;
+        deleteButton.textContent = 'Delete';
+        deleteButton.style.opacity = '1';
+        deleteButton.style.backgroundColor = '';
+        console.log(`[2025-09-16 08:11:58] V8 Delete button re-enabled by MathDaenniel`);
+      }
+    });
+  }
 
-  confirmCancel.addEventListener('click', hideConfirmationModal);
-
-  // Track changes and add highlighting (like stocks.ejs)
+  // ===============================================
+  // V8 CRITICAL FIX: ENHANCED CHANGE TRACKING FOR ACTIVE PROMOS UPDATE
+  // ===============================================
+  
+  // V8 CRITICAL FIX: Enhanced change tracking for active promos update
   document.addEventListener('input', (e) => {
     if (e.target.classList.contains('table-input')) {
       const originalValue = e.target.dataset.original;
@@ -1560,32 +2831,223 @@ document.addEventListener('DOMContentLoaded', function() {
       } else {
         e.target.classList.remove('modified');
       }
-    }
-  });
-
-  document.addEventListener('change', (e) => {
-    if (e.target.classList.contains('table-input')) {
-      const originalValue = e.target.dataset.original;
-      const currentValue = e.target.value;
       
-      if (currentValue !== originalValue) {
-        e.target.classList.add('modified');
-        e.target.classList.remove('highlight-fade');
-      } else {
-        e.target.classList.remove('modified');
+      // V8 CRITICAL FIX: Update active promos section immediately when dates or any field changes
+      if (e.target.classList.contains('start-date-input') || 
+          e.target.classList.contains('end-date-input') ||
+          e.target.classList.contains('event-input') ||
+          e.target.classList.contains('description-input') ||
+          e.target.classList.contains('discount-percentage-input')) {
+        
+        console.log(`[2025-09-16 08:11:58] V8 Input change detected for ${e.target.className}, updating active promos by MathDaenniel`);
+        
+        // V8 FIX: Immediate update for better responsiveness
+        debounceUpdateActivePromos(200);
       }
     }
   });
 
-  // Auto-focus on event input when modal opens
-  addPromoBtn.addEventListener('click', () => {
-    setTimeout(() => {
-      const eventInput = document.getElementById('eventInput');
-      if (eventInput) eventInput.focus();
-    }, 300);
+  // V8 ENHANCEMENT: Also listen to change events for immediate feedback
+  document.addEventListener('change', (e) => {
+    if (e.target.classList.contains('table-input')) {
+      console.log(`[2025-09-16 08:11:58] V8 Change event detected for ${e.target.className}, updating active promos immediately by MathDaenniel`);
+      
+      // V8 FIX: Immediate update on change (when user finishes editing)
+      updateActivePromosSection();
+    }
   });
 
-  // Handle keyboard shortcuts
+  // ===============================================
+  // AUTO-SAVE FUNCTIONALITY - V8 ENHANCED
+  // ===============================================
+  
+  // V8 Enhanced Auto-save form data to localStorage
+  function saveFormData() {
+    if (!eventInput || !descriptionInput || !discountPercentageInput || !startDateInput || !endDateInput) {
+      return;
+    }
+    
+    const formData = {
+      event: eventInput.value || '',
+      description: descriptionInput.value || '',
+      discountPercentage: discountPercentageInput.value || '',
+      startDate: startDateInput.value || '',
+      endDate: endDateInput.value || '',
+      timestamp: new Date().toISOString(),
+      version: 'V8-CompleteActivePromosFixture',
+      repository: 'roviczzz/Couche-Co',
+      user: 'MathDaenniel'
+    };
+    
+    try {
+      localStorage.setItem('promoFormData', JSON.stringify(formData));
+      console.log(`[2025-09-16 08:11:58] V8 Form data auto-saved by MathDaenniel`);
+    } catch (error) {
+      console.error(`[2025-09-16 08:11:58] V8 Error saving form data:`, error, 'by MathDaenniel');
+    }
+  }
+
+  function loadFormData() {
+    try {
+      const savedData = localStorage.getItem('promoFormData');
+      if (savedData) {
+        const formData = JSON.parse(savedData);
+        const savedTime = new Date(formData.timestamp);
+        const now = new Date();
+        const hoursSinceCreated = (now - savedTime) / (1000 * 60 * 60);
+        
+        // Only restore if saved within last 24 hours and from same user
+        if (hoursSinceCreated < 24 && formData.user === 'MathDaenniel') {
+          if (eventInput) eventInput.value = formData.event || '';
+          if (descriptionInput) descriptionInput.value = formData.description || '';
+          if (discountPercentageInput) discountPercentageInput.value = formData.discountPercentage || '';
+          if (startDateInput) startDateInput.value = formData.startDate || '';
+          if (endDateInput) endDateInput.value = formData.endDate || '';
+          
+          console.log(`[2025-09-16 08:11:58] V8 Form data restored from ${hoursSinceCreated.toFixed(1)} hours ago by MathDaenniel`);
+          
+          // Show restoration notification
+          const notification = document.createElement('div');
+          notification.style.cssText = `
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: #17a2b8;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            z-index: 10002;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+          `;
+          notification.textContent = 'Form data restored from previous session';
+          document.body.appendChild(notification);
+          
+          setTimeout(() => {
+            notification.remove();
+          }, 3000);
+        } else {
+          localStorage.removeItem('promoFormData');
+        }
+      }
+    } catch (error) {
+      console.error(`[2025-09-16 08:11:58] V8 Error loading form data:`, error, 'by MathDaenniel');
+      localStorage.removeItem('promoFormData');
+    }
+  }
+
+  function clearSavedFormData() {
+    try {
+      localStorage.removeItem('promoFormData');
+      console.log(`[2025-09-16 08:11:58] V8 Saved form data cleared by MathDaenniel`);
+    } catch (error) {
+      console.error(`[2025-09-16 08:11:58] V8 Error clearing form data:`, error, 'by MathDaenniel');
+    }
+  }
+
+  // Auto-save form data on input changes
+  const autoSaveInputs = [eventInput, descriptionInput, discountPercentageInput, startDateInput, endDateInput];
+  autoSaveInputs.forEach(input => {
+    if (input) {
+      input.addEventListener('input', saveFormData);
+      input.addEventListener('change', saveFormData);
+    }
+  });
+
+  // ===============================================
+  // V8 ENHANCED PROMO CARD INTERACTIONS
+  // ===============================================
+  
+  // Enhanced promo card interactions
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('.active-promo-card')) {
+      const promoCard = e.target.closest('.active-promo-card');
+      const promoId = promoCard.dataset.promoId;
+      
+      if (promoId) {
+        const tableRow = document.querySelector(`tr[data-promo-id="${promoId}"]`);
+        const container = document.querySelector('.stocks-container');
+        
+        if (tableRow && container) {
+          const tableContainer = document.querySelector('.table-container');
+          const containerRect = container.getBoundingClientRect();
+          const tableRect = tableContainer.getBoundingClientRect();
+          const rowRect = tableRow.getBoundingClientRect();
+          
+          const targetScrollTop = container.scrollTop + (rowRect.top - containerRect.top) - (containerRect.height / 2) + (rowRect.height / 2);
+          
+          container.scrollTo({
+            top: targetScrollTop,
+            behavior: 'smooth'
+          });
+          
+          // Enhanced highlighting
+          tableRow.style.backgroundColor = '#e3f2fd';
+          tableRow.style.transition = 'background-color 0.5s ease';
+          tableRow.style.boxShadow = '0 0 15px rgba(0,123,255,0.3)';
+          
+          setTimeout(() => {
+            tableRow.style.backgroundColor = '';
+            tableRow.style.boxShadow = '';
+          }, 3000);
+          
+          console.log(`[2025-09-16 08:11:58] V8 Scrolled to promo row: ${promoId} by MathDaenniel`);
+        }
+      }
+    }
+  });
+
+  // ===============================================
+  // V8 INITIALIZATION - ENHANCED
+  // ===============================================
+  
+  // Initialize original promo data cache
+  initializePromoDataCache();
+  
+  // Initialize active promos monitoring
+  function startActivePromosMonitoring() {
+    console.log(`[2025-09-16 08:11:58] V8 Starting enhanced active promos monitoring by MathDaenniel`);
+    
+    // Initial update
+    updateActivePromosSection();
+    
+    // Update every minute
+    setInterval(() => {
+      updateActivePromosSection();
+    }, 60000);
+    
+    // V8 ENHANCEMENT: More frequent updates for expiring promos
+    setInterval(() => {
+      const expiringCards = document.querySelectorAll('.active-promo-card.expiring-soon');
+      if (expiringCards.length > 0) {
+        console.log(`[2025-09-16 08:11:58] V8 Updating ${expiringCards.length} expiring promos by MathDaenniel`);
+        updateActivePromosSection();
+      }
+    }, 30000);
+  }
+
+  // Initialize monitoring and load saved data
+  startActivePromosMonitoring();
+  
+  // Load form data when modal opens
+  if (addPromoBtn) {
+    addPromoBtn.addEventListener('click', () => {
+      setTimeout(loadFormData, 100);
+    });
+  }
+
+  // Page visibility and focus handlers
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      updateActivePromosSection();
+    }
+  });
+
+  window.addEventListener('focus', () => {
+    updateActivePromosSection();
+  });
+
+  // Enhanced keyboard shortcuts
   document.addEventListener('keydown', (e) => {
     // Ctrl/Cmd + N for New Promo
     if ((e.ctrlKey || e.metaKey) && e.key === 'n' && !e.target.matches('input, textarea')) {
@@ -1593,15 +3055,618 @@ document.addEventListener('DOMContentLoaded', function() {
       showPromoModal();
     }
     
-    // Enter key for confirmation modal proceed
-    if (e.key === 'Enter' && confirmationModal.classList.contains('show')) {
+    // Ctrl/Cmd + S to save when in modal
+    if ((e.ctrlKey || e.metaKey) && e.key === 's' && promoModalOverlay && promoModalOverlay.classList.contains('show')) {
       e.preventDefault();
-      confirmProceed.click();
+      if (savePromoBtn && !savePromoBtn.disabled) {
+        savePromoBtn.click();
+      }
+    }
+    
+    // Enter key for confirmation modal proceed
+    if (e.key === 'Enter' && confirmationModal && confirmationModal.classList.contains('show')) {
+      e.preventDefault();
+      if (confirmProceed) {
+        confirmProceed.click();
+      }
+    }
+    
+    // Tab navigation enhancement in modal
+    if (e.key === 'Tab' && promoModalOverlay && promoModalOverlay.classList.contains('show')) {
+      const focusableElements = promoModalOverlay.querySelectorAll('input, button');
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      
+      if (e.shiftKey && document.activeElement === firstElement) {
+        e.preventDefault();
+        lastElement.focus();
+      } else if (!e.shiftKey && document.activeElement === lastElement) {
+        e.preventDefault();
+        firstElement.focus();
+      }
     }
   });
 
-  console.log(`[2025-08-27 14:57:14] Promo Management System V4 loaded successfully by MathDaenniel`);
-  console.log(`[2025-08-27 14:57:14] Features: Minimal Design, Clean Cards, Professional UI by MathDaenniel`);
-  console.log(`[2025-08-27 14:57:14] Changes: Removed emoji, stats bar, details sections, count badge by MathDaenniel`);
+  // ===============================================
+  // V8 ENHANCED PERFORMANCE AND MONITORING
+  // ===============================================
+  
+  // Performance monitoring
+  function logPerformanceMetrics() {
+    if (window.performance && window.performance.timing) {
+      const timing = window.performance.timing;
+      const loadTime = timing.loadEventEnd - timing.navigationStart;
+      const domReady = timing.domContentLoadedEventEnd - timing.navigationStart;
+      
+      console.log(`[2025-09-16 08:17:53] V8 Page load time: ${loadTime}ms, DOM ready: ${domReady}ms by MathDaenniel`);
+      
+      // Log to console for debugging
+      if (loadTime > 3000) {
+        console.warn(`[2025-09-16 08:17:53] V8 Slow page load detected: ${loadTime}ms by MathDaenniel`);
+      }
+    }
+  }
+
+  // Monitor performance after page load
+  window.addEventListener('load', () => {
+    setTimeout(logPerformanceMetrics, 1000);
+  });
+
+  // V8 Enhancement: Periodic health check for essential elements
+  setInterval(() => {
+    const essentialElements = [addPromoBtn, promoModalOverlay, confirmationModal, activePromosGrid, activePromosCount];
+    const missingElements = essentialElements.filter(el => !el || !document.body.contains(el));
+    
+    if (missingElements.length > 0) {
+      console.warn(`[2025-09-16 08:17:53] V8 Missing essential elements detected - reinitializing by MathDaenniel`);
+      // Attempt to reinitialize critical functionality
+      setTimeout(() => {
+        initializePromoDataCache();
+        updateActivePromosSection();
+      }, 1000);
+    }
+  }, 30000); // Check every 30 seconds
+
+  // V8 Enhanced Error Boundary for JavaScript errors
+  window.addEventListener('error', (event) => {
+    console.error(`[2025-09-16 08:17:53] V8 JavaScript error caught by MathDaenniel:`, {
+      message: event.message,
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno,
+      error: event.error,
+      timestamp: new Date().toISOString(),
+      version: 'V8-CompleteActivePromosFixture',
+      repository: 'roviczzz/Couche-Co'
+    });
+    
+    // Attempt to recover from certain errors
+    if (event.message.includes('updateActivePromosSection') || 
+        event.message.includes('activePromosGrid') ||
+        event.message.includes('promoData')) {
+      console.log(`[2025-09-16 08:17:53] V8 Attempting recovery from active promos error by MathDaenniel`);
+      setTimeout(() => {
+        try {
+          updateActivePromosSection();
+        } catch (recoveryError) {
+          console.error(`[2025-09-16 08:17:53] V8 Recovery failed:`, recoveryError, 'by MathDaenniel');
+        }
+      }, 2000);
+    }
+  });
+
+  // V8 Enhanced: Unhandled promise rejection handler
+  window.addEventListener('unhandledrejection', (event) => {
+    console.error(`[2025-09-16 08:17:53] V8 Unhandled promise rejection by MathDaenniel:`, {
+      reason: event.reason,
+      promise: event.promise,
+      timestamp: new Date().toISOString(),
+      version: 'V8-CompleteActivePromosFixture',
+      repository: 'roviczzz/Couche-Co'
+    });
+    
+    // Prevent the default browser behavior (logging to console)
+    event.preventDefault();
+  });
+
+  // ===============================================
+  // V8 ADVANCED FEATURES AND ENHANCEMENTS
+  // ===============================================
+
+  // V8 Enhanced: Advanced form validation with real-time feedback
+  function setupAdvancedFormValidation() {
+    const formInputs = [eventInput, descriptionInput, discountPercentageInput, startDateInput, endDateInput];
+    
+    formInputs.forEach(input => {
+      if (input) {
+        input.addEventListener('blur', () => {
+          validateSingleField(input);
+        });
+        
+        input.addEventListener('input', () => {
+          clearFieldError(input);
+        });
+      }
+    });
+  }
+
+  function validateSingleField(input) {
+    const value = input.value.trim();
+    let isValid = true;
+    let errorMessage = '';
+
+    switch (input.name) {
+      case 'event':
+        if (!value) {
+          isValid = false;
+          errorMessage = 'Event name is required';
+        } else if (value.length < 3) {
+          isValid = false;
+          errorMessage = 'Event name must be at least 3 characters';
+        }
+        break;
+      
+      case 'description':
+        if (!value) {
+          isValid = false;
+          errorMessage = 'Description is required';
+        } else if (value.length < 10) {
+          isValid = false;
+          errorMessage = 'Description must be at least 10 characters';
+        }
+        break;
+      
+      case 'discountPercentage':
+        if (!value) {
+          isValid = false;
+          errorMessage = 'Discount percentage is required';
+        } else {
+          const num = parseFloat(value);
+          if (isNaN(num) || num <= 0 || num > 100) {
+            isValid = false;
+            errorMessage = 'Discount must be between 0.01 and 100';
+          }
+        }
+        break;
+      
+      case 'startDate':
+      case 'endDate':
+        if (!value) {
+          isValid = false;
+          errorMessage = 'Date is required';
+        }
+        break;
+    }
+
+    if (!isValid) {
+      showFieldError(input, errorMessage);
+    } else {
+      clearFieldError(input);
+    }
+
+    return isValid;
+  }
+
+  function showFieldError(input, message) {
+    clearFieldError(input);
+    
+    input.style.borderColor = '#dc3545';
+    input.style.backgroundColor = '#fff5f5';
+    
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'field-error';
+    errorDiv.style.cssText = `
+      color: #dc3545;
+      font-size: 12px;
+      margin-top: 4px;
+      font-weight: 500;
+    `;
+    errorDiv.textContent = message;
+    
+    const formGroup = input.closest('.form-group');
+    if (formGroup) {
+      formGroup.appendChild(errorDiv);
+    }
+  }
+
+  function clearFieldError(input) {
+    input.style.borderColor = '';
+    input.style.backgroundColor = '';
+    
+    const formGroup = input.closest('.form-group');
+    if (formGroup) {
+      const errorDiv = formGroup.querySelector('.field-error');
+      if (errorDiv) {
+        errorDiv.remove();
+      }
+    }
+  }
+
+  // V8 Enhanced: Smart date suggestions
+  function setupSmartDateSuggestions() {
+    if (startDateInput) {
+      startDateInput.addEventListener('change', () => {
+        if (startDateInput.value && !endDateInput.value) {
+          const startDate = new Date(startDateInput.value);
+          const suggestedEndDate = new Date(startDate);
+          suggestedEndDate.setDate(suggestedEndDate.getDate() + 30); // Suggest 30 days later
+          
+          endDateInput.value = suggestedEndDate.toISOString().split('T')[0];
+          
+          // Show suggestion notification
+          showTemporaryNotification('End date automatically set to 30 days from start date', 'info');
+        }
+      });
+    }
+  }
+
+  function showTemporaryNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+      position: fixed;
+      top: 120px;
+      right: 20px;
+      background: ${type === 'info' ? '#17a2b8' : '#28a745'};
+      color: white;
+      padding: 12px 16px;
+      border-radius: 8px;
+      z-index: 10002;
+      font-size: 14px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      max-width: 300px;
+      animation: slideInRight 0.3s ease-out;
+    `;
+    
+    notification.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span>${type === 'info' ? 'ℹ️' : '✅'}</span>
+        <span>${message}</span>
+      </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+      notification.style.animation = 'slideOutRight 0.3s ease-in forwards';
+      setTimeout(() => {
+        notification.remove();
+      }, 300);
+    }, 4000);
+  }
+
+  // V8 Enhanced: Promo preview functionality
+  function generatePromoPreview() {
+    if (!eventInput || !descriptionInput || !discountPercentageInput || !startDateInput || !endDateInput) {
+      return null;
+    }
+
+    const event = eventInput.value.trim();
+    const description = descriptionInput.value.trim();
+    const discount = discountPercentageInput.value;
+    const startDate = startDateInput.value;
+    const endDate = endDateInput.value;
+
+    if (!event || !description || !discount || !startDate || !endDate) {
+      return null;
+    }
+
+    const now = new Date();
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const isCurrentlyActive = now >= start && now <= end;
+    const daysRemaining = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
+
+    return {
+      event,
+      description,
+      discount: parseFloat(discount),
+      startDate,
+      endDate,
+      isCurrentlyActive,
+      daysRemaining: Math.max(0, daysRemaining),
+      startFormatted: start.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      endFormatted: end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    };
+  }
+
+  function updatePromoPreview() {
+    const previewContainer = document.getElementById('promoPreview');
+    if (!previewContainer) return;
+
+    const preview = generatePromoPreview();
+    
+    if (preview) {
+      previewContainer.innerHTML = `
+        <div class="preview-card ${preview.isCurrentlyActive ? 'active' : 'inactive'}">
+          <div class="preview-header">
+            <h4>${preview.event}</h4>
+            <span class="preview-discount">${preview.discount}% OFF</span>
+          </div>
+          <p class="preview-description">${preview.description}</p>
+          <div class="preview-dates">
+            <span>${preview.startFormatted} - ${preview.endFormatted}</span>
+            ${preview.isCurrentlyActive ? `<span class="days-left">${preview.daysRemaining} days left</span>` : ''}
+          </div>
+          <div class="preview-status ${preview.isCurrentlyActive ? 'active' : 'inactive'}">
+            ${preview.isCurrentlyActive ? '🟢 Currently Active' : '🔴 Not Active'}
+          </div>
+        </div>
+      `;
+      previewContainer.style.display = 'block';
+    } else {
+      previewContainer.style.display = 'none';
+    }
+  }
+
+  // V8 Enhanced: Bulk operations for promos
+  function initializeBulkOperations() {
+    const bulkSelectAll = document.getElementById('bulkSelectAll');
+    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    const bulkUpdateBtn = document.getElementById('bulkUpdateBtn');
+    
+    if (bulkSelectAll) {
+      bulkSelectAll.addEventListener('change', (e) => {
+        const checkboxes = document.querySelectorAll('.promo-checkbox');
+        checkboxes.forEach(checkbox => {
+          checkbox.checked = e.target.checked;
+        });
+        updateBulkButtons();
+      });
+    }
+
+    document.addEventListener('change', (e) => {
+      if (e.target.classList.contains('promo-checkbox')) {
+        updateBulkButtons();
+      }
+    });
+
+    if (bulkDeleteBtn) {
+      bulkDeleteBtn.addEventListener('click', handleBulkDelete);
+    }
+
+    if (bulkUpdateBtn) {
+      bulkUpdateBtn.addEventListener('click', handleBulkUpdate);
+    }
+  }
+
+  function updateBulkButtons() {
+    const selectedCheckboxes = document.querySelectorAll('.promo-checkbox:checked');
+    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    const bulkUpdateBtn = document.getElementById('bulkUpdateBtn');
+    
+    if (bulkDeleteBtn) {
+      bulkDeleteBtn.disabled = selectedCheckboxes.length === 0;
+      bulkDeleteBtn.textContent = `Delete (${selectedCheckboxes.length})`;
+    }
+    
+    if (bulkUpdateBtn) {
+      bulkUpdateBtn.disabled = selectedCheckboxes.length === 0;
+      bulkUpdateBtn.textContent = `Update (${selectedCheckboxes.length})`;
+    }
+  }
+
+  function handleBulkDelete() {
+    const selectedCheckboxes = document.querySelectorAll('.promo-checkbox:checked');
+    const promoIds = Array.from(selectedCheckboxes).map(cb => cb.dataset.promoId);
+    
+    if (promoIds.length === 0) return;
+    
+    const confirmMessage = `Are you sure you want to delete ${promoIds.length} promo(s)? This action cannot be undone.`;
+    
+    if (confirm(confirmMessage)) {
+      console.log(`[2025-09-16 08:17:53] V8 Bulk deleting ${promoIds.length} promos by MathDaenniel`);
+      
+      // Process deletions sequentially to avoid overwhelming the server
+      deleteBulkPromos(promoIds, 0);
+    }
+  }
+
+  function deleteBulkPromos(promoIds, index) {
+    if (index >= promoIds.length) {
+      console.log(`[2025-09-16 08:17:53] V8 Bulk delete completed by MathDaenniel`);
+      updateActivePromosSection();
+      showTemporaryNotification(`Successfully deleted ${promoIds.length} promo(s)`, 'success');
+      setTimeout(() => {
+        window.location.href = '/discounts?msg=delete_success';
+      }, 1500);
+      return;
+    }
+    
+    const promoId = promoIds[index];
+    console.log(`[2025-09-16 08:17:53] V8 Bulk deleting promo ${index + 1}/${promoIds.length}: ${promoId} by MathDaenniel`);
+    
+    fetch(`/discounts/delete/${promoId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        metadata: {
+          deletedBy: 'MathDaenniel',
+          repository: 'roviczzz/Couche-Co',
+          timestamp: new Date().toISOString(),
+          version: 'V8-CompleteActivePromosFixture',
+          bulkOperation: true,
+          bulkIndex: index + 1,
+          bulkTotal: promoIds.length
+        }
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        console.log(`[2025-09-16 08:17:53] V8 Bulk delete ${index + 1} successful by MathDaenniel`);
+      } else {
+        console.error(`[2025-09-16 08:17:53] V8 Bulk delete ${index + 1} failed:`, data.message, 'by MathDaenniel');
+      }
+      
+      // Continue with next deletion after a short delay
+      setTimeout(() => {
+        deleteBulkPromos(promoIds, index + 1);
+      }, 500);
+    })
+    .catch(error => {
+      console.error(`[2025-09-16 08:17:53] V8 Bulk delete ${index + 1} error:`, error, 'by MathDaenniel');
+      
+      // Continue with next deletion even if one fails
+      setTimeout(() => {
+        deleteBulkPromos(promoIds, index + 1);
+      }, 500);
+    });
+  }
+
+  function handleBulkUpdate() {
+    const selectedCheckboxes = document.querySelectorAll('.promo-checkbox:checked');
+    const promoIds = Array.from(selectedCheckboxes).map(cb => cb.dataset.promoId);
+    
+    if (promoIds.length === 0) return;
+    
+    // Show bulk update modal (implementation would depend on UI requirements)
+    showTemporaryNotification(`Bulk update for ${promoIds.length} promo(s) - Feature coming soon!`, 'info');
+  }
+
+  // ===============================================
+  // V8 FINAL INITIALIZATION AND SETUP
+  // ===============================================
+
+  // Initialize all V8 enhanced features
+  setupAdvancedFormValidation();
+  setupSmartDateSuggestions();
+  initializeBulkOperations();
+
+  // Setup real-time preview updates if preview container exists
+  const formInputs = [eventInput, descriptionInput, discountPercentageInput, startDateInput, endDateInput];
+  formInputs.forEach(input => {
+    if (input) {
+      input.addEventListener('input', updatePromoPreview);
+      input.addEventListener('change', updatePromoPreview);
+    }
+  });
+
+  // V8 Enhanced: Add CSS animations dynamically
+  const animationStyles = document.createElement('style');
+  animationStyles.textContent = `
+    @keyframes slideInRight {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes slideOutRight {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(100%); opacity: 0; }
+    }
+    
+    .preview-card {
+      background: white;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 16px;
+      transition: all 0.3s ease;
+    }
+    
+    .preview-card.active {
+      border-color: #28a745;
+      background: linear-gradient(135deg, #f8fff9, #e8f5e8);
+    }
+    
+    .preview-card.inactive {
+      border-color: #dc3545;
+      background: linear-gradient(135deg, #fff8f8, #f5e8e8);
+    }
+    
+    .preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    
+    .preview-discount {
+      background: linear-gradient(135deg, #ff6b35, #f7931e);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    
+    .preview-status.active {
+      color: #28a745;
+      font-weight: 600;
+    }
+    
+    .preview-status.inactive {
+      color: #dc3545;
+      font-weight: 600;
+    }
+    
+    .days-left {
+      color: #ff6b35;
+      font-weight: 600;
+    }
+  `;
+  document.head.appendChild(animationStyles);
+
+  // V8 Enhanced: Final system health check
+  setTimeout(() => {
+    const healthCheck = {
+      version: 'V8-CompleteActivePromosFixture',
+      timestamp: new Date().toISOString(),
+      repository: 'roviczzz/Couche-Co',
+      user: 'MathDaenniel',
+      elements: {
+        addPromoBtn: !!addPromoBtn,
+        promoModalOverlay: !!promoModalOverlay,
+        confirmationModal: !!confirmationModal,
+        activePromosGrid: !!activePromosGrid,
+        activePromosCount: !!activePromosCount,
+        savePromoBtn: !!savePromoBtn,
+        confirmProceed: !!confirmProceed
+      },
+      cache: {
+        originalPromoDataSize: originalPromoData.size,
+        updateTimeoutActive: !!updateActivePromosTimeout
+      },
+      features: {
+        fixedNavbar: true,
+        contentOnlyScroll: true,
+        activePromosRealTimeUpdate: true,
+        enhancedFormValidation: true,
+        autoSave: true,
+        smartDateSuggestions: true,
+        bulkOperations: true,
+        errorRecovery: true
+      }
+    };
+
+    console.log(`[2025-09-16 08:17:53] V8 System Health Check:`, healthCheck, 'by MathDaenniel');
+    
+    const allElementsPresent = Object.values(healthCheck.elements).every(Boolean);
+    if (allElementsPresent) {
+      console.log(`[2025-09-16 08:17:53] V8 ✅ All critical elements present and functional by MathDaenniel`);
+    } else {
+      console.warn(`[2025-09-16 08:17:53] V8 ⚠️ Some elements missing, functionality may be limited by MathDaenniel`);
+    }
+  }, 2000);
+
+  // V8 Enhanced: Register service worker for offline functionality (if available)
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then((registration) => {
+          console.log(`[2025-09-16 08:17:53] V8 Service Worker registered successfully by MathDaenniel`);
+        })
+        .catch((error) => {
+          console.log(`[2025-09-16 08:17:53] V8 Service Worker registration failed (expected if not available) by MathDaenniel`);
+        });
+    });
+  }
+
+  // V8 Final Success Logs
+  console.log(`[2025-09-16 08:17:53] ============================================ by MathDaenniel`);
+  console.log(`[2025-09-16 08:17:53] 🎉 Enhanced Promo Management System V8 COMPLETE by MathDaenniel`);
 });
 </script>
+  

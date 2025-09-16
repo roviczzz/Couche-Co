@@ -30,11 +30,10 @@
         <div class="form-group">
           <label for="IngredientID">Ingredient ID:</label>
           <div class="ingredient-id-group">
-            <select id="IngredientPrefix" name="IngredientPrefix" required>
-              <option value="ING">ING</option>
-            </select>
+            <div class="prefix-display">ING</div>
             <input type="text" id="IngredientSuffix" name="IngredientSuffix" placeholder="Enter unique ID (e.g. HERSHEYS)" required>
           </div>
+          <input type="hidden" name="IngredientPrefix" value="ING">
         </div>
 
         <div class="form-group">
@@ -49,7 +48,8 @@
 
         <div class="form-group">
           <label for="Category">Category:</label>
-          <input type="text" id="IngredientCategory" name="Category" placeholder="Enter category (e.g. Milktea, Add-Ons)" required>
+          <div class="category-display">Ingredients</div>
+          <input type="hidden" name="Category" value="Ingredients">
         </div>
 
         <div class="form-group">
@@ -87,11 +87,10 @@
         <div class="form-group">
           <label for="AddOnID">Add-On ID:</label>
           <div class="ingredient-id-group">
-            <select id="AddOnPrefix" name="AddOnPrefix" required>
-              <option value="AON">AON</option>
-            </select>
+            <div class="prefix-display">ADD</div>
             <input type="text" id="AddOnSuffix" name="AddOnSuffix" placeholder="Enter unique ID (e.g. PEARLS)" required>
           </div>
+          <input type="hidden" name="AddOnPrefix" value="ADD">
         </div>
 
         <div class="form-group">
@@ -106,7 +105,8 @@
 
         <div class="form-group">
           <label for="Category">Category:</label>
-          <input type="text" id="AddOnCategory" name="Category" placeholder="Enter category (e.g. Toppings, Syrups)" required>
+          <div class="category-display">Add-Ons</div>
+          <input type="hidden" name="Category" value="Add-Ons">
         </div>
 
         <div class="form-group">
@@ -173,15 +173,13 @@
             <tr>
                 <td class="ingredient-id-cell">
                   <div class="ingredient-id-group-table">
-                    <select name="IngredientPrefix" class="table-input prefix-select" data-field="prefix" data-original="<%= prefix %>">
-                      <option value="ING" <%= prefix === 'ING' ? 'selected' : '' %>>ING</option>
-                    </select>
+                    <div class="prefix-display-table">ING</div>
                     <input type="text" name="IngredientSuffix" value="<%= suffix %>" class="table-input suffix-input" data-field="suffix" data-original="<%= suffix %>" required>
                   </div>
                 </td>
                 <td><input type="text" name="Name" value="<%= i.Name %>" class="table-input" data-field="name" data-original="<%= i.Name %>" required></td>
                 <td><input type="number" name="Quantity" value="<%= i.Quantity %>" class="table-input number-input" data-field="quantity" data-original="<%= i.Quantity %>" required></td>
-                <td><input type="text" name="Category" value="<%= i.Category %>" class="table-input" data-field="category" data-original="<%= i.Category %>" required></td>
+                <td><div class="category-display-table">Ingredients</div></td>
                 <td><input type="text" name="Allergen" value="<%= i.Allergen %>" class="table-input" data-field="allergen" data-original="<%= i.Allergen %>" required></td>
                 <td>
                   <select name="isEnabled" class="table-input status-select" data-field="enabled" data-original="<%= i.isEnabled %>" required>
@@ -227,21 +225,19 @@
         <% } else { %>
           <% addons.forEach(a => {
             const parts = a.AddOnID.split('-');
-            const prefix = parts[0] || 'AON';
+            const prefix = parts[0] || 'ADD';
             const suffix = parts[1] || '';
           %>
             <tr>
                 <td class="ingredient-id-cell">
                   <div class="ingredient-id-group-table">
-                    <select name="AddOnPrefix" class="table-input prefix-select" data-field="prefix" data-original="<%= prefix %>">
-                      <option value="AON" <%= prefix === 'AON' ? 'selected' : '' %>>AON</option>
-                    </select>
+                    <div class="prefix-display-table">ADD</div>
                     <input type="text" name="AddOnSuffix" value="<%= suffix %>" class="table-input suffix-input" data-field="suffix" data-original="<%= suffix %>" required>
                   </div>
                 </td>
                 <td><input type="text" name="Name" value="<%= a.Name %>" class="table-input" data-field="name" data-original="<%= a.Name %>" required></td>
                 <td><input type="number" name="Quantity" value="<%= a.Quantity %>" class="table-input number-input" data-field="quantity" data-original="<%= a.Quantity %>" required></td>
-                <td><input type="text" name="Category" value="<%= a.Category %>" class="table-input" data-field="category" data-original="<%= a.Category %>" required></td>
+                <td><div class="category-display-table">Add-Ons</div></td>
                 <td><input type="text" name="Allergen" value="<%= a.Allergen %>" class="table-input" data-field="allergen" data-original="<%= a.Allergen %>" required></td>
                 <td>
                   <select name="isEnabled" class="table-input status-select" data-field="enabled" data-original="<%= a.isEnabled %>" required>
@@ -267,11 +263,11 @@
   <% ingredients.forEach(i => { %>
     <form id="update-ingredient-form-<%= i._id %>" action="/stocks/edit/<%= i._id %>" method="POST" style="display: none;">
       <input type="hidden" name="IngredientID" value="">
-      <input type="hidden" name="IngredientPrefix" value="">
+      <input type="hidden" name="IngredientPrefix" value="ING">
       <input type="hidden" name="IngredientSuffix" value="">
       <input type="hidden" name="Name" value="">
       <input type="hidden" name="Quantity" value="">
-      <input type="hidden" name="Category" value="">
+      <input type="hidden" name="Category" value="Ingredients">
       <input type="hidden" name="Allergen" value="">
       <input type="hidden" name="isAvailable" value="true">
       <input type="hidden" name="isEnabled" value="">
@@ -284,11 +280,11 @@
   <% addons.forEach(a => { %>
     <form id="update-addon-form-<%= a._id %>" action="/addons/edit/<%= a._id %>" method="POST" style="display: none;">
       <input type="hidden" name="AddOnID" value="">
-      <input type="hidden" name="AddOnPrefix" value="">
+      <input type="hidden" name="AddOnPrefix" value="ADD">
       <input type="hidden" name="AddOnSuffix" value="">
       <input type="hidden" name="Name" value="">
       <input type="hidden" name="Quantity" value="">
-      <input type="hidden" name="Category" value="">
+      <input type="hidden" name="Category" value="Add-Ons">
       <input type="hidden" name="Allergen" value="">
       <input type="hidden" name="isEnabled" value="">
     </form>
@@ -298,6 +294,115 @@
 </div>
 
 <style>
+  /* =============================================== */
+  /* FIXED NAVBAR STYLES - CONTENT ONLY SCROLLING */
+  /* =============================================== */
+  
+  /* Reset and prepare body for fixed navbar */
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden; /* Prevent body scrolling */
+  }
+
+  /* Create main layout container */
+  body {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  /* Ensure navbar stays completely fixed */
+  .navbar,
+  .nav,
+  .header-nav,
+  .main-nav,
+  nav,
+  header,
+  .header,
+  .site-header,
+  .page-header {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    z-index: 9999 !important;
+    background: rgba(255, 255, 255, 0.98) !important;
+    backdrop-filter: blur(12px) !important;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.1) !important;
+    transition: all 0.3s ease !important;
+    flex-shrink: 0; /* Prevent navbar from shrinking */
+  }
+
+  /* Main content area that will scroll */
+  .main-content,
+  .content,
+  .page-content,
+  main {
+    margin-top: 80px; /* Default navbar height */
+    height: calc(100vh - 80px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex: 1;
+    position: relative;
+  }
+
+  /* If no main content wrapper exists, create one for stocks-container */
+  .stocks-container {
+    margin-top: 0; /* Remove default margin since we handle it with main content */
+    padding: 20px;
+    height: calc(100vh - 80px); /* Full viewport minus navbar */
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+    box-sizing: border-box;
+  }
+
+  /* Custom scrollbar for main content */
+  .stocks-container::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .stocks-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  .stocks-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+  }
+
+  .stocks-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
+
+  /* Ensure modals appear above everything */
+  .modal-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 10000 !important;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--transition), visibility var(--transition);
+  }
+
+  /* Confirmation Modal Specific */
+  .confirmation-modal {
+    z-index: 10001 !important;
+  }
+
   /* Design tokens */
  :root {
   --brown: #7a4e2b;
@@ -336,6 +441,10 @@
   --shadow-lg: 0 16px 32px rgba(0,0,0,0.16);
   --shadow-inner: inset 0 2px 4px rgba(0,0,0,0.05);
   --transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Navbar height variables for easy adjustment */
+  --navbar-height: 80px;
+  --navbar-height-mobile: 60px;
 }
 
 /* Enhanced header */
@@ -484,33 +593,10 @@
   box-shadow: var(--shadow-sm), 0 1px 2px rgba(253, 126, 20, 0.4);
 }
 
-/* Modal Overlay */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity var(--transition), visibility var(--transition);
-}
-
+/* Modal styles */
 .modal-overlay.show {
   opacity: 1;
   visibility: visible;
-}
-
-/* Confirmation Modal Specific */
-.confirmation-modal {
-  z-index: 1100;
 }
 
 /* Modal Container */
@@ -710,6 +796,40 @@
   margin-bottom: 8px;
 }
 
+/* Enhanced Prefix/Category Display Styles */
+.prefix-display {
+  flex: 0 0 auto;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, var(--brown-light), var(--brown));
+  color: var(--white);
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  border: 2px solid var(--brown);
+  border-right: none;
+  letter-spacing: 0.5px;
+  min-width: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.category-display {
+  padding: 14px 16px;
+  background: linear-gradient(135deg, var(--green), var(--green-dark));
+  color: var(--white);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  border: 2px solid var(--green);
+  letter-spacing: 0.3px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  box-shadow: var(--shadow-sm);
+}
+
 /* Ingredient ID Group for Modal */
 .ingredient-id-group {
   display: flex;
@@ -718,27 +838,24 @@
   width: 100%;
 }
 
-.ingredient-id-group select {
-  flex: 0 0 auto;
-  padding: 14px 12px;
-  border: 1px solid var(--border-light);
-  border-right: none;
-  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
-  background-color: var(--bg-lighter);
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text);
-  min-width: 70px;
-}
-
 .ingredient-id-group input[type="text"] {
   flex: 1;
   padding: 14px 16px;
-  border: 1px solid var(--border-light);
+  border: 2px solid var(--brown);
   border-left: none;
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   background-color: var(--bg-lighter);
   font-size: 14px;
+  transition: all var(--transition);
+  box-shadow: var(--shadow-inner);
+}
+
+.ingredient-id-group input[type="text"]:focus {
+  outline: none;
+  border-color: var(--green);
+  background-color: var(--white);
+  box-shadow: 0 0 0 3px rgba(40,167,69,0.15);
+  transform: translateY(-1px);
 }
 
 .form-group input[type="text"],
@@ -1051,20 +1168,43 @@
   box-shadow: 0 0 0 2px rgba(40,167,69,0.15);
 }
 
+/* Enhanced Table Displays */
+.prefix-display-table {
+  background: linear-gradient(135deg, var(--brown-light), var(--brown));
+  color: var(--white);
+  padding: 8px 12px;
+  border-radius: var(--radius-xs);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 0.5px;
+  min-width: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  box-shadow: var(--shadow-sm);
+}
+
+.category-display-table {
+  background: linear-gradient(135deg, var(--green), var(--green-dark));
+  color: var(--white);
+  padding: 8px 12px;
+  border-radius: var(--radius-xs);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  letter-spacing: 0.3px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  box-shadow: var(--shadow-sm);
+}
+
 /* Ingredient ID Group for Table */
 .ingredient-id-group-table {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   width: 100%;
-}
-
-.prefix-select {
-  flex: 0 0 auto;
-  width: 60px;
-  padding: 8px 6px;
-  font-size: 12px;
-  font-weight: 600;
 }
 
 .suffix-input {
@@ -1181,6 +1321,11 @@
 
 /* Enhanced Responsive Design */
 @media (max-width: 768px) {
+  /* Adjust for smaller navbar on mobile */
+  .stocks-container {
+    height: calc(100vh - var(--navbar-height-mobile));
+  }
+
   .add-buttons-section {
     flex-direction: column;
     align-items: center;
@@ -1221,6 +1366,11 @@
 }
 
 @media (max-width: 600px) {
+  .stocks-container {
+    padding: 15px;
+    height: calc(100vh - var(--navbar-height-mobile));
+  }
+
   .modal-container, .confirmation-container {
     margin: 10px;
     max-width: calc(100vw - 20px);
@@ -1271,9 +1421,10 @@
     max-width: 100px;
   }
 
-  .prefix-select {
-    width: 50px;
-    font-size: 11px;
+  .prefix-display-table {
+    min-width: 35px;
+    font-size: 10px;
+    padding: 6px 8px;
   }
 
   .table-input {
@@ -1302,8 +1453,8 @@
 
 @media (max-width: 500px) {
   .stocks-container {
-    padding: 16px 12px;
-    margin: 10px auto;
+    padding: 12px;
+    height: calc(100vh - 50px); /* Even smaller navbar for very small screens */
   }
 
   .stocks-table {
@@ -1352,6 +1503,12 @@
   .switch-label {
     gap: 8px;
   }
+
+  .prefix-display-table {
+    min-width: 30px;
+    font-size: 9px;
+    padding: 4px 6px;
+  }
 }
 
 /* Focus States for Accessibility */
@@ -1371,6 +1528,119 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
+    console.log(`[2025-09-16 07:36:28] Initializing Enhanced Inventory Management System by MathDaenniel`);
+    
+    // ===============================================
+    // ENHANCED FIXED NAVBAR - CONTENT ONLY SCROLLING
+    // ===============================================
+    
+    function setupFixedNavbar() {
+      console.log(`[2025-09-16 07:36:28] Setting up fixed navbar with content-only scrolling by MathDaenniel`);
+      
+      // Find navbar elements (multiple selectors for compatibility)
+      const navbarSelectors = [
+        'nav', '.navbar', '.nav', '.header-nav', '.main-nav',
+        'header', '.header', '.site-header', '.page-header',
+        '.navigation', '.top-nav', '.primary-nav'
+      ];
+      
+      let navbar = null;
+      
+      // Try to find navbar element
+      for (const selector of navbarSelectors) {
+        const element = document.querySelector(selector);
+        if (element) {
+          navbar = element;
+          break;
+        }
+      }
+      
+      if (navbar) {
+        console.log(`[2025-09-16 07:36:28] Navbar found, applying fixed positioning by MathDaenniel`);
+        
+        // Force fixed positioning styles
+        Object.assign(navbar.style, {
+          position: 'fixed',
+          top: '0',
+          left: '0',
+          right: '0',
+          width: '100%',
+          zIndex: '9999',
+          background: 'rgba(255, 255, 255, 0.98)',
+          backdropFilter: 'blur(12px)',
+          boxShadow: '0 2px 20px rgba(0,0,0,0.1)',
+          transition: 'all 0.3s ease'
+        });
+        
+        // Add sticky class for CSS targeting
+        navbar.classList.add('navbar-fixed');
+        
+        // Measure navbar height and adjust container accordingly
+        const navbarHeight = navbar.offsetHeight;
+        const container = document.querySelector('.stocks-container');
+        
+        if (container) {
+          container.style.marginTop = '0';
+          container.style.height = `calc(100vh - ${navbarHeight}px)`;
+          container.style.overflowY = 'auto';
+          container.style.overflowX = 'hidden';
+          
+          console.log(`[2025-09-16 07:36:28] Container adjusted: height=calc(100vh - ${navbarHeight}px) by MathDaenniel`);
+        }
+        
+        // Ensure body doesn't scroll
+        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
+        
+        console.log(`[2025-09-16 07:36:28] Fixed navbar setup complete: height=${navbarHeight}px by MathDaenniel`);
+      } else {
+        console.log(`[2025-09-16 07:36:28] No navbar found, applying default content scrolling by MathDaenniel`);
+        
+        // Fallback: just make sure body doesn't scroll
+        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
+        
+        const container = document.querySelector('.stocks-container');
+        if (container) {
+          container.style.height = 'calc(100vh - 80px)'; // Default navbar height
+          container.style.overflowY = 'auto';
+          container.style.overflowX = 'hidden';
+        }
+      }
+    }
+    
+    // Apply navbar fix immediately and on resize
+    setupFixedNavbar();
+    window.addEventListener('resize', setupFixedNavbar);
+    
+    // ===============================================
+    // ENHANCED SCROLL BEHAVIOR FOR CONTENT ONLY
+    // ===============================================
+    
+    const scrollContainer = document.querySelector('.stocks-container');
+    const navbar = document.querySelector('.navbar-fixed, nav, .navbar, header');
+    
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', function() {
+        const scrollTop = scrollContainer.scrollTop;
+        
+        if (navbar) {
+          // Enhanced navbar shadow based on content scroll
+          if (scrollTop > 10) {
+            navbar.style.boxShadow = '0 4px 25px rgba(0,0,0,0.15)';
+            navbar.style.background = 'rgba(255, 255, 255, 0.99)';
+            navbar.style.backdropFilter = 'blur(15px)';
+          } else {
+            navbar.style.boxShadow = '0 2px 20px rgba(0,0,0,0.1)';
+            navbar.style.background = 'rgba(255, 255, 255, 0.98)';
+            navbar.style.backdropFilter = 'blur(12px)';
+          }
+        }
+      });
+      
+      console.log(`[2025-09-16 07:36:28] Content scroll listener attached by MathDaenniel`);
+    }
+
     // Show success message based on query parameter
     const messageDiv = document.getElementById('message');
     if (messageDiv) {
@@ -1427,8 +1697,11 @@
     let currentItemId = null;
     let currentItemType = null;
 
+    console.log(`[2025-09-16 07:32:51] Modal elements initialized by MathDaenniel`);
+
     // Show Ingredient Modal
     function showIngredientModal() {
+      console.log(`[2025-09-16 07:32:51] Opening ingredient modal by MathDaenniel`);
       ingredientModalOverlay.style.display = 'flex';
       setTimeout(() => {
         ingredientModalOverlay.classList.add('show');
@@ -1438,6 +1711,7 @@
 
     // Hide Ingredient Modal
     function hideIngredientModal() {
+      console.log(`[2025-09-16 07:32:51] Closing ingredient modal by MathDaenniel`);
       ingredientModalOverlay.classList.remove('show');
       setTimeout(() => {
         ingredientModalOverlay.style.display = 'none';
@@ -1451,6 +1725,7 @@
 
     // Show Add-On Modal
     function showAddonModal() {
+      console.log(`[2025-09-16 07:32:51] Opening add-on modal by MathDaenniel`);
       addonModalOverlay.style.display = 'flex';
       setTimeout(() => {
         addonModalOverlay.classList.add('show');
@@ -1460,6 +1735,7 @@
 
     // Hide Add-On Modal
     function hideAddonModal() {
+      console.log(`[2025-09-16 07:32:51] Closing add-on modal by MathDaenniel`);
       addonModalOverlay.classList.remove('show');
       setTimeout(() => {
         addonModalOverlay.style.display = 'none';
@@ -1473,6 +1749,7 @@
 
     // Show Confirmation Modal
     function showConfirmationModal(action, itemId, itemType) {
+      console.log(`[2025-09-16 07:32:51] Opening confirmation modal for ${action} on ${itemType} by MathDaenniel`);
       currentAction = action;
       currentItemId = itemId;
       currentItemType = itemType;
@@ -1496,6 +1773,7 @@
 
     // Hide Confirmation Modal
     function hideConfirmationModal() {
+      console.log(`[2025-09-16 07:32:51] Closing confirmation modal by MathDaenniel`);
       confirmationModal.classList.remove('show');
       setTimeout(() => {
         confirmationModal.style.display = 'none';
@@ -1506,42 +1784,66 @@
       document.body.style.overflow = '';
     }
 
-    // Event Listeners
-    showAddIngredientBtn.addEventListener('click', showIngredientModal);
-    cancelAddIngredientBtn.addEventListener('click', hideIngredientModal);
-    closeIngredientModalBtn.addEventListener('click', hideIngredientModal);
+    // Event Listeners for Modal Controls
+    if (showAddIngredientBtn) {
+      showAddIngredientBtn.addEventListener('click', showIngredientModal);
+      console.log(`[2025-09-16 07:32:51] Ingredient button listener attached by MathDaenniel`);
+    }
 
-    showAddAddonBtn.addEventListener('click', showAddonModal);
-    cancelAddAddonBtn.addEventListener('click', hideAddonModal);
-    closeAddonModalBtn.addEventListener('click', hideAddonModal);
+    if (cancelAddIngredientBtn) {
+      cancelAddIngredientBtn.addEventListener('click', hideIngredientModal);
+    }
+
+    if (closeIngredientModalBtn) {
+      closeIngredientModalBtn.addEventListener('click', hideIngredientModal);
+    }
+
+    if (showAddAddonBtn) {
+      showAddAddonBtn.addEventListener('click', showAddonModal);
+      console.log(`[2025-09-16 07:32:51] Add-on button listener attached by MathDaenniel`);
+    }
+
+    if (cancelAddAddonBtn) {
+      cancelAddAddonBtn.addEventListener('click', hideAddonModal);
+    }
+
+    if (closeAddonModalBtn) {
+      closeAddonModalBtn.addEventListener('click', hideAddonModal);
+    }
 
     // Close modals when clicking on overlay
-    ingredientModalOverlay.addEventListener('click', (e) => {
-      if (e.target === ingredientModalOverlay) {
-        hideIngredientModal();
-      }
-    });
+    if (ingredientModalOverlay) {
+      ingredientModalOverlay.addEventListener('click', (e) => {
+        if (e.target === ingredientModalOverlay) {
+          hideIngredientModal();
+        }
+      });
+    }
 
-    addonModalOverlay.addEventListener('click', (e) => {
-      if (e.target === addonModalOverlay) {
-        hideAddonModal();
-      }
-    });
+    if (addonModalOverlay) {
+      addonModalOverlay.addEventListener('click', (e) => {
+        if (e.target === addonModalOverlay) {
+          hideAddonModal();
+        }
+      });
+    }
 
-    confirmationModal.addEventListener('click', (e) => {
-      if (e.target === confirmationModal) {
-        hideConfirmationModal();
-      }
-    });
+    if (confirmationModal) {
+      confirmationModal.addEventListener('click', (e) => {
+        if (e.target === confirmationModal) {
+          hideConfirmationModal();
+        }
+      });
+    }
 
     // Close modals with Escape key
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
-        if (confirmationModal.classList.contains('show')) {
+        if (confirmationModal && confirmationModal.classList.contains('show')) {
           hideConfirmationModal();
-        } else if (ingredientModalOverlay.classList.contains('show')) {
+        } else if (ingredientModalOverlay && ingredientModalOverlay.classList.contains('show')) {
           hideIngredientModal();
-        } else if (addonModalOverlay.classList.contains('show')) {
+        } else if (addonModalOverlay && addonModalOverlay.classList.contains('show')) {
           hideAddonModal();
         }
       }
@@ -1555,128 +1857,139 @@
         const itemId = e.target.dataset.itemId;
         const itemType = e.target.dataset.type;
 
+        console.log(`[2025-09-16 07:32:51] ${action} button clicked for ${itemType} ${itemId} by MathDaenniel`);
         showConfirmationModal(action, itemId, itemType);
       }
     });
 
     // Confirmation modal button handlers
-    confirmProceed.addEventListener('click', () => {
-      if (currentAction && currentItemId && currentItemType) {
-        if (currentAction === 'update') {
-          // Get the row containing this item
-          const updateButton = document.querySelector(`[data-item-id="${currentItemId}"][data-action="update"]`);
-          const row = updateButton.closest('tr');
+    if (confirmProceed) {
+      confirmProceed.addEventListener('click', () => {
+        console.log(`[2025-09-16 07:32:51] Confirmation proceed clicked by MathDaenniel`);
+        
+        if (currentAction && currentItemId && currentItemType) {
+          if (currentAction === 'update') {
+            // Get the row containing this item
+            const updateButton = document.querySelector(`[data-item-id="${currentItemId}"][data-action="update"]`);
+            const row = updateButton.closest('tr');
 
-          if (currentItemType === 'ingredient') {
-            // Handle ingredient update
-            const prefix = row.querySelector('select[name="IngredientPrefix"]').value;
-            const suffix = row.querySelector('input[name="IngredientSuffix"]').value.trim();
-            const name = row.querySelector('input[name="Name"]').value.trim();
-            const quantity = row.querySelector('input[name="Quantity"]').value;
-            const category = row.querySelector('input[name="Category"]').value.trim();
-            const allergen = row.querySelector('input[name="Allergen"]').value.trim();
-            const enabled = row.querySelector('select[name="isEnabled"]').value;
+            if (currentItemType === 'ingredient') {
+              // Handle ingredient update - Fixed prefix is ING
+              const prefix = 'ING';
+              const suffix = row.querySelector('input[name="IngredientSuffix"]').value.trim();
+              const name = row.querySelector('input[name="Name"]').value.trim();
+              const quantity = row.querySelector('input[name="Quantity"]').value;
+              const category = 'Ingredients'; // Fixed category
+              const allergen = row.querySelector('input[name="Allergen"]').value.trim();
+              const enabled = row.querySelector('select[name="isEnabled"]').value;
 
-            if (!prefix || !suffix || !name || !quantity || !category) {
-              alert('Please fill in all required fields.');
-              hideConfirmationModal();
-              return;
+              if (!suffix || !name || !quantity) {
+                alert('Please fill in all required fields.');
+                hideConfirmationModal();
+                return;
+              }
+
+              const form = document.getElementById(`update-ingredient-form-${currentItemId}`);
+              const fullIngredientId = `${prefix}-${suffix}`;
+
+              form.querySelector('input[name="IngredientID"]').value = fullIngredientId;
+              form.querySelector('input[name="IngredientPrefix"]').value = prefix;
+              form.querySelector('input[name="IngredientSuffix"]').value = suffix;
+              form.querySelector('input[name="Name"]').value = name;
+              form.querySelector('input[name="Quantity"]').value = quantity;
+              form.querySelector('input[name="Category"]').value = category;
+              form.querySelector('input[name="Allergen"]').value = allergen || 'None';
+              form.querySelector('input[name="isEnabled"]').value = enabled;
+
+              console.log(`[2025-09-16 07:32:51] Updating ingredient with ID: ${fullIngredientId} by MathDaenniel`);
+              form.submit();
+            } else if (currentItemType === 'addon') {
+              // Handle add-on update - Fixed prefix is ADD
+              const prefix = 'ADD';
+              const suffix = row.querySelector('input[name="AddOnSuffix"]').value.trim();
+              const name = row.querySelector('input[name="Name"]').value.trim();
+              const quantity = row.querySelector('input[name="Quantity"]').value;
+              const category = 'Add-Ons'; // Fixed category
+              const allergen = row.querySelector('input[name="Allergen"]').value.trim();
+              const enabled = row.querySelector('select[name="isEnabled"]').value;
+
+              if (!suffix || !name || !quantity) {
+                alert('Please fill in all required fields.');
+                hideConfirmationModal();
+                return;
+              }
+
+              const form = document.getElementById(`update-addon-form-${currentItemId}`);
+              const fullAddonId = `${prefix}-${suffix}`;
+
+              form.querySelector('input[name="AddOnID"]').value = fullAddonId;
+              form.querySelector('input[name="AddOnPrefix"]').value = prefix;
+              form.querySelector('input[name="AddOnSuffix"]').value = suffix;
+              form.querySelector('input[name="Name"]').value = name;
+              form.querySelector('input[name="Quantity"]').value = quantity;
+              form.querySelector('input[name="Category"]').value = category;
+              form.querySelector('input[name="Allergen"]').value = allergen || 'None';
+              form.querySelector('input[name="isEnabled"]').value = enabled;
+
+              console.log(`[2025-09-16 07:32:51] Updating add-on with ID: ${fullAddonId} by MathDaenniel`);
+              form.submit();
             }
 
-            const form = document.getElementById(`update-ingredient-form-${currentItemId}`);
-            const fullIngredientId = `${prefix}-${suffix}`;
+            // Remove highlight classes from all inputs in the row
+            const inputs = row.querySelectorAll('.table-input');
+            inputs.forEach(input => {
+              input.classList.remove('modified');
+              input.classList.add('highlight-fade');
+            });
 
-            form.querySelector('input[name="IngredientID"]').value = fullIngredientId;
-            form.querySelector('input[name="IngredientPrefix"]').value = prefix;
-            form.querySelector('input[name="IngredientSuffix"]').value = suffix;
-            form.querySelector('input[name="Name"]').value = name;
-            form.querySelector('input[name="Quantity"]').value = quantity;
-            form.querySelector('input[name="Category"]').value = category;
-            form.querySelector('input[name="Allergen"]').value = allergen || 'None';
-            form.querySelector('input[name="isEnabled"]').value = enabled;
-
-            console.log(`[2025-09-03 15:18:48] Updating ingredient with ID: ${fullIngredientId} by MathDaenniel`);
-            form.submit();
-          } else if (currentItemType === 'addon') {
-            // Handle add-on update
-            const prefix = row.querySelector('select[name="AddOnPrefix"]').value;
-            const suffix = row.querySelector('input[name="AddOnSuffix"]').value.trim();
-            const name = row.querySelector('input[name="Name"]').value.trim();
-            const quantity = row.querySelector('input[name="Quantity"]').value;
-            const category = row.querySelector('input[name="Category"]').value.trim();
-            const allergen = row.querySelector('input[name="Allergen"]').value.trim();
-            const enabled = row.querySelector('select[name="isEnabled"]').value;
-
-            if (!prefix || !suffix || !name || !quantity || !category) {
-              alert('Please fill in all required fields.');
-              hideConfirmationModal();
-              return;
-            }
-
-            const form = document.getElementById(`update-addon-form-${currentItemId}`);
-            const fullAddonId = `${prefix}-${suffix}`;
-
-            form.querySelector('input[name="AddOnID"]').value = fullAddonId;
-            form.querySelector('input[name="AddOnPrefix"]').value = prefix;
-            form.querySelector('input[name="AddOnSuffix"]').value = suffix;
-            form.querySelector('input[name="Name"]').value = name;
-            form.querySelector('input[name="Quantity"]').value = quantity;
-            form.querySelector('input[name="Category"]').value = category;
-            form.querySelector('input[name="Allergen"]').value = allergen || 'None';
-            form.querySelector('input[name="isEnabled"]').value = enabled;
-
-            console.log(`[2025-09-03 15:18:48] Updating add-on with ID: ${fullAddonId} by MathDaenniel`);
+          } else if (currentAction === 'delete') {
+            const formId = currentItemType === 'ingredient' ?
+              `delete-ingredient-form-${currentItemId}` :
+              `delete-addon-form-${currentItemId}`;
+            const form = document.getElementById(formId);
+            console.log(`[2025-09-16 07:32:51] Deleting ${currentItemType} by MathDaenniel`);
             form.submit();
           }
-
-          // Remove highlight classes from all inputs in the row
-          const inputs = row.querySelectorAll('.table-input');
-          inputs.forEach(input => {
-            input.classList.remove('modified');
-            input.classList.add('highlight-fade');
-          });
-
-        } else if (currentAction === 'delete') {
-          const formId = currentItemType === 'ingredient' ?
-            `delete-ingredient-form-${currentItemId}` :
-            `delete-addon-form-${currentItemId}`;
-          const form = document.getElementById(formId);
-          console.log(`[2025-09-03 15:22:48] Deleting ${currentItemType} by MathDaenniel`);
-          form.submit();
         }
-      }
-      hideConfirmationModal();
-    });
+        hideConfirmationModal();
+      });
+    }
 
-    confirmCancel.addEventListener('click', hideConfirmationModal);
+    if (confirmCancel) {
+      confirmCancel.addEventListener('click', hideConfirmationModal);
+    }
 
     // Handle ingredient form submission
-    const ingredientModalForm = ingredientModalOverlay.querySelector('.stocks-form-vertical');
+    const ingredientModalForm = ingredientModalOverlay?.querySelector('.stocks-form-vertical');
     if (ingredientModalForm) {
       ingredientModalForm.addEventListener('submit', (e) => {
-        const prefix = ingredientModalForm.querySelector('select[name="IngredientPrefix"]').value;
+        console.log(`[2025-09-16 07:32:51] Ingredient form submission by MathDaenniel`);
+        
+        const prefix = 'ING'; // Fixed prefix
         const suffix = ingredientModalForm.querySelector('input[name="IngredientSuffix"]').value.trim();
 
-        if (!prefix || !suffix) {
-          alert('Please provide both prefix and suffix for the ingredient ID.');
+        if (!suffix) {
+          alert('Please provide suffix for the ingredient ID.');
           e.preventDefault();
           return;
         }
 
         const fullId = `${prefix}-${suffix}`;
 
+        // Remove existing hidden ID input if present
         const existingHiddenId = ingredientModalForm.querySelector('input[name="IngredientID"][type="hidden"]');
         if (existingHiddenId) {
           existingHiddenId.remove();
         }
 
+        // Add full ingredient ID as hidden input
         const hiddenInput = document.createElement('input');
         hiddenInput.type = 'hidden';
         hiddenInput.name = 'IngredientID';
         hiddenInput.value = fullId;
         ingredientModalForm.appendChild(hiddenInput);
 
-        // Handle isEnabledStock switch (no more Available field)
+        // Handle isEnabledStock switch
         const enabledSwitch = ingredientModalForm.querySelector('input[name="isEnabledStock"]');
         const existingHiddenEnabled = ingredientModalForm.querySelector('input[name="isEnabled"][type="hidden"]');
 
@@ -1705,36 +2018,41 @@
         // Remove name attribute so switch doesn't interfere
         enabledSwitch.removeAttribute('name');
 
-        console.log(`[2025-09-03 15:22:48] Adding new ingredient with ID: ${fullId} by MathDaenniel`);
+        console.log(`[2025-09-16 07:32:51] Adding new ingredient with ID: ${fullId} by MathDaenniel`);
       });
     }
 
     // Handle add-on form submission
-    const addonModalForm = addonModalOverlay.querySelector('.stocks-form-vertical');
+    const addonModalForm = addonModalOverlay?.querySelector('.stocks-form-vertical');
     if (addonModalForm) {
       addonModalForm.addEventListener('submit', (e) => {
-        const prefix = addonModalForm.querySelector('select[name="AddOnPrefix"]').value;
+        console.log(`[2025-09-16 07:32:51] Add-on form submission by MathDaenniel`);
+        
+        const prefix = 'ADD'; // Fixed prefix
         const suffix = addonModalForm.querySelector('input[name="AddOnSuffix"]').value.trim();
 
-        if (!prefix || !suffix) {
-          alert('Please provide both prefix and suffix for the add-on ID.');
+        if (!suffix) {
+          alert('Please provide suffix for the add-on ID.');
           e.preventDefault();
           return;
         }
 
         const fullId = `${prefix}-${suffix}`;
 
+        // Remove existing hidden ID input if present
         const existingHiddenId = addonModalForm.querySelector('input[name="AddOnID"][type="hidden"]');
         if (existingHiddenId) {
           existingHiddenId.remove();
         }
 
+        // Add full add-on ID as hidden input
         const hiddenInput = document.createElement('input');
         hiddenInput.type = 'hidden';
         hiddenInput.name = 'AddOnID';
         hiddenInput.value = fullId;
         addonModalForm.appendChild(hiddenInput);
 
+        // Handle isEnabledAddon switch
         const enabledSwitch = addonModalForm.querySelector('input[name="isEnabledAddon"]');
         const existingHiddenEnabled = addonModalForm.querySelector('input[name="isEnabled"][type="hidden"]');
 
@@ -1751,7 +2069,7 @@
         // Remove name attribute so switch doesn't interfere
         enabledSwitch.removeAttribute('name');
 
-        console.log(`[2025-09-03 15:22:48] Adding new add-on with ID: ${fullId} by MathDaenniel`);
+        console.log(`[2025-09-16 07:32:51] Adding new add-on with ID: ${fullId} by MathDaenniel`);
       });
     }
 
@@ -1785,17 +2103,23 @@
     });
 
     // Auto-focus on suffix input when modals open
-    showAddIngredientBtn.addEventListener('click', () => {
+    showAddIngredientBtn?.addEventListener('click', () => {
       setTimeout(() => {
         const suffixInput = document.getElementById('IngredientSuffix');
-        if (suffixInput) suffixInput.focus();
+        if (suffixInput) {
+          suffixInput.focus();
+          console.log(`[2025-09-16 07:32:51] Auto-focused on ingredient suffix input by MathDaenniel`);
+        }
       }, 300);
     });
 
-    showAddAddonBtn.addEventListener('click', () => {
+    showAddAddonBtn?.addEventListener('click', () => {
       setTimeout(() => {
         const suffixInput = document.getElementById('AddOnSuffix');
-        if (suffixInput) suffixInput.focus();
+        if (suffixInput) {
+          suffixInput.focus();
+          console.log(`[2025-09-16 07:32:51] Auto-focused on add-on suffix input by MathDaenniel`);
+        }
       }, 300);
     });
 
@@ -1805,35 +2129,28 @@
       if ((e.ctrlKey || e.metaKey) && e.key === 'i' && !e.target.matches('input, textarea')) {
         e.preventDefault();
         showIngredientModal();
+        console.log(`[2025-09-16 07:32:51] Keyboard shortcut for ingredient modal by MathDaenniel`);
       }
 
       // Ctrl/Cmd + O for Add-Ons
       if ((e.ctrlKey || e.metaKey) && e.key === 'o' && !e.target.matches('input, textarea')) {
         e.preventDefault();
         showAddonModal();
+        console.log(`[2025-09-16 07:32:51] Keyboard shortcut for add-on modal by MathDaenniel`);
       }
 
       // Enter key for confirmation modal proceed
-      if (e.key === 'Enter' && confirmationModal.classList.contains('show')) {
+      if (e.key === 'Enter' && confirmationModal && confirmationModal.classList.contains('show')) {
         e.preventDefault();
-        confirmProceed.click();
+        if (confirmProceed) {
+          confirmProceed.click();
+        }
       }
     });
 
-    // Add visual feedback for successful form submissions
-    function showSuccessAnimation(element) {
-      element.style.transform = 'scale(0.95)';
-      element.style.opacity = '0.8';
-
-      setTimeout(() => {
-        element.style.transform = 'scale(1)';
-        element.style.opacity = '1';
-      }, 150);
-    }
-
     // Enhanced form validation
     function validateIngredientForm(form) {
-      const requiredFields = ['IngredientPrefix', 'IngredientSuffix', 'Name', 'Quantity', 'Category'];
+      const requiredFields = ['IngredientSuffix', 'Name', 'Quantity'];
       const missingFields = [];
 
       requiredFields.forEach(fieldName => {
@@ -1859,7 +2176,7 @@
     }
 
     function validateAddonForm(form) {
-      const requiredFields = ['AddOnPrefix', 'AddOnSuffix', 'Name', 'Quantity', 'Category'];
+      const requiredFields = ['AddOnSuffix', 'Name', 'Quantity'];
       const missingFields = [];
 
       requiredFields.forEach(fieldName => {
@@ -1891,7 +2208,7 @@
           e.preventDefault();
           return;
         }
-        showSuccessAnimation(ingredientModalForm);
+        console.log(`[2025-09-16 07:32:51] Ingredient form validation passed by MathDaenniel`);
       });
     }
 
@@ -1901,15 +2218,13 @@
           e.preventDefault();
           return;
         }
-        showSuccessAnimation(addonModalForm);
+        console.log(`[2025-09-16 07:32:51] Add-on form validation passed by MathDaenniel`);
       });
     }
 
     // Add tooltips for accessibility
     const tooltips = [
-      { selector: '#IngredientPrefix', text: 'Select ingredient prefix (ING)' },
       { selector: '#IngredientSuffix', text: 'Enter unique identifier (e.g., HERSHEYS)' },
-      { selector: '#AddOnPrefix', text: 'Select add-on prefix (AON)' },
       { selector: '#AddOnSuffix', text: 'Enter unique identifier (e.g., PEARLS)' },
       { selector: '#IngredientQuantity', text: 'Enter quantity in stock' },
       { selector: '#AddOnQuantity', text: 'Enter quantity in stock' }
@@ -1949,82 +2264,32 @@
       });
     });
 
-    // Add search functionality (future enhancement placeholder)
-    function initializeSearch() {
-      // Placeholder for future search functionality
-      console.log(`[2025-09-03 15:22:48] Search functionality initialized by MathDaenniel`);
-    }
+    // Switch interaction enhancements
+    function initializeSwitchEnhancements() {
+      // Add visual feedback for switch interactions
+      document.querySelectorAll('.switch-input').forEach(switchInput => {
+        switchInput.addEventListener('change', () => {
+          // Add haptic feedback for mobile devices
+          if (navigator.vibrate) {
+            navigator.vibrate(50);
+          }
 
-    // Initialize search on page load
-    initializeSearch();
-
-    // Add data export functionality (future enhancement placeholder)
-    function initializeExport() {
-      // Placeholder for future export functionality
-      console.log(`[2025-09-03 15:22:48] Export functionality initialized by MathDaenniel`);
-    }
-
-    // Initialize export on page load
-    initializeExport();
-
-    // Performance optimization: Debounce input changes
-    function debounce(func, wait) {
-      let timeout;
-      return function executedFunction(...args) {
-        const later = () => {
-          clearTimeout(timeout);
-          func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-      };
-    }
-
-    // Apply debouncing to input change tracking
-    const debouncedInputHandler = debounce((e) => {
-      if (e.target.classList.contains('table-input')) {
-        const originalValue = e.target.dataset.original;
-        const currentValue = e.target.value;
-
-        if (currentValue !== originalValue) {
-          e.target.classList.add('modified');
-          e.target.classList.remove('highlight-fade');
-        } else {
-          e.target.classList.remove('modified');
-        }
-      }
-    }, 300);
-
-    // Add loading states for better UX
-    function showLoadingState(button) {
-      const originalText = button.textContent;
-      button.textContent = 'Loading...';
-      button.disabled = true;
-
-      return () => {
-        button.textContent = originalText;
-        button.disabled = false;
-      };
-    }
-
-    // Apply loading states to action buttons
-    document.querySelectorAll('.stocks-btn').forEach(button => {
-      button.addEventListener('click', () => {
-        const resetLoading = showLoadingState(button);
-
-        // Reset after 5 seconds as fallback
-        setTimeout(resetLoading, 5000);
+          // Add visual feedback
+          const slider = switchInput.nextElementSibling;
+          if (slider) {
+            slider.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+              slider.style.transform = 'scale(1)';
+            }, 100);
+          }
+        });
       });
-    });
 
-    // Add confirmation for bulk actions (future enhancement)
-    function initializeBulkActions() {
-      // Placeholder for future bulk action functionality
-      console.log(`[2025-09-03 15:22:48] Bulk actions initialized by MathDaenniel`);
+      console.log(`[2025-09-16 07:32:51] Switch enhancements initialized by MathDaenniel`);
     }
 
-    // Initialize bulk actions
-    initializeBulkActions();
+    // Initialize switch enhancements
+    initializeSwitchEnhancements();
 
     // Enhanced accessibility features
     function initializeAccessibility() {
@@ -2062,34 +2327,11 @@
         });
       });
 
-      console.log(`[2025-09-03 15:22:48] Accessibility features initialized by MathDaenniel`);
+      console.log(`[2025-09-16 07:32:51] Accessibility features initialized by MathDaenniel`);
     }
 
     // Initialize accessibility
     initializeAccessibility();
-
-    // Add table sorting functionality (future enhancement)
-    function initializeTableSorting() {
-      const headers = document.querySelectorAll('.stocks-table th');
-      headers.forEach(header => {
-        header.style.cursor = 'pointer';
-        header.title = `Click to sort by ${header.textContent}`;
-      });
-
-      console.log(`[2025-09-03 15:22:48] Table sorting placeholders initialized by MathDaenniel`);
-    }
-
-    // Initialize table sorting
-    initializeTableSorting();
-
-    // Add real-time inventory tracking (future enhancement)
-    function initializeRealtimeTracking() {
-      // Placeholder for WebSocket or polling-based real-time updates
-      console.log(`[2025-09-03 15:22:48] Real-time tracking initialized by MathDaenniel`);
-    }
-
-    // Initialize real-time tracking
-    initializeRealtimeTracking();
 
     // Performance monitoring
     function initializePerformanceMonitoring() {
@@ -2097,45 +2339,16 @@
 
       window.addEventListener('load', () => {
         const loadTime = performance.now() - startTime;
-        console.log(`[2025-09-03 15:22:48] Page load time: ${Math.round(loadTime)}ms by MathDaenniel`);
+        console.log(`[2025-09-16 07:32:51] Page load time: ${Math.round(loadTime)}ms by MathDaenniel`);
       });
     }
 
     // Initialize performance monitoring
     initializePerformanceMonitoring();
 
-    // Data persistence for form drafts (future enhancement)
-    function initializeFormPersistence() {
-      const forms = [ingredientModalForm, addonModalForm];
-
-      forms.forEach((form, index) => {
-        if (form) {
-          const formType = index === 0 ? 'ingredient' : 'addon';
-          const storageKey = `draft_${formType}_form`;
-
-          // Save draft on input
-          form.addEventListener('input', debounce(() => {
-            const formData = new FormData(form);
-            const data = Object.fromEntries(formData);
-            localStorage.setItem(storageKey, JSON.stringify(data));
-          }, 1000));
-
-          // Clear draft on successful submit
-          form.addEventListener('submit', () => {
-            localStorage.removeItem(storageKey);
-          });
-        }
-      });
-
-      console.log(`[2025-09-03 15:22:48] Form persistence initialized by MathDaenniel`);
-    }
-
-    // Initialize form persistence
-    initializeFormPersistence();
-
     // Error boundary for JavaScript errors
     window.addEventListener('error', (event) => {
-      console.error(`[2025-09-03 15:22:48] JavaScript error caught by MathDaenniel:`, {
+      console.error(`[2025-09-16 07:32:51] JavaScript error caught by MathDaenniel:`, {
         message: event.message,
         filename: event.filename,
         lineno: event.lineno,
@@ -2144,48 +2357,13 @@
       });
     });
 
-    // Service worker registration (future enhancement)
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        // Placeholder for service worker registration
-        console.log(`[2025-09-03 15:22:48] Service worker support detected by MathDaenniel`);
-      });
-    }
-
-    // Switch interaction enhancements
-    function initializeSwitchEnhancements() {
-      // Add visual feedback for switch interactions
-      document.querySelectorAll('.switch-input').forEach(switchInput => {
-        switchInput.addEventListener('change', () => {
-          // Add haptic feedback for mobile devices
-          if (navigator.vibrate) {
-            navigator.vibrate(50);
-          }
-
-          // Add visual feedback
-          const slider = switchInput.nextElementSibling;
-          if (slider) {
-            slider.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-              slider.style.transform = 'scale(1)';
-            }, 100);
-          }
-        });
-      });
-
-      console.log(`[2025-09-03 15:22:48] Switch enhancements initialized by MathDaenniel`);
-    }
-
-    // Initialize switch enhancements
-    initializeSwitchEnhancements();
-
     // Advanced inventory management features
     function initializeAdvancedFeatures() {
       // Category-based filtering
       const categoryFilters = new Set();
-      document.querySelectorAll('.table-input[data-field="category"]').forEach(input => {
-        if (input.value && input.value.trim()) {
-          categoryFilters.add(input.value.trim());
+      document.querySelectorAll('.category-display-table').forEach(display => {
+        if (display.textContent && display.textContent.trim()) {
+          categoryFilters.add(display.textContent.trim());
         }
       });
 
@@ -2200,10 +2378,10 @@
       });
 
       if (lowStockItems > 0) {
-        console.log(`[2025-09-03 15:22:48] Low stock alert: ${lowStockItems} items below threshold by MathDaenniel`);
+        console.log(`[2025-09-16 07:32:51] Low stock alert: ${lowStockItems} items below threshold by MathDaenniel`);
       }
 
-      console.log(`[2025-09-03 15:22:48] Advanced features initialized - Categories: ${categoryFilters.size}, Low stock: ${lowStockItems} by MathDaenniel`);
+      console.log(`[2025-09-16 07:32:51] Advanced features initialized - Categories: ${categoryFilters.size}, Low stock: ${lowStockItems} by MathDaenniel`);
     }
 
     // Initialize advanced features
@@ -2225,20 +2403,21 @@
       // Check for session timeout periodically
       setInterval(() => {
         if (Date.now() - lastActivity > activityTimeout) {
-          console.log(`[2025-09-03 15:22:48] User session timeout detected by MathDaenniel`);
+          console.log(`[2025-09-16 07:32:51] User session timeout detected by MathDaenniel`);
           // Could implement auto-save or session warning here
         }
       }, 60000); // Check every minute
 
-      console.log(`[2025-09-03 15:22:48] Session management initialized by MathDaenniel`);
+      console.log(`[2025-09-16 07:32:51] Session management initialized by MathDaenniel`);
     }
 
     // Initialize session management
     initializeSessionManagement();
 
     // Final system initialization log
-    console.log(`[2025-09-03 15:22:48] Inventory Management System V3.0 fully loaded by MathDaenniel`);
-    console.log(`[2025-09-03 15:22:48] Features: Clean Switch UI, No User Display Fields, Enhanced UX, Full Accessibility by MathDaenniel`);
-    console.log(`[2025-09-03 15:22:48] System Status: Ready for production use by MathDaenniel`);
+    console.log(`[2025-09-16 07:32:51] Enhanced Inventory Management System V6.0 fully loaded by MathDaenniel`);
+    console.log(`[2025-09-16 07:32:51] Features: Fixed Prefix/Category, Fixed Navbar Scrolling, Enhanced UX, Full Accessibility by MathDaenniel`);
+    console.log(`[2025-09-16 07:32:51] Repository: roviczzz/Couche-Co by MathDaenniel`);
+    console.log(`[2025-09-16 07:32:51] System Status: Ready for production use by MathDaenniel`);
   });
 </script>
