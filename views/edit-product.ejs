@@ -40,20 +40,19 @@
 
   .form-input, select {
     width: 100%;
-    padding: 14px 16px;
+    padding: 14px;
     margin-top: 6px;
     font-size: 15px;
     border: 1px solid #d7ccc8;
-    border-radius: 12px;
-    background-color: #fff;
+    border-radius: 10px;
     box-sizing: border-box;
-    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    transition: border-color 0.3s, box-shadow 0.3s;
   }
 
   .form-input:focus, select:focus {
     outline: none;
     border-color: #8d6e63;
-    box-shadow: 0 0 8px rgba(141,110,99,0.35);
+    box-shadow: 0 0 6px rgba(141,110,99,0.4);
   }
 
   .price-row {
@@ -61,50 +60,22 @@
     gap: 16px;
     margin-top: 6px;
   }
-  .price-row input { flex: 1; }
-
-  /* Chips container */
-  .chips-wrapper {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-    padding: 10px;
-    border: 1px solid #d7ccc8;
-    border-radius: 12px;
-    min-height: 48px;
-    cursor: text;
-  }
-
-  /* Each chip */
-  .chip {
-    background: #f5f5f5;
-    border-radius: 20px;
-    padding: 6px 12px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 14px;
-  }
-  .chip button {
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    font-weight: bold;
-    color: #666;
-  }
-
-  /* Ingredient input inside chips */
-  .chips-wrapper input {
-    border: none;
-    outline: none;
+  .price-row input {
     flex: 1;
-    min-width: 120px;
-    font-size: 14px;
-    padding: 6px;
   }
 
-  /* Suggestions dropdown */
+  .ingredient-container {
+    position: relative;
+    width: 100%;
+  }
+  #ingredientInput {
+    width: 100%;
+    padding: 14px;
+    font-size: 15px;
+    border: 1px solid #d7ccc8;
+    border-radius: 10px;
+    box-sizing: border-box;
+  }
   #suggestions {
     background: #fff;
     border: 1px solid #ccc;
@@ -117,15 +88,15 @@
     width: 100%;
     z-index: 1000;
     box-sizing: border-box;
-    border-radius: 0 0 12px 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border-radius: 0 0 10px 10px;
   }
   #suggestions div {
-    padding: 10px 14px;
+    padding: 8px 12px;
     cursor: pointer;
-    font-size: 14px;
   }
-  #suggestions div:hover { background: #f0f0f0; }
+  #suggestions div:hover {
+    background: #f0f0f0;
+  }
 
   .switch {
     position: relative;
@@ -133,11 +104,18 @@
     width: 50px;
     height: 26px;
   }
-  .switch input { opacity: 0; width: 0; height: 0; }
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
   .slider {
     position: absolute;
     cursor: pointer;
-    top: 0; left: 0; right: 0; bottom: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background-color: #c62828;
     transition: 0.3s;
     border-radius: 26px;
@@ -145,14 +123,20 @@
   .slider::before {
     position: absolute;
     content: "";
-    height: 22px; width: 22px;
-    left: 2px; bottom: 2px;
+    height: 22px;
+    width: 22px;
+    left: 2px;
+    bottom: 2px;
     background-color: white;
     transition: 0.3s;
     border-radius: 50%;
   }
-  .switch input:checked + .slider { background-color: #2e7d32; }
-  .switch input:checked + .slider::before { transform: translateX(24px); }
+  .switch input:checked + .slider {
+    background-color: #2e7d32;
+  }
+  .switch input:checked + .slider::before {
+    transform: translateX(24px);
+  }
 
   .toggle {
     margin-top: 25px;
@@ -176,10 +160,22 @@
     text-decoration: none;
     color: white;
   }
-  .submit-button.update { background: #2e7d32; margin-top: 20px; }
-  .submit-button.update:hover { background: #1b5e20; transform: translateY(-2px); }
-  .submit-button.cancel { background: #c62828; margin-top: 12px; }
-  .submit-button.cancel:hover { background: #9f1708; transform: translateY(-2px); }
+  .submit-button.update {
+    background: #2e7d32;
+    margin-top: 20px;
+  }
+  .submit-button.update:hover {
+    background: #1b5e20;
+    transform: translateY(-2px);
+  }
+  .submit-button.cancel {
+    background: #c62828;
+    margin-top: 12px;
+  }
+  .submit-button.cancel:hover {
+    background: #9b1c1c;
+    transform: translateY(-2px);
+  }
 
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(15px); }
@@ -193,6 +189,7 @@
   </div>
 
   <form id="editProductForm" action="/products/edit/<%= product._id %>" method="POST">
+
     <!-- Product Name -->
     <label class="form-label">Product Name</label>
     <input class="form-input" type="text" name="Name" value="<%= product.Name %>" required>
@@ -207,14 +204,12 @@
       <option value="Pastries" <%= product.Category === 'Pastries' ? 'selected' : '' %>>Pastries</option>
     </select>
 
-    <!-- Prices -->
+    <!-- Size Prices -->
     <div id="priceRow">
       <label class="form-label">Prices</label>
       <div class="price-row">
-        <input class="form-input" type="number" name="size16" step="0.01"
-          value="<%= product.Sizes?.find(s => s.Size === '16oz')?.BasePrice || '' %>" placeholder="16oz">
-        <input class="form-input" type="number" name="size22" step="0.01"
-          value="<%= product.Sizes?.find(s => s.Size === '22oz')?.BasePrice || '' %>" placeholder="22oz">
+        <input class="form-input" type="number" name="size16" step="0.01" value="<%= product.Sizes?.find(s => s.Size === '16oz')?.BasePrice || '' %>" placeholder="16oz">
+        <input class="form-input" type="number" name="size22" step="0.01" value="<%= product.Sizes?.find(s => s.Size === '22oz')?.BasePrice || '' %>" placeholder="22oz">
       </div>
     </div>
 
@@ -226,17 +221,8 @@
 
     <!-- Ingredients -->
     <label class="form-label">Ingredients</label>
-    <div class="ingredient-container" style="position: relative;">
-      <div class="chips-wrapper" id="chipsWrapper">
-        <% (ingredientDetails || []).forEach(ing => { %>
-          <div class="chip" data-id="<%= ing.IngredientID %>">
-            <span><%= ing.Name %></span>
-            <button type="button" onclick="removeChip(this)">×</button>
-            <input type="hidden" name="Ingredients[]" value="<%= ing.IngredientID %>">
-          </div>
-        <% }) %>
-        <input type="text" id="ingredientInput" placeholder="Type to add ingredient..." autocomplete="off">
-      </div>
+    <div class="ingredient-container">
+      <input type="text" id="ingredientInput" name="Ingredients" value="<%= product.Ingredients ? product.Ingredients.join(', ') : '' %>" autocomplete="off">
       <div id="suggestions"></div>
     </div>
 
@@ -253,7 +239,7 @@
     <label class="form-label">Image Link</label>
     <input class="form-input" type="text" name="imagelink" value="<%= product.imagelink || '' %>">
 
-    <!-- Enabled -->
+    <!-- Enabled Switch -->
     <div class="toggle">
       <label class="switch">
         <input type="checkbox" name="isEnabled" value="true" <%= product.isEnabled ? 'checked' : '' %>>
@@ -269,7 +255,7 @@
 </div>
 
 <script>
-  // Category toggle
+  // Toggle Base Price / Size Prices
   const categorySelect = document.getElementById("categorySelect");
   const basePriceContainer = document.getElementById("basePriceContainer");
   const priceRow = document.getElementById("priceRow");
@@ -286,25 +272,25 @@
   categorySelect.addEventListener("change", toggleFields);
   window.onload = toggleFields;
 
-  // Ingredient chips + autocomplete
+  // Ingredient autocomplete
   const ingredientInput = document.getElementById("ingredientInput");
   const suggestionsBox = document.getElementById("suggestions");
-  const chipsWrapper = document.getElementById("chipsWrapper");
 
   ingredientInput.addEventListener("input", async () => {
-    const query = ingredientInput.value.trim();
+    const query = ingredientInput.value.split(",").pop().trim();
     suggestionsBox.innerHTML = "";
-    if (!query) return;
+    if (query.length === 0) return;
 
     try {
       const res = await fetch(`/ingredients/search?q=${encodeURIComponent(query)}`);
       const results = await res.json();
       results.forEach(item => {
         const div = document.createElement("div");
-        div.textContent = item.Name;
+        div.textContent = item;
         div.addEventListener("click", () => {
-          addChip(item.IngredientID, item.Name);
-          ingredientInput.value = "";
+          let current = ingredientInput.value.split(",").map(v => v.trim()).filter(v => v);
+          current[current.length - 1] = item;
+          ingredientInput.value = current.join(", ") + ", ";
           suggestionsBox.innerHTML = "";
         });
         suggestionsBox.appendChild(div);
@@ -315,22 +301,8 @@
   });
 
   document.addEventListener("click", (e) => {
-    if (e.target !== ingredientInput) suggestionsBox.innerHTML = "";
+    if (e.target !== ingredientInput) {
+      suggestionsBox.innerHTML = "";
+    }
   });
-
-  function addChip(id, name) {
-    if ([...chipsWrapper.querySelectorAll(".chip")].some(c => c.dataset.id === id)) return;
-
-    const chip = document.createElement("div");
-    chip.className = "chip";
-    chip.dataset.id = id;
-    chip.innerHTML = `<span>${name}</span>
-      <button type="button" onclick="removeChip(this)">×</button>
-      <input type="hidden" name="Ingredients[]" value="${id}">`;
-    chipsWrapper.insertBefore(chip, ingredientInput);
-  }
-
-  function removeChip(btn) {
-    btn.parentElement.remove();
-  }
 </script>
