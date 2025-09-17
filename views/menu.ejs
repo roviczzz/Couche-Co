@@ -165,50 +165,124 @@ menuItems.forEach(item => {
     </div>
 </div>
 
+<div id="promotion-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;z-index:1001;">
+    <div style="background:#fff;border-radius:16px;min-width:320px;max-width:400px;width:90vw;box-shadow:0 8px 32px rgba(0,0,0,0.2);padding:24px;text-align:center;">
+        <div style="font-size:24px;margin-bottom:16px;">🎉</div>
+        <div style="font-size:20px;font-weight:700;color:#8B4513;margin-bottom:12px;">Promotion Applied!</div>
+        <div style="font-size:16px;color:#333;margin-bottom:20px;">Your drinks have been upgraded to 22oz for free!</div>
+        <button onclick="closePromotionModal()" style="padding:12px 24px;border:none;border-radius:8px;background:#8B4513;color:#fff;font-size:16px;font-weight:600;cursor:pointer;">Great!</button>
+    </div>
+</div>
 
-<div id="order-confirm-modal" class="hidden">
-    <div class="modal-content">
-        <h2>Confirm your order</h2>
-        <p id="confirm-message" style="margin-bottom: 20px;"></p>
-        <button id="confirm-submit-btn">Confirm</button>
-        <button id="confirm-cancel-btn">Cancel</button>
+<!-- B1T1 Drink Selection Modal -->
+<div id="b1t1-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;z-index:1002;">
+    <div style="background:#fff;border-radius:16px;min-width:320px;max-width:500px;width:90vw;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.15);display:flex;flex-direction:column;">
+        <div style="padding:20px;border-bottom:1px solid #f0f0f0;position:relative;">
+            <div style="font-size:18px;font-weight:600;color:#333;">Select Your Free Drink</div>
+            <div style="font-size:14px;color:#666;margin-top:4px;">Choose a drink from the same category</div>
+            <button onclick="closeB1T1Modal()" style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;color:#666;">&times;</button>
+        </div>
+        <div id="b1t1-drink-options" style="padding:16px;display:flex;flex-direction:column;gap:12px;">
+            <!-- Drink options will be populated here -->
+        </div>
+        <div style="padding:16px;border-top:1px solid #f0f0f0;display:flex;justify-content:flex-end;gap:12px;">
+            <button onclick="closeB1T1Modal()" style="padding:10px 20px;border:1px solid #ddd;background:#fff;border-radius:8px;cursor:pointer;">Cancel</button>
+        </div>
     </div>
 </div>
 
 <!-- Xendit Payment Modal -->
-<div id="xendit-payment-modal" class="hidden">
-    <div class="modal-content" style="max-width: 500px; width: 90%;">
-        <h2>Complete Payment</h2>
-        <p>Please complete your payment using the QR code or link below:</p>
-        <div id="payment-link-container" style="margin: 20px 0; text-align: center;">
-            <div id="loading-payment" style="margin: 20px 0;">
-                <div class="spinner"></div>
-                <p>Generating payment link...</p>
-            </div>
-            <div id="payment-details" class="hidden">
-                <p><strong>Amount:</strong> ₱<span id="payment-amount"></span></p>
-                <div style="margin: 15px 0;">
-                    <a id="payment-link" href="#" target="_blank" style="display: inline-block; padding: 12px 24px; background: #007bff; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">
-                        Open Payment Link
-                    </a>
-                </div>
-                <p style="font-size: 14px; color: #666; margin-top: 15px;">
-                    The payment link will open in a new window. Please complete the payment and return to this page.
-                </p>
-            </div>
+<div id="xendit-payment-modal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+    <div style="background: white; border-radius: 12px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; position: relative;">
+        <div style="padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0;">Complete Your Payment</h3>
+            <button id="close-payment-modal" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
         </div>
-        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
-            <button id="check-payment-status" class="hidden" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer;">
-                Check Payment Status
-            </button>
-            <button id="close-payment-modal" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer;">
-                Cancel
-            </button>
+
+        <!-- Loading State -->
+        <div id="loading-payment" style="padding: 40px; text-align: center; display: none;">
+            <div class="spinner" style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #8B4513; border-radius: 50%; margin: 0 auto 20px; animation: spin 1s linear infinite;"></div>
+            <p>Processing your payment...</p>
+        </div>
+
+        <!-- Payment Content -->
+        <div id="payment-details" style="padding: 20px;">
+            <!-- Dynamic content will be inserted here -->
+        </div>
+
+        <div style="padding: 15px; background: #f9f9f9; border-top: 1px solid #eee; text-align: right;">
+            <button id="close-payment-modal-btn" style="padding: 8px 16px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">Close</button>
         </div>
     </div>
 </div>
 
+<!-- Xendit Payment Gateway Modal -->
+<div id="xendit-gateway-modal" class="modal hidden" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 2001; display: flex; align-items: center; justify-content: center;">
+  <div class="modal-content" style="background: white; border-radius: 12px; width: 90%; max-width: 400px; max-height: 80vh; overflow-y: auto; position: relative; text-align: center; padding: 30px 20px;">
+    <h3 style="margin-top:0;">Complete Payment</h3>
+    <div style="margin-bottom: 10px; color: #444;">Please complete your payment using the link below:</div>
+    <div id="xendit-gateway-loading" style="margin: 30px 0; display: none;">
+      <div class="spinner" style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #8B4513; border-radius: 50%; margin: 0 auto 20px; animation: spin 1s linear infinite;"></div>
+      <div>Generating payment link...</div>
+    </div>
+    <div id="xendit-gateway-details" style="display: none;">
+      <div style="margin-bottom: 10px;">
+        <strong>Amount:</strong> ₱<span id="xendit-payment-amount">0.00</span>
+      </div>
+      <div style="margin-bottom: 10px;">
+        <a id="xendit-payment-link" href="#" target="_blank" style="display: inline-block; padding: 10px 20px; background: #8B4513; color: #fff; border-radius: 4px; text-decoration: none; font-weight: 500;">Open Payment Link</a>
+      </div>
+      <div style="font-size: 13px; color: #888; margin-bottom: 18px;">The payment link will open in a new window. Please complete the payment and return to this page.</div>
+      <button id="xendit-check-payment-status" style="background: #4caf50; color: #fff; margin-right: 8px;">Check Payment Status</button>
+      <button id="xendit-cancel-gateway" style="background: #ccc; color: #222;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<style>
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .payment-button {
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: #8B4513;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        margin-top: 15px;
+        font-weight: 500;
+        transition: background-color 0.2s;
+    }
+
+    .payment-button:hover {
+        background-color: #6d360d;
+    }
+
+    .payment-instructions {
+        text-align: center;
+        padding: 15px 0;
+    }
+
+    .payment-details {
+        background: #f8f8f8;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 15px 0;
+        text-align: left;
+    }
+
+    .payment-details p {
+        margin: 8px 0;
+    }
+</style>
+
 <script>
+    // Initialize allProducts with the menu items from the server
+    const allProducts = <%- JSON.stringify(menuItems) || '[]' %>;
+
     document.getElementById('toggle-notes-btn').onclick = function() {
         const ta = document.getElementById('notes-textarea');
         if (ta.style.display === 'block') {
@@ -223,29 +297,87 @@ menuItems.forEach(item => {
     let orderItems = [];
     let currentPaymentId = null;
 
+    function checkAndApplyPromotion() {
+        let drinkCount = 0;
+        orderItems.forEach(item => {
+            // Only count non-pastry items that are not free B1T1 items
+            if (item.category !== 'Pastries' && !item.isB1T1) {
+                drinkCount += item.quantity;
+            }
+        });
+
+        let promotionApplied = false;
+        let itemsToUpgrade = [];
+
+        if (drinkCount >= 3) {
+            const upgradeCount = Math.floor(drinkCount / 3);
+            let currentCount = 0;
+
+            orderItems.forEach((item, index) => {
+                // Only upgrade non-pastry items that are not free B1T1 items
+                if (item.category !== 'Pastries' && !item.isB1T1 && currentCount < upgradeCount) {
+                    let itemUpgradeCount = Math.min(item.quantity, upgradeCount - currentCount);
+                    if (item.size !== '22oz' && itemUpgradeCount > 0) {
+                        itemsToUpgrade.push({ index, upgradeCount: itemUpgradeCount });
+                        promotionApplied = true;
+                    }
+                    currentCount += itemUpgradeCount;
+                }
+            });
+
+            if (promotionApplied) {
+                itemsToUpgrade.forEach(upgrade => {
+                    orderItems[upgrade.index].size = '22oz';
+                });
+                showPromotionModal();
+                renderOrderItems();
+                updateSummary();
+            }
+        }
+    }
+
+    function showPromotionModal() {
+        const modal = document.getElementById('promotion-modal');
+        modal.style.display = 'flex';
+    }
+
+    function closePromotionModal() {
+        const modal = document.getElementById('promotion-modal');
+        modal.style.display = 'none';
+    }
+
     function updateSummary() {
         let promoQuantity = 0;
         let promoSets = 0;
         let pastryTotal = 0;
         const promoItemsExp = [];
+
+        // First calculate totals for non-promo items (pastries and B1T1 items)
         orderItems.forEach(item => {
-            if (item.category !== 'Pastries') {
-                for(let i = 0; i < item.quantity; i++) {
-                    promoItemsExp.push(item.price + (item.addons ? item.addons.reduce((sum, ad) => sum + ad.BasePrice, 0) : 0));
-                }
-            } else {
+            if (item.category === 'Pastries' || item.isB1T1) {
+                // Pastries and B1T1 items are not part of the 143 for 3 promo
                 pastryTotal += (item.price + (item.addons ? item.addons.reduce((sum, ad) => sum + ad.BasePrice, 0) : 0)) * item.quantity;
+            } else {
+                // Regular drinks (not B1T1) are part of the promo
+                const itemPrice = item.price + (item.addons ? item.addons.reduce((sum, ad) => sum + ad.BasePrice, 0) : 0);
+                for(let i = 0; i < item.quantity; i++) {
+                    promoItemsExp.push(itemPrice);
+                }
             }
         });
+
+        // Calculate promo sets and leftover items
         promoQuantity = promoItemsExp.length;
         promoSets = Math.floor(promoQuantity / 3);
         const promoTotalPrice = promoSets * 143;
         const leftoverCount = promoQuantity % 3;
         let leftoverPrice = 0;
+
+        // Calculate price for leftover items (most expensive ones)
         if(leftoverCount > 0) {
-            promoItemsExp.sort((a,b) => a - b);
-            for(let i = promoQuantity - leftoverCount; i < promoQuantity; i++) {
-                leftoverPrice += promoItemsExp[i];
+            promoItemsExp.sort((a,b) => b - a); // Sort descending to get most expensive items first
+            for(let i = 0; i < leftoverCount; i++) {
+                leftoverPrice += promoItemsExp[i] || 0;
             }
         }
         let subtotalPromoApplied = promoTotalPrice + leftoverPrice + pastryTotal;
@@ -342,33 +474,67 @@ menuItems.forEach(item => {
         }
     }
 
-    function addToOrder(name, price, size = null, category = null, productId = null, addons = [], imagelink = '') {
-        const key = size ? `${name} - ${size} - ${JSON.stringify(addons.map(a => a.AddOnID).sort())}` : `${name} - ${JSON.stringify(addons.map(a => a.AddOnID).sort())}`;
-        let existingItem = orderItems.find(item => item.key === key);
-
-        if (existingItem) {
-            existingItem.quantity++;
-        } else {
+    function addToOrder(name, price, size = null, category = null, productId = null, addons = [], imagelink = '', isFree = false, originalItemIndex = null) {
+        // For B1T1 items, always create a new order item with a unique key
+        if (isFree) {
+            // Create a unique key for B1T1 items to prevent combining
+            const uniqueKey = `${name}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
             orderItems.push({
                 name,
-                size,
-                price,
+                size: size || '16oz',
+                price: 0, // Ensure price is 0 for B1T1 items
                 quantity: 1,
-                key,
+                key: uniqueKey,
                 category,
                 productId,
-                addons,
-                imagelink
+                addons: [...addons], // Create a new array to avoid reference issues
+                imagelink,
+                isFree: true,
+                originalItemIndex,
+                isB1T1: true // Add a flag to identify B1T1 items
             });
+        } else {
+            // For regular items, check if we can combine with existing items
+            const key = size ?
+                `${name} - ${size} - ${JSON.stringify(addons.map(a => a.AddOnID).sort())}` :
+                `${name} - ${JSON.stringify(addons.map(a => a.AddOnID).sort())}`;
+
+            let existingItem = orderItems.find(item =>
+                item.key === key &&
+                !item.isB1T1 && // Don't combine with B1T1 items
+                item.originalItemIndex === null // Don't combine with items that are part of B1T1
+            );
+
+            if (existingItem) {
+                existingItem.quantity++;
+            } else {
+                orderItems.push({
+                    name,
+                    size,
+                    price,
+                    quantity: 1,
+                    key,
+                    category,
+                    productId,
+                    addons: [...addons],
+                    imagelink,
+                    isFree: false,
+                    originalItemIndex: null,
+                    isB1T1: false
+                });
+            }
         }
+
         renderOrderItems();
         updateSummary();
+        checkAndApplyPromotion();
     }
 
     function addItem(index) {
         orderItems[index].quantity++;
         renderOrderItems();
         updateSummary();
+        checkAndApplyPromotion();
     }
 
     function removeItem(index) {
@@ -381,12 +547,158 @@ menuItems.forEach(item => {
         updateSummary();
     }
 
+    function changeSizeFromDropdown(index, newSize) {
+        const item = orderItems[index];
+        const newKey = `${item.name} - ${newSize} - ${JSON.stringify(item.addons ? item.addons.map(a => a.AddOnID).sort() : [])}`;
+
+        let existingItem = orderItems.find((orderItem, idx) => orderItem.key === newKey && idx !== index);
+
+        if (existingItem) {
+            existingItem.quantity += item.quantity;
+            orderItems.splice(index, 1);
+        } else {
+            orderItems[index].size = newSize;
+            orderItems[index].key = newKey;
+        }
+
+        renderOrderItems();
+        updateSummary();
+    }
+
+    function getDrinksInSameCategory(category) {
+        console.log('getDrinksInSameCategory called with category:', category);
+
+        if (!Array.isArray(allProducts)) {
+            console.error('allProducts is not an array');
+            return [];
+        }
+
+        console.log('All available categories:', [...new Set(allProducts.map(p => p.Category || p.category))]);
+
+        const drinks = allProducts.filter(product => {
+            if (!product) return false;
+
+            // Normalize product properties
+            const productName = (product.Name || product.name || '').toLowerCase();
+            const productCategory = (product.Category || product.category || '').toLowerCase().trim();
+            const productType = (product.Type || product.type || '').toLowerCase().trim();
+            const targetCategory = (category || '').toLowerCase().trim();
+
+            // Check if product is a beverage and not an add-on
+            const isBeverage = productType === 'beverage' || productType === 'drink' ||
+                (!productType && (productCategory.includes('tea') || productCategory.includes('coffee') || productCategory.includes('drink')));
+            const isAddOn = productName.includes('add-on') || productName.includes('add on');
+
+            // Check category match (case insensitive and trimmed)
+            const categoryMatches = productCategory === targetCategory;
+
+            const matches = categoryMatches && isBeverage && !isAddOn;
+
+            if (matches) {
+                console.log('Matching product:', {
+                    name: product.Name || product.name,
+                    category: product.Category || product.category,
+                    type: product.Type || product.type
+                });
+            }
+
+            return matches;
+        });
+
+        console.log('Found', drinks.length, 'matching drinks in category', category);
+        console.log('All products for debugging:', allProducts);
+        return drinks;
+    }
+
+    let currentB1T1Item = null;
+
+    function showB1T1Modal(index) {
+        console.log('showB1T1Modal called with index:', index);
+        currentB1T1Item = orderItems[index];
+        console.log('Current item:', currentB1T1Item);
+
+        const sameCategoryDrinks = getDrinksInSameCategory(currentB1T1Item.category);
+        console.log('Drinks in same category:', sameCategoryDrinks);
+
+        const modal = document.getElementById('b1t1-modal');
+        const optionsContainer = document.getElementById('b1t1-drink-options');
+        optionsContainer.innerHTML = '';
+
+        if (sameCategoryDrinks.length === 0) {
+            optionsContainer.innerHTML = '<div style="padding:20px;text-align:center;color:#666;">No drinks available in this category.</div>';
+            modal.style.display = 'flex';
+            return;
+        }
+
+        sameCategoryDrinks.forEach((drink, idx) => {
+            const drinkName = drink.Name || drink.name;
+            const drinkImage = drink.imagelink || 'https://via.placeholder.com/50x50?text=No+Image';
+
+            const drinkElement = document.createElement('div');
+            drinkElement.style.display = 'flex';
+            drinkElement.style.alignItems = 'center';
+            drinkElement.style.padding = '12px';
+            drinkElement.style.border = '1px solid #eee';
+            drinkElement.style.borderRadius = '8px';
+            drinkElement.style.cursor = 'pointer';
+            drinkElement.style.transition = 'all 0.2s';
+            drinkElement.onmouseover = () => drinkElement.style.backgroundColor = '#f9f9f9';
+            drinkElement.onmouseout = () => drinkElement.style.backgroundColor = '#fff';
+            drinkElement.onclick = () => selectB1T1Drink(drink);
+
+            drinkElement.innerHTML = `
+                <img src="${drinkImage}" alt="${drinkName}" style="width:50px;height:50px;border-radius:8px;object-fit:cover;margin-right:12px;">
+                <div>
+                    <div style="font-weight:500;color:#333;">${drinkName}</div>
+                    <div style="font-size:12px;color:#666;">${drink.Category || ''}</div>
+                </div>
+            `;
+
+            optionsContainer.appendChild(drinkElement);
+        });
+
+        modal.style.display = 'flex';
+    }
+
+    function closeB1T1Modal() {
+        document.getElementById('b1t1-modal').style.display = 'none';
+        currentB1T1Item = null;
+    }
+
+    function selectB1T1Drink(selectedDrink) {
+        if (!currentB1T1Item) return;
+
+        console.log('Selected free drink:', selectedDrink);
+
+        // Add the free drink with price 0
+        addToOrder(
+            selectedDrink.Name || selectedDrink.name,  // name
+            0,                                        // price (free)
+            currentB1T1Item.size || '16oz',           // size
+            selectedDrink.Category,                    // category
+            selectedDrink._id || selectedDrink.ProductID,  // productId
+            [],                                        // addons
+            selectedDrink.imagelink,                   // imagelink
+            true,                                     // isFree
+            orderItems.indexOf(currentB1T1Item)        // originalItemIndex
+        );
+
+        closeB1T1Modal();
+    }
+
     function renderOrderItems() {
         const container = document.getElementById('order-items');
         container.innerHTML = '';
         orderItems.forEach((item, index) => {
             const imgSrc = item.imagelink && item.imagelink !== "null" ? item.imagelink : 'https://via.placeholder.com/50x50?text=No+Image';
-            const sizeLabel = item.size ? `<div class="order-item-size">${item.size}</div>` : '';
+
+            const sizeDropdown = item.size && item.category !== 'Pastries' ?
+                `<select class="order-item-size-dropdown" onchange="changeSizeFromDropdown(${index}, this.value)" style="font-size: 12px; padding: 2px 4px; border: 1px solid #ccc; border-radius: 4px; background: white; color: #888;">
+                    <option value="16oz" ${item.size === '16oz' ? 'selected' : ''}>16oz</option>
+                    <option value="22oz" ${item.size === '22oz' ? 'selected' : ''}>22oz</option>
+                </select>` :
+                (item.size ? `<div class="order-item-size">${item.size}</div>` : '');
+
             const addonLabel = item.addons && item.addons.length > 0
                 ? `<div class="order-item-addons">+ ${item.addons.map(a => a.Name).join(', ')}</div>` : '';
             const baseAddonPrice = item.addons ? item.addons.reduce((sum, ad) => sum + ad.BasePrice, 0) : 0;
@@ -400,15 +712,19 @@ menuItems.forEach(item => {
                 <div class="order-item-main">
                     <div>
                         <div class="order-item-title">${item.name}</div>
-                        ${sizeLabel}
+                        ${sizeDropdown}
                         ${addonLabel}
+                        ${!item.isFree && item.category !== 'Pastries' && !orderItems.some((itm, idx) => itm.originalItemIndex === index) ?
+                `<button class="b1t1-btn" onclick="showB1T1Modal(${index})">+ Free B1T1 Drink</button>` :
+                item.isFree ? '<div class="free-badge">FREE</div>' : ''
+            }
                     </div>
-                    <div class="order-item-price">₱ ${totalPrice}</div>
+                    <div class="order-item-price">${item.isFree ? 'FREE B1T1' : '₱ ' + totalPrice}</div>
                 </div>
-                <div class="order-item-actions">
+                <div class="order-item-actions ${item.isFree ? 'disabled' : ''}">
                     <button class="quantity-btn remove-btn" onclick="removeItem(${index})">-</button>
                     <span class="order-item-qty">${item.quantity}</span>
-                    <button class="quantity-btn add-btn" onclick="addItem(${index})">+</button>
+                    ${item.isFree ? '' : `<button class="quantity-btn add-btn" onclick="addItem(${index})">+</button>`}
                 </div>
             </div>
         </div>
@@ -774,21 +1090,109 @@ menuItems.forEach(item => {
         const modal = document.getElementById('xendit-payment-modal');
         const loadingDiv = document.getElementById('loading-payment');
         const paymentDetails = document.getElementById('payment-details');
-        const paymentAmountSpan = document.getElementById('payment-amount');
-        const paymentLink = document.getElementById('payment-link');
-        const checkStatusBtn = document.getElementById('check-payment-status');
 
-        loadingDiv.classList.add('hidden');
-        paymentDetails.classList.remove('hidden');
+        // Safely update UI elements if they exist
+        if (loadingDiv) loadingDiv.classList.add('hidden');
+        if (paymentDetails) paymentDetails.classList.remove('hidden');
 
-        paymentAmountSpan.textContent = paymentData.amount.toFixed(2);
-        paymentLink.href = paymentData.invoice_url;
+        // Create payment instructions HTML
+        let paymentHtml = `
+            <div class="payment-instructions">
+                <h3>Payment Instructions</h3>
+                <div class="payment-details">
+                    <p><strong>Amount:</strong> ₱${paymentData.amount ? parseFloat(paymentData.amount).toFixed(2) : '0.00'}</p>
+                    <p><strong>Reference:</strong> ${paymentData.reference_id || 'N/A'}</p>
+                    <p><strong>Status:</strong> ${paymentData.status || 'Pending'}</p>
+                </div>
+        `;
 
-        currentPaymentId = paymentData.id;
-        checkStatusBtn.classList.remove('hidden');
+        // Add payment button if URL is available
+        if (paymentData.checkout_url || paymentData.invoice_url) {
+            const paymentUrl = paymentData.checkout_url || paymentData.invoice_url;
+            paymentHtml += `
+                <a href="${paymentUrl}" target="_blank" class="payment-button">
+                    Complete Payment
+                </a>
+            `;
+        }
 
-        modal.classList.remove('hidden');
+        paymentHtml += '</div>';
+
+        // Update payment details
+        if (paymentDetails) {
+            paymentDetails.innerHTML = paymentHtml;
+        }
+
+        currentPaymentId = paymentData.id || null;
+
+        if (modal) modal.classList.remove('hidden');
     }
+
+    function showXenditGatewayModal(paymentData) {
+    const modal = document.getElementById('xendit-gateway-modal');
+    const loadingDiv = document.getElementById('xendit-gateway-loading');
+    const detailsDiv = document.getElementById('xendit-gateway-details');
+    const paymentAmountSpan = document.getElementById('xendit-payment-amount');
+    const paymentLink = document.getElementById('xendit-payment-link');
+    const checkStatusBtn = document.getElementById('xendit-check-payment-status');
+    const cancelBtn = document.getElementById('xendit-cancel-gateway');
+
+    if (!modal || !loadingDiv || !detailsDiv || !paymentAmountSpan || !paymentLink || !checkStatusBtn || !cancelBtn) return;
+
+    loadingDiv.style.display = 'none';
+    detailsDiv.style.display = 'block';
+    paymentAmountSpan.textContent = paymentData.amount ? parseFloat(paymentData.amount).toFixed(2) : '0.00';
+    paymentLink.href = paymentData.invoice_url || paymentData.checkout_url || '#';
+    currentPaymentId = paymentData.id;
+    modal.classList.remove('hidden');
+
+    checkStatusBtn.onclick = async function() {
+        if (!currentPaymentId) return;
+        try {
+            const status = await checkPaymentStatus(currentPaymentId);
+            if (status.status === 'PAID') {
+                await fetch('/api/orders/update-payment-status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ paymentId: currentPaymentId, status: 'Completed' })
+                });
+                alert('Payment successful! Your order has been confirmed.');
+                modal.classList.add('hidden');
+                orderItems = [];
+                renderOrderItems();
+                document.getElementById('customer-name').value = '';
+                document.getElementById('contact-number').value = '';
+                document.getElementById('delivery-type').value = 'Take-Out';
+                document.getElementById('address-container').style.display = 'none';
+                document.getElementById('street-address').value = '';
+                document.getElementById('area-select').value = '';
+                document.getElementById('notes-textarea').value = '';
+                updateSummary();
+                document.querySelectorAll('.payment-option.selected').forEach(el => {
+                    el.classList.remove('selected');
+                    const check = el.querySelector('.payment-check');
+                    check.style.backgroundColor = '#ddd';
+                    if (check.querySelector('svg')) check.querySelector('svg').style.display = 'none';
+                });
+                currentPaymentId = null;
+            } else {
+                alert('Payment not yet completed. Please complete the payment and try again.');
+            }
+        } catch (error) {
+            alert('Error checking payment status. Please try again.');
+        }
+    };
+    cancelBtn.onclick = function() {
+        modal.classList.add('hidden');
+        currentPaymentId = null;
+    };
+}
+
+// Patch E-Payment flow to use new modal
+const origShowXenditPaymentModal = showXenditPaymentModal;
+showXenditPaymentModal = function(paymentData) {
+    showXenditGatewayModal(paymentData);
+};
 
     document.addEventListener('DOMContentLoaded', () => {
         const deliveryTypeSelect = document.getElementById('delivery-type');
@@ -1037,21 +1441,33 @@ menuItems.forEach(item => {
                 };
 
                 try {
+                    console.log('Starting payment process...');
                     // Show payment modal with loading
                     const modal = document.getElementById('xendit-payment-modal');
                     const loadingDiv = document.getElementById('loading-payment');
                     const paymentDetails = document.getElementById('payment-details');
 
+                    if (!modal || !loadingDiv || !paymentDetails) {
+                        throw new Error('Required payment elements not found');
+                    }
+
                     loadingDiv.classList.remove('hidden');
                     paymentDetails.classList.add('hidden');
                     modal.classList.remove('hidden');
 
+                    console.log('Creating Xendit payment...');
                     // Create Xendit payment
                     const paymentData = await createXenditPayment(orderData);
+                    console.log('Payment data:', paymentData);
+
+                    if (!paymentData || !paymentData.id) {
+                        throw new Error('Invalid payment data received from Xendit');
+                    }
 
                     // Show payment details
                     showXenditPaymentModal(paymentData);
 
+                    console.log('Submitting order to backend...');
                     // Submit order to backend
                     const response = await fetch('/api/orders', {
                         method: 'POST',
@@ -1059,19 +1475,41 @@ menuItems.forEach(item => {
                         body: JSON.stringify({ ...orderData, XenditPaymentID: paymentData.id })
                     });
 
+                    const responseData = await response.json();
+                    console.log('Backend response:', responseData);
+
                     if (!response.ok) {
-                        throw new Error(`Network response was not ok: ${response.status} ${response.statusText}`);
+                        throw new Error(`Server error: ${response.status} - ${responseData.error || 'Unknown error'}`);
                     }
 
-                    const result = await response.json();
-                    if (!result.success) {
-                        throw new Error(result.error || 'Unknown error from server.');
+                    if (!responseData.success) {
+                        throw new Error(responseData.error || 'Failed to process order');
                     }
+
+                    // If we get here, everything was successful
+                    console.log('Order submitted successfully');
+                    return true;
 
                 } catch (error) {
-                    console.error('Error processing payment:', error);
-                    alert('Error processing payment. Please try again.');
-                    document.getElementById('xendit-payment-modal').classList.add('hidden');
+                    console.error('Payment error:', {
+                        error: error.toString(),
+                        message: error.message,
+                        stack: error.stack
+                    });
+
+                    let errorMessage = 'Error processing payment. Please try again.';
+                    if (error.message.includes('NetworkError')) {
+                        errorMessage = 'Network error. Please check your connection and try again.';
+                    } else if (error.message.includes('Failed to fetch')) {
+                        errorMessage = 'Could not connect to the server. Please check your connection.';
+                    } else if (error.message) {
+                        errorMessage = error.message;
+                    }
+
+                    alert(errorMessage);
+                    const modal = document.getElementById('xendit-payment-modal');
+                    if (modal) modal.classList.add('hidden');
+                    return false;
                 }
             }
         } else {
@@ -1218,6 +1656,18 @@ menuItems.forEach(item => {
 
     document.addEventListener('DOMContentLoaded', () => {
         updateSummary();
+
+        // Close modal handlers
+        const closeModal = () => {
+            const modal = document.getElementById('xendit-payment-modal');
+            if (modal) modal.style.display = 'none';
+        };
+
+        const closeBtn = document.getElementById('close-payment-modal');
+        const closeModalBtn = document.getElementById('close-payment-modal-btn');
+
+        if (closeBtn) closeBtn.addEventListener('click', closeModal);
+        if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
     });
 
 </script>
@@ -1707,8 +2157,32 @@ menuItems.forEach(item => {
     }
     .order-item-addons {
         font-size: 12px;
-        color: #aa8544;
-        margin-bottom: 1px;
+        color: #666;
+        margin: 4px 0;
+    }
+    .b1t1-btn {
+        background: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 4px 8px;
+        font-size: 11px;
+        cursor: pointer;
+        margin-top: 4px;
+        transition: background 0.2s;
+    }
+    .b1t1-btn:hover {
+        background: #45a049;
+    }
+    .free-badge {
+        display: inline-block;
+        background: #4CAF50;
+        color: white;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: bold;
+        margin-left: 4px;
     }
     .order-item-price {
         font-weight: 700;
@@ -1722,6 +2196,12 @@ menuItems.forEach(item => {
         align-items: center;
         gap: 6px;
         margin-top: 4px;
+    }
+
+    .order-item-actions.disabled .quantity-btn:not(.remove-btn) {
+        opacity: 0.5;
+        pointer-events: none;
+        cursor: not-allowed;
     }
     .order-item-qty {
         padding: 0 6px;
@@ -1753,3 +2233,4 @@ menuItems.forEach(item => {
         color: white;
     }
 </style>
+
