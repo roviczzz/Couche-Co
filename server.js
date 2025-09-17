@@ -909,7 +909,7 @@ app.post('/addons', async (req, res) => {
   const { AddOnID, AddOnPrefix, AddOnSuffix, Name, Quantity, Category, Allergen, isEnabledAddon } = req.body;
 
   // V13 ENHANCEMENT: Fixed prefix handling
-  const finalPrefix = 'ADD'; // Always ADD for add-ons
+  const finalPrefix = 'AD'; // Always ADD for add-ons
   const finalCategory = 'Add-Ons'; // Always Add-Ons category
 
   // Determine the final AddOnID - combine prefix and suffix WITH dash for database storage
@@ -980,7 +980,7 @@ app.post('/addons/edit/:id', async (req, res) => {
   const { AddOnID, AddOnPrefix, AddOnSuffix, Name, Quantity, Category, Allergen, isEnabled } = req.body;
 
   // V13 ENHANCEMENT: Fixed prefix and category handling
-  const finalPrefix = 'ADD'; // Always ADD for add-ons
+  const finalPrefix = 'AD'; // Always ADD for add-ons
   const finalCategory = 'Add-Ons'; // Always Add-Ons category
 
   // Determine the final AddOnID
