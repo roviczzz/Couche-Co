@@ -281,7 +281,7 @@ menuItems.forEach(item => {
 
 <script>
     // Initialize allProducts with the menu items from the server
-    const allProducts = <%- JSON.stringify(menuItems) || '[]' %>;
+    const allProducts = JSON.stringify(menuItems) || '[]';
 
     document.getElementById('toggle-notes-btn').onclick = function() {
         const ta = document.getElementById('notes-textarea');
