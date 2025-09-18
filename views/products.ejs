@@ -26,11 +26,12 @@
               data-category="<%= product.Category %>" 
               data-enabled="<%= product.isEnabled %>">
             <div class="product-image">
-              <% if (product.imagelink && product.imagelink !== "placeholder") { %>
-                <img src="<%= product.imagelink %>" alt="<%= product.Name %>" />
-              <% } else { %>
-                <img src="https://via.placeholder.com/200x200" alt="Placeholder" />
-              <% } %>
+             <% if (product.imagelink && product.imagelink !== "placeholder") { %>
+  <img src="<%= product.imagelink %>" alt="<%= product.Name %>" />
+<% } else { %>
+  <img src="https://via.placeholder.com/200x200" alt="Placeholder" />
+<% } %>
+
             </div>
             <div class="product-name"><%= product.Name %></div>
 
@@ -49,7 +50,7 @@
 <div id="addProductModal" class="custom-confirm hidden">
   <div class="confirm-box add-form-box">
     <h2>Add Product</h2>
-    <form id="addProductForm" action="/products/add" method="POST">
+    <form id="addProductForm" action="/products/add" method="POST" enctype="multipart/form-data">
       <div class="form-grid">
         <div class="form-group">
           <label class="form-label">Category</label>
@@ -105,9 +106,10 @@
         </select>
       </div>
 
+      <!-- ✅ changed from text to file -->
       <div class="form-group">
-        <label class="form-label">Image Link</label>
-        <input class="form-input" type="text" name="imagelink">
+        <label class="form-label">Upload Image</label>
+        <input class="form-input" type="file" name="imagelink" id="imagelink" accept="image/*" required>
       </div>
 
       <div class="form-group toggle">
@@ -130,7 +132,7 @@
 <div id="editProductModal" class="custom-confirm hidden">
   <div class="confirm-box add-form-box">
     <h2>Edit Product</h2>
-    <form id="editProductForm" method="POST">
+    <form id="editProductForm" method="POST" enctype="multipart/form-data">
       <div class="form-grid">
         <div class="form-group">
           <label class="form-label">Category</label>
@@ -170,9 +172,12 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label">Image Link</label>
-        <input class="form-input" type="text" name="imagelink" id="editImage">
-      </div>
+  <label for="imagelink">Product Image</label>
+  <input type="file" name="imagelink" id="editImageFile" accept="image/*">
+  
+  <!-- Placeholder for current image preview -->
+  <div id="editImagePreview" style="margin-top:10px;"></div>
+</div>
 
       <div class="form-group toggle">
         <label class="switch">
@@ -761,16 +766,14 @@ body {
 }
 
 .sidebar {
-  position: fixed;  
+  position: relative;  
   top: 0;
   left: 0;
   height: 100%;      
   z-index: 200;     
 }
 
-.main-content {
-  margin-left: 220px; 
-}
+
 
 
 #suggestions div {

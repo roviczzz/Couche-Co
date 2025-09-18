@@ -12,6 +12,8 @@ const client = new MongoClient(uri);
 const flash = require('connect-flash');
 const favicon = require('serve-favicon');
 const path = require('path');
+const multer = require('multer');
+
 
 // BCRYPT CONFIGURATION
 const SALT_ROUNDS = 12; // Higher security with 12 rounds
@@ -406,7 +408,21 @@ app.post('/toggle-availability/:id', async (req, res) => {
   }
 });
 
-app.post('/products/add', async (req, res) => {
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/'); // folder where images are stored
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname)); // unique name
+  }
+});
+
+const upload = multer({ storage: storage });
+
+// Make the uploads folder accessible
+app.use('/uploads', express.static('uploads'));
+
+app.post('/products/add', upload.single('imagelink'), async (req, res) => {
   const {
     categoryShortcut, // CF, MT, FT, BK
     productCode,
@@ -415,7 +431,6 @@ app.post('/products/add', async (req, res) => {
     size22,
     Ingredients,
     Allergen,
-    imagelink,
     isEnabled,
     BasePrice
   } = req.body;
@@ -446,6 +461,7 @@ app.post('/products/add', async (req, res) => {
       ? Ingredients.split(',').map(i => i.trim())
       : [];
 
+  // ✅ Use uploaded file instead of textbox
   const productData = {
     ProductID,
     Name,
@@ -453,13 +469,13 @@ app.post('/products/add', async (req, res) => {
     Ingredients: ingredientsArray,
     Category, // full name now
     Allergen: Allergen || null,
-    imagelink: imagelink || 'placeholder',
+    imagelink: req.file ? `/uploads/${req.file.filename}` : 'placeholder', // <-- uploaded path
     isEnabled: isEnabled === 'true'
   };
 
-if (Category.toLowerCase() === 'pastries' && !isNaN(parseFloat(BasePrice))) {
-  productData.BasePrice = parseFloat(BasePrice);
-}
+  if (Category.toLowerCase() === 'pastries' && !isNaN(parseFloat(BasePrice))) {
+    productData.BasePrice = parseFloat(BasePrice);
+  }
 
   try {
     const client = await MongoClient.connect(uri);
@@ -551,46 +567,38 @@ app.get('/add-product', isLoggedIn, nocache, (req, res) => {
   res.render('add-product', { title: 'Add Product | Blessings Cafe' , user: req.session.user});
 });
 
-app.post('/products/edit/:id', async (req, res) => {
+// ✅ Edit Product (with optional image upload)
+app.post('/products/edit/:id', upload.single('imagelink'), async (req, res) => {
   const { id } = req.params;
-  const {
-    Name,
-    Category,
-    imagelink,
-    BasePrice,
-    size16,
-    size22,
-    Allergen,
-    isEnabled
-  } = req.body;
+  const { Name, Category, BasePrice, size16, size22, Allergen, isEnabled } = req.body;
 
   try {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
     const productCollection = db.collection('Menu');
 
-    // Build updateFields — only include fields we really want to change
     const updateFields = {
       Name,
       Category,
-      imagelink,
       Allergen: Allergen || '',
       isEnabled: isEnabled === 'true',
     };
 
-    // Only update BasePrice if category is pastries
+    // handle image if new file is uploaded
+    if (req.file) {
+      updateFields.imagelink = `/uploads/${req.file.filename}`;
+    }
+
     if (Category && Category.toLowerCase() === 'pastries' && BasePrice) {
       updateFields.BasePrice = parseFloat(BasePrice);
     }
 
-    // Only update Sizes if user provided values
     if (size16 || size22) {
       const Sizes = [];
       if (size16) Sizes.push({ Size: '16oz', BasePrice: parseFloat(size16) });
       if (size22) Sizes.push({ Size: '22oz', BasePrice: parseFloat(size22) });
       updateFields.Sizes = Sizes;
     }
-    // else → don’t touch existing Sizes in MongoDB
 
     await productCollection.updateOne(
       { _id: new ObjectId(id) },
@@ -605,6 +613,7 @@ app.post('/products/edit/:id', async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 });
+
 
 // ✅ Edit product page with ingredient name lookup
 app.get('/edit-product/:id',  async (req, res) => {
@@ -664,7 +673,8 @@ app.get('/api/products/:id', async (req, res) => {
 
     res.json({
       ...product,
-      IngredientsDetails: ingredientDetails
+      IngredientsDetails: ingredientDetails,
+      imagelink: product.imagelink || null // <-- ensure image path is returned
     });
 
     client.close();
