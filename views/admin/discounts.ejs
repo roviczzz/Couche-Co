@@ -3,8 +3,11 @@
     <h1>Promo Management</h1>
   </div>
 
-  <% if (message) { %>
-    <div id="message" class="message"></div>
+  <% if (typeof success_msg !== 'undefined' && success_msg.length > 0) { %>
+    <div id="message" class="message"><%= success_msg %></div>
+  <% } %>
+  <% if (typeof error_msg !== 'undefined' && error_msg.length > 0) { %>
+    <div id="message" class="message error"><%= error_msg %></div>
   <% } %>
 
   <!-- Add Promo Button -->
@@ -56,8 +59,8 @@
         <h3>
           Active Promos
           <span class="promo-badge active-count" id="activePromosCount">
-            <% if (promos && promos.length > 0) { %>
-              <%= promos.filter(promo => {
+            <% if (discounts && discounts.length > 0) { %>
+              <%= discounts.filter(promo => {
                 const now = new Date();
                 const startDate = new Date(promo.startDate);
                 const endDate = new Date(promo.endDate);
@@ -71,10 +74,10 @@
       </div>
       
       <div class="active-promos-grid" id="activePromosGrid">
-        <% if (promos && promos.length > 0) { %>
-          <% 
+        <% if (discounts && discounts.length > 0) { %>
+          <%
           const now = new Date();
-          const activePromos = promos.filter(promo => {
+          const activePromos = discounts.filter(promo => {
             const startDate = new Date(promo.startDate);
             const endDate = new Date(promo.endDate);
             return now >= startDate && now <= endDate;
@@ -194,8 +197,8 @@
         </tr>
       </thead>
       <tbody id="promoTableBody">
-        <% if (promos && promos.length > 0) { %>
-          <% promos.forEach((promo, index) => { %>
+        <% if (discounts && discounts.length > 0) { %>
+          <% discounts.forEach((promo, index) => { %>
             <tr data-promo-id="<%= promo._id %>">
               <td><input type="text" name="event" class="table-input event-input" value="<%= promo.event %>" data-id="<%= promo._id %>" data-original="<%= promo.event %>" required></td>
               <td><input type="date" name="startDate" class="table-input start-date-input" value="<%= promo.startDate ? new Date(promo.startDate).toISOString().split('T')[0] : '' %>" data-id="<%= promo._id %>" data-original="<%= promo.startDate ? new Date(promo.startDate).toISOString().split('T')[0] : '' %>" required></td>
@@ -537,7 +540,7 @@
     border-radius: 20px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    box-shadow: 0 2px 6px rgba(40, 167, 69, 0.3);
+    box-shadow: 0 2px 6px rgba(0, 123, 255, 0.3);
   }
 
   .permanent-promos-grid {
@@ -2957,7 +2960,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // ===============================================
   // V8 ENHANCED PROMO CARD INTERACTIONS
   // ===============================================
-  
+
   // Enhanced promo card interactions
   document.addEventListener('click', (e) => {
     if (e.target.closest('.active-promo-card')) {
@@ -3537,7 +3540,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Setup real-time preview updates if preview container exists
   const formInputs = [eventInput, descriptionInput, discountPercentageInput, startDateInput, endDateInput];
-  formInputs.forEach(input => {
+  formInputs.forEach input => {
     if (input) {
       input.addEventListener('input', updatePromoPreview);
       input.addEventListener('change', updatePromoPreview);
@@ -3669,4 +3672,3 @@ document.addEventListener('DOMContentLoaded', function() {
   console.log(`[2025-09-16 08:17:53] 🎉 Enhanced Promo Management System V8 COMPLETE by MathDaenniel`);
 });
 </script>
-  

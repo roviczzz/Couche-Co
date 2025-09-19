@@ -218,25 +218,25 @@ menuItems.forEach(item => {
 
 <!-- Xendit Payment Gateway Modal -->
 <div id="xendit-gateway-modal" class="modal hidden" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 2001; display: flex; align-items: center; justify-content: center;">
-  <div class="modal-content" style="background: white; border-radius: 12px; width: 90%; max-width: 400px; max-height: 80vh; overflow-y: auto; position: relative; text-align: center; padding: 30px 20px;">
-    <h3 style="margin-top:0;">Complete Payment</h3>
-    <div style="margin-bottom: 10px; color: #444;">Please complete your payment using the link below:</div>
-    <div id="xendit-gateway-loading" style="margin: 30px 0; display: none;">
-      <div class="spinner" style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #8B4513; border-radius: 50%; margin: 0 auto 20px; animation: spin 1s linear infinite;"></div>
-      <div>Generating payment link...</div>
+    <div class="modal-content" style="background: white; border-radius: 12px; width: 90%; max-width: 400px; max-height: 80vh; overflow-y: auto; position: relative; text-align: center; padding: 30px 20px;">
+        <h3 style="margin-top:0;">Complete Payment</h3>
+        <div style="margin-bottom: 10px; color: #444;">Please complete your payment using the link below:</div>
+        <div id="xendit-gateway-loading" style="margin: 30px 0; display: none;">
+            <div class="spinner" style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #8B4513; border-radius: 50%; margin: 0 auto 20px; animation: spin 1s linear infinite;"></div>
+            <div>Generating payment link...</div>
+        </div>
+        <div id="xendit-gateway-details" style="display: none;">
+            <div style="margin-bottom: 10px;">
+                <strong>Amount:</strong> ₱<span id="xendit-payment-amount">0.00</span>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <a id="xendit-payment-link" href="#" target="_blank" style="display: inline-block; padding: 10px 20px; background: #8B4513; color: #fff; border-radius: 4px; text-decoration: none; font-weight: 500;">Open Payment Link</a>
+            </div>
+            <div style="font-size: 13px; color: #888; margin-bottom: 18px;">The payment link will open in a new window. Please complete the payment and return to this page.</div>
+            <button id="xendit-check-payment-status" style="background: #4caf50; color: #fff; margin-right: 8px;">Check Payment Status</button>
+            <button id="xendit-cancel-gateway" style="background: #ccc; color: #222;">Cancel</button>
+        </div>
     </div>
-    <div id="xendit-gateway-details" style="display: none;">
-      <div style="margin-bottom: 10px;">
-        <strong>Amount:</strong> ₱<span id="xendit-payment-amount">0.00</span>
-      </div>
-      <div style="margin-bottom: 10px;">
-        <a id="xendit-payment-link" href="#" target="_blank" style="display: inline-block; padding: 10px 20px; background: #8B4513; color: #fff; border-radius: 4px; text-decoration: none; font-weight: 500;">Open Payment Link</a>
-      </div>
-      <div style="font-size: 13px; color: #888; margin-bottom: 18px;">The payment link will open in a new window. Please complete the payment and return to this page.</div>
-      <button id="xendit-check-payment-status" style="background: #4caf50; color: #fff; margin-right: 8px;">Check Payment Status</button>
-      <button id="xendit-cancel-gateway" style="background: #ccc; color: #222;">Cancel</button>
-    </div>
-  </div>
 </div>
 
 <style>
@@ -281,7 +281,33 @@ menuItems.forEach(item => {
 
 <script>
     // Initialize allProducts with the menu items from the server
-    const allProducts = JSON.stringify(menuItems) || '[]';
+    const allProducts = <%- JSON.stringify(menuItems) %>;
+
+    // Initialize orderItems array
+    let orderItems = [];
+
+    // Clear localStorage orderItems on page load to ensure a fresh start
+    localStorage.removeItem('orderItems');
+
+    // Function to save order items to localStorage
+    function saveOrderItems() {
+        localStorage.setItem('orderItems', JSON.stringify(orderItems));
+    }
+
+    // Handle product click - show size/addon modal or add directly if no size options
+    function handleProductClick(item) {
+        if (item.Sizes && item.Sizes.length > 1) {
+            showSizeAndAddonModal(item);
+        } else {
+            let size = null;
+            let price = item.BasePrice;
+            if (item.Sizes && item.Sizes.length === 1) {
+                size = item.Sizes[0].Size;
+                price = item.Sizes[0].BasePrice;
+            }
+            showAddonModal(item, size, price);
+        }
+    }
 
     document.getElementById('toggle-notes-btn').onclick = function() {
         const ta = document.getElementById('notes-textarea');
@@ -294,7 +320,6 @@ menuItems.forEach(item => {
         }
     };
 
-    let orderItems = [];
     let currentPaymentId = null;
 
     function checkAndApplyPromotion() {
@@ -475,56 +500,41 @@ menuItems.forEach(item => {
     }
 
     function addToOrder(name, price, size = null, category = null, productId = null, addons = [], imagelink = '', isFree = false, originalItemIndex = null) {
-        // For B1T1 items, always create a new order item with a unique key
-        if (isFree) {
-            // Create a unique key for B1T1 items to prevent combining
-            const uniqueKey = `${name}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-            orderItems.push({
-                name,
-                size: size || '16oz',
-                price: 0, // Ensure price is 0 for B1T1 items
-                quantity: 1,
-                key: uniqueKey,
-                category,
-                productId,
-                addons: [...addons], // Create a new array to avoid reference issues
-                imagelink,
-                isFree: true,
-                originalItemIndex,
-                isB1T1: true // Add a flag to identify B1T1 items
-            });
-        } else {
-            // For regular items, check if we can combine with existing items
-            const key = size ?
-                `${name} - ${size} - ${JSON.stringify(addons.map(a => a.AddOnID).sort())}` :
-                `${name} - ${JSON.stringify(addons.map(a => a.AddOnID).sort())}`;
+        // Create a unique key for the order item
+        const key = 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 
-            let existingItem = orderItems.find(item =>
-                item.key === key &&
-                !item.isB1T1 && // Don't combine with B1T1 items
-                item.originalItemIndex === null // Don't combine with items that are part of B1T1
-            );
+        // For B1T1 items, ensure price is 0
+        const finalPrice = isFree ? 0 : parseFloat(price);
 
-            if (existingItem) {
-                existingItem.quantity++;
-            } else {
-                orderItems.push({
-                    name,
-                    size,
-                    price,
-                    quantity: 1,
-                    key,
-                    category,
-                    productId,
-                    addons: [...addons],
-                    imagelink,
-                    isFree: false,
-                    originalItemIndex: null,
-                    isB1T1: false
-                });
-            }
+        // Create the order item
+        const orderItem = {
+            key: key,
+            name: name,
+            price: finalPrice,
+            quantity: 1,
+            size: size,
+            category: category,
+            productId: productId,
+            addons: addons || [],
+            imagelink: imagelink || '',
+            isFree: isFree,
+            originalItemIndex: originalItemIndex,
+            isB1T1: isFree // B1T1 items are free
+        };
+
+        // Add to order items
+        orderItems.push(orderItem);
+
+        // Save to localStorage
+        saveOrderItems();
+
+        // Close the modal if open
+        const modal = document.getElementById('size-modal');
+        if (modal) {
+            modal.style.display = 'none';
         }
 
+        // Render the order items and update summary
         renderOrderItems();
         updateSummary();
         checkAndApplyPromotion();
@@ -566,14 +576,10 @@ menuItems.forEach(item => {
     }
 
     function getDrinksInSameCategory(category) {
-        console.log('getDrinksInSameCategory called with category:', category);
-
         if (!Array.isArray(allProducts)) {
-            console.error('allProducts is not an array');
+            console.error('allProducts is not an array:', allProducts);
             return [];
         }
-
-        console.log('All available categories:', [...new Set(allProducts.map(p => p.Category || p.category))]);
 
         const drinks = allProducts.filter(product => {
             if (!product) return false;
@@ -592,33 +598,17 @@ menuItems.forEach(item => {
             // Check category match (case insensitive and trimmed)
             const categoryMatches = productCategory === targetCategory;
 
-            const matches = categoryMatches && isBeverage && !isAddOn;
-
-            if (matches) {
-                console.log('Matching product:', {
-                    name: product.Name || product.name,
-                    category: product.Category || product.category,
-                    type: product.Type || product.type
-                });
-            }
-
-            return matches;
+            return categoryMatches && isBeverage && !isAddOn;
         });
 
-        console.log('Found', drinks.length, 'matching drinks in category', category);
-        console.log('All products for debugging:', allProducts);
         return drinks;
     }
 
     let currentB1T1Item = null;
 
     function showB1T1Modal(index) {
-        console.log('showB1T1Modal called with index:', index);
         currentB1T1Item = orderItems[index];
-        console.log('Current item:', currentB1T1Item);
-
         const sameCategoryDrinks = getDrinksInSameCategory(currentB1T1Item.category);
-        console.log('Drinks in same category:', sameCategoryDrinks);
 
         const modal = document.getElementById('b1t1-modal');
         const optionsContainer = document.getElementById('b1t1-drink-options');
@@ -630,7 +620,7 @@ menuItems.forEach(item => {
             return;
         }
 
-        sameCategoryDrinks.forEach((drink, idx) => {
+        sameCategoryDrinks.forEach(drink => {
             const drinkName = drink.Name || drink.name;
             const drinkImage = drink.imagelink || 'https://via.placeholder.com/50x50?text=No+Image';
 
@@ -668,9 +658,6 @@ menuItems.forEach(item => {
     function selectB1T1Drink(selectedDrink) {
         if (!currentB1T1Item) return;
 
-        console.log('Selected free drink:', selectedDrink);
-
-        // Add the free drink with price 0
         addToOrder(
             selectedDrink.Name || selectedDrink.name,  // name
             0,                                        // price (free)
@@ -714,7 +701,7 @@ menuItems.forEach(item => {
                         <div class="order-item-title">${item.name}</div>
                         ${sizeDropdown}
                         ${addonLabel}
-                        ${!item.isFree && item.category !== 'Pastries' && !orderItems.some((itm, idx) => itm.originalItemIndex === index) ?
+                        ${!item.isFree && item.category !== 'Pastries' && !orderItems.some(itm => itm.originalItemIndex === index) ?
                 `<button class="b1t1-btn" onclick="showB1T1Modal(${index})">+ Free B1T1 Drink</button>` :
                 item.isFree ? '<div class="free-badge">FREE</div>' : ''
             }
@@ -765,20 +752,6 @@ menuItems.forEach(item => {
         }
     }
 
-    function handleProductClick(item) {
-        if (item.Sizes && item.Sizes.length > 1) {
-            showSizeAndAddonModal(item);
-        } else {
-            let size = null;
-            let price = item.BasePrice;
-            if (item.Sizes && item.Sizes.length === 1) {
-                size = item.Sizes[0].Size;
-                price = item.Sizes[0].BasePrice;
-            }
-            showAddonModal(item, size, price);
-        }
-    }
-
     function showSizeAndAddonModal(item) {
         const modal = document.getElementById('size-modal');
         const productNameElem = document.getElementById('modal-product-name');
@@ -811,11 +784,11 @@ menuItems.forEach(item => {
             return;
         }
         addonOptionsDiv.innerHTML = `
-            <span style=\"color:#8B4513;font-weight:bold;font-size:16px;margin-bottom:8px;display:block\">
+            <span style="color:#8B4513;font-weight:bold;font-size:16px;margin-bottom:8px;display:block">
                 Add-ons (Optional)
             </span>
-            <div id=\"addon-checkboxes\" style=\"display:flex;flex-wrap:wrap;gap:10px;\">
-                <span style=\"font-size:12px;color:#999\">Loading add-ons...</span>
+            <div id="addon-checkboxes" style="display:flex;flex-wrap:wrap;gap:10px;">
+                <span style="font-size:12px;color:#999">Loading add-ons...</span>
             </div>
         `;
         fetch('/api/addons')
@@ -1129,70 +1102,71 @@ menuItems.forEach(item => {
     }
 
     function showXenditGatewayModal(paymentData) {
-    const modal = document.getElementById('xendit-gateway-modal');
-    const loadingDiv = document.getElementById('xendit-gateway-loading');
-    const detailsDiv = document.getElementById('xendit-gateway-details');
-    const paymentAmountSpan = document.getElementById('xendit-payment-amount');
-    const paymentLink = document.getElementById('xendit-payment-link');
-    const checkStatusBtn = document.getElementById('xendit-check-payment-status');
-    const cancelBtn = document.getElementById('xendit-cancel-gateway');
+        const modal = document.getElementById('xendit-gateway-modal');
+        const loadingDiv = document.getElementById('xendit-gateway-loading');
+        const detailsDiv = document.getElementById('xendit-gateway-details');
+        const paymentAmountSpan = document.getElementById('xendit-payment-amount');
+        const paymentLink = document.getElementById('xendit-payment-link');
+        const checkStatusBtn = document.getElementById('xendit-check-payment-status');
+        const cancelBtn = document.getElementById('xendit-cancel-gateway');
 
-    if (!modal || !loadingDiv || !detailsDiv || !paymentAmountSpan || !paymentLink || !checkStatusBtn || !cancelBtn) return;
+        if (!modal || !loadingDiv || !detailsDiv || !paymentAmountSpan || !paymentLink || !checkStatusBtn || !cancelBtn) return;
 
-    loadingDiv.style.display = 'none';
-    detailsDiv.style.display = 'block';
-    paymentAmountSpan.textContent = paymentData.amount ? parseFloat(paymentData.amount).toFixed(2) : '0.00';
-    paymentLink.href = paymentData.invoice_url || paymentData.checkout_url || '#';
-    currentPaymentId = paymentData.id;
-    modal.classList.remove('hidden');
+        loadingDiv.style.display = 'none';
+        detailsDiv.style.display = 'block';
+        paymentAmountSpan.textContent = paymentData.amount ? parseFloat(paymentData.amount).toFixed(2) : '0.00';
+        paymentLink.href = paymentData.invoice_url || paymentData.checkout_url || '#';
+        currentPaymentId = paymentData.id;
+        modal.classList.remove('hidden');
 
-    checkStatusBtn.onclick = async function() {
-        if (!currentPaymentId) return;
-        try {
-            const status = await checkPaymentStatus(currentPaymentId);
-            if (status.status === 'PAID') {
-                await fetch('/api/orders/update-payment-status', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ paymentId: currentPaymentId, status: 'Completed' })
-                });
-                alert('Payment successful! Your order has been confirmed.');
-                modal.classList.add('hidden');
-                orderItems = [];
-                renderOrderItems();
-                document.getElementById('customer-name').value = '';
-                document.getElementById('contact-number').value = '';
-                document.getElementById('delivery-type').value = 'Take-Out';
-                document.getElementById('address-container').style.display = 'none';
-                document.getElementById('street-address').value = '';
-                document.getElementById('area-select').value = '';
-                document.getElementById('notes-textarea').value = '';
-                updateSummary();
-                document.querySelectorAll('.payment-option.selected').forEach(el => {
-                    el.classList.remove('selected');
-                    const check = el.querySelector('.payment-check');
-                    check.style.backgroundColor = '#ddd';
-                    if (check.querySelector('svg')) check.querySelector('svg').style.display = 'none';
-                });
-                currentPaymentId = null;
-            } else {
-                alert('Payment not yet completed. Please complete the payment and try again.');
+        checkStatusBtn.onclick = async function() {
+            if (!currentPaymentId) return;
+            try {
+                const status = await checkPaymentStatus(currentPaymentId);
+                if (status.status === 'PAID') {
+                    await fetch('/api/orders/update-payment-status', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ paymentId: currentPaymentId, status: 'Completed' })
+                    });
+                    alert('Payment successful! Your order has been confirmed.');
+                    modal.classList.add('hidden');
+                    orderItems = [];
+                    renderOrderItems();
+                    document.getElementById('customer-name').value = '';
+                    document.getElementById('contact-number').value = '';
+                    document.getElementById('delivery-type').value = 'Take-Out';
+                    document.getElementById('address-container').style.display = 'none';
+                    document.getElementById('street-address').value = '';
+                    document.getElementById('area-select').value = '';
+                    document.getElementById('notes-textarea').value = '';
+                    updateSummary();
+                    document.querySelectorAll('.payment-option.selected').forEach(el => {
+                        el.classList.remove('selected');
+                        const check = el.querySelector('.payment-check');
+                        check.style.backgroundColor = '#ddd';
+                        // Hide SVG for unselected
+                        if (check.querySelector('svg')) check.querySelector('svg').style.display = 'none';
+                    });
+                    currentPaymentId = null;
+                } else {
+                    alert('Payment not yet completed. Please complete the payment and try again.');
+                }
+            } catch (error) {
+                alert('Error checking payment status. Please try again.');
             }
-        } catch (error) {
-            alert('Error checking payment status. Please try again.');
-        }
-    };
-    cancelBtn.onclick = function() {
-        modal.classList.add('hidden');
-        currentPaymentId = null;
-    };
-}
+        };
+        cancelBtn.onclick = function() {
+            modal.classList.add('hidden');
+            currentPaymentId = null;
+        };
+    }
 
-// Patch E-Payment flow to use new modal
-const origShowXenditPaymentModal = showXenditPaymentModal;
-showXenditPaymentModal = function(paymentData) {
-    showXenditGatewayModal(paymentData);
-};
+    // Patch E-Payment flow to use new modal
+    const origShowXenditPaymentModal = showXenditPaymentModal;
+    showXenditPaymentModal = function(paymentData) {
+        showXenditGatewayModal(paymentData);
+    };
 
     document.addEventListener('DOMContentLoaded', () => {
         const deliveryTypeSelect = document.getElementById('delivery-type');
@@ -1655,6 +1629,7 @@ showXenditPaymentModal = function(paymentData) {
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+        renderOrderItems();
         updateSummary();
 
         // Close modal handlers

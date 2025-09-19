@@ -3,7 +3,18 @@ const session = require('express-session');
 const { MongoClient, ObjectId } = require('mongodb');
 const { check, validationResult } = require('express-validator');
 const expressLayouts = require('express-ejs-layouts');
-const bcrypt = require('bcrypt'); // ADDED FOR PASSWORD HASHING
+const bcrypt = require('bcrypt');
+const {
+  getDashboardStats,
+  getAnalyticsData,
+  getProducts,
+  getProductById,
+  getOrders,
+  getOrderById,
+  getStockData,
+  getDiscounts,
+  getMenu
+} = require('./admin-helpers');
 const app = express();
 const port = 8080;
 require('dotenv').config();
@@ -22,10 +33,10 @@ const XENDIT_API_URL = 'https://api.xendit.co'
 
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')))
 app.use(session({
-    secret: '4eaf42844a1772cb12e90869666b3a929f785d5bbd6d0fc5402c95ebc8721c3bca4ac502cc2fa7ec8abcbec042202876',
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false }
+  secret: '4eaf42844a1772cb12e90869666b3a929f785d5bbd6d0fc5402c95ebc8721c3bca4ac502cc2fa7ec8abcbec042202876',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false }
 }))
 app.use(flash())
 app.use((req, res, next) => {
@@ -73,136 +84,453 @@ function nocache(req, res, next) {
 }
 
 
-app.get('/', async (req, res) => {
-  try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const collection = db.collection('users');
-    const data = await collection.find({}).toArray();
-    await client.close();
-    res.render('login', { data, title: 'Login | Blessings Cafe', errors: {}, formData: {}, error: null, layout: false });
-  } catch (err) {
-    res.status(500).send('Internal Server Error');
+app.get('/', (req, res) => {
+  res.render('user/home', { title: 'Home | Blessings Cafe', layout: false });
+});
+
+// User Login Routes
+app.get('/user/login', (req, res) => {
+  if (req.session.user) {
+    return res.redirect('/user/dashboard');
   }
+  res.render('user/login', {
+    title: 'Login | Couche Co',
+    layout: false,
+    errors: {},
+    error: null,
+    formData: {}
+  });
 });
 
-app.get('/account/login', (req, res) => {
-  res.render('login', { title: 'Login | Blessings Cafe', errors: {}, error: null, formData: {}, layout: false });
-});
-
-// ENHANCED LOGIN ROUTE WITH BCRYPT SUPPORT
-app.post(
-  '/account/login',
-  [
-    check('Username').notEmpty().withMessage('Username is required'),
-    check('Password').notEmpty().withMessage('Password is required'),
-  ],
-  async (req, res) => {
-    const errorsObj = {};
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      errors.array().forEach(err => {
-        errorsObj[err.param] = err;
-      });
-      return res.render('login', {
-        title: 'Login | Blessings Cafe',
-        errors: errorsObj,
-        error: null,
-        formData: req.body,
-        layout: false
-      });
-    }
-
-    console.log(`📅 Login attempt at 2025-08-19 07:07:58 for user: ${req.body.Username}`);
-
-    try {
-      const client = await MongoClient.connect(uri);
-      const db = client.db('blessingscafe');
-      const users = db.collection('users');
-
-      // Find user by username first
-      const user = await users.findOne({
-        username: req.body.Username
-      });
-
-      if (!user) {
-        await client.close();
-        console.log(`❌ Login failed for user: ${req.body.Username} - User not found`);
-        return res.render('login', {
-          title: 'Login | Blessings Cafe',
-          errors: {},
-          error: 'Invalid username or password',
-          formData: { Username: req.body.Username },
+app.post('/user/login',
+    [
+      check('email').isEmail().withMessage('Please enter a valid email address'),
+      check('password').notEmpty().withMessage('Password is required')
+    ],
+    async (req, res) => {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        const errorsObj = {};
+        errors.array().forEach(err => {
+          errorsObj[err.param] = err;
+        });
+        return res.render('user/login', {
+          title: 'Login | Couche Co',
+          errors: errorsObj,
+          error: null,
+          formData: req.body,
           layout: false
         });
       }
 
-      // Check if password is hashed or plain text
-      let passwordMatch = false;
+      try {
+        const client = await MongoClient.connect(uri);
+        const db = client.db('blessingscafe');
+        const users = db.collection('users');
 
-      if (user.password.startsWith('$2b$') || user.password.startsWith('$2a$')) {
-        // Password is already hashed - use bcrypt compare
-        passwordMatch = await bcrypt.compare(req.body.Password, user.password);
-        console.log('🔐 Using bcrypt verification for hashed password');
-      } else {
-        // Password is plain text - compare directly and then hash it
-        if (req.body.Password === user.password) {
-          passwordMatch = true;
-          console.log('⚠️ Plain text password detected - upgrading to bcrypt');
+        // Find user by email
+        const user = await users.findOne({ email: req.body.email });
 
-          // Hash the password for future use
-          const hashedPassword = await bcrypt.hash(req.body.Password, SALT_ROUNDS);
-          await users.updateOne(
-            { _id: user._id },
-            {
-              $set: {
-                password: hashedPassword,
-                passwordUpgraded: new Date('2025-08-19T07:07:58.000Z'),
-                upgradedBy: 'auto-login'
-              }
-            }
-          );
-          console.log('✅ Password upgraded to bcrypt hash');
+        if (!user) {
+          await client.close();
+          return res.render('user/login', {
+            title: 'Login | Couche Co',
+            errors: {},
+            error: 'Invalid email or password',
+            formData: { email: req.body.email },
+            layout: false
+          });
         }
+
+        // Check password
+        const isMatch = await bcrypt.compare(req.body.password, user.password);
+        if (!isMatch) {
+          await client.close();
+          return res.render('user/login', {
+            title: 'Login | Couche Co',
+            errors: {},
+            error: 'Invalid email or password',
+            formData: { email: req.body.email },
+            layout: false
+          });
+        }
+
+        // Set user session
+        req.session.user = {
+          _id: user._id,
+          email: user.email,
+          name: user.name || user.email,
+          role: 'user',
+          loginTime: new Date().toISOString()
+        };
+
+        await client.close();
+        res.redirect('/user/dashboard');
+      } catch (err) {
+        console.error('Login error:', err);
+        res.status(500).render('user/login', {
+          title: 'Login | Couche Co',
+          errors: {},
+          error: 'An error occurred during login',
+          formData: req.body,
+          layout: false
+        });
       }
+    }
+);
 
-      await client.close();
-
-      if (!passwordMatch) {
-        console.log(`❌ Login failed for user: ${req.body.Username} - Invalid password`);
+app.post(
+    '/account/login',
+    [
+      check('Username').notEmpty().withMessage('Username is required'),
+      check('Password').notEmpty().withMessage('Password is required'),
+    ],
+    async (req, res) => {
+      const errorsObj = {};
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        errors.array().forEach(err => {
+          errorsObj[err.param] = err;
+        });
         return res.render('login', {
           title: 'Login | Blessings Cafe',
-          errors: {},
-          error: 'Invalid username or password',
-          formData: { Username: req.body.Username },
+          errors: errorsObj,
+          error: null,
+          formData: req.body,
           layout: false
         });
       }
 
-      // ENHANCED SESSION DATA FOR PASSWORD CHANGE
-      req.session.user = {
-        _id: user._id, // Required for password change
-        username: user.username,
-        email: user.email,
-        role: user.role || 'admin', // Default to admin if no role specified
-        loginTime: '2025-08-19 07:07:58'
-      };
+      console.log(`📅 Login attempt at 2025-08-19 07:07:58 for user: ${req.body.Username}`);
 
-      console.log(`✅ Login successful for user: ${user.username} (ID: ${user._id}) at 2025-08-19 07:07:58`);
-      res.redirect('/dashboard');
-    } catch (err) {
-      console.error('❌ Login error:', err);
-      res.status(500).send('Internal Server Error');
+      try {
+        const client = await MongoClient.connect(uri);
+        const db = client.db('blessingscafe');
+        const users = db.collection('users');
+
+        // Find user by username first
+        const user = await users.findOne({
+          username: req.body.Username
+        });
+
+        if (!user) {
+          await client.close();
+          console.log(`❌ Login failed for user: ${req.body.Username} - User not found`);
+          return res.render('login', {
+            title: 'Login | Blessings Cafe',
+            errors: {},
+            error: 'Invalid username or password',
+            formData: { Username: req.body.Username },
+            layout: false
+          });
+        }
+
+        // Check if password is hashed or plain text
+        let passwordMatch = false;
+
+        if (user.password.startsWith('$2b$') || user.password.startsWith('$2a$')) {
+          // Password is already hashed - use bcrypt compare
+          passwordMatch = await bcrypt.compare(req.body.Password, user.password);
+          console.log('🔐 Using bcrypt verification for hashed password');
+        } else {
+          // Password is plain text - compare directly and then hash it
+          if (req.body.Password === user.password) {
+            passwordMatch = true;
+            console.log('⚠️ Plain text password detected - upgrading to bcrypt');
+
+            // Hash the password for future use
+            const hashedPassword = await bcrypt.hash(req.body.Password, SALT_ROUNDS);
+            await users.updateOne(
+                { _id: user._id },
+                {
+                  $set: {
+                    password: hashedPassword,
+                    passwordUpgraded: new Date('2025-08-19T07:07:58.000Z'),
+                    upgradedBy: 'auto-login'
+                  }
+                }
+            );
+            console.log('✅ Password upgraded to bcrypt hash');
+          }
+        }
+
+        await client.close();
+
+        if (!passwordMatch) {
+          console.log(`❌ Login failed for user: ${req.body.Username} - Invalid password`);
+          return res.render('login', {
+            title: 'Login | Blessings Cafe',
+            errors: {},
+            error: 'Invalid username or password',
+            formData: { Username: req.body.Username },
+            layout: false
+          });
+        }
+
+        // ENHANCED SESSION DATA FOR PASSWORD CHANGE
+        req.session.user = {
+          _id: user._id, // Required for password change
+          username: user.username,
+          email: user.email,
+          role: user.role || 'admin', // Default to admin if no role specified
+          loginTime: '2025-08-19 07:07:58'
+        };
+
+        console.log(`✅ Login successful for user: ${user.username} (ID: ${user._id}) at 2025-08-19 07:07:58`);
+        res.redirect('/dashboard');
+      } catch (err) {
+        console.error('❌ Login error:', err);
+        res.status(500).send('Internal Server Error');
+      }
     }
-  }
 );
+
+// ====================
+// ADMIN ROUTES
+// ====================
+
+// Redirect /admin to /admin/dashboard
+app.get('/admin', isLoggedIn, ensureAdmin, (req, res) => {
+  res.redirect('/admin/dashboard');
+});
+
+// Admin Authentication
+app.get('/admin/login', (req, res) => {
+  if (req.session.user) {
+    return res.redirect('/admin/dashboard');
+  }
+  res.render('admin/login', {
+    title: 'Admin Login | Blessings Cafe',
+    errors: {},
+    error: null,
+    formData: {},
+    layout: false
+  });
+});
+
+// Admin Dashboard
+app.get('/admin/dashboard', isLoggedIn, ensureAdmin, nocache, async (req, res) => {
+  try {
+    const stats = await getDashboardStats();
+    res.render('admin/dashboard', {
+      title: 'Admin Dashboard | Blessings Cafe',
+      user: req.session.user,
+      stats: stats,
+      layout: 'admin/layout'
+    });
+  } catch (err) {
+    console.error('Dashboard error:', err);
+    req.flash('error_msg', 'Error loading dashboard');
+    res.redirect('/admin');
+  }
+});
+
+// Admin Analytics
+app.get('/admin/analytics', isLoggedIn, ensureAdmin, nocache, async (req, res) => {
+  try {
+    const analyticsData = await getAnalyticsData();
+    res.render('admin/analytics', {
+      title: 'Analytics | Blessings Cafe',
+      user: req.session.user,
+      data: analyticsData,
+      layout: 'admin/layout'
+    });
+  } catch (err) {
+    console.error('Analytics error:', err);
+    req.flash('error_msg', 'Error loading analytics');
+    res.redirect('/admin/dashboard');
+  }
+});
+
+// Products Management
+app.get('/admin/products', isLoggedIn, ensureAdmin, nocache, async (req, res) => {
+  try {
+    const products = await getProducts();
+    res.render('admin/products', {
+      title: 'Products | Blessings Cafe',
+      user: req.session.user,
+      products: products,
+      layout: 'admin/layout'
+    });
+  } catch (err) {
+    console.error('Products error:', err);
+    req.flash('error_msg', 'Error loading products');
+    res.redirect('/admin/dashboard');
+  }
+});
+
+// Add/Edit Product
+app.get('/admin/products/add', isLoggedIn, ensureAdmin, nocache, (req, res) => {
+  res.render('admin/add-product', {
+    title: 'Add Product | Blessings Cafe',
+    user: req.session.user,
+    product: {},
+    layout: 'admin/layout'
+  });
+});
+
+app.get('/admin/products/edit/:id', isLoggedIn, ensureAdmin, nocache, async (req, res) => {
+  try {
+    const product = await getProductById(req.params.id);
+    res.render('admin/edit-product', {
+      title: 'Edit Product | Blessings Cafe',
+      user: req.session.user,
+      product: product,
+      layout: 'admin/layout'
+    });
+  } catch (err) {
+    console.error('Edit product error:', err);
+    req.flash('error_msg', 'Error loading product');
+    res.redirect('/admin/products');
+  }
+});
+
+// Orders Management
+app.get('/admin/orders', isLoggedIn, ensureAdmin, nocache, async (req, res) => {
+  try {
+    const [orders, menu] = await Promise.all([
+      getOrders(),
+      getMenu()
+    ]);
+
+    res.render('admin/order', {
+      title: 'Orders | Blessings Cafe',
+      user: req.session.user,
+      orders: orders,
+      menu: menu,
+      layout: 'admin/layout'
+    });
+  } catch (err) {
+    console.error('Orders error:', err);
+    req.flash('error_msg', 'Error loading orders');
+    res.redirect('/admin/dashboard');
+  }
+});
+
+app.get('/admin/orders/edit/:id', isLoggedIn, ensureAdmin, nocache, async (req, res) => {
+  try {
+    const order = await getOrderById(req.params.id);
+    res.render('admin/edit-order', {
+      title: 'Edit Order | Blessings Cafe',
+      user: req.session.user,
+      order: order,
+      layout: 'admin/layout'
+    });
+  } catch (err) {
+    console.error('Edit order error:', err);
+    req.flash('error_msg', 'Error loading order');
+    res.redirect('/admin/orders');
+  }
+});
+
+// Stocks Management
+app.get('/admin/stocks', isLoggedIn, ensureAdmin, nocache, async (req, res) => {
+  let client;
+  try {
+    client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const ingredients = await db.collection('Ingredients').find().toArray();
+    const addons = await db.collection('Add-ons').find().toArray();
+    const message = req.query.msg || null;
+    res.render('admin/stocks', {
+      ingredients,
+      addons,
+      title: 'Inventory Management | Blessings Cafe',
+      user: req.session.user,
+      message,
+      uiConfig: {
+        fixedNavbar: true,
+        contentOnlyScroll: true,
+        enhancedModals: true,
+        version: 'V13-Enhanced'
+      },
+      stats: {
+        totalIngredients: ingredients.length,
+        totalAddons: addons.length,
+        enabledIngredients: ingredients.filter(i => i.isEnabled).length,
+        enabledAddons: addons.filter(a => a.isEnabled).length
+      },
+      layout: 'admin/layout'
+    });
+  } catch (err) {
+    res.status(500).send('Failed to load inventory');
+  }
+});
+
+// Discounts Management
+app.get('/admin/discounts', isLoggedIn, ensureAdmin, nocache, async (req, res) => {
+  try {
+    const discounts = await getDiscounts();
+    res.render('admin/discounts', {
+      title: 'Discounts | Blessings Cafe',
+      user: req.session.user,
+      discounts: discounts,
+      layout: 'admin/layout'
+    });
+  } catch (err) {
+    console.error('Discounts error:', err);
+    req.flash('error_msg', 'Error loading discounts');
+    res.redirect('/admin/dashboard');
+  }
+});
+
+// Menu Management
+app.get('/admin/menu', isLoggedIn, ensureAdmin, nocache, async (req, res) => {
+  try {
+    const menuItems = await getMenu();
+    res.render('admin/menu', {
+      title: 'Menu Management | Blessings Cafe',
+      user: req.session.user,
+      menuItems: menuItems,  // Changed from 'menu' to 'menuItems' to match template
+      layout: 'admin/layout'
+    });
+  } catch (err) {
+    console.error('Menu error:', err);
+    req.flash('error_msg', 'Error loading menu');
+    res.redirect('/admin/dashboard');
+  }
+});
+
+// Admin Settings
+app.get('/admin/settings', isLoggedIn, ensureAdmin, nocache, (req, res) => {
+  res.render('admin/settings', {
+    title: 'Settings | Blessings Cafe',
+    user: req.session.user,
+    layout: 'admin/layout'
+  });
+});
+
+// Forgot Password
+app.get('/admin/forgot-password', (req, res) => {
+  if (req.session.user) {
+    return res.redirect('/admin/dashboard');
+  }
+  res.render('admin/forgot-password', {
+    title: 'Forgot Password | Blessings Cafe',
+    layout: false
+  });
+});
+
+// Helper function to ensure user is admin
+function ensureAdmin(req, res, next) {
+  if (req.session.user && req.session.user.role === 'admin') {
+    return next();
+  }
+  req.flash('error_msg', 'Unauthorized access');
+  res.redirect('/admin/login');
+}
 
 app.get('/account/register', (req, res) => {
   res.render('register', { errors: {}, formData: {}, error: null, layout: false });
 });
 
 app.get('/dashboard', isLoggedIn, nocache, (req, res) => {
-  res.render('dashboard', { title: 'Dashboard | Blessings Cafe', user: req.session.user });
+  // Redirect to admin dashboard if user is admin
+  if (req.session.user && req.session.user.role === 'admin') {
+    return res.redirect('/admin/dashboard');
+  }
+  // Otherwise, redirect to user dashboard or home
+  res.redirect('/');
 });
 
 app.get('/menu', isLoggedIn, nocache, async (req, res) => {
@@ -238,93 +566,93 @@ app.get('/api/addons', async (req, res) => {
 });
 
 app.get('/api/orders/preparing-customers', async (req, res) => {
-    try {
-        const client = await MongoClient.connect(uri)
-        const db = client.db('blessingscafe')
-        const docs = await db.collection('Orders').find({ FulfillmentStatus: "Preparing" }).project({ Customer: 1 }).toArray()
-        await client.close()
-        res.json(docs.map(d => d.Customer))
-    } catch (err) {
-        res.status(500).json([])
-    }
+  try {
+    const client = await MongoClient.connect(uri)
+    const db = client.db('blessingscafe')
+    const docs = await db.collection('Orders').find({ FulfillmentStatus: "Preparing" }).project({ Customer: 1 }).toArray()
+    await client.close()
+    res.json(docs.map(d => d.Customer))
+  } catch (err) {
+    res.status(500).json([])
+  }
 })
 
 // Xendit API Routes
 app.post('/api/xendit/create-payment', async (req, res) => {
-    try {
-        const invoicePayload = req.body
+  try {
+    const invoicePayload = req.body
 
-        const response = await fetch(`${XENDIT_API_URL}/invoices`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Basic ${Buffer.from(XENDIT_SECRET_KEY + ':').toString('base64')}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(invoicePayload)
-        })
+    const response = await fetch(`${XENDIT_API_URL}/invoices`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${Buffer.from(XENDIT_SECRET_KEY + ':').toString('base64')}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(invoicePayload)
+    })
 
-        if (!response.ok) {
-            const errorData = await response.text()
-            console.error('Xendit API Error:', errorData)
-            return res.status(response.status).json({
-                error: 'Failed to create payment',
-                details: errorData
-            })
-        }
-
-        const paymentData = await response.json()
-        res.json(paymentData)
-    } catch (error) {
-        console.error('Error creating Xendit payment:', error)
-        res.status(500).json({ error: 'Internal server error' })
+    if (!response.ok) {
+      const errorData = await response.text()
+      console.error('Xendit API Error:', errorData)
+      return res.status(response.status).json({
+        error: 'Failed to create payment',
+        details: errorData
+      })
     }
+
+    const paymentData = await response.json()
+    res.json(paymentData)
+  } catch (error) {
+    console.error('Error creating Xendit payment:', error)
+    res.status(500).json({ error: 'Internal server error' })
+  }
 })
 
 app.get('/api/xendit/check-payment/:paymentId', async (req, res) => {
-    try {
-        const { paymentId } = req.params
+  try {
+    const { paymentId } = req.params
 
-        const response = await fetch(`${XENDIT_API_URL}/invoices/${paymentId}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Basic ${Buffer.from(XENDIT_SECRET_KEY + ':').toString('base64')}`,
-                'Content-Type': 'application/json'
-            }
-        })
+    const response = await fetch(`${XENDIT_API_URL}/invoices/${paymentId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Basic ${Buffer.from(XENDIT_SECRET_KEY + ':').toString('base64')}`,
+        'Content-Type': 'application/json'
+      }
+    })
 
-        if (!response.ok) {
-            const errorData = await response.text()
-            console.error('Xendit API Error:', errorData)
-            return res.status(response.status).json({
-                error: 'Failed to check payment status',
-                details: errorData
-            })
-        }
-
-        const paymentData = await response.json()
-        res.json(paymentData)
-    } catch (error) {
-        console.error('Error checking payment status:', error)
-        res.status(500).json({ error: 'Internal server error' })
+    if (!response.ok) {
+      const errorData = await response.text()
+      console.error('Xendit API Error:', errorData)
+      return res.status(response.status).json({
+        error: 'Failed to check payment status',
+        details: errorData
+      })
     }
+
+    const paymentData = await response.json()
+    res.json(paymentData)
+  } catch (error) {
+    console.error('Error checking payment status:', error)
+    res.status(500).json({ error: 'Internal server error' })
+  }
 })
 
 app.post('/api/xendit/webhook', express.raw({type: 'application/json'}), (req, res) => {
-    try {
-        const payload = JSON.parse(req.body)
+  try {
+    const payload = JSON.parse(req.body)
 
-        console.log('Xendit webhook received:', payload)
+    console.log('Xendit webhook received:', payload)
 
-        if (payload.status === 'PAID') {
-            console.log(`Payment completed for invoice: ${payload.external_id}`)
-            // You can add your order update logic here
-        }
-
-        res.status(200).send('OK')
-    } catch (error) {
-        console.error('Webhook error:', error)
-        res.status(400).send('Bad Request')
+    if (payload.status === 'PAID') {
+      console.log(`Payment completed for invoice: ${payload.external_id}`)
+      // You can add your order update logic here
     }
+
+    res.status(200).send('OK')
+  } catch (error) {
+    console.error('Webhook error:', error)
+    res.status(400).send('Bad Request')
+  }
 })
 
 app.get('/products', isLoggedIn, nocache, async (req, res) => {
@@ -344,9 +672,9 @@ app.get('/products', isLoggedIn, nocache, async (req, res) => {
 
     // Fetch ingredient documents
     const ingredientDocs = await ingredientCollection
-      .find({ IngredientID: { $in: allIngredientIDs } })
-      .project({ IngredientID: 1, Name: 1, _id: 0 })
-      .toArray();
+        .find({ IngredientID: { $in: allIngredientIDs } })
+        .project({ IngredientID: 1, Name: 1, _id: 0 })
+        .toArray();
 
     // Map IngredientID to Name
     const ingredientMap = {};
@@ -389,8 +717,8 @@ app.post('/toggle-availability/:id', async (req, res) => {
     }
 
     const result = await db.collection('Menu').updateOne(
-      { _id: new ObjectId(productId) },
-      { $set: { isEnabled: isEnabled } }
+        { _id: new ObjectId(productId) },
+        { $set: { isEnabled: isEnabled } }
     );
 
     await client.close();
@@ -457,9 +785,9 @@ app.post('/products/add', async (req, res) => {
     isEnabled: isEnabled === 'true'
   };
 
-if (Category.toLowerCase() === 'pastries' && !isNaN(parseFloat(BasePrice))) {
-  productData.BasePrice = parseFloat(BasePrice);
-}
+  if (Category.toLowerCase() === 'pastries' && !isNaN(parseFloat(BasePrice))) {
+    productData.BasePrice = parseFloat(BasePrice);
+  }
 
   try {
     const client = await MongoClient.connect(uri);
@@ -485,43 +813,43 @@ app.get('/management', async (req, res) => {
 
 
 app.get('/forgot-password', (req, res) => {
-    res.render('forgot-password', { layout: false });
+  res.render('forgot-password', { layout: false });
 });
 
 
 app.post('/forgot-password', async (req, res) => {
-    const { username, secretCode, newPassword } = req.body;
+  const { username, secretCode, newPassword } = req.body;
 
-    if (!username || !secretCode || !newPassword) {
-        return res.status(400).send('Username, secret code, and new password are required');
+  if (!username || !secretCode || !newPassword) {
+    return res.status(400).send('Username, secret code, and new password are required');
+  }
+
+  let client;
+  try {
+    client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const usersCollection = db.collection('users');
+
+    // Check username + secretCode
+    const user = await usersCollection.findOne({ username: username, secretCode: secretCode });
+    if (!user) {
+      await client.close();
+      return res.status(404).send('User not found or invalid secret code');
     }
 
-    let client;
-    try {
-        client = await MongoClient.connect(uri);
-        const db = client.db('blessingscafe');
-        const usersCollection = db.collection('users');
+    // Update password if valid
+    await usersCollection.updateOne(
+        { username: username, secretCode: secretCode },
+        { $set: { password: newPassword } }
+    );
 
-        // Check username + secretCode
-        const user = await usersCollection.findOne({ username: username, secretCode: secretCode });
-        if (!user) {
-            await client.close();
-            return res.status(404).send('User not found or invalid secret code');
-        }
-
-        // Update password if valid
-        await usersCollection.updateOne(
-            { username: username, secretCode: secretCode },
-            { $set: { password: newPassword } }
-        );
-
-        await client.close();
-        res.send('Password updated successfully. You can now log in.');
-    } catch (error) {
-        if (client) await client.close();
-        console.error('Error updating password:', error);
-        res.status(500).send('Server error');
-    }
+    await client.close();
+    res.send('Password updated successfully. You can now log in.');
+  } catch (error) {
+    if (client) await client.close();
+    console.error('Error updating password:', error);
+    res.status(500).send('Server error');
+  }
 });
 
 
@@ -593,8 +921,8 @@ app.post('/products/edit/:id', async (req, res) => {
     // else → don’t touch existing Sizes in MongoDB
 
     await productCollection.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: updateFields }
+        { _id: new ObjectId(id) },
+        { $set: updateFields }
     );
 
     await client.close();
@@ -608,39 +936,39 @@ app.post('/products/edit/:id', async (req, res) => {
 
 // ✅ Edit product page with ingredient name lookup
 app.get('/edit-product/:id',  async (req, res) => {
-    const { id } = req.params;
-    try {
-        const client = await MongoClient.connect(uri);
-        const db = client.db('blessingscafe');
-        const productCollection = db.collection('Menu');
+  const { id } = req.params;
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const productCollection = db.collection('Menu');
     const ingredientsCollection = db.collection('Ingredients');
 
     // Fetch product by ID
     const product = await productCollection.findOne({ _id: new ObjectId(id) });
 
     if (!product) {
-        await client.close();return res.status(404).send('Product not found');
+      await client.close();return res.status(404).send('Product not found');
     }
 
-        // Lookup ingredient names based on stored IngredientIDs
+    // Lookup ingredient names based on stored IngredientIDs
     let ingredientDetails = [];
     if (Array.isArray(product.Ingredients) && product.Ingredients.length > 0) {
       ingredientDetails = await ingredientsCollection
-        .find({ IngredientID: { $in: product.Ingredients } })
-        .toArray();
+          .find({ IngredientID: { $in: product.Ingredients } })
+          .toArray();
     }
 
-        await client.close();
+    await client.close();
 
     // Always pass ingredientDetails as an array
     res.render('edit-product', {
       product,
       ingredientDetails: ingredientDetails || [] // crash-proof
     });
-    } catch (err) {
-        console.error('Error loading edit product:', err);
-        res.status(500).send('Internal Server Error');
-    }
+  } catch (err) {
+    console.error('Error loading edit product:', err);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
 // ✅ API endpoint for modal edit
@@ -658,8 +986,8 @@ app.get('/api/products/:id', async (req, res) => {
     let ingredientDetails = [];
     if (Array.isArray(product.Ingredients) && product.Ingredients.length > 0) {
       ingredientDetails = await ingredientsCollection
-        .find({ IngredientID: { $in: product.Ingredients } })
-        .toArray();
+          .find({ IngredientID: { $in: product.Ingredients } })
+          .toArray();
     }
 
     res.json({
@@ -676,17 +1004,44 @@ app.get('/api/products/:id', async (req, res) => {
 
 
 app.get('/stocks', isLoggedIn, nocache, async (req, res) => {
-    try {
-        console.log(`[2025-09-16 07:36:28] Loading inventory page for user: ${req.session.user.username} by MathDaenniel`);
-        const client = await MongoClient.connect(uri);
-        const db = client.db('blessingscafe');
-        const ingredients = await db.collection('Ingredients').find().toArray();
-        const addons = await db.collection('Add-ons').find().toArray();
+  let client;
+  try {
+    console.log(`[${new Date().toISOString()}] Loading inventory page for user: ${req.session.user.username}`);
 
-        await client.close();
+    // Connect to MongoDB
+    client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    // Log available collections for debugging
+    const collections = await db.listCollections().toArray();
+    console.log('Available collections:', collections.map(c => c.name));
+
+    // Fetch ingredients and add-ons
+    const ingredients = await db.collection('Ingredients').find().toArray();
+    console.log(`Fetched ${ingredients.length} ingredients`);
+
+    const addons = await db.collection('Add-ons').find().toArray();
+    console.log(`Fetched ${addons.length} add-ons`);
+
+    // Log sample data for debugging
+    if (ingredients.length > 0) {
+      console.log('Sample ingredient:', {
+        _id: ingredients[0]._id,
+        name: ingredients[0].Name,
+        quantity: ingredients[0].Quantity
+      });
+    }
+
+    if (addons.length > 0) {
+      console.log('Sample add-on:', {
+        _id: addons[0]._id,
+        name: addons[0].Name,
+        quantity: addons[0].Quantity
+      });
+    }
 
     const message = req.query.msg || null;
-    res.render('stocks', {
+    res.render('admin/stocks', {
       ingredients,
       addons,
       title: 'Inventory Management | Blessings Cafe',
@@ -703,17 +1058,1236 @@ app.get('/stocks', isLoggedIn, nocache, async (req, res) => {
         totalAddons: addons.length,
         enabledIngredients: ingredients.filter(i => i.isEnabled).length,
         enabledAddons: addons.filter(a => a.isEnabled).length
-      }
+      },
+      layout: 'admin/layout'
     });
   } catch (err) {
-    console.error(`[2025-09-16 07:36:28] Error loading inventory:`, err, 'by MathDaenniel');
+    res.status(500).send('Failed to load inventory');
+  }
+});
+
+// Discounts Management
+app.get('/admin/discounts', isLoggedIn, ensureAdmin, nocache, async (req, res) => {
+  try {
+    const discounts = await getDiscounts();
+    res.render('admin/discounts', {
+      title: 'Discounts | Blessings Cafe',
+      user: req.session.user,
+      discounts: discounts,
+      layout: 'admin/layout'
+    });
+  } catch (err) {
+    console.error('Discounts error:', err);
+    req.flash('error_msg', 'Error loading discounts');
+    res.redirect('/admin/dashboard');
+  }
+});
+
+// Menu Management
+app.get('/admin/menu', isLoggedIn, ensureAdmin, nocache, async (req, res) => {
+  try {
+    const menuItems = await getMenu();
+    res.render('admin/menu', {
+      title: 'Menu Management | Blessings Cafe',
+      user: req.session.user,
+      menuItems: menuItems,  // Changed from 'menu' to 'menuItems' to match template
+      layout: 'admin/layout'
+    });
+  } catch (err) {
+    console.error('Menu error:', err);
+    req.flash('error_msg', 'Error loading menu');
+    res.redirect('/admin/dashboard');
+  }
+});
+
+// Admin Settings
+app.get('/admin/settings', isLoggedIn, ensureAdmin, nocache, (req, res) => {
+  res.render('admin/settings', {
+    title: 'Settings | Blessings Cafe',
+    user: req.session.user,
+    layout: 'admin/layout'
+  });
+});
+
+// Forgot Password
+app.get('/admin/forgot-password', (req, res) => {
+  if (req.session.user) {
+    return res.redirect('/admin/dashboard');
+  }
+  res.render('admin/forgot-password', {
+    title: 'Forgot Password | Blessings Cafe',
+    layout: false
+  });
+});
+
+// Helper function to ensure user is admin
+function ensureAdmin(req, res, next) {
+  if (req.session.user && req.session.user.role === 'admin') {
+    return next();
+  }
+  req.flash('error_msg', 'Unauthorized access');
+  res.redirect('/admin/login');
+}
+
+app.get('/account/register', (req, res) => {
+  res.render('register', { errors: {}, formData: {}, error: null, layout: false });
+});
+
+app.get('/dashboard', isLoggedIn, nocache, (req, res) => {
+  // Redirect to admin dashboard if user is admin
+  if (req.session.user && req.session.user.role === 'admin') {
+    return res.redirect('/admin/dashboard');
+  }
+  // Otherwise, redirect to user dashboard or home
+  res.redirect('/');
+});
+
+app.get('/menu', isLoggedIn, nocache, async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const menuCollection = db.collection('Menu');
+    const menuItems = await menuCollection.find().toArray();
+    await client.close();
+    res.render('menu', { menuItems, title: 'Menu | Blessings Cafe', user: req.session.user });
+  } catch (err) {
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+app.get('/api/addons', async (req, res) => {
+  try {
+    console.log('Fetching add-ons...');
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    const addOns = await db.collection('Add-ons').find({ isEnabled: true }).toArray();
+
+    console.log('Found add-ons:', addOns.length);
+    console.log('Add-ons data:', addOns);
+
+    await client.close();
+    res.json(addOns);
+  } catch (err) {
+    console.error('Error fetching add-ons:', err);
+    res.status(500).json([]);
+  }
+});
+
+app.get('/api/orders/preparing-customers', async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri)
+    const db = client.db('blessingscafe')
+    const docs = await db.collection('Orders').find({ FulfillmentStatus: "Preparing" }).project({ Customer: 1 }).toArray()
+    await client.close()
+    res.json(docs.map(d => d.Customer))
+  } catch (err) {
+    res.status(500).json([])
+  }
+})
+
+// Xendit API Routes
+app.post('/api/xendit/create-payment', async (req, res) => {
+  try {
+    const invoicePayload = req.body
+
+    const response = await fetch(`${XENDIT_API_URL}/invoices`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${Buffer.from(XENDIT_SECRET_KEY + ':').toString('base64')}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(invoicePayload)
+    })
+
+    if (!response.ok) {
+      const errorData = await response.text()
+      console.error('Xendit API Error:', errorData)
+      return res.status(response.status).json({
+        error: 'Failed to create payment',
+        details: errorData
+      })
+    }
+
+    const paymentData = await response.json()
+    res.json(paymentData)
+  } catch (error) {
+    console.error('Error creating Xendit payment:', error)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+app.get('/api/xendit/check-payment/:paymentId', async (req, res) => {
+  try {
+    const { paymentId } = req.params
+
+    const response = await fetch(`${XENDIT_API_URL}/invoices/${paymentId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Basic ${Buffer.from(XENDIT_SECRET_KEY + ':').toString('base64')}`,
+        'Content-Type': 'application/json'
+      }
+    })
+
+    if (!response.ok) {
+      const errorData = await response.text()
+      console.error('Xendit API Error:', errorData)
+      return res.status(response.status).json({
+        error: 'Failed to check payment status',
+        details: errorData
+      })
+    }
+
+    const paymentData = await response.json()
+    res.json(paymentData)
+  } catch (error) {
+    console.error('Error checking payment status:', error)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+app.post('/api/xendit/webhook', express.raw({type: 'application/json'}), (req, res) => {
+  try {
+    const payload = JSON.parse(req.body)
+
+    console.log('Xendit webhook received:', payload)
+
+    if (payload.status === 'PAID') {
+      console.log(`Payment completed for invoice: ${payload.external_id}`)
+      // You can add your order update logic here
+    }
+
+    res.status(200).send('OK')
+  } catch (error) {
+    console.error('Webhook error:', error)
+    res.status(400).send('Bad Request')
+  }
+})
+
+app.get('/products', isLoggedIn, nocache, async (req, res) => {
+  try {
+    const client = new MongoClient(uri);
+    await client.connect();
+    const db = client.db('blessingscafe');
+
+    const productCollection = db.collection('Menu');
+    const ingredientCollection = db.collection('Ingredients');
+
+    // Get all products
+    const products = await productCollection.find().toArray();
+
+    // Collect all ingredient IDs from all products
+    const allIngredientIDs = products.flatMap(p => p.Ingredients || []);
+
+    // Fetch ingredient documents
+    const ingredientDocs = await ingredientCollection
+        .find({ IngredientID: { $in: allIngredientIDs } })
+        .project({ IngredientID: 1, Name: 1, _id: 0 })
+        .toArray();
+
+    // Map IngredientID to Name
+    const ingredientMap = {};
+    ingredientDocs.forEach(i => {
+      ingredientMap[i.IngredientID] = i.Name;
+    });
+
+    // Replace ingredient IDs with names
+    const productsWithIngredientNames = products.map(p => ({
+      ...p,
+      Ingredients: (p.Ingredients || []).map(id => ingredientMap[id] || id)
+    }));
+
+    await client.close();
+
+    res.render('products', {
+      products: productsWithIngredientNames,
+      title: 'Products | Blessings Cafe',
+      user: req.session.user
+    });
+  } catch (err) {
+    console.error('Error fetching products:', err);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+app.post('/toggle-availability/:id', async (req, res) => {
+  const productId = req.params.id;
+
+  const isEnabled = req.body.isEnabled === true || req.body.isEnabled === 'true';
+
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    const product = await db.collection('Menu').findOne({ _id: new ObjectId(productId) });
+    if (!product) {
+      await client.close();
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    const result = await db.collection('Menu').updateOne(
+        { _id: new ObjectId(productId) },
+        { $set: { isEnabled: isEnabled } }
+    );
+
+    await client.close();
+
+    if (result.modifiedCount === 0) {
+      return res.status(500).json({ success: false, message: 'No change made to product' });
+    }
+
+    res.json({ success: true, productName: product.Name });
+  } catch (err) {
+    console.error('Error updating product availability:', err);
+    res.status(500).json({ success: false });
+  }
+});
+
+app.post('/products/add', async (req, res) => {
+  const {
+    categoryShortcut, // CF, MT, FT, BK
+    productCode,
+    Name,
+    size16,
+    size22,
+    Ingredients,
+    Allergen,
+    imagelink,
+    isEnabled,
+    BasePrice
+  } = req.body;
+
+  // Map shortcut to full category name
+  const categoryMap = {
+    CF: "Coffee",
+    MT: "Milktea",
+    FT: "Fruit Tea",
+    BK: "Pastries"
+  };
+
+  const Category = categoryMap[categoryShortcut] || null;
+
+  if (!Category || !productCode) {
+    console.warn('Missing category or product code in form submission:', req.body);
+    req.flash('error_msg', 'Please select a category and enter a product code.');
+    return res.redirect('/add-product');
+  }
+
+  const ProductID = `${categoryShortcut.toUpperCase()}-${productCode.toUpperCase()}`;
+
+  const Sizes = [];
+  if (size16) Sizes.push({ Size: '16oz', BasePrice: parseFloat(size16) });
+  if (size22) Sizes.push({ Size: '22oz', BasePrice: parseFloat(size22) });
+
+  const ingredientsArray = Ingredients
+      ? Ingredients.split(',').map(i => i.trim())
+      : [];
+
+  const productData = {
+    ProductID,
+    Name,
+    Sizes: Sizes.length > 0 ? Sizes : null,
+    Ingredients: ingredientsArray,
+    Category, // full name now
+    Allergen: Allergen || null,
+    imagelink: imagelink || 'placeholder',
+    isEnabled: isEnabled === 'true'
+  };
+
+  if (Category.toLowerCase() === 'pastries' && !isNaN(parseFloat(BasePrice))) {
+    productData.BasePrice = parseFloat(BasePrice);
+  }
+
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    await db.collection('Menu').insertOne(productData);
+    await client.close();
+    req.flash('success_msg', `${Name} has been added to the menu`);
+    res.redirect('/products');
+  } catch (err) {
+    console.error('Error adding product:', err);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+
+
+
+app.get('/management', async (req, res) => {
+  res.render('management', {
+    currentPage: '/management'
+  });
+});
+
+
+app.get('/forgot-password', (req, res) => {
+  res.render('forgot-password', { layout: false });
+});
+
+
+app.post('/forgot-password', async (req, res) => {
+  const { username, secretCode, newPassword } = req.body;
+
+  if (!username || !secretCode || !newPassword) {
+    return res.status(400).send('Username, secret code, and new password are required');
+  }
+
+  let client;
+  try {
+    client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const usersCollection = db.collection('users');
+
+    // Check username + secretCode
+    const user = await usersCollection.findOne({ username: username, secretCode: secretCode });
+    if (!user) {
+      await client.close();
+      return res.status(404).send('User not found or invalid secret code');
+    }
+
+    // Update password if valid
+    await usersCollection.updateOne(
+        { username: username, secretCode: secretCode },
+        { $set: { password: newPassword } }
+    );
+
+    await client.close();
+    res.send('Password updated successfully. You can now log in.');
+  } catch (error) {
+    if (client) await client.close();
+    console.error('Error updating password:', error);
+    res.status(500).send('Server error');
+  }
+});
+
+
+app.post('/delete-product/:id', async (req, res) => {
+  const productId = req.params.id;
+
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const result = await db.collection('Menu').deleteOne({ _id: new ObjectId(productId) });
+
+    await client.close();
+
+    if (result.deletedCount === 1) {
+      req.flash('success_msg', `Product has been deleted`);
+      res.redirect('/products');} else {
+      res.status(404).send('Product not found');
+    }
+  } catch (err) {
+    console.error('Error deleting product:', err);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+
+app.get('/add-product', isLoggedIn, nocache, (req, res) => {
+  res.render('add-product', { title: 'Add Product | Blessings Cafe' , user: req.session.user});
+});
+
+app.post('/products/edit/:id', async (req, res) => {
+  const { id } = req.params;
+  const {
+    Name,
+    Category,
+    imagelink,
+    BasePrice,
+    size16,
+    size22,
+    Allergen,
+    isEnabled
+  } = req.body;
+
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const productCollection = db.collection('Menu');
+
+    // Build updateFields — only include fields we really want to change
+    const updateFields = {
+      Name,
+      Category,
+      imagelink,
+      Allergen: Allergen || '',
+      isEnabled: isEnabled === 'true',
+    };
+
+    // Only update BasePrice if category is pastries
+    if (Category && Category.toLowerCase() === 'pastries' && BasePrice) {
+      updateFields.BasePrice = parseFloat(BasePrice);
+    }
+
+    // Only update Sizes if user provided values
+    if (size16 || size22) {
+      const Sizes = [];
+      if (size16) Sizes.push({ Size: '16oz', BasePrice: parseFloat(size16) });
+      if (size22) Sizes.push({ Size: '22oz', BasePrice: parseFloat(size22) });
+      updateFields.Sizes = Sizes;
+    }
+    // else → don’t touch existing Sizes in MongoDB
+
+    await productCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: updateFields }
+    );
+
+    await client.close();
+    req.flash('success_msg', `${Name} has been updated`);
+    res.redirect('/products');
+  } catch (err) {
+    console.error('Error editing product:', err);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// ✅ Edit product page with ingredient name lookup
+app.get('/edit-product/:id',  async (req, res) => {
+  const { id } = req.params;
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const productCollection = db.collection('Menu');
+    const ingredientsCollection = db.collection('Ingredients');
+
+    // Fetch product by ID
+    const product = await productCollection.findOne({ _id: new ObjectId(id) });
+
+    if (!product) {
+      await client.close();return res.status(404).send('Product not found');
+    }
+
+    // Lookup ingredient names based on stored IngredientIDs
+    let ingredientDetails = [];
+    if (Array.isArray(product.Ingredients) && product.Ingredients.length > 0) {
+      ingredientDetails = await ingredientsCollection
+          .find({ IngredientID: { $in: product.Ingredients } })
+          .toArray();
+    }
+
+    await client.close();
+
+    // Always pass ingredientDetails as an array
+    res.render('edit-product', {
+      product,
+      ingredientDetails: ingredientDetails || [] // crash-proof
+    });
+  } catch (err) {
+    console.error('Error loading edit product:', err);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// ✅ API endpoint for modal edit
+app.get('/api/products/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const productCollection = db.collection('Menu');
+    const ingredientsCollection = db.collection('Ingredients');
+
+    const product = await productCollection.findOne({ _id: new ObjectId(id) });
+    if (!product) return res.status(404).send('Not found');
+
+    let ingredientDetails = [];
+    if (Array.isArray(product.Ingredients) && product.Ingredients.length > 0) {
+      ingredientDetails = await ingredientsCollection
+          .find({ IngredientID: { $in: product.Ingredients } })
+          .toArray();
+    }
+
+    res.json({
+      ...product,
+      IngredientsDetails: ingredientDetails
+    });
+
+    client.close();
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error fetching product');
+  }
+});
+
+
+app.get('/stocks', isLoggedIn, nocache, async (req, res) => {
+  let client;
+  try {
+    console.log(`[${new Date().toISOString()}] Loading inventory page for user: ${req.session.user.username}`);
+
+    // Connect to MongoDB
+    client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    // Log available collections for debugging
+    const collections = await db.listCollections().toArray();
+    console.log('Available collections:', collections.map(c => c.name));
+
+    // Fetch ingredients and add-ons
+    const ingredients = await db.collection('Ingredients').find().toArray();
+    console.log(`Fetched ${ingredients.length} ingredients`);
+
+    const addons = await db.collection('Add-ons').find().toArray();
+    console.log(`Fetched ${addons.length} add-ons`);
+
+    // Log sample data for debugging
+    if (ingredients.length > 0) {
+      console.log('Sample ingredient:', {
+        _id: ingredients[0]._id,
+        name: ingredients[0].Name,
+        quantity: ingredients[0].Quantity
+      });
+    }
+
+    if (addons.length > 0) {
+      console.log('Sample add-on:', {
+        _id: addons[0]._id,
+        name: addons[0].Name,
+        quantity: addons[0].Quantity
+      });
+    }
+
+    const message = req.query.msg || null;
+    res.render('admin/stocks', {
+      ingredients,
+      addons,
+      title: 'Inventory Management | Blessings Cafe',
+      user: req.session.user,
+      message,
+      uiConfig: {
+        fixedNavbar: true,
+        contentOnlyScroll: true,
+        enhancedModals: true,
+        version: 'V13-Enhanced'
+      },
+      stats: {
+        totalIngredients: ingredients.length,
+        totalAddons: addons.length,
+        enabledIngredients: ingredients.filter(i => i.isEnabled).length,
+        enabledAddons: addons.filter(a => a.isEnabled).length
+      },
+      layout: 'admin/layout'
+    });
+  } catch (err) {
+    res.status(500).send('Failed to load inventory');
+  }
+});
+
+// Discounts Management
+app.get('/admin/discounts', isLoggedIn, ensureAdmin, nocache, async (req, res) => {
+  try {
+    const discounts = await getDiscounts();
+    res.render('admin/discounts', {
+      title: 'Discounts | Blessings Cafe',
+      user: req.session.user,
+      discounts: discounts,
+      layout: 'admin/layout'
+    });
+  } catch (err) {
+    console.error('Discounts error:', err);
+    req.flash('error_msg', 'Error loading discounts');
+    res.redirect('/admin/dashboard');
+  }
+});
+
+// Menu Management
+app.get('/admin/menu', isLoggedIn, ensureAdmin, nocache, async (req, res) => {
+  try {
+    const menuItems = await getMenu();
+    res.render('admin/menu', {
+      title: 'Menu Management | Blessings Cafe',
+      user: req.session.user,
+      menuItems: menuItems,  // Changed from 'menu' to 'menuItems' to match template
+      layout: 'admin/layout'
+    });
+  } catch (err) {
+    console.error('Menu error:', err);
+    req.flash('error_msg', 'Error loading menu');
+    res.redirect('/admin/dashboard');
+  }
+});
+
+// Admin Settings
+app.get('/admin/settings', isLoggedIn, ensureAdmin, nocache, (req, res) => {
+  res.render('admin/settings', {
+    title: 'Settings | Blessings Cafe',
+    user: req.session.user,
+    layout: 'admin/layout'
+  });
+});
+
+// Forgot Password
+app.get('/admin/forgot-password', (req, res) => {
+  if (req.session.user) {
+    return res.redirect('/admin/dashboard');
+  }
+  res.render('admin/forgot-password', {
+    title: 'Forgot Password | Blessings Cafe',
+    layout: false
+  });
+});
+
+// Helper function to ensure user is admin
+function ensureAdmin(req, res, next) {
+  if (req.session.user && req.session.user.role === 'admin') {
+    return next();
+  }
+  req.flash('error_msg', 'Unauthorized access');
+  res.redirect('/admin/login');
+}
+
+app.get('/account/register', (req, res) => {
+  res.render('register', { errors: {}, formData: {}, error: null, layout: false });
+});
+
+app.get('/dashboard', isLoggedIn, nocache, (req, res) => {
+  // Redirect to admin dashboard if user is admin
+  if (req.session.user && req.session.user.role === 'admin') {
+    return res.redirect('/admin/dashboard');
+  }
+  // Otherwise, redirect to user dashboard or home
+  res.redirect('/');
+});
+
+app.get('/menu', isLoggedIn, nocache, async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const menuCollection = db.collection('Menu');
+    const menuItems = await menuCollection.find().toArray();
+    await client.close();
+    res.render('menu', { menuItems, title: 'Menu | Blessings Cafe', user: req.session.user });
+  } catch (err) {
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+app.get('/api/addons', async (req, res) => {
+  try {
+    console.log('Fetching add-ons...');
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    const addOns = await db.collection('Add-ons').find({ isEnabled: true }).toArray();
+
+    console.log('Found add-ons:', addOns.length);
+    console.log('Add-ons data:', addOns);
+
+    await client.close();
+    res.json(addOns);
+  } catch (err) {
+    console.error('Error fetching add-ons:', err);
+    res.status(500).json([]);
+  }
+});
+
+app.get('/api/orders/preparing-customers', async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri)
+    const db = client.db('blessingscafe')
+    const docs = await db.collection('Orders').find({ FulfillmentStatus: "Preparing" }).project({ Customer: 1 }).toArray()
+    await client.close()
+    res.json(docs.map(d => d.Customer))
+  } catch (err) {
+    res.status(500).json([])
+  }
+})
+
+// Xendit API Routes
+app.post('/api/xendit/create-payment', async (req, res) => {
+  try {
+    const invoicePayload = req.body
+
+    const response = await fetch(`${XENDIT_API_URL}/invoices`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${Buffer.from(XENDIT_SECRET_KEY + ':').toString('base64')}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(invoicePayload)
+    })
+
+    if (!response.ok) {
+      const errorData = await response.text()
+      console.error('Xendit API Error:', errorData)
+      return res.status(response.status).json({
+        error: 'Failed to create payment',
+        details: errorData
+      })
+    }
+
+    const paymentData = await response.json()
+    res.json(paymentData)
+  } catch (error) {
+    console.error('Error creating Xendit payment:', error)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+app.get('/api/xendit/check-payment/:paymentId', async (req, res) => {
+  try {
+    const { paymentId } = req.params
+
+    const response = await fetch(`${XENDIT_API_URL}/invoices/${paymentId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Basic ${Buffer.from(XENDIT_SECRET_KEY + ':').toString('base64')}`,
+        'Content-Type': 'application/json'
+      }
+    })
+
+    if (!response.ok) {
+      const errorData = await response.text()
+      console.error('Xendit API Error:', errorData)
+      return res.status(response.status).json({
+        error: 'Failed to check payment status',
+        details: errorData
+      })
+    }
+
+    const paymentData = await response.json()
+    res.json(paymentData)
+  } catch (error) {
+    console.error('Error checking payment status:', error)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+app.post('/api/xendit/webhook', express.raw({type: 'application/json'}), (req, res) => {
+  try {
+    const payload = JSON.parse(req.body)
+
+    console.log('Xendit webhook received:', payload)
+
+    if (payload.status === 'PAID') {
+      console.log(`Payment completed for invoice: ${payload.external_id}`)
+      // You can add your order update logic here
+    }
+
+    res.status(200).send('OK')
+  } catch (error) {
+    console.error('Webhook error:', error)
+    res.status(400).send('Bad Request')
+  }
+})
+
+app.get('/products', isLoggedIn, nocache, async (req, res) => {
+  try {
+    const client = new MongoClient(uri);
+    await client.connect();
+    const db = client.db('blessingscafe');
+
+    const productCollection = db.collection('Menu');
+    const ingredientCollection = db.collection('Ingredients');
+
+    // Get all products
+    const products = await productCollection.find().toArray();
+
+    // Collect all ingredient IDs from all products
+    const allIngredientIDs = products.flatMap(p => p.Ingredients || []);
+
+    // Fetch ingredient documents
+    const ingredientDocs = await ingredientCollection
+        .find({ IngredientID: { $in: allIngredientIDs } })
+        .project({ IngredientID: 1, Name: 1, _id: 0 })
+        .toArray();
+
+    // Map IngredientID to Name
+    const ingredientMap = {};
+    ingredientDocs.forEach(i => {
+      ingredientMap[i.IngredientID] = i.Name;
+    });
+
+    // Replace ingredient IDs with names
+    const productsWithIngredientNames = products.map(p => ({
+      ...p,
+      Ingredients: (p.Ingredients || []).map(id => ingredientMap[id] || id)
+    }));
+
+    await client.close();
+
+    res.render('products', {
+      products: productsWithIngredientNames,
+      title: 'Products | Blessings Cafe',
+      user: req.session.user
+    });
+  } catch (err) {
+    console.error('Error fetching products:', err);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+app.post('/toggle-availability/:id', async (req, res) => {
+  const productId = req.params.id;
+
+  const isEnabled = req.body.isEnabled === true || req.body.isEnabled === 'true';
+
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    const product = await db.collection('Menu').findOne({ _id: new ObjectId(productId) });
+    if (!product) {
+      await client.close();
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    const result = await db.collection('Menu').updateOne(
+        { _id: new ObjectId(productId) },
+        { $set: { isEnabled: isEnabled } }
+    );
+
+    await client.close();
+
+    if (result.modifiedCount === 0) {
+      return res.status(500).json({ success: false, message: 'No change made to product' });
+    }
+
+    res.json({ success: true, productName: product.Name });
+  } catch (err) {
+    console.error('Error updating product availability:', err);
+    res.status(500).json({ success: false });
+  }
+});
+
+app.post('/products/add', async (req, res) => {
+  const {
+    categoryShortcut, // CF, MT, FT, BK
+    productCode,
+    Name,
+    size16,
+    size22,
+    Ingredients,
+    Allergen,
+    imagelink,
+    isEnabled,
+    BasePrice
+  } = req.body;
+
+  // Map shortcut to full category name
+  const categoryMap = {
+    CF: "Coffee",
+    MT: "Milktea",
+    FT: "Fruit Tea",
+    BK: "Pastries"
+  };
+
+  const Category = categoryMap[categoryShortcut] || null;
+
+  if (!Category || !productCode) {
+    console.warn('Missing category or product code in form submission:', req.body);
+    req.flash('error_msg', 'Please select a category and enter a product code.');
+    return res.redirect('/add-product');
+  }
+
+  const ProductID = `${categoryShortcut.toUpperCase()}-${productCode.toUpperCase()}`;
+
+  const Sizes = [];
+  if (size16) Sizes.push({ Size: '16oz', BasePrice: parseFloat(size16) });
+  if (size22) Sizes.push({ Size: '22oz', BasePrice: parseFloat(size22) });
+
+  const ingredientsArray = Ingredients
+      ? Ingredients.split(',').map(i => i.trim())
+      : [];
+
+  const productData = {
+    ProductID,
+    Name,
+    Sizes: Sizes.length > 0 ? Sizes : null,
+    Ingredients: ingredientsArray,
+    Category, // full name now
+    Allergen: Allergen || null,
+    imagelink: imagelink || 'placeholder',
+    isEnabled: isEnabled === 'true'
+  };
+
+  if (Category.toLowerCase() === 'pastries' && !isNaN(parseFloat(BasePrice))) {
+    productData.BasePrice = parseFloat(BasePrice);
+  }
+
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    await db.collection('Menu').insertOne(productData);
+    await client.close();
+    req.flash('success_msg', `${Name} has been added to the menu`);
+    res.redirect('/products');
+  } catch (err) {
+    console.error('Error adding product:', err);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+
+
+
+app.get('/management', async (req, res) => {
+  res.render('management', {
+    currentPage: '/management'
+  });
+});
+
+
+app.get('/forgot-password', (req, res) => {
+  res.render('forgot-password', { layout: false });
+});
+
+
+app.post('/forgot-password', async (req, res) => {
+  const { username, secretCode, newPassword } = req.body;
+
+  if (!username || !secretCode || !newPassword) {
+    return res.status(400).send('Username, secret code, and new password are required');
+  }
+
+  let client;
+  try {
+    client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const usersCollection = db.collection('users');
+
+    // Check username + secretCode
+    const user = await usersCollection.findOne({ username: username, secretCode: secretCode });
+    if (!user) {
+      await client.close();
+      return res.status(404).send('User not found or invalid secret code');
+    }
+
+    // Update password if valid
+    await usersCollection.updateOne(
+        { username: username, secretCode: secretCode },
+        { $set: { password: newPassword } }
+    );
+
+    await client.close();
+    res.send('Password updated successfully. You can now log in.');
+  } catch (error) {
+    if (client) await client.close();
+    console.error('Error updating password:', error);
+    res.status(500).send('Server error');
+  }
+});
+
+
+app.post('/delete-product/:id', async (req, res) => {
+  const productId = req.params.id;
+
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const result = await db.collection('Menu').deleteOne({ _id: new ObjectId(productId) });
+
+    await client.close();
+
+    if (result.deletedCount === 1) {
+      req.flash('success_msg', `Product has been deleted`);
+      res.redirect('/products');} else {
+      res.status(404).send('Product not found');
+    }
+  } catch (err) {
+    console.error('Error deleting product:', err);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+
+app.get('/add-product', isLoggedIn, nocache, (req, res) => {
+  res.render('add-product', { title: 'Add Product | Blessings Cafe' , user: req.session.user});
+});
+
+app.post('/products/edit/:id', async (req, res) => {
+  const { id } = req.params;
+  const {
+    Name,
+    Category,
+    imagelink,
+    BasePrice,
+    size16,
+    size22,
+    Allergen,
+    isEnabled
+  } = req.body;
+
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const productCollection = db.collection('Menu');
+
+    // Build updateFields — only include fields we really want to change
+    const updateFields = {
+      Name,
+      Category,
+      imagelink,
+      Allergen: Allergen || '',
+      isEnabled: isEnabled === 'true',
+    };
+
+    // Only update BasePrice if category is pastries
+    if (Category && Category.toLowerCase() === 'pastries' && BasePrice) {
+      updateFields.BasePrice = parseFloat(BasePrice);
+    }
+
+    // Only update Sizes if user provided values
+    if (size16 || size22) {
+      const Sizes = [];
+      if (size16) Sizes.push({ Size: '16oz', BasePrice: parseFloat(size16) });
+      if (size22) Sizes.push({ Size: '22oz', BasePrice: parseFloat(size22) });
+      updateFields.Sizes = Sizes;
+    }
+    // else → don’t touch existing Sizes in MongoDB
+
+    await productCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: updateFields }
+    );
+
+    await client.close();
+    req.flash('success_msg', `${Name} has been updated`);
+    res.redirect('/products');
+  } catch (err) {
+    console.error('Error editing product:', err);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// ✅ Edit product page with ingredient name lookup
+app.get('/edit-product/:id',  async (req, res) => {
+  const { id } = req.params;
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const productCollection = db.collection('Menu');
+    const ingredientsCollection = db.collection('Ingredients');
+
+    // Fetch product by ID
+    const product = await productCollection.findOne({ _id: new ObjectId(id) });
+
+    if (!product) {
+      await client.close();return res.status(404).send('Product not found');
+    }
+
+    // Lookup ingredient names based on stored IngredientIDs
+    let ingredientDetails = [];
+    if (Array.isArray(product.Ingredients) && product.Ingredients.length > 0) {
+      ingredientDetails = await ingredientsCollection
+          .find({ IngredientID: { $in: product.Ingredients } })
+          .toArray();
+    }
+
+    await client.close();
+
+    // Always pass ingredientDetails as an array
+    res.render('edit-product', {
+      product,
+      ingredientDetails: ingredientDetails || [] // crash-proof
+    });
+  } catch (err) {
+    console.error('Error loading edit product:', err);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// ✅ API endpoint for modal edit
+app.get('/api/products/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const productCollection = db.collection('Menu');
+    const ingredientsCollection = db.collection('Ingredients');
+
+    const product = await productCollection.findOne({ _id: new ObjectId(id) });
+    if (!product) return res.status(404).send('Not found');
+
+    let ingredientDetails = [];
+    if (Array.isArray(product.Ingredients) && product.Ingredients.length > 0) {
+      ingredientDetails = await ingredientsCollection
+          .find({ IngredientID: { $in: product.Ingredients } })
+          .toArray();
+    }
+
+    res.json({
+      ...product,
+      IngredientsDetails: ingredientDetails
+    });
+
+    client.close();
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error fetching product');
+  }
+});
+
+
+app.get('/stocks', isLoggedIn, nocache, async (req, res) => {
+  let client;
+  try {
+    console.log(`[${new Date().toISOString()}] Loading inventory page for user: ${req.session.user.username}`);
+
+    // Connect to MongoDB
+    client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    // Log available collections for debugging
+    const collections = await db.listCollections().toArray();
+    console.log('Available collections:', collections.map(c => c.name));
+
+    // Fetch ingredients and add-ons
+    const ingredients = await db.collection('Ingredients').find().toArray();
+    console.log(`Fetched ${ingredients.length} ingredients`);
+
+    const addons = await db.collection('Add-ons').find().toArray();
+    console.log(`Fetched ${addons.length} add-ons`);
+
+    // Log sample data for debugging
+    if (ingredients.length > 0) {
+      console.log('Sample ingredient:', {
+        _id: ingredients[0]._id,
+        name: ingredients[0].Name,
+        quantity: ingredients[0].Quantity
+      });
+    }
+
+    if (addons.length > 0) {
+      console.log('Sample add-on:', {
+        _id: addons[0]._id,
+        name: addons[0].Name,
+        quantity: addons[0].Quantity
+      });
+    }
+
+    const message = req.query.msg || null;
+    res.render('admin/stocks', {
+      ingredients,
+      addons,
+      title: 'Inventory Management | Blessings Cafe',
+      user: req.session.user,
+      message,
+      uiConfig: {
+        fixedNavbar: true,
+        contentOnlyScroll: true,
+        enhancedModals: true,
+        version: 'V13-Enhanced'
+      },
+      stats: {
+        totalIngredients: ingredients.length,
+        totalAddons: addons.length,
+        enabledIngredients: ingredients.filter(i => i.isEnabled).length,
+        enabledAddons: addons.filter(a => a.isEnabled).length
+      },
+      layout: 'admin/layout'
+    });
+  } catch (err) {
+    console.error(`[${new Date().toISOString()}] Error loading inventory:`, err);
     res.status(500).send('Failed to load inventory');
   }
 });
 
 // V13 ENHANCED Ingredients CRUD Routes with Fixed Prefix Support
 app.post('/stocks', async (req, res) => {
-    console.log(`[2025-09-16 07:36:28] Adding new ingredient by MathDaenniel`);
+  console.log(`[2025-09-16 07:36:28] Adding new ingredient by MathDaenniel`);
   console.log(`[2025-09-16 07:36:28] Request body:`, req.body, 'by MathDaenniel');
 
   const { IngredientID, IngredientPrefix, IngredientSuffix, Name, Quantity, Category, Allergen, isAvailable, isEnabled } = req.body;
@@ -739,30 +2313,30 @@ app.post('/stocks', async (req, res) => {
     return res.redirect('/stocks?msg=validation_error');
   }
 
-    try {
-        const client = await MongoClient.connect(uri);
-        const db = client.db('blessingscafe');
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
 
-        const existingIngredient = await db.collection('Ingredients').findOne({
-            IngredientID: finalIngredientID
-        });
+    const existingIngredient = await db.collection('Ingredients').findOne({
+      IngredientID: finalIngredientID
+    });
 
-        if (existingIngredient) {
-            await client.close();
-            console.log(`[2025-09-16 07:36:28] Duplicate ingredient ID: ${finalIngredientID} by MathDaenniel`);return res.redirect('/stocks?msg=duplicate_id');
-        }
+    if (existingIngredient) {
+      await client.close();
+      console.log(`[2025-09-16 07:36:28] Duplicate ingredient ID: ${finalIngredientID} by MathDaenniel`);return res.redirect('/stocks?msg=duplicate_id');
+    }
 
-        const newIngredient = {
-            IngredientID: finalIngredientID,
-            Name: Name.trim(),
-            Quantity: parseInt(Quantity)|| 0,
-            Category: finalCategory, // Fixed category
-            Allergen: Allergen ? Allergen.trim() : 'None',
-            isAvailable: isAvailable === 'true',
-            isEnabled: isEnabled === 'true',
-            createdAt: new Date(),
-            lastModified: new Date(),
-        // V13 Addition: Enhanced metadata
+    const newIngredient = {
+      IngredientID: finalIngredientID,
+      Name: Name.trim(),
+      Quantity: parseInt(Quantity)|| 0,
+      Category: finalCategory, // Fixed category
+      Allergen: Allergen ? Allergen.trim() : 'None',
+      isAvailable: isAvailable === 'true',
+      isEnabled: isEnabled === 'true',
+      createdAt: new Date(),
+      lastModified: new Date(),
+      // V13 Addition: Enhanced metadata
       metadata: {
         createdBy: req.session.user.username || 'MathDaenniel',
         repository: 'roviczzz/Couche-Co',
@@ -772,22 +2346,19 @@ app.post('/stocks', async (req, res) => {
       }
     };
 
-        await db.collection('Ingredients').insertOne(newIngredient);
-        await client.close();
+    await db.collection('Ingredients').insertOne(newIngredient);
+    await client.close();
 
-        console.log(`[2025-09-16 07:36:28] Ingredient added: ${finalIngredientID} by MathDaenniel`);
-        res.redirect('/stocks?msg=add_success');
-    } catch (err) {
-        console.error(`[2025-09-16 07:36:28] Error adding ingredient:`, err, 'by MathDaenniel');
-        res.status(500).send('Failed to add ingredient');
-    }
+    console.log(`[2025-09-16 07:36:28] Ingredient added: ${finalIngredientID} by MathDaenniel`);
+    res.redirect('/stocks?msg=add_success');
+  } catch (err) {
+    console.error(`[2025-09-16 07:36:28] Error adding ingredient:`, err, 'by MathDaenniel');
+    res.status(500).send('Failed to add ingredient');
+  }
 });
 
 app.post('/stocks/edit/:id', async (req, res) => {
-    const id = req.params.id;
-    console.log(`[2025-09-16 07:36:28] Updating ingredient ID: ${id} by MathDaenniel`);
-  console.log(`[2025-09-16 07:36:28] Update data:`, req.body, 'by MathDaenniel');
-
+  const id = req.params.id;
   const { IngredientID, IngredientPrefix, IngredientSuffix, Name, Quantity, Category, Allergen, isAvailable, isEnabled } = req.body;
 
   // V13 ENHANCEMENT: Fixed prefix and category handling
@@ -806,104 +2377,104 @@ app.post('/stocks/edit/:id', async (req, res) => {
     finalIngredientID = `${finalPrefix}-${IngredientSuffix.trim()}`;
   }
 
-    if (!finalIngredientID) {
-        console.log(`[2025-09-16 07:36:28] Missing ingredient ID data for update: ID ${id} by MathDaenniel`);
-        return res.redirect('/stocks?msg=item_not_found');
+  if (!finalIngredientID) {
+    console.log(`[2025-09-16 07:36:28] Missing ingredient ID data for update: ID ${id} by MathDaenniel`);
+    return res.redirect('/stocks?msg=item_not_found');
+  }
+
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    const currentIngredient = await db.collection('Ingredients').findOne({ _id: new ObjectId(id) });
+    if (!currentIngredient) {
+      await client.close();
+      console.log(`[2025-09-16 07:36:28] Ingredient not found: ID ${id} by MathDaenniel`);return res.redirect('/stocks?msg=item_not_found');
     }
 
-    try {
-        const client = await MongoClient.connect(uri);
-        const db = client.db('blessingscafe');
+    if (finalIngredientID !== currentIngredient.IngredientID) {
+      const existingIngredient = await db.collection('Ingredients').findOne({
+        IngredientID: finalIngredientID,
+        _id: { $ne: new ObjectId(id) }
+      });
 
-        const currentIngredient = await db.collection('Ingredients').findOne({ _id: new ObjectId(id) });
-        if (!currentIngredient) {
-            await client.close();
-            console.log(`[2025-09-16 07:36:28] Ingredient not found: ID ${id} by MathDaenniel`);return res.redirect('/stocks?msg=item_not_found');
-        }
+      if (existingIngredient) {
+        await client.close();
+        console.log(`[2025-09-16 07:36:28] Duplicate ingredient ID on update: ${finalIngredientID} by MathDaenniel`);return res.redirect('/stocks?msg=duplicate_id');
+      }
+    }
 
-        if (finalIngredientID !== currentIngredient.IngredientID) {
-            const existingIngredient = await db.collection('Ingredients').findOne({
-                IngredientID: finalIngredientID,
-                _id: { $ne: new ObjectId(id) }
-            });
-
-            if (existingIngredient) {
-                await client.close();
-                console.log(`[2025-09-16 07:36:28] Duplicate ingredient ID on update: ${finalIngredientID} by MathDaenniel`);return res.redirect('/stocks?msg=duplicate_id');
-            }
-        }
-
-        const updateData = {
-            IngredientID: finalIngredientID,
-            Name: Name.trim(),
-            Quantity: parseInt(Quantity)|| 0,
-            Category: finalCategory, // Fixed category
-            Allergen: Allergen ? Allergen.trim() : 'None',
-            isAvailable: isAvailable === 'true',
-            isEnabled: isEnabled === 'true',
-            lastModified: new Date(),
-        // V13 Addition: Enhanced update metadata
+    const updateData = {
+      IngredientID: finalIngredientID,
+      Name: Name.trim(),
+      Quantity: parseInt(Quantity)|| 0,
+      Category: finalCategory, // Fixed category
+      Allergen: Allergen ? Allergen.trim() : 'None',
+      isAvailable: isAvailable === 'true',
+      isEnabled: isEnabled === 'true',
+      lastModified: new Date(),
+      // V13 Addition: Enhanced update metadata
       'metadata.lastModifiedBy': req.session.user.username || 'MathDaenniel',
       'metadata.version': 'V13-Enhanced',
       'metadata.prefix': finalPrefix,
       'metadata.suffix': IngredientSuffix ? IngredientSuffix.trim() : finalIngredientID.split('-')[1]
     };
 
-        const result = await db.collection('Ingredients').updateOne(
-            { _id: new ObjectId(id) },
-            { $set: updateData }
-        );
+    const result = await db.collection('Ingredients').updateOne(
+        { _id: new ObjectId(id) },
+        { $set: updateData }
+    );
 
-        await client.close();
+    await client.close();
 
-        if (result.matchedCount === 0) {
-            console.log(`[2025-09-16 07:36:28] Ingredient not found for update: ID ${id} by MathDaenniel`);
-            return res.redirect('/stocks?msg=item_not_found');
-        }
-
-        console.log(`[2025-09-16 07:36:28] Ingredient updated: ${currentIngredient.IngredientID} -> ${finalIngredientID} by MathDaenniel`);
-        res.redirect('/stocks?msg=update_success');
-    } catch (err) {
-        console.error(`[2025-09-16 07:36:28] Error updating ingredient:`, err, 'by MathDaenniel');
-        res.status(500).send('Failed to update ingredient');
+    if (result.matchedCount === 0) {
+      console.log(`[2025-09-16 07:36:28] Ingredient not found for update: ID ${id} by MathDaenniel`);
+      return res.redirect('/stocks?msg=item_not_found');
     }
+
+    console.log(`[2025-09-16 07:36:28] Ingredient updated: ${currentIngredient.IngredientID} -> ${finalIngredientID} by MathDaenniel`);
+    res.redirect('/stocks?msg=update_success');
+  } catch (err) {
+    console.error(`[2025-09-16 07:36:28] Error updating ingredient:`, err, 'by MathDaenniel');
+    res.status(500).send('Failed to update ingredient');
+  }
 });
 
 app.post('/stocks/delete/:id', async (req, res) => {
-    const id = req.params.id;
+  const id = req.params.id;
   console.log(`[2025-09-16 07:36:28] Deleting ingredient ID: ${id} by MathDaenniel`);
 
-    try {
-        const client = await MongoClient.connect(uri);
-        const db = client.db('blessingscafe');
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
 
-        const ingredientToDelete = await db.collection('Ingredients').findOne({ _id: new ObjectId(id) });
+    const ingredientToDelete = await db.collection('Ingredients').findOne({ _id: new ObjectId(id) });
 
-        if (!ingredientToDelete) {
-            await client.close();
-            console.log(`[2025-09-16 07:36:28] Ingredient not found for deletion: ID ${id} by MathDaenniel`);return res.redirect('/stocks?msg=item_not_found');
-        }
-
-        const result = await db.collection('Ingredients').deleteOne({ _id: new ObjectId(id) });
-
-        await client.close();
-
-        if (result.deletedCount === 0) {
-            console.log(`[2025-09-16 07:36:28] Ingredient deletion failed: ID ${id} by MathDaenniel`);
-            return res.redirect('/stocks?msg=delete_failed');
-        }
-
-        console.log(`[2025-09-16 07:36:28] Ingredient deleted: ${ingredientToDelete.IngredientID} by MathDaenniel`);
-        res.redirect('/stocks?msg=delete_success');
-    } catch (err) {
-        console.error(`[2025-09-16 07:36:28] Error deleting ingredient:`, err, 'by MathDaenniel');
-        res.status(500).send('Failed to delete ingredient');
+    if (!ingredientToDelete) {
+      await client.close();
+      console.log(`[2025-09-16 07:36:28] Ingredient not found for deletion: ID ${id} by MathDaenniel`);return res.redirect('/stocks?msg=item_not_found');
     }
+
+    const result = await db.collection('Ingredients').deleteOne({ _id: new ObjectId(id) });
+
+    await client.close();
+
+    if (result.deletedCount === 0) {
+      console.log(`[2025-09-16 07:36:28] Ingredient deletion failed: ID ${id} by MathDaenniel`);
+      return res.redirect('/stocks?msg=delete_failed');
+    }
+
+    console.log(`[2025-09-16 07:36:28] Ingredient deleted: ${ingredientToDelete.IngredientID} by MathDaenniel`);
+    res.redirect('/stocks?msg=delete_success');
+  } catch (err) {
+    console.error(`[2025-09-16 07:36:28] Error deleting ingredient:`, err, 'by MathDaenniel');
+    res.status(500).send('Failed to delete ingredient');
+  }
 });
 
 // V13 ENHANCED Add-Ons CRUD Routes with Fixed Prefix Support
 app.post('/addons', async (req, res) => {
-    console.log(`[2025-09-16 07:36:28] Adding new add-on by MathDaenniel`);
+  console.log(`[2025-09-16 07:36:28] Adding new add-on by MathDaenniel`);
   console.log(`[2025-09-16 07:36:28] Request body:`, req.body, 'by MathDaenniel');
 
   const { AddOnID, AddOnPrefix, AddOnSuffix, Name, Quantity, Category, Allergen, isEnabledAddon } = req.body;
@@ -929,29 +2500,29 @@ app.post('/addons', async (req, res) => {
     return res.redirect('/stocks?msg=validation_error');
   }
 
-    try {
-        const client = await MongoClient.connect(uri);
-        const db = client.db('blessingscafe');
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
 
-        const existingAddOn = await db.collection('Add-ons').findOne({
-            AddOnID: finalAddOnID
-        });
+    const existingAddOn = await db.collection('Add-ons').findOne({
+      AddOnID: finalAddOnID
+    });
 
-        if (existingAddOn) {
-            await client.close();
-            console.log(`[2025-09-16 07:36:28] Duplicate add-on ID: ${finalAddOnID} by MathDaenniel`);return res.redirect('/stocks?msg=duplicate_id');
-        }
+    if (existingAddOn) {
+      await client.close();
+      console.log(`[2025-09-16 07:36:28] Duplicate add-on ID: ${finalAddOnID} by MathDaenniel`);return res.redirect('/stocks?msg=duplicate_id');
+    }
 
-        const newAddOn = {
-            AddOnID: finalAddOnID,
-            Name: Name.trim(),
-            Quantity: parseInt(Quantity)|| 0,
-            Category: finalCategory, // Fixed category
-            Allergen: Allergen ? Allergen.trim() : 'None',
-            isEnabled: isEnabledAddon === 'true',
-            createdAt: new Date(),
-            lastModified: new Date(),
-        // V13 Addition: Enhanced metadata
+    const newAddOn = {
+      AddOnID: finalAddOnID,
+      Name: Name.trim(),
+      Quantity: parseInt(Quantity)|| 0,
+      Category: finalCategory, // Fixed category
+      Allergen: Allergen ? Allergen.trim() : 'None',
+      isEnabled: isEnabledAddon === 'true',
+      createdAt: new Date(),
+      lastModified: new Date(),
+      // V13 Addition: Enhanced metadata
       metadata: {
         createdBy: req.session.user.username || 'MathDaenniel',
         repository: 'roviczzz/Couche-Co',
@@ -961,20 +2532,20 @@ app.post('/addons', async (req, res) => {
       }
     };
 
-        await db.collection('Add-ons').insertOne(newAddOn);
-        await client.close();
+    await db.collection('Add-ons').insertOne(newAddOn);
+    await client.close();
 
-        console.log(`[2025-09-16 07:36:28] Add-on added: ${finalAddOnID} by MathDaenniel`);
-        res.redirect('/stocks?msg=add_success');
-    } catch (err) {
-        console.error(`[2025-09-16 07:36:28] Error adding add-on:`, err, 'by MathDaenniel');
-        res.status(500).send('Failed to add add-on');
-    }
+    console.log(`[2025-09-16 07:36:28] Add-on added: ${finalAddOnID} by MathDaenniel`);
+    res.redirect('/stocks?msg=add_success');
+  } catch (err) {
+    console.error(`[2025-09-16 07:36:28] Error adding add-on:`, err, 'by MathDaenniel');
+    res.status(500).send('Failed to add add-on');
+  }
 });
 
 app.post('/addons/edit/:id', async (req, res) => {
-    const id = req.params.id;
-    console.log(`[2025-09-16 07:36:28] Updating add-on ID: ${id} by MathDaenniel`);
+  const id = req.params.id;
+  console.log(`[2025-09-16 07:36:28] Updating add-on ID: ${id} by MathDaenniel`);
   console.log(`[2025-09-16 07:36:28] Update data:`, req.body, 'by MathDaenniel');
 
   const { AddOnID, AddOnPrefix, AddOnSuffix, Name, Quantity, Category, Allergen, isEnabled } = req.body;
@@ -995,110 +2566,110 @@ app.post('/addons/edit/:id', async (req, res) => {
     finalAddOnID = `${finalPrefix}-${AddOnSuffix.trim()}`;
   }
 
-    if (!finalAddOnID) {
-        console.log(`[2025-09-16 07:36:28] Missing add-on ID data for update: ID ${id} by MathDaenniel`);
-        return res.redirect('/stocks?msg=item_not_found');
+  if (!finalAddOnID) {
+    console.log(`[2025-09-16 07:36:28] Missing add-on ID data for update: ID ${id} by MathDaenniel`);
+    return res.redirect('/stocks?msg=item_not_found');
+  }
+
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    const currentAddOn = await db.collection('Add-ons').findOne({ _id: new ObjectId(id) });
+    if (!currentAddOn) {
+      await client.close();
+      console.log(`[2025-09-16 07:36:28] Add-on not found: ID ${id} by MathDaenniel`);return res.redirect('/stocks?msg=item_not_found');
     }
 
-    try {
-        const client = await MongoClient.connect(uri);
-        const db = client.db('blessingscafe');
+    if (finalAddOnID !== currentAddOn.AddOnID) {
+      const existingAddOn = await db.collection('Add-ons').findOne({
+        AddOnID: finalAddOnID,
+        _id: { $ne: new ObjectId(id) }
+      });
 
-        const currentAddOn = await db.collection('Add-ons').findOne({ _id: new ObjectId(id) });
-        if (!currentAddOn) {
-            await client.close();
-            console.log(`[2025-09-16 07:36:28] Add-on not found: ID ${id} by MathDaenniel`);return res.redirect('/stocks?msg=item_not_found');
-        }
+      if (existingAddOn) {
+        await client.close();
+        console.log(`[2025-09-16 07:36:28] Duplicate add-on ID on update: ${finalAddOnID} by MathDaenniel`);return res.redirect('/stocks?msg=duplicate_id');
+      }
+    }
 
-        if (finalAddOnID !== currentAddOn.AddOnID) {
-            const existingAddOn = await db.collection('Add-ons').findOne({
-                AddOnID: finalAddOnID,
-                _id: { $ne: new ObjectId(id) }
-            });
-
-            if (existingAddOn) {
-                await client.close();
-                console.log(`[2025-09-16 07:36:28] Duplicate add-on ID on update: ${finalAddOnID} by MathDaenniel`);return res.redirect('/stocks?msg=duplicate_id');
-            }
-        }
-
-        const updateData = {
-            AddOnID: finalAddOnID,
-            Name: Name.trim(),
-            Quantity: parseInt(Quantity)|| 0,
-            Category: finalCategory, // Fixed category
-            Allergen: Allergen ? Allergen.trim() : 'None',
-            isEnabled: isEnabled === 'true',
-            lastModified: new Date(),
-        // V13 Addition: Enhanced update metadata
+    const updateData = {
+      AddOnID: finalAddOnID,
+      Name: Name.trim(),
+      Quantity: parseInt(Quantity)|| 0,
+      Category: finalCategory, // Fixed category
+      Allergen: Allergen ? Allergen.trim() : 'None',
+      isEnabled: isEnabled === 'true',
+      lastModified: new Date(),
+      // V13 Addition: Enhanced update metadata
       'metadata.lastModifiedBy': req.session.user.username || 'MathDaenniel',
       'metadata.version': 'V13-Enhanced',
       'metadata.prefix': finalPrefix,
       'metadata.suffix': AddOnSuffix ? AddOnSuffix.trim() : finalAddOnID.split('-')[1]
     };
 
-        const result = await db.collection('Add-ons').updateOne(
-            { _id: new ObjectId(id) },
-            { $set: updateData }
-        );
+    const result = await db.collection('Add-ons').updateOne(
+        { _id: new ObjectId(id) },
+        { $set: updateData }
+    );
 
-        await client.close();
-        req.flash('success_msg', `${Name} has been updated`);
-        res.redirect('/stocks');
-    } catch (err) {
-        console.error('Error editing add-on:', err);
-        res.status(500).send('Internal Server Error');
-    }
+    await client.close();
+    req.flash('success_msg', `${Name} has been updated`);
+    res.redirect('/stocks');
+  } catch (err) {
+    console.error('Error editing add-on:', err);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
 app.post('/addons/delete/:id', async (req, res) => {
-    const id = req.params.id;
+  const id = req.params.id;
   console.log(`[2025-09-16 07:36:28] Deleting add-on ID: ${id} by MathDaenniel`);
 
-    try {
-        const client = await MongoClient.connect(uri);
-        const db = client.db('blessingscafe');
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
 
-        const addonToDelete = await db.collection('Add-ons').findOne({ _id: new ObjectId(id) });
+    const addonToDelete = await db.collection('Add-ons').findOne({ _id: new ObjectId(id) });
 
-        if (!addonToDelete) {
-            await client.close();
-            console.log(`[2025-09-16 07:36:28] Add-on not found for deletion: ID ${id} by MathDaenniel`);return res.redirect('/stocks?msg=item_not_found');
-        }
-
-        const result = await db.collection('Add-ons').deleteOne({ _id: new ObjectId(id) });
-
-        await client.close();
-
-        if (result.deletedCount === 0) {
-            console.log(`[2025-09-16 07:36:28] Add-on deletion failed: ID ${id} by MathDaenniel`);
-            return res.redirect('/stocks?msg=delete_failed');
-        }
-
-        console.log(`[2025-09-16 07:36:28] Add-on deleted: ${addonToDelete.AddOnID} by MathDaenniel`);
-        res.redirect('/stocks?msg=delete_success');
-    } catch (err) {
-        console.error(`[2025-09-16 07:36:28] Error deleting add-on:`, err, 'by MathDaenniel');
-        res.status(500).send('Failed to delete add-on');
+    if (!addonToDelete) {
+      await client.close();
+      console.log(`[2025-09-16 07:36:28] Add-on not found for deletion: ID ${id} by MathDaenniel`);return res.redirect('/stocks?msg=item_not_found');
     }
+
+    const result = await db.collection('Add-ons').deleteOne({ _id: new ObjectId(id) });
+
+    await client.close();
+
+    if (result.deletedCount === 0) {
+      console.log(`[2025-09-16 07:36:28] Add-on deletion failed: ID ${id} by MathDaenniel`);
+      return res.redirect('/stocks?msg=delete_failed');
+    }
+
+    console.log(`[2025-09-16 07:36:28] Add-on deleted: ${addonToDelete.AddOnID} by MathDaenniel`);
+    res.redirect('/stocks?msg=delete_success');
+  } catch (err) {
+    console.error(`[2025-09-16 07:36:28] Error deleting add-on:`, err, 'by MathDaenniel');
+    res.status(500).send('Failed to delete add-on');
+  }
 });
 
 // V13 ENHANCED Individual detail routes with better error handling
 app.get('/stocks/details/:id', isLoggedIn, async (req, res) => {
-    const id = req.params.id;
+  const id = req.params.id;
   console.log(`[2025-09-16 07:36:28] Fetching ingredient details: ${id} by MathDaenniel`);
 
-    try {
-        const client = await MongoClient.connect(uri);
-        const db = client.db('blessingscafe');
-        const ingredient = await db.collection('Ingredients').findOne({ _id: new ObjectId(id) });
-        await client.close();
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const ingredient = await db.collection('Ingredients').findOne({ _id: new ObjectId(id) });
+    await client.close();
 
-        if (!ingredient) {
-            console.log(`[2025-09-16 07:36:28] Ingredient details not found: ${id} by MathDaenniel`);return res.status(404).json({ error: 'Ingredient not found' });
-        }
+    if (!ingredient) {
+      console.log(`[2025-09-16 07:36:28] Ingredient details not found: ${id} by MathDaenniel`);return res.status(404).json({ error: 'Ingredient not found' });
+    }
 
-        // V13 Addition: Enhanced response with metadata
+    // V13 Addition: Enhanced response with metadata
     const response = {
       ...ingredient,
       fetchedAt: new Date(),
@@ -1108,27 +2679,27 @@ app.get('/stocks/details/:id', isLoggedIn, async (req, res) => {
 
     console.log(`[2025-09-16 07:36:28] Ingredient details fetched: ${ingredient.IngredientID} by MathDaenniel`);
     res.json(response);
-    } catch (err) {
-        console.error(`[2025-09-16 07:36:28] Error fetching ingredient details:`, err, 'by MathDaenniel');
-        res.status(500).json({ error: 'Failed to fetch ingredient details' });
-    }
+  } catch (err) {
+    console.error(`[2025-09-16 07:36:28] Error fetching ingredient details:`, err, 'by MathDaenniel');
+    res.status(500).json({ error: 'Failed to fetch ingredient details' });
+  }
 });
 
 app.get('/addons/details/:id', isLoggedIn, async (req, res) => {
-    const id = req.params.id;
+  const id = req.params.id;
   console.log(`[2025-09-16 07:36:28] Fetching add-on details: ${id} by MathDaenniel`);
 
-    try {
-        const client = await MongoClient.connect(uri);
-        const db = client.db('blessingscafe');
-        const addon = await db.collection('Add-ons').findOne({ _id: new ObjectId(id) });
-        await client.close();
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const addon = await db.collection('Add-ons').findOne({ _id: new ObjectId(id) });
+    await client.close();
 
-        if (!addon) {
-            console.log(`[2025-09-16 07:36:28] Add-on details not found: ${id} by MathDaenniel`);return res.status(404).json({ error: 'Add-on not found' });
-        }
+    if (!addon) {
+      console.log(`[2025-09-16 07:36:28] Add-on details not found: ${id} by MathDaenniel`);return res.status(404).json({ error: 'Add-on not found' });
+    }
 
-        // V13 Addition: Enhanced response with metadata
+    // V13 Addition: Enhanced response with metadata
     const response = {
       ...addon,
       fetchedAt: new Date(),
@@ -1138,97 +2709,97 @@ app.get('/addons/details/:id', isLoggedIn, async (req, res) => {
 
     console.log(`[2025-09-16 07:36:28] Add-on details fetched: ${addon.AddOnID} by MathDaenniel`);
     res.json(response);
-    } catch (err) {
-        console.error(`[2025-09-16 07:36:28] Error fetching add-on details:`, err, 'by MathDaenniel');
-        res.status(500).json({ error: 'Failed to fetch add-on details' });
-    }
+  } catch (err) {
+    console.error(`[2025-09-16 07:36:28] Error fetching add-on details:`, err, 'by MathDaenniel');
+    res.status(500).json({ error: 'Failed to fetch add-on details' });
+  }
 });
 
 // V13 ENHANCED Bulk operations with better performance
 app.post('/stocks/bulk-update', isLoggedIn, async (req, res) => {
-    const { updates } = req.body;
+  const { updates } = req.body;
   console.log(`[2025-09-16 07:36:28] Bulk updating ${updates?.length || 0} ingredients by MathDaenniel`);
 
-    try {
-        const client = await MongoClient.connect(uri);
-        const db = client.db('blessingscafe');
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
 
-        const bulkOps = updates.map(update => ({
-            updateOne: {
-                filter: { _id: new ObjectId(update.id) },
-                update: {
-                    $set: {
-                        ...update.data,
-                        lastModified: new Date(),
-                    'metadata.lastModifiedBy': 'MathDaenniel',
+    const bulkOps = updates.map(update => ({
+      updateOne: {
+        filter: { _id: new ObjectId(update.id) },
+        update: {
+          $set: {
+            ...update.data,
+            lastModified: new Date(),
+            'metadata.lastModifiedBy': 'MathDaenniel',
             'metadata.version': 'V13-Enhanced'}
-                }
-            }
-        }));
+        }
+      }
+    }));
 
-        const result = await db.collection('Ingredients').bulkWrite(bulkOps);
-        await client.close();
+    const result = await db.collection('Ingredients').bulkWrite(bulkOps);
+    await client.close();
 
-        console.log(`[2025-09-16 07:36:28] Bulk update completed: ${result.modifiedCount} ingredients updated by MathDaenniel`);
-        res.json({ success: true, modified: result.modifiedCount ,
-    timestamp: new Date(),
+    console.log(`[2025-09-16 07:36:28] Bulk update completed: ${result.modifiedCount} ingredients updated by MathDaenniel`);
+    res.json({ success: true, modified: result.modifiedCount ,
+      timestamp: new Date(),
       version: 'V13-Enhanced'
     });} catch (err) {
-        console.error(`[2025-09-16 07:36:28] Error in bulk update:`, err, 'by MathDaenniel');
-        res.status(500).json({ error: 'Failed to perform bulk update' });
-    }
+    console.error(`[2025-09-16 07:36:28] Error in bulk update:`, err, 'by MathDaenniel');
+    res.status(500).json({ error: 'Failed to perform bulk update' });
+  }
 });
 
 app.post('/addons/bulk-update', isLoggedIn, async (req, res) => {
-    const { updates } = req.body;
+  const { updates } = req.body;
   console.log(`[2025-09-16 07:36:28] Bulk updating ${updates?.length || 0} add-ons by MathDaenniel`);
 
-    try {
-        const client = await MongoClient.connect(uri);
-        const db = client.db('blessingscafe');
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
 
-        const bulkOps = updates.map(update => ({
-            updateOne: {
-                filter: { _id: new ObjectId(update.id) },
-                update: {
-                    $set: {
-                        ...update.data,
-                        lastModified: new Date(),
-                    'metadata.lastModifiedBy': 'MathDaenniel',
+    const bulkOps = updates.map(update => ({
+      updateOne: {
+        filter: { _id: new ObjectId(update.id) },
+        update: {
+          $set: {
+            ...update.data,
+            lastModified: new Date(),
+            'metadata.lastModifiedBy': 'MathDaenniel',
             'metadata.version': 'V13-Enhanced'}
-                }
-            }
-        }));
+        }
+      }
+    }));
 
-        const result = await db.collection('Add-ons').bulkWrite(bulkOps);
-        await client.close();
+    const result = await db.collection('Add-ons').bulkWrite(bulkOps);
+    await client.close();
 
-        console.log(`[2025-09-16 07:36:28] Bulk update completed: ${result.modifiedCount} add-ons updated by MathDaenniel`);
-        res.json({ success: true, modified: result.modifiedCount ,
-    timestamp: new Date(),
+    console.log(`[2025-09-16 07:36:28] Bulk update completed: ${result.modifiedCount} add-ons updated by MathDaenniel`);
+    res.json({ success: true, modified: result.modifiedCount ,
+      timestamp: new Date(),
       version: 'V13-Enhanced'
     });} catch (err) {
-        console.error(`[2025-09-16 07:36:28] Error in bulk update:`, err, 'by MathDaenniel');
-        res.status(500).json({ error: 'Failed to perform bulk update' });
-    }
+    console.error(`[2025-09-16 07:36:28] Error in bulk update:`, err, 'by MathDaenniel');
+    res.status(500).json({ error: 'Failed to perform bulk update' });
+  }
 });
 
 // V13 ENHANCED Data export functionality
 app.get('/stocks/export', isLoggedIn, async (req, res) => {
-    console.log(`[2025-09-16 07:36:28] Exporting inventory data by MathDaenniel`);try {
-        const client = await MongoClient.connect(uri);
-        const db = client.db('blessingscafe');
-        const ingredients = await db.collection('Ingredients').find().toArray();
-        const addons = await db.collection('Add-ons').find().toArray();
-        await client.close();
+  console.log(`[2025-09-16 07:36:28] Exporting inventory data by MathDaenniel`);try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const ingredients = await db.collection('Ingredients').find().toArray();
+    const addons = await db.collection('Add-ons').find().toArray();
+    await client.close();
 
-        const exportData = {
-            ingredients,
-            addons,
-            exportedAt: new Date(),
-            exportedBy: 'MathDaenniel',
-            version: 'V13-Enhanced',
-            timestamp: '[2025-09-16 07:36:28]',
+    const exportData = {
+      ingredients,
+      addons,
+      exportedAt: new Date(),
+      exportedBy: 'MathDaenniel',
+      version: 'V13-Enhanced',
+      timestamp: '[2025-09-16 07:36:28]',
       repository: 'roviczzz/Couche-Co',
       stats: {
         totalIngredients: ingredients.length,
@@ -1236,31 +2807,31 @@ app.get('/stocks/export', isLoggedIn, async (req, res) => {
         enabledIngredients: ingredients.filter(i => i.isEnabled).length,
         enabledAddons: addons.filter(a => a.isEnabled).length
       }
-        };
+    };
 
-        res.setHeader('Content-Type', 'application/json');
-        res.setHeader('Content-Disposition', 'attachment; filename="inventory-export-v13.json"');
-        res.json(exportData);
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', 'attachment; filename="inventory-export-v13.json"');
+    res.json(exportData);
 
-        console.log(`[2025-09-16 07:36:28] Inventory data exported: ${ingredients.length} ingredients, ${addons.length} add-ons by MathDaenniel`);
-    } catch (err) {
-        console.error(`[2025-09-16 07:36:28] Error exporting inventory data:`, err, 'by MathDaenniel');
-        res.status(500).json({ error: 'Failed to export inventory data' });
-    }
+    console.log(`[2025-09-16 07:36:28] Inventory data exported: ${ingredients.length} ingredients, ${addons.length} add-ons by MathDaenniel`);
+  } catch (err) {
+    console.error(`[2025-09-16 07:36:28] Error exporting inventory data:`, err, 'by MathDaenniel');
+    res.status(500).json({ error: 'Failed to export inventory data' });
+  }
 });
 
 // V13 ENHANCED Search functionality with better filters
 app.get('/stocks/search', isLoggedIn, async (req, res) => {
-    const { query, type = 'all', category, enabled } = req.query;
+  const { query, type = 'all', category, enabled } = req.query;
   console.log(`[2025-09-16 07:36:28] Search request: "${query}" type: ${type} by MathDaenniel`);
 
-    if (!query) {
-        return res.json({ ingredients: [], addons: [], message: 'No search query provided' });
-    }
+  if (!query) {
+    return res.json({ ingredients: [], addons: [], message: 'No search query provided' });
+  }
 
-    try {
-        const client = await MongoClient.connect(uri);
-        const db = client.db('blessingscafe');
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
 
     const searchRegex = new RegExp(query, 'i');
     let searchFilter = {
@@ -1286,462 +2857,462 @@ app.get('/stocks/search', isLoggedIn, async (req, res) => {
     let addons = [];
 
 
-        await client.close();
+    await client.close();
 
-        const response ={
-            ingredients,
-            addons,
-            searchQuery: query,
-            searchType: type,
-            resultCount: ingredients.length + addons.length,
-            timestamp: '[2025-09-16 07:36:28]',
+    const response ={
+      ingredients,
+      addons,
+      searchQuery: query,
+      searchType: type,
+      resultCount: ingredients.length + addons.length,
+      timestamp: '[2025-09-16 07:36:28]',
       searchedBy: 'MathDaenniel',
       version: 'V13-Enhanced'
     };
 
     console.log(`[2025-09-16 07:36:28] Search completed: ${response.resultCount} results for "${query}" by MathDaenniel`);
-        res.json(response);
-    } catch (err) {
-        console.error(`[2025-09-16 07:36:28] Error searching inventory:`, err, 'by MathDaenniel');
-        res.status(500).json({ error: 'Failed to search inventory' });
-    }
+    res.json(response);
+  } catch (err) {
+    console.error(`[2025-09-16 07:36:28] Error searching inventory:`, err, 'by MathDaenniel');
+    res.status(500).json({ error: 'Failed to search inventory' });
+  }
 });
 
 // V13 ENHANCED Inventory statistics with more detailed metrics
 app.get('/stocks/stats', isLoggedIn, async (req, res) => {
-    console.log(`[2025-09-16 07:36:28] Generating inventory statistics by MathDaenniel`);try {
-        const client = await MongoClient.connect(uri);
-        const db = client.db('blessingscafe');
+  console.log(`[2025-09-16 07:36:28] Generating inventory statistics by MathDaenniel`);try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
 
-        const ingredientStats = await db.collection('Ingredients').aggregate([
-            {
-                $group: {
-                    _id: null,
-                    totalIngredients: { $sum: 1 },
-                    enabledIngredients: { $sum: { $cond: ['$isEnabled', 1, 0] } },
-                    availableIngredients: { $sum: { $cond: ['$isAvailable', 1, 0] } },
+    const ingredientStats = await db.collection('Ingredients').aggregate([
+      {
+        $group: {
+          _id: null,
+          totalIngredients: { $sum: 1 },
+          enabledIngredients: { $sum: { $cond: ['$isEnabled', 1, 0] } },
+          availableIngredients: { $sum: { $cond: ['$isAvailable', 1, 0] } },
           totalQuantity: { $sum: '$Quantity' },
           averageQuantity: { $avg: '$Quantity' },
-                    categories: { $addToSet: '$Category' },
-          lowStockItems: { $sum: { $cond: [{ $lte: ['$Quantity', 10] }, 1, 0] } }
-                }
-            }
-        ]).toArray();
-
-        const addonStats = await db.collection('Add-ons').aggregate([
-            {
-                $group: {
-                    _id: null,
-                    totalAddons: { $sum: 1 },
-                    enabledAddons: { $sum: { $cond: ['$isEnabled', 1, 0] } },
-                    totalQuantity: { $sum: '$Quantity' },
-                    averageQuantity: { $avg: '$Quantity' },
           categories: { $addToSet: '$Category' },
           lowStockItems: { $sum: { $cond: [{ $lte: ['$Quantity', 10] }, 1, 0] } }
-                }
-            }
-        ]).toArray();
+        }
+      }
+    ]).toArray();
 
-        await client.close();
+    const addonStats = await db.collection('Add-ons').aggregate([
+      {
+        $group: {
+          _id: null,
+          totalAddons: { $sum: 1 },
+          enabledAddons: { $sum: { $cond: ['$isEnabled', 1, 0] } },
+          totalQuantity: { $sum: '$Quantity' },
+          averageQuantity: { $avg: '$Quantity' },
+          categories: { $addToSet: '$Category' },
+          lowStockItems: { $sum: { $cond: [{ $lte: ['$Quantity', 10] }, 1, 0] } }
+        }
+      }
+    ]).toArray();
 
-        const stats = {
-            ingredients: ingredientStats[0] || { totalIngredients: 0, enabledIngredients: 0, availableIngredients: 0,
+    await client.close();
+
+    const stats = {
+      ingredients: ingredientStats[0] || { totalIngredients: 0, enabledIngredients: 0, availableIngredients: 0,
         totalQuantity: 0,
         averageQuantity: 0,
         categories: [],
         lowStockItems: 0 },
-            addons: addonStats[0] || { totalAddons: 0, enabledAddons: 0, totalQuantity: 0, averageQuantity: 0,
+      addons: addonStats[0] || { totalAddons: 0, enabledAddons: 0, totalQuantity: 0, averageQuantity: 0,
         categories: [],
-            lowStockItems: 0
+        lowStockItems: 0
       },generatedAt: new Date(),
-            generatedBy: 'MathDaenniel',
-            version: 'V13-Enhanced',
-            timestamp: '[2025-09-16 07:36:28]',
+      generatedBy: 'MathDaenniel',
+      version: 'V13-Enhanced',
+      timestamp: '[2025-09-16 07:36:28]',
       repository: 'roviczzz/Couche-Co'
-        };
+    };
 
-        console.log(`[2025-09-16 07:36:28] Inventory statistics generated by MathDaenniel`);
-        res.json(stats);
-    } catch (err) {
-        console.error(`[2025-09-16 07:36:28] Error generating inventory statistics:`, err, 'by MathDaenniel');
-        res.status(500).json({ error: 'Failed to generate inventory statistics' });
-    }
+    console.log(`[2025-09-16 07:36:28] Inventory statistics generated by MathDaenniel`);
+    res.json(stats);
+  } catch (err) {
+    console.error(`[2025-09-16 07:36:28] Error generating inventory statistics:`, err, 'by MathDaenniel');
+    res.status(500).json({ error: 'Failed to generate inventory statistics' });
+  }
 });
 
 // V13 ENHANCED Low stock alerts with configurable thresholds
 app.get('/stocks/alerts', isLoggedIn, async (req, res) => {
-    const { threshold = 10, urgent = 5 } = req.query;
-    const lowStockThreshold = parseInt(threshold);
+  const { threshold = 10, urgent = 5 } = req.query;
+  const lowStockThreshold = parseInt(threshold);
   const urgentThreshold = parseInt(urgent);
 
   console.log(`[2025-09-16 07:36:28] Generating stock alerts (threshold: ${lowStockThreshold}, urgent: ${urgentThreshold}) by MathDaenniel`);
 
-    try {
-        const client = await MongoClient.connect(uri);
-        const db = client.db('blessingscafe');
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
 
-        const lowStockIngredients = await db.collection('Ingredients').find({
-            Quantity: { $lte: lowStockThreshold },
-            isEnabled: true
-        }).toArray();
+    const lowStockIngredients = await db.collection('Ingredients').find({
+      Quantity: { $lte: lowStockThreshold },
+      isEnabled: true
+    }).toArray();
 
-        const lowStockAddons = await db.collection('Add-ons').find({
-            Quantity: { $lte: lowStockThreshold },
-            isEnabled: true
-        }).toArray();
+    const lowStockAddons = await db.collection('Add-ons').find({
+      Quantity: { $lte: lowStockThreshold },
+      isEnabled: true
+    }).toArray();
 
-        // V13 Addition: Urgent alerts
+    // V13 Addition: Urgent alerts
     const urgentIngredients = lowStockIngredients.filter(item => item.Quantity <= urgentThreshold);
     const urgentAddons = lowStockAddons.filter(item => item.Quantity <= urgentThreshold);
 
     await client.close();
 
-        const alerts = {
-            lowStockIngredients,
-            lowStockAddons,
-            urgentIngredients,
+    const alerts = {
+      lowStockIngredients,
+      lowStockAddons,
+      urgentIngredients,
       urgentAddons,
       thresholds: {
         lowStock: lowStockThreshold,
         urgent: urgentThreshold
       },
       counts: {
-            totalAlerts: lowStockIngredients.length + lowStockAddons.length,
-            urgentAlerts: urgentIngredients.length + urgentAddons.length,
+        totalAlerts: lowStockIngredients.length + lowStockAddons.length,
+        urgentAlerts: urgentIngredients.length + urgentAddons.length,
         lowStockIngredients: lowStockIngredients.length,
         lowStockAddons: lowStockAddons.length
       },generatedAt: new Date(),
-            generatedBy: 'MathDaenniel',
-            timestamp: '[2025-09-16 07:36:28]',
+      generatedBy: 'MathDaenniel',
+      timestamp: '[2025-09-16 07:36:28]',
       version: 'V13-Enhanced'
-        };
+    };
 
-        console.log(`[2025-09-16 07:36:28] Stock alerts generated: ${alerts.counts.totalAlerts} total, ${alerts.counts.urgentAlerts} urgent by MathDaenniel`);
-        res.json(alerts);
-    } catch (err) {
-        console.error(`[2025-09-16 07:36:28] Error generating low stock alerts:`, err, 'by MathDaenniel');
-        res.status(500).json({ error: 'Failed to generate low stock alerts' });
-    }
+    console.log(`[2025-09-16 07:36:28] Stock alerts generated: ${alerts.counts.totalAlerts} total, ${alerts.counts.urgentAlerts} urgent by MathDaenniel`);
+    res.json(alerts);
+  } catch (err) {
+    console.error(`[2025-09-16 07:36:28] Error generating low stock alerts:`, err, 'by MathDaenniel');
+    res.status(500).json({ error: 'Failed to generate low stock alerts' });
+  }
 });
 
 // V13 ENHANCED Category management with item counts
 app.get('/stocks/categories', isLoggedIn, async (req, res) => {
-    console.log(`[2025-09-16 07:36:28] Fetching categories by MathDaenniel`);try {
-        const client = await MongoClient.connect(uri);
-        const db = client.db('blessingscafe');
+  console.log(`[2025-09-16 07:36:28] Fetching categories by MathDaenniel`);try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
 
-        // Get ingredient categories with counts
+    // Get ingredient categories with counts
     const ingredientCategories = await db.collection('Ingredients').aggregate([
       { $group: { _id: '$Category', count: { $sum: 1 }, enabled: { $sum: { $cond: ['$isEnabled', 1, 0] } } } },
       { $sort: { _id: 1 } }
     ]).toArray();
 
     // Get addon categories with counts
-        const addonCategories = await db.collection('Add-ons').aggregate([
+    const addonCategories = await db.collection('Add-ons').aggregate([
       { $group: { _id: '$Category', count: { $sum: 1 }, enabled: { $sum: { $cond: ['$isEnabled', 1, 0] } } } },
       { $sort: { _id: 1 } }
     ]).toArray();
 
-        await client.close();
+    await client.close();
 
-        const categories = {
-            ingredients: ingredientCategories.filter(cat => cat._id && cat._id.trim()),
-            addons: addonCategories.filter(cat => cat._id && cat._id.trim()),
-            all: [...ingredientCategories, ...addonCategories].filter(cat => cat._id && cat._id.trim()),
-            generatedAt: new Date(),
-            generatedBy: 'MathDaenniel',
-            timestamp: '[2025-09-16 07:36:28]',
+    const categories = {
+      ingredients: ingredientCategories.filter(cat => cat._id && cat._id.trim()),
+      addons: addonCategories.filter(cat => cat._id && cat._id.trim()),
+      all: [...ingredientCategories, ...addonCategories].filter(cat => cat._id && cat._id.trim()),
+      generatedAt: new Date(),
+      generatedBy: 'MathDaenniel',
+      timestamp: '[2025-09-16 07:36:28]',
       version: 'V13-Enhanced',
       repository: 'roviczzz/Couche-Co'
-        };
+    };
 
-        console.log(`[2025-09-16 07:36:28] Categories retrieved: ${categories.ingredients.length} ingredient, ${categories.addons.length} addon categories by MathDaenniel`);
-        res.json(categories);
-    } catch (err) {
-        console.error(`[2025-09-16 07:36:28] Error retrieving categories:`, err, 'by MathDaenniel');
-        res.status(500).json({ error: 'Failed to retrieve categories' });
-    }
+    console.log(`[2025-09-16 07:36:28] Categories retrieved: ${categories.ingredients.length} ingredient, ${categories.addons.length} addon categories by MathDaenniel`);
+    res.json(categories);
+  } catch (err) {
+    console.error(`[2025-09-16 07:36:28] Error retrieving categories:`, err, 'by MathDaenniel');
+    res.status(500).json({ error: 'Failed to retrieve categories' });
+  }
 });
 
 // V13 ENHANCED Health check endpoint with detailed status
 app.get('/stocks/health', isLoggedIn, async (req, res) => {
-    console.log(`[2025-09-16 07:36:28] Performing health check by MathDaenniel`);
+  console.log(`[2025-09-16 07:36:28] Performing health check by MathDaenniel`);
 
   try {
     const startTime = Date.now();
-        const client = await MongoClient.connect(uri);
-        const db = client.db('blessingscafe');
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
 
-        await db.admin().ping();
+    await db.admin().ping();
 
-        const ingredientCount = await db.collection('Ingredients').countDocuments();
-        const addonCount = await db.collection('Add-ons').countDocuments();
+    const ingredientCount = await db.collection('Ingredients').countDocuments();
+    const addonCount = await db.collection('Add-ons').countDocuments();
     const enabledIngredients = await db.collection('Ingredients').countDocuments({ isEnabled: true });
     const enabledAddons = await db.collection('Add-ons').countDocuments({ isEnabled: true });
 
-        await client.close();
+    await client.close();
     const responseTime = Date.now() - startTime;
 
-        const healthStatus = {
-            status: 'healthy',
-            database: 'connected',
-            performance: {
+    const healthStatus = {
+      status: 'healthy',
+      database: 'connected',
+      performance: {
         responseTime: responseTime,
         status: responseTime < 1000 ? 'excellent' : responseTime < 3000 ? 'good' : 'slow'
       },
       inventory: {ingredients: ingredientCount,
-            addons: addonCount,
-            enabledIngredients: enabledIngredients,
+        addons: addonCount,
+        enabledIngredients: enabledIngredients,
         enabledAddons: enabledAddons,
         totalItems: ingredientCount + addonCount
       },
       version: 'V13-Enhanced',
-            timestamp: new Date(),
-            checkedBy: 'MathDaenniel',
-        repository: 'roviczzz/Couche-Co'
+      timestamp: new Date(),
+      checkedBy: 'MathDaenniel',
+      repository: 'roviczzz/Couche-Co'
     };
 
-        console.log(`[2025-09-16 07:36:28] Health check completed: ${healthStatus.status} (${responseTime}ms) by MathDaenniel`);
-        res.json(healthStatus);
-    } catch (err) {
-        console.error(`[2025-09-16 07:36:28] Health check failed:`, err, 'by MathDaenniel');
-        res.status(500).json({
-            status: 'unhealthy',
-            database: 'disconnected',
-            error: err.message,
-            timestamp: new Date(),
-            checkedBy: 'MathDaenniel',
+    console.log(`[2025-09-16 07:36:28] Health check completed: ${healthStatus.status} (${responseTime}ms) by MathDaenniel`);
+    res.json(healthStatus);
+  } catch (err) {
+    console.error(`[2025-09-16 07:36:28] Health check failed:`, err, 'by MathDaenniel');
+    res.status(500).json({
+      status: 'unhealthy',
+      database: 'disconnected',
+      error: err.message,
+      timestamp: new Date(),
+      checkedBy: 'MathDaenniel',
       version: 'V13-Enhanced'
-        });
-    }
+    });
+  }
 });
 
 app.get('/order', isLoggedIn, nocache, async (req, res) => {
-    try {
-        const client = await MongoClient.connect(uri)
-        const db = client.db('blessingscafe')
-        const ordersCollection = db.collection('Orders')
-        const menuCollection = db.collection('Menu')
-        const orders = await ordersCollection.find().toArray()
-        const menu = await menuCollection.find().toArray()
-        await client.close()
-        res.render('order', {
-            orders,
-            menu,
-            title: 'Orders | Blessings Cafe',
-            user: req.session.user
-        })
-    } catch (err) {
-        res.status(500).send('Internal Server Error')
-    }
+  try {
+    const client = await MongoClient.connect(uri)
+    const db = client.db('blessingscafe')
+    const ordersCollection = db.collection('Orders')
+    const menuCollection = db.collection('Menu')
+    const orders = await ordersCollection.find().toArray()
+    const menu = await menuCollection.find().toArray()
+    await client.close()
+    res.render('order', {
+      orders,
+      menu,
+      title: 'Orders | Blessings Cafe',
+      user: req.session.user
+    })
+  } catch (err) {
+    res.status(500).send('Internal Server Error')
+  }
 })
 
 app.patch('/orders/:OrderID/fulfillment', isLoggedIn, nocache, async (req, res) => {
-    const { OrderID } = req.params
-    const { FulfillmentStatus } = req.body
+  const { OrderID } = req.params
+  const { FulfillmentStatus } = req.body
 
-    if (!FulfillmentStatus) {
-        return res.status(400).json({ error: 'FulfillmentStatus is required' })
+  if (!FulfillmentStatus) {
+    return res.status(400).json({ error: 'FulfillmentStatus is required' })
+  }
+
+  if (!OrderID || OrderID.trim() === '') {
+    return res.status(400).json({ error: 'Invalid OrderID format' })
+  }
+
+  let client
+  try {
+    client = await MongoClient.connect(uri)
+    const db = client.db('blessingscafe')
+    const ordersCollection = db.collection('Orders')
+
+    const filter = { OrderID: OrderID }
+    const updateDoc = { $set: { FulfillmentStatus } }
+
+    const updateResult = await ordersCollection.updateOne(filter, updateDoc)
+    const updatedOrder = await ordersCollection.findOne(filter)
+
+    if (!updatedOrder) {
+      await client.close()
+      return res.status(404).json({ error: `Order with ID ${OrderID} not found` })
     }
 
-    if (!OrderID || OrderID.trim() === '') {
-        return res.status(400).json({ error: 'Invalid OrderID format' })
-    }
-
-    let client
-    try {
-        client = await MongoClient.connect(uri)
-        const db = client.db('blessingscafe')
-        const ordersCollection = db.collection('Orders')
-
-        const filter = { OrderID: OrderID }
-        const updateDoc = { $set: { FulfillmentStatus } }
-
-        const updateResult = await ordersCollection.updateOne(filter, updateDoc)
-        const updatedOrder = await ordersCollection.findOne(filter)
-
-        if (!updatedOrder) {
-            await client.close()
-            return res.status(404).json({ error: `Order with ID ${OrderID} not found` })
-        }
-
-        await client.close()
-        return res.status(200).json({
-            success: true,
-            message: `Fulfillment status updated to "${FulfillmentStatus}"`,
-            order: updatedOrder
-        })
-    } catch (error) {
-        if (client) await client.close()
-        return res.status(500).json({ error: 'Server error while updating order' })
-    }
+    await client.close()
+    return res.status(200).json({
+      success: true,
+      message: `Fulfillment status updated to "${FulfillmentStatus}"`,
+      order: updatedOrder
+    })
+  } catch (error) {
+    if (client) await client.close()
+    return res.status(500).json({ error: 'Server error while updating order' })
+  }
 })
 
 app.patch('/orders/:OrderID/payment-status', isLoggedIn, nocache, async (req, res) => {
-    const { OrderID } = req.params
-    const { PaymentStatus } = req.body
+  const { OrderID } = req.params
+  const { PaymentStatus } = req.body
 
-    if (!PaymentStatus) {
-        return res.status(400).json({ error: 'PaymentStatus is required' })
+  if (!PaymentStatus) {
+    return res.status(400).json({ error: 'PaymentStatus is required' })
+  }
+
+  if (!OrderID || OrderID.trim() === '') {
+    return res.status(400).json({ error: 'Invalid OrderID format' })
+  }
+
+  let client
+  try {
+    client = await MongoClient.connect(uri)
+    const db = client.db('blessingscafe')
+    const ordersCollection = db.collection('Orders')
+
+    const filter = { OrderID: OrderID }
+    const updateDoc = { $set: { PaymentStatus } }
+
+    const updateResult = await ordersCollection.updateOne(filter, updateDoc)
+    const updatedOrder = await ordersCollection.findOne(filter)
+
+    if (!updatedOrder) {
+      await client.close()
+      return res.status(404).json({ error: `Order with ID ${OrderID} not found` })
     }
 
-    if (!OrderID || OrderID.trim() === '') {
-        return res.status(400).json({ error: 'Invalid OrderID format' })
-    }
-
-    let client
-    try {
-        client = await MongoClient.connect(uri)
-        const db = client.db('blessingscafe')
-        const ordersCollection = db.collection('Orders')
-
-        const filter = { OrderID: OrderID }
-        const updateDoc = { $set: { PaymentStatus } }
-
-        const updateResult = await ordersCollection.updateOne(filter, updateDoc)
-        const updatedOrder = await ordersCollection.findOne(filter)
-
-        if (!updatedOrder) {
-            await client.close()
-            return res.status(404).json({ error: `Order with ID ${OrderID} not found` })
-        }
-
-        await client.close()
-        return res.status(200).json({
-            success: true,
-            message: `Payment status updated to "${PaymentStatus}"`,
-            order: updatedOrder
-        })
-    } catch (error) {
-        if (client) await client.close()
-        return res.status(500).json({ error: 'Server error while updating order' })
-    }
+    await client.close()
+    return res.status(200).json({
+      success: true,
+      message: `Payment status updated to "${PaymentStatus}"`,
+      order: updatedOrder
+    })
+  } catch (error) {
+    if (client) await client.close()
+    return res.status(500).json({ error: 'Server error while updating order' })
+  }
 })
 
 app.patch('/orders/:OrderID/cancel', isLoggedIn, nocache, async (req, res) => {
-    const { OrderID } = req.params
+  const { OrderID } = req.params
 
-    if (!OrderID || OrderID.trim() === '') {
-        return res.status(400).json({ error: 'Invalid OrderID format' })
+  if (!OrderID || OrderID.trim() === '') {
+    return res.status(400).json({ error: 'Invalid OrderID format' })
+  }
+
+  let client
+  try {
+    client = await MongoClient.connect(uri)
+    const db = client.db('blessingscafe')
+    const ordersCollection = db.collection('Orders')
+
+    const filter = { OrderID: OrderID }
+
+    // First check if the order exists
+    const existingOrder = await ordersCollection.findOne(filter)
+    if (!existingOrder) {
+      await client.close()
+      return res.status(404).json({ error: `Order with ID ${OrderID} not found` })
     }
 
-    let client
-    try {
-        client = await MongoClient.connect(uri)
-        const db = client.db('blessingscafe')
-        const ordersCollection = db.collection('Orders')
+    // Delete the order from the database
+    const deleteResult = await ordersCollection.deleteOne(filter)
 
-        const filter = { OrderID: OrderID }
-
-        // First check if the order exists
-        const existingOrder = await ordersCollection.findOne(filter)
-        if (!existingOrder) {
-            await client.close()
-            return res.status(404).json({ error: `Order with ID ${OrderID} not found` })
-        }
-
-        // Delete the order from the database
-        const deleteResult = await ordersCollection.deleteOne(filter)
-
-        if (deleteResult.deletedCount === 0) {
-            await client.close()
-            return res.status(404).json({ error: `Order with ID ${OrderID} not found` })
-        }
-
-        await client.close()
-        return res.status(200).json({
-            success: true,
-            message: 'Order cancelled and deleted successfully',
-            deletedOrderID: OrderID
-        })
-    } catch (error) {
-        if (client) await client.close()
-        return res.status(500).json({ error: 'Server error while cancelling order' })
+    if (deleteResult.deletedCount === 0) {
+      await client.close()
+      return res.status(404).json({ error: `Order with ID ${OrderID} not found` })
     }
+
+    await client.close()
+    return res.status(200).json({
+      success: true,
+      message: 'Order cancelled and deleted successfully',
+      deletedOrderID: OrderID
+    })
+  } catch (error) {
+    if (client) await client.close()
+    return res.status(500).json({ error: 'Server error while cancelling order' })
+  }
 })
 
 app.patch('/orders/:OrderID/restore', isLoggedIn, nocache, async (req, res) => {
-    const { OrderID } = req.params
+  const { OrderID } = req.params
 
-    if (!OrderID || OrderID.trim() === '') {
-        return res.status(400).json({ error: 'Invalid OrderID format' })
+  if (!OrderID || OrderID.trim() === '') {
+    return res.status(400).json({ error: 'Invalid OrderID format' })
+  }
+
+  let client
+  try {
+    client = await MongoClient.connect(uri)
+    const db = client.db('blessingscafe')
+    const ordersCollection = db.collection('Orders')
+
+    const filter = { OrderID: OrderID }
+    const updateDoc = {
+      $set: {
+        PaymentStatus: 'Pending',
+        FulfillmentStatus: 'Preparing'
+      }
     }
 
-    let client
-    try {
-        client = await MongoClient.connect(uri)
-        const db = client.db('blessingscafe')
-        const ordersCollection = db.collection('Orders')
+    const updateResult = await ordersCollection.updateOne(filter, updateDoc)
+    const updatedOrder = await ordersCollection.findOne(filter)
 
-        const filter = { OrderID: OrderID }
-        const updateDoc = {
-            $set: {
-                PaymentStatus: 'Pending',
-                FulfillmentStatus: 'Preparing'
-            }
-        }
-
-        const updateResult = await ordersCollection.updateOne(filter, updateDoc)
-        const updatedOrder = await ordersCollection.findOne(filter)
-
-        if (!updatedOrder) {
-            await client.close()
-            return res.status(404).json({ error: `Order with ID ${OrderID} not found` })
-        }
-
-        await client.close()
-        return res.status(200).json({
-            success: true,
-            message: 'Order restored successfully',
-            order: updatedOrder
-        })
-    } catch (error) {
-        if (client) await client.close()
-        return res.status(500).json({ error: 'Server error while restoring order' })
+    if (!updatedOrder) {
+      await client.close()
+      return res.status(404).json({ error: `Order with ID ${OrderID} not found` })
     }
+
+    await client.close()
+    return res.status(200).json({
+      success: true,
+      message: 'Order restored successfully',
+      order: updatedOrder
+    })
+  } catch (error) {
+    if (client) await client.close()
+    return res.status(500).json({ error: 'Server error while restoring order' })
+  }
 })
 
 app.get('/orders/edit/:id', isLoggedIn, nocache, async (req, res) => {
-    const orderId = req.params.id;
+  const orderId = req.params.id;
 
-    // ========== END OF ENHANCED STOCKS/INVENTORY ROUTES - V13 ==========
+  // ========== END OF ENHANCED STOCKS/INVENTORY ROUTES - V13 ==========
 
-    try {
-        const client = await MongoClient.connect(uri);
-        const db = client.db('blessingscafe');
-        const ordersCollection = db.collection('Orders');
-        const menuCollection = db.collection('Menu');
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const ordersCollection = db.collection('Orders');
+    const menuCollection = db.collection('Menu');
 
-        const order = await ordersCollection.findOne({ _id: new ObjectId(orderId) });
+    const order = await ordersCollection.findOne({ _id: new ObjectId(orderId) });
 
-        if (!order) {
-            await client.close();
-            return res.status(404).send('Order not found');
-        }
-
-        if (order.Cart && Array.isArray(order.Cart)) {
-            for (let i = 0; i < order.Cart.length; i++) {
-                const productId = order.Cart[i].ProductID;
-                if (productId && ObjectId.isValid(productId)) {
-                    const menuItem = await menuCollection.findOne({ _id: new ObjectId(productId) });
-                    order.Cart[i].imagelink = menuItem && menuItem.imagelink ? menuItem.imagelink : null;
-                } else {
-                    order.Cart[i].imagelink = null;
-                }
-            }
-        }
-
-        // ========== ENHANCED DISCOUNTS/PROMOS ROUTES - V8 ALIGNMENT ==========
-
-        res.render('edit-order', {
-            order,
-            title: `Edit Order #${order.OrderID}`,
-            user: req.session.user
-        });
-    } catch (err) {
-        console.error('Error in /orders/edit/:id:', err);
-        res.status(500).send('Internal Server Error');
+    if (!order) {
+      await client.close();
+      return res.status(404).send('Order not found');
     }
+
+    if (order.Cart && Array.isArray(order.Cart)) {
+      for (let i = 0; i < order.Cart.length; i++) {
+        const productId = order.Cart[i].ProductID;
+        if (productId && ObjectId.isValid(productId)) {
+          const menuItem = await menuCollection.findOne({ _id: new ObjectId(productId) });
+          order.Cart[i].imagelink = menuItem && menuItem.imagelink ? menuItem.imagelink : null;
+        } else {
+          order.Cart[i].imagelink = null;
+        }
+      }
+    }
+
+    // ========== ENHANCED DISCOUNTS/PROMOS ROUTES - V8 ALIGNMENT ==========
+
+    res.render('edit-order', {
+      order,
+      title: `Edit Order #${order.OrderID}`,
+      user: req.session.user
+    });
+  } catch (err) {
+    console.error('Error in /orders/edit/:id:', err);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
 app.get('/discounts', isLoggedIn, nocache, async (req, res) => {
@@ -1749,10 +3320,10 @@ app.get('/discounts', isLoggedIn, nocache, async (req, res) => {
     console.log(`[2025-09-16 08:22:35] V8 Loading discounts page for user: ${req.session.user.username} by MathDaenniel`);
     console.log(`[2025-09-16 08:22:35] V8 Repository: roviczzz/Couche-Co by MathDaenniel`);
 
-        const client = await MongoClient.connect(uri);
-        const db = client.db('blessingscafe');
-        const promosCollection = db.collection('Promos');
-        // V8 Enhanced: Fetch all promos with comprehensive metadata for active promos section
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const promosCollection = db.collection('Promos');
+    // V8 Enhanced: Fetch all promos with comprehensive metadata for active promos section
     const promos = await promosCollection.find().sort({ createdAt: -1 }).toArray();
 
     // V8 Critical Fix: Calculate active promos statistics with enhanced precision
@@ -1762,8 +3333,8 @@ app.get('/discounts', isLoggedIn, nocache, async (req, res) => {
       const endDate = new Date(promo.endDate);
       // V8 Enhancement: Use time boundaries for more accurate filtering
       return now >= new Date(startDate.toISOString().split('T')[0] + 'T00:00:00') &&
-             now <= new Date(endDate.toISOString().split('T')[0] + 'T23:59:59') &&
-             promo.isActive !== false;
+          now <= new Date(endDate.toISOString().split('T')[0] + 'T23:59:59') &&
+          promo.isActive !== false;
     });
 
     const upcomingPromos = promos.filter(promo => {
@@ -1797,7 +3368,7 @@ app.get('/discounts', isLoggedIn, nocache, async (req, res) => {
       const daysSinceCreated = (now - createdAt) / (1000 * 60 * 60 * 24);
       return daysSinceCreated <= 7;
     });
-        await client.close();
+    await client.close();
 
     console.log(`[2025-09-16 08:22:35] V8 Fetched ${promos.length} promos from database by MathDaenniel`);
     console.log(`[2025-09-16 08:22:35] V8 Statistics - Active: ${activePromos.length}, Upcoming: ${upcomingPromos.length}, Expired: ${expiredPromos.length}, Expiring Soon: ${expiringSoonPromos.length} by MathDaenniel`);
@@ -2076,9 +3647,9 @@ app.post('/discounts/add', isLoggedIn, async (req, res) => {
 
     console.log(`[2025-09-16 08:22:35] V8 Connecting to MongoDB by MathDaenniel`);
 
-        const client = await MongoClient.connect(uri);
-        const db = client.db('blessingscafe');
-        const promosCollection = db.collection('Promos');
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const promosCollection = db.collection('Promos');
 
     // V8 Enhanced duplicate check with more sophisticated overlap detection
     const overlappingPromo = await promosCollection.findOne({
@@ -2098,12 +3669,12 @@ app.post('/discounts/add', isLoggedIn, async (req, res) => {
       ]
     });
 
-        if (overlappingPromo) {
-            await client.close();
-            console.log(`[2025-09-16 08:22:35] V8 Overlapping promo detected by MathDaenniel`);
-            return res.status(400).json({
-                success: false,
-                message: `A promo with the name "${trimmedEvent}" already exists with overlapping dates.`,
+    if (overlappingPromo) {
+      await client.close();
+      console.log(`[2025-09-16 08:22:35] V8 Overlapping promo detected by MathDaenniel`);
+      return res.status(400).json({
+        success: false,
+        message: `A promo with the name "${trimmedEvent}" already exists with overlapping dates.`,
         conflictingPromo: {
           event: overlappingPromo.event,
           startDate: overlappingPromo.startDate.toISOString().split('T')[0],
@@ -2113,8 +3684,8 @@ app.post('/discounts/add', isLoggedIn, async (req, res) => {
         suggestion: 'Please choose different dates or modify the event name.',
         version: 'V8-CompleteActivePromosFixture',
         timestamp: '[2025-09-16 08:22:35]'
-            });
-        }
+      });
+    }
 
     // V8 Enhanced promo object with comprehensive metadata for complete real-time updates
     const newPromo = {
@@ -2183,7 +3754,7 @@ app.post('/discounts/add', isLoggedIn, async (req, res) => {
 
     console.log(`[2025-09-16 08:22:35] V8 Statistics - Total: ${totalCount}, Active: ${activeCount}, Expiring Soon: ${expiringSoonCount} by MathDaenniel`);
 
-        await client.close();
+    await client.close();
     console.log('✅ MongoDB connection closed');
 
     console.log(`[2025-09-16 08:22:35] V8 Promo add request completed successfully by MathDaenniel`);
@@ -2206,7 +3777,7 @@ app.post('/discounts/add', isLoggedIn, async (req, res) => {
         status: newPromo.status
       },
       warnings: dateWarnings,
-      // V8 Addition: Complete UI refresh information with comprehensive real-time sync
+      // V8 Addition: Complete UI feedback information with comprehensive real-time sync
       uiRefresh: {
         activePromosSection: true,
         navbarUpdate: false,
@@ -2241,26 +3812,26 @@ app.post('/discounts/add', isLoggedIn, async (req, res) => {
 
 // POST route for editing promo - V8 ENHANCED with Complete Real-Time Active Promos Update Fix
 app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
-    const { id } = req.params;
+  const { id } = req.params;
   const startTime = Date.now();
 
-    try {
-        console.log(`[2025-09-16 08:22:35] V8 Complete Active Promos Fix - Edit promo request for ID: ${id} by MathDaenniel`);
+  try {
+    console.log(`[2025-09-16 08:22:35] V8 Complete Active Promos Fix - Edit promo request for ID: ${id} by MathDaenniel`);
     console.log(`[2025-09-16 08:22:35] V8 Repository: roviczzz/Couche-Co by MathDaenniel`);
 
     // V8 Enhanced: Get form data from either JSON or FormData with better handling
     let event, startDate, endDate, description, discountPercentage, metadata;
 
-        if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
-            ({ event, startDate, endDate, description, discountPercentage, metadata } = req.body);
+    if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
+      ({ event, startDate, endDate, description, discountPercentage, metadata } = req.body);
       console.log(`[2025-09-16 08:22:35] V8 Processing JSON request by MathDaenniel`);
-        } else {
-            event = req.body.event;
-            startDate = req.body.startDate;
-            endDate = req.body.endDate;
-            description = req.body.description;
-            discountPercentage = req.body.discountPercentage;
-        metadata = req.body.metadata;
+    } else {
+      event = req.body.event;
+      startDate = req.body.startDate;
+      endDate = req.body.endDate;
+      description = req.body.description;
+      discountPercentage = req.body.discountPercentage;
+      metadata = req.body.metadata;
       console.log(`[2025-09-16 08:22:35] V8 Processing form data request by MathDaenniel`);
     }
 
@@ -2397,28 +3968,15 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
           startDate: start.toISOString().split('T')[0],
           endDate: end.toISOString().split('T')[0]
         },
-        dateDifference: Math.ceil((start - end) / (1000 * 60 * 60 * 24)) + ' days',
         version: 'V8-CompleteActivePromosFixture',
         timestamp: '[2025-09-16 08:22:35]'
       });
     }
 
-    // V8 Enhanced ObjectId validation
-    if (!ObjectId.isValid(id)) {
-      console.log(`[2025-09-16 08:22:35] V8 Invalid ObjectId: ${id} by MathDaenniel`);
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid promo ID format',
-        received: id,
-        expectedFormat: '24-character hexadecimal string',
-        version: 'V8-CompleteActivePromosFixture',
-        timestamp: '[2025-09-16 08:22:35]'
-      });
-    }
-
-        const client = await MongoClient.connect(uri);
-        const db = client.db('blessingscafe');
-        const promosCollection = db.collection('Promos');
+    // V8 Enhanced promo retrieval with detailed logging
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const promosCollection = db.collection('Promos');
 
     // V8 Enhanced: Get current promo for logging and comparison
     const currentPromo = await promosCollection.findOne({ _id: new ObjectId(id) });
@@ -2455,12 +4013,12 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
       ]
     });
 
-        if (duplicatePromo) {
-            await client.close();
-            console.log(`[2025-09-16 08:22:35] V8 Duplicate promo detected during edit by MathDaenniel`);
-            return res.status(400).json({
-                success: false,
-                message: `A promo with the name "${trimmedEvent}" already exists with overlapping dates.`,
+    if (duplicatePromo) {
+      await client.close();
+      console.log(`[2025-09-16 08:22:35] V8 Duplicate promo detected during edit by MathDaenniel`);
+      return res.status(400).json({
+        success: false,
+        message: `A promo with the name "${trimmedEvent}" already exists with overlapping dates.`,
         conflictingPromo: {
           id: duplicatePromo._id,
           event: duplicatePromo.event,
@@ -2471,10 +4029,10 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
         suggestion: 'Please choose different dates or modify the event name.',
         version: 'V8-CompleteActivePromosFixture',
         timestamp: '[2025-09-16 08:22:35]'
-            });
-        }
+      });
+    }
 
-        // V8 Enhanced update with comprehensive status calculation and change tracking
+    // V8 Enhanced update with comprehensive status calculation and change tracking
     const newStatus = getPromoStatus(start, end, now);
     const changes = [];
     const changeDetails = {};
@@ -2511,33 +4069,33 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
     }
 
     console.log(`[2025-09-16 08:22:35] V8 Detected changes:`, { changes, changeDetails }, 'by MathDaenniel');const updateResult = await promosCollection.updateOne(
-            { _id: new ObjectId(id) },
-            {
-                $set: {
-                    event: trimmedEvent,
-                    startDate: start,
-                    endDate: end,
-                    description: trimmedDescription,
-                    discountPercentage: discountPercent,status: newStatus,
-                    lastModified: new Date(),
-                    lastModifiedBy: req.session.user.username || 'MathDaenniel',
-          version: 'V8-CompleteActivePromosFixture',
-          changeHistory: {
-            fields: changes,
-            details: changeDetails,
-            timestamp: now.toISOString(),
-            user: req.session.user.username || 'MathDaenniel',
-            repository: 'roviczzz/Couche-Co',
-            updateMetadata: metadata || {},
-            // V8 Addition: Track complete active promo update fix
-            completeActivePromosUpdateFix: true,
-            realTimeSyncEnabled: true,
-            dataAttributeSyncEnabled: true,
-            cacheManagementEnabled: true
-          }
-                }
+        { _id: new ObjectId(id) },
+        {
+          $set: {
+            event: trimmedEvent,
+            startDate: start,
+            endDate: end,
+            description: trimmedDescription,
+            discountPercentage: discountPercent,status: newStatus,
+            lastModified: new Date(),
+            lastModifiedBy: req.session.user.username || 'MathDaenniel',
+            version: 'V8-CompleteActivePromosFixture',
+            changeHistory: {
+              fields: changes,
+              details: changeDetails,
+              timestamp: now.toISOString(),
+              user: req.session.user.username || 'MathDaenniel',
+              repository: 'roviczzz/Couche-Co',
+              updateMetadata: metadata || {},
+              // V8 Addition: Track complete active promo update fix
+              completeActivePromosUpdate: true,
+              realTimeSyncEnabled: true,
+              dataAttributeSyncEnabled: true,
+              cacheManagementEnabled: true
             }
-        );
+          }
+        }
+    );
 
     console.log(`[2025-09-16 08:22:35] V8 Update result:`, updateResult, 'by MathDaenniel');
 
@@ -2554,7 +4112,7 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
       isActive: true
     });
 
-        await client.close();
+    await client.close();
 
     if (updateResult.matchedCount === 0) {
       console.log(`[2025-09-16 08:22:35] V8 No promo matched for update: ${id} by MathDaenniel`);
@@ -2629,46 +4187,46 @@ app.post('/discounts/edit/:id', isLoggedIn, async (req, res) => {
 
 // POST route for deleting promo - V8 ENHANCED with Complete Real-Time Update Support
 app.post('/discounts/delete/:id', isLoggedIn, async (req, res) => {
-    const { id } = req.params;
+  const { id } = req.params;
   const startTime = Date.now();
 
-  console.log(`[2025-09-16 08:22:35] V8 Complete Active Promos Fix - Enhanced delete promo request: ${id} by MathDaenniel`);
-  console.log(`[2025-09-16 08:22:35] V8 Repository: roviczzz/Couche-Co by MathDaenniel`);
+  console.log(`[2025-09-16 08:27:17] V8 Complete Active Promos Fix - Enhanced delete promo request: ${id} by MathDaenniel`);
+  console.log(`[2025-09-16 08:27:17] V8 Repository: roviczzz/Couche-Co by MathDaenniel`);
 
   // V8 Enhanced ObjectId validation
   if (!ObjectId.isValid(id)) {
-    console.log(`[2025-09-16 08:22:35] V8 Invalid ObjectId for delete: ${id} by MathDaenniel`);
+    console.log(`[2025-09-16 08:27:17] V8 Invalid ObjectId for delete: ${id} by MathDaenniel`);
     return res.status(400).json({
       success: false,
       message: 'Invalid promo ID format',
       received: id,
       expectedFormat: '24-character hexadecimal string',
       version: 'V8-CompleteActivePromosFixture',
-      timestamp: '[2025-09-16 08:22:35]'
+      timestamp: '[2025-09-16 08:27:17]'
     });
   }
 
-    try {
-        const client = await MongoClient.connect(uri);
-        const db = client.db('blessingscafe');
-        const promosCollection = db.collection('Promos');
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const promosCollection = db.collection('Promos');
 
     // V8 Enhanced: Get promo details before deletion for comprehensive logging and safety checks
     const promo = await promosCollection.findOne({ _id: new ObjectId(id) });
 
     if (!promo) {
       await client.close();
-      console.log(`[2025-09-16 08:22:35] V8 Promo not found for delete: ${id} by MathDaenniel`);
+      console.log(`[2025-09-16 08:27:17] V8 Promo not found for delete: ${id} by MathDaenniel`);
       return res.status(404).json({
         success: false,
         message: 'Promo not found. It may have already been deleted by another user.',
         promoId: id,
         version: 'V8-CompleteActivePromosFixture',
-        timestamp: '[2025-09-16 08:22:35]'
+        timestamp: '[2025-09-16 08:27:17]'
       });
     }
 
-    console.log(`[2025-09-16 08:22:35] V8 Promo found for deletion: "${promo.event}" by MathDaenniel`);
+    console.log(`[2025-09-16 08:27:17] V8 Promo found for deletion: "${promo.event}" by MathDaenniel`);
 
     // V8 Enhanced safety checks and comprehensive audit logging
     const now = new Date();
@@ -2686,19 +4244,19 @@ app.post('/discounts/delete/:id', isLoggedIn, async (req, res) => {
 
     // V8 Enhanced warnings for important deletions
     if (isCurrentlyActive) {
-      console.log(`[2025-09-16 08:22:35] V8 WARNING: Deleting currently active promo "${promo.event}" (${daysUntilEnd} days remaining) by MathDaenniel`);
+      console.log(`[2025-09-16 08:27:17] V8 WARNING: Deleting currently active promo "${promo.event}" (${daysUntilEnd} days remaining) by MathDaenniel`);
     }
 
     if (isExpiringSoon) {
-      console.log(`[2025-09-16 08:22:35] V8 ALERT: Deleting promo "${promo.event}" that expires soon (${daysUntilEnd} days) by MathDaenniel`);
+      console.log(`[2025-09-16 08:27:17] V8 ALERT: Deleting promo "${promo.event}" that expires soon (${daysUntilEnd} days) by MathDaenniel`);
     }
 
     if (isHighDiscount) {
-      console.log(`[2025-09-16 08:22:35] V8 NOTICE: Deleting high discount promo "${promo.event}" (${promo.discountPercentage}% off) by MathDaenniel`);
+      console.log(`[2025-09-16 08:27:17] V8 NOTICE: Deleting high discount promo "${promo.event}" (${promo.discountPercentage}% off) by MathDaenniel`);
     }
 
     // V8 Enhanced audit trail logging with comprehensive context
-    console.log(`[2025-09-16 08:22:35] V8 Complete deletion context for "${promo.event}":`, {
+    console.log(`[2025-09-16 08:27:17] V8 Complete deletion context for "${promo.event}":`, {
       isActive: isCurrentlyActive,
       isExpiringSoon: isExpiringSoon,
       isHighDiscount: isHighDiscount,
@@ -2711,7 +4269,7 @@ app.post('/discounts/delete/:id', isLoggedIn, async (req, res) => {
       repository: 'roviczzz/Couche-Co',
       deleteMetadata: deleteMetadata,
       realTimeSyncEnabled: true,
-      completeActivePromosUpdateSupport: true
+      completeActivePromosUpdateFix: true
     }, 'by MathDaenniel');
 
     // V8 Addition: Create comprehensive deletion record for audit trail
@@ -2747,9 +4305,9 @@ app.post('/discounts/delete/:id', isLoggedIn, async (req, res) => {
     // V8 Optional: Store deletion record (uncomment if you want to keep deletion history)
     // await db.collection('PromosDeletionLog').insertOne(deletionRecord);
 
-        const deleteResult = await promosCollection.deleteOne({ _id: new ObjectId(id) });
+    const deleteResult = await promosCollection.deleteOne({ _id: new ObjectId(id) });
 
-    console.log(`[2025-09-16 08:22:35] V8 Delete operation result:`, deleteResult, 'by MathDaenniel');
+    console.log(`[2025-09-16 08:27:17] V8 Delete operation result:`, deleteResult, 'by MathDaenniel');
 
     // V8 Enhanced: Get comprehensive updated statistics after deletion
     const totalCount = await promosCollection.countDocuments();
@@ -2770,22 +4328,22 @@ app.post('/discounts/delete/:id', isLoggedIn, async (req, res) => {
       isActive: true
     });
 
-        await client.close();
+    await client.close();
 
     if (deleteResult.deletedCount === 0) {
-      console.log(`[2025-09-16 08:22:35] V8 No promo was deleted: ${id} by MathDaenniel`);
+      console.log(`[2025-09-16 08:27:17] V8 No promo was deleted: ${id} by MathDaenniel`);
       return res.status(404).json({
         success: false,
         message: 'Promo could not be deleted. It may have been deleted by another user.',
         promoId: id,
         version: 'V8-CompleteActivePromosFixture',
-        timestamp: '[2025-09-16 08:22:35]'
+        timestamp: '[2025-09-16 08:27:17]'
       });
     }
 
     const processingTime = Date.now() - startTime;
 
-    console.log(`[2025-09-16 08:22:35] V8 SUCCESS: Promo "${promo.event}" deleted successfully (${processingTime}ms) by MathDaenniel`);
+    console.log(`[2025-09-16 08:27:17] V8 SUCCESS: Promo "${promo.event}" deleted successfully (${processingTime}ms) by MathDaenniel`);
 
     // V8 Enhanced response with comprehensive deletion information and complete UI sync
     res.json({
@@ -2852,18 +4410,15 @@ app.post('/discounts/delete/:id', isLoggedIn, async (req, res) => {
       success: false,
       message: 'Database error during deletion: ' + err.message,
       version: 'V8-CompleteActivePromosFixture',
-      timestamp: '[2025-09-16 08:27:17]',
-      error: process.env.NODE_ENV === 'development' ? {
-        stack: err.stack,
-        message: err.message
-      } : 'Internal server error during deletion'
+      timestamp: '[2025-09-16 08:27:17]'
     });
   }
 });
 
 // V8 Addition: Enhanced Performance monitoring endpoint with complete real-time sync status
-app.get('/discounts/performance', isLoggedIn, async (req, res) => {  try {
-        const startTime = Date.now();
+app.get('/discounts/performance', isLoggedIn, async (req, res) => {
+  try {
+    const startTime = Date.now();
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
     const promosCollection = db.collection('Promos');
@@ -2874,31 +4429,31 @@ app.get('/discounts/performance', isLoggedIn, async (req, res) => {  try {
     // V8 Addition: Get comprehensive performance metrics
     const now = new Date();
     const activeCount = await promosCollection.countDocuments({
-      startDate: { $lte: now },
-      endDate: { $gte: now },
+      startDate: {$lte: now},
+      endDate: {$gte: now},
       isActive: true
     });
 
     // V8 Enhancement: Get detailed status counts
     const expiringSoonCount = await promosCollection.countDocuments({
-      startDate: { $lte: now },
-      endDate: { $gte: now, $lte: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000) },
+      startDate: {$lte: now},
+      endDate: {$gte: now, $lte: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)},
       isActive: true
     });
 
     const upcomingCount = await promosCollection.countDocuments({
-      startDate: { $gt: now },
+      startDate: {$gt: now},
       isActive: true
     });
 
     const expiredCount = await promosCollection.countDocuments({
-      endDate: { $lt: now }
+      endDate: {$lt: now}
     });
 
     const highDiscountCount = await promosCollection.countDocuments({
-      discountPercentage: { $gte: 20 },
-      startDate: { $lte: now },
-      endDate: { $gte: now },
+      discountPercentage: {$gte: 20},
+      startDate: {$lte: now},
+      endDate: {$gte: now},
       isActive: true
     });
 
@@ -2919,20 +4474,7 @@ app.get('/discounts/performance', isLoggedIn, async (req, res) => {  try {
       },
       user: req.session.user.username || 'MathDaenniel',
       repository: 'roviczzz/Couche-Co',
-      features: {
-        superiorDeleteFunctionality: true,
-        enhancedValidation: true,
-        performanceMonitoring: true,
-        auditTrail: true,
-        completeActivePromosUpdateFix: true,
-        realTimeSyncEnabled: true,
-        bulkOperationsSupport: true,
-        smartDateSuggestions: true,
-        promoPreview: true,
-        errorRecovery: true,
-        dataAttributeSync: true,
-        cacheManagement: true
-      }
+      lastUpdated: now.toISOString()
     });
   } catch (err) {
     res.status(500).json({
@@ -3077,11 +4619,11 @@ app.post('/discounts/bulk-action', isLoggedIn, async (req, res) => {
       });
     }
 
-        const client = await MongoClient.connect(uri);
-        const db = client.db('blessingscafe');
-        const promosCollection = db.collection('Promos');
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const promosCollection = db.collection('Promos');
 
-        let result = { success: false, message: '', affectedCount: 0, details: [] };
+    let result = { success: false, message: '', affectedCount: 0, details: [] };
 
     switch (action) {
       case 'delete':
@@ -3128,15 +4670,15 @@ app.post('/discounts/bulk-action', isLoggedIn, async (req, res) => {
             const promo = await promosCollection.findOne({ _id: new ObjectId(id) });
             if (promo) {
               const newActiveState = !promo.isActive;const updateResult = await promosCollection.updateOne(
-            { _id: new ObjectId(id) },
-            {
-                $set: {
-                    isActive: newActiveState,
-                    lastModified: new Date(),
-                    lastModifiedBy: req.session.user.username ||'MathDaenniel'
-                }
-            }
-        );toggleResults.push({
+                  { _id: new ObjectId(id) },
+                  {
+                    $set: {
+                      isActive: newActiveState,
+                      lastModified: new Date(),
+                      lastModifiedBy: req.session.user.username ||'MathDaenniel'
+                    }
+                  }
+              );toggleResults.push({
                 id: id,
                 success: updateResult.modifiedCount > 0,
                 promoName: promo.event,
@@ -3190,14 +4732,14 @@ app.post('/discounts/bulk-action', isLoggedIn, async (req, res) => {
         }
 
         const updateDiscountResult = await promosCollection.updateMany(
-          { _id: { $in: promoIds.map(id => new ObjectId(id)) } },
-          {
-            $set: {
-              discountPercentage: discountPercent,
-              lastModified: new Date(),
-              lastModifiedBy: req.session.user.username || 'MathDaenniel'
+            { _id: { $in: promoIds.map(id => new ObjectId(id)) } },
+            {
+              $set: {
+                discountPercentage: discountPercent,
+                lastModified: new Date(),
+                lastModifiedBy: req.session.user.username || 'MathDaenniel'
+              }
             }
-          }
         );
 
         result = {
@@ -3272,7 +4814,7 @@ app.get('/discounts/real-time-stats', isLoggedIn, async (req, res) => {
     const db = client.db('blessingscafe');
     const promosCollection = db.collection('Promos');
 
-        const now = new Date();
+    const now = new Date();
     const today = new Date(now.toISOString().split('T')[0]);
     const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
     const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
@@ -3332,17 +4874,17 @@ app.get('/discounts/real-time-stats', isLoggedIn, async (req, res) => {
       })
     ]);
 
-        // V8 Addition: Calculate average discount for active promos
+    // V8 Addition: Calculate average discount for active promos
     const activePromosWithDiscount = await promosCollection.find({
-                    startDate: { $lte: now },
-                                       endDate: { $gte: now },
-                                        isActive: true
-                                    },
-                               { projection: { discountPercentage: 1 } }).toArray();
+          startDate: { $lte: now },
+          endDate: { $gte: now },
+          isActive: true
+        },
+        { projection: { discountPercentage: 1 } }).toArray();
 
-                    const averageDiscount = activePromosWithDiscount.length > 0
-                    ? activePromosWithDiscount.reduce((sum, promo) => sum + promo.discountPercentage, 0) / activePromosWithDiscount.length
-                : 0;
+    const averageDiscount = activePromosWithDiscount.length > 0
+        ? activePromosWithDiscount.reduce((sum, promo) => sum + promo.discountPercentage, 0) / activePromosWithDiscount.length
+        : 0;
 
     await client.close();
 
@@ -3375,28 +4917,29 @@ app.get('/discounts/real-time-stats', isLoggedIn, async (req, res) => {
         timestamp: '[2025-09-16 08:27:17]'
       },
       user: req.session.user.username || 'MathDaenniel',
-        repository: 'roviczzz/Couche-Co',
+      repository: 'roviczzz/Couche-Co',
       lastUpdated: now.toISOString()
     });
   } catch (err) {
-        console.error(`[2025-09-16 08:27:17] V8 Error getting real-time stats:`, err, 'by MathDaenniel');
-        res.status(500).json({ status: 'error',
+    console.error(`[2025-09-16 08:27:17] V8 Error getting real-time stats:`, err, 'by MathDaenniel');
+    res.status(500).json({ status: 'error',
       message: err.message,
       version: 'V8-CompleteActivePromosFixture',
-      timestamp: '[2025-09-16 08:27:17]' });
-    }
+      timestamp: '[2025-09-16 08:27:17]'
+    });
+  }
 });
 
 // V8 Addition: Export promos data with filtering options
 app.get('/discounts/export', isLoggedIn, async (req, res) => {
-    try {
-        const { format = 'json', status = 'all', dateRange = 'all' } = req.query;
+  try {
+    const { format = 'json', status = 'all', dateRange = 'all' } = req.query;
 
     console.log(`[2025-09-16 08:27:17] V8 Export request: format=${format}, status=${status}, dateRange=${dateRange} by MathDaenniel`);
 
-    constclient = await MongoClient.connect(uri);
-        const db = client.db('blessingscafe');
-        const promosCollection = db.collection('Promos');
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const promosCollection = db.collection('Promos');
     let query = {};
     const now = new Date();
 
@@ -3454,13 +4997,13 @@ app.get('/discounts/export', isLoggedIn, async (req, res) => {
     }
 
     const promos = await promosCollection.find(query).sort({ createdAt: -1 }).toArray();
-        await client.close();
+    await client.close();
 
-        const exportData = {
-            metadata: {
-            exportedAt: now.toISOString(),
-            exportedBy: req.session.user.username ||'MathDaenniel',
-            repository: 'roviczzz/Couche-Co',
+    const exportData = {
+      metadata: {
+        exportedAt: now.toISOString(),
+        exportedBy: req.session.user.username ||'MathDaenniel',
+        repository: 'roviczzz/Couche-Co',
         version: 'V8-CompleteActivePromosFixture',
         filters: { status, dateRange },
         totalPromos: promos.length
@@ -3474,20 +5017,18 @@ app.get('/discounts/export', isLoggedIn, async (req, res) => {
         endDate: promo.endDate.toISOString().split('T')[0],
         status: getPromoStatus(promo.startDate, promo.endDate, now),
         isActive: promo.isActive,
-        createdAt: promo.createdAt,
-        createdBy: promo.createdBy,
-        lastModified: promo.lastModified
+        createdAt: promo.createdAt
       }))
-        };
+    };
 
-        console.log(`[2025-09-16 08:27:17] V8 Export completed: ${promos.length} promos exported by MathDaenniel`);
+    console.log(`[2025-09-16 08:27:17] V8 Export completed: ${promos.length} promos exported by MathDaenniel`);
 
     if (format === 'csv') {
       // Convert to CSV format
       const csv = [
         'ID,Event,Description,Discount %,Start Date,End Date,Status,Active,Created At,Created By',
         ...exportData.promos.map(promo =>
-          `"${promo.id}","${promo.event}","${promo.description}",${promo.discountPercentage},"${promo.startDate}","${promo.endDate}","${promo.status}",${promo.isActive},"${promo.createdAt}","${promo.createdBy}"`
+            `"${promo.id}","${promo.event}","${promo.description}",${promo.discountPercentage},"${promo.startDate}","${promo.endDate}","${promo.status}",${promo.isActive},"${promo.createdAt}","${promo.createdBy}"`
         )
       ].join('\n');
 
@@ -3495,17 +5036,17 @@ app.get('/discounts/export', isLoggedIn, async (req, res) => {
       res.setHeader('Content-Disposition', `attachment; filename="promos-export-${status}-${dateRange}-${now.toISOString().split('T')[0]}.csv"`);
       res.send(csv);
     } else {res.setHeader('Content-Type', 'application/json');
-        res.setHeader('Content-Disposition', `attachment; filename="promos-export-${status}-${dateRange}-${now.toISOString().split('T')[0]}.json"`);
-        res.json(exportData);}
+      res.setHeader('Content-Disposition', `attachment; filename="promos-export-${status}-${dateRange}-${now.toISOString().split('T')[0]}.json"`);
+      res.json(exportData);}
 
 
-    } catch (err) {
-        console.error(`[2025-09-16 08:27:17] V8 Export error:`, err, 'by MathDaenniel');
-        res.status(500).json({ success: false,
+  } catch (err) {
+    console.error(`[2025-09-16 08:27:17] V8 Export error:`, err, 'by MathDaenniel');
+    res.status(500).json({ success: false,
       message: 'Export failed: ' + err.message,
       version: 'V8-CompleteActivePromosFixture',
       timestamp: '[2025-09-16 08:27:17]' });
-    }
+  }
 });
 
 // V8 Addition: Advanced search endpoint with multiple criteria
@@ -3574,11 +5115,11 @@ app.get('/discounts/search', isLoggedIn, async (req, res) => {
 
     const totalCount = await promosCollection.countDocuments(query);
     const promos = await promosCollection
-      .find(query)
-      .sort(sortOptions)
-      .skip(parseInt(offset))
-      .limit(parseInt(limit))
-      .toArray();
+        .find(query)
+        .sort(sortOptions)
+        .skip(parseInt(offset))
+        .limit(parseInt(limit))
+        .toArray();
 
     await client.close();
 
@@ -3814,15 +5355,15 @@ app.post('/admin/change-password', isLoggedIn, async (req, res) => {
 
     // Update the password in database
     const updateResult = await users.updateOne(
-      { _id: user._id },
-      {
-        $set: {
-          password: hashedNewPassword,
-          passwordChangedAt: new Date('2025-08-19T07:07:58.000Z'),
-          passwordChangedBy: req.session.user.username,
-          lastModified: new Date('2025-08-19T07:07:58.000Z')
+        { _id: user._id },
+        {
+          $set: {
+            password: hashedNewPassword,
+            passwordChangedAt: new Date('2025-08-19T07:07:58.000Z'),
+            passwordChangedBy: req.session.user.username,
+            lastModified: new Date('2025-08-19T07:07:58.000Z')
+          }
         }
-      }
     );
 
     await client.close();
@@ -3882,14 +5423,14 @@ app.post('/admin/migrate-passwords', isLoggedIn, async (req, res) => {
         const hashedPassword = await bcrypt.hash(user.password, SALT_ROUNDS);
 
         await users.updateOne(
-          { _id: user._id },
-          {
-            $set: {
-              password: hashedPassword,
-              passwordMigratedAt: new Date('2025-08-19T07:07:58.000Z'),
-              migratedBy: req.session.user.username
+            { _id: user._id },
+            {
+              $set: {
+                password: hashedPassword,
+                passwordMigratedAt: new Date('2025-08-19T07:07:58.000Z'),
+                migratedBy: req.session.user.username
+              }
             }
-          }
         );
 
         migratedCount++;
@@ -3956,25 +5497,25 @@ app.post('/api/orders', async (req, res) => {
 });
 
 app.post('/api/orders/update-payment-status', async (req, res) => {
-    const { paymentId, status } = req.body;
-    if (!paymentId || !status) {
-        return res.status(400).json({ success: false, error: 'Missing paymentId or status.' });
+  const { paymentId, status } = req.body;
+  if (!paymentId || !status) {
+    return res.status(400).json({ success: false, error: 'Missing paymentId or status.' });
+  }
+  try {
+    await client.connect();
+    const db = client.db('blessingscafe');
+    const orders = db.collection('Orders');
+    const result = await orders.updateOne(
+        { XenditPaymentID: paymentId },
+        { $set: { PaymentStatus: status } }
+    );
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ success: false, error: 'Order not found.' });
     }
-    try {
-        await client.connect();
-        const db = client.db('blessingscafe');
-        const orders = db.collection('Orders');
-        const result = await orders.updateOne(
-            { XenditPaymentID: paymentId },
-            { $set: { PaymentStatus: status } }
-        );
-        if (result.matchedCount === 0) {
-            return res.status(404).json({ success: false, error: 'Order not found.' });
-        }
-        res.json({ success: true });
-    } catch (err) {
-        res.status(500).json({ success: false, error: 'Database error.' });
-    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: 'Database error.' });
+  }
 });
 
 let ordersCollection;
@@ -4019,53 +5560,59 @@ app.get('/analytics/popular-products', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error generating analytics' });
-    }
+  }
 })
 ;
 
 // Sales Per Day
 app.get('/analytics/average-sales-per-day', async (req, res) => {
-    try {
-        const salesPerDay = await ordersCollection.aggregate([
-            {
-                $addFields: {
-                    parsedDate: {
-                        $cond: {
-                            if: { $eq: [{ $type: "$Date" }, "string"] },
-                            then: { $dateFromString: { dateString: "$Date" } },
-                            else: "$Date"
-                        }
-                    }
-                }
-            },
-            {
-                $group: {
-                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$parsedDate" } },
-                    avgSales: { $avg: "$Total" }
-                }
-            },
-            { $sort: { _id: 1 } }
-        ]).toArray();
+  try {
+    const salesPerDay = await ordersCollection.aggregate([
+      {
+        $addFields: {
+          parsedDate: {
+            $cond: {
+              if: { $eq: [{ $type: "$Date" }, "string"] },
+              then: {$dateFromString: {dateString: "$Date"}},
+              else: "$Date"
+            }
+          }
+        }
+      },
+      {
+        $match: {
+          parsedDate: { $gte: new Date(new Date().setHours(0, 0, 0, 0) - 14 * 24 * 60 * 60 * 1000), $lte: new Date() },
+          PaymentStatus: { $ne: "Cancelled" }
+        }
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$parsedDate" } },
+          avgSales: { $avg: "$Total" }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]).toArray();
 
-        res.json(salesPerDay);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Error fetching average sales per day");
-    }
+    res.json(salesPerDay);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error fetching average sales per day");
+  }
 });
 
 app.get("/ingredients/search", async (req, res) => {
-    try {
-        const query = req.query.q || "";
+  try {
+    const query = req.query.q || "";
 
-        const db = client.db("blessingscafe");
+    const db = client.db("blessingscafe");
 
     // Search for ingredients that match the Name
     const results = await db.collection("Ingredients")
-      .find({ Name: { $regex: query, $options: "i" }, isEnabled: true })
-      .project({ IngredientID: 1, Name: 1, _id: 0 })
-      .limit(50)
-      .toArray();
+        .find({ Name: { $regex: query, $options: "i" }, isEnabled: true })
+        .project({ IngredientID: 1, Name: 1, _id: 0 })
+        .limit(50)
+        .toArray();
 
     res.json(results); // return array of objects
   } catch (err) {
@@ -4075,222 +5622,216 @@ app.get("/ingredients/search", async (req, res) => {
 });
 
 app.get('/analytics', isLoggedIn, nocache, (req, res) => {
-    res.render('analytics', {
-        title: 'Analytics | Blessings Cafe',
-        user: req.session.user,
-        currentPage: req.path
-    })
+  res.render('analytics', {
+    title: 'Analytics | Blessings Cafe',
+    user: req.session.user,
+    currentPage: req.path
+  })
 })
 
 app.get('/analytics/sales-performance', isLoggedIn, async (req, res) => {
-    const days = parseInt(req.query.days) || 14
-    try {
-        const client = await MongoClient.connect(uri)
-        const db = client.db('blessingscafe')
-        const ordersCollection = db.collection('Orders')
-        const endDate = new Date()
-        const startDate = new Date()
-        startDate.setDate(startDate.getDate() - days)
-        const pipeline = [
-            {
-                $addFields: {
-                    orderDate: {
-                        $cond: {
-                            if: { $eq: [{$type: "$Date"}, "string"] },
-                            then: {$dateFromString: {dateString: "$Date"}},
-                            else: "$Date"
-                        }
-                    }
-                }
-            },
-            {
-                $match: {
-                    orderDate: { $gte: startDate, $lte: endDate },
-                    PaymentStatus: { $ne: "Cancelled" }
-                }
-            },
-            {
-                $group: {
-                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$orderDate" } },
-                    earnings: { $sum: "$Total" },
-                    costs: { $sum: { $multiply: ["$Total", 0.6] } },
-                    orders: { $sum: 1 }
-                }
-            },
-            { $sort: { _id: 1 } }
-        ]
-        let results = await ordersCollection.aggregate(pipeline).toArray()
-        const dateMap = {}
-        results.forEach(item => { dateMap[item._id] = item })
-        const allDates = []
-        for (let i = 0; i < days; i++) {
-            const date = new Date()
-            date.setDate(date.getDate() - i)
-            const dateStr = date.toISOString().split('T')[0]
-            allDates.unshift(dateStr)
-        }
-        const formattedResults = allDates.map(dateStr => {
-            if (dateMap[dateStr]) {
-                return {
-                    date: dateStr,
-                    earnings: dateMap[dateStr].earnings || 0,
-                    costs: dateMap[dateStr].costs || 0,
-                    orders: dateMap[dateStr].orders || 0
-                }
-            } else {
-                return {
-                    date: dateStr,
-                    earnings: 0,
-                    costs: 0,
-                    orders: 0
-                }
+  const days = parseInt(req.query.days) || 14
+  try {
+    const client = await MongoClient.connect(uri)
+    const db = client.db('blessingscafe')
+    const ordersCollection = db.collection('Orders')
+    const endDate = new Date()
+    const startDate = new Date()
+    startDate.setDate(startDate.getDate() - days)
+    const pipeline = [
+      {
+        $addFields: {
+          orderDate: {
+            $cond: {
+              if: { $eq: [{$type: "$Date"}, "string"] },
+              then: {$dateFromString: {dateString: "$Date"}},
+              else: "$Date"
             }
-        })
-        await client.close()
-        res.json(formattedResults)
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to fetch sales performance data' })
+          }
+        }
+      },
+      {
+        $match: {
+          orderDate: { $gte: startDate, $lte: endDate },
+          PaymentStatus: { $ne: "Cancelled" }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          earnings: { $sum: "$Total" },
+          costs: { $sum: { $multiply: ["$Total", 0.6] } },
+          orders: { $sum: 1 }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]
+    let results = await ordersCollection.aggregate(pipeline).toArray()
+    const dateMap = {}
+    results.forEach(item => { dateMap[item._id] = item })
+    const allDates = []
+    for (let i = 0; i < days; i++) {
+      const date = new Date()
+      date.setDate(date.getDate() - i)
+      const dateStr = date.toISOString().split('T')[0]
+      allDates.unshift(dateStr)
     }
+    const formattedResults = allDates.map(dateStr => {
+      if (dateMap[dateStr]) {
+        return {
+          date: dateStr,
+          earnings: dateMap[dateStr].earnings || 0,
+          costs: dateMap[dateStr].costs || 0,
+          orders: dateMap[dateStr].orders || 0
+        }
+      } else {
+        return {
+          date: dateStr,
+          earnings: 0,
+          costs: 0,
+          orders: 0
+        }
+      }
+    })
+    await client.close()
+    res.json(formattedResults)
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch sales performance data' })
+  }
 })
 
 app.get('/analytics/dashboard-stats', isLoggedIn, async (req, res) => {
-    try {
-        const client = await MongoClient.connect(uri)
-        const db = client.db('blessingscafe')
-        const ordersCollection = db.collection('Orders')
-        const today = new Date()
-        today.setHours(0, 0, 0, 0)
-        const yesterday = new Date(today)
-        yesterday.setDate(yesterday.getDate() - 1)
-        const weekAgo = new Date(today)
-        weekAgo.setDate(weekAgo.getDate() - 7)
-        const totalSalesResult = await ordersCollection.aggregate([
-            {
-                $match: {
-                    PaymentStatus: { $ne: "Cancelled" }
-                }
-            },
-            {
-                $group: {
-                    _id: null,
-                    total: { $sum: "$Total" }
-                }
+  try {
+    const client = await MongoClient.connect(uri)
+    const db = client.db('blessingscafe')
+    const ordersCollection = db.collection('Orders')
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const yesterday = new Date(today)
+    yesterday.setDate(yesterday.getDate() - 1)
+    const weekAgo = new Date(today)
+    weekAgo.setDate(weekAgo.getDate() - 7)
+    const totalSalesResult = await ordersCollection.aggregate([
+      {
+        $match: {
+          PaymentStatus: { $ne: "Cancelled" }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$Total" }
+        }
+      }
+    ]).toArray()
+    const totalSales = totalSalesResult.length > 0 ? totalSalesResult[0].total : 0
+    const totalOrders = totalSalesResult.length > 0 ? totalSalesResult[0].count : 0
+    const weekSalesResult = await ordersCollection.aggregate([
+      {
+        $addFields: {
+          orderDate: {
+            $cond: {
+              if: { $eq: [{$type: "$Date"}, "string"] },
+              then: {$dateFromString: {dateString: "$Date"}},
+              else: "$Date"
             }
-        ]).toArray()
-        const totalSales = totalSalesResult.length > 0 ? totalSalesResult[0].total : 0
-        const totalOrders = totalSalesResult.length > 0 ? totalSalesResult[0].count : 0
-        const weekSalesResult = await ordersCollection.aggregate([
-            {
-                $addFields: {
-                    orderDate: {
-                        $cond: {
-                            if: { $eq: [{ $type: "$Date" }, "string"] },
-                            then: { $dateFromString: { dateString: "$Date" } },
-                            else: "$Date"
-                        }
-                    }
-                }
-            },
-            { $match: { orderDate: { $gte: weekAgo }, PaymentStatus: { $ne: "Cancelled" } } },
-            { $group: { _id: null, total: { $sum: "$Total" } } }
-        ]).toArray()
-        const totalSalesWeek = weekSalesResult.length > 0 ? weekSalesResult[0].total : 0
-        const prevWeekAgo = new Date(weekAgo)
-        prevWeekAgo.setDate(prevWeekAgo.getDate() - 7)
-        const prevWeekSalesResult = await ordersCollection.aggregate([
-            {
-                $addFields: {
-                    orderDate: {
-                        $cond: {
-                            if: { $eq: [{ $type: "$Date" }, "string"] },
-                            then: { $dateFromString: { dateString: "$Date" } },
-                            else: "$Date"
-                        }
-                    }
-                }
-            },
-            { $match: { orderDate: { $gte: prevWeekAgo, $lt: weekAgo }, PaymentStatus: { $ne: "Cancelled" } } },
-            { $group: { _id: null, total: { $sum: "$Total" } } }
-        ]).toArray()
-        const prevWeekSales = prevWeekSalesResult.length > 0 ? prevWeekSalesResult[0].total : 0
-        const totalSalesPercent = prevWeekSales === 0 ? 100 : Math.round(((totalSalesWeek - prevWeekSales) / prevWeekSales) * 100)
-        const incomingOrdersCount = await ordersCollection.countDocuments({ FulfillmentStatus: { $nin: ["Completed", "Cancelled"] } })
-        const yesterdayIncomingResult = await ordersCollection.aggregate([
-            {
-                $addFields: {
-                    orderDate: {
-                        $cond: {
-                            if: { $eq: [{ $type: "$Date" }, "string"] },
-                            then: { $dateFromString: { dateString: "$Date" } },
-                            else: "$Date"
-                        }
-                    }
-                }
-            },
-            { $match: { FulfillmentStatus: { $nin: ["Completed", "Cancelled"] }, orderDate: { $gte: yesterday, $lt: today } } },
-            { $count: "count" }
-        ]).toArray()
-        const yesterdayIncomingOrdersCount = yesterdayIncomingResult.length > 0 ? yesterdayIncomingResult[0].count : 0
-        const incomingOrdersPercent = yesterdayIncomingOrdersCount === 0 ? 0 : Math.round(((incomingOrdersCount - yesterdayIncomingOrdersCount) / yesterdayIncomingOrdersCount) * 100)
-        const ordersTodayResult = await ordersCollection.aggregate([
-            {
-                $addFields: {
-                    orderDate: {
-                        $cond: {
-                            if: { $eq: [{ $type: "$Date" }, "string"] },
-                            then: { $dateFromString: { dateString: "$Date" } },
-                            else: "$Date"
-                        }
-                    }
-                }
-            },
-            { $match: { orderDate: { $gte: today } } },
-            { $count: "count" }
-        ]).toArray()
-        const ordersTodayCount = ordersTodayResult.length > 0 ? ordersTodayResult[0].count : 0
-        const yesterdayOrdersResult = await ordersCollection.aggregate([
-            {
-                $addFields: {
-                    orderDate: {
-                        $cond: {
-                            if: { $eq: [{ $type: "$Date" }, "string"] },
-                            then: { $dateFromString: { dateString: "$Date" } },
-                            else: "$Date"
-                        }
-                    }
-                }
-            },
-            { $match: { orderDate: { $gte: yesterday, $lt: today } } },
-            { $count: "count" }
-        ]).toArray()
-        const yesterdayOrdersCount = yesterdayOrdersResult.length > 0 ? yesterdayOrdersResult[0].count : 0
-        const ordersTodayPercent = yesterdayOrdersCount === 0 ? 0 : Math.round(((ordersTodayCount - yesterdayOrdersCount) / yesterdayOrdersCount) * 100)
+          }
+        }
+      },
+      { $match: { orderDate: { $gte: weekAgo }, PaymentStatus: { $ne: "Cancelled" } } },
+      { $group: { _id: null, total: { $sum: "$Total" } } }
+    ]).toArray()
+    const totalSalesWeek = weekSalesResult.length > 0 ? weekSalesResult[0].total : 0
+    const prevWeekAgo = new Date(weekAgo)
+    prevWeekAgo.setDate(prevWeekAgo.getDate() - 7)
+    const prevWeekSalesResult = await ordersCollection.aggregate([
+      {
+        $addFields: {
+          orderDate: {
+            $cond: {
+              if: { $eq: [{$type: "$Date"}, "string"] },
+              then: {$dateFromString: {dateString: "$Date"}},
+              else: "$Date"
+            }
+          }
+        }
+      },
+      { $match: { orderDate: { $gte: prevWeekAgo, $lt: weekAgo }, PaymentStatus: { $ne: "Cancelled" } } },
+      { $group: { _id: null, total: { $sum: "$Total" } } }
+    ]).toArray()
+    const prevWeekSales = prevWeekSalesResult.length > 0 ? prevWeekSalesResult[0].total : 0
+    const totalSalesPercent = prevWeekSales === 0 ? 100 : Math.round(((totalSalesWeek - prevWeekSales) / prevWeekSales) * 100)
+    const incomingOrdersCount = await ordersCollection.countDocuments({ FulfillmentStatus: { $nin: ["Completed", "Cancelled"] } })
+    const yesterdayIncomingResult = await ordersCollection.aggregate([
+      {
+        $addFields: {
+          orderDate: {
+            $cond: {
+              if: { $eq: [{$type: "$Date"}, "string"] },
+              then: {$dateFromString: {dateString: "$Date"}},
+              else: "$Date"
+            }
+          }
+        }
+      },
+      { $match: { FulfillmentStatus: { $nin: ["Completed", "Cancelled"] }, orderDate: { $gte: yesterday, $lt: today } } },
+      { $count: "count" }
+    ]).toArray()
+    const yesterdayIncomingOrdersCount = yesterdayIncomingResult.length > 0 ? yesterdayIncomingResult[0].count : 0
+    const incomingOrdersPercent = yesterdayIncomingOrdersCount === 0 ? 0 : Math.round(((incomingOrdersCount - yesterdayIncomingOrdersCount) / yesterdayIncomingOrdersCount) * 100)
+    const ordersTodayResult = await ordersCollection.aggregate([
+      {
+        $addFields: {
+          orderDate: {
+            $cond: {
+              if: { $eq: [{$type: "$Date"}, "string"] },
+              then: {$dateFromString: {dateString: "$Date"}},
+              else: "$Date"
+            }
+          }
+        }
+      },
+      { $match: { orderDate: { $gte: today } } },
+      { $count: "count" }
+    ]).toArray()
+    const ordersTodayCount = ordersTodayResult.length > 0 ? ordersTodayResult[0].count : 0
+    const yesterdayOrdersResult = await ordersCollection.aggregate([
+      {
+        $addFields: {
+          orderDate: {
+            $cond: {
+              if: { $eq: [{$type: "$Date"}, "string"] },
+              then: {$dateFromString: {dateString: "$Date"}},
+              else: "$Date"
+            }
+          }
+        }
+      },
+      { $match: { orderDate: { $gte: yesterday, $lt: today } } },
+      { $count: "count" }
+    ]).toArray()
+    const yesterdayOrdersCount = yesterdayOrdersResult.length > 0 ? yesterdayOrdersResult[0].count : 0
+    const ordersTodayPercent = yesterdayOrdersCount === 0 ? 0 : Math.round(((ordersTodayCount - yesterdayOrdersCount) / yesterdayOrdersCount) * 100)
 
-        await client.close()
+    await client.close()
 
-        res.json({
-            totalSales,
-            totalOrders,
-            totalSalesWeek,
-            totalSalesPercent,
-            incomingOrders: incomingOrdersCount,
-            incomingOrdersPercent,
-            ordersToday: ordersTodayCount,
-            ordersTodayPercent
-        })
-    } catch (err) {
-        console.error(err)
-        res.status(500).json({ error: 'Failed to fetch dashboard stats' })
-    }
+    res.json({
+      totalSales,
+      totalOrders,
+      totalSalesWeek,
+      totalSalesPercent,
+      incomingOrders: incomingOrdersCount,
+      incomingOrdersPercent,
+      ordersToday: ordersTodayCount,
+      ordersTodayPercent
+    })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Failed to fetch dashboard stats' })
+  }
 })
 
-function getPromoStatus(startDate, endDate, now) {
-    if (now < startDate) return 'upcoming'
-    if (now > endDate) return 'expired'
-    return 'active'
-}
-
 app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+  console.log(`Server is running on http://localhost:${port}`);
 })
 
