@@ -4,8 +4,8 @@
       <h1>Ingredient Inventory</h1>
     </div>
 
-    <% if (message) { %>
-      <div id="message" class="message"></div>
+    <% if (typeof message !== 'undefined' && message) { %>
+      <div id="message" class="message"><%= message %></div>
     <% } %>
 
   <!-- Add Buttons Section -->
@@ -26,7 +26,7 @@
         <h2>Add Ingredient</h2>
         <button type="button" id="closeIngredientModal" class="close-btn">×</button>
       </div>
-      <form action="/stocks" method="POST" class="stocks-form-vertical">
+      <form action="/admin/stocks" method="POST" class="stocks-form-vertical">
         <div class="form-group">
           <label for="IngredientID">Ingredient ID:</label>
           <div class="ingredient-id-group">
@@ -83,14 +83,14 @@
         <h2>Add Add-On</h2>
         <button type="button" id="closeAddonModal" class="close-btn">×</button>
       </div>
-      <form action="/addons" method="POST" class="stocks-form-vertical">
+      <form action="/admin/addons" method="POST" class="stocks-form-vertical">
         <div class="form-group">
           <label for="AddOnID">Add-On ID:</label>
           <div class="ingredient-id-group">
-            <div class="prefix-display">AD</div>
+            <div class="prefix-display">ADD</div>
             <input type="text" id="AddOnSuffix" name="AddOnSuffix" placeholder="Enter unique ID (e.g. PEARLS)" required>
           </div>
-          <input type="hidden" name="AddOnPrefix" value="AD">
+          <input type="hidden" name="AddOnPrefix" value="ADD">
         </div>
 
         <div class="form-group">
@@ -162,11 +162,11 @@
         </tr>
         </thead>
         <tbody>
-        <% if (ingredients.length === 0) { %>
+        <% if (typeof ingredients === 'undefined' || (Array.isArray(ingredients) && ingredients.length === 0)) { %>
           <tr><td colspan="7" class="stocks-center">No ingredients found.</td></tr>
         <% } else { %>
-          <% ingredients.forEach(i => {
-            const parts = i.IngredientID.split('-');
+          <% (ingredients || []).forEach(i => {
+            const parts = (i.IngredientID || '').split('-');
             const prefix = parts[0] || 'ING';
             const suffix = parts[1] || '';
           %>
@@ -220,18 +220,19 @@
         </tr>
       </thead>
       <tbody>
-        <% if (addons.length === 0) { %>
+        <% if (typeof addons === 'undefined' || (Array.isArray(addons) && addons.length === 0)) { %>
           <tr><td colspan="7" class="stocks-center">No add-ons found.</td></tr>
         <% } else { %>
-          <% addons.forEach(a => {
-            const parts = a.AddOnID.split('-');
-            const prefix = parts[0] || 'AD';
+          <% (addons || []).forEach(a => {
+            const addonId = a && a.AddOnID ? a.AddOnID : 'ADD-0';
+            const parts = addonId.split('-');
+            const prefix = parts[0] || 'ADD';
             const suffix = parts[1] || '';
           %>
             <tr>
                 <td class="ingredient-id-cell">
                   <div class="ingredient-id-group-table">
-                    <div class="prefix-display-table">AD</div>
+                    <div class="prefix-display-table">ADD</div>
                     <input type="text" name="AddOnSuffix" value="<%= suffix %>" class="table-input suffix-input" data-field="suffix" data-original="<%= suffix %>" required>
                   </div>
                 </td>
@@ -260,60 +261,57 @@
   </div>
 
   <!-- Hidden forms for ingredients -->
-  <% ingredients.forEach(i => { %>
-    <form id="update-ingredient-form-<%= i._id %>" action="/stocks/edit/<%= i._id %>" method="POST" style="display: none;">
-      <input type="hidden" name="IngredientID" value="">
-      <input type="hidden" name="IngredientPrefix" value="ING">
-      <input type="hidden" name="IngredientSuffix" value="">
-      <input type="hidden" name="Name" value="">
-      <input type="hidden" name="Quantity" value="">
-      <input type="hidden" name="Category" value="Ingredients">
-      <input type="hidden" name="Allergen" value="">
-      <input type="hidden" name="isAvailable" value="true">
-      <input type="hidden" name="isEnabled" value="">
-    </form>
-    <form id="delete-ingredient-form-<%= i._id %>" action="/stocks/delete/<%= i._id %>" method="POST" style="display: none;">
-    </form>
-  <% }) %>
+  <% if (typeof ingredients !== 'undefined' && Array.isArray(ingredients)) { %>
+    <% ingredients.forEach(i => { %>
+      <form id="update-ingredient-form-<%= i._id %>" action="/admin/stocks/edit/<%= i._id %>" method="POST" style="display: none;">
+        <input type="hidden" name="IngredientID" value="">
+        <input type="hidden" name="IngredientPrefix" value="ING">
+        <input type="hidden" name="IngredientSuffix" value="">
+        <input type="hidden" name="Name" value="">
+        <input type="hidden" name="Quantity" value="">
+        <input type="hidden" name="Category" value="Ingredients">
+        <input type="hidden" name="Allergen" value="">
+        <input type="hidden" name="isAvailable" value="true">
+        <input type="hidden" name="isEnabled" value="">
+      </form>
+      <form id="delete-ingredient-form-<%= i._id %>" action="/admin/stocks/delete/<%= i._id %>" method="POST" style="display: none;">
+      </form>
+    <% }); %>
+  <% } %>
 
   <!-- Hidden forms for add-ons -->
-  <% addons.forEach(a => { %>
-    <form id="update-addon-form-<%= a._id %>" action="/addons/edit/<%= a._id %>" method="POST" style="display: none;">
-      <input type="hidden" name="AddOnID" value="">
-      <input type="hidden" name="AddOnPrefix" value="AD">
-      <input type="hidden" name="AddOnSuffix" value="">
-      <input type="hidden" name="Name" value="">
-      <input type="hidden" name="Quantity" value="">
-      <input type="hidden" name="Category" value="Add-Ons">
-      <input type="hidden" name="Allergen" value="">
-      <input type="hidden" name="isEnabled" value="">
-    </form>
-    <form id="delete-addon-form-<%= a._id %>" action="/addons/delete/<%= a._id %>" method="POST" style="display: none;">
-    </form>
-  <% }) %>
+  <% if (typeof addons !== 'undefined' && Array.isArray(addons)) { %>
+    <% addons.forEach(a => { %>
+      <form id="update-addon-form-<%= a._id %>" action="/admin/addons/edit/<%= a._id %>" method="POST" style="display: none;">
+        <input type="hidden" name="AddOnID" value="">
+        <input type="hidden" name="AddOnPrefix" value="ADD">
+        <input type="hidden" name="AddOnSuffix" value="">
+        <input type="hidden" name="Name" value="">
+        <input type="hidden" name="Quantity" value="">
+        <input type="hidden" name="Category" value="Add-Ons">
+        <input type="hidden" name="Allergen" value="">
+        <input type="hidden" name="isEnabled" value="">
+      </form>
+      <form id="delete-addon-form-<%= a._id %>" action="/admin/addons/delete/<%= a._id %>" method="POST" style="display: none;">
+      </form>
+    <% }); %>
+  <% } %>
 </div>
 
 <style>
-  /* =============================================== */
-  /* FIXED NAVBAR STYLES - CONTENT ONLY SCROLLING */
-  /* =============================================== */
-  
-  /* Reset and prepare body for fixed navbar */
   html, body {
     margin: 0;
     padding: 0;
     height: 100%;
-    overflow: hidden; /* Prevent body scrolling */
+    overflow: hidden;
   }
 
-  /* Create main layout container */
   body {
     display: flex;
     flex-direction: column;
     height: 100vh;
   }
 
-  /* Ensure navbar stays completely fixed */
   .navbar,
   .nav,
   .header-nav,
@@ -441,7 +439,7 @@
   --shadow-lg: 0 16px 32px rgba(0,0,0,0.16);
   --shadow-inner: inset 0 2px 4px rgba(0,0,0,0.05);
   --transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
-  
+
   /* Navbar height variables for easy adjustment */
   --navbar-height: 80px;
   --navbar-height-mobile: 60px;
@@ -578,10 +576,6 @@
 
 .stocks-add-btn.addon-btn:hover {
   box-shadow: var(--shadow-md), 0 4px 8px rgba(253, 126, 20, 0.4);
-}
-
-.stocks-add-btn:hover:before {
-  left: 100%;
 }
 
 .stocks-add-btn:active {
@@ -1905,7 +1899,7 @@
               form.submit();
             } else if (currentItemType === 'addon') {
               // Handle add-on update - Fixed prefix is ADD
-              const prefix = 'AD';
+              const prefix = 'ADD';
               const suffix = row.querySelector('input[name="AddOnSuffix"]').value.trim();
               const name = row.querySelector('input[name="Name"]').value.trim();
               const quantity = row.querySelector('input[name="Quantity"]').value;
@@ -2028,7 +2022,7 @@
       addonModalForm.addEventListener('submit', (e) => {
         console.log(`[2025-09-16 07:32:51] Add-on form submission by MathDaenniel`);
         
-        const prefix = 'AD'; // Fixed prefix
+        const prefix = 'ADD'; // Fixed prefix
         const suffix = addonModalForm.querySelector('input[name="AddOnSuffix"]').value.trim();
 
         if (!suffix) {
@@ -2403,21 +2397,12 @@
       // Check for session timeout periodically
       setInterval(() => {
         if (Date.now() - lastActivity > activityTimeout) {
-          console.log(`[2025-09-16 07:32:51] User session timeout detected by MathDaenniel`);
-          // Could implement auto-save or session warning here
         }
       }, 60000); // Check every minute
 
-      console.log(`[2025-09-16 07:32:51] Session management initialized by MathDaenniel`);
     }
 
-    // Initialize session management
     initializeSessionManagement();
 
-    // Final system initialization log
-    console.log(`[2025-09-16 07:32:51] Enhanced Inventory Management System V6.0 fully loaded by MathDaenniel`);
-    console.log(`[2025-09-16 07:32:51] Features: Fixed Prefix/Category, Fixed Navbar Scrolling, Enhanced UX, Full Accessibility by MathDaenniel`);
-    console.log(`[2025-09-16 07:32:51] Repository: roviczzz/Couche-Co by MathDaenniel`);
-    console.log(`[2025-09-16 07:32:51] System Status: Ready for production use by MathDaenniel`);
   });
 </script>
