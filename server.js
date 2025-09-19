@@ -61,10 +61,21 @@ const authRouter = require('./routes/auth');
 const adminRouter = require('./routes/admin');
 const userRouter = require('./routes/user');
 
+// Debug middleware to log all requests
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path} - ${new Date().toISOString()}`);
+  next();
+});
+
 app.use('/', indexRouter);
 app.use('/auth', authRouter);
 app.use('/admin', adminRouter);
 app.use('/user', userRouter);
+
+// Add a test route to verify auth router is working
+app.get('/test-auth', (req, res) => {
+  res.json({ message: 'Auth routing is working', timestamp: new Date().toISOString() });
+});
 
 app.use((req, res) => {
   res.status(404).render('error', {

@@ -5,18 +5,31 @@ const { check, validationResult } = require('express-validator');
 const bcrypt = require('bcrypt');
 const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
 
+// Debug middleware to log auth route access
+router.use((req, res, next) => {
+  console.log(`Auth route accessed: ${req.method} ${req.path}`);
+  next();
+});
+
 // Login page
 router.get('/login', (req, res) => {
+  console.log('Login page requested');
   if (req.session.user) {
     return res.redirect(req.session.user.role === 'admin' ? '/admin/dashboard' : '/user/dashboard');
   }
-  res.render('login', {
-    title: 'Login | Blessings Cafe',
-    layout: false,
-    errors: {},
-    error: null,
-    formData: {}
-  });
+
+  try {
+    res.render('login', {
+      title: 'Login | Blessings Cafe',
+      layout: false,
+      errors: {},
+      error: null,
+      formData: {}
+    });
+  } catch (error) {
+    console.error('Error rendering login page:', error);
+    res.status(500).send('Error loading login page');
+  }
 });
 
 // Login form submission

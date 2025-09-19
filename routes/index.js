@@ -45,6 +45,11 @@ router.get('/contact', (req, res) => {
   });
 });
 
+// Legacy login route redirect
+router.get('/login', (req, res) => {
+  res.redirect('/auth/login');
+});
+
 // Dashboard route
 router.get('/dashboard', isLoggedIn, nocache, (req, res) => {
   if (req.session.user && req.session.user.role === 'admin') {
