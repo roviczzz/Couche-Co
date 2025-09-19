@@ -39,16 +39,7 @@ function ensureAdmin(req, res, next) {
   res.status(403).send('Access denied. Admins only.');
 }
 
-// Apply admin check to all routes in this file
-router.use(isLoggedIn);
-router.use(ensureAdmin);
-
-// Admin redirect route
-router.get('/', (req, res) => {
-  res.redirect('/admin/dashboard');
-});
-
-// Admin Authentication
+// Admin login route (BEFORE middleware that requires authentication)
 router.get('/login', (req, res) => {
   if (req.session.user) {
     return res.redirect('/admin/dashboard');
@@ -57,6 +48,26 @@ router.get('/login', (req, res) => {
     title: 'Admin Login | Blessings Cafe',
     layout: false
   });
+});
+
+// Forgot Password (also before auth middleware)
+router.get('/forgot-password', (req, res) => {
+  if (req.session.user) {
+    return res.redirect('/admin/dashboard');
+  }
+  res.render('admin/forgot-password', {
+    title: 'Forgot Password | Blessings Cafe',
+    layout: false
+  });
+});
+
+// Apply admin check to all OTHER routes (not login/forgot-password)
+router.use(['/dashboard', '/analytics', '/products', '/orders', '/stocks', '/discounts', '/menu', '/settings'], isLoggedIn);
+router.use(['/dashboard', '/analytics', '/products', '/orders', '/stocks', '/discounts', '/menu', '/settings'], ensureAdmin);
+
+// Admin redirect route
+router.get('/', (req, res) => {
+  res.redirect('/admin/dashboard');
 });
 
 // Admin Dashboard
@@ -288,16 +299,6 @@ router.get('/settings', nocache, (req, res) => {
   });
 });
 
-// Forgot Password
-router.get('/forgot-password', (req, res) => {
-  if (req.session.user) {
-    return res.redirect('/admin/dashboard');
-  }
-  res.render('admin/forgot-password', {
-    title: 'Forgot Password | Blessings Cafe',
-    layout: false
-  });
-});
 
 // Change Password
 router.post('/change-password', async (req, res) => {
