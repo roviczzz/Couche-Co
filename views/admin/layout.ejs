@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title><%= typeof title !== 'undefined' ? title : 'Blessings Cafe' %></title>
+    <link rel="stylesheet" href="/css/site.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/line-awesome/1.3.0/line-awesome/css/line-awesome.min.css">
+    <link rel="icon" href="/favicon.ico" />
+    <style>
+        .sidebar {
+            width: 260px;
+            min-width: 260px;
+            background: #ffffff;
+            border-right: 1px solid #e5e7eb;
+            padding: 20px 16px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: -.75px;
+        }
+
+        .sidebar-collapsed .sidebar {
+            width: 70px !important;
+            min-width: 70px;
+            padding: 20px 12px;
+        }
+
+        .sidebar-collapsed .sidebar .label-text,
+        .sidebar-collapsed .sidebar .sidebar-notification-label,
+        .sidebar-collapsed .sidebar .sidebar-toggle-label {
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(-10px);
+        }
+
+        .sidebar-logo {
+            width: 100%;
+            height: 48px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-logo img {
+            max-height: 48px;
+            max-width: 100%;
+            object-fit: contain;
+            display: block;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar-collapsed .sidebar-logo img {
+            max-width: 36px;
+            max-height: 36px;
+        }
+
+        .sidebar-toggle-btn-row {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            text-decoration: none;
+            color: #5a3e2b;
+            border-radius: 8px;
+            transition: background 0.2s ease;
+            height: 48px;
+            box-sizing: border-box;
+            margin-bottom: 4px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sidebar-collapsed .sidebar-toggle-btn-row {
+            justify-content: center;
+        }
+
+        .sidebar-toggle-btn-row:hover {
+            background: #f4e6d9;
+        }
+
+        .sidebar-toggle-btn {
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: transparent;
+            color: #a05c2f;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            flex-shrink: 0;
+            line-height: 1;
+            padding: 0;
+            border-radius: 4px;
+            transform: translateY(-1px);
+        }
+
+        .sidebar-collapsed .sidebar-toggle-btn {
+            margin-right: 0;
+            transform: none;
+        }
+
+        .sidebar-toggle-btn:hover,
+        .sidebar-toggle-btn:focus {
+            background: transparent !important;
+            box-shadow: none !important;
+        }
+
+        .sidebar-toggle-btn:active {
+            background: transparent !important;
+        }
+        .sidebar-toggle-btn:focus-visible {
+            outline: 2px solid #a05c2f;
+        }
+
+        .sidebar-toggle-btn .fa-bars {
+            display: inline-block;
+        }
+
+        .sidebar-toggle-btn .fa-angles-left,
+        .sidebar-toggle-btn .fa-angles-right {
+            display: none;
+        }
+
+        .sidebar:not(.sidebar-collapsed) .sidebar-toggle-btn .fa-bars {
+            display: none;
+        }
+
+        .sidebar:not(.sidebar-collapsed) .sidebar-toggle-btn .fa-angles-left {
+            display: inline-block;
+        }
+
+        .sidebar-collapsed .sidebar-toggle-btn .fa-bars,
+        .sidebar-collapsed .sidebar-toggle-btn .fa-angles-left {
+            display: none;
+        }
+
+        .sidebar-collapsed .sidebar-toggle-btn .fa-angles-right {
+            display: inline-block;
+        }
+
+        .sidebar-toggle-label {
+            font-size: 15px;
+            color: #5a3e2b;
+            font-weight: 500;
+            user-select: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+            overflow: hidden;
+            flex: 1;
+            line-height: 15px;
+        }
+
+        .sidebar-menu {
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-menu ul li {
+            margin-bottom: 4px;
+        }
+
+        .sidebar-menu ul li a {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            text-decoration: none;
+            color: #5a3e2b;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            height: 48px;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sidebar-menu ul li a:hover {
+            background: #f4e6d9;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .sidebar-menu ul li a.active {
+            background: #f4e6d9;
+            color: #8b4513;
+            font-weight: 600;
+        }
+
+        .sidebar-menu ul li a.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: #a05c2f;
+        }
+
+        .sidebar-menu ul li a i {
+            width: 24px;
+            height: 24px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-collapsed .sidebar-menu ul li a i {
+            margin-right: 0;
+        }
+
+        .sidebar-collapsed .sidebar-menu ul li a {
+            justify-content: center;
+            padding: 12px;
+        }
+
+        .sidebar-menu ul li a .label-text {
+            font-size: 15px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            flex: 1;
+            line-height: 25px;
+        }
+
+        .sidebar-notification-wrapper {
+            margin-top: auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            padding-bottom: 8px;
+        }
+
+        .sidebar-notification-row {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 12px;
+            text-decoration: none;
+            color: #5a3e2b;
+            border-radius: 8px;
+            transition: background 0.2s ease;
+            height: 48px;
+            box-sizing: border-box;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .sidebar-collapsed .sidebar-notification-row {
+            justify-content: center;
+        }
+
+        .sidebar-notification-row:hover {
+            background: #f4e6d9;
+        }
+
+        .notification {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #5e606e;
+            cursor: pointer;
+            font-size: 18px;
+            user-select: none;
+            outline: none;
+            background: transparent;
+            position: relative;
+            margin-right: 12px;
+            flex-shrink: 0;
+            border: none;
+            padding: 0;
+            border-radius: 4px;
+            transform: translateY(-1px);
+        }
+
+        .sidebar-collapsed .notification {
+            margin-right: 0;
+            transform: none;
+        }
+
+        .notification:focus,
+        .notification:hover {
+            background: transparent;
+        }
+
+        .sidebar-notification-label {
+            font-size: 15px;
+            color: #5a3e2b;
+            font-weight: 500;
+            user-select: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+            overflow: hidden;
+            flex: 1;
+            line-height: 15px;
+        }
+
+        .notification-popup {
+            display: none;
+            position: fixed;
+            left: 280px;
+            bottom: 32px;
+            min-width: 300px;
+            max-width: 360px;
+            width: 320px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.18);
+            border: 1px solid #e5e7eb;
+            padding: 0;
+            z-index: 2001;
+            overflow: hidden;
+            animation: fadeInNotification .16s cubic-bezier(.4,0,.2,1);
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .sidebar-collapsed .notification-popup {
+            left: 90px;
+        }
+
+        @keyframes fadeInNotification {
+            from { opacity: 0; transform: translateY(20px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+        .notification-popup.show {
+            display: block;
+        }
+        .notification-popup-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            padding: 16px 20px 12px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            background: #f9f8f7;
+            gap: 12px;
+            position: relative;
+        }
+        .notification-popup-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #70441b;
+            letter-spacing: -.5px;
+            flex: 1 1 auto;
+            line-height: 1.2;
+            margin-right: 32px;
+        }
+        .notification-popup-close {
+            background: transparent;
+            border: none;
+            color: #a05c2f;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            border-radius: 3px;
+            position: absolute;
+            top: -5px;
+            right: 16px;
+            width: 24px;
+            height: 24px;
+        }
+        .notification-popup-close:focus {
+            outline: 1.5px solid #a05c2f;
+        }
+        .notification-popup-list {
+            padding: 0;
+            max-height: 320px;
+            overflow-y: auto;
+        }
+        .notification-popup-item {
+            padding: 14px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 15px;
+            color: #5a3e2b;
+        }
+        .notification-popup-item:last-child {
+            border-bottom: none;
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                position: fixed;
+                z-index: 1000;
+                left: 0;
+                top: 0;
+                height: 100vh;
+                box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+            }
+            .notification-popup {
+                left: 280px;
+                bottom: 24px;
+            }
+            .sidebar-collapsed .sidebar {
+                left: -20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px !important;
+                min-width: 70px;
+                padding: 20px 12px;
+            }
+
+            .sidebar .label-text,
+            .sidebar .sidebar-notification-label,
+            .sidebar .sidebar-toggle-label {
+                opacity: 0;
+                visibility: hidden;
+            }
+
+            .sidebar .sidebar-menu ul li a,
+            .sidebar .sidebar-notification-row,
+            .sidebar .sidebar-toggle-btn-row {
+                justify-content: center;
+            }
+
+            .sidebar .sidebar-menu ul li a i,
+            .sidebar .notification,
+            .sidebar .sidebar-toggle-btn {
+                margin-right: 0;
+            }
+            .notification-popup {
+                left: 70px;
+                width: 93vw;
+                min-width: 0;
+                max-width: 99vw;
+            }
+        }
+
+        .notification-dropdown {
+            display: none !important;
+        }
+        .notification-dropdown[aria-label] {
+            display: none !important;
+        }
+        .sidebar-group-label {
+          margin: 18px 0 6px 0;
+          padding-left: 4px;
+          font-size: 12px;
+          color: #a05c2f;
+          font-weight: 700;
+          letter-spacing: 0.5px;
+          text-transform: uppercase;
+          opacity: 0.7;
+          height: 18px;
+          line-height: 18px;
+          transition: opacity 0.2s, visibility 0.2s;
+        }
+        .sidebar-collapsed .sidebar-group-label {
+          color: transparent;
+          opacity: 0;
+          visibility: hidden;
+          height: 8px;
+          line-height: 8px;
+          margin: 8px 0 2px 0;
+          padding-left: 0;
+        }
+        .sidebar-group-divider {
+          border: none;
+          border-top: 1px solid #eee;
+          margin: 10px 0 0 0;
+          height: 0;
+          width: 100%;
+          background: none;
+          transition: opacity 0.2s;
+        }
+        .sidebar-collapsed .sidebar-group-divider {
+          margin: 4px 0 0 0;
+          border-top: 1px solid #f3f3f3;
+          opacity: 0.7;
+        }
+
+        .calculator-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: none;
+            display: flex;
+            justify-content: flex-start;
+            align-items: flex-start;
+            z-index: 3000;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .calculator-modal.show {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+        .calculator {
+            background: #261c00;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+            padding: 16px 16px 12px 16px;
+            width: 250px;
+            min-width: 180px;
+            max-width: 95vw;
+            min-height: 0;
+            position: absolute;
+            bottom: 32px;
+            right: 32px;
+            left: auto;
+            top: auto;
+            margin: 0;
+            border: none;
+            user-select: none;
+            cursor: default;
+            pointer-events: auto;
+            transition: box-shadow 0.2s;
+            color: #D4D4D2;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            opacity: 98%;
+        }
+        .calculator-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 18px;
+            border-bottom: none;
+            position: relative;
+            gap: 0;
+        }
+        .calculator-drag-handle {
+            width: 32px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2px auto;
+            cursor: grab;
+            opacity: 1;
+            user-select: none;
+        }
+        .calculator-drag-handle svg {
+            display: block;
+            width: 22px;
+            height: 10px;
+        }
+        .calculator-drag-handle circle {
+            fill: #D4D4D2;
+        }
+        .calculator-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: #D4D4D2;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            position: absolute;
+            top: 0;
+            right: 0;
+            transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+            line-height: 1;
+        }
+        .calculator-close:hover {
+            background: #f8f9fa;
+            color: #333;
+            transform: rotate(90deg);
+        }
+
+        .calculator-display {
+            background: #261c00;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 12px 6px 12px;
+            margin-bottom: 12px;
+            min-height: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+        .calculator-expression {
+            font-size: 12px;
+            color: #D4D4D2;
+            text-align: right;
+            margin-bottom: 2px;
+            min-height: 12px;
+            font-family: 'Inter', sans-serif;
+        }
+        .calculator-result {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1C1C1C;
+            background: #D4D4D2;
+            border-radius: 6px;
+            padding: 2px 6px;
+            text-align: right;
+            font-family: 'Inter', sans-serif;
+            word-break: break-all;
+            margin: 0;
+            letter-spacing: 0.5px;
+        }
+        .calculator-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+        .calc-btn {
+            background: #505050;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 0;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s, border 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 36px;
+            user-select: none;
+            color: #D4D4D2;
+        }
+        .calc-btn:hover {
+            background: #D4D4D2;
+            color: #1C1C1C;
+        }
+        .calc-btn:active {
+            background: #FF9500;
+            color: #fff;
+        }
+        .calc-btn.operator {
+            background: #FF9500;
+            color: #fff;
+        }
+        .calc-btn.operator:hover {
+            background: #fff;
+            color: #FF9500;
+        }
+        .calc-btn.equals {
+            background: #FF9500;
+            color: #fff;
+        }
+        .calc-btn.equals:hover {
+            background: #fff;
+            color: #FF9500;
+        }
+        .calc-btn.clear {
+            background: #505050;
+            color: #FF9500;
+        }
+        .calc-btn.clear:hover {
+            background: #FF9500;
+            color: #fff;
+        }
+        .calc-btn.zero {
+            grid-column: span 2;
+        }
+        @media (max-width: 768px) {
+            .calculator {
+                width: 98vw;
+                min-width: 0;
+                margin: 10px;
+                left: auto;
+                right: 1vw;
+                bottom: 10px;
+                top: auto;
+            }
+            .calculator-result {
+                font-size: 16px;
+            }
+        }
+
+        .sidebar-tooltip {
+            position: fixed;
+            left: 70px;
+            top: 0;
+            z-index: 4000;
+            background: #222;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 7px 16px;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.18s cubic-bezier(0.4,0,0.2,1), transform 0.18s cubic-bezier(0.4,0,0.2,1);
+            transform: translateY(-50%) scale(0.98);
+        }
+        .sidebar-tooltip.show {
+            opacity: 1;
+            transform: translateY(-50%) scale(1);
+        }
+    </style>
+</head>
+<script>
+    (function() {
+        try {
+            const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+            if (isCollapsed) {
+                document.documentElement.className += ' sidebar-collapsed';
+            }
+        } catch (e) {
+            console.warn('Unable to read sidebar state from localStorage');
+        }
+    })();
+
+    document.addEventListener('DOMContentLoaded', () => {
+        function getSidebarState() {
+            try {
+                return localStorage.getItem('sidebarCollapsed') === 'true';
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function setSidebarState(isCollapsed) {
+            try {
+                localStorage.setItem('sidebarCollapsed', isCollapsed.toString());
+            } catch (e) {
+                console.warn('Unable to save sidebar state to localStorage');
+            }
+        }
+
+        function applySidebarState(isCollapsed) {
+            const body = document.body;
+            const html = document.documentElement;
+            const sidebar = document.querySelector('.sidebar');
+
+            if (isCollapsed) {
+                body.classList.add('sidebar-collapsed');
+                html.classList.add('sidebar-collapsed');
+                if (sidebar) sidebar.classList.add('sidebar-collapsed');
+            } else {
+                body.classList.remove('sidebar-collapsed');
+                html.classList.remove('sidebar-collapsed');
+                if (sidebar) sidebar.classList.remove('sidebar-collapsed');
+            }
+        }
+
+        function toggleSidebar() {
+            const isCurrentlyCollapsed = document.body.classList.contains('sidebar-collapsed');
+            const newState = !isCurrentlyCollapsed;
+            applySidebarState(newState);
+            setSidebarState(newState);
+        }
+
+        const savedState = getSidebarState();
+        applySidebarState(savedState);
+
+        setTimeout(() => {
+            document.body.classList.remove('sidebar-no-transition');
+            document.querySelectorAll('.sidebar-no-transition').forEach(el => {
+                el.classList.remove('sidebar-no-transition');
+            });
+        }, 100);
+
+        const sidebarToggleRow = document.querySelector('.sidebar-toggle-btn-row');
+        const sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
+
+        if (sidebarToggleRow) {
+            sidebarToggleRow.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleSidebar();
+            });
+
+            sidebarToggleRow.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleSidebar();
+                }
+            });
+
+            sidebarToggleRow.setAttribute('tabindex', '0');
+            sidebarToggleRow.setAttribute('role', 'button');
+            sidebarToggleRow.setAttribute('aria-label', 'Toggle sidebar');
+        }
+
+        if (sidebarToggleBtn) {
+            sidebarToggleBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleSidebar();
+            });
+        }
+
+        const notificationBtn = document.querySelector('.notification');
+        const notificationRow = document.querySelector('.sidebar-notification-row');
+        const notificationPopup = document.getElementById('notification-popup');
+        const notificationPopupClose = document.getElementById('notification-popup-close');
+
+        function closeNotificationPopup() {
+            if (notificationPopup) {
+                notificationPopup.classList.remove('show');
+            }
+            if (notificationBtn) {
+                notificationBtn.setAttribute('aria-expanded', 'false');
+            }
+        }
+
+        if (notificationBtn && notificationRow && notificationPopup) {
+            notificationRow.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                notificationPopup.classList.toggle('show');
+                if (notificationPopup.classList.contains('show')) {
+                    notificationBtn.setAttribute('aria-expanded', 'true');
+                } else {
+                    notificationBtn.setAttribute('aria-expanded', 'false');
+                }
+            });
+
+            notificationBtn.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    notificationPopup.classList.toggle('show');
+                    if (notificationPopup.classList.contains('show')) {
+                        notificationBtn.setAttribute('aria-expanded', 'true');
+                    } else {
+                        notificationBtn.setAttribute('aria-expanded', 'false');
+                    }
+                }
+                if (e.key === 'Escape') {
+                    closeNotificationPopup();
+                    notificationBtn.blur();
+                }
+            });
+        }
+
+        if (notificationPopupClose) {
+            notificationPopupClose.addEventListener('click', function(e) {
+                e.preventDefault();
+                closeNotificationPopup();
+            });
+        }
+
+        document.addEventListener('click', function(e) {
+            if (notificationPopup && notificationPopup.classList.contains('show')) {
+                if (!notificationPopup.contains(e.target) && !notificationRow.contains(e.target)) {
+                    closeNotificationPopup();
+                }
+            }
+        });
+
+        const calculatorModal = document.getElementById('calculator-modal');
+        const calculator = document.getElementById('calculator');
+        const calculatorDragHandle = document.getElementById('calculator-drag-handle');
+        const calculatorClose = document.getElementById('calculator-close');
+        const calculatorExpression = document.getElementById('calculator-expression');
+        const calculatorResult = document.getElementById('calculator-result');
+
+        let currentExpression = '';
+        let currentResult = '0';
+        let lastWasOperator = false;
+        let justCalculated = false;
+
+        // Movable calculator logic
+        let isDragging = false;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
+        let startX = 0;
+        let startY = 0;
+        calculatorDragHandle.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            const rect = calculator.getBoundingClientRect();
+            dragOffsetX = e.clientX - rect.left;
+            dragOffsetY = e.clientY - rect.top;
+            startX = rect.left;
+            startY = rect.top;
+            document.body.style.userSelect = 'none';
+        });
+        document.addEventListener('mousemove', function(e) {
+            if (!isDragging) return;
+            let x = e.clientX - dragOffsetX;
+            let y = e.clientY - dragOffsetY;
+            const minX = 8;
+            const minY = 8;
+            const maxX = window.innerWidth - calculator.offsetWidth - 8;
+            const maxY = window.innerHeight - calculator.offsetHeight - 8;
+            x = Math.max(minX, Math.min(x, maxX));
+            y = Math.max(minY, Math.min(y, maxY));
+            calculator.style.left = x + 'px';
+            calculator.style.top = y + 'px';
+            calculator.style.right = 'auto';
+            calculator.style.bottom = 'auto';
+            calculator.style.margin = '0';
+        });
+        document.addEventListener('mouseup', function() {
+            isDragging = false;
+            document.body.style.userSelect = '';
+        });
+        function openCalculator() {
+            calculatorModal.classList.add('show');
+            calculatorModal.setAttribute('aria-hidden', 'false');
+            calculator.style.left = 'auto';
+            calculator.style.top = 'auto';
+            calculator.style.right = '32px';
+            calculator.style.bottom = '32px';
+            calculator.style.margin = '0';
+            document.body.style.overflow = '';
+        }
+
+        function closeCalculator() {
+            calculatorModal.classList.remove('show');
+            calculatorModal.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+        }
+
+        function updateDisplay() {
+            calculatorExpression.textContent = currentExpression;
+            calculatorResult.textContent = currentResult;
+        }
+
+        function clearCalculator() {
+            currentExpression = '';
+            currentResult = '0';
+            lastWasOperator = false;
+            justCalculated = false;
+            updateDisplay();
+        }
+
+        function inputNumber(num) {
+            if (justCalculated) {
+                currentExpression = '';
+                justCalculated = false;
+            }
+
+            if (currentResult === '0' && num !== '.') {
+                currentResult = num;
+            } else {
+                currentResult += num;
+            }
+            lastWasOperator = false;
+            updateDisplay();
+        }
+
+        function inputOperator(op) {
+            if (justCalculated) {
+                currentExpression = currentResult;
+                justCalculated = false;
+            } else if (currentExpression && !lastWasOperator) {
+                currentExpression += currentResult;
+            } else if (!currentExpression) {
+                currentExpression = currentResult;
+            }
+
+            if (!lastWasOperator) {
+                currentExpression += ' ' + op + ' ';
+                currentResult = '0';
+                lastWasOperator = true;
+                updateDisplay();
+            }
+        }
+
+        function calculate() {
+            if (currentExpression && !lastWasOperator) {
+                try {
+                    const fullExpression = currentExpression + currentResult;
+                    const cleanExpression = fullExpression.replace(/×/g, '*').replace(/÷/g, '/');
+                    const result = Function('return ' + cleanExpression)();
+
+                    if (isNaN(result) || !isFinite(result)) {
+                        currentResult = 'Error';
+                    } else {
+                        currentResult = parseFloat(result.toFixed(10)).toString();
+                    }
+
+                    currentExpression = fullExpression + ' =';
+                    justCalculated = true;
+                    lastWasOperator = false;
+                } catch (error) {
+                    currentResult = 'Error';
+                    currentExpression = '';
+                }
+                updateDisplay();
+            }
+        }
+
+        calculatorClose.addEventListener('click', closeCalculator);
+
+        calculatorModal.addEventListener('click', function(e) {
+            if (e.target === calculatorModal) {
+                closeCalculator();
+            }
+        });
+
+        document.getElementById('calculator-clear').addEventListener('click', clearCalculator);
+        document.getElementById('calculator-equals').addEventListener('click', calculate);
+
+        document.getElementById('calculator-seven').addEventListener('click', () => inputNumber('7'));
+        document.getElementById('calculator-eight').addEventListener('click', () => inputNumber('8'));
+        document.getElementById('calculator-nine').addEventListener('click', () => inputNumber('9'));
+        document.getElementById('calculator-four').addEventListener('click', () => inputNumber('4'));
+        document.getElementById('calculator-five').addEventListener('click', () => inputNumber('5'));
+        document.getElementById('calculator-six').addEventListener('click', () => inputNumber('6'));
+        document.getElementById('calculator-one').addEventListener('click', () => inputNumber('1'));
+        document.getElementById('calculator-two').addEventListener('click', () => inputNumber('2'));
+        document.getElementById('calculator-three').addEventListener('click', () => inputNumber('3'));
+        document.getElementById('calculator-zero').addEventListener('click', () => inputNumber('0'));
+
+        document.getElementById('calculator-add').addEventListener('click', () => inputOperator('+'));
+        document.getElementById('calculator-subtract').addEventListener('click', () => inputOperator('-'));
+        document.getElementById('calculator-multiply').addEventListener('click', () => inputOperator('×'));
+        document.getElementById('calculator-divide').addEventListener('click', () => inputOperator('÷'));
+        document.getElementById('calculator-decimal').addEventListener('click', () => {
+            if (!currentResult.includes('.')) {
+                inputNumber('.');
+            }
+        });
+
+        document.addEventListener('click', function(e) {
+            var calcLink = e.target.closest('a[href="#calculator"]');
+            if (calcLink) {
+                e.preventDefault();
+                if (calculatorModal.classList.contains('show')) {
+                    closeCalculator();
+                } else {
+                    openCalculator();
+                }
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (!calculatorModal.classList.contains('show')) return;
+
+            e.preventDefault();
+
+            if (e.key >= '0' && e.key <= '9') {
+                inputNumber(e.key);
+            } else if (e.key === '+' || e.key === 'Add') {
+                inputOperator('+');
+            } else if (e.key === '-' || e.key === 'Subtract') {
+                inputOperator('-');
+            } else if (e.key === '*' || e.key === 'Multiply') {
+                inputOperator('×');
+            } else if (e.key === '/' || e.key === 'Divide') {
+                inputOperator('÷');
+            } else if (e.key === '.' || e.key === 'Decimal') {
+                if (!currentResult.includes('.')) {
+                    inputNumber('.');
+                }
+            } else if (e.key === 'Enter' || e.key === '=') {
+                calculate();
+            } else if (e.key === 'Escape' || e.key === 'c' || e.key === 'C' || e.key === 'Clear') {
+                if (e.key === 'Escape') {
+                    closeCalculator();
+                } else {
+                    clearCalculator();
+                }
+            } else if (e.key === 'Backspace') {
+                if (currentResult.length > 1) {
+                    currentResult = currentResult.slice(0, -1);
+                } else {
+                    currentResult = '0';
+                }
+                updateDisplay();
+            }
+        });
+
+        updateDisplay();
+
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                if (window.innerWidth <= 768) {
+                    document.body.classList.add('sidebar-collapsed');
+                }
+            }, 250);
+        });
+
+        function createSidebarTooltip() {
+            let tooltip = document.createElement('div');
+            tooltip.className = 'sidebar-tooltip';
+            document.body.appendChild(tooltip);
+            return tooltip;
+        }
+        let sidebarTooltip = createSidebarTooltip();
+        function showSidebarTooltip(text, target) {
+            sidebarTooltip.textContent = text;
+            let rect = target.getBoundingClientRect();
+            let sidebarRect = document.querySelector('.sidebar').getBoundingClientRect();
+            let top = rect.top + rect.height / 2;
+            sidebarTooltip.style.top = `${top}px`;
+            sidebarTooltip.style.left = `${sidebarRect.right + 8}px`;
+            sidebarTooltip.classList.add('show');
+        }
+        function hideSidebarTooltip() {
+            sidebarTooltip.classList.remove('show');
+        }
+        function setupSidebarTooltips() {
+            let sidebar = document.querySelector('.sidebar');
+            let isCollapsed = () => document.body.classList.contains('sidebar-collapsed') || document.documentElement.classList.contains('sidebar-collapsed');
+            document.querySelectorAll('.sidebar-menu ul li a').forEach(link => {
+                link.addEventListener('mouseenter', function(e) {
+                    if (isCollapsed()) {
+                        let label = this.querySelector('.label-text');
+                        if (label) {
+                            showSidebarTooltip(label.textContent, this);
+                        }
+                    }
+                });
+                link.addEventListener('mouseleave', function(e) {
+                    hideSidebarTooltip();
+                });
+                link.addEventListener('focus', function(e) {
+                    if (isCollapsed()) {
+                        let label = this.querySelector('.label-text');
+                        if (label) {
+                            showSidebarTooltip(label.textContent, this);
+                        }
+                    }
+                });
+                link.addEventListener('blur', function(e) {
+                    hideSidebarTooltip();
+                });
+            });
+            sidebar.addEventListener('mouseleave', hideSidebarTooltip);
+        }
+        setupSidebarTooltips();
+    });
+</script>
+<body class="sidebar-no-transition">
+<div class="wrapper">
+    <div class="sidebar sidebar-no-transition">
+        <div class="sidebar-logo">
+            <img src="/resources/logo.png" alt="Logo" />
+        </div>
+        <div class="sidebar-toggle-btn-row">
+            <button type="button" id="sidebar-toggle-btn" class="sidebar-toggle-btn" title="Toggle sidebar" style="margin-bottom: 11px">
+                <i class="fa-solid fa-bars"></i>
+                <i class="fa-solid fa-angles-left"></i>
+                <i class="fa-solid fa-angles-right"></i>
+            </button>
+            <span class="sidebar-toggle-label">Collapse Sidebar</span>
+        </div>
+        <div class="sidebar-menu">
+            <ul>
+                <%
+                   const sidebarGroups = [
+                     {
+                       label: 'Main',
+                       items: [
+                         { path: '/admin/dashboard', label: 'Home', icon: 'house' },
+                         { path: '/admin/orders', label: 'Orders', icon: 'cart-flatbed' },
+                         { path: '/admin/menu', label: 'POS Menu', icon: 'cash-register' }
+                       ]
+                     },
+                     {
+                       label: 'Inventory',
+                       items: [
+                         { path: '/admin/stocks', label: 'Stocks', icon: 'boxes-stacked' },
+                         { path: '/admin/products', label: 'Products', icon: 'list-check' }
+                       ]
+                     },
+                     {
+                       label: 'Analytics',
+                       items: [
+                         { path: '/admin/analytics', label: 'Analytics', icon: 'chart-line' }
+                       ]
+                     },
+                     {
+                       label: 'Management',
+                       items: [
+                         { path: '/admin/discounts', label: 'Discounts', icon: 'percent' },
+                         { path: '#calculator', label: 'Calculator', icon: 'calculator' },
+                         { path: '/admin/settings', label: 'Settings', icon: 'cog' }
+                       ]
+                     },
+                     {
+                       label: 'Account',
+                       items: [
+                         { path: '/logout', label: 'Logout', icon: 'door-open' }
+                       ]
+                     }
+                   ];
+                %>
+                <% sidebarGroups.forEach((group, groupIdx) => { %>
+                  <% if (groupIdx > 0) { %>
+                    <li class="sidebar-group-divider"></li>
+                  <% } %>
+                  <li class="sidebar-group-label">
+                    <span class="sidebar-group-label-text"><%= group.label %></span>
+                  </li>
+                  <% group.items.forEach(item => {
+                       const isActive = (currentPage === item.path);
+                  %>
+                    <li>
+                      <a href="<%= item.path %>" class="<%= isActive ? 'active' : '' %>">
+                        <i class="fa-solid fa-<%= item.icon %>"></i>
+                        <span class="label-text"><%= item.label %></span>
+                      </a>
+                    </li>
+                  <% }) %>
+                <% }) %>
+            </ul>
+        </div>
+        <div class="sidebar-notification-wrapper">
+            <div class="sidebar-notification-row">
+                <button class="notification" role="button" aria-haspopup="true" aria-expanded="false" aria-label="Notifications" style="margin-bottom: 11px">
+                    <i class="fa-regular fa-bell"></i>
+                </button>
+                <span class="sidebar-notification-label">Notifications</span>
+            </div>
+        </div>
+    </div>
+    <div id="notification-popup" class="notification-popup" tabindex="-1" aria-modal="true" role="dialog">
+        <div class="notification-popup-header">
+            <span class="notification-popup-title">Notifications</span>
+            <button id="notification-popup-close" class="notification-popup-close" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="notification-popup-list">
+            <div class="notification-popup-item">You have 1 new order.</div>
+            <div class="notification-popup-item">Stock level is low for 'Coffee Beans'.</div>
+            <div class="notification-popup-item">New product added to the menu.</div>
+        </div>
+    </div>
+    <div class="main-content">
+        <%- body %>
+    </div>
+    <div class="calculator-modal" id="calculator-modal" aria-hidden="true">
+        <div class="calculator" id="calculator">
+            <div class="calculator-header">
+                <div class="calculator-drag-handle" id="calculator-drag-handle">
+                    <svg viewBox="0 0 22 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="2" cy="2" r="1.5" />
+                        <circle cx="7" cy="2" r="1.5" />
+                        <circle cx="12" cy="2" r="1.5" />
+                        <circle cx="17" cy="2" r="1.5" />
+                        <circle cx="2" cy="8" r="1.5" />
+                        <circle cx="7" cy="8" r="1.5" />
+                        <circle cx="12" cy="8" r="1.5" />
+                        <circle cx="17" cy="8" r="1.5" />
+                    </svg>
+                </div>
+                <button class="calculator-close" id="calculator-close" aria-label="Close calculator">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="calculator-display">
+                <div class="calculator-expression" id="calculator-expression"></div>
+                <div class="calculator-result" id="calculator-result">0</div>
+            </div>
+            <div class="calculator-buttons">
+                <button class="calc-btn clear" id="calculator-clear">C</button>
+                <button class="calc-btn operator" id="calculator-divide">÷</button>
+                <button class="calc-btn operator" id="calculator-multiply">×</button>
+                <button class="calc-btn operator" id="calculator-subtract">-</button>
+                <button class="calc-btn" id="calculator-seven">7</button>
+                <button class="calc-btn" id="calculator-eight">8</button>
+                <button class="calc-btn" id="calculator-nine">9</button>
+                <button class="calc-btn operator" id="calculator-add">+</button>
+                <button class="calc-btn" id="calculator-four">4</button>
+                <button class="calc-btn" id="calculator-five">5</button>
+                <button class="calc-btn" id="calculator-six">6</button>
+                <button class="calc-btn equals" id="calculator-equals" style="grid-row: span 2;">=</button>
+                <button class="calc-btn" id="calculator-one">1</button>
+                <button class="calc-btn" id="calculator-two">2</button>
+                <button class="calc-btn" id="calculator-three">3</button>
+                <button class="calc-btn zero" id="calculator-zero">0</button>
+                <button class="calc-btn operator" id="calculator-decimal">.</button>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
