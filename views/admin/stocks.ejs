@@ -83,7 +83,7 @@
         <h2>Add Add-On</h2>
         <button type="button" id="closeAddonModal" class="close-btn">×</button>
       </div>
-      <form action="/admin/addons" method="POST" class="stocks-form-vertical">
+      <form action="/admin/stocks" method="POST" class="stocks-form-vertical">
         <div class="form-group">
           <label for="AddOnID">Add-On ID:</label>
           <div class="ingredient-id-group">
@@ -282,7 +282,7 @@
   <!-- Hidden forms for add-ons -->
   <% if (typeof addons !== 'undefined' && Array.isArray(addons)) { %>
     <% addons.forEach(a => { %>
-      <form id="update-addon-form-<%= a._id %>" action="/admin/addons/edit/<%= a._id %>" method="POST" style="display: none;">
+      <form id="update-addon-form-<%= a._id %>" action="/admin/stocks/edit/<%= a._id %>" method="POST" style="display: none;">
         <input type="hidden" name="AddOnID" value="">
         <input type="hidden" name="AddOnPrefix" value="ADD">
         <input type="hidden" name="AddOnSuffix" value="">
@@ -292,7 +292,7 @@
         <input type="hidden" name="Allergen" value="">
         <input type="hidden" name="isEnabled" value="">
       </form>
-      <form id="delete-addon-form-<%= a._id %>" action="/admin/addons/delete/<%= a._id %>" method="POST" style="display: none;">
+      <form id="delete-addon-form-<%= a._id %>" action="/admin/stocks/delete/<%= a._id %>" method="POST" style="display: none;">
       </form>
     <% }); %>
   <% } %>
@@ -1886,6 +1886,7 @@
               const form = document.getElementById(`update-ingredient-form-${currentItemId}`);
               const fullIngredientId = `${prefix}-${suffix}`;
 
+              // Update form fields with new values
               form.querySelector('input[name="IngredientID"]').value = fullIngredientId;
               form.querySelector('input[name="IngredientPrefix"]').value = prefix;
               form.querySelector('input[name="IngredientSuffix"]').value = suffix;
@@ -1893,7 +1894,19 @@
               form.querySelector('input[name="Quantity"]').value = quantity;
               form.querySelector('input[name="Category"]').value = category;
               form.querySelector('input[name="Allergen"]').value = allergen || 'None';
-              form.querySelector('input[name="isEnabled"]').value = enabled;
+              // Ensure isEnabled is properly set as a boolean string for ingredients
+              const isEnabledInput = form.querySelector('input[name="isEnabled"]');
+              if (isEnabledInput) {
+                isEnabledInput.value = (enabled === 'true' || enabled === true) ? 'true' : 'false';
+                console.log('Setting isEnabled to:', isEnabledInput.value);
+              }
+              
+              // Add a timestamp for lastModified
+              const lastModifiedInput = document.createElement('input');
+              lastModifiedInput.type = 'hidden';
+              lastModifiedInput.name = 'lastModified';
+              lastModifiedInput.value = new Date().toISOString();
+              form.appendChild(lastModifiedInput);
 
               console.log(`[2025-09-16 07:32:51] Updating ingredient with ID: ${fullIngredientId} by MathDaenniel`);
               form.submit();
@@ -1923,7 +1936,11 @@
               form.querySelector('input[name="Quantity"]').value = quantity;
               form.querySelector('input[name="Category"]').value = category;
               form.querySelector('input[name="Allergen"]').value = allergen || 'None';
-              form.querySelector('input[name="isEnabled"]').value = enabled;
+              // Ensure isEnabled is properly set as a boolean string for add-ons
+              const isEnabledInput = form.querySelector('input[name="isEnabled"]');
+              if (isEnabledInput) {
+                isEnabledInput.value = (enabled === 'true' || enabled === true) ? 'true' : 'false';
+              }
 
               console.log(`[2025-09-16 07:32:51] Updating add-on with ID: ${fullAddonId} by MathDaenniel`);
               form.submit();
