@@ -46,8 +46,7 @@ app.set('view engine', 'ejs');
 app.set('views', [
   path.join(__dirname, 'views'),
   path.join(__dirname, 'views/admin'),
-  path.join(__dirname, 'views/user'),
-  path.join(__dirname, 'views/default')
+  path.join(__dirname, 'views/user')
 ]);
 
 app.use(express.urlencoded({ extended: true }));

@@ -21,7 +21,7 @@ function nocache(req, res, next) {
 // Home page
 router.get('/', (req, res) => {
   if (!req.session.user) {
-    return res.render('default/home', { title: 'Home | Blessings Cafe', layout: false });
+    return res.render('home', { title: 'Home | Blessings Cafe' });
   }
   if (req.session.user.role === 'admin') {
     return res.redirect('/admin/dashboard');
