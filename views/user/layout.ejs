@@ -1,14 +1,14 @@
-// This is a simple bridge layout file that will be used by express-ejs-layouts
-// It will be dynamically assigned to routes that don't specify a layout
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= typeof title !== 'undefined' ? title : 'Blessings Cafe' %></title>
+  <link rel="stylesheet" href="/css/site.css">
+  <% if (typeof head !== 'undefined') { %><%- head %><% } %>
 </head>
 <body>
   <%- body %>
 </body>
 </html>
+
