@@ -1,13 +1,16 @@
-const path = require('path');
+// This middleware automatically sets the correct layout based on URL path
+// It should be placed right after expressLayouts middleware
 
-// This middleware sets the correct layout based on the user's role
 app.use((req, res, next) => {
-  // Set layout based on user role or default to main layout
-  if (req.session?.user) {
-    res.locals.layout = req.session.user.role === 'admin' ? 'admin/layout' : 'user/layout';
-  } else {
-    res.locals.layout = 'layout'; // Default layout for non-logged-in users
+  // For admin routes, use admin layout
+  if (req.path.startsWith('/admin')) {
+    res.locals.layout = 'admin/layout';
   }
-  
+  // For user routes, use user layout
+  else if (req.path.startsWith('/user')) {
+    res.locals.layout = 'user/layout';
+  }
+  // Other routes use the default layout
+
   next();
 });
