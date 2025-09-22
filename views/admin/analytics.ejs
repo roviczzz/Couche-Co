@@ -414,9 +414,25 @@
       const chartEl = document.getElementById('popularProductsChart');
       
       try {
-        const res = await fetch('/analytics/popular-products');
-        const results = await res.json();
+        const res = await fetch('/api/analytics/popular-products');
+        if (!res.ok) {
+          throw new Error(`Server returned ${res.status}: ${res.statusText}`);
+        }
+        const text = await res.text();
+        let results;
+        try {
+          results = JSON.parse(text);
+        } catch (e) {
+          console.error('JSON parse error:', e, 'Raw response:', text);
+          throw new Error('Invalid JSON response from server');
+        }
+
         popularProductsData = results;
+
+        if (!Array.isArray(results) || results.length === 0) {
+          loadingEl.innerHTML = '<div class="error-message">No product data available. Try again later.</div>';
+          return;
+        }
 
         const top = results.slice(0, 10);
         const labels = top.map(r => r._id);
@@ -497,8 +513,8 @@
           }
         });
       } catch (err) {
-        console.error('Chart error', err);
-        loadingEl.innerHTML = '<div class="error-message">Failed to load popular products data. Please refresh the page.</div>';
+        console.error('Chart error:', err);
+        loadingEl.innerHTML = `<div class="error-message">Failed to load popular products data: ${err.message}</div>`;
       }
     }
 
@@ -507,9 +523,25 @@
       const chartEl = document.getElementById('averageSalesChart');
       
       try {
-        const res = await fetch('/analytics/average-sales-per-day');
-        const results = await res.json();
+        const res = await fetch('/api/analytics/average-sales-per-day');
+        if (!res.ok) {
+          throw new Error(`Server returned ${res.status}: ${res.statusText}`);
+        }
+        const text = await res.text();
+        let results;
+        try {
+          results = JSON.parse(text);
+        } catch (e) {
+          console.error('JSON parse error:', e, 'Raw response:', text);
+          throw new Error('Invalid JSON response from server');
+        }
+
         salesTrendData = results;
+
+        if (!Array.isArray(results) || results.length === 0) {
+          loadingEl.innerHTML = '<div class="error-message">No sales data available. Try again later.</div>';
+          return;
+        }
 
         const labels = results.map(r => {
           const dateObj = new Date(r._id);
@@ -606,8 +638,8 @@
           }
         });
       } catch (err) {
-        console.error('Average sales chart error', err);
-        loadingEl.innerHTML = '<div class="error-message">Failed to load sales trend data. Please refresh the page.</div>';
+        console.error('Average sales chart error:', err);
+        loadingEl.innerHTML = `<div class="error-message">Failed to load sales trend data: ${err.message}</div>`;
       }
     }
 

@@ -35,8 +35,8 @@
             <div class="product-name"><%= product.Name %></div>
 
             <div class="action-buttons">
-              <a href="/edit-product/<%= product._id %>" class="edit-btn">Edit</a>
-              <button class="delete-btn" data-url="/delete-product/<%= product._id %>">Delete</button>
+              <a href="/admin/edit-product/<%= product._id %>" class="edit-btn">Edit</a>
+              <button class="delete-btn" data-url="/admin/delete-product/<%= product._id %>">Delete</button>
             </div>
           </div>
         <% }) %>
@@ -49,7 +49,7 @@
 <div id="addProductModal" class="custom-confirm hidden">
   <div class="confirm-box add-form-box">
     <h2>Add Product</h2>
-    <form id="addProductForm" action="/products/add" method="POST">
+    <form id="addProductForm" action="/admin/products/add" method="POST">
       <div class="form-grid">
         <div class="form-group">
           <label class="form-label">Category</label>
@@ -313,7 +313,7 @@
         const enabled = card.dataset.enabled === "true";
 
         // Fill form
-        editForm.action = `/products/edit/${id}`;
+        editForm.action = `/admin/products/edit/${id}`;
         const editNameField = document.getElementById("editName");
         editNameField.value = name;
         editNameField.readOnly = true; // ✅ lock product name
@@ -324,7 +324,7 @@
         document.getElementById("editEnabled").checked = enabled;
 
         // Fetch extra details
-        fetch(`/api/products/${id}`)
+        fetch(`/admin/api/products/${id}`)
           .then(res => res.json())
           .then(p => {
             if (p.Sizes) {
@@ -387,7 +387,7 @@
     });
 
     document.getElementById("confirmToggle").addEventListener("click", () => {
-      fetch(`/toggle-availability/${toggleProductId}`, {
+      fetch(`/admin/toggle-availability/${toggleProductId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isEnabled: !toggleEnabled })
