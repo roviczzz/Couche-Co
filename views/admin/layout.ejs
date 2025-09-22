@@ -1,109 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= typeof title !== 'undefined' ? title : 'Admin Panel | Blessings Cafe' %></title>
-    <link rel="stylesheet" href="/css/site.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <meta charset="utf-8" />
+    <title><%= typeof title !== 'undefined' ? title : 'Blessings Cafe' %></title>
+    <link rel="stylesheet" href="/css/site.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/line-awesome/1.3.0/line-awesome/css/line-awesome.min.css">
+    <link rel="icon" href="/favicon.ico" />
     <style>
-        .header {
-            background: #fff;
-            padding: 10px 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .logo {
-            font-size: 18px;
-            font-weight: 700;
-            color: #5a3e2b;
-            display: flex;
-            align-items: center;
-        }
-
-        .logo-circle {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: #a05c2f;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 8px;
-            font-size: 16px;
-            font-weight: 600;
-        }
-
-        .search-container {
-            flex: 1;
-            max-width: 400px;
-            position: relative;
-            margin: 0 20px;
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #a05c2f;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 10px 40px 10px 40px;
-            border: 1px solid #e5e7eb;
-            border-radius: 20px;
-            font-size: 14px;
-            color: #333;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-
-        .search-input::placeholder {
-            color: #a05c2f;
-            opacity: 0.7;
-        }
-
-        .search-input:focus {
-            border-color: #a05c2f;
-        }
-
-        .notification {
-            position: relative;
-            cursor: pointer;
-            color: #5a3e2b;
-        }
-
-        .notification-dropdown {
-            display: none;
-            position: absolute;
-            right: 0;
-            top: 100%;
-            width: 300px;
-            background: #fff;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-        }
-
-        .notification-item {
-            padding: 12px 16px;
-            border-bottom: 1px solid #f0f0f0;
-            font-size: 14px;
-            color: #333;
-        }
-
-        .notification-item:last-child {
-            border-bottom: none;
-        }
-
         .sidebar {
             width: 260px;
             min-width: 260px;
@@ -1298,7 +1203,7 @@
                      {
                        label: 'Account',
                        items: [
-                         { path: '/auth/logout', label: 'Logout', icon: 'door-open' }
+                         { path: '/logout', label: 'Logout', icon: 'door-open' }
                        ]
                      }
                    ];

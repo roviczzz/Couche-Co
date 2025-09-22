@@ -2442,7 +2442,7 @@ document.addEventListener('DOMContentLoaded', function() {
     savePromoBtn.textContent = 'Adding...';
     savePromoBtn.style.opacity = '0.7';
     
-    fetch('/admin/discounts/add', {
+    fetch('/discounts/add', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -2475,7 +2475,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Close modal after brief success display
         setTimeout(() => {
           hidePromoModal();
-          window.location.href = '/admin/discounts?msg=add_success';
+          window.location.href = '/discounts?msg=add_success';
         }, 1000);
       } else {
         console.error(`[2025-09-16 08:11:58] V8 Server error:`, data.message, 'by MathDaenniel');
@@ -2625,7 +2625,7 @@ document.addEventListener('DOMContentLoaded', function() {
     updateButton.textContent = 'Updating...';
     updateButton.style.opacity = '0.7';
     
-    fetch(`/admin/discounts/edit/${promoId}`, {
+    fetch(`/discounts/edit/${promoId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -2675,7 +2675,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Redirect with success message after a brief delay
         setTimeout(() => {
-          window.location.href = '/admin/discounts?msg=update_success';
+          window.location.href = '/discounts?msg=update_success';
         }, 1500);
       } else {
         console.error(`[2025-09-16 08:11:58] V8 Update error:`, data.message, 'by MathDaenniel');
@@ -2745,9 +2745,9 @@ document.addEventListener('DOMContentLoaded', function() {
     originalPromoData.delete(promoId);
     
     // Perform delete request with enhanced error handling
-    console.log(`[2025-09-16 08:11:58] V8 Sending delete request to /admin/discounts/delete/${promoId} by MathDaenniel`);
-
-    fetch(`/admin/discounts/delete/${promoId}`, {
+    console.log(`[2025-09-16 08:11:58] V8 Sending delete request to /discounts/delete/${promoId} by MathDaenniel`);
+    
+    fetch(`/discounts/delete/${promoId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -2795,7 +2795,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Show success message and redirect
         setTimeout(() => {
-          window.location.href = '/admin/discounts?msg=delete_success';
+          window.location.href = '/discounts?msg=delete_success';
         }, 1000);
       } else {
         console.error(`[2025-09-16 08:11:58] V8 Delete failed:`, data.message, 'by MathDaenniel');
@@ -3001,6 +3001,535 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // ===============================================
+  // V8 INITIALIZATION - ENHANCED
+  // ===============================================
+  
+  // Initialize original promo data cache
+  initializePromoDataCache();
+  
+  // Initialize active promos monitoring
+  function startActivePromosMonitoring() {
+    console.log(`[2025-09-16 08:11:58] V8 Starting enhanced active promos monitoring by MathDaenniel`);
+    
+    // Initial update
+    updateActivePromosSection();
+    
+    // Update every minute
+    setInterval(() => {
+      updateActivePromosSection();
+    }, 60000);
+    
+    // V8 ENHANCEMENT: More frequent updates for expiring promos
+    setInterval(() => {
+      const expiringCards = document.querySelectorAll('.active-promo-card.expiring-soon');
+      if (expiringCards.length > 0) {
+        console.log(`[2025-09-16 08:11:58] V8 Updating ${expiringCards.length} expiring promos by MathDaenniel`);
+        updateActivePromosSection();
+      }
+    }, 30000);
+  }
+
+  // Initialize monitoring and load saved data
+  startActivePromosMonitoring();
+  
+  // Load form data when modal opens
+  if (addPromoBtn) {
+    addPromoBtn.addEventListener('click', () => {
+      setTimeout(loadFormData, 100);
+    });
+  }
+
+  // Page visibility and focus handlers
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      updateActivePromosSection();
+    }
+  });
+
+  window.addEventListener('focus', () => {
+    updateActivePromosSection();
+  });
+
+  // Enhanced keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    // Ctrl/Cmd + N for New Promo
+    if ((e.ctrlKey || e.metaKey) && e.key === 'n' && !e.target.matches('input, textarea')) {
+      e.preventDefault();
+      showPromoModal();
+    }
+    
+    // Ctrl/Cmd + S to save when in modal
+    if ((e.ctrlKey || e.metaKey) && e.key === 's' && promoModalOverlay && promoModalOverlay.classList.contains('show')) {
+      e.preventDefault();
+      if (savePromoBtn && !savePromoBtn.disabled) {
+        savePromoBtn.click();
+      }
+    }
+    
+    // Enter key for confirmation modal proceed
+    if (e.key === 'Enter' && confirmationModal && confirmationModal.classList.contains('show')) {
+      e.preventDefault();
+      if (confirmProceed) {
+        confirmProceed.click();
+      }
+    }
+    
+    // Tab navigation enhancement in modal
+    if (e.key === 'Tab' && promoModalOverlay && promoModalOverlay.classList.contains('show')) {
+      const focusableElements = promoModalOverlay.querySelectorAll('input, button');
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      
+      if (e.shiftKey && document.activeElement === firstElement) {
+        e.preventDefault();
+        lastElement.focus();
+      } else if (!e.shiftKey && document.activeElement === lastElement) {
+        e.preventDefault();
+        firstElement.focus();
+      }
+    }
+  });
+
+  // ===============================================
+  // V8 ENHANCED PERFORMANCE AND MONITORING
+  // ===============================================
+  
+  // Performance monitoring
+  function logPerformanceMetrics() {
+    if (window.performance && window.performance.timing) {
+      const timing = window.performance.timing;
+      const loadTime = timing.loadEventEnd - timing.navigationStart;
+      const domReady = timing.domContentLoadedEventEnd - timing.navigationStart;
+      
+      console.log(`[2025-09-16 08:17:53] V8 Page load time: ${loadTime}ms, DOM ready: ${domReady}ms by MathDaenniel`);
+      
+      // Log to console for debugging
+      if (loadTime > 3000) {
+        console.warn(`[2025-09-16 08:17:53] V8 Slow page load detected: ${loadTime}ms by MathDaenniel`);
+      }
+    }
+  }
+
+  // Monitor performance after page load
+  window.addEventListener('load', () => {
+    setTimeout(logPerformanceMetrics, 1000);
+  });
+
+  // V8 Enhancement: Periodic health check for essential elements
+  setInterval(() => {
+    const essentialElements = [addPromoBtn, promoModalOverlay, confirmationModal, activePromosGrid, activePromosCount];
+    const missingElements = essentialElements.filter(el => !el || !document.body.contains(el));
+    
+    if (missingElements.length > 0) {
+      console.warn(`[2025-09-16 08:17:53] V8 Missing essential elements detected - reinitializing by MathDaenniel`);
+      // Attempt to reinitialize critical functionality
+      setTimeout(() => {
+        initializePromoDataCache();
+        updateActivePromosSection();
+      }, 1000);
+    }
+  }, 30000); // Check every 30 seconds
+
+  // V8 Enhanced Error Boundary for JavaScript errors
+  window.addEventListener('error', (event) => {
+    console.error(`[2025-09-16 08:17:53] V8 JavaScript error caught by MathDaenniel:`, {
+      message: event.message,
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno,
+      error: event.error,
+      timestamp: new Date().toISOString(),
+      version: 'V8-CompleteActivePromosFixture',
+      repository: 'roviczzz/Couche-Co'
+    });
+    
+    // Attempt to recover from certain errors
+    if (event.message.includes('updateActivePromosSection') || 
+        event.message.includes('activePromosGrid') ||
+        event.message.includes('promoData')) {
+      console.log(`[2025-09-16 08:17:53] V8 Attempting recovery from active promos error by MathDaenniel`);
+      setTimeout(() => {
+        try {
+          updateActivePromosSection();
+        } catch (recoveryError) {
+          console.error(`[2025-09-16 08:17:53] V8 Recovery failed:`, recoveryError, 'by MathDaenniel');
+        }
+      }, 2000);
+    }
+  });
+
+  // V8 Enhanced: Unhandled promise rejection handler
+  window.addEventListener('unhandledrejection', (event) => {
+    console.error(`[2025-09-16 08:17:53] V8 Unhandled promise rejection by MathDaenniel:`, {
+      reason: event.reason,
+      promise: event.promise,
+      timestamp: new Date().toISOString(),
+      version: 'V8-CompleteActivePromosFixture',
+      repository: 'roviczzz/Couche-Co'
+    });
+    
+    // Prevent the default browser behavior (logging to console)
+    event.preventDefault();
+  });
+
+  // ===============================================
+  // V8 ADVANCED FEATURES AND ENHANCEMENTS
+  // ===============================================
+
+  // V8 Enhanced: Advanced form validation with real-time feedback
+  function setupAdvancedFormValidation() {
+    const formInputs = [eventInput, descriptionInput, discountPercentageInput, startDateInput, endDateInput];
+    
+    formInputs.forEach(input => {
+      if (input) {
+        input.addEventListener('blur', () => {
+          validateSingleField(input);
+        });
+        
+        input.addEventListener('input', () => {
+          clearFieldError(input);
+        });
+      }
+    });
+  }
+
+  function validateSingleField(input) {
+    const value = input.value.trim();
+    let isValid = true;
+    let errorMessage = '';
+
+    switch (input.name) {
+      case 'event':
+        if (!value) {
+          isValid = false;
+          errorMessage = 'Event name is required';
+        } else if (value.length < 3) {
+          isValid = false;
+          errorMessage = 'Event name must be at least 3 characters';
+        }
+        break;
+      
+      case 'description':
+        if (!value) {
+          isValid = false;
+          errorMessage = 'Description is required';
+        } else if (value.length < 10) {
+          isValid = false;
+          errorMessage = 'Description must be at least 10 characters';
+        }
+        break;
+      
+      case 'discountPercentage':
+        if (!value) {
+          isValid = false;
+          errorMessage = 'Discount percentage is required';
+        } else {
+          const num = parseFloat(value);
+          if (isNaN(num) || num <= 0 || num > 100) {
+            isValid = false;
+            errorMessage = 'Discount must be between 0.01 and 100';
+          }
+        }
+        break;
+      
+      case 'startDate':
+      case 'endDate':
+        if (!value) {
+          isValid = false;
+          errorMessage = 'Date is required';
+        }
+        break;
+    }
+
+    if (!isValid) {
+      showFieldError(input, errorMessage);
+    } else {
+      clearFieldError(input);
+    }
+
+    return isValid;
+  }
+
+  function showFieldError(input, message) {
+    clearFieldError(input);
+    
+    input.style.borderColor = '#dc3545';
+    input.style.backgroundColor = '#fff5f5';
+    
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'field-error';
+    errorDiv.style.cssText = `
+      color: #dc3545;
+      font-size: 12px;
+      margin-top: 4px;
+      font-weight: 500;
+    `;
+    errorDiv.textContent = message;
+    
+    const formGroup = input.closest('.form-group');
+    if (formGroup) {
+      formGroup.appendChild(errorDiv);
+    }
+  }
+
+  function clearFieldError(input) {
+    input.style.borderColor = '';
+    input.style.backgroundColor = '';
+    
+    const formGroup = input.closest('.form-group');
+    if (formGroup) {
+      const errorDiv = formGroup.querySelector('.field-error');
+      if (errorDiv) {
+        errorDiv.remove();
+      }
+    }
+  }
+
+  // V8 Enhanced: Smart date suggestions
+  function setupSmartDateSuggestions() {
+    if (startDateInput) {
+      startDateInput.addEventListener('change', () => {
+        if (startDateInput.value && !endDateInput.value) {
+          const startDate = new Date(startDateInput.value);
+          const suggestedEndDate = new Date(startDate);
+          suggestedEndDate.setDate(suggestedEndDate.getDate() + 30); // Suggest 30 days later
+          
+          endDateInput.value = suggestedEndDate.toISOString().split('T')[0];
+          
+          // Show suggestion notification
+          showTemporaryNotification('End date automatically set to 30 days from start date', 'info');
+        }
+      });
+    }
+  }
+
+  function showTemporaryNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+      position: fixed;
+      top: 120px;
+      right: 20px;
+      background: ${type === 'info' ? '#17a2b8' : '#28a745'};
+      color: white;
+      padding: 12px 16px;
+      border-radius: 8px;
+      z-index: 10002;
+      font-size: 14px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      max-width: 300px;
+      animation: slideInRight 0.3s ease-out;
+    `;
+    
+    notification.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span>${type === 'info' ? 'ℹ️' : '✅'}</span>
+        <span>${message}</span>
+      </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+      notification.style.animation = 'slideOutRight 0.3s ease-in forwards';
+      setTimeout(() => {
+        notification.remove();
+      }, 300);
+    }, 4000);
+  }
+
+  // V8 Enhanced: Promo preview functionality
+  function generatePromoPreview() {
+    if (!eventInput || !descriptionInput || !discountPercentageInput || !startDateInput || !endDateInput) {
+      return null;
+    }
+
+    const event = eventInput.value.trim();
+    const description = descriptionInput.value.trim();
+    const discount = discountPercentageInput.value;
+    const startDate = startDateInput.value;
+    const endDate = endDateInput.value;
+
+    if (!event || !description || !discount || !startDate || !endDate) {
+      return null;
+    }
+
+    const now = new Date();
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const isCurrentlyActive = now >= start && now <= end;
+    const daysRemaining = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
+
+    return {
+      event,
+      description,
+      discount: parseFloat(discount),
+      startDate,
+      endDate,
+      isCurrentlyActive,
+      daysRemaining: Math.max(0, daysRemaining),
+      startFormatted: start.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      endFormatted: end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    };
+  }
+
+  function updatePromoPreview() {
+    const previewContainer = document.getElementById('promoPreview');
+    if (!previewContainer) return;
+
+    const preview = generatePromoPreview();
+    
+    if (preview) {
+      previewContainer.innerHTML = `
+        <div class="preview-card ${preview.isCurrentlyActive ? 'active' : 'inactive'}">
+          <div class="preview-header">
+            <h4>${preview.event}</h4>
+            <span class="preview-discount">${preview.discount}% OFF</span>
+          </div>
+          <p class="preview-description">${preview.description}</p>
+          <div class="preview-dates">
+            <span>${preview.startFormatted} - ${preview.endFormatted}</span>
+            ${preview.isCurrentlyActive ? `<span class="days-left">${preview.daysRemaining} days left</span>` : ''}
+          </div>
+          <div class="preview-status ${preview.isCurrentlyActive ? 'active' : 'inactive'}">
+            ${preview.isCurrentlyActive ? '🟢 Currently Active' : '🔴 Not Active'}
+          </div>
+        </div>
+      `;
+      previewContainer.style.display = 'block';
+    } else {
+      previewContainer.style.display = 'none';
+    }
+  }
+
+  // V8 Enhanced: Bulk operations for promos
+  function initializeBulkOperations() {
+    const bulkSelectAll = document.getElementById('bulkSelectAll');
+    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    const bulkUpdateBtn = document.getElementById('bulkUpdateBtn');
+    
+    if (bulkSelectAll) {
+      bulkSelectAll.addEventListener('change', (e) => {
+        const checkboxes = document.querySelectorAll('.promo-checkbox');
+        checkboxes.forEach(checkbox => {
+          checkbox.checked = e.target.checked;
+        });
+        updateBulkButtons();
+      });
+    }
+
+    document.addEventListener('change', (e) => {
+      if (e.target.classList.contains('promo-checkbox')) {
+        updateBulkButtons();
+      }
+    });
+
+    if (bulkDeleteBtn) {
+      bulkDeleteBtn.addEventListener('click', handleBulkDelete);
+    }
+
+    if (bulkUpdateBtn) {
+      bulkUpdateBtn.addEventListener('click', handleBulkUpdate);
+    }
+  }
+
+  function updateBulkButtons() {
+    const selectedCheckboxes = document.querySelectorAll('.promo-checkbox:checked');
+    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    const bulkUpdateBtn = document.getElementById('bulkUpdateBtn');
+    
+    if (bulkDeleteBtn) {
+      bulkDeleteBtn.disabled = selectedCheckboxes.length === 0;
+      bulkDeleteBtn.textContent = `Delete (${selectedCheckboxes.length})`;
+    }
+    
+    if (bulkUpdateBtn) {
+      bulkUpdateBtn.disabled = selectedCheckboxes.length === 0;
+      bulkUpdateBtn.textContent = `Update (${selectedCheckboxes.length})`;
+    }
+  }
+
+  function handleBulkDelete() {
+    const selectedCheckboxes = document.querySelectorAll('.promo-checkbox:checked');
+    const promoIds = Array.from(selectedCheckboxes).map(cb => cb.dataset.promoId);
+    
+    if (promoIds.length === 0) return;
+    
+    const confirmMessage = `Are you sure you want to delete ${promoIds.length} promo(s)? This action cannot be undone.`;
+    
+    if (confirm(confirmMessage)) {
+      console.log(`[2025-09-16 08:17:53] V8 Bulk deleting ${promoIds.length} promos by MathDaenniel`);
+      
+      // Process deletions sequentially to avoid overwhelming the server
+      deleteBulkPromos(promoIds, 0);
+    }
+  }
+
+  function deleteBulkPromos(promoIds, index) {
+    if (index >= promoIds.length) {
+      console.log(`[2025-09-16 08:17:53] V8 Bulk delete completed by MathDaenniel`);
+      updateActivePromosSection();
+      showTemporaryNotification(`Successfully deleted ${promoIds.length} promo(s)`, 'success');
+      setTimeout(() => {
+        window.location.href = '/discounts?msg=delete_success';
+      }, 1500);
+      return;
+    }
+    
+    const promoId = promoIds[index];
+    console.log(`[2025-09-16 08:17:53] V8 Bulk deleting promo ${index + 1}/${promoIds.length}: ${promoId} by MathDaenniel`);
+    
+    fetch(`/discounts/delete/${promoId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        metadata: {
+          deletedBy: 'MathDaenniel',
+          repository: 'roviczzz/Couche-Co',
+          timestamp: new Date().toISOString(),
+          version: 'V8-CompleteActivePromosFixture',
+          bulkOperation: true,
+          bulkIndex: index + 1,
+          bulkTotal: promoIds.length
+        }
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        console.log(`[2025-09-16 08:17:53] V8 Bulk delete ${index + 1} successful by MathDaenniel`);
+      } else {
+        console.error(`[2025-09-16 08:17:53] V8 Bulk delete ${index + 1} failed:`, data.message, 'by MathDaenniel');
+      }
+      
+      // Continue with next deletion after a short delay
+      setTimeout(() => {
+        deleteBulkPromos(promoIds, index + 1);
+      }, 500);
+    })
+    .catch(error => {
+      console.error(`[2025-09-16 08:17:53] V8 Bulk delete ${index + 1} error:`, error, 'by MathDaenniel');
+      
+      // Continue with next deletion even if one fails
+      setTimeout(() => {
+        deleteBulkPromos(promoIds, index + 1);
+      }, 500);
+    });
+  }
+
+  function handleBulkUpdate() {
+    const selectedCheckboxes = document.querySelectorAll('.promo-checkbox:checked');
+    const promoIds = Array.from(selectedCheckboxes).map(cb => cb.dataset.promoId);
+    
+    if (promoIds.length === 0) return;
+    
+    // Show bulk update modal (implementation would depend on UI requirements)
+    showTemporaryNotification(`Bulk update for ${promoIds.length} promo(s) - Feature coming soon!`, 'info');
+  }
+
+  // ===============================================
   // V8 FINAL INITIALIZATION AND SETUP
   // ===============================================
 
@@ -3011,7 +3540,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Setup real-time preview updates if preview container exists
   const formInputs = [eventInput, descriptionInput, discountPercentageInput, startDateInput, endDateInput];
-  formInputs.forEach((input) => {
+  formInputs.forEach input => {
     if (input) {
       input.addEventListener('input', updatePromoPreview);
       input.addEventListener('change', updatePromoPreview);
