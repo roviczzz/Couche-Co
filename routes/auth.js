@@ -1,22 +1,38 @@
 const express = require('express');
 const router = express.Router();
-const { MongoClient } = require('mongodb');
+const { MongoClient, ObjectId } = require('mongodb');
 const { check, validationResult } = require('express-validator');
 const bcrypt = require('bcrypt');
+
 const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+const SALT_ROUNDS = 12;
+
+function isLoggedIn(req, res, next) {
+  if (req.session.user) {
+    return next();
+  }
+  res.redirect('/auth/login');
+}
 
 // Login page
 router.get('/login', (req, res) => {
+  console.log('Login page requested');
   if (req.session.user) {
     return res.redirect(req.session.user.role === 'admin' ? '/admin/dashboard' : '/user/dashboard');
   }
-  res.render('login', {
-    title: 'Login | Blessings Cafe',
-    layout: false,
-    errors: {},
-    error: null,
-    formData: {}
-  });
+
+  try {
+    res.render('login', {
+      title: 'Login | Blessings Cafe',
+      layout: false,
+      errors: {},
+      error: null,
+      formData: {}
+    });
+  } catch (error) {
+    console.error('Error rendering login page:', error);
+    res.status(500).send('Error loading login page');
+  }
 });
 
 // Login form submission
@@ -240,6 +256,132 @@ router.get('/account/register', (req, res) => {
     error: null,
     layout: false
   });
+});
+
+// Forgot password page
+router.get('/forgot-password', (req, res) => {
+  res.render('forgot-password', { layout: false });
+});
+
+// Forgot password form submission
+router.post('/forgot-password', async (req, res) => {
+  const { username, secretCode, newPassword } = req.body;
+
+  if (!username || !secretCode || !newPassword) {
+    return res.status(400).send('Username, secret code, and new password are required');
+  }
+
+  let client;
+  try {
+    client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const usersCollection = db.collection('users');
+
+    const user = await usersCollection.findOne({ username: username, secretCode: secretCode });
+    if (!user) {
+      await client.close();
+      return res.status(404).send('User not found or invalid secret code');
+    }
+
+    await usersCollection.updateOne(
+        { username: username, secretCode: secretCode },
+        { $set: { password: newPassword } }
+    );
+
+    await client.close();
+    res.send('Password updated successfully. You can now log in.');
+  } catch (error) {
+    if (client) await client.close();
+    console.error('Error updating password:', error);
+    res.status(500).send('Server error');
+  }
+});
+
+// Admin login page
+router.get('/admin/login', (req, res) => {
+  console.log('Admin login page requested');
+  if (req.session.user) {
+    return res.redirect('/admin/dashboard');
+  }
+
+  try {
+    res.render('admin/login', {
+      title: 'Admin Login | Blessings Cafe',
+      layout: false,
+      formData: {},
+      errors: {},
+      error: null
+    });
+  } catch (error) {
+    console.error('Error rendering admin login page:', error);
+    res.status(500).send('Error loading admin login page');
+  }
+});
+
+// Admin login form submission
+router.post('/admin/login', async (req, res) => {
+  const { Username, Password } = req.body;
+  const errors = {};
+  let formData = { Username };
+
+  if (!Username) errors.Username = { msg: 'Username is required' };
+  if (!Password) errors.Password = { msg: 'Password is required' };
+
+  if (Object.keys(errors).length > 0) {
+    return res.render('admin/login', {
+      title: 'Admin Login | Blessings Cafe',
+      layout: false,
+      formData,
+      errors,
+      error: null
+    });
+  }
+
+  try {
+    const client = new MongoClient(uri);
+    await client.connect();
+    const db = client.db('blessingscafe');
+    const user = await db.collection('users').findOne({ username: Username, role: 'admin' });
+    await client.close();
+
+    if (!user) {
+      return res.render('admin/login', {
+        title: 'Admin Login | Blessings Cafe',
+        layout: false,
+        formData,
+        errors: {},
+        error: 'Invalid username or password.'
+      });
+    }
+
+    const isMatch = await bcrypt.compare(Password, user.password);
+    if (!isMatch) {
+      return res.render('admin/login', {
+        title: 'Admin Login | Blessings Cafe',
+        layout: false,
+        formData,
+        errors: {},
+        error: 'Invalid username or password.'
+      });
+    }
+
+    req.session.user = {
+      _id: user._id,
+      username: user.username,
+      role: user.role,
+      name: user.name
+    };
+    res.redirect('/admin/dashboard');
+  } catch (err) {
+    console.error('Admin login error:', err);
+    res.status(500).render('admin/login', {
+      title: 'Admin Login | Blessings Cafe',
+      layout: false,
+      formData,
+      errors: {},
+      error: 'An error occurred. Please try again.'
+    });
+  }
 });
 
 module.exports = router;

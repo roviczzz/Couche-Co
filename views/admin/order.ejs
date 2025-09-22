@@ -1099,7 +1099,7 @@
     try {
       setLoading(true);
 
-      const response = await fetch(`/orders/${orderID}/restore`, {
+      const response = await fetch(`/admin/orders/${orderID}/restore`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json'
@@ -1504,7 +1504,7 @@
           throw new Error('Order ID is missing');
         }
 
-        const response = await fetch(`/orders/${orderID}/fulfillment`, {
+        const response = await fetch(`/admin/orders/${orderID}/fulfillment`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json'
@@ -1554,7 +1554,7 @@
     try {
       const orderID = currentOrder.OrderID;
 
-      const response = await fetch(`/orders/${orderID}/payment-status`, {
+      const response = await fetch(`/admin/orders/${orderID}/payment-status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json'
@@ -1600,7 +1600,7 @@
       setLoading(true);
       try {
         const orderID = currentOrder.OrderID;
-        const response = await fetch(`/orders/${orderID}/cancel`, {
+        const response = await fetch(`/admin/orders/${orderID}/cancel`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json'

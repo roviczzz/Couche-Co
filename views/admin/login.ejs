@@ -7,33 +7,33 @@
     <link rel="stylesheet" href="/css/site.css" />
 </head>
 <body>
-    <div class="login-box">
-        <img src="https://iili.io/F5oAbt9.png" alt="Blessings Cafe Logo" />
-        <h2>Welcome back!</h2>
-        <form action="/account/login" method="post">
-            <label for="Username">Username</label>
-            <input id="Username" name="Username" type="text" placeholder="Enter username" 
-                value="<%= typeof formData !== 'undefined' ? formData.Username : '' %>" 
-                required />
+<div class="login-box">
+    <img src="https://iili.io/F5oAbt9.png" alt="Blessings Cafe Logo" />
+    <h2>Welcome back!</h2>
+    <form action="/auth/admin/login" method="post">
+        <label for="Username">Username</label>
+        <input id="Username" name="Username" type="text" placeholder="Enter username"
+               value="<%= typeof formData !== 'undefined' ? formData.Username : '' %>"
+               required />
 
-            <% if (errors && errors.Username) { %>
-                <span class="error"><%= errors.Username.msg %></span>
-            <% } %>
+        <% if (errors && errors.Username) { %>
+            <span class="error"><%= errors.Username.msg %></span>
+        <% } %>
 
-            <label for="Password">Password</label>
-            <input id="Password" name="Password" type="password" placeholder="Enter password" required />
+        <label for="Password">Password</label>
+        <input id="Password" name="Password" type="password" placeholder="Enter password" required />
 
-            <% if (errors && errors.Password) { %>
-                <span class="error"><%= errors.Password.msg %></span>
-            <% } %>
+        <% if (errors && errors.Password) { %>
+            <span class="error"><%= errors.Password.msg %></span>
+        <% } %>
 
-           <a href="/forgot-password" class="forgot">Forgot password</a>
+        <a href="/forgot-password" class="forgot">Forgot password</a>
 
-            <button type="submit">Log In</button>
-            <% if (error) { %>
-                <div class="error"><%= error %></div>
-            <% } %>
-        </form>
-    </div>
+        <button type="submit">Log In</button>
+        <% if (error) { %>
+            <div class="error"><%= error %></div>
+        <% } %>
+    </form>
+</div>
 </body>
 </html>
