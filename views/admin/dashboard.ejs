@@ -85,7 +85,7 @@
 <script>
     async function fetchDashboardStats() {
         try {
-            const res = await fetch('/analytics/dashboard-stats');
+            const res = await fetch('/admin/analytics/dashboard-stats');
             const stats = await res.json();
             document.getElementById('total-sales-value').innerText = '₱' + (stats.totalSales || 0).toLocaleString('en-PH', {minimumFractionDigits:2});
             document.getElementById('total-sales-trend').innerText = (stats.totalSalesPercent > 0 ? '+' : '') + (stats.totalSalesPercent || 0) + '%';
@@ -122,7 +122,7 @@
     async function drawSalesPerformanceChart(days=14) {
         let results = [];
         try {
-            const res = await fetch('/analytics/sales-performance?days=' + days);
+            const res = await fetch('/admin/analytics/sales-performance?days=' + days);
             if (res.ok) {
                 results = await res.json();
             }
@@ -200,9 +200,9 @@
         if (loadingIndicator) loadingIndicator.style.display = 'flex';
         let categories = [];
         try {
-            const res = await fetch('/analytics/top-categories');
-            if (res.ok) {
-                categories = await res.json();
+            const response = await fetch('/admin/analytics/top-categories');
+            if (response.ok) {
+                categories = await response.json();
                 if (!Array.isArray(categories) || !categories.length || !categories[0].name) {
                     categories = [];
                 }

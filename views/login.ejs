@@ -147,7 +147,7 @@
             <div class="error" style="margin-bottom: 1rem; text-align: center;"><%= error %></div>
         <% } %>
 
-        <form action="/auth/login" method="post">
+        <form action="/user/login" method="post">
             <div class="form-group">
                 <label for="email">Email</label>
                 <input
@@ -166,7 +166,7 @@
             <div class="form-group">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <label for="password">Password</label>
-                    <a href="/auth/forgot-password" class="btn-text" style="font-size: 0.8125rem;">Forgot password?</a>
+                    <a href="/forgot-password" class="btn-text" style="font-size: 0.8125rem;">Forgot password?</a>
                 </div>
                 <input
                     id="password"
@@ -185,12 +185,12 @@
 
         <div class="register-link" style="margin-top: 1.5rem; text-align: center;">
             <span style="color: var(--text-light);">Don't have an account?</span>
-            <a href="/auth/register" class="btn-text" style="margin-left: 0.5rem;">Sign up</a>
+            <a href="/register" class="btn-text" style="margin-left: 0.5rem;">Sign up</a>
         </div>
 
         <div class="admin-section">
             <p class="admin-text">Are you an administrator?</p>
-            <a href="/admin/login" class="btn" style="border: 1px solid var(--border); color: var(--text);">
+            <a href="/auth/admin/login" class="btn" style="border: 1px solid var(--border); color: var(--text);">
                 Admin Login
             </a>
         </div>
