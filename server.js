@@ -17,6 +17,7 @@ const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
 const adminRoutes = require('./routes/admin');
 const apiRoutes = require('./routes/api');
+const staffRoutes = require('./routes/staff');
 
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')))
 app.use(session({
@@ -61,6 +62,7 @@ app.use('/auth', authRoutes);
 app.use('/user', userRoutes);
 app.use('/admin', adminRoutes);
 app.use('/api', apiRoutes);
+app.use('/staff', staffRoutes);
 
 // Legacy route compatibility
 app.use('/account', authRoutes);

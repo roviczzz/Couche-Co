@@ -7,6 +7,26 @@ const bcrypt = require('bcrypt');
 const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
 const SALT_ROUNDS = 12;
 
+// Generate staff ID based on role and user ID
+function generateStaffId(role, userId) {
+  const rolePrefix = {
+    'admin': 'ADM',
+    'owner': 'OWN',
+    'staff': 'BC',
+    'user': 'USR'
+  };
+
+  const prefix = rolePrefix[role] || 'USR';
+
+  // Generate a 5-digit number based on ObjectId hash for all roles
+  const hash = userId.toString().split('').reduce((a, b) => {
+    a = ((a << 5) - a) + b.charCodeAt(0);
+    return a & a;
+  }, 0);
+  const idNumber = Math.abs(hash % 100000).toString().padStart(5, '0');
+  return `${prefix}${idNumber}`;
+}
+
 function isLoggedIn(req, res, next) {
   if (req.session.user) {
     return next();
@@ -53,13 +73,14 @@ router.post('/login',
       });
     }
 
+    let client;
     try {
-      const client = new MongoClient(uri);
+      client = new MongoClient(uri);
       await client.connect();
       const db = client.db('blessingscafe');
-      
-      const user = await db.collection('Users').findOne({ email: req.body.email });
-      
+
+      const user = await db.collection('users').findOne({ email: req.body.email });
+
       if (!user) {
         return res.render('login', {
           title: 'Login | Blessings Cafe',
@@ -81,19 +102,26 @@ router.post('/login',
         });
       }
 
+      // Update last login time in database
+      await db.collection('users').updateOne(
+        { _id: user._id },
+        { $set: { lastLogin: new Date() } }
+      );
+
       // Set user session
       req.session.user = {
         _id: user._id,
         email: user.email,
         name: user.name,
-        role: user.role || 'user'
+        role: user.role || 'user',
+        staffId: user.staffId || generateStaffId(user.role, user._id),
+        username: user.username
       };
 
       // Redirect based on role
       const redirectPath = user.role === 'admin' ? '/admin/dashboard' : '/user/dashboard';
       res.redirect(redirectPath);
-      
-      await client.close();
+
     } catch (error) {
       console.error('Login error:', error);
       res.status(500).render('login', {
@@ -103,6 +131,10 @@ router.post('/login',
         error: 'An error occurred during login',
         formData: req.body
       });
+    } finally {
+      if (client) {
+        await client.close();
+      }
     }
   }
 );
@@ -171,8 +203,9 @@ router.post('/account/login',
     const SALT_ROUNDS = 12;
     console.log(`📅 Login attempt at ${new Date().toISOString()} for user: ${req.body.Username}`);
 
+    let client;
     try {
-      const client = new MongoClient(uri);
+      client = new MongoClient(uri);
       await client.connect();
       const db = client.db('blessingscafe');
       const users = db.collection('users');
@@ -182,7 +215,6 @@ router.post('/account/login',
       });
 
       if (!user) {
-        await client.close();
         console.log(`❌ Login failed for user: ${req.body.Username} - User not found`);
         return res.render('login', {
           title: 'Login | Blessings Cafe',
@@ -218,8 +250,6 @@ router.post('/account/login',
         }
       }
 
-      await client.close();
-
       if (!passwordMatch) {
         console.log(`❌ Login failed for user: ${req.body.Username} - Invalid password`);
         return res.render('login', {
@@ -231,11 +261,18 @@ router.post('/account/login',
         });
       }
 
+      // Update last login time in database
+      await users.updateOne(
+        { _id: user._id },
+        { $set: { lastLogin: new Date() } }
+      );
+
       req.session.user = {
         _id: user._id,
         username: user.username,
         email: user.email,
         role: user.role || 'admin',
+        staffId: user.staffId || generateStaffId(user.role, user._id),
         loginTime: new Date().toISOString()
       };
 
@@ -244,6 +281,10 @@ router.post('/account/login',
     } catch (err) {
       console.error('❌ Login error:', err);
       res.status(500).send('Internal Server Error');
+    } finally {
+      if (client) {
+        await client.close();
+      }
     }
   }
 );
@@ -297,91 +338,155 @@ router.post('/forgot-password', async (req, res) => {
   }
 });
 
-// Admin login page
+// Unified login route for both admin and staff
+router.post('/unified/login',
+  [
+    check('Username').notEmpty().withMessage('Username is required'),
+    check('Password').notEmpty().withMessage('Password is required'),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const errorsObj = {};
+      errors.array().forEach(err => {
+        errorsObj[err.param] = err;
+      });
+      return res.render('admin/login', {
+        title: 'Staff & Admin Login',
+        layout: false,
+        errors: errorsObj,
+        error: 'Please fix the errors below',
+        formData: req.body
+      });
+    }
+
+    const { Username, Password } = req.body;
+    console.log(`📅 Login attempt at ${new Date().toISOString()} for user: ${Username}`);
+
+    let client;
+    try {
+      client = new MongoClient(uri);
+      await client.connect();
+      const db = client.db('blessingscafe');
+      const users = db.collection('users');
+
+      const user = await users.findOne({
+        username: Username
+      });
+
+      if (!user) {
+        console.log(`❌ Login failed for user: ${Username} - User not found`);
+        return res.render('admin/login', {
+          title: 'Staff & Admin Login',
+          layout: false,
+          errors: {},
+          error: 'Invalid username or password',
+          formData: { Username }
+        });
+      }
+
+      let passwordMatch = false;
+
+      if (user.password.startsWith('$2b$') || user.password.startsWith('$2a$')) {
+        passwordMatch = await bcrypt.compare(Password, user.password);
+        console.log('🔐 Using bcrypt verification for hashed password');
+      } else {
+        if (Password === user.password) {
+          passwordMatch = true;
+          console.log('⚠️ Plain text password detected - upgrading to bcrypt');
+
+          const hashedPassword = await bcrypt.hash(Password, SALT_ROUNDS);
+          await users.updateOne(
+            { _id: user._id },
+            {
+              $set: {
+                password: hashedPassword,
+                passwordUpgraded: new Date(),
+                upgradedBy: 'auto-login'
+              }
+            }
+          );
+          console.log('✅ Password upgraded to bcrypt hash');
+        }
+      }
+
+      if (!passwordMatch) {
+        console.log(`❌ Login failed for user: ${Username} - Invalid password`);
+        return res.render('admin/login', {
+          title: 'Staff & Admin Login',
+          layout: false,
+          errors: {},
+          error: 'Invalid username or password',
+          formData: { Username }
+        });
+      }
+
+      // Update last login time in database
+      await users.updateOne(
+        { _id: user._id },
+        { $set: { lastLogin: new Date() } }
+      );
+
+      req.session.user = {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        role: user.role || 'admin',
+        staffId: user.staffId || generateStaffId(user.role, user._id),
+        loginTime: new Date().toISOString()
+      };
+
+      console.log(`✅ Login successful for user: ${user.username} (ID: ${user._id}) at ${new Date().toISOString()}`);
+
+      // Redirect based on role - staff goes to staff dashboard, admin and owner go to admin dashboard
+      let redirectPath;
+      if (user.role === 'staff') {
+        redirectPath = '/staff/dashboard';
+      } else if (user.role === 'admin' || user.role === 'owner') {
+        redirectPath = '/admin/dashboard';
+      } else {
+        redirectPath = '/admin/dashboard'; // Default
+      }
+
+      res.redirect(redirectPath);
+
+    } catch (err) {
+      console.error('❌ Login error:', err);
+      res.status(500).render('admin/login', {
+        title: 'Staff & Admin Login',
+        layout: false,
+        errors: {},
+        error: 'An error occurred during login',
+        formData: { Username }
+      });
+    } finally {
+      if (client) {
+        await client.close();
+      }
+    }
+  }
+);
+
+// Update admin login GET route to use unified login
 router.get('/admin/login', (req, res) => {
-  console.log('Admin login page requested');
   if (req.session.user) {
-    return res.redirect('/admin/dashboard');
-  }
-
-  try {
-    res.render('admin/login', {
-      title: 'Admin Login | Blessings Cafe',
-      layout: false,
-      formData: {},
-      errors: {},
-      error: null
-    });
-  } catch (error) {
-    console.error('Error rendering admin login page:', error);
-    res.status(500).send('Error loading admin login page');
-  }
-});
-
-// Admin login form submission
-router.post('/admin/login', async (req, res) => {
-  const { Username, Password } = req.body;
-  const errors = {};
-  let formData = { Username };
-
-  if (!Username) errors.Username = { msg: 'Username is required' };
-  if (!Password) errors.Password = { msg: 'Password is required' };
-
-  if (Object.keys(errors).length > 0) {
-    return res.render('admin/login', {
-      title: 'Admin Login | Blessings Cafe',
-      layout: false,
-      formData,
-      errors,
-      error: null
-    });
-  }
-
-  try {
-    const client = new MongoClient(uri);
-    await client.connect();
-    const db = client.db('blessingscafe');
-    const user = await db.collection('users').findOne({ username: Username, role: 'admin' });
-    await client.close();
-
-    if (!user) {
-      return res.render('admin/login', {
-        title: 'Admin Login | Blessings Cafe',
-        layout: false,
-        formData,
-        errors: {},
-        error: 'Invalid username or password.'
-      });
+    let redirectPath;
+    if (req.session.user.role === 'staff') {
+      redirectPath = '/staff/dashboard';
+    } else if (req.session.user.role === 'admin' || req.session.user.role === 'owner') {
+      redirectPath = '/admin/dashboard';
+    } else {
+      redirectPath = '/admin/dashboard'; // Default
     }
-
-    const isMatch = await bcrypt.compare(Password, user.password);
-    if (!isMatch) {
-      return res.render('admin/login', {
-        title: 'Admin Login | Blessings Cafe',
-        layout: false,
-        formData,
-        errors: {},
-        error: 'Invalid username or password.'
-      });
-    }
-
-    req.session.user = {
-      _id: user._id,
-      username: user.username,
-      role: user.role,
-      name: user.name
-    };
-    res.redirect('/admin/dashboard');
-  } catch (err) {
-    console.error('Admin login error:', err);
-    res.status(500).render('admin/login', {
-      title: 'Admin Login | Blessings Cafe',
-      layout: false,
-      formData,
-      errors: {},
-      error: 'An error occurred. Please try again.'
-    });
+    return res.redirect(redirectPath);
   }
+  res.render('admin/login', {
+    title: 'Staff & Admin Login',
+    layout: false,
+    errors: {},
+    error: null,
+    formData: {}
+  });
 });
 
 module.exports = router;

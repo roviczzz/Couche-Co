@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= typeof title !== 'undefined' ? title : 'Admin Panel | Blessings Cafe' %></title>
+    <title><%= typeof title !== 'undefined' ? title : 'Staff Panel | Blessings Cafe' %></title>
     <link rel="stylesheet" href="/css/site.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
@@ -114,12 +114,9 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
+            position: relative;
             overflow: hidden;
             letter-spacing: -.75px;
-            z-index: 1000;
         }
 
         .sidebar-collapsed .sidebar {
@@ -204,24 +201,24 @@
 
         .sidebar-collapsed .sidebar-toggle-btn {
             margin-right: 0;
-            transform: none;
         }
 
         .sidebar-toggle-btn:hover,
         .sidebar-toggle-btn:focus {
-            background: transparent !important;
-            box-shadow: none !important;
+            background: #f4e6d9;
+            color: #a05c2f;
         }
 
         .sidebar-toggle-btn:active {
-            background: transparent !important;
+            background: #e6d4c3;
         }
+
         .sidebar-toggle-btn:focus-visible {
             outline: 2px solid #a05c2f;
         }
 
         .sidebar-toggle-btn .fa-bars {
-            display: inline-block;
+            display: block;
         }
 
         .sidebar-toggle-btn .fa-angles-left,
@@ -229,21 +226,12 @@
             display: none;
         }
 
-        .sidebar:not(.sidebar-collapsed) .sidebar-toggle-btn .fa-bars {
-            display: none;
-        }
-
-        .sidebar:not(.sidebar-collapsed) .sidebar-toggle-btn .fa-angles-left {
-            display: inline-block;
-        }
-
-        .sidebar-collapsed .sidebar-toggle-btn .fa-bars,
-        .sidebar-collapsed .sidebar-toggle-btn .fa-angles-left {
+        .sidebar-collapsed .sidebar-toggle-btn .fa-bars {
             display: none;
         }
 
         .sidebar-collapsed .sidebar-toggle-btn .fa-angles-right {
-            display: inline-block;
+            display: block;
         }
 
         .sidebar-toggle-label {
@@ -259,9 +247,10 @@
         }
 
         .sidebar-menu {
-            flex: 1 1 auto;
-            display: flex;
-            flex-direction: column;
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            margin-bottom: 16px;
         }
 
         .sidebar-menu ul {
@@ -270,47 +259,35 @@
             margin: 0;
         }
 
-        .sidebar-menu ul li {
+        .sidebar-menu li {
             margin-bottom: 4px;
         }
 
-        .sidebar-menu ul li a {
+        .sidebar-menu a {
             display: flex;
             align-items: center;
             padding: 12px;
             text-decoration: none;
             color: #5a3e2b;
             border-radius: 8px;
-            transition: all 0.2s ease;
+            transition: background 0.2s ease;
             height: 48px;
             box-sizing: border-box;
             position: relative;
             overflow: hidden;
         }
 
-        .sidebar-menu ul li a:hover {
+        .sidebar-menu a:hover {
             background: #f4e6d9;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
-        .sidebar-menu ul li a.active {
+        .sidebar-menu a.active {
             background: #f4e6d9;
-            color: #8b4513;
+            color: #a05c2f;
             font-weight: 600;
         }
 
-        .sidebar-menu ul li a.active::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 3px;
-            background: #a05c2f;
-        }
-
-        .sidebar-menu ul li a i {
+        .sidebar-menu a i {
             width: 24px;
             height: 24px;
             margin-right: 12px;
@@ -319,42 +296,69 @@
             justify-content: center;
             font-size: 18px;
             flex-shrink: 0;
-            transition: all 0.2s ease;
+            color: #a05c2f;
         }
 
-        .sidebar-collapsed .sidebar-menu ul li a i {
+        .sidebar-collapsed .sidebar-menu a {
+            justify-content: center;
+        }
+
+        .sidebar-collapsed .sidebar-menu a i {
             margin-right: 0;
         }
 
-        .sidebar-collapsed .sidebar-menu ul li a {
-            justify-content: center;
-            padding: 12px;
-        }
-
-        .sidebar-menu ul li a .label-text {
+        .label-text {
             font-size: 15px;
             font-weight: 500;
+            user-select: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             white-space: nowrap;
             overflow: hidden;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             flex: 1;
-            line-height: 25px;
+            line-height: 15px;
+        }
+
+        .sidebar-group-divider {
+            height: 1px;
+            background: #e5e7eb;
+            margin: 16px 12px;
+        }
+
+        .sidebar-group-label {
+          margin: 18px 0 6px 0;
+          padding-left: 4px;
+          font-size: 12px;
+          color: #a05c2f;
+          font-weight: 700;
+          letter-spacing: 0.5px;
+          text-transform: uppercase;
+          opacity: 0.7;
+          height: 18px;
+          line-height: 18px;
+          pointer-events: auto;
+          position: relative;
+        }
+        .sidebar-collapsed .sidebar-group-label {
+          opacity: 0;
+          visibility: hidden;
+          height: 0;
+          line-height: 0;
+          margin: 0;
+          padding-left: 0;
+          pointer-events: none;
+          position: fixed;
+          left: -9999px;
+          top: -9999px;
         }
 
         .sidebar-notification-wrapper {
+            flex-shrink: 0;
             margin-top: auto;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: stretch;
-            padding-bottom: 8px;
         }
 
         .sidebar-notification-row {
-            width: 100%;
             display: flex;
             align-items: center;
-            justify-content: flex-start;
             padding: 12px;
             text-decoration: none;
             color: #5a3e2b;
@@ -364,6 +368,7 @@
             box-sizing: border-box;
             cursor: pointer;
             position: relative;
+            overflow: hidden;
         }
 
         .sidebar-collapsed .sidebar-notification-row {
@@ -377,19 +382,17 @@
         .notification {
             width: 24px;
             height: 24px;
+            border: none;
+            background: transparent;
+            color: #a05c2f;
+            font-size: 18px;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #5e606e;
-            cursor: pointer;
-            font-size: 18px;
-            user-select: none;
-            outline: none;
-            background: transparent;
-            position: relative;
             margin-right: 12px;
             flex-shrink: 0;
-            border: none;
+            line-height: 1;
             padding: 0;
             border-radius: 4px;
             transform: translateY(-1px);
@@ -397,10 +400,8 @@
 
         .sidebar-collapsed .notification {
             margin-right: 0;
-            transform: none;
         }
 
-        .notification:focus,
         .notification:hover {
             background: transparent;
         }
@@ -435,6 +436,7 @@
             animation: fadeInNotification .16s cubic-bezier(.4,0,.2,1);
             transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
+
         .sidebar-collapsed .notification-popup {
             left: 90px;
         }
@@ -443,9 +445,11 @@
             from { opacity: 0; transform: translateY(20px);}
             to { opacity: 1; transform: translateY(0);}
         }
+
         .notification-popup.show {
             display: block;
         }
+
         .notification-popup-header {
             display: flex;
             align-items: flex-start;
@@ -456,6 +460,7 @@
             gap: 12px;
             position: relative;
         }
+
         .notification-popup-title {
             font-size: 16px;
             font-weight: 600;
@@ -465,6 +470,7 @@
             line-height: 1.2;
             margin-right: 32px;
         }
+
         .notification-popup-close {
             background: transparent;
             border: none;
@@ -482,116 +488,58 @@
             width: 24px;
             height: 24px;
         }
+
         .notification-popup-close:focus {
             outline: 1.5px solid #a05c2f;
         }
+
         .notification-popup-list {
             padding: 0;
             max-height: 320px;
             overflow-y: auto;
         }
+
         .notification-popup-item {
             padding: 14px 20px;
             border-bottom: 1px solid #f0f0f0;
             font-size: 15px;
             color: #5a3e2b;
         }
+
         .notification-popup-item:last-child {
             border-bottom: none;
         }
 
-        @media (max-width: 1024px) {
-            .sidebar {
-                position: fixed;
-                z-index: 1000;
-                left: 0;
-                top: 0;
-                height: 100vh;
-                box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
-            }
-            .notification-popup {
-                left: 280px;
-                bottom: 24px;
-            }
-            .sidebar-collapsed .sidebar {
-                left: -20px;
-            }
+        .wrapper {
+            display: flex;
+            min-height: 100vh;
+            background: #f8f9fa;
         }
 
-        @media (max-width: 768px) {
+        .main-content {
+            flex: 1;
+            padding: 24px;
+            overflow: auto;
+        }
+
+        .sidebar-no-transition,
+        .sidebar-no-transition * {
+            transition: none !important;
+        }
+
+        @media (max-width: 1024px) {
             .sidebar {
                 width: 70px !important;
                 min-width: 70px;
                 padding: 20px 12px;
             }
-
             .sidebar .label-text,
             .sidebar .sidebar-notification-label,
             .sidebar .sidebar-toggle-label {
                 opacity: 0;
                 visibility: hidden;
+                transform: translateX(-10px);
             }
-
-            .sidebar .sidebar-menu ul li a,
-            .sidebar .sidebar-notification-row,
-            .sidebar .sidebar-toggle-btn-row {
-                justify-content: center;
-            }
-
-            .sidebar .sidebar-menu ul li a i,
-            .sidebar .notification,
-            .sidebar .sidebar-toggle-btn {
-                margin-right: 0;
-            }
-            .notification-popup {
-                left: 70px;
-                width: 93vw;
-                min-width: 0;
-                max-width: 99vw;
-            }
-        }
-
-        .notification-dropdown {
-            display: none !important;
-        }
-        .notification-dropdown[aria-label] {
-            display: none !important;
-        }
-        .sidebar-group-label {
-          margin: 18px 0 6px 0;
-          padding-left: 4px;
-          font-size: 12px;
-          color: #a05c2f;
-          font-weight: 700;
-          letter-spacing: 0.5px;
-          text-transform: uppercase;
-          opacity: 0.7;
-          height: 18px;
-          line-height: 18px;
-          transition: opacity 0.2s, visibility 0.2s;
-        }
-        .sidebar-collapsed .sidebar-group-label {
-          color: transparent;
-          opacity: 0;
-          visibility: hidden;
-          height: 8px;
-          line-height: 8px;
-          margin: 8px 0 2px 0;
-          padding-left: 0;
-        }
-        .sidebar-group-divider {
-          border: none;
-          border-top: 1px solid #eee;
-          margin: 10px 0 0 0;
-          height: 0;
-          width: 100%;
-          background: none;
-          transition: opacity 0.2s;
-        }
-        .sidebar-collapsed .sidebar-group-divider {
-          margin: 4px 0 0 0;
-          border-top: 1px solid #f3f3f3;
-          opacity: 0.7;
         }
 
         .calculator-modal {
@@ -613,7 +561,6 @@
         .calculator-modal.show {
             opacity: 1;
             visibility: visible;
-            pointer-events: auto;
         }
         .calculator {
             background: #261c00;
@@ -814,31 +761,14 @@
             white-space: nowrap;
             pointer-events: none;
             opacity: 0;
-            transition: opacity 0.18s cubic-bezier(0.4,0,0.2,1), transform 0.18s cubic-bezier(0.4,0,0.2,1);
+            transition: opacity 0.18s cubic-bezier(0.4,0,.2,1), transform 0.18s cubic-bezier(0.4,0,.2,1);
             transform: translateY(-50%) scale(0.98);
         }
         .sidebar-tooltip.show {
             opacity: 1;
             transform: translateY(-50%) scale(1);
         }
-
-        .wrapper {
-            min-height: 100vh;
-            background: #f8f9fa;
-        }
-
-        .main-content {
-            margin-left: 260px;
-            padding: 24px;
-            min-height: 100vh;
-            overflow: auto;
-        }
-
-        .sidebar-collapsed .main-content {
-            margin-left: 70px;
-        }
     </style>
-</head>
 <script>
     (function() {
         try {
@@ -1125,12 +1055,6 @@
 
         calculatorClose.addEventListener('click', closeCalculator);
 
-        calculatorModal.addEventListener('click', function(e) {
-            if (e.target === calculatorModal) {
-                closeCalculator();
-            }
-        });
-
         document.getElementById('calculator-clear').addEventListener('click', clearCalculator);
         document.getElementById('calculator-equals').addEventListener('click', calculate);
 
@@ -1267,104 +1191,105 @@
         setupSidebarTooltips();
     });
 </script>
-<body class="sidebar-no-transition">
-<div class="wrapper">
-    <div class="sidebar sidebar-no-transition">
-        <div class="sidebar-logo">
-            <img src="/resources/logo.png" alt="Logo" />
-        </div>
-        <div class="sidebar-toggle-btn-row">
-            <button type="button" id="sidebar-toggle-btn" class="sidebar-toggle-btn" title="Toggle sidebar" style="margin-bottom: 11px">
-                <i class="fa-solid fa-bars"></i>
-                <i class="fa-solid fa-angles-left"></i>
-                <i class="fa-solid fa-angles-right"></i>
-            </button>
-            <span class="sidebar-toggle-label">Collapse Sidebar</span>
-        </div>
-        <div class="sidebar-menu">
-            <ul>
-                <%
-                   const sidebarGroups = [
-                     {
-                       label: 'Main',
-                       items: [
-                         { path: '/admin/dashboard', label: 'Home', icon: 'house' },
-                         { path: '/admin/orders', label: 'Orders', icon: 'cart-flatbed' },
-                         { path: '/admin/menu', label: 'POS Menu', icon: 'cash-register' }
-                       ]
-                     },
-                     {
-                       label: 'Inventory',
-                       items: [
-                         { path: '/admin/stocks', label: 'Stocks', icon: 'boxes-stacked' },
-                         { path: '/admin/products', label: 'Products', icon: 'list-check' }
-                       ]
-                     },
-                     {
-                       label: 'Analytics',
-                       items: [
-                         { path: '/admin/analytics', label: 'Analytics', icon: 'chart-line' }
-                       ]
-                     },
-                     {
-                       label: 'Management',
-                       items: [
-                         { path: '/admin/discounts', label: 'Discounts', icon: 'percent' },
-                         { path: '#calculator', label: 'Calculator', icon: 'calculator' },
-                         { path: '/admin/settings', label: 'Settings', icon: 'cog' }
-                       ]
-                     },
-                     {
-                       label: 'Account',
-                       items: [
-                         { path: '/auth/logout', label: 'Logout', icon: 'door-open' }
-                       ]
-                     }
-                   ];
-                %>
-                <% sidebarGroups.forEach((group, groupIdx) => { %>
-                  <% if (groupIdx > 0) { %>
-                    <li class="sidebar-group-divider"></li>
-                  <% } %>
-                  <li class="sidebar-group-label">
-                    <span class="sidebar-group-label-text"><%= group.label %></span>
-                  </li>
-                  <% group.items.forEach(item => {
-                       const isActive = (currentPage === item.path);
-                  %>
-                    <li>
-                      <a href="<%= item.path %>" class="<%= isActive ? 'active' : '' %>">
-                        <i class="fa-solid fa-<%= item.icon %>"></i>
-                        <span class="label-text"><%= item.label %></span>
-                      </a>
-                    </li>
-                  <% }) %>
-                <% }) %>
-            </ul>
-        </div>
-        <div class="sidebar-notification-wrapper">
-            <div class="sidebar-notification-row">
-                <button class="notification" role="button" aria-haspopup="true" aria-expanded="false" aria-label="Notifications" style="margin-bottom: 11px">
-                    <i class="fa-regular fa-bell"></i>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="sidebar sidebar-no-transition">
+            <div class="sidebar-logo">
+                <img src="/resources/logo.png" alt="Logo" />
+            </div>
+            <div class="sidebar-toggle-btn-row">
+                <button type="button" id="sidebar-toggle-btn" class="sidebar-toggle-btn" title="Toggle sidebar" style="margin-bottom: 11px">
+                    <i class="fa-solid fa-bars"></i>
+                    <i class="fa-solid fa-angles-left"></i>
+                    <i class="fa-solid fa-angles-right"></i>
                 </button>
-                <span class="sidebar-notification-label">Notifications</span>
+                <span class="sidebar-toggle-label">Collapse Sidebar</span>
+            </div>
+            <div class="sidebar-menu">
+                <ul>
+                    <%
+                       const sidebarGroups = [
+                         {
+                           label: 'Main',
+                           items: [
+                             { path: '/staff/dashboard', label: 'Dashboard', icon: 'house' },
+                             { path: '/staff/pos', label: 'POS Menu', icon: 'cash-register' },
+                             { path: '/staff/order', label: 'Orders', icon: 'cart-flatbed' }
+                           ]
+                         },
+                         {
+                           label: 'Tools',
+                           items: [
+                             { path: '#calculator', label: 'Calculator', icon: 'calculator' },
+                             { path: '/staff/settings', label: 'Settings', icon: 'cog' }
+                           ]
+                         },
+                         {
+                           label: 'Account',
+                           items: [
+                             { path: '/auth/logout', label: 'Logout', icon: 'door-open' }
+                           ]
+                         }
+                       ];
+                    %>
+                    <% sidebarGroups.forEach((group, groupIdx) => { %>
+                      <% if (groupIdx > 0) { %>
+                        <li class="sidebar-group-divider"></li>
+                      <% } %>
+                      <li class="sidebar-group-label">
+                        <span class="sidebar-group-label-text"><%= group.label %></span>
+                      </li>
+                      <% group.items.forEach(item => {
+                           const isActive = (typeof currentPage !== 'undefined' && currentPage === item.path);
+                      %>
+                        <li>
+                          <a href="<%= item.path %>" class="<%= isActive ? 'active' : '' %>">
+                            <i class="fa-solid fa-<%= item.icon %>"></i>
+                            <span class="label-text"><%= item.label %></span>
+                          </a>
+                        </li>
+                      <% }) %>
+                    <% }) %>
+                </ul>
+            </div>
+            <div class="sidebar-notification-wrapper">
+                <div class="sidebar-notification-row">
+                    <button class="notification" role="button" aria-haspopup="true" aria-expanded="false" aria-label="Notifications" style="margin-bottom: 11px">
+                        <i class="fa-regular fa-bell"></i>
+                    </button>
+                    <span class="sidebar-notification-label">Notifications</span>
+                </div>
             </div>
         </div>
-    </div>
-    <div id="notification-popup" class="notification-popup" tabindex="-1" aria-modal="true" role="dialog">
-        <div class="notification-popup-header">
-            <span class="notification-popup-title">Notifications</span>
-            <button id="notification-popup-close" class="notification-popup-close" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+        <div id="notification-popup" class="notification-popup" tabindex="-1" aria-modal="true" role="dialog">
+            <div class="notification-popup-header">
+                <span class="notification-popup-title">Notifications</span>
+                <button id="notification-popup-close" class="notification-popup-close" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="notification-popup-list">
+                <div class="notification-popup-item">New order received.</div>
+                <div class="notification-popup-item">Inventory update required.</div>
+                <div class="notification-popup-item">Staff shift reminder.</div>
+            </div>
         </div>
-        <div class="notification-popup-list">
-            <div class="notification-popup-item">You have 1 new order.</div>
-            <div class="notification-popup-item">Stock level is low for 'Coffee Beans'.</div>
-            <div class="notification-popup-item">New product added to the menu.</div>
+        <div class="main-content">
+            <% if (typeof success_msg !== 'undefined' && success_msg && success_msg.length > 0) { %>
+                <div class="alert alert-success alert-dismissible fade show" role="alert" style="background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 0.75rem 1.25rem; margin-bottom: 1rem; border-radius: 0.25rem;">
+                    <%= success_msg %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" style="float: right; background: none; border: none; font-size: 1.25rem; font-weight: 700; color: #000; opacity: 0.5; cursor: pointer;">&times;</button>
+                </div>
+            <% } %>
+
+            <% if (typeof error_msg !== 'undefined' && error_msg && error_msg.length > 0) { %>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert" style="background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 0.75rem 1.25rem; margin-bottom: 1rem; border-radius: 0.25rem;">
+                    <%= error_msg %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" style="float: right; background: none; border: none; font-size: 1.25rem; font-weight: 700; color: #000; opacity: 0.5; cursor: pointer;">&times;</button>
+                </div>
+            <% } %>
+
+            <%- body %>
         </div>
-    </div>
-    <div class="main-content">
-        <%- body %>
-    </div>
     <div class="calculator-modal" id="calculator-modal" aria-hidden="true">
         <div class="calculator" id="calculator">
             <div class="calculator-header">

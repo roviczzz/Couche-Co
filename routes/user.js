@@ -7,6 +7,26 @@ const bcrypt = require('bcrypt');
 const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
 const SALT_ROUNDS = 12;
 
+// Generate staff ID based on role and user ID
+function generateStaffId(role, userId) {
+  const rolePrefix = {
+    'admin': 'ADM',
+    'owner': 'OWN',
+    'staff': 'BC',
+    'user': 'USR'
+  };
+
+  const prefix = rolePrefix[role] || 'USR';
+
+  // Generate a 5-digit number based on ObjectId hash for all roles
+  const hash = userId.toString().split('').reduce((a, b) => {
+    a = ((a << 5) - a) + b.charCodeAt(0);
+    return a & a;
+  }, 0);
+  const idNumber = Math.abs(hash % 100000).toString().padStart(5, '0');
+  return `${prefix}${idNumber}`;
+}
+
 // Middleware to ensure user is logged in
 const isLoggedIn = (req, res, next) => {
   if (req.session?.user) {
@@ -30,7 +50,7 @@ router.use(nocache);
 // User login route
 router.get('/login', (req, res) => {
   if (req.session.user) {
-    return res.redirect('/user/dashboard');
+    return res.redirect('/user/home');
   }
   res.render('user/login', {
     title: 'Login | Couche Co',
@@ -62,15 +82,15 @@ router.post('/login',
         });
       }
 
+      let client;
       try {
-        const client = await MongoClient.connect(uri);
+        client = await MongoClient.connect(uri);
         const db = client.db('blessingscafe');
         const users = db.collection('users');
 
         const user = await users.findOne({ email: req.body.email });
 
         if (!user) {
-          await client.close();
           return res.render('user/login', {
             title: 'Login | Couche Co',
             errors: {},
@@ -82,7 +102,6 @@ router.post('/login',
 
         const isMatch = await bcrypt.compare(req.body.password, user.password);
         if (!isMatch) {
-          await client.close();
           return res.render('user/login', {
             title: 'Login | Couche Co',
             errors: {},
@@ -92,16 +111,23 @@ router.post('/login',
           });
         }
 
+        // Update last login time in database
+        await users.updateOne(
+          { _id: user._id },
+          { $set: { lastLogin: new Date() } }
+        );
+
         req.session.user = {
           _id: user._id,
           email: user.email,
           name: user.name || user.email,
           role: 'user',
+          staffId: user.staffId || generateStaffId('user', user._id),
+          username: user.username,
           loginTime: new Date().toISOString()
         };
 
-        await client.close();
-        res.redirect('/user/dashboard');
+        res.redirect('/user/home');
       } catch (err) {
         console.error('Login error:', err);
         res.status(500).render('user/login', {
@@ -111,6 +137,10 @@ router.post('/login',
           formData: req.body,
           layout: false
         });
+      } finally {
+        if (client) {
+          await client.close();
+        }
       }
     }
 );
