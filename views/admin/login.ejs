@@ -9,8 +9,8 @@
 <body>
 <div class="login-box">
     <img src="https://iili.io/F5oAbt9.png" alt="Blessings Cafe Logo" />
-    <h2>Welcome back!</h2>
-    <form action="/auth/admin/login" method="post">
+    <h2>Staff & Admin Login</h2>
+    <form action="/auth/unified/login" method="post">
         <label for="Username">Username</label>
         <input id="Username" name="Username" type="text" placeholder="Enter username"
                value="<%= typeof formData !== 'undefined' ? formData.Username : '' %>"
@@ -34,6 +34,9 @@
             <div class="error"><%= error %></div>
         <% } %>
     </form>
+    <div class="login-links">
+        <p>Use your admin or staff credentials to access the system</p>
+    </div>
 </div>
 </body>
 </html>
