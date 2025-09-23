@@ -1,0 +1,20 @@
+[{
+  "_id": {
+    "$oid": "687c62a141b9b5ed88341591"
+  },
+  "password": "$2b$12$QjPzzCWC3x2dB4.lf6lz7u/uLm2l3RZWngGOzkcyaTdV3Vz2Rc7Gu",
+  "username": "BlessingsAdmin",
+  "secretCode": "Coffee123!",
+  "passwordUpgraded": {
+    "$date": "2025-08-19T07:07:58.000Z"
+  },
+  "upgradedBy": "auto-login",
+  "lastModified": {
+    "$date": "2025-08-19T07:07:58.000Z"
+  },
+  "passwordChangedAt": {
+    "$date": "2025-08-19T07:07:58.000Z"
+  },
+  "passwordChangedBy": "BlessingsAdmin",
+  "role": "admin"
+}]
