@@ -71,6 +71,9 @@ const {
   getAverageSalesPerDay,
   getSalesPerformance,
   getDashboardAnalyticsStats,
+  getTopCategories,
+  getPaymentTypes,
+  getOrdersBySource,
   addDiscount,
   updateDiscount,
   deleteDiscount,
@@ -127,14 +130,14 @@ router.get('/analytics/top-categories', nocache, async (req, res) => {
   try {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
-    
+
     const pipeline = [
       { $unwind: '$Cart' },
-      { 
-        $match: { 
+      {
+        $match: {
           PaymentStatus: { $ne: 'Cancelled' },
           'Cart.Category': { $exists: true, $ne: null }
-        } 
+        }
       },
       {
         $group: {
@@ -150,7 +153,7 @@ router.get('/analytics/top-categories', nocache, async (req, res) => {
 
     const categories = await db.collection('Orders').aggregate(pipeline).toArray();
     await client.close();
-    
+
     res.json(categories.map(cat => ({
       name: cat._id,
       value: cat.total,
@@ -160,6 +163,88 @@ router.get('/analytics/top-categories', nocache, async (req, res) => {
   } catch (error) {
     console.error('Top categories error:', error);
     res.status(500).json({ error: 'Failed to load top categories' });
+  }
+});
+
+router.get('/analytics/payment-types', nocache, async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    const pipeline = [
+      {
+        $match: {
+          PaymentStatus: { $ne: 'Cancelled' },
+          PaymentMode: { $exists: true, $ne: null }
+        }
+      },
+      {
+        $project: {
+          PaymentMode: {
+            $cond: {
+              if: { $in: ['$PaymentMode', ['E-PAYMENT', 'E-Payment']] },
+              then: 'E-Payment',
+              else: '$PaymentMode'
+            }
+          },
+          PaymentStatus: 1
+        }
+      },
+      {
+        $group: {
+          _id: '$PaymentMode',
+          orderCount: { $sum: 1 }
+        }
+      },
+      { $sort: { orderCount: -1 } }
+    ];
+
+    const paymentTypes = await db.collection('Orders').aggregate(pipeline).toArray();
+    await client.close();
+
+    res.json(paymentTypes.map(pt => ({
+      name: pt._id,
+      orderCount: pt.orderCount
+    })));
+  } catch (error) {
+    console.error('Payment types error:', error);
+    res.status(500).json({ error: 'Failed to load payment types' });
+  }
+});
+
+router.get('/analytics/orders-by-source', nocache, async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    const pipeline = [
+      {
+        $match: {
+          PaymentStatus: { $ne: 'Cancelled' },
+          Source: { $exists: true, $ne: null, $ne: '' }
+        }
+      },
+      {
+        $group: {
+          _id: '$Source',
+          orderCount: { $sum: 1 },
+          totalRevenue: { $sum: '$Total' }
+        }
+      },
+      { $sort: { orderCount: -1 } }
+    ];
+
+    const ordersBySource = await db.collection('Orders').aggregate(pipeline).toArray();
+    await client.close();
+
+    res.json(ordersBySource.map(source => ({
+      name: source._id,
+      orderCount: source.orderCount,
+      totalRevenue: source.totalRevenue
+    })));
+  } catch (error) {
+    console.error('Orders by source error:', error);
+    res.status(500).json({ error: 'Failed to load orders by source' });
   }
 });
 
@@ -175,13 +260,39 @@ router.get('/', (req, res) => {
 // Admin Dashboard
 router.get('/dashboard', nocache, async (req, res) => {
   try {
-    const stats = await getDashboardStats();
+    // Fetch current user data from database to ensure fullname is up to date
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const currentUser = await db.collection('users').findOne({ _id: new ObjectId(req.session.user._id) });
+    await client.close();
+
+    // Merge session data with fresh database data
+    const userData = {
+      ...req.session.user,
+      fullname: currentUser?.fullname
+    };
+
+    // Fetch all dashboard data server-side for better loading performance
+    const [stats, analyticsStats, topCategories, paymentTypes, ordersBySource, salesPerformance] = await Promise.all([
+      getDashboardStats(),
+      getDashboardAnalyticsStats(),
+      getTopCategories(),
+      getPaymentTypes(),
+      getOrdersBySource(),
+      getSalesPerformance(14)
+    ]);
+
     res.render('admin/dashboard', {
       title: 'Admin Dashboard',
-      user: req.session.user,
+      user: userData,
       currentPage: '/admin/dashboard',
       layout: 'admin/layout',
-      ...stats
+      ...stats,
+      analyticsStats,
+      topCategories,
+      paymentTypes,
+      ordersBySource,
+      salesPerformance
     });
   } catch (error) {
     console.error('Dashboard error:', error);
@@ -557,13 +668,52 @@ router.get('/discounts', nocache, async (req, res) => {
 });
 
 // Admin settings page
-router.get('/settings', nocache, (req, res) => {
-  res.render('admin/settings', {
-    title: 'Settings | Blessings Cafe',
-    user: req.session.user,
-    currentPage: '/admin/settings',
-    layout: 'admin/layout'
-  });
+router.get('/settings', nocache, async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const user = await db.collection('users').findOne({ _id: new ObjectId(req.session.user._id) });
+    await client.close();
+
+    res.render('admin/settings', {
+      title: 'Settings | Blessings Cafe',
+      user: user,
+      currentPage: '/admin/settings',
+      layout: 'admin/layout'
+    });
+  } catch (error) {
+    console.error('Admin Settings error:', error);
+    res.status(500).render('error', {
+      title: 'Server Error',
+      message: 'Failed to load settings',
+      status: 500
+    });
+  }
+});
+
+router.post('/settings', async (req, res) => {
+  try {
+    const { displayName, email, phone } = req.body;
+
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    await db.collection('users').updateOne(
+      { _id: new ObjectId(req.session.user._id) },
+      { $set: { fullname: displayName, email, phone } }
+    );
+
+    await client.close();
+
+    res.redirect('/admin/settings');
+  } catch (error) {
+    console.error('Admin Settings update error:', error);
+    res.status(500).render('error', {
+      title: 'Server Error',
+      message: 'Failed to update settings',
+      status: 500
+    });
+  }
 });
 
 // Password change route

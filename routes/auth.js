@@ -38,7 +38,7 @@ function isLoggedIn(req, res, next) {
 router.get('/login', (req, res) => {
   console.log('Login page requested');
   if (req.session.user) {
-    return res.redirect(req.session.user.role === 'admin' ? '/admin/dashboard' : '/user/dashboard');
+    return res.redirect(req.session.user.role === 'admin' ? '/admin/dashboard' : '/user/home');
   }
 
   try {
@@ -113,13 +113,14 @@ router.post('/login',
         _id: user._id,
         email: user.email,
         name: user.name,
+        fullname: user.fullname,
         role: user.role || 'user',
         staffId: user.staffId || generateStaffId(user.role, user._id),
         username: user.username
       };
 
       // Redirect based on role
-      const redirectPath = user.role === 'admin' ? '/admin/dashboard' : '/user/dashboard';
+      const redirectPath = user.role === 'admin' ? '/admin/dashboard' : '/user/home';
       res.redirect(redirectPath);
 
     } catch (error) {
@@ -167,7 +168,7 @@ router.get('/register', (req, res) => {
 // Account login route (for legacy compatibility)
 router.get('/account/login', (req, res) => {
   if (req.session.user) {
-    return res.redirect('/dashboard');
+    return res.redirect(req.session.user.role === 'admin' ? '/admin/dashboard' : '/user/home');
   }
   res.render('login', {
     title: 'Login | Blessings Cafe',
@@ -271,13 +272,17 @@ router.post('/account/login',
         _id: user._id,
         username: user.username,
         email: user.email,
+        fullname: user.fullname,
         role: user.role || 'admin',
         staffId: user.staffId || generateStaffId(user.role, user._id),
         loginTime: new Date().toISOString()
       };
 
       console.log(`✅ Login successful for user: ${user.username} (ID: ${user._id}) at ${new Date().toISOString()}`);
-      res.redirect('/dashboard');
+
+      // Redirect based on role
+      const redirectPath = user.role === 'admin' ? '/admin/dashboard' : '/user/home';
+      res.redirect(redirectPath);
     } catch (err) {
       console.error('❌ Login error:', err);
       res.status(500).send('Internal Server Error');
@@ -431,6 +436,7 @@ router.post('/unified/login',
         _id: user._id,
         username: user.username,
         email: user.email,
+        fullname: user.fullname,
         role: user.role || 'admin',
         staffId: user.staffId || generateStaffId(user.role, user._id),
         loginTime: new Date().toISOString()

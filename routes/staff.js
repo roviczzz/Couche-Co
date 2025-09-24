@@ -8,27 +8,11 @@ function isStaffLoggedIn(req, res, next) {
   if (req.session.user && req.session.user.role === 'staff') {
     return next();
   }
-  res.redirect('/staff/login');
+  res.redirect('/admin/login');
 }
 
-router.get('/login', (req, res) => {
-  if (req.session.user && req.session.user.role === 'staff') {
-    return res.redirect('/staff/dashboard');
-  }
-  res.render('staff/login', {
-    title: 'Staff Login',
-    layout: false
-  });
-});
-
 // Apply authentication middleware to all protected routes
-router.use((req, res, next) => {
-  // Skip authentication for login page
-  if (req.path === '/login') {
-    return next();
-  }
-  return isStaffLoggedIn(req, res, next);
-});
+router.use(isStaffLoggedIn);
 
 router.use((req, res, next) => {
   res.locals.sidebarItems = [
@@ -63,10 +47,23 @@ async function getDashboardStats() {
 
 router.get('/dashboard', async (req, res) => {
   try {
+    // Fetch current user data from database to ensure fullname is up to date
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const currentUser = await db.collection('users').findOne({ _id: new ObjectId(req.session.user._id) });
+    await client.close();
+
+    // Merge session data with fresh database data
+    const userData = {
+      ...req.session.user,
+      fullname: currentUser?.fullname
+    };
+
     const stats = await getDashboardStats();
     res.render('staff/dashboard', {
       title: 'Staff Dashboard',
       layout: 'staff/layout',
+      user: userData,
       ...stats
     });
   } catch (error) {

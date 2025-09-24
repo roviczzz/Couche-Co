@@ -1,6 +1,6 @@
 <div class="dashboard-cards-grid">
     <div class="dashboard-header-greeting" style="margin-bottom:18px;font-size:35px;font-weight:600;color:black;">
-        Hello, <%= typeof user !== 'undefined' && user.name ? user.name : 'there' %>! <br>
+        Hello, <%= typeof user !== 'undefined' && (user.fullname || user.displayName) ? (user.fullname || user.displayName).split(' ')[0] : 'there' %>! <br>
         <a style="font-size: 16px;color: #838384; font-weight: 400;">Here are today's stats!</a>
     </div>
     <div class="main-summary-cards">
@@ -10,7 +10,7 @@
                 <div class="card-label">Total Sales</div>
                 <div class="card-sub"><%= typeof stats !== 'undefined' && typeof stats.totalOrders !== 'undefined' ? stats.totalOrders + ' Orders' : '0 Orders' %></div>                <div class="card-value" id="total-sales-value"><%= typeof stats !== 'undefined' && stats.totalSales ? '₱' + stats.totalSales.toLocaleString('en-PH', {minimumFractionDigits:2}) : '₱0.00' %></div>
                 <div class="card-trends" id="total-sales-trends">
-                    <span id="total-sales-trend" class="<%= typeof stats !== 'undefined' && stats.totalSalesPercent >= 0 ? 'trend-up' : 'trend-down' %>">
+                    <span id="total-sales-trend;" class="<%= typeof stats !== 'undefined' && stats.totalSalesPercent >= 0 ? 'trend-up' : 'trend-down' %>">
                         <%= typeof stats !== 'undefined' && typeof stats.totalSalesPercent !== 'undefined'
                                 ? (stats.totalSalesPercent > 0 ? '+' : '') + stats.totalSalesPercent + '%'
                                 : '+0%' %>
@@ -70,6 +70,14 @@
             </div>
             <div id="sales-performance-info"></div>
         </div>
+        <div class="card payment-types" style="min-height:540px;display:flex;flex-direction:column;">
+            <div class="card-label">Most Orders by Payment Type</div>
+            <div class="payment-types-chart-container" style="height:220px;display:flex;align-items:center;justify-content:center;">
+                <canvas id="paymentTypesChart" width="120" height="120" style="max-width:150px;max-height:150px;"></canvas>
+                <div id="payment-types-loading-indicator" class="chart-loading">Loading payment types...</div>
+            </div>
+            <div id="payment-types-list" style="flex:1 1 0;margin-top:8px;max-height:280px;overflow-y:auto;width:100%;min-width:0;box-sizing:border-box;"></div>
+        </div>
         <div class="card top-categories" style="min-height:540px;display:flex;flex-direction:column;">
             <div class="card-label">Top Categories</div>
             <div class="top-categories-chart-container" style="height:220px;display:flex;align-items:center;justify-content:center;">
@@ -78,12 +86,37 @@
             </div>
             <div id="top-categories-list" style="flex:1 1 0;margin-top:8px;max-height:280px;overflow-y:auto;width:100%;min-width:0;box-sizing:border-box;"></div>
         </div>
+        <div class="card orders-by-source" style="min-height:540px;display:flex;flex-direction:column;">
+            <div class="card-label">Orders by Platform</div>
+            <div class="orders-by-source-chart-container" style="height:220px;display:flex;align-items:center;justify-content:center;">
+                <canvas id="ordersBySourceChart" width="120" height="120" style="max-width:150px;max-height:150px;"></canvas>
+                <div id="orders-by-source-loading-indicator" class="chart-loading">Loading platforms...</div>
+            </div>
+            <div id="orders-by-source-list" style="flex:1 1 0;margin-top:8px;max-height:280px;overflow-y:auto;width:100%;min-width:0;box-sizing:border-box;"></div>
+        </div>
     </div>
 </div>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     async function fetchDashboardStats() {
+        // Use server-rendered data if available
+        <% if (typeof analyticsStats !== 'undefined' && analyticsStats) { %>
+        const stats = <%- JSON.stringify(analyticsStats) %>;
+        document.getElementById('total-sales-value').innerText = '₱' + (stats.totalSales || 0).toLocaleString('en-PH', {minimumFractionDigits:2});
+        document.getElementById('total-sales-trend').innerText = (stats.totalSalesPercent > 0 ? '+' : '') + (stats.totalSalesPercent || 0) + '%';
+        document.getElementById('total-sales-trend').className = stats.totalSalesPercent >= 0 ? 'trend-up' : 'trend-down';
+        document.getElementById('total-sales-week').innerText = (stats.totalSalesWeek || 0) + ' this week';
+
+        document.getElementById('incoming-orders-value').innerText = stats.incomingOrders || 0;
+        document.getElementById('incoming-orders-trend').innerText = (stats.incomingOrdersPercent > 0 ? '+' : '') + (stats.incomingOrdersPercent || 0) + '%';
+        document.getElementById('incoming-orders-trend').className = stats.incomingOrdersPercent >= 0 ? 'trend-up' : 'trend-down';
+
+        document.getElementById('orders-today-value').innerText = stats.ordersToday || 0;
+        document.getElementById('orders-today-trend').innerText = (stats.ordersTodayPercent > 0 ? '+' : '') + (stats.ordersTodayPercent || 0) + '%';
+        document.getElementById('orders-today-trend').className = stats.ordersTodayPercent >= 0 ? 'trend-up' : 'trend-down';
+        <% } else { %>
+        // Fallback to AJAX if server data not available
         try {
             const res = await fetch('/admin/analytics/dashboard-stats');
             const stats = await res.json();
@@ -100,6 +133,7 @@
             document.getElementById('orders-today-trend').innerText = (stats.ordersTodayPercent > 0 ? '+' : '') + (stats.ordersTodayPercent || 0) + '%';
             document.getElementById('orders-today-trend').className = stats.ordersTodayPercent >= 0 ? 'trend-up' : 'trend-down';
         } catch (err) {}
+        <% } %>
     }
     document.addEventListener('DOMContentLoaded', function() {
         const periodSelect = document.getElementById('performance-period');
@@ -118,6 +152,8 @@
         fetchDashboardStats();
         drawSalesPerformanceChart();
         drawTopCategoriesChart();
+        drawPaymentTypesChart();
+        drawOrdersBySourceChart();
     });
     async function drawSalesPerformanceChart(days=14) {
         let results = [];
@@ -199,6 +235,10 @@
         const loadingIndicator = document.getElementById('categories-loading-indicator');
         if (loadingIndicator) loadingIndicator.style.display = 'flex';
         let categories = [];
+        // Use server-rendered data if available
+        <% if (typeof topCategories !== 'undefined' && Array.isArray(topCategories) && topCategories.length) { %>
+        categories = <%- JSON.stringify(topCategories) %>;
+        <% } else { %>
         try {
             const response = await fetch('/admin/analytics/top-categories');
             if (response.ok) {
@@ -216,6 +256,7 @@
                 { name: 'Fruit Tea', value: 78, quantity: 2, orderCount: 2 }
             ];
         }
+        <% } %>
         const chartElement = document.getElementById('topCategoriesChart');
         if (!chartElement) return;
         if (window.topCategoriesChart && typeof window.topCategoriesChart.destroy === 'function') window.topCategoriesChart.destroy();
@@ -296,7 +337,7 @@
         if (listElement) {
             listElement.innerHTML = listHtml;
             setTimeout(() => {
-                document.querySelectorAll('.cat-row').forEach((row, index) => {
+                document.querySelectorAll('#top-categories-list .cat-row').forEach((row, index) => {
                     row.addEventListener('mouseenter', () => {
                         if (window.topCategoriesChart) {
                             try {
@@ -314,6 +355,281 @@
                             try {
                                 window.topCategoriesChart.setActiveElements([]);
                                 window.topCategoriesChart.update('none');
+                            } catch (e) {}
+                        }
+                        row.style.backgroundColor = 'transparent';
+                    });
+                });
+            }, 100);
+        }
+    }
+    async function drawPaymentTypesChart() {
+        const loadingIndicator = document.getElementById('payment-types-loading-indicator');
+        if (loadingIndicator) loadingIndicator.style.display = 'flex';
+        let paymentTypes = [];
+        // Use server-rendered data if available
+        <% if (typeof paymentTypes !== 'undefined' && Array.isArray(paymentTypes) && paymentTypes.length) { %>
+        paymentTypes = <%- JSON.stringify(paymentTypes) %>;
+        <% } else { %>
+        try {
+            const response = await fetch('/admin/analytics/payment-types');
+            if (response.ok) {
+                paymentTypes = await response.json();
+                if (!Array.isArray(paymentTypes) || !paymentTypes.length || !paymentTypes[0].name) {
+                    paymentTypes = [];
+                }
+            }
+        } catch (error) {}
+        if (!paymentTypes.length) {
+            paymentTypes = [
+                { name: 'Cash on Hand', orderCount: 120 },
+                { name: 'E-Payment', orderCount: 80 }
+            ];
+        }
+        <% } %>
+        const chartElement = document.getElementById('paymentTypesChart');
+        if (!chartElement) return;
+        if (window.paymentTypesChart && typeof window.paymentTypesChart.destroy === 'function') window.paymentTypesChart.destroy();
+        const labels = paymentTypes.map(p => p.name || 'Unnamed');
+        const orderCounts = paymentTypes.map(p => p.orderCount || 0);
+        const colors = ['#6d4f2c','#a05c2f','#c1a97b','#e3dac9','#d2a679','#9d7a56','#b7966c','#8b7355'];
+        if (loadingIndicator) loadingIndicator.style.display = 'none';
+        window.paymentTypesChart = new Chart(chartElement, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Orders',
+                    data: orderCounts,
+                    backgroundColor: colors.slice(0, labels.length).map(color => color + '80'),
+                    borderColor: colors.slice(0, labels.length),
+                    borderWidth: 2,
+                    borderRadius: 6,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(107, 62, 38, 0.95)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: '#6b3e26',
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        displayColors: true,
+                        callbacks: {
+                            label: function(context) {
+                                const total = orderCounts.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? ((context.parsed.y / total) * 100).toFixed(1) : '0.0';
+                                return [
+                                    `Orders: ${context.parsed.y}`,
+                                    `Share: ${percentage}%`
+                                ];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            font: { size: 11 },
+                            maxRotation: 45,
+                            minRotation: 0
+                        },
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            font: { size: 11 },
+                            precision: 0
+                        },
+                        grid: {
+                            color: 'rgba(160, 92, 47, 0.1)'
+                        }
+                    }
+                },
+                animation: {
+                    duration: 1500,
+                    easing: 'easeInOutCubic'
+                }
+            }
+        });
+        const totalOrders = orderCounts.reduce((sum, val) => sum + val, 0) || 1;
+        let listHtml = '';
+        for(let i = 0; i < labels.length; i++) {
+            const percentage = ((orderCounts[i] / totalOrders) * 100).toFixed(1);
+            listHtml += `
+            <div class="cat-row" data-payment="${labels[i]}">
+                <div class="cat-info">
+                    <span class="cat-dot" style="background:${colors[i % colors.length]}"></span>
+                    <span class="cat-name">${labels[i]}</span>
+                </div>
+                <div class="cat-details">
+                    <span class="cat-val">${orderCounts[i]} orders</span>
+                    <span class="cat-percent">${percentage}%</span>
+                </div>
+            </div>
+        `;
+        }
+        const listElement = document.getElementById('payment-types-list');
+        if (listElement) {
+            listElement.innerHTML = listHtml;
+            setTimeout(() => {
+                document.querySelectorAll('#payment-types-list .cat-row').forEach((row, index) => {
+                    row.addEventListener('mouseenter', () => {
+                        if (window.paymentTypesChart) {
+                            try {
+                                window.paymentTypesChart.setActiveElements([{
+                                    datasetIndex: 0,
+                                    index: index
+                                }]);
+                                window.paymentTypesChart.update('none');
+                            } catch (e) {}
+                        }
+                        row.style.backgroundColor = 'rgba(107, 62, 38, 0.05)';
+                    });
+                    row.addEventListener('mouseleave', () => {
+                        if (window.paymentTypesChart) {
+                            try {
+                                window.paymentTypesChart.setActiveElements([]);
+                                window.paymentTypesChart.update('none');
+                            } catch (e) {}
+                        }
+                        row.style.backgroundColor = 'transparent';
+                    });
+                });
+            }, 100);
+        }
+    }
+    async function drawOrdersBySourceChart() {
+        const loadingIndicator = document.getElementById('orders-by-source-loading-indicator');
+        if (loadingIndicator) loadingIndicator.style.display = 'flex';
+        let ordersBySource = [];
+        // Use server-rendered data if available
+        <% if (typeof ordersBySource !== 'undefined' && Array.isArray(ordersBySource) && ordersBySource.length) { %>
+        ordersBySource = <%- JSON.stringify(ordersBySource) %>;
+        <% } else { %>
+        // Fallback to AJAX if server data not available
+        try {
+            const response = await fetch('/admin/analytics/orders-by-source');
+            if (response.ok) {
+                ordersBySource = await response.json();
+                if (!Array.isArray(ordersBySource) || !ordersBySource.length || !ordersBySource[0].name) {
+                    ordersBySource = [];
+                }
+            }
+        } catch (error) {}
+        if (!ordersBySource.length) {
+            ordersBySource = [
+                { name: 'Chatbot', orderCount: 85, totalRevenue: 2450 },
+                { name: 'POS', orderCount: 45, totalRevenue: 1800 }
+            ];
+        }
+        <% } %>
+        const chartElement = document.getElementById('ordersBySourceChart');
+        if (!chartElement) return;
+        if (window.ordersBySourceChart && typeof window.ordersBySourceChart.destroy === 'function') window.ordersBySourceChart.destroy();
+        const labels = ordersBySource.map(p => p.name || 'Unnamed');
+        const orderCounts = ordersBySource.map(p => p.orderCount || 0);
+        const colors = ['#6d4f2c','#a05c2f','#c1a97b','#e3dac9','#d2a679','#9d7a56','#b7966c','#8b7355'];
+        if (loadingIndicator) loadingIndicator.style.display = 'none';
+        window.ordersBySourceChart = new Chart(chartElement, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Orders',
+                    data: orderCounts,
+                    backgroundColor: colors.slice(0, labels.length),
+                    borderWidth: 2,
+                    borderColor: '#ffffff',
+                    hoverBorderWidth: 3,
+                    hoverBorderColor: '#6b3e26'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(107, 62, 38, 0.95)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: '#6b3e26',
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        displayColors: true,
+                        callbacks: {
+                            label: function(context) {
+                                const idx = context.dataIndex;
+                                const total = orderCounts.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : '0.0';
+                                const revenue = ordersBySource[idx]?.totalRevenue || 0;
+                                return [
+                                    `Orders: ${context.parsed}`,
+                                    `Revenue: ₱${revenue.toLocaleString('en-PH')}`,
+                                    `Share: ${percentage}%`
+                                ];
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    animateRotate: true,
+                    duration: 1500,
+                    easing: 'easeInOutCubic'
+                }
+            }
+        });
+        const totalOrders = orderCounts.reduce((sum, val) => sum + val, 0) || 1;
+        let listHtml = '';
+        for(let i = 0; i < labels.length; i++) {
+            const percentage = ((orderCounts[i] / totalOrders) * 100).toFixed(1);
+            const revenue = ordersBySource[i]?.totalRevenue || 0;
+            listHtml += `
+            <div class="cat-row" data-source="${labels[i]}">
+                <div class="cat-info">
+                    <span class="cat-dot" style="background:${colors[i % colors.length]}"></span>
+                    <span class="cat-name">${labels[i]}</span>
+                </div>
+                <div class="cat-details">
+                    <span class="cat-val">${orderCounts[i]} orders</span>
+                    <span class="cat-revenue">₱${revenue.toLocaleString('en-PH')}</span>
+                    <span class="cat-percent">${percentage}%</span>
+                </div>
+            </div>
+        `;
+        }
+        const listElement = document.getElementById('orders-by-source-list');
+        if (listElement) {
+            listElement.innerHTML = listHtml;
+            setTimeout(() => {
+                document.querySelectorAll('#orders-by-source-list .cat-row').forEach((row, index) => {
+                    row.addEventListener('mouseenter', () => {
+                        if (window.ordersBySourceChart) {
+                            try {
+                                window.ordersBySourceChart.setActiveElements([{
+                                    datasetIndex: 0,
+                                    index: index
+                                }]);
+                                window.ordersBySourceChart.update('none');
+                            } catch (e) {}
+                        }
+                        row.style.backgroundColor = 'rgba(107, 62, 38, 0.05)';
+                    });
+                    row.addEventListener('mouseleave', () => {
+                        if (window.ordersBySourceChart) {
+                            try {
+                                window.ordersBySourceChart.setActiveElements([]);
+                                window.ordersBySourceChart.update('none');
                             } catch (e) {}
                         }
                         row.style.backgroundColor = 'transparent';
@@ -443,7 +759,7 @@
         min-width: 340px;
         min-height: 540px;
     }
-    .top-categories {
+    .top-categories, .payment-types, .orders-by-source {
         flex: 1 0 0;
         min-width: 240px;
         align-items: flex-start;
@@ -451,7 +767,7 @@
         min-height: 540px;
         justify-content: flex-start;
     }
-    .top-categories-chart-container {
+    .top-categories-chart-container, .payment-types-chart-container, .orders-by-source-chart-container {
         width: 100%;
         display: flex;
         justify-content: center;
@@ -551,11 +867,11 @@
     }
     @media (max-width: 1150px) {
         .main-summary-cards, .performance-cards-row { flex-direction: column; gap: 22px; }
-        .sales-performance, .top-categories { min-width: 0; min-height: 420px; }
-        .top-categories-chart-container { height: 180px; }
+        .sales-performance, .top-categories, .payment-types, .orders-by-source { min-width: 0; min-height: 420px; }
+        .top-categories-chart-container, .payment-types-chart-container, .orders-by-source-chart-container { height: 180px; }
     }
     @media (max-width: 768px) {
-        .top-categories-chart-container {
+        .top-categories-chart-container, .payment-types-chart-container, .orders-by-source-chart-container {
             height: 120px;
             margin-bottom: 15px;
         }
@@ -573,13 +889,13 @@
         .cat-percent {
             font-size: 10px;
         }
-        .sales-performance, .top-categories { min-height: 320px; }
+        .sales-performance, .top-categories, .payment-types, .orders-by-source { min-height: 320px; }
     }
     @media (max-width: 700px) {
         .dashboard-cards-grid { gap: 18px; }
         .main-summary-cards, .performance-cards-row { flex-direction: column; gap: 14px; }
         .summary-card, .card { padding: 17px 12px 15px 12px; }
         .card-label { font-size: 16px; }
-        .sales-performance, .top-categories { min-height: 220px; }
+        .sales-performance, .top-categories, .payment-types, .orders-by-source { min-height: 220px; }
     }
 </style>

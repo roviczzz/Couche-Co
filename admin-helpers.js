@@ -973,6 +973,128 @@ async function getAverageSalesPerDay() {
   }
 }
 
+async function getTopCategories() {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    const pipeline = [
+      { $unwind: '$Cart' },
+      {
+        $match: {
+          PaymentStatus: { $ne: 'Cancelled' },
+          'Cart.Category': { $exists: true, $ne: null }
+        }
+      },
+      {
+        $group: {
+          _id: '$Cart.Category',
+          total: { $sum: { $multiply: ['$Cart.Price', '$Cart.Quantity'] } },
+          quantity: { $sum: '$Cart.Quantity' },
+          orderCount: { $sum: 1 }
+        }
+      },
+      { $sort: { total: -1 } },
+      { $limit: 8 }
+    ];
+
+    const categories = await db.collection('Orders').aggregate(pipeline).toArray();
+    await client.close();
+
+    return categories.map(cat => ({
+      name: cat._id,
+      value: cat.total,
+      quantity: cat.quantity,
+      orderCount: cat.orderCount
+    }));
+  } catch (err) {
+    console.error('Error getting top categories:', err);
+    return [];
+  }
+}
+
+async function getPaymentTypes() {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    const pipeline = [
+      {
+        $match: {
+          PaymentStatus: { $ne: 'Cancelled' },
+          PaymentMode: { $exists: true, $ne: null }
+        }
+      },
+      {
+        $project: {
+          PaymentMode: {
+            $cond: {
+              if: { $in: ['$PaymentMode', ['E-PAYMENT', 'E-Payment']] },
+              then: 'E-Payment',
+              else: '$PaymentMode'
+            }
+          },
+          PaymentStatus: 1
+        }
+      },
+      {
+        $group: {
+          _id: '$PaymentMode',
+          orderCount: { $sum: 1 }
+        }
+      },
+      { $sort: { orderCount: -1 } }
+    ];
+
+    const paymentTypes = await db.collection('Orders').aggregate(pipeline).toArray();
+    await client.close();
+
+    return paymentTypes.map(pt => ({
+      name: pt._id,
+      orderCount: pt.orderCount
+    }));
+  } catch (err) {
+    console.error('Error getting payment types:', err);
+    return [];
+  }
+}
+
+async function getOrdersBySource() {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    const pipeline = [
+      {
+        $match: {
+          PaymentStatus: { $ne: 'Cancelled' },
+          Source: { $exists: true, $ne: null, $ne: '' }
+        }
+      },
+      {
+        $group: {
+          _id: '$Source',
+          orderCount: { $sum: 1 },
+          totalRevenue: { $sum: '$Total' }
+        }
+      },
+      { $sort: { orderCount: -1 } }
+    ];
+
+    const ordersBySource = await db.collection('Orders').aggregate(pipeline).toArray();
+    await client.close();
+
+    return ordersBySource.map(source => ({
+      name: source._id,
+      orderCount: source.orderCount,
+      totalRevenue: source.totalRevenue
+    }));
+  } catch (err) {
+    console.error('Error getting orders by source:', err);
+    return [];
+  }
+}
+
 async function getSalesPerformance(days = 14) {
   try {
     const client = await MongoClient.connect(uri);
@@ -1079,6 +1201,9 @@ module.exports = {
   restoreOrder,
   getAverageSalesPerDay,
   getSalesPerformance,
+  getTopCategories,
+  getPaymentTypes,
+  getOrdersBySource,
   addDiscount,
   updateDiscount,
   deleteDiscount,

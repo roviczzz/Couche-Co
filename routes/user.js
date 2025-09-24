@@ -145,32 +145,7 @@ router.post('/login',
     }
 );
 
-// User dashboard route
-router.get('/dashboard', async (req, res) => {
-  try {
-    const client = new MongoClient(uri);
-    await client.connect();
-    const db = client.db('blessingscafe');
-    
-    // Get user's recent orders
-    const recentOrders = await db.collection('Orders')
-      .find({ 'user._id': req.session.user._id })
-      .sort({ date: -1 })
-      .limit(5)
-      .toArray();
 
-    res.render('user/dashboard', {
-      title: 'My Dashboard',
-      user: req.session.user,
-      recentOrders
-    });
-    
-    await client.close();
-  } catch (error) {
-    console.error('Dashboard error:', error);
-    res.status(500).send('Error loading dashboard');
-  }
-});
 
 // User profile route
 router.get('/profile', async (req, res) => {
