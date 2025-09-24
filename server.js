@@ -67,6 +67,8 @@ app.use('/staff', staffRoutes);
 // Legacy route compatibility
 app.use('/account', authRoutes);
 
+app.use('/uploads', express.static('uploads'));
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error:', err);

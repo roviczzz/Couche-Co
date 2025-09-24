@@ -3,44 +3,50 @@ const router = express.Router();
 const { MongoClient, ObjectId } = require('mongodb');
 const bcrypt = require('bcrypt');
 const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+const fs = require('fs');
+const path = require('path');
+const axios = require('axios');
+const multer = require('multer');
+let productCollection;
 
-// Direct toggle availability endpoint
-router.post('/toggle-availability/:id', async (req, res) => {
-  console.log('Direct toggle endpoint hit with ID:', req.params.id);
-  console.log('Request body:', req.body);
-
+// Connect once and reuse
+(async () => {
   try {
     const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    const db = client.db("blessingscafe");
+    productCollection = db.collection("Menu");
+    console.log("✅ Connected to MongoDB (Menu collection ready)");
+  } catch (err) {
+    console.error("MongoDB connection error:", err);
+  }
+})();
 
-    // Get product ID and new availability status
-    const productId = req.params.id;
+
+router.post("/toggle-availability/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
     const { isEnabled } = req.body;
 
-    console.log('Updating product with ID:', productId);
-    console.log('New isEnabled status:', isEnabled);
+    console.log("Toggle request:", id, req.body);
 
-    // Update the product
-    const result = await db.collection('Menu').updateOne(
-      { _id: new ObjectId(productId) },
-      { $set: { isEnabled: isEnabled } }
+    const enabledValue = isEnabled === true || isEnabled === "true";
+
+    const result = await productCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { isEnabled: enabledValue } }
     );
 
-    console.log('Update result:', result);
-
-    await client.close();
-
     if (result.matchedCount === 0) {
-      console.log('Product not found in database');
-      return res.status(404).json({ success: false, message: 'Product not found' });
+      return res.status(404).json({ success: false, message: "Product not found" });
     }
 
-    res.json({ success: true, message: 'Product availability updated successfully' });
-  } catch (error) {
-    console.error('Toggle availability error:', error);
-    res.status(500).json({ success: false, message: 'Failed to update product availability' });
+    res.json({ success: true, isEnabled: enabledValue });
+  } catch (err) {
+    console.error("Toggle route error:", err);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 });
+
 
 // Import helper functions
 const {
@@ -286,6 +292,108 @@ router.get('/products', nocache, async (req, res) => {
   }
 });
 
+// --- Multer setup ---
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, 'uploads/'),
+  filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname)),
+});
+const upload = multer({ storage });
+
+// Add Product route
+router.post('/products/add', upload.single('imagelink'), async (req, res) => {
+  const {
+    categoryShortcut,
+    productCode,
+    Name,
+    size16,
+    size22,
+    Ingredients,
+    Allergen,
+    isEnabled,
+    BasePrice,
+    description   // ✅ must match the textarea name in the Add Product modal
+  } = req.body;
+
+  // Map shortcuts to full category names
+  const categoryMap = { CF: "Coffee", MT: "Milktea", FT: "Fruit Tea", BK: "Pastries" };
+  const Category = categoryMap[categoryShortcut] || categoryShortcut || null;
+
+  // Validation
+  if (!Category || !productCode || !Name) {
+    req.flash('error_msg', 'Please select a category, enter a product code, and product name.');
+    return res.redirect('/admin/products');
+  }
+
+  const ProductID = `${categoryShortcut.toUpperCase()}-${productCode.toUpperCase()}`;
+
+  // Sizes
+  const Sizes = [];
+  if (size16) Sizes.push({ Size: '16oz', BasePrice: parseFloat(size16) });
+  if (size22) Sizes.push({ Size: '22oz', BasePrice: parseFloat(size22) });
+
+  // Ingredients array
+  const ingredientsArray = Ingredients ? Ingredients.split(',').map(i => i.trim()) : [];
+
+  // Image handling
+  let imagelink = req.file ? `/uploads/${req.file.filename}` : 'placeholder';
+  let imgbbUrl = null;
+  let deleteUrl = null;
+
+  if (req.file) {
+    try {
+      const fileData = fs.readFileSync(req.file.path, { encoding: "base64" });
+      const imgbbKey = process.env.IMGBB_API_KEY;
+
+      if (imgbbKey) {
+        const response = await axios.post(
+          `https://api.imgbb.com/1/upload?key=${imgbbKey}`,
+          new URLSearchParams({ image: fileData })
+        );
+        imgbbUrl = response.data.data.url;
+        deleteUrl = response.data.data.delete_url;
+      }
+    } catch (err) {
+      console.error("ImgBB upload failed:", err.message);
+    }
+  }
+
+  // ✅ Build the product document to insert
+  const productData = {
+    ProductID,
+    Name,
+    description: description || "",        // <-- lowercase key so it matches your textarea name
+    Sizes: Sizes.length > 0 ? Sizes : null,
+    Ingredients: ingredientsArray,
+    Category,
+    Allergen: Allergen || null,
+    imagelink,
+    imgbbUrl,
+    deleteUrl,
+    isEnabled: isEnabled === 'true'
+  };
+
+  // Base price for pastries
+  if (Category.toLowerCase() === 'pastries' && !isNaN(parseFloat(BasePrice))) {
+    productData.BasePrice = parseFloat(BasePrice);
+  }
+
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    await db.collection('Menu').insertOne(productData);
+    await client.close();
+
+    req.flash('success_msg', `${Name} has been added to the menu`);
+    res.redirect('/admin/products');
+  } catch (err) {
+    console.error('Error adding product:', err);
+    req.flash('error_msg', 'Failed to add product. Please try again.');
+    res.redirect('/admin/products');
+  }
+});
+
+
+
 // Add Product
 router.get('/products/add', nocache, (req, res) => {
   res.render('admin/add-product', {
@@ -297,34 +405,202 @@ router.get('/products/add', nocache, (req, res) => {
   });
 });
 
-// Edit Product
+// API endpoint to fetch product details for the edit modal
+router.get('/api/products/:id', async (req, res) => {
+  const { id } = req.params;
+
+  if (!ObjectId.isValid(id)) {
+    return res.status(400).json({ success: false, message: 'Invalid product ID' });
+  }
+
+  let client;
+  try {
+    client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const productCollection = db.collection('Menu');
+    const ingredientsCollection = db.collection('Ingredients');
+
+    const product = await productCollection.findOne({ _id: new ObjectId(id) });
+    if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
+
+    // Fetch ingredient details if any
+    let ingredientDetails = [];
+    if (Array.isArray(product.Ingredients) && product.Ingredients.length > 0) {
+      ingredientDetails = await ingredientsCollection
+        .find({ IngredientID: { $in: product.Ingredients } })
+        .toArray();
+    }
+
+    res.json({
+      success: true,
+      product: {
+        ...product,
+        IngredientsDetails: ingredientDetails,
+        imagelink: product.imagelink || null
+      }
+    });
+
+  } catch (err) {
+    console.error('Error fetching product:', err);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  } finally {
+    if (client) await client.close();
+  }
+});
+
+
+// ✅ Edit Product route (with optional image upload + ImgBB support)
+router.post('/products/edit/:id', upload.single('imagelink'), async (req, res) => {
+  const { id } = req.params;
+  const { description, Allergen, size16, size22 } = req.body;
+
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const collection = db.collection('Menu');
+
+    // Fetch current product to know its old image path
+    const existingProduct = await collection.findOne({ _id: new ObjectId(id) });
+    if (!existingProduct) {
+      await client.close();
+      req.flash('error_msg', 'Product not found');
+      return res.redirect('/admin/products');
+    }
+
+    const updateFields = {
+      description: description || "",
+      Allergen: Allergen || ""
+    };
+
+    // Update sizes/prices
+    const sizes = [];
+    if (size16) sizes.push({ Size: '16oz', BasePrice: parseFloat(size16) });
+    if (size22) sizes.push({ Size: '22oz', BasePrice: parseFloat(size22) });
+    if (sizes.length) updateFields.Sizes = sizes;
+
+    // If a new image is uploaded, delete old image then save new one
+    if (req.file) {
+      // 1️⃣ Delete old local file if it exists and is not a placeholder
+      if (existingProduct.imagelink &&
+          existingProduct.imagelink !== 'placeholder' &&
+          existingProduct.imagelink.startsWith('/uploads/')) {
+        const oldPath = path.join(__dirname, '..', existingProduct.imagelink);
+        fs.unlink(oldPath, err => {
+          if (err) console.error('Error deleting old image:', err.message);
+        });
+      }
+
+      // 2️⃣ Optional: delete old ImgBB image if you stored a deleteUrl
+      if (existingProduct.deleteUrl) {
+        try {
+          await axios.get(existingProduct.deleteUrl);
+        } catch (err) {
+          console.error("ImgBB delete error:", err.message);
+        }
+      }
+
+      // 3️⃣ Save new image path
+      updateFields.imagelink = `/uploads/${req.file.filename}`;
+    }
+
+    await collection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updateFields }
+    );
+
+    await client.close();
+    req.flash('success_msg', 'Product updated successfully');
+    res.redirect('/admin/products');
+  } catch (err) {
+    console.error('Error editing product:', err);
+    req.flash('error_msg', 'Internal Server Error');
+    res.redirect('/admin/products');
+  }
+});
+
+
+
+// ✅ Edit Product – fetch and render edit page
 router.get('/products/edit/:id', nocache, async (req, res) => {
   try {
-    const product = await getProductById(req.params.id);
+    const { id } = req.params;
+
+    // Validate MongoDB ObjectId before querying
+    if (!id || !ObjectId.isValid(id)) {
+      return res.status(400).render('error', {
+        title: 'Invalid Request',
+        message: 'Invalid product ID.',
+        status: 400
+      });
+    }
+
+    const product = await getProductById(id);
     if (!product) {
       return res.status(404).render('error', {
         title: 'Not Found',
-        message: 'Product not found',
+        message: 'Product not found.',
         status: 404
       });
     }
+
+    // Render edit page with fetched product data
     res.render('admin/edit-product', {
       title: 'Edit Product | Blessings Cafe',
       user: req.session.user,
       currentPage: '/admin/products',
       layout: 'admin/layout',
       product,
-      categories: ['Coffee', 'Tea', 'Pastry', 'Meal']
+      // ✅ Match your add-product categories
+      categories: ['Coffee', 'Milktea', 'Fruit Tea', 'Pastries']
     });
+
   } catch (error) {
     console.error('Edit product error:', error);
     res.status(500).render('error', {
       title: 'Server Error',
-      message: 'Failed to load product',
+      message: 'Failed to load product.',
       status: 500
     });
   }
 });
+
+// DELETE Product Route (AJAX-friendly)
+// Delete Product route (JSON response)
+router.post('/delete-product/:id', async (req, res) => {
+  const productId = req.params.id;
+
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const productCollection = db.collection('Menu');
+
+    const product = await productCollection.findOne({ _id: new ObjectId(productId) });
+    if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
+
+    // Delete local file if exists
+    const fs = require('fs');
+    if (product.imagelink && product.imagelink !== 'placeholder') {
+      fs.unlink(product.imagelink.replace(/^\//, ''), err => {
+        if (err) console.error("Local file deletion error:", err.message);
+      });
+    }
+
+    // Delete ImgBB image if exists
+    if (product.deleteUrl) {
+      try { await axios.get(product.deleteUrl); } 
+      catch (err) { console.error("ImgBB delete error:", err.message); }
+    }
+
+    await productCollection.deleteOne({ _id: new ObjectId(productId) });
+    await client.close();
+
+    res.json({ success: true, message: 'Product deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting product:', err);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+});
+
 
 // Orders Management
 router.get('/orders', nocache, async (req, res) => {
@@ -850,43 +1126,5 @@ router.get('/discounts/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to get discount' });
   }
 });
-// PRODUCTS ROUTES
-router.post('/toggle-availability/:id', async (req, res) => {
-  console.log('Direct toggle endpoint hit with ID:', req.params.id);
-  console.log('Request body:', req.body);
-
-  try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-
-    // Get product ID and new availability status
-    const productId = req.params.id;
-    const { isEnabled } = req.body;
-
-    console.log('Updating product with ID:', productId);
-    console.log('New isEnabled status:', isEnabled);
-
-    // Update the product
-    const result = await db.collection('Menu').updateOne(
-      { _id: new ObjectId(productId) },
-      { $set: { isEnabled: isEnabled } }
-    );
-
-    console.log('Update result:', result);
-
-    await client.close();
-
-    if (result.matchedCount === 0) {
-      console.log('Product not found in database');
-      return res.status(404).json({ success: false, message: 'Product not found' });
-    }
-
-    res.json({ success: true, message: 'Product availability updated successfully' });
-  } catch (error) {
-    console.error('Toggle availability error:', error);
-    res.status(500).json({ success: false, message: 'Failed to update product availability' });
-  }
-});
-
 
 module.exports = router;
