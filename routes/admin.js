@@ -449,7 +449,9 @@ router.get('/api/products/:id', async (req, res) => {
 });
 
 
-// ✅ Edit Product route (with optional image upload + ImgBB support)
+const FormData = require('form-data'); // 🆕 add this at the top with other requires
+
+// ✅ Edit Product route (with FormData upload to ImgBB)
 router.post('/products/edit/:id', upload.single('imagelink'), async (req, res) => {
   const { id } = req.params;
   const { description, Allergen, size16, size22 } = req.body;
@@ -459,7 +461,7 @@ router.post('/products/edit/:id', upload.single('imagelink'), async (req, res) =
     const db = client.db('blessingscafe');
     const collection = db.collection('Menu');
 
-    // Fetch current product to know its old image path
+    // Fetch current product
     const existingProduct = await collection.findOne({ _id: new ObjectId(id) });
     if (!existingProduct) {
       await client.close();
@@ -478,29 +480,56 @@ router.post('/products/edit/:id', upload.single('imagelink'), async (req, res) =
     if (size22) sizes.push({ Size: '22oz', BasePrice: parseFloat(size22) });
     if (sizes.length) updateFields.Sizes = sizes;
 
-    // If a new image is uploaded, delete old image then save new one
+    console.log("DEBUG: API Key value ->", process.env.IMGBB_API_KEY);
+
+    // ✅ If new image uploaded
     if (req.file) {
-      // 1️⃣ Delete old local file if it exists and is not a placeholder
-      if (existingProduct.imagelink &&
-          existingProduct.imagelink !== 'placeholder' &&
-          existingProduct.imagelink.startsWith('/uploads/')) {
+      console.log("🖼 New image uploaded:", req.file.filename);
+
+      // Delete old local file if exists
+      if (
+        existingProduct.imagelink &&
+        existingProduct.imagelink !== 'placeholder' &&
+        existingProduct.imagelink.startsWith('/uploads/')
+      ) {
         const oldPath = path.join(__dirname, '..', existingProduct.imagelink);
         fs.unlink(oldPath, err => {
           if (err) console.error('Error deleting old image:', err.message);
         });
       }
 
-      // 2️⃣ Optional: delete old ImgBB image if you stored a deleteUrl
+      // Delete old ImgBB image if deleteUrl exists
       if (existingProduct.deleteUrl) {
         try {
           await axios.get(existingProduct.deleteUrl);
+          console.log("🗑 Old ImgBB image deleted");
         } catch (err) {
           console.error("ImgBB delete error:", err.message);
         }
       }
 
-      // 3️⃣ Save new image path
-      updateFields.imagelink = `/uploads/${req.file.filename}`;
+      // 🆕 Upload new image to ImgBB using FormData
+      try {
+        const imageData = fs.readFileSync(req.file.path, { encoding: 'base64' });
+
+        const formData = new FormData();
+        formData.append("key", process.env.IMGBB_API_KEY);
+        formData.append("image", imageData);
+
+        const response = await axios.post(
+          "https://api.imgbb.com/1/upload",
+          formData,
+          { headers: formData.getHeaders() }
+        );
+
+        console.log("✅ ImgBB Upload Success:", response.data);
+
+        updateFields.imgbbUrl = response.data.data.url;
+        updateFields.deleteUrl = response.data.data.delete_url;
+        updateFields.imagelink = `/uploads/${req.file.filename}`;
+      } catch (err) {
+        console.error("❌ ImgBB upload failed:", err.response?.data || err.message);
+      }
     }
 
     await collection.updateOne(
@@ -517,6 +546,7 @@ router.post('/products/edit/:id', upload.single('imagelink'), async (req, res) =
     res.redirect('/admin/products');
   }
 });
+
 
 
 
@@ -1128,3 +1158,4 @@ router.get('/discounts/:id', async (req, res) => {
 });
 
 module.exports = router;
+

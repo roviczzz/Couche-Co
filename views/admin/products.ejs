@@ -177,17 +177,16 @@
       </div>
 
       <div class="form-group">
-        <label>Product Image</label>
-        <div id="editImageDropbox" class="image-dropbox">
-          Click or drop image here
-          <input type="file" name="imagelink" id="editImageFile" accept="image/*" hidden>
-        </div>
-        <div id="editImagePreview" style="margin-top:10px;"></div>
-      </div>
+  <label>Product Image</label>
+  <div id="editImageDropbox" class="image-dropbox">
+    Click or drop image here
+    <input type="file" name="imagelink" id="editImageFile" accept="image/*" hidden>
+  </div>
+  <div id="editImagePreview" style="margin-top:10px;"></div>
+</div>
+
 
       <div class="form-group toggle">
-        <!-- Hidden input ensures unchecked checkbox sends false -->
-        <input type="hidden" name="isEnabled" value="false">
         <label class="switch">
           <input type="checkbox" name="isEnabled" id="editEnabled" value="true">
           <span class="slider"></span>
@@ -240,6 +239,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     dropbox.addEventListener("click", () => input.click());
 
+    // Handle file selection
     input.addEventListener("change", () => {
       if (input.files && input.files[0]) {
         const reader = new FileReader();
@@ -248,8 +248,15 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    dropbox.addEventListener("dragover", e => { e.preventDefault(); dropbox.classList.add("dragover"); });
-    dropbox.addEventListener("dragleave", e => { e.preventDefault(); dropbox.classList.remove("dragover"); });
+    // Drag & Drop
+    dropbox.addEventListener("dragover", e => {
+      e.preventDefault();
+      dropbox.classList.add("dragover");
+    });
+    dropbox.addEventListener("dragleave", e => {
+      e.preventDefault();
+      dropbox.classList.remove("dragover");
+    });
     dropbox.addEventListener("drop", e => {
       e.preventDefault();
       dropbox.classList.remove("dragover");
@@ -270,9 +277,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const chipInput = document.getElementById("chipInput");
   const hiddenIngredients = document.getElementById("hiddenIngredients");
   const suggestionsBox = document.getElementById("suggestions");
+  let ingredients = []; // selected ingredient IDs
 
-  let ingredients = [];
-  function updateHiddenInput() { hiddenIngredients.value = ingredients.join(","); }
+  function updateHiddenInput() {
+    hiddenIngredients.value = ingredients.join(",");
+  }
 
   function addChip(id, name) {
     if (!id || ingredients.includes(id)) return;
@@ -297,10 +306,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const query = chipInput.value.trim();
       suggestionsBox.innerHTML = "";
       if (!query) return;
-
       try {
         const res = await fetch(`/api/ingredients/search?q=${encodeURIComponent(query)}`);
         let results = await res.json();
+
         const uniqueNames = new Set();
         const filteredResults = results.filter(item => {
           const lowerName = item.Name.toLowerCase();
@@ -312,15 +321,26 @@ document.addEventListener("DOMContentLoaded", () => {
         filteredResults.forEach(item => {
           const div = document.createElement("div");
           div.textContent = item.Name;
-          div.addEventListener("click", () => { addChip(item.IngredientID, item.Name); suggestionsBox.innerHTML = ""; });
+          div.addEventListener("click", () => {
+            addChip(item.IngredientID, item.Name);
+            suggestionsBox.innerHTML = "";
+          });
           suggestionsBox.appendChild(div);
         });
-      } catch (err) { console.error(err); }
+
+      } catch (err) {
+        console.error(err);
+      }
     }, 200);
   });
 
-  document.addEventListener("click", e => { if (e.target !== chipInput) suggestionsBox.innerHTML = ""; });
-  chipInput.addEventListener("keydown", e => { if (e.key === "Enter") e.preventDefault(); });
+  document.addEventListener("click", e => {
+    if (e.target !== chipInput) suggestionsBox.innerHTML = "";
+  });
+
+  chipInput.addEventListener("keydown", e => {
+    if (e.key === "Enter") e.preventDefault();
+  });
 
   // ---------- CATEGORY TOGGLE ----------
   const categorySelect = document.getElementById("categorySelect");
@@ -328,7 +348,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const priceRow = document.getElementById("priceRow");
 
   function togglePriceFields() {
-    if (categorySelect.value === "BK") {
+    if (categorySelect.value === "BK") { // BK = Pastries
       basePriceContainer.classList.remove("hidden");
       priceRow.classList.add("hidden");
     } else {
@@ -340,7 +360,7 @@ document.addEventListener("DOMContentLoaded", () => {
   categorySelect.addEventListener("change", togglePriceFields);
   togglePriceFields();
 
- // ---------- EDIT PRODUCT MODAL ----------
+  // ---------- EDIT PRODUCT MODAL ----------
 const editModal = document.getElementById("editProductModal");
 const editForm = document.getElementById("editProductForm");
 const editCategoryHidden = document.getElementById("editCategoryHidden");
@@ -446,7 +466,6 @@ editEnabledCheckbox.addEventListener("change", async () => {
   // ---------- DELETE MODAL ----------
   let deleteProductId = "";
   const deleteModal = document.getElementById("deleteConfirmModal");
-
   document.querySelectorAll(".delete-btn").forEach(btn => {
     btn.addEventListener("click", e => {
       e.preventDefault();
@@ -463,8 +482,14 @@ editEnabledCheckbox.addEventListener("change", async () => {
           const card = document.querySelector(`.product-card[data-id='${deleteProductId}']`);
           if (card) card.remove();
           deleteModal.classList.add("hidden");
-        } else alert(data.message || "Failed to delete product.");
-      }).catch(err => { console.error(err); alert("Error deleting product."); });
+        } else {
+          alert(data.message || "Failed to delete product.");
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert("Error deleting product.");
+      });
   });
 
   document.getElementById("cancelDelete").addEventListener("click", () => {
@@ -475,7 +500,6 @@ editEnabledCheckbox.addEventListener("change", async () => {
   // ---------- TOGGLE AVAILABILITY ----------
   let toggleProductId = "";
   const toggleModal = document.getElementById("toggleConfirmModal");
-
   document.querySelectorAll(".product-card").forEach(card => {
     card.addEventListener("click", e => {
       if (e.target.closest(".edit-btn") || e.target.closest(".delete-btn")) return;
@@ -488,20 +512,24 @@ editEnabledCheckbox.addEventListener("change", async () => {
     const currentCard = document.querySelector(`.product-card[data-id="${toggleProductId}"]`);
     const currentlyEnabled = currentCard.dataset.enabled === "true";
     const newValue = !currentlyEnabled;
-
     fetch(`/admin/toggle-availability/${toggleProductId}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ isEnabled: newValue })
-    }).then(res => res.ok ? location.reload() : alert("Failed"))
-      .catch(err => { console.error("Toggle error:", err); alert("Request failed: " + err); });
-
+    })
+    .then(res => res.ok ? location.reload() : alert("Failed"))
+    .catch(err => {
+      console.error("Toggle error:", err);
+      alert("Request failed: " + err);
+    });
     toggleModal.classList.add("hidden");
   });
 
   document.getElementById("cancelToggle").addEventListener("click", () => toggleModal.classList.add("hidden"));
 });
 </script>
+
+
 
 
 
