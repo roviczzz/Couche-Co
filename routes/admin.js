@@ -3,11 +3,13 @@ const router = express.Router();
 const { MongoClient, ObjectId } = require('mongodb');
 const bcrypt = require('bcrypt');
 const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+const client = new MongoClient(uri);
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const multer = require('multer');
 let productCollection;
+
 
 // Connect once and reuse
 (async () => {
@@ -1155,6 +1157,41 @@ router.get('/discounts/:id', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'Failed to get discount' });
   }
+});
+
+// Route: Order History (last 30 days)
+let db;
+
+async function connectDB() {
+  if (!db) {
+    await client.connect();
+    db = client.db("blessingscafe");
+  }
+  return db;
+}
+
+// Route: Order History (last 30 days)
+router.get("/analytics/order-history", async (req, res) => {
+  try {
+    const db = await connectDB();
+    const orders = await db.collection("Orders") // try lowercase
+      .find({})
+      .sort({ Date: -1 })
+      .limit(50)
+      .toArray();
+
+    console.log("Orders fetched:", orders.length);
+    res.setHeader("Cache-Control", "no-store"); // prevent 304 caching
+    res.json(orders);
+  } catch (err) {
+    console.error("Order history fetch failed:", err);
+    res.status(500).json({ error: "Failed to fetch order history" });
+  }
+});
+
+router.get("/products", async (req, res) => {
+  const products = await Product.find(); // returns 18
+  res.render("products", { products });  // ✅ pass to EJS
 });
 
 module.exports = router;

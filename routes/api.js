@@ -525,7 +525,7 @@ router.get('/analytics/popular-products', async (req, res) => {
   }
 });
 
-router.get('/analytics/average-sales-per-day', async (req, res) => {
+router.get('/analytics/sales-per-day', async (req, res) => {
   try {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
@@ -545,7 +545,7 @@ router.get('/analytics/average-sales-per-day', async (req, res) => {
       {
         $group: {
           _id: { $dateToString: { format: "%Y-%m-%d", date: "$parsedDate" } },
-          avgSales: { $avg: "$Total" }
+          totalSales: { $sum: "$Total" }
         }
       },
       { $sort: { _id: 1 } }
@@ -554,10 +554,11 @@ router.get('/analytics/average-sales-per-day', async (req, res) => {
     await client.close();
     res.json(salesPerDay);
   } catch (err) {
-    console.error('Error fetching average sales per day:', err);
-    res.status(500).json({ error: 'Failed to fetch average sales per day' });
+    console.error('Error fetching sales per day:', err);
+    res.status(500).json({ error: 'Failed to fetch sales per day' });
   }
 });
+
 
 router.get('/analytics/sales-performance', async (req, res) => {
   try {
