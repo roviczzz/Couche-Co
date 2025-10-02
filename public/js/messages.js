@@ -8,6 +8,49 @@ let conversations = [];
 let currentUserId = '';
 let apiBase = '/admin/messages/api'; // Default will be overridden by templates
 
+// Toast notification functions
+function createToastContainer() {
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+    }
+    return container;
+}
+
+function showToast(message, type = 'info', duration = 5000) {
+    const container = createToastContainer();
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+
+    const icon = type === 'success' ? 'fas fa-check-circle' :
+                 type === 'error' ? 'fas fa-exclamation-circle' :
+                 type === 'warning' ? 'fas fa-exclamation-triangle' : 'fas fa-info-circle';
+
+    toast.innerHTML = `
+        <i class="${icon} toast-icon"></i>
+        <span class="toast-message">${message}</span>
+        <button class="toast-close" onclick="this.parentElement.remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+
+    container.appendChild(toast);
+
+    // Auto-remove after duration
+    setTimeout(() => {
+        toast.classList.add('fade-out');
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.remove();
+            }
+        }, 300);
+    }, duration);
+}
+
 // Export the initialization function
 export function initMessaging() {
     // Get data from window object set by template
@@ -212,12 +255,33 @@ function renderConversations(conversations) {
         <div class="conversation-item ${conv.conversationId === currentConversationId ? 'active' : ''}" onclick="selectConversation('${conv.conversationId}')">
             <div class="conversation-avatar">${getInitials(conv.participantName || 'Unknown')}</div>
             <div class="conversation-info">
-                <div class="conversation-name">${conv.participantName || 'Unknown User'}</div>
+                <div class="conversation-name">${conv.participantName || 'Unknown User'} ${conv.unreadCount > 0 ? '<span class="unread-badge">' + (conv.unreadCount > 99 ? '99+' : conv.unreadCount) + '</span>' : ''}</div>
                 <div class="conversation-last-message">${conv.lastMessage || 'Sent an attachment'}</div>
             </div>
             <div class="conversation-time">${formatTime(conv.lastMessageTime)}</div>
         </div>
     `).join('');
+}
+
+// Function to update sidebar badge (extracted from layout.ejs)
+async function updateSidebarBadge() {
+    try {
+        const response = await fetch(`${apiBase}/unread-count`);
+        if (response.ok) {
+            const data = await response.json();
+            const badge = document.getElementById('messages-badge');
+            if (badge) {
+                if (data.unreadCount > 0) {
+                    badge.textContent = data.unreadCount > 99 ? '99+' : data.unreadCount;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error fetching unread message count for sidebar badge:', error);
+    }
 }
 
 function selectConversation(conversationId) {
@@ -234,8 +298,11 @@ function selectConversation(conversationId) {
         </div>
     `;
 
-    loadMessages(conversationId);
-    loadConversations(); // Refresh to show active state
+    loadMessages(conversationId).then(() => {
+        loadConversations(); // Refresh to show active state and updated unread counts after messages are marked as read
+        // Update sidebar badge immediately
+        updateSidebarBadge();
+    });
 }
 
 // Export functions to window for onclick handlers
@@ -408,7 +475,7 @@ async function sendMessage() {
 
     } catch (error) {
         console.error('Error sending message:', error);
-        alert('Failed to send message. Please try again.');
+        showToast('Failed to send message. Please try again.', 'error');
     }
 }
 
@@ -821,15 +888,15 @@ async function handleComposeMessage(e) {
     const message = formData.get('message');
 
     if (!recipientId) {
-        alert('Please select a recipient');
+        showToast('Please select a recipient', 'error');
         return;
     }
     if (!subject.trim()) {
-        alert('Please enter a subject');
+        showToast('Please enter a subject', 'error');
         return;
     }
     if (!message.trim() && composeAttachedFiles.length === 0) {
-        alert('Please enter a message or attach a file');
+        showToast('Please enter a message or attach a file', 'error');
         return;
     }
 
@@ -850,6 +917,7 @@ async function handleComposeMessage(e) {
         const result = await response.json();
 
         if (response.ok) {
+            showToast('Message sent successfully!', 'success');
             closeComposeModal();
             // Reload conversations and select the new one
             await loadConversations();
@@ -858,7 +926,7 @@ async function handleComposeMessage(e) {
                 selectConversation(newConversation.conversationId);
             }
         } else {
-            alert('Failed to send message. Please try again.');
+            showToast('Failed to send message. Please try again.', 'error');
         }
     } catch (error) {
         console.error('Error sending message:', error);
@@ -919,16 +987,16 @@ async function handleReplyMessage(e) {
     const message = formData.get('message');
 
     if (!subject.trim()) {
-        alert('Please enter a subject');
+        showToast('Please enter a subject', 'error');
         return;
     }
     if (!message.trim() && replyAttachedFiles.length === 0) {
-        alert('Please enter a message or attach a file');
+        showToast('Please enter a message or attach a file', 'error');
         return;
     }
 
     if (!currentConversationId) {
-        alert('No conversation selected');
+        showToast('No conversation selected', 'error');
         return;
     }
 
@@ -953,16 +1021,17 @@ async function handleReplyMessage(e) {
         const result = await response.json();
 
         if (response.ok) {
+            showToast('Reply sent successfully!', 'success');
             closeReplyModal();
             // Reload messages
             loadMessages(currentConversationId);
             loadConversations();
         } else {
-            alert('Failed to send reply. Please try again.');
+            showToast('Failed to send reply. Please try again.', 'error');
         }
     } catch (error) {
         console.error('Error sending reply:', error);
-        alert('Failed to send reply. Please try again.');
+        showToast('Failed to send reply. Please try again.', 'error');
     }
 }
 
