@@ -8,7 +8,7 @@ menuItems.forEach(item => {
     grouped[item.Category].push(item);
 });
 %>
-<div class="main-container">
+<div class="main-container" data-menu-items='<%- JSON.stringify(menuItems) %>'>
     <div class="content">
         <div id="all-products" style="overflow-y: auto; padding-right: 8px; box-sizing: border-box;">
             <div class="section-title">Choose Category</div>
@@ -281,7 +281,7 @@ menuItems.forEach(item => {
 
 <script>
     // Initialize allProducts with the menu items from the server
-    const allProducts = <%- JSON.stringify(menuItems) %>;
+    const allProducts = JSON.parse(document.querySelector('.main-container').dataset.menuItems);
 
     // Initialize orderItems array
     let orderItems = [];
@@ -1655,10 +1655,13 @@ menuItems.forEach(item => {
     }
 
     .main-container {
+        background-color: #f8f9fb; 
         display: flex;
         height: 100vh;
         min-height: calc(100vh - 70px);
         box-sizing: border-box;
+        padding: 30px;
+        padding-bottom: 0px;
     }
 
     .main-content {
@@ -2208,4 +2211,3 @@ menuItems.forEach(item => {
         color: white;
     }
 </style>
-

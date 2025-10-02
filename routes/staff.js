@@ -3,38 +3,27 @@ const router = express.Router();
 const { MongoClient, ObjectId } = require('mongodb');
 const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
 
+// Import multer for file uploads (messages)
+const multer = require('multer');
+const path = require('path');
+
 // Authentication middleware for staff routes
 function isStaffLoggedIn(req, res, next) {
   if (req.session.user && req.session.user.role === 'staff') {
     return next();
   }
-  res.redirect('/staff/login');
+  res.redirect('/admin/login');
 }
 
-router.get('/login', (req, res) => {
-  if (req.session.user && req.session.user.role === 'staff') {
-    return res.redirect('/staff/dashboard');
-  }
-  res.render('staff/login', {
-    title: 'Staff Login',
-    layout: false
-  });
-});
-
 // Apply authentication middleware to all protected routes
-router.use((req, res, next) => {
-  // Skip authentication for login page
-  if (req.path === '/login') {
-    return next();
-  }
-  return isStaffLoggedIn(req, res, next);
-});
+router.use(isStaffLoggedIn);
 
 router.use((req, res, next) => {
   res.locals.sidebarItems = [
     { path: '/staff/dashboard', label: 'Dashboard', icon: 'house' },
     { path: '/staff/menu', label: 'POS Menu', icon: 'list' },
     { path: '/staff/order', label: 'Orders', icon: 'box' },
+    { path: '/staff/messages', label: 'Messages', icon: 'envelope' },
     { path: '/staff/calculator', label: 'Calculator', icon: 'calculator' },
     { path: '/staff/settings', label: 'Settings', icon: 'gear' },
     { path: '/logout', label: 'Logout', icon: 'door-open' }
@@ -63,10 +52,23 @@ async function getDashboardStats() {
 
 router.get('/dashboard', async (req, res) => {
   try {
+    // Fetch current user data from database to ensure fullname is up to date
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const currentUser = await db.collection('users').findOne({ _id: new ObjectId(req.session.user._id) });
+    await client.close();
+
+    // Merge session data with fresh database data
+    const userData = {
+      ...req.session.user,
+      fullname: currentUser?.fullname
+    };
+
     const stats = await getDashboardStats();
     res.render('staff/dashboard', {
       title: 'Staff Dashboard',
       layout: 'staff/layout',
+      user: userData,
       ...stats
     });
   } catch (error) {
@@ -299,6 +301,354 @@ router.patch('/orders/:orderId/restore', async (req, res) => {
   } catch (error) {
     console.error('Error restoring order:', error);
     res.status(500).json({ error: 'Failed to restore order' });
+  }
+});
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'public/uploads/messages/');
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limit
+  },
+  fileFilter: function (req, file, cb) {
+    // Allow common file types
+    const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx|xls|xlsx|txt|zip|rar/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Invalid file type'));
+    }
+  }
+});
+
+// Messages page
+router.get('/messages', async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const currentUserId = req.session.user._id;
+
+    // Get all users for messaging (admins, owners and staff only) - include current user for sender display
+    const users = await db.collection('users').find({
+      role: { $in: ['admin', 'owner', 'staff'] }
+    }).project({
+      _id: 1,
+      fullname: 1,
+      staffId: 1,
+      role: 1
+    }).toArray();
+
+    // Get conversations for current user (server-side)
+    const messages = await db.collection('messages')
+      .find({
+        $or: [
+          { senderId: currentUserId },
+          { recipientId: currentUserId }
+        ]
+      })
+      .sort({ timestamp: -1 })
+      .toArray();
+
+    // Group messages by conversation partner
+    const conversationMap = new Map();
+
+    for (const message of messages) {
+      const partnerId = message.senderId === currentUserId ? message.recipientId : message.senderId;
+      const conversationKey = [currentUserId, partnerId].sort().join('_');
+
+      if (!conversationMap.has(conversationKey)) {
+        // Show subject if available, otherwise content
+        const lastMessageText = message.subject ? `${message.subject}: ${message.content || 'Sent an attachment'}` : (message.content || 'Sent an attachment');
+        conversationMap.set(conversationKey, {
+          conversationId: conversationKey,
+          participantId: partnerId,
+          lastMessage: lastMessageText,
+          lastMessageTime: message.timestamp,
+          messageCount: 0,
+          unreadCount: 0
+        });
+      }
+
+      const conv = conversationMap.get(conversationKey);
+      conv.messageCount++;
+
+      // Count unread messages from this partner
+      if (message.recipientId === currentUserId && !message.read) {
+        conv.unreadCount++;
+      }
+    }
+
+    const conversations = Array.from(conversationMap.values());
+
+    // Get participant details
+    if (conversations.length > 0) {
+      const participantIds = conversations.map(c => c.participantId);
+      const participants = await db.collection('users')
+        .find({ _id: { $in: participantIds.map(id => new ObjectId(id)) } })
+        .toArray();
+
+      const participantMap = new Map(participants.map(p => [p._id.toString(), p]));
+
+      conversations.forEach(conv => {
+        const participant = participantMap.get(conv.participantId);
+        if (participant) {
+          conv.participantName = participant.fullname;
+        }
+      });
+    }
+
+    await client.close();
+
+    res.render('staff/messages', {
+      title: 'Messages | Blessings Cafe',
+      user: req.session.user,
+      currentPage: '/staff/messages',
+      layout: 'staff/layout',
+      users,
+      conversations
+    });
+  } catch (error) {
+    console.error('Staff Messages error:', error);
+    res.status(500).render('error', {
+      title: 'Server Error',
+      message: 'Failed to load messages',
+      status: 500
+    });
+  }
+});
+
+// API Routes for messaging
+// Get conversations for current user
+router.get('/messages/api/conversations', async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const currentUserId = req.session.user._id;
+
+    // Find all unique conversation partners
+    const messages = await db.collection('messages')
+      .find({
+        $or: [
+          { senderId: currentUserId },
+          { recipientId: currentUserId }
+        ]
+      })
+      .sort({ timestamp: -1 })
+      .toArray();
+
+    // Group messages by conversation partner
+    const conversationMap = new Map();
+
+    for (const message of messages) {
+      const partnerId = message.senderId === currentUserId ? message.recipientId : message.senderId;
+      const conversationKey = [currentUserId, partnerId].sort().join('_');
+
+      if (!conversationMap.has(conversationKey)) {
+        // Show subject if available, otherwise content
+        const lastMessageText = message.subject ? `${message.subject}: ${message.content || 'Sent an attachment'}` : (message.content || 'Sent an attachment');
+        conversationMap.set(conversationKey, {
+          conversationId: conversationKey,
+          participantId: partnerId,
+          lastMessage: lastMessageText,
+          lastMessageTime: message.timestamp,
+          messageCount: 0,
+          unreadCount: 0
+        });
+      }
+
+      const conv = conversationMap.get(conversationKey);
+      conv.messageCount++;
+
+      // Count unread messages from this partner
+      if (message.recipientId === currentUserId && !message.read) {
+        conv.unreadCount++;
+      }
+    }
+
+    const conversations = Array.from(conversationMap.values());
+
+    // Get participant details
+    if (conversations.length > 0) {
+      const participantIds = conversations.map(c => c.participantId);
+      const participants = await db.collection('users')
+        .find({ _id: { $in: participantIds.map(id => new ObjectId(id)) } })
+        .toArray();
+
+      const participantMap = new Map(participants.map(p => [p._id.toString(), p]));
+
+      conversations.forEach(conv => {
+        const participant = participantMap.get(conv.participantId);
+        if (participant) {
+          conv.participantName = participant.fullname;
+        }
+      });
+    }
+
+    await client.close();
+
+    res.json(conversations);
+  } catch (error) {
+    console.error('Error fetching conversations:', error);
+    res.status(500).json({ error: 'Failed to fetch conversations' });
+  }
+});
+
+// Get messages for a conversation
+router.get('/messages/api/messages/:conversationId', async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const currentUserId = req.session.user._id;
+    const conversationId = req.params.conversationId;
+
+    // Parse conversation ID to get participant IDs
+    const [user1, user2] = conversationId.split('_');
+    const participantId = user1 === currentUserId ? user2 : user1;
+
+    // Get messages between current user and participant
+    const messages = await db.collection('messages')
+      .find({
+        $or: [
+          { senderId: currentUserId, recipientId: participantId },
+          { senderId: participantId, recipientId: currentUserId }
+        ]
+      })
+      .sort({ timestamp: 1 })
+      .toArray();
+
+    // Mark messages as read
+    await db.collection('messages').updateMany(
+      {
+        senderId: participantId,
+        recipientId: currentUserId,
+        read: false
+      },
+      { $set: { read: true, readAt: new Date() } }
+    );
+
+    await client.close();
+    res.json(messages);
+  } catch (error) {
+    console.error('Error fetching messages:', error);
+    res.status(500).json({ error: 'Failed to fetch messages' });
+  }
+});
+
+// Send a message
+router.post('/messages/api/send', async (req, res) => {
+  try {
+    const { recipientId, content, attachments, subject } = req.body;
+    const senderId = req.session.user._id;
+
+    if (!recipientId || (!content && (!attachments || attachments.length === 0))) {
+      return res.status(400).json({ error: 'Recipient and content or attachments required' });
+    }
+
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    // Verify recipient exists and is admin/staff/owner
+    const recipient = await db.collection('users').findOne({
+      _id: new ObjectId(recipientId),
+      role: { $in: ['admin', 'owner', 'staff'] }
+    });
+
+    if (!recipient) {
+      await client.close();
+      return res.status(404).json({ error: 'Recipient not found' });
+    }
+
+    const message = {
+      senderId,
+      recipientId,
+      subject: subject || '',
+      content: content || '',
+      attachments: attachments || [],
+      timestamp: new Date(),
+      read: false
+    };
+
+    const result = await db.collection('messages').insertOne(message);
+
+    await client.close();
+
+    res.json({
+      success: true,
+      message: { ...message, _id: result.insertedId }
+    });
+  } catch (error) {
+    console.error('Error sending message:', error);
+    res.status(500).json({ error: 'Failed to send message' });
+  }
+});
+
+// Get users for messaging
+router.get('/messages/api/users', async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    const users = await db.collection('users').find({
+      role: { $in: ['admin', 'owner', 'staff'] },
+      _id: { $ne: new ObjectId(req.session.user._id) } // Exclude current user
+    }).toArray();
+
+    await client.close();
+    res.json(users);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
+
+// Get unread message count for current user
+router.get('/messages/api/unread-count', async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const currentUserId = req.session.user._id;
+
+    const unreadCount = await db.collection('messages').countDocuments({
+      recipientId: currentUserId,
+      read: false
+    });
+
+    await client.close();
+    res.json({ unreadCount });
+  } catch (error) {
+    console.error('Error fetching unread count:', error);
+    res.status(500).json({ error: 'Failed to fetch unread count' });
+  }
+});
+
+// Upload files
+router.post('/messages/api/upload', upload.array('files', 5), (req, res) => {
+  try {
+    const files = req.files.map(file => ({
+      originalName: file.originalname,
+      filename: file.filename,
+      mimetype: file.mimetype,
+      size: file.size,
+      url: `/uploads/messages/${file.filename}`
+    }));
+
+    res.json({ success: true, files });
+  } catch (error) {
+    console.error('Error uploading files:', error);
+    res.status(500).json({ error: 'Failed to upload files' });
   }
 });
 

@@ -291,9 +291,11 @@ menuItems.forEach(item => {
     }
 </style>
 
+<script id="menu-data" type="application/json"><%-JSON.stringify(menuItems)%></script>
+
 <script>
     // Initialize allProducts with the menu items from the server
-    const allProducts = <%-JSON.stringify(menuItems)%>;
+    const allProducts = JSON.parse(document.getElementById('menu-data').textContent);
 
     // Initialize orderItems array
     let orderItems = [];
@@ -1667,10 +1669,13 @@ menuItems.forEach(item => {
     }
 
     .main-container {
+        background-color: #f8f9fb; 
         display: flex;
         height: 100vh;
         min-height: calc(100vh - 70px);
         box-sizing: border-box;
+        padding: 30px;
+        padding-bottom: 0px;
     }
 
     .main-content {
@@ -2220,4 +2225,3 @@ menuItems.forEach(item => {
         color: white;
     }
 </style>
-

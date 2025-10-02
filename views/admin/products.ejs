@@ -12,10 +12,6 @@
     <button id="openAddModal" class="fab-btn">+</button>
   </div>
 
-  <% if (success_msg) { %>
-    <div id="pageLoadToast" class="toast-flash hidden"><%= success_msg %></div>
-  <% } %>
-
   <div class="content">
     <% Object.keys(grouped).forEach(category => { %>
       <div class="section-title"><%= category %></div>
@@ -26,16 +22,15 @@
               data-category="<%= product.Category %>" 
               data-enabled="<%= product.isEnabled %>">
             <div class="product-image">
-              <% if (product.imagelink && product.imagelink !== "placeholder") { %>
-                <img src="<%= product.imagelink %>" alt="<%= product.Name %>" />
-              <% } else { %>
-                <img src="https://via.placeholder.com/200x200" alt="Placeholder" />
-              <% } %>
+             <% if (product.imagelink && product.imagelink !== "placeholder") { %>
+               <img src="<%= product.imagelink %>" alt="<%= product.Name %>" />
+             <% } else { %>
+               <img src="https://via.placeholder.com/200x200" alt="Placeholder" />
+             <% } %>
             </div>
             <div class="product-name"><%= product.Name %></div>
-
             <div class="action-buttons">
-              <a href="/admin/edit-product/<%= product._id %>" class="edit-btn">Edit</a>
+              <a href="#" class="edit-btn">Edit</a>
               <button class="delete-btn" data-url="/admin/delete-product/<%= product._id %>">Delete</button>
             </div>
           </div>
@@ -49,7 +44,7 @@
 <div id="addProductModal" class="custom-confirm hidden">
   <div class="confirm-box add-form-box">
     <h2>Add Product</h2>
-    <form id="addProductForm" action="/admin/products/add" method="POST">
+    <form id="addProductForm" action="/admin/products/add" method="POST" enctype="multipart/form-data">
       <div class="form-grid">
         <div class="form-group">
           <label class="form-label">Category</label>
@@ -66,11 +61,11 @@
           <label class="form-label">Product Code (max 4 chars)</label>
           <input class="form-input" type="text" name="productCode" maxlength="4" placeholder="e.g., CNC" required>
         </div>
-      </div>
 
-      <div class="form-group">
-        <label class="form-label">Product Name</label>
-        <input class="form-input" type="text" name="Name" required>
+        <div class="form-group">
+          <label class="form-label">Product Name</label>
+          <input class="form-input" type="text" name="Name" placeholder="Enter product name" required>
+        </div>
       </div>
 
       <div id="priceRow" class="form-group">
@@ -81,6 +76,16 @@
         </div>
       </div>
 
+      <div id="basePriceContainer" class="form-group hidden">
+        <label class="form-label">Base Price (Pastries only)</label>
+        <input class="form-input" type="number" name="BasePrice" step="0.01">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-input" name="description" rows="4" placeholder="Enter product description..."></textarea>
+      </div>
+
       <div class="form-group">
         <label class="form-label">Ingredients</label>
         <div class="chip-container" id="chipContainer">
@@ -88,11 +93,6 @@
           <div id="suggestions"></div>
         </div>
         <input type="hidden" name="Ingredients" id="hiddenIngredients">
-      </div>
-
-      <div id="basePriceContainer" class="form-group hidden">
-        <label class="form-label">Base Price (Pastries only)</label>
-        <input class="form-input" type="number" name="BasePrice" step="0.01">
       </div>
 
       <div class="form-group">
@@ -105,10 +105,14 @@
         </select>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">Image Link</label>
-        <input class="form-input" type="text" name="imagelink">
-      </div>
+     <div class="form-group">
+  <label class="form-label">Upload Image</label>
+  <div id="addImageDropbox" class="image-dropbox">
+    Click or drop image here
+    <input type="file" name="imagelink" id="addImageFile" accept="image/*" required hidden>
+  </div>
+  <div id="addImagePreview" style="margin-top:10px;"></div>
+</div>
 
       <div class="form-group toggle">
         <label class="switch">
@@ -130,7 +134,7 @@
 <div id="editProductModal" class="custom-confirm hidden">
   <div class="confirm-box add-form-box">
     <h2>Edit Product</h2>
-    <form id="editProductForm" method="POST">
+    <form id="editProductForm" method="POST" enctype="multipart/form-data">
       <div class="form-grid">
         <div class="form-group">
           <label class="form-label">Category</label>
@@ -140,11 +144,10 @@
 
         <div class="form-group">
           <label class="form-label">Product Name</label>
-          <input class="form-input" type="text" name="Name" id="editName" required>
+          <input class="form-input readonly" name="Name" id="editName" readonly>
         </div>
       </div>
 
-      <!-- Price Row -->
       <div id="editPriceRow" class="form-group">
         <label class="form-label">Prices</label>
         <div class="price-row">
@@ -153,10 +156,14 @@
         </div>
       </div>
 
-      <!-- Base Price -->
       <div id="editBasePriceContainer" class="form-group hidden">
         <label class="form-label">Base Price (Pastries only)</label>
         <input class="form-input" type="number" name="BasePrice" id="editBasePrice" step="0.01">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-input" name="description" id="editDescription" rows="4"></textarea>
       </div>
 
       <div class="form-group">
@@ -170,9 +177,14 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label">Image Link</label>
-        <input class="form-input" type="text" name="imagelink" id="editImage">
-      </div>
+  <label>Product Image</label>
+  <div id="editImageDropbox" class="image-dropbox">
+    Click or drop image here
+    <input type="file" name="imagelink" id="editImageFile" accept="image/*" hidden>
+  </div>
+  <div id="editImagePreview" style="margin-top:10px;"></div>
+</div>
+
 
       <div class="form-group toggle">
         <label class="switch">
@@ -201,7 +213,7 @@
   </div>
 </div>
 
-<!-- Toggle Confirm Modal -->
+<!-- Toggle Modal -->
 <div id="toggleConfirmModal" class="custom-confirm hidden">
   <div class="confirm-box">
     <p>Are you sure you want to enable/disable this product?</p>
@@ -213,51 +225,100 @@
 </div>
 
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    // ---------- ADD PRODUCT MODAL ----------
-    const addModal = document.getElementById("addProductModal");
-    document.getElementById("openAddModal").addEventListener("click", () => addModal.classList.remove("hidden"));
-    document.getElementById("cancelAdd").addEventListener("click", () => addModal.classList.add("hidden"));
+document.addEventListener("DOMContentLoaded", () => {
+  // ---------- ADD PRODUCT MODAL ----------
+  const addModal = document.getElementById("addProductModal");
+  document.getElementById("openAddModal").addEventListener("click", () => addModal.classList.remove("hidden"));
+  document.getElementById("cancelAdd").addEventListener("click", () => addModal.classList.add("hidden"));
 
-    // ---------- INGREDIENT CHIPS ----------
-    const chipContainer = document.getElementById("chipContainer");
-    const chipInput = document.getElementById("chipInput");
-    const hiddenIngredients = document.getElementById("hiddenIngredients");
-    const suggestionsBox = document.getElementById("suggestions");
+  // ---------- IMAGE DROPBOX SETUP ----------
+  function setupImageDropbox(dropboxId, inputId, previewId) {
+    const dropbox = document.getElementById(dropboxId);
+    const input = document.getElementById(inputId);
+    const preview = document.getElementById(previewId);
 
-    let ingredients = [];
-    let ingredientMap = {};
+    dropbox.addEventListener("click", () => input.click());
 
-    function updateHiddenInput() { hiddenIngredients.value = ingredients.join(","); }
+    // Handle file selection
+    input.addEventListener("change", () => {
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => preview.innerHTML = `<img src="${e.target.result}" style="width:100px;height:100px;object-fit:cover;border-radius:8px;">`;
+        reader.readAsDataURL(input.files[0]);
+      }
+    });
 
-    function addChip(id, name) {
-      if (!id || ingredients.includes(id)) return;
-      ingredients.push(id);
-      ingredientMap[id] = name;
+    // Drag & Drop
+    dropbox.addEventListener("dragover", e => {
+      e.preventDefault();
+      dropbox.classList.add("dragover");
+    });
+    dropbox.addEventListener("dragleave", e => {
+      e.preventDefault();
+      dropbox.classList.remove("dragover");
+    });
+    dropbox.addEventListener("drop", e => {
+      e.preventDefault();
+      dropbox.classList.remove("dragover");
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        input.files = e.dataTransfer.files;
+        const reader = new FileReader();
+        reader.onload = ev => preview.innerHTML = `<img src="${ev.target.result}" style="width:100px;height:100px;object-fit:cover;border-radius:8px;">`;
+        reader.readAsDataURL(e.dataTransfer.files[0]);
+      }
+    });
+  }
 
-      const chip = document.createElement("div");
-      chip.className = "chip";
-      chip.innerHTML = `${name} <span>&times;</span>`;
-      chip.querySelector("span").addEventListener("click", () => {
-        ingredients = ingredients.filter(i => i !== id);
-        delete ingredientMap[id];
-        chip.remove();
-        updateHiddenInput();
-      });
+  setupImageDropbox("addImageDropbox", "addImageFile", "addImagePreview");
+  setupImageDropbox("editImageDropbox", "editImageFile", "editImagePreview");
 
-      chipContainer.insertBefore(chip, chipInput);
-      chipInput.value = "";
+  // ---------- INGREDIENT CHIPS ----------
+  const chipContainer = document.getElementById("chipContainer");
+  const chipInput = document.getElementById("chipInput");
+  const hiddenIngredients = document.getElementById("hiddenIngredients");
+  const suggestionsBox = document.getElementById("suggestions");
+  let ingredients = []; // selected ingredient IDs
+
+  function updateHiddenInput() {
+    hiddenIngredients.value = ingredients.join(",");
+  }
+
+  function addChip(id, name) {
+    if (!id || ingredients.includes(id)) return;
+    ingredients.push(id);
+    const chip = document.createElement("div");
+    chip.className = "chip";
+    chip.innerHTML = `${name} <span>&times;</span>`;
+    chip.querySelector("span").addEventListener("click", () => {
+      ingredients = ingredients.filter(i => i !== id);
+      chip.remove();
       updateHiddenInput();
-    }
+    });
+    chipContainer.insertBefore(chip, chipInput);
+    chipInput.value = "";
+    updateHiddenInput();
+  }
 
-    chipInput.addEventListener("input", async () => {
-      const q = chipInput.value.trim();
+  let debounceTimeout;
+  chipInput.addEventListener("input", () => {
+    clearTimeout(debounceTimeout);
+    debounceTimeout = setTimeout(async () => {
+      const query = chipInput.value.trim();
       suggestionsBox.innerHTML = "";
-      if (!q) return;
+      if (!query) return;
       try {
-        const res = await fetch(`/ingredients/search?q=${encodeURIComponent(q)}`);
-        const results = await res.json();
-        results.forEach(item => {
+        const res = await fetch(`/api/ingredients/search?q=${encodeURIComponent(query)}`);
+        let results = await res.json();
+
+        const uniqueNames = new Set();
+        const filteredResults = results.filter(item => {
+          const lowerName = item.Name.toLowerCase();
+          if (uniqueNames.has(lowerName) || ingredients.includes(item.IngredientID)) return false;
+          uniqueNames.add(lowerName);
+          return true;
+        });
+
+        filteredResults.forEach(item => {
           const div = document.createElement("div");
           div.textContent = item.Name;
           div.addEventListener("click", () => {
@@ -266,162 +327,244 @@
           });
           suggestionsBox.appendChild(div);
         });
-      } catch (err) { console.error(err); }
+
+      } catch (err) {
+        console.error(err);
+      }
+    }, 200);
+  });
+
+  document.addEventListener("click", e => {
+    if (e.target !== chipInput) suggestionsBox.innerHTML = "";
+  });
+
+  chipInput.addEventListener("keydown", e => {
+    if (e.key === "Enter") e.preventDefault();
+  });
+
+  // ---------- CATEGORY TOGGLE ----------
+  const categorySelect = document.getElementById("categorySelect");
+  const basePriceContainer = document.getElementById("basePriceContainer");
+  const priceRow = document.getElementById("priceRow");
+
+  function togglePriceFields() {
+    if (categorySelect.value === "BK") { // BK = Pastries
+      basePriceContainer.classList.remove("hidden");
+      priceRow.classList.add("hidden");
+    } else {
+      basePriceContainer.classList.add("hidden");
+      priceRow.classList.remove("hidden");
+    }
+  }
+
+  categorySelect.addEventListener("change", togglePriceFields);
+  togglePriceFields();
+
+  // ---------- EDIT PRODUCT MODAL ----------
+const editModal = document.getElementById("editProductModal");
+const editForm = document.getElementById("editProductForm");
+const editCategoryHidden = document.getElementById("editCategoryHidden");
+const editBasePriceContainer = document.getElementById("editBasePriceContainer");
+const editPriceRow = document.getElementById("editPriceRow");
+const editEnabledCheckbox = document.getElementById("editEnabled");
+
+function toggleEditFields() {
+  if (editCategoryHidden.value === "BK") {
+    editBasePriceContainer.classList.remove("hidden");
+    editPriceRow.classList.add("hidden");
+  } else {
+    editBasePriceContainer.classList.add("hidden");
+    editPriceRow.classList.remove("hidden");
+  }
+}
+
+// Open edit modal
+document.querySelectorAll(".edit-btn").forEach(btn => {
+  btn.addEventListener("click", async e => {
+    e.preventDefault();
+    const card = btn.closest(".product-card");
+    const id = card.dataset.id;
+
+    editForm.action = `/admin/products/edit/${id}`;
+
+    try {
+      const res = await fetch(`/admin/api/products/${id}`);
+      const data = await res.json();
+      const p = data.product;
+
+      document.getElementById("editName").value = p.Name || "";
+      document.getElementById("editCategoryDisplay").value = p.Category || "";
+      editCategoryHidden.value = p.Category || "";
+
+      if (p.Sizes && Array.isArray(p.Sizes)) {
+        const size16 = p.Sizes.find(s => s.Size === "16oz" || s.size === "16oz");
+        const size22 = p.Sizes.find(s => s.Size === "22oz" || s.size === "22oz");
+        document.getElementById("editSize16").value = size16 ? (size16.BasePrice || size16.basePrice) : "";
+        document.getElementById("editSize22").value = size22 ? (size22.BasePrice || size22.basePrice) : "";
+      } else {
+        document.getElementById("editSize16").value = "";
+        document.getElementById("editSize22").value = "";
+      }
+
+      document.getElementById("editBasePrice").value = p.BasePrice || p.basePrice || "";
+      document.getElementById("editDescription").value = p.Description || p.description || "";
+      document.getElementById("editAllergen").value = p.Allergen || p.allergen || "";
+      editEnabledCheckbox.checked = !!p.isEnabled;
+
+      if (p.imagelink || p.imageLink) {
+        document.getElementById("editImagePreview").innerHTML =
+          `<img src="${p.imagelink || p.imageLink}" style="width:100px;height:100px;object-fit:cover;border-radius:8px;">`;
+      } else {
+        document.getElementById("editImagePreview").innerHTML = "";
+      }
+
+      toggleEditFields();
+      editModal.classList.remove("hidden");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to load product data");
+    }
+  });
+});
+
+// Cancel edit modal
+document.getElementById("cancelEdit").addEventListener("click", () => editModal.classList.add("hidden"));
+
+// ---------- EDIT MODAL: ENABLE/DISABLE LIKE OUTSIDE TOGGLE ----------
+editEnabledCheckbox.addEventListener("change", async () => {
+  const productId = editForm.action.split("/").pop(); // get ID from form action
+  const newValue = editEnabledCheckbox.checked;
+
+  try {
+    const res = await fetch(`/admin/toggle-availability/${productId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isEnabled: newValue })
     });
 
-    chipInput.addEventListener("keydown", e => { if (e.key === "Enter") e.preventDefault(); });
-    document.addEventListener("click", e => { if (e.target !== chipInput) suggestionsBox.innerHTML = ""; });
+    if (!res.ok) throw new Error("Failed to toggle availability");
 
-    // ---------- ADD CATEGORY TOGGLE ----------
-    const categorySelect = document.getElementById("categorySelect");
-    const basePriceContainer = document.getElementById("basePriceContainer");
-    const priceRow = document.getElementById("priceRow");
-    categorySelect.addEventListener("change", () => {
-      if (categorySelect.value === "Pastries") {
-        basePriceContainer.classList.remove("hidden");
-        priceRow.classList.add("hidden");
-      } else {
-        basePriceContainer.classList.add("hidden");
-        priceRow.classList.remove("hidden");
-      }
-    });
-
-    // ---------- EDIT PRODUCT MODAL ----------
-    const editModal = document.getElementById("editProductModal");
-    const editForm = document.getElementById("editProductForm");
-    const editBasePriceContainer = document.getElementById("editBasePriceContainer");
-    const editPriceRow = document.getElementById("editPriceRow");
-
-    function toggleEditFields() {
-      if (editCategorySelect.value === "Pastries") {
-        editBasePriceContainer.classList.remove("hidden");
-        editPriceRow.classList.add("hidden");
-      } else {
-        editBasePriceContainer.classList.add("hidden");
-        editPriceRow.classList.remove("hidden");
-      }
+    // Update the product card outside modal if exists
+    const card = document.querySelector(`.product-card[data-id='${productId}']`);
+    if (card) {
+      card.dataset.enabled = newValue;
+      if (newValue) card.classList.add("enabled");
+      else card.classList.remove("enabled");
     }
 
-    document.querySelectorAll(".edit-btn").forEach(btn => {
-      btn.addEventListener("click", e => {
-        e.preventDefault();
+  } catch (err) {
+    console.error(err);
+    alert("Failed to update product availability");
+    // revert checkbox in case of error
+    editEnabledCheckbox.checked = !newValue;
+  }
+});
 
-        const card = btn.closest(".product-card");
-        const id = card.dataset.id;
-        const name = card.querySelector(".product-name").textContent;
-        const category = card.dataset.category; // ✅ now from data-attribute
-        const enabled = card.dataset.enabled === "true";
 
-        // Fill form
-        editForm.action = `/admin/products/edit/${id}`;
-        const editNameField = document.getElementById("editName");
-        editNameField.value = name;
-        editNameField.readOnly = true; // ✅ lock product name
-        editNameField.classList.add("readonly-input");
+  document.getElementById("cancelEdit").addEventListener("click", () => editModal.classList.add("hidden"));
 
-        document.getElementById("editCategoryDisplay").value = category;
-        document.getElementById("editCategoryHidden").value = category;
-        document.getElementById("editEnabled").checked = enabled;
-
-        // Fetch extra details
-        fetch(`/admin/api/products/${id}`)
-          .then(res => res.json())
-          .then(p => {
-            if (p.Sizes) {
-              const size16 = p.Sizes.find(s => s.Size === "16oz");
-              const size22 = p.Sizes.find(s => s.Size === "22oz");
-              document.getElementById("editSize16").value = size16 ? size16.BasePrice : "";
-              document.getElementById("editSize22").value = size22 ? size22.BasePrice : "";
-            }
-            if (p.BasePrice) document.getElementById("editBasePrice").value = p.BasePrice;
-            document.getElementById("editAllergen").value = p.Allergen || "";
-            document.getElementById("editImage").value = p.imagelink || "";
-
-            toggleEditFields(); // ✅ update price/base fields
-          });
-
-        // Show modal
-        editModal.classList.remove("hidden");
-      });
-    });
-
-    document.getElementById("cancelEdit").addEventListener("click", () => {
-      editModal.classList.add("hidden");
-    });
-
-    // ---------- DELETE MODAL ----------
-    let deleteUrl = "";
-    const deleteModal = document.getElementById("deleteConfirmModal");
-    document.querySelectorAll(".delete-btn").forEach(btn => {
-      btn.addEventListener("click", e => {
-        e.preventDefault();
-        deleteUrl = btn.getAttribute("data-url");
-        deleteModal.classList.remove("hidden");
-      });
-    });
-    document.getElementById("confirmDelete").addEventListener("click", () => {
-      fetch(deleteUrl, { method: "POST" })
-        .then(res => res.ok ? location.reload() : alert("Failed"));
-      deleteModal.classList.add("hidden");
-    });
-    document.getElementById("cancelDelete").addEventListener("click", () => {
-      deleteModal.classList.add("hidden");
-      deleteUrl = "";
-    });
-
-    // ---------- TOGGLE MODAL ----------
-    let toggleProductId = "";
-    let toggleEnabled = false;
-    const toggleModal = document.getElementById("toggleConfirmModal");
-
-    document.querySelectorAll(".product-card").forEach(card => {
-      card.addEventListener("click", e => {
-        if (e.target.closest(".action-buttons")) return;
-        toggleProductId = card.getAttribute("data-id");
-        toggleEnabled = card.getAttribute("data-enabled") === "true";
-        toggleModal.querySelector("p").textContent = toggleEnabled
-          ? "Do you want to disable this product?"
-          : "Do you want to enable this product?";
-        toggleModal.classList.remove("hidden");
-      });
-    });
-
-    document.getElementById("confirmToggle").addEventListener("click", () => {
-      fetch(`/admin/toggle-availability/${toggleProductId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isEnabled: !toggleEnabled })
-      }).then(res => res.ok ? location.reload() : alert("Failed"));
-      toggleModal.classList.add("hidden");
-    });
-    document.getElementById("cancelToggle").addEventListener("click", () => {
-      toggleModal.classList.add("hidden");
-      toggleProductId = "";
+  // ---------- DELETE MODAL ----------
+  let deleteProductId = "";
+  const deleteModal = document.getElementById("deleteConfirmModal");
+  document.querySelectorAll(".delete-btn").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.preventDefault();
+      deleteProductId = btn.getAttribute("data-url").split('/').pop();
+      deleteModal.classList.remove("hidden");
     });
   });
+
+  document.getElementById("confirmDelete").addEventListener("click", () => {
+    fetch(`/admin/delete-product/${deleteProductId}`, { method: "POST" })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          const card = document.querySelector(`.product-card[data-id='${deleteProductId}']`);
+          if (card) card.remove();
+          deleteModal.classList.add("hidden");
+        } else {
+          alert(data.message || "Failed to delete product.");
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert("Error deleting product.");
+      });
+  });
+
+  document.getElementById("cancelDelete").addEventListener("click", () => {
+    deleteModal.classList.add("hidden");
+    deleteProductId = "";
+  });
+
+  // ---------- TOGGLE AVAILABILITY ----------
+  let toggleProductId = "";
+  const toggleModal = document.getElementById("toggleConfirmModal");
+  document.querySelectorAll(".product-card").forEach(card => {
+    card.addEventListener("click", e => {
+      if (e.target.closest(".edit-btn") || e.target.closest(".delete-btn")) return;
+      toggleProductId = card.dataset.id;
+      toggleModal.classList.remove("hidden");
+    });
+  });
+
+  document.getElementById("confirmToggle").addEventListener("click", () => {
+    const currentCard = document.querySelector(`.product-card[data-id="${toggleProductId}"]`);
+    const currentlyEnabled = currentCard.dataset.enabled === "true";
+    const newValue = !currentlyEnabled;
+    fetch(`/admin/toggle-availability/${toggleProductId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isEnabled: newValue })
+    })
+    .then(res => res.ok ? location.reload() : alert("Failed"))
+    .catch(err => {
+      console.error("Toggle error:", err);
+      alert("Request failed: " + err);
+    });
+    toggleModal.classList.add("hidden");
+  });
+
+  document.getElementById("cancelToggle").addEventListener("click", () => toggleModal.classList.add("hidden"));
+});
 </script>
+
+
+
+
+
+
 
 
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
-  body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background-color: #faf9f7; color: #333; }
-  .hidden { display: none !important; }
 
 body {
   font-family: 'Inter', sans-serif;
   margin: 0;
   padding: 0;
-  background-color: #faf9f7; /* soft neutral bg */
+  background-color: #faf9f7;
   color: #333;
 }
+.hidden { display: none !important; }
 
-/* MAIN CONTAINER */
+/* MAIN CONTAINER – flex so top bar stays visible */
 .main-container {
+  position: relative;
   padding: 24px;
   width: 100%;
-  min-height: 100vh;
+  height: 100vh;            /* full viewport height */
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ✅ SCROLLABLE CONTENT AREA */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 12px;       /* space for scrollbar */
 }
 
 /* --- TOP BAR --- */
@@ -477,17 +620,13 @@ body {
   text-align: center;
   transition: transform 0.2s ease;
 }
-
-.stat-card:hover {
-  transform: translateY(-3px);
-}
+.stat-card:hover { transform: translateY(-3px); }
 
 .stat-card h2 {
   font-size: 28px;
   margin: 0;
   color: #8B4513;
 }
-
 .stat-card p {
   font-size: 14px;
   color: #666;
@@ -519,12 +658,10 @@ body {
   transition: all 0.3s ease;
   cursor: pointer;
 }
-
 .product-card:hover {
   box-shadow: 0 6px 18px rgba(0,0,0,0.12);
   transform: translateY(-4px);
 }
-
 .product-card.enabled {
   border: 2px solid #8B4513;
   box-shadow: 0 0 16px rgba(139, 69, 19, 0.25);
@@ -539,7 +676,6 @@ body {
   margin: 0 auto 12px;
   background: #f3f3f3;
 }
-
 .product-image img {
   width: 100%;
   height: 100%;
@@ -549,10 +685,9 @@ body {
 
 .readonly-input {
   background-color: #f0f0f0;
-  color: #777;
+  color: #555;
   cursor: not-allowed;
 }
-
 
 .product-name {
   font-size: 16px;
@@ -565,14 +700,14 @@ body {
   gap: 10px;
   justify-content: center;
   margin-top: 10px;
-  align-items: center;
+  align-items: stretch; /* <-- changed from center to stretch */
+  height: 32px;         /* <-- ensure container matches button height */
 }
-
 .action-buttons a,
 .action-buttons button {
   flex: 1;
-  max-width: 100px;      /* keeps them compact */
-  height: 32px;         /* small like before */
+  max-width: 100px;
+  height: 100%;         /* <-- changed from 32px to 100% for equal height */
   font-size: 13px;
   font-weight: 600;
   border-radius: 6px;
@@ -581,31 +716,23 @@ body {
   align-items: center;
   justify-content: center;
   text-decoration: none;
-  line-height: 1;
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
   border: none;
-  vertical-align: middle;
+  margin: 0;            /* <-- ensure no margin */
+  padding: 0;           /* <-- ensure no padding */
+  box-sizing: border-box;
 }
 
 .edit-btn {
   background-color: #8B4513;
   color: #fff;
 }
-
-.edit-btn:hover {
-  background-color: #a0522d;
-}
+.edit-btn:hover { background-color: #a0522d; }
 
 .delete-btn {
   background-color: #e74c3c;
   color: #fff;
 }
-
-.delete-btn:hover {
-  background-color: #c0392b;
-}
+.delete-btn:hover { background-color: #c0392b; }
 
 /* --- TOAST --- */
 .toast-flash {
@@ -617,15 +744,14 @@ body {
   color: white;
   padding: 14px 28px;
   border-radius: 8px;
-  box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
   font-size: 15px;
   z-index: 9999;
   animation: fadeInDown 0.5s ease;
 }
-
 @keyframes fadeInDown {
   from { opacity: 0; top: 0; }
-  to { opacity: 1; top: 20px; }
+  to   { opacity: 1; top: 20px; }
 }
 
 /* --- MODALS --- */
@@ -649,11 +775,14 @@ body {
   width: 90%;
   max-width: 700px;
   text-align: center;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 20px 30px;
+  box-sizing: border-box;
 }
-
 @keyframes scaleIn {
   from { transform: scale(0.9); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  to   { transform: scale(1); opacity: 1; }
 }
 
 .button-group {
@@ -662,13 +791,9 @@ body {
   justify-content: center;
   gap: 12px;
 }
-.price-row {
-  display: flex;
-  gap: 20px; /* same effect */
-}
-.price-row .form-input {
-  flex: 1; /* makes both inputs equal width */
-}
+
+.price-row { display: flex; gap: 20px; }
+.price-row .form-input { flex: 1; }
 
 .yes-btn, .no-btn {
   padding: 8px 16px;
@@ -677,22 +802,11 @@ body {
   border: none;
   cursor: pointer;
 }
-
-.yes-btn {
-  background: #8B4513;
-  color: #fff;
-}
-
-.no-btn {
-  background: #e74c3c;
-  color: #fff;
-}
+.yes-btn { background: #8B4513; color: #fff; }
+.no-btn  { background: #e74c3c; color: #fff; }
 
 /* --- FORM ELEMENTS --- */
-.form-group {
-  margin-bottom: 18px;
-  text-align: left;
-}
+.form-group { margin-bottom: 18px; text-align: left; }
 
 .form-label {
   display: block;
@@ -711,7 +825,6 @@ body {
   transition: border-color 0.2s ease;
   background-color: #fff;
 }
-
 .form-input:focus, .chip-input:focus, select:focus {
   border-color: #8B4513;
 }
@@ -729,7 +842,6 @@ body {
   min-height: 48px;
   position: relative;
 }
-
 .chip {
   display: flex;
   align-items: center;
@@ -740,7 +852,6 @@ body {
   font-weight: 500;
   color: #3b2d1f;
 }
-
 .chip span {
   margin-left: 8px;
   cursor: pointer;
@@ -751,7 +862,7 @@ body {
 #suggestions {
   position: absolute;
   background: #fff;
-  box-shadow:0 6px 18px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
   border-radius: 8px;
   margin-top: 4px;
   max-height: 200px;
@@ -759,15 +870,13 @@ body {
   z-index: 1000;
   width: calc(100% - 18px);
 }
-
 #suggestions div {
   padding: 10px;
   cursor: pointer;
   transition: background 0.2s;
-  color: #333;              
-  font-size: 14px;    
+  color: #333;
+  font-size: 14px;
 }
-
 #suggestions div:hover {
   background: #f8f1eb;
   color: #000;
@@ -783,24 +892,10 @@ body {
   cursor: pointer;
   transition: transform 0.2s ease;
 }
-
-.submit-button.add {
-  background-color: #09731d;
-  color: #fff;
-}
-
-.submit-button.add:hover {
-  background-color: #004f0e;
-}
-
-.submit-button.cancel {
-  background-color: #e74c3c;
-  color: #fff;
-}
-
-.submit-button.cancel:hover {
-  background-color: #9f1708;
-}
+.submit-button.add    { background-color: #09731d; color: #fff; }
+.submit-button.add:hover { background-color: #004f0e; }
+.submit-button.cancel { background-color: #e74c3c; color: #fff; }
+.submit-button.cancel:hover { background-color: #9f1708; }
 
 .form-grid {
   display: grid;
@@ -809,22 +904,9 @@ body {
 }
 
 /* Toggle switch */
-.toggle {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 12px;
-}
-
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 50px;
-  height: 24px;
-}
-
+.toggle { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
+.switch { position: relative; display: inline-block; width: 50px; height: 24px; }
 .switch input { display: none; }
-
 .slider {
   position: absolute;
   cursor: pointer;
@@ -834,7 +916,6 @@ body {
   transition: .4s;
   border-radius: 24px;
 }
-
 .slider:before {
   position: absolute;
   content: "";
@@ -846,38 +927,20 @@ body {
   transition: .4s;
   border-radius: 50%;
 }
-
-input:checked + .slider {
-  background-color: #0a8408;
-}
-
-input:checked + .slider:before {
-  transform: translateX(26px);
-}
+input:checked + .slider { background-color: #0a8408; }
+input:checked + .slider:before { transform: translateX(26px); }
 
 /* --- RESPONSIVE --- */
 @media (max-width: 768px) {
-  .top-bar {
-    flex-direction: column;
-    gap: 10px;
-    text-align: center;
-  }
-
-  .dashboard-cards {
-    grid-template-columns: 1fr;
-  }
-
-  .products-grid {
-    grid-template-columns: 1fr 1fr;
-  }
+  .top-bar { flex-direction: column; gap: 10px; text-align: center; }
+  .dashboard-cards { grid-template-columns: 1fr; }
+  .products-grid   { grid-template-columns: 1fr 1fr; }
 }
-
 @media (max-width: 480px) {
-  .products-grid {
-    grid-template-columns: 1fr;
-  }
+  .products-grid { grid-template-columns: 1fr; }
 }
 
+/* Floating Action Button */
 .fab-btn {
   position: fixed;
   bottom: 30px;
@@ -895,28 +958,9 @@ input:checked + .slider:before {
   transition: background 0.2s ease, transform 0.2s ease;
   z-index: 1000;
 }
-
 .fab-btn:hover {
   background-color: #a0522d;
   transform: scale(1.05);
-}
-
-.add-btn {
-  background-color: #8B4513;
-  color: white;
-  padding: 8px 14px;
-  font-size: 14px;
-  font-weight: 600;
-  border-radius: 6px;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  transition: background 0.2s ease;
-}
-
-.add-btn:hover {
-  background-color: #a0522d;
 }
 
 #editProductModal .form-grid {
@@ -925,21 +969,13 @@ input:checked + .slider:before {
   gap: 18px;
   align-items: start;
 }
-
 #editProductModal .form-grid > .form-group {
   display: flex;
   flex-direction: column;
 }
-
 #editProductModal .form-grid > .form-group > .form-input {
   width: 100%;
   box-sizing: border-box;
-}
-
-#editProductModal .form-grid > .form-group:first-child .form-input,
-#editProductModal .form-grid > .form-group:nth-child(2) .form-input {
-  
-  min-width: 0;
 }
 
 .custom-confirm.hidden {
@@ -947,23 +983,38 @@ input:checked + .slider:before {
   pointer-events: none !important;
   opacity: 0 !important;
 }
+.custom-confirm:not(.hidden) { pointer-events: auto; }
 
-.custom-confirm:not(.hidden) {
-  pointer-events: auto;
-}
-
-#suggestions, #editSuggestions {
-  z-index: 1100;
-}
+#suggestions, #editSuggestions { z-index: 1100; }
 
 .products-grid, .product-card {
   z-index: 1;
   position: relative;
 }
-
 .action-buttons {
   z-index: 2;
   position: relative;
+}
+body {
+  overflow: hidden; /* locks browser scrolling completely */
+   box-sizing: border-box;
+}
+
+.image-dropbox {
+  border: 2px dashed #8B4513;
+  border-radius: 12px;
+  padding: 40px;
+  text-align: center;
+  color: #8B4513;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.image-dropbox:hover {
+  background-color: #f9f2ec;
+}
+.image-dropbox.dragover {
+  background-color: #f3e5d0;
+  border-color: #a0522d;
 }
 
 

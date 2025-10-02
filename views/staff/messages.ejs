@@ -1,0 +1,276 @@
+<link rel="stylesheet" href="/css/messages.css">
+
+<div class="email-container">
+    <div class="email-header">
+        <h2><i class="fas fa-envelope"></i> Messages</h2>
+    </div>
+
+    <div class="email-grid">
+        <!-- Inbox Sidebar -->
+        <div class="inbox-panel">
+            <div class="inbox-header">
+                <h3><i class="fas fa-inbox"></i> Inbox</h3>
+                <button class="btn-compose" id="composeBtn">
+                    <i class="fas fa-edit"></i>
+                    Compose
+                </button>
+            </div>
+            <div class="conversations-list" id="conversationsList">
+                <!-- Conversations will be loaded here -->
+                <div class="no-conversations">
+                    <i class="fas fa-envelope-open"></i>
+                    <p>No messages yet</p>
+                    <small>Start a conversation to get connected</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Message View Area -->
+        <div class="message-view" id="messageView">
+            <div class="message-placeholder">
+                <i class="fas fa-envelope-open-text"></i>
+                <h3>Select a message</h3>
+                <p>Choose a conversation from the inbox to view messages</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Compose Modal -->
+<div class="modal" id="composeModal">
+    <div class="modal-content email-compose-modal">
+        <div class="modal-header">
+            <h3><i class="fas fa-edit"></i> Compose Message</h3>
+            <button class="modal-close" id="closeComposeModal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="composeForm">
+                <div class="form-group">
+                    <label for="recipientSelect">To:</label>
+                    <select id="recipientSelect" name="recipientId" required>
+                        <option value="">Select recipient...</option>
+                        <!-- Users will be loaded here -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="subjectInput">Subject:</label>
+                    <input type="text" id="subjectInput" name="subject" placeholder="Enter subject..." required>
+                </div>
+
+                <div class="form-group">
+                    <label for="messageTextarea">Message:</label>
+                    <div class="compose-toolbar">
+                        <button type="button" class="format-btn" data-format="bold" title="Bold">
+                            <i class="fas fa-bold"></i>
+                        </button>
+                        <button type="button" class="format-btn" data-format="italic" title="Italic">
+                            <i class="fas fa-italic"></i>
+                        </button>
+                        <button type="button" class="format-btn" data-format="underline" title="Underline">
+                            <i class="fas fa-underline"></i>
+                        </button>
+                        <button type="button" class="format-btn" data-format="list" title="Bullet List">
+                            <i class="fas fa-list-ul"></i>
+                        </button>
+                        <button type="button" class="format-btn" data-format="link" title="Link">
+                            <i class="fas fa-link"></i>
+                        </button>
+                        <div class="toolbar-separator"></div>
+                        <button type="button" class="format-btn" data-format="undo" title="Undo">
+                            <i class="fas fa-undo"></i>
+                        </button>
+                        <button type="button" class="format-btn" data-format="redo" title="Redo">
+                            <i class="fas fa-redo"></i>
+                        </button>
+                    </div>
+                    <textarea id="messageTextarea" name="message" placeholder="Type your message..." rows="8"></textarea>
+                    <div class="attachment-section">
+                        <input type="file" id="composeFileInput" class="file-input" multiple style="display: none;">
+                        <button type="button" class="file-attach-btn" id="composeAttachBtn">
+                            <i class="fas fa-paperclip"></i>
+                            Attach Files (Max 10MB each)
+                        </button>
+                        <div id="composeAttachmentPreview" class="attachment-preview" style="display: none;"></div>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" id="cancelCompose">Cancel</button>
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-paper-plane"></i>
+                        Send Message
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Reply Modal -->
+<div class="modal" id="replyModal">
+    <div class="modal-content email-compose-modal email-reply-modal">
+        <div class="modal-header">
+            <h3><i class="fas fa-reply"></i> Reply</h3>
+            <button class="modal-close" id="closeReplyModal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="replyForm">
+                <div class="form-group">
+                    <label>To:</label>
+                    <div class="recipient-display" id="replyRecipient"></div>
+                </div>
+                <div class="form-group">
+                    <label for="replySubject">Subject:</label>
+                    <input type="text" id="replySubject" name="subject" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="replyTextarea">Message:</label>
+                    <div class="compose-toolbar">
+                        <button type="button" class="format-btn" data-format="bold" title="Bold">
+                            <i class="fas fa-bold"></i>
+                        </button>
+                        <button type="button" class="format-btn" data-format="italic" title="Italic">
+                            <i class="fas fa-italic"></i>
+                        </button>
+                        <button type="button" class="format-btn" data-format="underline" title="Underline">
+                            <i class="fas fa-underline"></i>
+                        </button>
+                        <button type="button" class="format-btn" data-format="list" title="Bullet List">
+                            <i class="fas fa-list-ul"></i>
+                        </button>
+                        <button type="button" class="format-btn" data-format="link" title="Link">
+                            <i class="fas fa-link"></i>
+                        </button>
+                        <div class="toolbar-separator"></div>
+                        <button type="button" class="format-btn" data-format="undo" title="Undo">
+                            <i class="fas fa-undo"></i>
+                        </button>
+                        <button type="button" class="format-btn" data-format="redo" title="Redo">
+                            <i class="fas fa-redo"></i>
+                        </button>
+                    </div>
+                    <div class="reply-quote" id="replyQuote"></div>
+                    <textarea id="replyTextarea" name="message" placeholder="Type your reply..." rows="6"></textarea>
+                    <div class="attachment-section">
+                        <input type="file" id="replyFileInput" class="file-input" multiple style="display: none;">
+                        <button type="button" class="file-attach-btn" id="replyAttachBtn">
+                            <i class="fas fa-paperclip"></i>
+                            Attach Files (Max 10MB each)
+                        </button>
+                        <div id="replyAttachmentPreview" class="attachment-preview" style="display: none;"></div>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" id="cancelReply">Cancel</button>
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-paper-plane"></i>
+                        Send Reply
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- New Conversation Modal -->
+<div class="modal" id="newConversationModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>New Message</h3>
+            <button class="modal-close" id="closeNewConversationModal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="newConversationForm">
+                <div class="form-group">
+                    <label for="recipientSelect">Select Recipient</label>
+                    <select id="recipientSelect" name="recipientId" required>
+                        <option value="">Choose a recipient...</option>
+                        <!-- Users will be loaded here -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="initialMessage">Message</label>
+                    <div class="format-tools">
+                        <button type="button" class="format-btn" data-format="bold" title="Bold">
+                            <i class="fas fa-bold"></i>
+                        </button>
+                        <button type="button" class="format-btn" data-format="italic" title="Italic">
+                            <i class="fas fa-italic"></i>
+                        </button>
+                        <button type="button" class="format-btn" data-format="list" title="Bullet List">
+                            <i class="fas fa-list-ul"></i>
+                        </button>
+                        <button type="button" class="format-btn" data-format="link" title="Link">
+                            <i class="fas fa-link"></i>
+                        </button>
+                    </div>
+                    <textarea id="initialMessage" name="message" placeholder="Type your message..." rows="4" required></textarea>
+                    <div class="attachment-section">
+                        <input type="file" id="modalFileInput" class="file-input" multiple style="display: none;">
+                        <button type="button" class="file-attach-btn" id="modalAttachBtn">
+                            <i class="fas fa-paperclip"></i>
+                            Attach Files
+                        </button>
+                        <div id="modalAttachmentPreview" class="attachment-preview" style="display: none;"></div>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" id="cancelNewConversation">Cancel</button>
+                    <button type="submit" class="btn-primary">Send Message</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Image Gallery Modal -->
+<div class="modal" id="imageGalleryModal">
+    <div class="modal-content image-gallery-modal">
+        <div class="modal-header">
+            <h3 id="galleryTitle"></h3>
+            <button class="modal-close" id="closeImageGalleryModal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="gallery-container">
+                <button class="gallery-nav gallery-prev" id="galleryPrev">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="gallery-image-container">
+                    <img id="galleryImage" src="" alt="" />
+                </div>
+                <button class="gallery-nav gallery-next" id="galleryNext">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            <div class="gallery-info">
+                <span id="galleryCounter">1 / 1</span>
+                <span id="galleryFilename"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Set up global variables for messaging -->
+<script id="users" type="application/json"><%- JSON.stringify(users) %></script>
+<script id="conversations" type="application/json"><%- JSON.stringify(conversations) %></script>
+<script id="currentUserId" type="application/json"><%= user._id %></script>
+<script>
+    // Set global variables before importing the module
+    window.users = JSON.parse(document.getElementById('users').textContent);
+    window.conversations = JSON.parse(document.getElementById('conversations').textContent);
+    window.currentUserId = document.getElementById('currentUserId').textContent;
+    window.apiBase = '/staff/messages/api';
+</script>
+
+<script type="module">
+    // Import and initialize the messaging module
+    import { initMessaging } from '/js/messages.js';
+    initMessaging();
+</script>

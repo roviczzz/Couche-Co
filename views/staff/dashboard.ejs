@@ -1,4 +1,8 @@
 <div class="dashboard-container">
+  <div class="dashboard-header-greeting" style="margin-bottom:18px;font-size:35px;font-weight:600;color:black;">
+    Hello, <%= typeof user !== 'undefined' && (user.fullname || user.displayName) ? (user.fullname || user.displayName).split(' ')[0] : 'there' %>! <br>
+    <a style="font-size: 16px;color: #838384; font-weight: 400;">Here are today's stats!</a>
+  </div>
   <h2>Staff Dashboard</h2>
   <div class="dashboard-stats">
     <div class="stat-card">
@@ -16,10 +20,12 @@
   </div>
 </div>
 <style>
+.main-content{
+    background-color: #f8f9fb;
+  }
 .dashboard-container { padding: 32px; }
 .dashboard-stats { display: flex; gap: 32px; margin-top: 32px; }
 .stat-card { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 32px 40px; min-width: 180px; text-align: center; }
 .stat-title { font-size: 18px; color: #a05c2f; margin-bottom: 12px; }
 .stat-value { font-size: 32px; font-weight: bold; color: #5a3e2b; }
 </style>
-

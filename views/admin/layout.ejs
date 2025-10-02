@@ -837,6 +837,41 @@
         .sidebar-collapsed .main-content {
             margin-left: 70px;
         }
+
+        /* Notification badge for Messages */
+        .notification-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 11px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 18px;
+            z-index: 10;
+            animation: badgePulse 2s infinite;
+        }
+
+        .sidebar-collapsed .notification-badge {
+            top: 6px;
+            right: 6px;
+            width: 16px;
+            height: 16px;
+            font-size: 10px;
+            min-width: 16px;
+        }
+
+        @keyframes badgePulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
     </style>
 </head>
 <script>
@@ -1265,6 +1300,32 @@
             sidebar.addEventListener('mouseleave', hideSidebarTooltip);
         }
         setupSidebarTooltips();
+
+        // Initialize message badge
+        updateMessageBadge();
+
+        // Update message badge every 30 seconds
+        setInterval(updateMessageBadge, 30000);
+
+        async function updateMessageBadge() {
+            try {
+                const response = await fetch('/admin/messages/api/unread-count');
+                if (response.ok) {
+                    const data = await response.json();
+                    const badge = document.getElementById('messages-badge');
+                    if (badge) {
+                        if (data.unreadCount > 0) {
+                            badge.textContent = data.unreadCount > 99 ? '99+' : data.unreadCount;
+                            badge.style.display = 'flex';
+                        } else {
+                            badge.style.display = 'none';
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching unread message count:', error);
+            }
+        }
     });
 </script>
 <body class="sidebar-no-transition">
@@ -1310,6 +1371,7 @@
                        label: 'Management',
                        items: [
                          { path: '/admin/discounts', label: 'Discounts', icon: 'percent' },
+                         { path: '/admin/messages', label: 'Messages', icon: 'envelope' },
                          { path: '#calculator', label: 'Calculator', icon: 'calculator' },
                          { path: '/admin/settings', label: 'Settings', icon: 'cog' }
                        ]
@@ -1335,6 +1397,9 @@
                     <li>
                       <a href="<%= item.path %>" class="<%= isActive ? 'active' : '' %>">
                         <i class="fa-solid fa-<%= item.icon %>"></i>
+                        <% if (item.path === '/admin/messages') { %>
+                          <span class="notification-badge" id="messages-badge" style="display: none;"></span>
+                        <% } %>
                         <span class="label-text"><%= item.label %></span>
                       </a>
                     </li>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Generate Reports</title>
+  <link rel="stylesheet" href="/css/styles.css"> <!-- your stylesheet -->
+</head>
+<body>
+  <div class="container">
+    <h1>📊 Generate Reports</h1>
+    <p>Select the type of report you want to generate:</p>
+
+    <form action="/staff/generate-report" method="POST">
+      <div class="form-group">
+        <label for="reportType">Report Type:</label>
+        <select id="reportType" name="reportType" required>
+          <option value="">-- Select Report --</option>
+          <option value="sales">Sales Report</option>
+          <option value="inventory">Inventory Report</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="reportRange">Report Range:</label>
+        <select id="reportRange" name="reportRange" required>
+          <option value="">-- Select Range --</option>
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Generate Report</button>
+    </form>
+
+    <% if (message) { %>
+      <p class="success"><%= message %></p>
+    <% } %>
+  </div>
+</body>
+</html>

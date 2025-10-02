@@ -3,44 +3,52 @@ const router = express.Router();
 const { MongoClient, ObjectId } = require('mongodb');
 const bcrypt = require('bcrypt');
 const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+const client = new MongoClient(uri);
+const fs = require('fs');
+const path = require('path');
+const axios = require('axios');
+const multer = require('multer');
+let productCollection;
 
-// Direct toggle availability endpoint
-router.post('/toggle-availability/:id', async (req, res) => {
-  console.log('Direct toggle endpoint hit with ID:', req.params.id);
-  console.log('Request body:', req.body);
 
+// Connect once and reuse
+(async () => {
   try {
     const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    const db = client.db("blessingscafe");
+    productCollection = db.collection("Menu");
+    console.log("✅ Connected to MongoDB (Menu collection ready)");
+  } catch (err) {
+    console.error("MongoDB connection error:", err);
+  }
+})();
 
-    // Get product ID and new availability status
-    const productId = req.params.id;
+
+router.post("/toggle-availability/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
     const { isEnabled } = req.body;
 
-    console.log('Updating product with ID:', productId);
-    console.log('New isEnabled status:', isEnabled);
+    console.log("Toggle request:", id, req.body);
 
-    // Update the product
-    const result = await db.collection('Menu').updateOne(
-      { _id: new ObjectId(productId) },
-      { $set: { isEnabled: isEnabled } }
+    const enabledValue = isEnabled === true || isEnabled === "true";
+
+    const result = await productCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { isEnabled: enabledValue } }
     );
 
-    console.log('Update result:', result);
-
-    await client.close();
-
     if (result.matchedCount === 0) {
-      console.log('Product not found in database');
-      return res.status(404).json({ success: false, message: 'Product not found' });
+      return res.status(404).json({ success: false, message: "Product not found" });
     }
 
-    res.json({ success: true, message: 'Product availability updated successfully' });
-  } catch (error) {
-    console.error('Toggle availability error:', error);
-    res.status(500).json({ success: false, message: 'Failed to update product availability' });
+    res.json({ success: true, isEnabled: enabledValue });
+  } catch (err) {
+    console.error("Toggle route error:", err);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 });
+
 
 // Import helper functions
 const {
@@ -71,6 +79,9 @@ const {
   getAverageSalesPerDay,
   getSalesPerformance,
   getDashboardAnalyticsStats,
+  getTopCategories,
+  getPaymentTypes,
+  getOrdersBySource,
   addDiscount,
   updateDiscount,
   deleteDiscount,
@@ -123,18 +134,81 @@ router.get('/analytics/dashboard-stats', nocache, async (req, res) => {
   }
 });
 
+router.get('/analytics/low-stock', nocache, async (req, res) => {
+  try {
+    const threshold = parseInt(req.query.threshold) || 5; // Default to 5, can be 5-100
+
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    const ingredients = await db.collection('Ingredients').find({ Quantity: { $lte: threshold }, isEnabled: true }).sort({ Quantity: 1 }).toArray();
+    const addons = await db.collection('Add-ons').find({ Quantity: { $lte: threshold }, isEnabled: true }).sort({ Quantity: 1 }).toArray();
+
+    await client.close();
+
+    // Helper function to get item name
+    const getItemName = (item, type) => {
+      if (type === 'ingredient') {
+        return item.itemName || item.ItemName || item.name || item.Name || 'Unnamed Ingredient';
+      } else {
+        return item.itemName || item.ItemName || item.name || item.Name || 'Unnamed Add-on';
+      }
+    };
+
+    // Combine and sort all low stock items
+    const allLowStockItems = [
+      ...ingredients.map(item => ({
+        quantity: item.Quantity,
+        name: getItemName(item, 'ingredient'),
+        type: 'ingredient'
+      })),
+      ...addons.map(item => ({
+        quantity: item.Quantity,
+        name: getItemName(item, 'addon'),
+        type: 'addon'
+      }))
+    ].sort((a, b) => a.quantity - b.quantity);
+
+    if (allLowStockItems.length > 0) {
+      const primary = allLowStockItems[0];
+      const hasMore = allLowStockItems.length > 1;
+
+      res.json({
+        quantity: primary.quantity,
+        name: primary.name,
+        type: primary.type,
+        hasMore: hasMore,
+        totalLowStock: allLowStockItems.length,
+        allItems: hasMore ? allLowStockItems.slice(1).map(item => `${item.name} (${item.quantity})`) : []
+      });
+    } else {
+      res.json({
+        quantity: 0,
+        name: 'All stocked',
+        type: 'none',
+        hasMore: false,
+        totalLowStock: 0,
+        allItems: []
+      });
+    }
+  } catch (error) {
+    console.error('Low stock error:', error);
+    res.status(500).json({ error: 'Failed to load low stock data' });
+  }
+});
+
 router.get('/analytics/top-categories', nocache, async (req, res) => {
   try {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
-    
+
     const pipeline = [
       { $unwind: '$Cart' },
-      { 
-        $match: { 
+      {
+        $match: {
           PaymentStatus: { $ne: 'Cancelled' },
           'Cart.Category': { $exists: true, $ne: null }
-        } 
+        }
       },
       {
         $group: {
@@ -150,7 +224,7 @@ router.get('/analytics/top-categories', nocache, async (req, res) => {
 
     const categories = await db.collection('Orders').aggregate(pipeline).toArray();
     await client.close();
-    
+
     res.json(categories.map(cat => ({
       name: cat._id,
       value: cat.total,
@@ -163,9 +237,93 @@ router.get('/analytics/top-categories', nocache, async (req, res) => {
   }
 });
 
+router.get('/analytics/payment-types', nocache, async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    const pipeline = [
+      {
+        $match: {
+          PaymentStatus: { $ne: 'Cancelled' },
+          PaymentMode: { $exists: true, $ne: null }
+        }
+      },
+      {
+        $project: {
+          PaymentMode: {
+            $cond: {
+              if: { $in: ['$PaymentMode', ['E-PAYMENT', 'E-Payment']] },
+              then: 'E-Payment',
+              else: '$PaymentMode'
+            }
+          },
+          PaymentStatus: 1
+        }
+      },
+      {
+        $group: {
+          _id: '$PaymentMode',
+          orderCount: { $sum: 1 }
+        }
+      },
+      { $sort: { orderCount: -1 } }
+    ];
+
+    const paymentTypes = await db.collection('Orders').aggregate(pipeline).toArray();
+    await client.close();
+
+    res.json(paymentTypes.map(pt => ({
+      name: pt._id,
+      orderCount: pt.orderCount
+    })));
+  } catch (error) {
+    console.error('Payment types error:', error);
+    res.status(500).json({ error: 'Failed to load payment types' });
+  }
+});
+
+router.get('/analytics/orders-by-source', nocache, async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    const pipeline = [
+      {
+        $match: {
+          PaymentStatus: { $ne: 'Cancelled' },
+          Source: { $exists: true, $ne: null, $ne: '' }
+        }
+      },
+      {
+        $group: {
+          _id: '$Source',
+          orderCount: { $sum: 1 },
+          totalRevenue: { $sum: '$Total' }
+        }
+      },
+      { $sort: { orderCount: -1 } }
+    ];
+
+    const ordersBySource = await db.collection('Orders').aggregate(pipeline).toArray();
+    await client.close();
+
+    res.json(ordersBySource.map(source => ({
+      name: source._id,
+      orderCount: source.orderCount,
+      totalRevenue: source.totalRevenue
+    })));
+  } catch (error) {
+    console.error('Orders by source error:', error);
+    res.status(500).json({ error: 'Failed to load orders by source' });
+  }
+});
+
+
+
 // Apply admin check to all OTHER routes (not login/forgot-password)
-router.use(['/dashboard', '/products', '/orders', '/stocks', '/discounts', '/menu', '/settings', '/order'], isLoggedIn);
-router.use(['/dashboard', '/products', '/orders', '/stocks', '/discounts', '/menu', '/settings', '/order'], ensureAdmin);
+router.use(['/dashboard', '/products', '/orders', '/stocks', '/discounts', '/menu', '/settings', '/order', '/messages'], isLoggedIn);
+router.use(['/dashboard', '/products', '/orders', '/stocks', '/discounts', '/menu', '/settings', '/order', '/messages'], ensureAdmin);
 
 // Admin redirect route
 router.get('/', (req, res) => {
@@ -175,13 +333,39 @@ router.get('/', (req, res) => {
 // Admin Dashboard
 router.get('/dashboard', nocache, async (req, res) => {
   try {
-    const stats = await getDashboardStats();
+    // Fetch current user data from database to ensure fullname is up to date
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const currentUser = await db.collection('users').findOne({ _id: new ObjectId(req.session.user._id) });
+    await client.close();
+
+    // Merge session data with fresh database data
+    const userData = {
+      ...req.session.user,
+      fullname: currentUser?.fullname
+    };
+
+    // Fetch all dashboard data server-side for better loading performance
+    const [stats, analyticsStats, topCategories, paymentTypes, ordersBySource, salesPerformance] = await Promise.all([
+      getDashboardStats(),
+      getDashboardAnalyticsStats(),
+      getTopCategories(),
+      getPaymentTypes(),
+      getOrdersBySource(),
+      getSalesPerformance(14)
+    ]);
+
     res.render('admin/dashboard', {
       title: 'Admin Dashboard',
-      user: req.session.user,
+      user: userData,
       currentPage: '/admin/dashboard',
       layout: 'admin/layout',
-      ...stats
+      ...stats,
+      analyticsStats,
+      topCategories,
+      paymentTypes,
+      ordersBySource,
+      salesPerformance
     });
   } catch (error) {
     console.error('Dashboard error:', error);
@@ -286,6 +470,108 @@ router.get('/products', nocache, async (req, res) => {
   }
 });
 
+// --- Multer setup ---
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, 'uploads/'),
+  filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname)),
+});
+const upload = multer({ storage });
+
+// Add Product route
+router.post('/products/add', upload.single('imagelink'), async (req, res) => {
+  const {
+    categoryShortcut,
+    productCode,
+    Name,
+    size16,
+    size22,
+    Ingredients,
+    Allergen,
+    isEnabled,
+    BasePrice,
+    description   // ✅ must match the textarea name in the Add Product modal
+  } = req.body;
+
+  // Map shortcuts to full category names
+  const categoryMap = { CF: "Coffee", MT: "Milktea", FT: "Fruit Tea", BK: "Pastries" };
+  const Category = categoryMap[categoryShortcut] || categoryShortcut || null;
+
+  // Validation
+  if (!Category || !productCode || !Name) {
+    req.flash('error_msg', 'Please select a category, enter a product code, and product name.');
+    return res.redirect('/admin/products');
+  }
+
+  const ProductID = `${categoryShortcut.toUpperCase()}-${productCode.toUpperCase()}`;
+
+  // Sizes
+  const Sizes = [];
+  if (size16) Sizes.push({ Size: '16oz', BasePrice: parseFloat(size16) });
+  if (size22) Sizes.push({ Size: '22oz', BasePrice: parseFloat(size22) });
+
+  // Ingredients array
+  const ingredientsArray = Ingredients ? Ingredients.split(',').map(i => i.trim()) : [];
+
+  // Image handling
+  let imagelink = req.file ? `/uploads/${req.file.filename}` : 'placeholder';
+  let imgbbUrl = null;
+  let deleteUrl = null;
+
+  if (req.file) {
+    try {
+      const fileData = fs.readFileSync(req.file.path, { encoding: "base64" });
+      const imgbbKey = process.env.IMGBB_API_KEY;
+
+      if (imgbbKey) {
+        const response = await axios.post(
+          `https://api.imgbb.com/1/upload?key=${imgbbKey}`,
+          new URLSearchParams({ image: fileData })
+        );
+        imgbbUrl = response.data.data.url;
+        deleteUrl = response.data.data.delete_url;
+      }
+    } catch (err) {
+      console.error("ImgBB upload failed:", err.message);
+    }
+  }
+
+  // ✅ Build the product document to insert
+  const productData = {
+    ProductID,
+    Name,
+    description: description || "",        // <-- lowercase key so it matches your textarea name
+    Sizes: Sizes.length > 0 ? Sizes : null,
+    Ingredients: ingredientsArray,
+    Category,
+    Allergen: Allergen || null,
+    imagelink,
+    imgbbUrl,
+    deleteUrl,
+    isEnabled: isEnabled === 'true'
+  };
+
+  // Base price for pastries
+  if (Category.toLowerCase() === 'pastries' && !isNaN(parseFloat(BasePrice))) {
+    productData.BasePrice = parseFloat(BasePrice);
+  }
+
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    await db.collection('Menu').insertOne(productData);
+    await client.close();
+
+    req.flash('success_msg', `${Name} has been added to the menu`);
+    res.redirect('/admin/products');
+  } catch (err) {
+    console.error('Error adding product:', err);
+    req.flash('error_msg', 'Failed to add product. Please try again.');
+    res.redirect('/admin/products');
+  }
+});
+
+
+
 // Add Product
 router.get('/products/add', nocache, (req, res) => {
   res.render('admin/add-product', {
@@ -297,34 +583,232 @@ router.get('/products/add', nocache, (req, res) => {
   });
 });
 
-// Edit Product
+// API endpoint to fetch product details for the edit modal
+router.get('/api/products/:id', async (req, res) => {
+  const { id } = req.params;
+
+  if (!ObjectId.isValid(id)) {
+    return res.status(400).json({ success: false, message: 'Invalid product ID' });
+  }
+
+  let client;
+  try {
+    client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const productCollection = db.collection('Menu');
+    const ingredientsCollection = db.collection('Ingredients');
+
+    const product = await productCollection.findOne({ _id: new ObjectId(id) });
+    if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
+
+    // Fetch ingredient details if any
+    let ingredientDetails = [];
+    if (Array.isArray(product.Ingredients) && product.Ingredients.length > 0) {
+      ingredientDetails = await ingredientsCollection
+        .find({ IngredientID: { $in: product.Ingredients } })
+        .toArray();
+    }
+
+    res.json({
+      success: true,
+      product: {
+        ...product,
+        IngredientsDetails: ingredientDetails,
+        imagelink: product.imagelink || null
+      }
+    });
+
+  } catch (err) {
+    console.error('Error fetching product:', err);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  } finally {
+    if (client) await client.close();
+  }
+});
+
+
+const FormData = require('form-data'); // 🆕 add this at the top with other requires
+
+// ✅ Edit Product route (with FormData upload to ImgBB)
+router.post('/products/edit/:id', upload.single('imagelink'), async (req, res) => {
+  const { id } = req.params;
+  const { description, Allergen, size16, size22 } = req.body;
+
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const collection = db.collection('Menu');
+
+    // Fetch current product
+    const existingProduct = await collection.findOne({ _id: new ObjectId(id) });
+    if (!existingProduct) {
+      await client.close();
+      req.flash('error_msg', 'Product not found');
+      return res.redirect('/admin/products');
+    }
+
+    const updateFields = {
+      description: description || "",
+      Allergen: Allergen || ""
+    };
+
+    // Update sizes/prices
+    const sizes = [];
+    if (size16) sizes.push({ Size: '16oz', BasePrice: parseFloat(size16) });
+    if (size22) sizes.push({ Size: '22oz', BasePrice: parseFloat(size22) });
+    if (sizes.length) updateFields.Sizes = sizes;
+
+    console.log("DEBUG: API Key value ->", process.env.IMGBB_API_KEY);
+
+    // ✅ If new image uploaded
+    if (req.file) {
+      console.log("🖼 New image uploaded:", req.file.filename);
+
+      // Delete old local file if exists
+      if (
+        existingProduct.imagelink &&
+        existingProduct.imagelink !== 'placeholder' &&
+        existingProduct.imagelink.startsWith('/uploads/')
+      ) {
+        const oldPath = path.join(__dirname, '..', existingProduct.imagelink);
+        fs.unlink(oldPath, err => {
+          if (err) console.error('Error deleting old image:', err.message);
+        });
+      }
+
+      // Delete old ImgBB image if deleteUrl exists
+      if (existingProduct.deleteUrl) {
+        try {
+          await axios.get(existingProduct.deleteUrl);
+          console.log("🗑 Old ImgBB image deleted");
+        } catch (err) {
+          console.error("ImgBB delete error:", err.message);
+        }
+      }
+
+      // 🆕 Upload new image to ImgBB using FormData
+      try {
+        const imageData = fs.readFileSync(req.file.path, { encoding: 'base64' });
+
+        const formData = new FormData();
+        formData.append("key", process.env.IMGBB_API_KEY);
+        formData.append("image", imageData);
+
+        const response = await axios.post(
+          "https://api.imgbb.com/1/upload",
+          formData,
+          { headers: formData.getHeaders() }
+        );
+
+        console.log("✅ ImgBB Upload Success:", response.data);
+
+        updateFields.imgbbUrl = response.data.data.url;
+        updateFields.deleteUrl = response.data.data.delete_url;
+        updateFields.imagelink = `/uploads/${req.file.filename}`;
+      } catch (err) {
+        console.error("❌ ImgBB upload failed:", err.response?.data || err.message);
+      }
+    }
+
+    await collection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updateFields }
+    );
+
+    await client.close();
+    req.flash('success_msg', 'Product updated successfully');
+    res.redirect('/admin/products');
+  } catch (err) {
+    console.error('Error editing product:', err);
+    req.flash('error_msg', 'Internal Server Error');
+    res.redirect('/admin/products');
+  }
+});
+
+
+
+
+// ✅ Edit Product – fetch and render edit page
 router.get('/products/edit/:id', nocache, async (req, res) => {
   try {
-    const product = await getProductById(req.params.id);
+    const { id } = req.params;
+
+    // Validate MongoDB ObjectId before querying
+    if (!id || !ObjectId.isValid(id)) {
+      return res.status(400).render('error', {
+        title: 'Invalid Request',
+        message: 'Invalid product ID.',
+        status: 400
+      });
+    }
+
+    const product = await getProductById(id);
     if (!product) {
       return res.status(404).render('error', {
         title: 'Not Found',
-        message: 'Product not found',
+        message: 'Product not found.',
         status: 404
       });
     }
+
+    // Render edit page with fetched product data
     res.render('admin/edit-product', {
       title: 'Edit Product | Blessings Cafe',
       user: req.session.user,
       currentPage: '/admin/products',
       layout: 'admin/layout',
       product,
-      categories: ['Coffee', 'Tea', 'Pastry', 'Meal']
+      // ✅ Match your add-product categories
+      categories: ['Coffee', 'Milktea', 'Fruit Tea', 'Pastries']
     });
+
   } catch (error) {
     console.error('Edit product error:', error);
     res.status(500).render('error', {
       title: 'Server Error',
-      message: 'Failed to load product',
+      message: 'Failed to load product.',
       status: 500
     });
   }
 });
+
+// DELETE Product Route (AJAX-friendly)
+// Delete Product route (JSON response)
+router.post('/delete-product/:id', async (req, res) => {
+  const productId = req.params.id;
+
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const productCollection = db.collection('Menu');
+
+    const product = await productCollection.findOne({ _id: new ObjectId(productId) });
+    if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
+
+    // Delete local file if exists
+    const fs = require('fs');
+    if (product.imagelink && product.imagelink !== 'placeholder') {
+      fs.unlink(product.imagelink.replace(/^\//, ''), err => {
+        if (err) console.error("Local file deletion error:", err.message);
+      });
+    }
+
+    // Delete ImgBB image if exists
+    if (product.deleteUrl) {
+      try { await axios.get(product.deleteUrl); } 
+      catch (err) { console.error("ImgBB delete error:", err.message); }
+    }
+
+    await productCollection.deleteOne({ _id: new ObjectId(productId) });
+    await client.close();
+
+    res.json({ success: true, message: 'Product deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting product:', err);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+});
+
 
 // Orders Management
 router.get('/orders', nocache, async (req, res) => {
@@ -556,14 +1040,401 @@ router.get('/discounts', nocache, async (req, res) => {
   }
 });
 
+// Messages page
+router.get('/messages', nocache, async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const currentUserId = req.session.user._id;
+
+    // Get all users for messaging (admins and staff only) - include current user for sender display
+    const users = await db.collection('users').find({
+      role: { $in: ['admin', 'owner', 'staff'] }
+    }).project({
+      _id: 1,
+      fullname: 1,
+      staffId: 1,
+      role: 1
+    }).toArray();
+
+    // Get conversations for current user (server-side)
+    const messages = await db.collection('messages')
+      .find({
+        $or: [
+          { senderId: currentUserId },
+          { recipientId: currentUserId }
+        ]
+      })
+      .sort({ timestamp: -1 })
+      .toArray();
+
+    // Group messages by conversation partner
+    const conversationMap = new Map();
+
+    for (const message of messages) {
+      const partnerId = message.senderId === currentUserId ? message.recipientId : message.senderId;
+      const conversationKey = [currentUserId, partnerId].sort().join('_');
+
+      if (!conversationMap.has(conversationKey)) {
+        // Show subject if available, otherwise content
+        const lastMessageText = message.subject ? `${message.subject}: ${message.content || 'Sent an attachment'}` : (message.content || 'Sent an attachment');
+        conversationMap.set(conversationKey, {
+          conversationId: conversationKey,
+          participantId: partnerId,
+          lastMessage: lastMessageText,
+          lastMessageTime: message.timestamp,
+          messageCount: 0,
+          unreadCount: 0
+        });
+      }
+
+      const conv = conversationMap.get(conversationKey);
+      conv.messageCount++;
+
+      // Count unread messages from this partner
+      if (message.recipientId === currentUserId && !message.read) {
+        conv.unreadCount++;
+      }
+    }
+
+    const conversations = Array.from(conversationMap.values());
+
+    // Get participant details
+    if (conversations.length > 0) {
+      const participantIds = conversations.map(c => c.participantId);
+      const participants = await db.collection('users')
+        .find({ _id: { $in: participantIds.map(id => new ObjectId(id)) } })
+        .toArray();
+
+      const participantMap = new Map(participants.map(p => [p._id.toString(), p]));
+
+      conversations.forEach(conv => {
+        const participant = participantMap.get(conv.participantId);
+        if (participant) {
+          conv.participantName = participant.fullname;
+        }
+      });
+    }
+
+    await client.close();
+
+    res.render('admin/messages', {
+      title: 'Messages | Blessings Cafe',
+      user: req.session.user,
+      currentPage: '/admin/messages',
+      layout: 'admin/layout',
+      users,
+      conversations
+    });
+  } catch (error) {
+    console.error('Messages error:', error);
+    res.status(500).render('error', {
+      title: 'Server Error',
+      message: 'Failed to load messages',
+      status: 500
+    });
+  }
+});
+
+
+// Configure multer for file uploads
+const messageStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'public/uploads/messages/');
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const messageUpload = multer({
+  storage: messageStorage,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limit
+  },
+  fileFilter: function (req, file, cb) {
+    // Allow common file types
+    const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx|xls|xlsx|txt|zip|rar/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Invalid file type'));
+    }
+  }
+});
+
+// Get conversations for current user
+router.get('/messages/api/conversations', async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const currentUserId = req.session.user._id;
+
+    // Find all unique conversation partners
+    const messages = await db.collection('messages')
+      .find({
+        $or: [
+          { senderId: currentUserId },
+          { recipientId: currentUserId }
+        ]
+      })
+      .sort({ timestamp: -1 })
+      .toArray();
+
+    // Group messages by conversation partner
+    const conversationMap = new Map();
+
+    for (const message of messages) {
+      const partnerId = message.senderId === currentUserId ? message.recipientId : message.senderId;
+      const conversationKey = [currentUserId, partnerId].sort().join('_');
+
+      if (!conversationMap.has(conversationKey)) {
+        // Show subject if available, otherwise content
+        const lastMessageText = message.subject ? `${message.subject}: ${message.content || 'Sent an attachment'}` : (message.content || 'Sent an attachment');
+        conversationMap.set(conversationKey, {
+          conversationId: conversationKey,
+          participantId: partnerId,
+          lastMessage: lastMessageText,
+          lastMessageTime: message.timestamp,
+          messageCount: 0,
+          unreadCount: 0
+        });
+      }
+
+      const conv = conversationMap.get(conversationKey);
+      conv.messageCount++;
+
+      // Count unread messages from this partner
+      if (message.recipientId === currentUserId && !message.read) {
+        conv.unreadCount++;
+      }
+    }
+
+    const conversations = Array.from(conversationMap.values());
+
+    // Get participant details
+    if (conversations.length > 0) {
+      const participantIds = conversations.map(c => c.participantId);
+      const participants = await db.collection('users')
+        .find({ _id: { $in: participantIds.map(id => new ObjectId(id)) } })
+        .toArray();
+
+      const participantMap = new Map(participants.map(p => [p._id.toString(), p]));
+
+      conversations.forEach(conv => {
+        const participant = participantMap.get(conv.participantId);
+        if (participant) {
+          conv.participantName = participant.fullname;
+        }
+      });
+    }
+
+    await client.close();
+
+    res.json(conversations);
+  } catch (error) {
+    console.error('Error fetching conversations:', error);
+    res.status(500).json({ error: 'Failed to fetch conversations' });
+  }
+});
+
+// Get messages for a conversation
+router.get('/messages/api/messages/:conversationId', async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const currentUserId = req.session.user._id;
+    const conversationId = req.params.conversationId;
+
+    // Parse conversation ID to get participant IDs
+    const [user1, user2] = conversationId.split('_');
+    const participantId = user1 === currentUserId ? user2 : user1;
+
+    // Get messages between current user and participant
+    const messages = await db.collection('messages')
+      .find({
+        $or: [
+          { senderId: currentUserId, recipientId: participantId },
+          { senderId: participantId, recipientId: currentUserId }
+        ]
+      })
+      .sort({ timestamp: 1 })
+      .toArray();
+
+    // Mark messages as read
+    await db.collection('messages').updateMany(
+      {
+        senderId: participantId,
+        recipientId: currentUserId,
+        read: false
+      },
+      { $set: { read: true, readAt: new Date() } }
+    );
+
+    await client.close();
+    res.json(messages);
+  } catch (error) {
+    console.error('Error fetching messages:', error);
+    res.status(500).json({ error: 'Failed to fetch messages' });
+  }
+});
+
+// Send a message
+router.post('/messages/api/send', async (req, res) => {
+  try {
+    const { recipientId, content, attachments, subject } = req.body;
+    const senderId = req.session.user._id;
+
+    if (!recipientId || (!content && (!attachments || attachments.length === 0))) {
+      return res.status(400).json({ error: 'Recipient and content or attachments required' });
+    }
+
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    // Verify recipient exists and is admin/staff
+    const recipient = await db.collection('users').findOne({
+      _id: new ObjectId(recipientId),
+      role: { $in: ['admin', 'owner', 'staff'] }
+    });
+
+    if (!recipient) {
+      await client.close();
+      return res.status(404).json({ error: 'Recipient not found' });
+    }
+
+    const message = {
+      senderId,
+      recipientId,
+      subject: subject || '',
+      content: content || '',
+      attachments: attachments || [],
+      timestamp: new Date(),
+      read: false
+    };
+
+    const result = await db.collection('messages').insertOne(message);
+
+    await client.close();
+
+    res.json({
+      success: true,
+      message: { ...message, _id: result.insertedId }
+    });
+  } catch (error) {
+    console.error('Error sending message:', error);
+    res.status(500).json({ error: 'Failed to send message' });
+  }
+});
+
+// Get users for messaging
+router.get('/messages/api/users', async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    const users = await db.collection('users').find({
+      role: { $in: ['admin', 'owner', 'staff'] },
+      _id: { $ne: new ObjectId(req.session.user._id) } // Exclude current user
+    }).toArray();
+
+    await client.close();
+    res.json(users);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
+
+// Get unread message count for current user
+router.get('/messages/api/unread-count', async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const currentUserId = req.session.user._id;
+
+    const unreadCount = await db.collection('messages').countDocuments({
+      recipientId: currentUserId,
+      read: false
+    });
+
+    await client.close();
+    res.json({ unreadCount });
+  } catch (error) {
+    console.error('Error fetching unread count:', error);
+    res.status(500).json({ error: 'Failed to fetch unread count' });
+  }
+});
+
+// Upload files
+router.post('/messages/api/upload', messageUpload.array('files', 5), (req, res) => {
+  try {
+    const files = req.files.map(file => ({
+      originalName: file.originalname,
+      filename: file.filename,
+      mimetype: file.mimetype,
+      size: file.size,
+      url: `/uploads/messages/${file.filename}`
+    }));
+
+    res.json({ success: true, files });
+  } catch (error) {
+    console.error('Error uploading files:', error);
+    res.status(500).json({ error: 'Failed to upload files' });
+  }
+});
+
 // Admin settings page
-router.get('/settings', nocache, (req, res) => {
-  res.render('admin/settings', {
-    title: 'Settings | Blessings Cafe',
-    user: req.session.user,
-    currentPage: '/admin/settings',
-    layout: 'admin/layout'
-  });
+router.get('/settings', nocache, async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const user = await db.collection('users').findOne({ _id: new ObjectId(req.session.user._id) });
+    await client.close();
+
+    res.render('admin/settings', {
+      title: 'Settings | Blessings Cafe',
+      user: user,
+      currentPage: '/admin/settings',
+      layout: 'admin/layout'
+    });
+  } catch (error) {
+    console.error('Admin Settings error:', error);
+    res.status(500).render('error', {
+      title: 'Server Error',
+      message: 'Failed to load settings',
+      status: 500
+    });
+  }
+});
+
+router.post('/settings', async (req, res) => {
+  try {
+    const { displayName, email, phone } = req.body;
+
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    await db.collection('users').updateOne(
+      { _id: new ObjectId(req.session.user._id) },
+      { $set: { fullname: displayName, email, phone } }
+    );
+
+    await client.close();
+
+    res.redirect('/admin/settings');
+  } catch (error) {
+    console.error('Admin Settings update error:', error);
+    res.status(500).render('error', {
+      title: 'Server Error',
+      message: 'Failed to update settings',
+      status: 500
+    });
+  }
 });
 
 // Password change route
@@ -850,43 +1721,40 @@ router.get('/discounts/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to get discount' });
   }
 });
-// PRODUCTS ROUTES
-router.post('/toggle-availability/:id', async (req, res) => {
-  console.log('Direct toggle endpoint hit with ID:', req.params.id);
-  console.log('Request body:', req.body);
 
+// Route: Order History (last 30 days)
+let db;
+
+async function connectDB() {
+  if (!db) {
+    await client.connect();
+    db = client.db("blessingscafe");
+  }
+  return db;
+}
+
+// Route: Order History (last 30 days)
+router.get("/analytics/order-history", async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    const db = await connectDB();
+    const orders = await db.collection("Orders") // try lowercase
+      .find({})
+      .sort({ Date: -1 })
+      .limit(50)
+      .toArray();
 
-    // Get product ID and new availability status
-    const productId = req.params.id;
-    const { isEnabled } = req.body;
-
-    console.log('Updating product with ID:', productId);
-    console.log('New isEnabled status:', isEnabled);
-
-    // Update the product
-    const result = await db.collection('Menu').updateOne(
-      { _id: new ObjectId(productId) },
-      { $set: { isEnabled: isEnabled } }
-    );
-
-    console.log('Update result:', result);
-
-    await client.close();
-
-    if (result.matchedCount === 0) {
-      console.log('Product not found in database');
-      return res.status(404).json({ success: false, message: 'Product not found' });
-    }
-
-    res.json({ success: true, message: 'Product availability updated successfully' });
-  } catch (error) {
-    console.error('Toggle availability error:', error);
-    res.status(500).json({ success: false, message: 'Failed to update product availability' });
+    console.log("Orders fetched:", orders.length);
+    res.setHeader("Cache-Control", "no-store"); // prevent 304 caching
+    res.json(orders);
+  } catch (err) {
+    console.error("Order history fetch failed:", err);
+    res.status(500).json({ error: "Failed to fetch order history" });
   }
 });
 
+router.get("/products", async (req, res) => {
+  const products = await Product.find(); // returns 18
+  res.render("products", { products });  // ✅ pass to EJS
+});
 
 module.exports = router;
