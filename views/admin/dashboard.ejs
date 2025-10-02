@@ -72,7 +72,7 @@ data-low-stock-has-more="<%= (typeof stats !== 'undefined' && stats.lowStockHasM
                 <div class="card-value" id="low-stock-value"><%= typeof stats !== 'undefined' && stats.lowStockCount !== 'undefined' ? stats.lowStockCount : 0 %></div>
                 <div class="card-trends">
                     <span id="low-stock-name"><%= typeof stats !== 'undefined' && typeof stats.lowStockName !== 'undefined' && stats.lowStockName ? stats.lowStockName : 'All stocked' %></span>
-                    <span id="low-stock-more" class="low-stock-more" style="display:<%= typeof stats !== 'undefined' && stats.lowStockHasMore ? 'inline' : 'none' %>;">
+                  <span id="low-stock-more" class="low-stock-more<%= typeof stats !== 'undefined' && stats.lowStockHasMore ? '' : ' hidden' %>">
                         more
                     </span>
                 </div>
@@ -967,6 +967,10 @@ window.ordersBySource = (dataEl.dataset.ordersBySource && dataEl.dataset.ordersB
     }
 </script>
 <style>
+
+.main-content{
+    background-color: #f8f9fb;
+  }
     .dashboard-cards-grid {
         display: flex;
         flex-direction: column;
@@ -1059,6 +1063,9 @@ window.ordersBySource = (dataEl.dataset.ordersBySource && dataEl.dataset.ordersB
         text-decoration: underline dotted;
         margin-left: 8px;
         position: relative;
+    }
+    .hidden {
+        display: none;
     }
     .dashboard-tooltip {
         position: fixed;
