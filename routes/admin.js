@@ -1136,12 +1136,9 @@ router.get('/messages', nocache, async (req, res) => {
   }
 });
 
-// API Routes for messaging
-const multer = require('multer');
-const path = require('path');
 
 // Configure multer for file uploads
-const storage = multer.diskStorage({
+const messageStorage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, 'public/uploads/messages/');
   },
@@ -1151,8 +1148,8 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({
-  storage: storage,
+const messageUpload = multer({
+  storage: messageStorage,
   limits: {
     fileSize: 10 * 1024 * 1024 // 10MB limit
   },
@@ -1374,7 +1371,7 @@ router.get('/messages/api/unread-count', async (req, res) => {
 });
 
 // Upload files
-router.post('/messages/api/upload', upload.array('files', 5), (req, res) => {
+router.post('/messages/api/upload', messageUpload.array('files', 5), (req, res) => {
   try {
     const files = req.files.map(file => ({
       originalName: file.originalname,
@@ -1761,4 +1758,3 @@ router.get("/products", async (req, res) => {
 });
 
 module.exports = router;
-
