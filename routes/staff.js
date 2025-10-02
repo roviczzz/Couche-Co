@@ -87,10 +87,23 @@ router.get('/pos', async (req, res) => {
 
 router.get('/menu', async (req, res) => {
   try {
+    // Fetch current user data from database to ensure fullname is up to date
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const currentUser = await db.collection('users').findOne({ _id: new ObjectId(req.session.user._id) });
+    await client.close();
+
+    // Merge session data with fresh database data
+    const userData = {
+      ...req.session.user,
+      fullname: currentUser?.fullname
+    };
+
     const menu = await getMenu();
     res.render('staff/menu', {
       title: 'POS Menu',
       layout: 'staff/layout',
+      user: userData,
       menuItems: menu
     });
   } catch (error) {

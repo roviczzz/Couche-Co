@@ -1,8 +1,11 @@
 // Initialize allProducts with the menu items from the server
-const allProducts = JSON.parse(document.getElementById('menu-data').textContent);
+var allProducts = JSON.parse(document.getElementById('menu-data').textContent);
+
+// Initialize user data
+var userData = JSON.parse(document.getElementById('user-data').textContent);
 
 // Initialize orderItems array
-let orderItems = [];
+var orderItems = [];
 
 // Clear localStorage orderItems on page load to ensure a fresh start
 localStorage.removeItem('orderItems');
@@ -776,7 +779,8 @@ function submitOrder(customer, contactNumber, deliveryType, paymentMode, total, 
         Address: address,
         Notes: notes || '',
         FulfillmentStatus: "Preparing",
-        Source: "POS"
+        Source: "POS",
+        cashierName: userData.fullname || userData.staffId || "Unknown Staff"
     };
 
     fetch('/api/orders', {
@@ -951,7 +955,8 @@ document.getElementById('proceed-order-btn').addEventListener('click', async fun
                 Address: address,
                 Notes: notes || '',
                 FulfillmentStatus: "Preparing",
-                Source: "POS"
+                Source: "POS",
+                cashierName: userData.fullname || userData.staffId || "Unknown Staff"
             };
 
             try {
