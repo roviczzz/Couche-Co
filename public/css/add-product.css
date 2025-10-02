@@ -1,0 +1,209 @@
+/* Add Product Page Styles */
+* { font-family: 'Inter', sans-serif; }
+
+body {
+  background: #f9f5f0;
+  margin: 0;
+  padding: 0;
+}
+
+.form-container {
+  max-width: 700px;
+  margin: 50px auto;
+  background: #fffdf9;
+  padding: 40px 45px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  animation: fadeIn 0.5s ease;
+}
+
+.form-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.form-title {
+  color: #3a2415;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.form-label {
+  display: block;
+  margin-top: 20px;
+  font-weight: 600;
+  color: #4e342e;
+  font-size: 15px;
+}
+
+.form-input, select {
+  width: 100%;
+  padding: 14px;
+  margin-top: 6px;
+  font-size: 15px;
+  border: 1px solid #d7ccc8;
+  border-radius: 10px;
+  box-sizing: border-box;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.form-input:focus, select:focus {
+  outline: none;
+  border-color: #8d6e63;
+  box-shadow: 0 0 6px rgba(141,110,99,0.4);
+}
+
+.price-row {
+  display: flex;
+  gap: 16px;
+  margin-top: 6px;
+}
+.price-row input {
+  flex: 1;
+}
+
+.chip-container {
+  position: relative; /* fix dropdown alignment */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  border: 1px solid #d7ccc8;
+  border-radius: 10px;
+  padding: 0 12px;
+  height: 48px;
+  align-items: center;
+  box-sizing: border-box;
+  cursor: text;
+}
+
+.chip {
+  background: #efebe9;
+  border-radius: 20px;
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.chip span {
+  cursor: pointer;
+  color: #c62828;
+  font-weight: bold;
+}
+
+.chip-input {
+  border: none;
+  outline: none;
+  flex: 1;
+  min-width: 120px;
+  font-size: 14px;
+}
+
+/* Suggestions dropdown aligned to chip container */
+#suggestions {
+  background: #fff;
+  border: 1px solid #ccc;
+  border-top: none;
+  max-height: 150px;
+  overflow-y: auto;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  box-sizing: border-box;
+  border-radius: 0 0 10px 10px;
+}
+#suggestions div {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+#suggestions div:hover {
+  background: #f0f0f0;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 26px;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #c62828;
+  transition: 0.3s;
+  border-radius: 26px;
+}
+.slider::before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+.switch input:checked + .slider {
+  background-color: #2e7d32;
+}
+.switch input:checked + .slider::before {
+  transform: translateX(24px);
+}
+.toggle {
+  margin-top: 25px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.submit-button {
+  width: 100%;
+  padding: 16px;
+  font-size: 16px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: transform 0.2s, background 0.3s;
+  display: inline-block;
+  text-align: center;
+  text-decoration: none;
+  color: white;
+}
+.submit-button.add {
+  background: #2e7d32;
+  margin-top: 20px;
+}
+.submit-button.add:hover {
+  background: #1b5e20;
+  transform: translateY(-2px);
+}
+.submit-button.cancel {
+  background: #c62828;
+  margin-top: 12px;
+}
+.submit-button.cancel:hover {
+  background: #9b1c1c;
+  transform: translateY(-2px);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
