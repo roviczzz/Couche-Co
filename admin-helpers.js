@@ -924,10 +924,10 @@ async function getPopularProducts() {
     const db = client.db('blessingscafe');
     // Aggregate product sales from Orders
     const results = await db.collection('Orders').aggregate([
-      { $unwind: "$Items" },
+      { $unwind: "$Cart" },
       { $group: {
-        _id: "$Items.name",
-        totalQuantity: { $sum: "$Items.quantity" }
+        _id: "$Cart.ProductName",
+        totalQuantity: { $sum: "$Cart.Quantity" }
       }},
       { $sort: { totalQuantity: -1 } }
     ]).toArray();
@@ -982,14 +982,41 @@ async function getTopCategories() {
       { $unwind: '$Cart' },
       {
         $match: {
-          PaymentStatus: { $ne: 'Cancelled' },
-          'Cart.Category': { $exists: true, $ne: null }
+          PaymentStatus: { $ne: 'Cancelled' }
+        }
+      },
+      {
+        $lookup: {
+          from: 'Menu',
+          let: { productId: '$Cart.ProductID' },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ['$ProductID', '$$productId'] }
+              }
+            },
+            {
+              $project: { Category: 1, _id: 0 }
+            }
+          ],
+          as: 'menuItem'
+        }
+      },
+      {
+        $unwind: {
+          path: '$menuItem',
+          preserveNullAndEmptyArrays: false
+        }
+      },
+      {
+        $match: {
+          'menuItem.Category': { $exists: true, $ne: null, $ne: '' }
         }
       },
       {
         $group: {
-          _id: '$Cart.Category',
-          total: { $sum: { $multiply: ['$Cart.Price', '$Cart.Quantity'] } },
+          _id: '$menuItem.Category',
+          total: { $sum: { $multiply: ['$Cart.BasePrice', '$Cart.Quantity'] } },
           quantity: { $sum: '$Cart.Quantity' },
           orderCount: { $sum: 1 }
         }

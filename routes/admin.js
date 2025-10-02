@@ -197,91 +197,9 @@ router.get('/analytics/low-stock', nocache, async (req, res) => {
   }
 });
 
-router.get('/analytics/top-categories', nocache, async (req, res) => {
-  try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
 
-    const pipeline = [
-      { $unwind: '$Cart' },
-      {
-        $match: {
-          PaymentStatus: { $ne: 'Cancelled' },
-          'Cart.Category': { $exists: true, $ne: null }
-        }
-      },
-      {
-        $group: {
-          _id: '$Cart.Category',
-          total: { $sum: { $multiply: ['$Cart.Price', '$Cart.Quantity'] } },
-          quantity: { $sum: '$Cart.Quantity' },
-          orderCount: { $sum: 1 }
-        }
-      },
-      { $sort: { total: -1 } },
-      { $limit: 8 }
-    ];
 
-    const categories = await db.collection('Orders').aggregate(pipeline).toArray();
-    await client.close();
 
-    res.json(categories.map(cat => ({
-      name: cat._id,
-      value: cat.total,
-      quantity: cat.quantity,
-      orderCount: cat.orderCount
-    })));
-  } catch (error) {
-    console.error('Top categories error:', error);
-    res.status(500).json({ error: 'Failed to load top categories' });
-  }
-});
-
-router.get('/analytics/payment-types', nocache, async (req, res) => {
-  try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-
-    const pipeline = [
-      {
-        $match: {
-          PaymentStatus: { $ne: 'Cancelled' },
-          PaymentMode: { $exists: true, $ne: null }
-        }
-      },
-      {
-        $project: {
-          PaymentMode: {
-            $cond: {
-              if: { $in: ['$PaymentMode', ['E-PAYMENT', 'E-Payment']] },
-              then: 'E-Payment',
-              else: '$PaymentMode'
-            }
-          },
-          PaymentStatus: 1
-        }
-      },
-      {
-        $group: {
-          _id: '$PaymentMode',
-          orderCount: { $sum: 1 }
-        }
-      },
-      { $sort: { orderCount: -1 } }
-    ];
-
-    const paymentTypes = await db.collection('Orders').aggregate(pipeline).toArray();
-    await client.close();
-
-    res.json(paymentTypes.map(pt => ({
-      name: pt._id,
-      orderCount: pt.orderCount
-    })));
-  } catch (error) {
-    console.error('Payment types error:', error);
-    res.status(500).json({ error: 'Failed to load payment types' });
-  }
-});
 
 router.get('/analytics/orders-by-source', nocache, async (req, res) => {
   try {
@@ -346,7 +264,7 @@ router.get('/dashboard', nocache, async (req, res) => {
     };
 
     // Fetch all dashboard data server-side for better loading performance
-    const [stats, analyticsStats, topCategories, paymentTypes, ordersBySource, salesPerformance] = await Promise.all([
+    const [basicStats, analyticsStats, topCategories, paymentTypes, ordersBySource, salesPerformance] = await Promise.all([
       getDashboardStats(),
       getDashboardAnalyticsStats(),
       getTopCategories(),
@@ -355,17 +273,72 @@ router.get('/dashboard', nocache, async (req, res) => {
       getSalesPerformance(14)
     ]);
 
+    // Fetch low stock data for dashboard
+    let lowStockData = { quantity: 0, name: 'All stocked', type: 'none', hasMore: false };
+    try {
+      const threshold = 5; // Default threshold
+      const client = await MongoClient.connect(uri);
+      const db = client.db('blessingscafe');
+
+      const ingredients = await db.collection('Ingredients').find({ Quantity: { $lte: threshold }, isEnabled: true }).sort({ Quantity: 1 }).toArray();
+      const addons = await db.collection('Add-ons').find({ Quantity: { $lte: threshold }, isEnabled: true }).sort({ Quantity: 1 }).toArray();
+
+      const getItemName = (item, type) => {
+        if (type === 'ingredient') {
+          return item.itemName || item.ItemName || item.name || item.Name || 'Unnamed Ingredient';
+        } else {
+          return item.itemName || item.ItemName || item.name || item.Name || 'Unnamed Add-on';
+        }
+      };
+
+      const allLowStockItems = [
+        ...ingredients.map(item => ({
+          quantity: item.Quantity,
+          name: getItemName(item, 'ingredient'),
+          type: 'ingredient'
+        })),
+        ...addons.map(item => ({
+          quantity: item.Quantity,
+          name: getItemName(item, 'addon'),
+          type: 'addon'
+        }))
+      ].sort((a, b) => a.quantity - b.quantity);
+
+      if (allLowStockItems.length > 0) {
+        const primary = allLowStockItems[0];
+        lowStockData = {
+          quantity: primary.quantity,
+          name: primary.name,
+          type: primary.type,
+          hasMore: allLowStockItems.length > 1,
+          totalLowStock: allLowStockItems.length,
+          allItems: allLowStockItems.length > 1 ? allLowStockItems.slice(1).map(item => `${item.name} (${item.quantity})`) : []
+        };
+      }
+
+      await client.close();
+    } catch (error) {
+      console.error('Low stock data fetch error:', error);
+    }
+
+    // Combine all stats into a single object for template consistency
+    const combinedStats = {
+      ...basicStats,
+      ...analyticsStats
+    };
+
     res.render('admin/dashboard', {
       title: 'Admin Dashboard',
       user: userData,
       currentPage: '/admin/dashboard',
       layout: 'admin/layout',
-      ...stats,
+      stats: combinedStats,  // Template expects 'stats' object
       analyticsStats,
       topCategories,
       paymentTypes,
       ordersBySource,
-      salesPerformance
+      salesPerformance,
+      lowStockData
     });
   } catch (error) {
     console.error('Dashboard error:', error);
@@ -392,14 +365,14 @@ router.get('/analytics/top-categories', nocache, async (req, res) => {
   try {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
-    
+
     const pipeline = [
       { $unwind: '$Cart' },
-      { 
-        $match: { 
+      {
+        $match: {
           PaymentStatus: { $ne: 'Cancelled' },
           'Cart.Category': { $exists: true, $ne: null }
-        } 
+        }
       },
       {
         $group: {
@@ -415,7 +388,7 @@ router.get('/analytics/top-categories', nocache, async (req, res) => {
 
     const categories = await db.collection('Orders').aggregate(pipeline).toArray();
     await client.close();
-    
+
     res.json(categories.map(cat => ({
       name: cat._id,
       value: cat.total,
@@ -425,6 +398,16 @@ router.get('/analytics/top-categories', nocache, async (req, res) => {
   } catch (error) {
     console.error('Top categories error:', error);
     res.status(500).json({ error: 'Failed to load top categories' });
+  }
+});
+
+router.get('/analytics/payment-types', nocache, async (req, res) => {
+  try {
+    const categories = await getPaymentTypes();
+    res.json(categories);
+  } catch (error) {
+    console.error('Payment types error:', error);
+    res.status(500).json({ error: 'Failed to load payment types' });
   }
 });
 
