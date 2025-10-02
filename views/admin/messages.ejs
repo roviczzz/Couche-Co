@@ -258,13 +258,15 @@
 </div>
 
 <!-- Set up global variables for messaging -->
-<script type="module">
+<script>
     // Set global variables before importing the module
-    window.users = <%- JSON.stringify(users) %>;
-    window.conversations = <%- JSON.stringify(conversations) %>;
+    window.users = JSON.parse('<%- JSON.stringify(users).replace(/\\/g, "\\\\").replace(/\'/g, "\\\'") %>');
+    window.conversations = JSON.parse('<%- JSON.stringify(conversations).replace(/\\/g, "\\\\").replace(/\'/g, "\\\'") %>');
     window.currentUserId = '<%= user._id %>';
     window.apiBase = '/admin/messages/api';
+</script>
 
+<script type="module">
     // Import and initialize the messaging module
     import { initMessaging } from '/js/messages.js';
     initMessaging();
