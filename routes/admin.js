@@ -117,6 +117,69 @@ router.get('/analytics/dashboard-stats', nocache, async (req, res) => {
   }
 });
 
+router.get('/analytics/low-stock', nocache, async (req, res) => {
+  try {
+    const threshold = parseInt(req.query.threshold) || 5; // Default to 5, can be 5-100
+
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    const ingredients = await db.collection('Ingredients').find({ Quantity: { $lte: threshold }, isEnabled: true }).sort({ Quantity: 1 }).toArray();
+    const addons = await db.collection('Add-ons').find({ Quantity: { $lte: threshold }, isEnabled: true }).sort({ Quantity: 1 }).toArray();
+
+    await client.close();
+
+    // Helper function to get item name
+    const getItemName = (item, type) => {
+      if (type === 'ingredient') {
+        return item.itemName || item.ItemName || item.name || item.Name || 'Unnamed Ingredient';
+      } else {
+        return item.itemName || item.ItemName || item.name || item.Name || 'Unnamed Add-on';
+      }
+    };
+
+    // Combine and sort all low stock items
+    const allLowStockItems = [
+      ...ingredients.map(item => ({
+        quantity: item.Quantity,
+        name: getItemName(item, 'ingredient'),
+        type: 'ingredient'
+      })),
+      ...addons.map(item => ({
+        quantity: item.Quantity,
+        name: getItemName(item, 'addon'),
+        type: 'addon'
+      }))
+    ].sort((a, b) => a.quantity - b.quantity);
+
+    if (allLowStockItems.length > 0) {
+      const primary = allLowStockItems[0];
+      const hasMore = allLowStockItems.length > 1;
+
+      res.json({
+        quantity: primary.quantity,
+        name: primary.name,
+        type: primary.type,
+        hasMore: hasMore,
+        totalLowStock: allLowStockItems.length,
+        allItems: hasMore ? allLowStockItems.slice(1).map(item => `${item.name} (${item.quantity})`) : []
+      });
+    } else {
+      res.json({
+        quantity: 0,
+        name: 'All stocked',
+        type: 'none',
+        hasMore: false,
+        totalLowStock: 0,
+        allItems: []
+      });
+    }
+  } catch (error) {
+    console.error('Low stock error:', error);
+    res.status(500).json({ error: 'Failed to load low stock data' });
+  }
+});
+
 router.get('/analytics/top-categories', nocache, async (req, res) => {
   try {
     const client = await MongoClient.connect(uri);
@@ -238,6 +301,8 @@ router.get('/analytics/orders-by-source', nocache, async (req, res) => {
     res.status(500).json({ error: 'Failed to load orders by source' });
   }
 });
+
+
 
 // Apply admin check to all OTHER routes (not login/forgot-password)
 router.use(['/dashboard', '/products', '/orders', '/stocks', '/discounts', '/menu', '/settings', '/order', '/messages'], isLoggedIn);
