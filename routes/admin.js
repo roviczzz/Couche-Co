@@ -665,10 +665,14 @@ router.get('/messages', nocache, async (req, res) => {
     const db = client.db('blessingscafe');
     const currentUserId = req.session.user._id;
 
-    // Get all users for messaging (admins and staff only)
+    // Get all users for messaging (admins and staff only) - include current user for sender display
     const users = await db.collection('users').find({
-      role: { $in: ['admin', 'owner', 'staff'] },
-      _id: { $ne: new ObjectId(currentUserId) } // Exclude current user
+      role: { $in: ['admin', 'owner', 'staff'] }
+    }).project({
+      _id: 1,
+      fullname: 1,
+      staffId: 1,
+      role: 1
     }).toArray();
 
     // Get conversations for current user (server-side)

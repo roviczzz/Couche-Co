@@ -263,7 +263,7 @@
     window.users = <%- JSON.stringify(users) %>;
     window.conversations = <%- JSON.stringify(conversations) %>;
     window.currentUserId = '<%= user._id %>';
-    window.apiBase = '/admin/messages/api';
+    window.apiBase = '/staff/messages/api';
 
     // Import and initialize the messaging module
     import { initMessaging } from '/js/messages.js';
