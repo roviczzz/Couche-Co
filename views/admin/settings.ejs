@@ -48,7 +48,7 @@
                             <p>Enable sound alerts for new orders and updates</p>
                         </div>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="soundEnabled" checked>
+                            <input type="checkbox" id="soundEnabled" <%= settings.soundEnabled ? 'checked' : '' %>>
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -59,7 +59,7 @@
                             <p>Automatically print receipts after order completion</p>
                         </div>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="printReceipts">
+                            <input type="checkbox" id="printReceipts" <%= settings.printReceipts ? 'checked' : '' %>>
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -70,7 +70,7 @@
                             <p>Switch to dark theme for better visibility</p>
                         </div>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="darkMode">
+                            <input type="checkbox" id="darkMode" <%= settings.darkMode ? 'checked' : '' %>>
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -81,9 +81,19 @@
                             <p>Show confirmation dialog before placing orders</p>
                         </div>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="orderConfirmations" checked>
+                            <input type="checkbox" id="orderConfirmations" <%= settings.orderConfirmations ? 'checked' : '' %>>
                             <span class="slider"></span>
                         </label>
+                    </div>
+
+                    <div class="preference-item">
+                        <div class="preference-info">
+                            <h4>Low Stock Alert Range</h4>
+                            <p>Set the threshold for low stock alerts (5-100)</p>
+                        </div>
+                        <div class="number-input">
+                            <input type="number" id="lowStockAlertRange" min="5" max="100" value="<%= settings.lowStockAlertRange || 5 %>">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -183,5 +193,13 @@
 </div>
 
 <link rel="stylesheet" href="/css/settings.css">
+
+<script>
+    // Load current settings from server-side rendered values
+    document.addEventListener('DOMContentLoaded', function() {
+        // Preferences are now pre-loaded from server, but we can add any additional JS init here
+        console.log('Admin settings page loaded');
+    });
+</script>
 
 <script src="/js/settings.js"></script>

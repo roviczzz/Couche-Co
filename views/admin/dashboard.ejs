@@ -7,6 +7,7 @@ data-low-stock="<%= (typeof stats !== 'undefined' && typeof stats.lowStockData !
 data-low-stock-count="<%= (typeof stats !== 'undefined' && stats.lowStockCount !== 'undefined') ? stats.lowStockCount : 0 %>"
 data-low-stock-name="<%= (typeof stats !== 'undefined' && typeof stats.lowStockName !== 'undefined' && stats.lowStockName) ? stats.lowStockName : 'All stocked' %>"
 data-low-stock-has-more="<%= (typeof stats !== 'undefined' && stats.lowStockHasMore) ? 'true' : 'false' %>"
+data-user-low-stock-threshold="<%= (typeof userLowStockThreshold !== 'undefined') ? userLowStockThreshold : '5' %>"
 ></div>
 <div class="dashboard-cards-grid">
 <div class="dashboard-tooltip"></div>

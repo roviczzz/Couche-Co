@@ -64,21 +64,57 @@ document.getElementById('passwordForm').addEventListener('submit', function(e) {
 // Preference handling
 document.querySelectorAll('.toggle-switch input').forEach(toggle => {
     toggle.addEventListener('change', function() {
-        // Save preference to localStorage or send to server
-        localStorage.setItem(this.id, this.checked);
-        console.log(`${this.id}: ${this.checked}`);
+        savePreferences();
     });
 });
 
-// Load saved preferences
-window.addEventListener('load', function() {
-    document.querySelectorAll('.toggle-switch input').forEach(toggle => {
-        const saved = localStorage.getItem(toggle.id);
-        if (saved !== null) {
-            toggle.checked = saved === 'true';
-        }
+// Number input handling for admin low stock alert range
+const lowStockInput = document.getElementById('lowStockAlertRange');
+if (lowStockInput) {
+    lowStockInput.addEventListener('change', function() {
+        savePreferences();
     });
-});
+}
+
+// Load saved preferences - now done server-side in template
+
+// Function to save preferences to server
+async function savePreferences() {
+    try {
+        const preferences = {};
+
+        // Get toggle values
+        document.querySelectorAll('.toggle-switch input').forEach(toggle => {
+            preferences[toggle.id] = toggle.checked;
+        });
+
+        // Get number input if exists (admin only)
+        const lowStockRange = document.getElementById('lowStockAlertRange');
+        if (lowStockRange) {
+            preferences.lowStockAlertRange = parseInt(lowStockRange.value);
+        }
+
+        // Determine if admin or staff
+        const isAdmin = window.location.pathname.startsWith('/admin');
+
+        const response = await fetch(`${isAdmin ? '/admin' : '/staff'}/settings/preferences`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(preferences)
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            console.log('Preferences saved successfully');
+        } else {
+            console.error('Failed to save preferences:', result.message);
+        }
+    } catch (error) {
+        console.error('Error saving preferences:', error);
+    }
+}
 
 // Quick actions
 function exportSettings() {

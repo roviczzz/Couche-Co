@@ -48,7 +48,7 @@
                             <p>Enable sound alerts for new orders and updates</p>
                         </div>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="soundEnabled" checked>
+                            <input type="checkbox" id="soundEnabled" <%= settings.soundEnabled ? 'checked' : '' %>>
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -59,7 +59,7 @@
                             <p>Automatically print receipts after order completion</p>
                         </div>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="printReceipts">
+                            <input type="checkbox" id="printReceipts" <%= settings.printReceipts ? 'checked' : '' %>>
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -70,7 +70,7 @@
                             <p>Switch to dark theme for better visibility</p>
                         </div>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="darkMode">
+                            <input type="checkbox" id="darkMode" <%= settings.darkMode ? 'checked' : '' %>>
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -81,7 +81,7 @@
                             <p>Show confirmation dialog before placing orders</p>
                         </div>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="orderConfirmations" checked>
+                            <input type="checkbox" id="orderConfirmations" <%= settings.orderConfirmations ? 'checked' : '' %>>
                             <span class="slider"></span>
                         </label>
                     </div>

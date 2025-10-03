@@ -135,6 +135,25 @@
     border-bottom: none;
 }
 
+.number-input {
+    display: flex;
+    align-items: center;
+}
+
+.number-input input {
+    width: 80px;
+    padding: 8px 12px;
+    border: 2px solid #e1e1e1;
+    border-radius: 6px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.number-input input:focus {
+    outline: none;
+    border-color: #a05c2f;
+}
+
 .preference-info h4 {
     margin: 0 0 4px 0;
     color: #333;

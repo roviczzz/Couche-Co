@@ -276,9 +276,11 @@ router.get('/dashboard', nocache, async (req, res) => {
     // Fetch low stock data for dashboard
     let lowStockData = { quantity: 0, name: 'All stocked', type: 'none', hasMore: false };
     try {
-      const threshold = 5; // Default threshold
+      // Get user's low stock threshold from settings
       const client = await MongoClient.connect(uri);
       const db = client.db('blessingscafe');
+      const userSettings = await db.collection('UserSettings').findOne({ userId: req.session.user._id });
+      const threshold = userSettings?.lowStockAlertRange || 5;
 
       const ingredients = await db.collection('Ingredients').find({ Quantity: { $lte: threshold }, isEnabled: true }).sort({ Quantity: 1 }).toArray();
       const addons = await db.collection('Add-ons').find({ Quantity: { $lte: threshold }, isEnabled: true }).sort({ Quantity: 1 }).toArray();
@@ -327,6 +329,13 @@ router.get('/dashboard', nocache, async (req, res) => {
       ...analyticsStats
     };
 
+    // Get user settings for threshold
+    const clientThreshold = await MongoClient.connect(uri);
+    const dbThreshold = clientThreshold.db('blessingscafe');
+    const userSettingsThreshold = await dbThreshold.collection('UserSettings').findOne({ userId: req.session.user._id });
+    const userLowStockThreshold = userSettingsThreshold?.lowStockAlertRange || 5;
+    await clientThreshold.close();
+
     res.render('admin/dashboard', {
       title: 'Admin Dashboard',
       user: userData,
@@ -338,7 +347,8 @@ router.get('/dashboard', nocache, async (req, res) => {
       paymentTypes,
       ordersBySource,
       salesPerformance,
-      lowStockData
+      lowStockData,
+      userLowStockThreshold
     });
   } catch (error) {
     console.error('Dashboard error:', error);
@@ -1389,11 +1399,25 @@ router.get('/settings', nocache, async (req, res) => {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
     const user = await db.collection('users').findOne({ _id: new ObjectId(req.session.user._id) });
+
+    // Load user settings from UserSettings collection
+    let userSettings = await db.collection('UserSettings').findOne({ userId: req.session.user._id });
+    if (!userSettings) {
+      userSettings = {
+        soundEnabled: true,
+        printReceipts: false,
+        darkMode: false,
+        orderConfirmations: true,
+        lowStockAlertRange: 5
+      };
+    }
+
     await client.close();
 
     res.render('admin/settings', {
       title: 'Settings | Blessings Cafe',
       user: user,
+      settings: userSettings,
       currentPage: '/admin/settings',
       layout: 'admin/layout'
     });
@@ -1429,6 +1453,87 @@ router.post('/settings', async (req, res) => {
       message: 'Failed to update settings',
       status: 500
     });
+  }
+});
+
+// API route to save user preferences
+router.post('/settings/preferences', async (req, res) => {
+  try {
+    console.log('Received preferences update:', req.body);
+
+    const { soundEnabled, printReceipts, darkMode, orderConfirmations, lowStockAlertRange } = req.body;
+
+    // If only lowStockAlertRange is provided (from modal), we need to fetch existing settings and merge
+    let updateFields = {
+      updatedAt: new Date()
+    };
+
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    // Fetch existing settings to preserve other values
+    const existingSettings = await db.collection('UserSettings').findOne({ userId: req.session.user._id });
+
+    // Process boolean values or use existing values
+    if (typeof soundEnabled !== 'undefined') {
+      updateFields.soundEnabled = soundEnabled === 'true' || soundEnabled === true;
+    } else if (existingSettings) {
+      updateFields.soundEnabled = existingSettings.soundEnabled;
+    } else {
+      updateFields.soundEnabled = true;
+    }
+
+    if (typeof printReceipts !== 'undefined') {
+      updateFields.printReceipts = printReceipts === 'true' || printReceipts === true;
+    } else if (existingSettings) {
+      updateFields.printReceipts = existingSettings.printReceipts;
+    } else {
+      updateFields.printReceipts = false;
+    }
+
+    if (typeof darkMode !== 'undefined') {
+      updateFields.darkMode = darkMode === 'true' || darkMode === true;
+    } else if (existingSettings) {
+      updateFields.darkMode = existingSettings.darkMode;
+    } else {
+      updateFields.darkMode = false;
+    }
+
+    if (typeof orderConfirmations !== 'undefined') {
+      updateFields.orderConfirmations = orderConfirmations === 'true' || orderConfirmations === true;
+    } else if (existingSettings) {
+      updateFields.orderConfirmations = existingSettings.orderConfirmations;
+    } else {
+      updateFields.orderConfirmations = true;
+    }
+
+    if (typeof lowStockAlertRange !== 'undefined') {
+      updateFields.lowStockAlertRange = parseInt(lowStockAlertRange) || 5;
+    } else if (existingSettings) {
+      updateFields.lowStockAlertRange = existingSettings.lowStockAlertRange || 5;
+    } else {
+      updateFields.lowStockAlertRange = 5;
+    }
+
+    // Upsert user settings
+    await db.collection('UserSettings').updateOne(
+      { userId: req.session.user._id },
+      {
+        $set: updateFields,
+        $setOnInsert: {
+          userId: req.session.user._id,
+          createdAt: new Date()
+        }
+      },
+      { upsert: true }
+    );
+
+    await client.close();
+    console.log('Updated lowStockAlertRange to:', updateFields.lowStockAlertRange);
+    res.json({ success: true, message: 'Preferences updated successfully', lowStockAlertRange: updateFields.lowStockAlertRange });
+  } catch (error) {
+    console.error('Preferences update error:', error);
+    res.status(500).json({ success: false, message: 'Failed to update preferences' });
   }
 });
 

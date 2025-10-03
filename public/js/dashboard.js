@@ -399,7 +399,7 @@ window.ordersBySource = (dataEl.dataset.ordersBySource && dataEl.dataset.ordersB
             });
         }
 
-        // Low stock settings modal handling
+    // Low stock settings modal handling
         const cardSettings = document.querySelector('.card-settings');
         const modal = document.getElementById('low-stock-settings-modal');
         const cancelBtn = document.getElementById('cancel-stock-settings');
@@ -407,13 +407,15 @@ window.ordersBySource = (dataEl.dataset.ordersBySource && dataEl.dataset.ordersB
         const thresholdSlider = document.getElementById('low-stock-threshold');
         const thresholdValue = document.getElementById('threshold-value');
 
+        // Get user's threshold from server data
+        const userThreshold = dataEl.dataset.userLowStockThreshold || '5';
+
         if (cardSettings && modal) {
             cardSettings.addEventListener('click', function() {
-                // Load current threshold from localStorage
-                const currentThreshold = localStorage.getItem('lowStockThreshold') || '5';
+                // Load current threshold from user settings
                 if (thresholdSlider && thresholdValue) {
-                    thresholdSlider.value = currentThreshold;
-                    thresholdValue.textContent = currentThreshold + ' items';
+                    thresholdSlider.value = userThreshold;
+                    thresholdValue.textContent = userThreshold + ' items';
                 }
                 modal.style.display = 'flex';
             });
@@ -432,15 +434,36 @@ window.ordersBySource = (dataEl.dataset.ordersBySource && dataEl.dataset.ordersB
                 });
             }
 
-            // Save threshold and refresh data
+            // Save threshold via API and refresh dashboard
             if (saveBtn) {
-                saveBtn.addEventListener('click', function() {
+                saveBtn.addEventListener('click', async function() {
                     if (thresholdSlider) {
                         const newThreshold = thresholdSlider.value;
-                        localStorage.setItem('lowStockThreshold', newThreshold);
-                        modal.style.display = 'none';
-                        // Refresh the stock data with new threshold
-                        fetchLowStockData();
+
+                        try {
+                            // Save to settings via API
+                            const response = await fetch('/admin/settings/preferences', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    lowStockAlertRange: parseInt(newThreshold)
+                                })
+                            });
+
+                            const result = await response.json();
+                            if (result.success) {
+                                modal.style.display = 'none';
+                                // Force a dashboard refresh to show new data
+                                location.reload();
+                            } else {
+                                alert('Failed to save settings: ' + result.message);
+                            }
+                        } catch (error) {
+                            console.error('Error saving threshold:', error);
+                            alert('Failed to save settings');
+                        }
                     }
                 });
             }

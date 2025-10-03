@@ -153,12 +153,25 @@ router.get('/settings', async (req, res) => {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
     const user = await db.collection('users').findOne({ _id: new ObjectId(req.session.user._id) });
+
+    // Load user settings from UserSettings collection
+    let userSettings = await db.collection('UserSettings').findOne({ userId: req.session.user._id });
+    if (!userSettings) {
+      userSettings = {
+        soundEnabled: true,
+        printReceipts: false,
+        darkMode: false,
+        orderConfirmations: true
+      };
+    }
+
     await client.close();
 
     res.render('staff/settings', {
       title: 'Settings',
       layout: 'staff/layout',
-      user: user
+      user: user,
+      settings: userSettings
     });
   } catch (error) {
     console.error('Staff Settings error:', error);
@@ -192,6 +205,41 @@ router.post('/settings', async (req, res) => {
       message: 'Failed to update settings',
       status: 500
     });
+  }
+});
+
+// API route to save staff preferences
+router.post('/settings/preferences', async (req, res) => {
+  try {
+    const { soundEnabled, printReceipts, darkMode, orderConfirmations } = req.body;
+
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    // Upsert user settings
+    await db.collection('UserSettings').updateOne(
+      { userId: req.session.user._id },
+      {
+        $set: {
+          soundEnabled: soundEnabled === 'true' || soundEnabled === true,
+          printReceipts: printReceipts === 'true' || printReceipts === true,
+          darkMode: darkMode === 'true' || darkMode === true,
+          orderConfirmations: orderConfirmations === 'true' || orderConfirmations === true,
+          updatedAt: new Date()
+        },
+        $setOnInsert: {
+          userId: req.session.user._id,
+          createdAt: new Date()
+        }
+      },
+      { upsert: true }
+    );
+
+    await client.close();
+    res.json({ success: true, message: 'Preferences updated successfully' });
+  } catch (error) {
+    console.error('Staff preferences update error:', error);
+    res.status(500).json({ success: false, message: 'Failed to update preferences' });
   }
 });
 

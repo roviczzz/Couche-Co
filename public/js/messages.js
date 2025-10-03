@@ -1037,9 +1037,10 @@ async function handleReplyMessage(e) {
 
 function renderEmailMessage(message, isLastMessage) {
     const isOwn = message.senderId === currentUserId;
-    const sender = users.find(u => u._id === message.senderId);
-    const senderName = sender ? sender.fullname : (isOwn ? 'You' : 'Unknown');
-    const displayId = sender ? sender.staffId : '';
+    const conversation = conversations.find(c => c.conversationId === currentConversationId);
+    const participant = users.find(u => u._id === conversation?.participantId);
+    const recipientName = participant ? participant.fullname : (conversation?.participantName || 'Unknown');
+    const displayId = participant ? participant.staffId : '';
 
     let attachmentHtml = '';
     if (message.attachments && message.attachments.length > 0) {
@@ -1060,9 +1061,9 @@ function renderEmailMessage(message, isLastMessage) {
     return `
         <div class="email-message">
             <div class="email-message-header">
-                <div class="email-message-avatar">${getInitials(senderName)}</div>
+                <div class="email-message-avatar">${getInitials(recipientName)}</div>
                 <div class="email-message-info">
-                    <div class="email-message-sender">${senderName}</div>
+                    <div class="email-message-sender">${recipientName}</div>
                     <div class="email-message-staff-id" style="font-size: 12px; color: #666; margin-top: 2px;">ID: ${displayId}</div>
                     <div class="email-message-time">${formatTime(message.timestamp)}</div>
                 </div>
