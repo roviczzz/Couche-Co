@@ -4,6 +4,11 @@ const { MongoClient, ObjectId } = require('mongodb');
 
 const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
 
+console.log('API routes module loaded');
+router.get('/', (req, res) => {
+  res.json({ message: 'API routes work' });
+});
+
 // Xendit configuration
 const XENDIT_SECRET_KEY = process.env.XENDIT_SECRET_KEY || 'xnd_development_9YDHJULGUWulhmoYgQxildVQ3EWsAeviiJHwF3PSi9zmNcCKll8zEP3thAc5VvD9'
 const XENDIT_API_URL = 'https://api.xendit.co'
@@ -788,6 +793,217 @@ router.get('/analytics/dashboard-stats', async (req, res) => {
   }
 });
 
+// New Analytics Endpoints - Payment Methods Distribution
+router.get('/analytics/payment-methods', async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    const pipeline = [
+      {
+        $match: {
+          PaymentStatus: { $ne: 'Cancelled' }
+        }
+      },
+      {
+        $project: {
+          PaymentMode: {
+            $cond: {
+              if: { $in: ['$PaymentMode', ['E-PAYMENT', 'E-Payment']] },
+              then: 'E-Payment',
+              else: {
+                $cond: {
+                  if: { $in: ['$PaymentMode', ['Cash on Hand', 'Cash']] },
+                  then: 'Cash',
+                  else: '$PaymentMode'
+                }
+              }
+            }
+          },
+          Total: 1
+        }
+      },
+      {
+        $group: {
+          _id: '$PaymentMode',
+          count: { $sum: 1 },
+          revenue: { $sum: '$Total' }
+        }
+      },
+      { $sort: { revenue: -1 } }
+    ];
+
+    const paymentMethods = await db.collection('Orders').aggregate(pipeline).toArray();
+    await client.close();
+    res.json(paymentMethods);
+  } catch (err) {
+    console.error('Error fetching payment methods:', err);
+    res.status(500).json({ error: 'Failed to fetch payment methods data' });
+  }
+});
+
+// Order Sources Distribution
+router.get('/analytics/order-sources', async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    const pipeline = [
+      {
+        $match: {
+          Source: { $exists: true, $ne: null, $ne: '' },
+          PaymentStatus: { $ne: 'Cancelled' }
+        }
+      },
+      {
+        $group: {
+          _id: '$Source',
+          orderCount: { $sum: 1 },
+          totalRevenue: { $sum: '$Total' }
+        }
+      },
+      { $sort: { orderCount: -1 } }
+    ];
+
+    const orderSources = await db.collection('Orders').aggregate(pipeline).toArray();
+    await client.close();
+    res.json(orderSources);
+  } catch (err) {
+    console.error('Error fetching order sources:', err);
+    res.status(500).json({ error: 'Failed to fetch order sources data' });
+  }
+});
+
+// Peak Hours Analysis
+router.get('/analytics/peak-hours', async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    const pipeline = [
+      {
+        $match: {
+          PaymentStatus: { $ne: 'Cancelled' }
+        }
+      },
+      {
+        $addFields: {
+          orderHour: {
+            $cond: {
+              if: { $eq: [{ $type: '$Date' }, 'string'] },
+              then: { $hour: { $dateFromString: { dateString: '$Date' } } },
+              else: { $hour: '$Date' }
+            }
+          }
+        }
+      },
+      {
+        $group: {
+          _id: '$orderHour',
+          orderCount: { $sum: 1 },
+          totalRevenue: { $sum: '$Total' }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ];
+
+    const peakHours = await db.collection('Orders').aggregate(pipeline).toArray();
+    await client.close();
+    res.json(peakHours);
+  } catch (err) {
+    console.error('Error fetching peak hours:', err);
+    res.status(500).json({ error: 'Failed to fetch peak hours data' });
+  }
+});
+
+// Average Order Value Trend
+router.get('/analytics/avg-order-value', async (req, res) => {
+  try {
+    const days = parseInt(req.query.days) || 7;
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    const pipeline = [
+      {
+        $addFields: {
+          orderDate: {
+            $cond: {
+              if: { $eq: [{ $type: '$Date' }, 'string'] },
+              then: { $dateFromString: { dateString: '$Date' } },
+              else: '$Date'
+            }
+          }
+        }
+      },
+      {
+        $match: {
+          orderDate: { $gte: startDate, $lte: endDate },
+          PaymentStatus: { $ne: 'Cancelled' }
+        }
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$orderDate' } },
+          totalRevenue: { $sum: '$Total' },
+          orderCount: { $sum: 1 }
+        }
+      },
+      {
+        $addFields: {
+          avgOrderValue: { $divide: ['$totalRevenue', '$orderCount'] }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ];
+
+    const aovData = await db.collection('Orders').aggregate(pipeline).toArray();
+    await client.close();
+    res.json(aovData);
+  } catch (err) {
+    console.error('Error fetching AOV data:', err);
+    res.status(500).json({ error: 'Failed to fetch average order value data' });
+  }
+});
+
+// Add-ons Popularity
+router.get('/analytics/addons-popularity', async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    const pipeline = [
+      { $unwind: '$Cart' },
+      {
+        $match: {
+          'Cart.AddOns': { $exists: true, $ne: [] },
+          PaymentStatus: { $ne: 'Cancelled' }
+        }
+      },
+      { $unwind: '$Cart.AddOns' },
+      {
+        $group: {
+          _id: '$Cart.AddOns.Name',
+          orderCount: { $sum: 1 },
+          totalRevenue: { $sum: '$Cart.AddOns.BasePrice' }
+        }
+      },
+      { $sort: { orderCount: -1 } },
+      { $limit: 10 }
+    ];
+
+    const addonsData = await db.collection('Orders').aggregate(pipeline).toArray();
+    await client.close();
+    res.json(addonsData);
+  } catch (err) {
+    console.error('Error fetching addons popularity:', err);
+    res.status(500).json({ error: 'Failed to fetch addons popularity data' });
+  }
+});
+
 // Add Discount/Promo Routes
 router.get('/discounts/active', async (req, res) => {
   try {
@@ -863,5 +1079,9 @@ router.get('/products/:id', async (req, res) => {
 
 
 
+
+router.get('/test', (req, res) => {
+  res.json({ status: 'API working' });
+});
 
 module.exports = router;

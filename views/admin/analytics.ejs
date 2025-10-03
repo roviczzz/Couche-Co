@@ -65,9 +65,41 @@
 
         <div class="section">
           <div class="section-header">
+            <h2 class="section-title">Payment Methods Distribution</h2>
+            <p class="section-description">
+              Revenue breakdown by payment method to understand customer preferences and optimize payment processing.
+            </p>
+          </div>
+          <div class="chart-container">
+            <div class="loading" id="paymentMethodsLoading">
+              <div class="spinner"></div>
+              Loading payment methods data...
+            </div>
+            <canvas id="paymentMethodsChart" style="display: none;"></canvas>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-header">
+            <h2 class="section-title">Order Sources</h2>
+            <p class="section-description">
+              Track which channels (POS, Chatbot, etc.) are driving your orders and revenue.
+            </p>
+          </div>
+          <div class="chart-container">
+            <div class="loading" id="orderSourcesLoading">
+              <div class="spinner"></div>
+              Loading order sources data...
+            </div>
+            <canvas id="orderSourcesChart" style="display: none;"></canvas>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-header">
             <h2 class="section-title">Sales Trend Analysis</h2>
             <p class="section-description">
-              Daily average sales performance over time. Monitor patterns, seasonal trends, and growth opportunities.
+              Daily sales performance over time. Monitor patterns, seasonal trends, and growth opportunities.
             </p>
           </div>
 

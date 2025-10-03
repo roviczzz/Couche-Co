@@ -266,9 +266,152 @@ async function loadOrderHistory() {
   }
 }
 
+// Payment Methods Doughnut Chart
+async function drawPaymentMethodsChart() {
+  const loadingEl = document.getElementById('paymentMethodsLoading');
+  const chartEl = document.getElementById('paymentMethodsChart');
+
+  try {
+    const res = await fetch('/api/analytics/payment-methods');
+    if (!res.ok) {
+      throw new Error(`Server returned ${res.status}: ${res.statusText}`);
+    }
+    const data = await res.json();
+
+    if (!Array.isArray(data) || data.length === 0) {
+      loadingEl.innerHTML = '<div class="error-message">No payment data available. Try again later.</div>';
+      return;
+    }
+
+    // Hide loading, show chart
+    loadingEl.style.display = 'none';
+    chartEl.style.display = 'block';
+
+    new Chart(chartEl, {
+      type: 'doughnut',
+      data: {
+        labels: data.map(d => d._id),
+        datasets: [{
+          data: data.map(d => d.revenue),
+          backgroundColor: ['#8b5a2b', '#d2691e', '#cd853f', '#a0522d', '#daa520'],
+          borderWidth: 2,
+          borderColor: '#ffffff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              padding: 20,
+              font: { size: 12, weight: '500' }
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const label = context.label || '';
+                const value = context.parsed || 0;
+                return `${label}: ₱${value.toLocaleString()}`;
+              }
+            }
+          }
+        }
+      }
+    });
+  } catch (err) {
+    console.error('Payment methods chart error:', err);
+    loadingEl.innerHTML = `<div class="error-message">Failed to load payment methods data: ${err.message}</div>`;
+  }
+}
+
+// Order Sources Bar Chart
+async function drawOrderSourcesChart() {
+  const loadingEl = document.getElementById('orderSourcesLoading');
+  const chartEl = document.getElementById('orderSourcesChart');
+
+  try {
+    const res = await fetch('/api/analytics/order-sources');
+    if (!res.ok) {
+      throw new Error(`Server returned ${res.status}: ${res.statusText}`);
+    }
+    const data = await res.json();
+
+    if (!Array.isArray(data) || data.length === 0) {
+      loadingEl.innerHTML = '<div class="error-message">No order source data available. Try again later.</div>';
+      return;
+    }
+
+    // Hide loading, show chart
+    loadingEl.style.display = 'none';
+    chartEl.style.display = 'block';
+
+    new Chart(chartEl, {
+      type: 'bar',
+      data: {
+        labels: data.map(d => d._id),
+        datasets: [{
+          label: 'Orders',
+          data: data.map(d => d.orderCount),
+          backgroundColor: '#8b5a2b',
+          borderColor: '#8b5a2b',
+          borderWidth: 0,
+          borderRadius: 4,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            ticks: {
+              font: { size: 11, weight: '500' },
+              maxRotation: 0,
+              color: '#6d7175'
+            },
+            grid: { display: false },
+            border: { display: false }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: {
+              font: { size: 11, weight: '500' },
+              color: '#6d7175',
+              stepSize: 1
+            },
+            grid: {
+              color: '#f1f2f3',
+              drawBorder: false
+            },
+            border: { display: false }
+          }
+        },
+        plugins: {
+          legend: { display: false }
+        },
+        interaction: {
+          intersect: false,
+          mode: 'index'
+        },
+        elements: {
+          bar: { borderRadius: 4 }
+        }
+      }
+    });
+  } catch (err) {
+    console.error('Order sources chart error:', err);
+    loadingEl.innerHTML = `<div class="error-message">Failed to load order sources data: ${err.message}</div>`;
+  }
+}
+
 // Initialize charts and load data on page load
 document.addEventListener("DOMContentLoaded", function() {
   drawPopularProductsChart();
   drawAverageSalesChart();
+  drawPaymentMethodsChart();
+  drawOrderSourcesChart();
   loadOrderHistory();
 });
