@@ -11,7 +11,7 @@
     <script src="/js/staff-layout.js"></script>
     <script src="/js/calculator.js"></script>
 </head>
-<body>
+<body class="<%= typeof settings !== 'undefined' && settings.darkMode ? 'dark-theme' : '' %>">
     <div class="wrapper">
         <div class="sidebar sidebar-no-transition">
             <div class="sidebar-logo">

@@ -1,3 +1,89 @@
+/* Dark theme styles for messages */
+.dark-theme .email-container .inbox-panel,
+.dark-theme .email-container .message-view,
+.dark-theme .email-container .main-content,
+.dark-theme .messages-container .conversations-panel,
+.dark-theme .messages-container .chat-panel {
+    background: var(--card-bg);
+    box-shadow: 0 2px 8px var(--card-shadow);
+    color: var(--text-color);
+}
+
+.dark-theme .inbox-header,
+.dark-theme .conversations-header,
+.dark-theme .chat-header {
+    border-bottom-color: var(--border-color);
+}
+
+.dark-theme .email-header h2,
+.dark-theme .messages-header h2,
+.dark-theme .inbox-header h3,
+.dark-theme .conversations-header h3,
+.dark-theme .chat-info h3,
+.dark-theme .modal-header h3 {
+    color: var(--text-color);
+}
+
+.dark-theme .email-message-sender,
+.dark-theme .conversation-name,
+.dark-theme .conversation-last-message,
+.dark-theme .recipient-display {
+    color: var(--text-color);
+}
+
+.dark-theme .email-message-time,
+.dark-theme .conversation-time,
+.dark-theme .email-message-attachments h4 {
+    color: var(--sidebar-text);
+}
+
+.dark-theme .email-message-subject {
+    border-bottom-color: var(--border-color);
+    color: var(--text-color);
+}
+
+.dark-theme .email-message-content {
+    color: var(--sidebar-text);
+}
+
+.dark-theme .email-message,
+.dark-theme .conversation-item {
+    border-bottom-color: var(--border-color);
+}
+
+.dark-theme .message-content {
+    background: var(--card-bg);
+    color: var(--text-color);
+}
+
+.dark-theme .message.own .message-content {
+    background: #a05c2f;
+}
+
+.dark-theme .message-input,
+.dark-theme .form-group select,
+.dark-theme .form-group textarea {
+    background: var(--input-bg);
+    border-color: var(--input-border);
+    color: var(--text-color);
+}
+
+.dark-theme .compose-toolbar,
+.dark-theme .chat-format-tools,
+.dark-theme .modal-footer {
+    background: var(--card-bg);
+    border-color: var(--border-color);
+}
+
+.dark-theme .reply-quote {
+    background: var(--sidebar-bg);
+}
+
+.dark-theme .modal-content,
+.dark-theme .product-modal-content {
+    background: var(--card-bg);
+}
+
 /* Messages Interface Styles */
 
 .email-container {

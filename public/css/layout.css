@@ -1,3 +1,73 @@
+/* CSS Variables for Theme (in addition to site.css) */
+:root {
+  /* Dark theme additional variables for layout.css */
+}
+
+.dark-theme .header {
+    background: var(--header-bg);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.dark-theme .logo {
+    color: var(--text-color);
+}
+
+.dark-theme .sidebar {
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--border-color);
+}
+
+.dark-theme .sidebar-toggle-btn-row,
+.dark-theme .sidebar-notification-row {
+    color: var(--sidebar-text);
+}
+
+.dark-theme .sidebar-toggle-btn-row:hover,
+.dark-theme .sidebar-notification-row:hover {
+    background: var(--sidebar-hover-bg);
+}
+
+.dark-theme .sidebar-menu ul li a {
+    color: var(--sidebar-text);
+}
+
+.dark-theme .sidebar-menu ul li a:hover {
+    background: var(--sidebar-hover-bg);
+}
+
+.dark-theme .sidebar-menu ul li a.active {
+    background: var(--sidebar-active-bg);
+    color: var(--sidebar-active-text);
+}
+
+.dark-theme .sidebar-menu ul li a.active::before {
+    background: var(--sidebar-active-text);
+}
+
+.dark-theme .wrapper {
+    background: var(--main-bg);
+}
+
+.dark-theme .main-content {
+    background: var(--main-bg);
+}
+
+.dark-theme .notification-popup {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow);
+}
+
+.dark-theme .notification-popup-item {
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-color);
+}
+
+.dark-theme .notification-popup-header {
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+}
+
 /* Header Styles */
 .header {
     background: #fff;

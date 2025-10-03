@@ -1,6 +1,103 @@
-.main-content{
+/* Dark theme styles for dashboard */
+.dark-theme .main-content {
+    background-color: var(--main-bg);
+}
+
+.dark-theme .dashboard-header-greeting {
+    color: var(--text-color);
+}
+
+.dark-theme .summary-card {
+    background: var(--card-bg);
+    box-shadow: 0 6px 24px var(--card-shadow);
+}
+
+.dark-theme .summary-card .icon {
+    background: rgba(160, 92, 47, 0.1);
+    color: #a05c2f;
+}
+
+.dark-theme .summary-card .card-label,
+.dark-theme .summary-card .card-value,
+.dark-theme .summary-card .card-sub {
+    color: var(--text-color);
+}
+
+.dark-theme .summary-card .card-trends {
+    color: var(--sidebar-text);
+}
+
+.dark-theme .card-settings {
+    color: var(--sidebar-text);
+}
+
+.dark-theme .card-settings:hover {
+    background-color: rgba(160, 92, 47, 0.1);
+    color: #a05c2f;
+}
+
+.dark-theme .low-stock-more {
+    color: #a05c2f;
+}
+
+.dark-theme .dashboard-tooltip {
+    background: var(--card-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 8px var(--shadow);
+}
+
+.dark-theme .card {
+    background: var(--card-bg);
+    box-shadow: 0 6px 24px var(--card-shadow);
+}
+
+.dark-theme .card-label {
+    color: var(--text-color);
+}
+
+.dark-theme .action-btn {
+    background: var(--sidebar-hover-bg);
+    color: var(--text-color);
+}
+
+.dark-theme .period-select {
+    background: var(--input-bg);
+    color: var(--text-color);
+    border-color: var(--input-border);
+}
+
+.dark-theme .cat-row {
+    color: var(--text-color);
+}
+
+.dark-theme .cat-row:hover {
+    background-color: var(--sidebar-hover-bg);
+}
+
+.dark-theme .cat-name,
+.dark-theme .cat-val {
+    color: var(--text-color);
+}
+
+.dark-theme .cat-percent,
+.dark-theme .cat-orders {
+    color: var(--sidebar-text);
+}
+
+.dark-theme .chart-loading {
+    background: rgba(45, 45, 49, 0.8);
+    color: var(--sidebar-text);
+}
+
+.dark-theme #top-categories-list::-webkit-scrollbar-thumb {
+    background: rgba(160, 92, 47, 0.3);
+}
+
+/* Light theme styles for dashboard */
+.main-content {
     background-color: #f8f9fb;
-  }
+}
     .dashboard-cards-grid {
         display: flex;
         flex-direction: column;

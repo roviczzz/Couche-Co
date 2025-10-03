@@ -1,5 +1,54 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
+/* CSS Variables for Theme */
+:root {
+  /* Light theme (default) */
+  --bg-color: #ffffff;
+  --text-color: #372b2a;
+  --sidebar-bg: #f8f9fb;
+  --sidebar-text: #5e606e;
+  --sidebar-hover-bg: #fdd9b0;
+  --sidebar-active-bg: #fdd9b0;
+  --sidebar-active-text: #5a3e2b;
+  --card-bg: #ffffff;
+  --card-shadow: rgba(0,0,0,0.08);
+  --border-color: #e1e5e9;
+  --input-bg: #ffffff;
+  --input-border: #e1e5e9;
+  --btn-bg: #a05c2f;
+  --btn-hover: #8b4a26;
+  --header-bg: #ffffff;
+  --main-bg: #ffffff;
+  --shadow: rgba(0,0,0,0.05);
+  --toast-bg: #ffe4c4;
+  --toast-border: #e5e5e5;
+  --sidebar-box-shadow: 2px 0 10px var(--shadow);
+}
+
+.dark-theme {
+  /* Subtle midnight dark theme */
+  --bg-color: #1f1f23;
+  --text-color: #e8e8e8;
+  --sidebar-bg: #2a2a2e;
+  --sidebar-text: #b8b8b8;
+  --sidebar-hover-bg: #3a3a3e;
+  --sidebar-active-bg: #3a3a3e;
+  --sidebar-active-text: #ffffff;
+  --card-bg: #2d2d31;
+  --card-shadow: rgba(255,255,255,0.05);
+  --border-color: #3a3a3e;
+  --input-bg: #333337;
+  --input-border: #4a4a4e;
+  --btn-bg: #a05c2f;
+  --btn-hover: #8b4a26;
+  --header-bg: #1f1f23;
+  --main-bg: #1f1f23;
+  --shadow: rgba(0,0,0,0.4);
+  --toast-bg: #2d2d31;
+  --toast-border: #3a3a3e;
+  --sidebar-box-shadow: 2px 0 10px var(--shadow);
+}
+
 html, body {
   height: 100%;
   margin: 0;
@@ -9,7 +58,8 @@ html, body {
 body {
   font-family: 'Inter', sans-serif;
   font-weight: 400;
-  color: #372b2a;
+  color: var(--text-color);
+  background-color: var(--bg-color);
   margin: 0;
   padding: 0;
   display: flex;
@@ -156,9 +206,9 @@ body {
 .sidebar {
   width: 220px;
   padding: 20px;
-  background-color: #f8f9fb;
+  background-color: var(--sidebar-bg);
   height: 180vh;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--sidebar-box-shadow);
   box-sizing: border-box;
   letter-spacing: 0;
   font-family: 'Inter', sans-serif;
@@ -184,7 +234,7 @@ body {
 
 .sidebar ul li a {
   text-decoration: none;
-  color: #5e606e;
+  color: var(--sidebar-text);
   font-weight: 400;
   font-size: 1.6vh;
   display: block;
@@ -195,8 +245,8 @@ body {
 }
 
 .sidebar ul li a.active {
-  background-color: #fdd9b0;
-  color: #5a3e2b;
+  background-color: var(--sidebar-active-bg);
+  color: var(--sidebar-active-text);
   font-weight: 700;
 }
 
@@ -209,14 +259,14 @@ body {
 }
 
 .sidebar ul li a:hover {
-  background-color: #fdd9b0;
-  color: #7a3f1c;
+  background-color: var(--sidebar-hover-bg);
+  color: var(--sidebar-active-text);
 }
 
 .main-content {
   flex: 1;
   padding: 30px;
-  background-color: #ffffff;
+  background-color: var(--main-bg);
   font-family: 'Inter', sans-serif;
   font-weight: 400;
   letter-spacing: -0.7px;

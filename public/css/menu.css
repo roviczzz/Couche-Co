@@ -449,6 +449,166 @@ html, body {
     background: #ccc;
 }
 
+/* Dark theme styles for menu */
+.dark-theme .main-container,
+.dark-theme .content,
+.dark-theme .main-content {
+    background-color: var(--main-bg);
+}
+
+.dark-theme .product-card {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+    box-shadow: 0 1px 6px var(--card-shadow);
+}
+
+.dark-theme .product-card:hover {
+    box-shadow: 0 4px 15px var(--shadow);
+}
+
+.dark-theme .product-name,
+.dark-theme .section-title,
+.dark-theme .summary-title {
+    color: var(--text-color);
+}
+
+.dark-theme .product-price,
+.dark-theme .product-size {
+    color: var(--text-color);
+}
+
+.dark-theme .summary-panel {
+    background-color: var(--card-bg);
+    border-left-color: var(--border-color);
+}
+
+.dark-theme .promo-banner {
+    background-color: var(--sidebar-hover-bg);
+    color: var(--text-color);
+}
+
+.dark-theme .order-item {
+    border-bottom-color: var(--border-color);
+}
+
+.dark-theme .order-item-custom {
+    color: var(--text-color);
+}
+
+.dark-theme .order-item-imgwrap {
+    background: var(--sidebar-bg);
+}
+
+.dark-theme .order-item-title,
+.dark-theme .item-name {
+    color: var(--text-color);
+}
+
+.dark-theme .order-item-size,
+.dark-theme .order-item-price,
+.dark-theme .item-price {
+    color: var(--sidebar-text);
+}
+
+.dark-theme .quantity-btn {
+    background: var(--sidebar-bg);
+    color: var(--text-color);
+}
+
+.dark-theme .proceed-btn {
+    background: var(--text-color);
+    color: var(--main-bg);
+}
+
+.dark-theme .proceed-btn:hover {
+    background: #333337;
+}
+
+.dark-theme .payment-option {
+    border-color: var(--border-color);
+    background: var(--card-bg);
+    color: var(--text-color);
+}
+
+.dark-theme .payment-option.selected {
+    background: var(--sidebar-active-bg);
+    border-color: #a05c2f;
+}
+
+.dark-theme #order-confirm-modal .modal-content,
+.dark-theme #xendit-payment-modal .modal-content {
+    background: var(--card-bg);
+    color: var(--text-color);
+}
+
+.dark-theme .product-modal-content {
+    background: var(--card-bg);
+    color: var(--text-color);
+}
+
+.dark-theme .modal-header {
+    border-bottom-color: var(--border-color);
+}
+
+.dark-theme .modal-product-name,
+.dark-theme .section-title {
+    color: var(--text-color);
+}
+
+.dark-theme .size-option,
+.dark-theme .addon-option {
+    background: var(--card-bg);
+    border-color: var(--border-color);
+    color: var(--text-color);
+}
+
+.dark-theme .size-option:hover,
+.dark-theme .addon-option:hover,
+.dark-theme .size-option.selected {
+    background: var(--sidebar-hover-bg);
+    border-color: #a05c2f;
+}
+
+.dark-theme .modal-footer {
+    border-top-color: var(--border-color);
+    background: var(--card-bg);
+}
+
+.dark-theme .modal-cancel-btn {
+    background: var(--card-bg);
+    border-color: var(--border-color);
+    color: var(--text-color);
+}
+
+.dark-theme .modal-cancel-btn:hover {
+    background: var(--sidebar-bg);
+    border-color: var(--sidebar-text);
+}
+
+.dark-theme .modal-add-btn {
+    background: #a05c2f;
+}
+
+.dark-theme .modal-add-btn:hover:not(:disabled) {
+    background: #8b4a26;
+}
+
+.dark-theme .summary-totals,
+.dark-theme .total-row {
+    border-top-color: var(--border-color);
+    color: var(--text-color);
+}
+
+.dark-theme .total-row.final {
+    border-top-color: var(--border-color);
+}
+
+.dark-theme .content::-webkit-scrollbar-thumb,
+.dark-theme .products-grid::-webkit-scrollbar-thumb,
+.dark-theme #all-products::-webkit-scrollbar-thumb {
+    background-color: rgba(160, 92, 47, 0.3);
+}
+
 /* Xendit Payment Modal Specific Styles */
 .spinner {
     border: 4px solid #f3f3f3;

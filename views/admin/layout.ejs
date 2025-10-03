@@ -11,7 +11,7 @@
 </head>
 <script src="/js/admin-layout.js"></script>
 <script src="/js/calculator.js"></script>
-<body class="sidebar-no-transition">
+<body class="sidebar-no-transition <%= typeof settings !== 'undefined' && settings.darkMode ? 'dark-theme' : '' %>">
 <div class="wrapper">
     <div class="sidebar sidebar-no-transition">
         <div class="sidebar-logo">

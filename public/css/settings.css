@@ -1,3 +1,47 @@
+/* Dark theme styles */
+.dark-theme .settings-card, .dark-theme .info-card {
+    background: var(--card-bg);
+    box-shadow: 0 2px 8px var(--card-shadow);
+}
+
+/* Form elements in dark theme */
+.dark-theme .form-group input,
+.dark-theme .form-group select,
+.dark-theme .number-input input {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+    color: var(--text-color);
+}
+
+.dark-theme .form-group label,
+.dark-theme .action-btn,
+.dark-theme .card-header h3,
+.dark-theme .info-item .label,
+.dark-theme .info-item .value {
+    color: var(--text-color);
+}
+
+.dark-theme .number-input input {
+    background-color: var(--input-bg);
+    color: var(--text-color);
+}
+
+.dark-theme .preference-info h4,
+.dark-theme .preference-info p {
+    color: var(--text-color);
+}
+
+.dark-theme .action-btn {
+    background: var(--card-bg);
+    border-color: var(--border-color);
+    color: var(--text-color);
+}
+
+.dark-theme .action-btn:hover {
+    background: var(--sidebar-hover-bg);
+}
+
+/* Light theme styles */
 .settings-container {
     padding: 24px;
     max-width: 1200px;
