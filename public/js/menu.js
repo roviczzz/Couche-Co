@@ -7,6 +7,10 @@ var userData = JSON.parse(document.getElementById('user-data').textContent);
 // Initialize orderItems array
 var orderItems = [];
 
+// Initialize add-ons cache
+var cachedAddons = null;
+var addonsLoading = false;
+
 // Clear localStorage orderItems on page load to ensure a fresh start
 localStorage.removeItem('orderItems');
 
@@ -28,6 +32,79 @@ function handleProductClick(item) {
         }
         showAddonModal(item, size, price);
     }
+}
+
+// Efficient add-on loading function
+async function loadAddons() {
+    if (cachedAddons !== null) {
+        return cachedAddons; // Return cached data
+    }
+
+    if (addonsLoading) {
+        // If already loading, wait for it to complete
+        return new Promise((resolve, reject) => {
+            const checkLoaded = () => {
+                if (cachedAddons !== null) {
+                    resolve(cachedAddons);
+                } else if (!addonsLoading) {
+                    reject(new Error('Failed to load add-ons'));
+                } else {
+                    setTimeout(checkLoaded, 100);
+                }
+            };
+            checkLoaded();
+        });
+    }
+
+    addonsLoading = true;
+    try {
+        const response = await fetch('/api/addons');
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        const addons = await response.json();
+        cachedAddons = addons.filter(addon => addon.IsEnabled || addon.isEnabled);
+        return cachedAddons;
+    } catch (error) {
+        cachedAddons = []; // Set to empty array on error to avoid repeated failed requests
+        throw error;
+    } finally {
+        addonsLoading = false;
+    }
+}
+
+// Helper function to render addons in container
+function renderAddons(container, addons) {
+    if (!Array.isArray(addons) || addons.length === 0) {
+        container.innerHTML = '<span style="font-size:12px;color:#999">No available add-ons.</span>';
+        return;
+    }
+
+    container.innerHTML = '';
+    addons.forEach((addon) => {
+        const optionDiv = document.createElement('div');
+        optionDiv.className = 'addon-option';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.value = addon.AddOnID;
+        checkbox.dataset.name = addon.Name;
+        checkbox.dataset.price = addon.BasePrice;
+
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = `${addon.Name} (+₱${parseFloat(addon.BasePrice).toFixed(2)})`;
+
+        optionDiv.appendChild(checkbox);
+        optionDiv.appendChild(nameSpan);
+        optionDiv.onclick = (e) => {
+            // Don't toggle if clicking directly on checkbox
+            if (e.target.type !== 'checkbox') {
+                checkbox.checked = !checkbox.checked;
+            }
+        };
+
+        container.appendChild(optionDiv);
+    });
 }
 
 document.getElementById('toggle-notes-btn').onclick = function() {
@@ -221,11 +298,7 @@ function addToOrder(name, price, size = null, category = null, productId = null,
     // Save to localStorage
     saveOrderItems();
 
-    // Close the modal if open
-    const modal = document.getElementById('size-modal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
+    closeSizeModal();
 
     // Render the order items and update summary
     renderOrderItems();
@@ -473,91 +546,115 @@ function selectPayment(method) {
 
 // Modal functions
 function showSizeAndAddonModal(item) {
+    // Reset modal sections
+    hideAllModalSections();
+
     const modal = document.getElementById('size-modal');
     const productNameElem = document.getElementById('modal-product-name');
-    const optionsContainer = document.getElementById('size-options');
     productNameElem.textContent = item.Name;
-    optionsContainer.innerHTML = '';
-    const addonOptionsDiv = document.getElementById('addon-options');
-    addonOptionsDiv.innerHTML = '';
-    // Remove any previous add-on checkboxes container
-    const prevAddonCheckboxes = document.getElementById('addon-checkboxes');
-    if (prevAddonCheckboxes) prevAddonCheckboxes.remove();
-    item.Sizes.forEach((sizeObj, idx) => {
-        const label = document.createElement('label');
-        label.style.marginRight = "15px";
-        const radio = document.createElement('input');
-        radio.type = "radio";
-        radio.name = "size-choice";
-        radio.value = sizeObj.Size;
-        radio.dataset.price = sizeObj.BasePrice;
-        if (idx === 0) radio.checked = true;
-        label.appendChild(radio);
-        label.appendChild(document.createTextNode(` ${sizeObj.Size} - ₱${Number(sizeObj.BasePrice).toFixed(2)}`));
-        optionsContainer.appendChild(label);
-    });
+
     const lowerCategory = (item.Category || item.category || '').toLowerCase();
-    if (lowerCategory === 'pastries' || lowerCategory === 'bites') {
-        addonOptionsDiv.innerHTML = '';
+    const isPastry = lowerCategory === 'pastries' || lowerCategory === 'bites';
+
+    // Show size section if item has multiple sizes and is not a pastry
+    if (item.Sizes && item.Sizes.length > 1 && !isPastry) {
+        showSizeSection(item.Sizes);
+    }
+
+    // Show add-ons section if not a pastry
+    if (!isPastry) {
+        showAddonSection();
+        loadAddons()
+            .then(addons => {
+                const container = document.getElementById('addon-options');
+                if (container) {
+                    renderAddons(container, addons);
+                    setupConfirmBtnForSizeAndAddon(item);
+                }
+                modal.style.display = 'flex';
+                modal.addEventListener('click', handleModalClick);
+            })
+            .catch(error => {
+                const container = document.getElementById('addon-options');
+                if (container) {
+                    container.innerHTML = `<span style="font-size:12px;color:#ff6b6b">Error loading add-ons: ${error.message}</span>`;
+                }
+                setupConfirmBtnForSizeAndAddon(item);
+                modal.style.display = 'flex';
+                modal.addEventListener('click', handleModalClick);
+            });
+    } else {
+        // For pastries, show direct order section
+        showDirectOrderSection();
         setupConfirmBtnForSizeAndAddon(item);
         modal.style.display = 'flex';
-        return;
+        modal.addEventListener('click', handleModalClick);
     }
-    addonOptionsDiv.innerHTML = `
-        <span style="color:#8B4513;font-weight:bold;font-size:16px;margin-bottom:8px;display:block">
-            Add-ons (Optional)
-        </span>
-        <div id="addon-checkboxes" style="display:flex;flex-wrap:wrap;gap:10px;">
-            <span style="font-size:12px;color:#999">Loading add-ons...</span>
-        </div>
-    `;
-    fetch('/api/addons')
-        .then(res => res.json())
-        .then(addons => {
-            const container = document.getElementById('addon-checkboxes');
-            if (!container) return;
-            container.innerHTML = '';
-            if (!Array.isArray(addons) || addons.length === 0) {
-                container.innerHTML = '<span style="font-size:12px;color:#999">No available add-ons.</span>';
-            } else {
-                addons.forEach((addon) => {
-                    if (!(addon.IsEnabled || addon.isEnabled)) return;
-                    const label = document.createElement('label');
-                    label.style.cssText = `
-                        display: flex;
-                        align-items: center;
-                        gap: 6px;
-                        background: #f6eee7;
-                        border-radius: 6px;
-                        padding: 8px 12px;
-                        cursor: pointer;
-                        margin-bottom: 5px;
-                        border: 1px solid #e0d0c0;
-                        min-width: 120px;
-                    `;
-                    const checkbox = document.createElement('input');
-                    checkbox.type = 'checkbox';
-                    checkbox.value = addon.AddOnID;
-                    checkbox.dataset.name = addon.Name;
-                    checkbox.dataset.price = addon.BasePrice;
-                    label.appendChild(checkbox);
-                    const nameSpan = document.createElement('span');
-                    nameSpan.textContent = `${addon.Name} (+₱${parseFloat(addon.BasePrice).toFixed(2)})`;
-                    label.appendChild(nameSpan);
-                    container.appendChild(label);
-                });
-            }
-            setupConfirmBtnForSizeAndAddon(item);
-            modal.style.display = 'flex';
-        })
-        .catch(() => {
-            const container = document.getElementById('addon-checkboxes');
-            if (container) {
-                container.innerHTML = `<span style="font-size:12px;color:#ff6b6b">Error loading add-ons.</span>`;
-            }
-            setupConfirmBtnForSizeAndAddon(item);
-            modal.style.display = 'flex';
-        });
+}
+
+function hideAllModalSections() {
+    const sections = ['size-section', 'addon-section', 'direct-order-section'];
+    sections.forEach(id => {
+        const section = document.getElementById(id);
+        if (section) section.style.display = 'none';
+    });
+}
+
+function showSizeSection(sizes) {
+    const section = document.getElementById('size-section');
+    const container = document.getElementById('size-options');
+    if (!section || !container) return;
+
+    container.innerHTML = '';
+    sizes.forEach((sizeObj, idx) => {
+        const optionDiv = document.createElement('div');
+        optionDiv.className = 'size-option';
+
+        const radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = 'size-choice';
+        radio.value = sizeObj.Size;
+        radio.dataset.price = sizeObj.BasePrice;
+        if (idx === 0) {
+            radio.checked = true;
+            optionDiv.classList.add('selected');
+        }
+
+        const label = document.createElement('label');
+        label.textContent = `${sizeObj.Size} - ₱${Number(sizeObj.BasePrice).toFixed(2)}`;
+
+        optionDiv.appendChild(radio);
+        optionDiv.appendChild(label);
+        optionDiv.onclick = () => selectSizeOption(optionDiv, radio);
+
+        container.appendChild(optionDiv);
+    });
+
+    section.style.display = 'block';
+}
+
+function showAddonSection() {
+    const section = document.getElementById('addon-section');
+    const container = document.getElementById('addon-options');
+    if (!section || !container) return;
+
+    container.innerHTML = '<span style="font-size:12px;color:#999;">Loading add-ons...</span>';
+    section.style.display = 'block';
+}
+
+function showDirectOrderSection() {
+    const section = document.getElementById('direct-order-section');
+    if (section) section.style.display = 'block';
+}
+
+function selectSizeOption(optionDiv, radio) {
+    // Remove selected class from all options
+    const allOptions = document.querySelectorAll('.size-option');
+    allOptions.forEach(opt => opt.classList.remove('selected'));
+
+    // Select this option
+    optionDiv.classList.add('selected');
+    radio.checked = true;
 }
 
 function setupConfirmBtnForSizeAndAddon(item) {
@@ -603,97 +700,58 @@ function setupConfirmButton(item, size, price) {
 }
 
 function showAddonModal(item, size, price) {
+    // Reset modal sections
+    hideAllModalSections();
+
     const modal = document.getElementById('size-modal');
-    const addonOptionsDiv = document.getElementById('addon-options');
-    const sizeOptionsDiv = document.getElementById('size-options');
     const productNameElem = document.getElementById('modal-product-name');
-    if (productNameElem) productNameElem.textContent = item.Name;
-    addonOptionsDiv.innerHTML = '';
-    if (sizeOptionsDiv) sizeOptionsDiv.innerHTML = '';
-    const prevAddonCheckboxes = document.getElementById('addon-checkboxes');
-    if (prevAddonCheckboxes) prevAddonCheckboxes.remove();
+    productNameElem.textContent = item.Name;
+
     const lowerCategory = (item.Category || item.category || '').toLowerCase();
-    if (lowerCategory === 'pastries' || lowerCategory === 'bites') {
-        addonOptionsDiv.innerHTML = '';
+    const isPastry = lowerCategory === 'pastries' || lowerCategory === 'bites';
+
+    // For pastries or items without add-ons capability, show direct order
+    if (isPastry) {
+        showDirectOrderSection();
         setupConfirmButton(item, size, price);
         modal.style.display = 'flex';
+        modal.addEventListener('click', handleModalClick);
         return;
     }
-    addonOptionsDiv.innerHTML = `
-    <span style="color:#8B4513;font-weight:bold;font-size:16px;margin-bottom:8px;display:block">
-        Add-ons (Optional)
-    </span>
-    <div id="addon-checkboxes" style="display:flex;flex-wrap:wrap;gap:10px;">
-        <span style="font-size:12px;color:#999">Loading add-ons...</span>
-    </div>
-`;
-    fetch('/api/addons')
-        .then(res => {
-            if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-            return res.json();
-        })
+
+    // For drinks, show add-ons section
+    showAddonSection();
+    loadAddons()
         .then(addons => {
-            const container = document.getElementById('addon-checkboxes');
-            if (!container) return;
-            container.innerHTML = '';
-            if (!Array.isArray(addons) || addons.length === 0) {
-                container.innerHTML = '<span style="font-size:12px;color:#999">No available add-ons.</span>';
-            } else {
-                addons.forEach((addon) => {
-                    if (!(addon.IsEnabled || addon.isEnabled)) return;
-                    const label = document.createElement('label');
-                    label.style.cssText = `
-                    display: flex;
-                    align-items: center;
-                    gap: 6px;
-                    background: #f6eee7;
-                    border-radius: 6px;
-                    padding: 8px 12px;
-                    cursor: pointer;
-                    margin-bottom: 5px;
-                    border: 1px solid #e0d0c0;
-                    transition: background-color 0.2s;
-                    min-width: 120px;
-                `;
-                    label.onmouseover = () => label.style.backgroundColor = '#f0e6d7';
-                    label.onmouseout = () => label.style.backgroundColor = '#f6eee7';
-
-                    const checkbox = document.createElement('input');
-                    checkbox.type = 'checkbox';
-                    checkbox.value = addon.AddOnID;
-                    checkbox.dataset.name = addon.Name;
-                    checkbox.dataset.price = addon.BasePrice;
-                    checkbox.style.marginRight = '4px';
-
-                    const nameSpan = document.createElement('span');
-                    nameSpan.textContent = `${addon.Name} (+₱${parseFloat(addon.BasePrice).toFixed(2)})`;
-                    nameSpan.style.fontSize = '13px';
-                    nameSpan.style.fontWeight = '500';
-
-                    label.appendChild(checkbox);
-                    label.appendChild(nameSpan);
-                    container.appendChild(label);
-                });
-
-                if (container.childElementCount === 0) {
-                    container.innerHTML = '<span style="font-size:12px;color:#999">No enabled add-ons found.</span>';
-                }
+            const container = document.getElementById('addon-options');
+            if (container) {
+                renderAddons(container, addons);
+                setupConfirmButton(item, size, price);
             }
-            setupConfirmButton(item, size, price);
             modal.style.display = 'flex';
+            modal.addEventListener('click', handleModalClick);
         })
         .catch(error => {
-            const container = document.getElementById('addon-checkboxes');
+            const container = document.getElementById('addon-options');
             if (container) {
                 container.innerHTML = `<span style="font-size:12px;color:#ff6b6b">Error loading add-ons: ${error.message}</span>`;
             }
             setupConfirmButton(item, size, price);
             modal.style.display = 'flex';
+            modal.addEventListener('click', handleModalClick);
         });
+}
+
+// Function to handle clicking outside the modal content
+function handleModalClick(event) {
+    if (event.target === this) {
+        closeSizeModal();
+    }
 }
 
 function closeSizeModal() {
     const modal = document.getElementById('size-modal');
+    modal.removeEventListener('click', handleModalClick);
     modal.style.display = 'none';
 }
 
