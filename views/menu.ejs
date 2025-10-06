@@ -1,0 +1,30 @@
+<link rel="stylesheet" href="/css/site.css">
+<link rel="stylesheet" href="/css/guest-menu.css">
+
+<section class="menu-hero">
+    <div class="hero-content">
+        <h1>Our Menu</h1>
+        <p>Discover our carefully crafted beverages and treats</p>
+        <div class="menu-notice">
+            <a href="/auth/login" class="btn btn-secondary">Login to Order Online</a>
+        </div>
+    </div>
+</section>
+
+<section class="menu-section" id="menuContent">
+    <div class="container">
+        <div class="menu-categories">
+            <div class="category-buttons">
+                <button class="category-btn active" onclick="showCategory('all')">All</button>
+                <button class="category-btn" onclick="showCategory('Coffee')">Coffee</button>
+                <button class="category-btn" onclick="showCategory('Milktea')">Milktea</button>
+                <button class="category-btn" onclick="showCategory('Fruit Tea')">Fruit Tea</button>
+                <button class="category-btn" onclick="showCategory('Pastries')">Pastries</button>
+            </div>
+        </div>
+
+        <div id="menuItems" class="menu-grid"></div>
+    </div>
+</section>
+
+<script id="menu-data" type="application/json"><%- JSON.stringify(menuItems) %></script>

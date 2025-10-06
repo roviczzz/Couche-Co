@@ -1,106 +1,32 @@
-<section class="hero">
-    <div class="hero-content">
-        <h1>Welcome to Blessings Cafe</h1>
-        <p>Experience the finest coffee and delicious treats in a warm, welcoming atmosphere.</p>
-        <div class="hero-actions">
-            <a href="/menu" class="btn btn-primary">View Menu</a>
-            <a href="/auth/login" class="btn btn-secondary">Login</a>
-        </div>
-    </div>
-</section>
+<link rel="stylesheet" href="/css/home.css">
 
-<section class="features">
-    <div class="container">
-        <div class="feature-grid">
-            <div class="feature-card">
-                <h3>Premium Coffee</h3>
-                <p>Freshly roasted beans from around the world, brewed to perfection.</p>
-            </div>
-            <div class="feature-card">
-                <h3>Fresh Pastries</h3>
-                <p>Daily baked pastries and treats made with the finest ingredients.</p>
-            </div>
-            <div class="feature-card">
-                <h3>Cozy Atmosphere</h3>
-                <p>A warm and inviting space perfect for work, study, or relaxation.</p>
-            </div>
+<section class="menu-gallery">
+    <% if (featuredItems && featuredItems.length > 0) { %>
+        <div class="menu-gallery-container">
+            <% featuredItems.forEach(item => { %>
+                <div class="gallery-item">
+                    <div class="gallery-image">
+                        <% if (item.imagelink && item.imagelink.length > 0) { %>
+                            <img src="<%= item.imagelink %>" alt="<%= item.Name %>">
+                        <% } else { %>
+                            <div class="no-image">No Image</div>
+                        <% } %>
+                    </div>
+                    <div class="gallery-content">
+                        <h4><%= item.Name %></h4>
+                        <% if (item.Sizes && item.Sizes.length === 1) { %>
+                            <span class="price">₱ <%= Number(item.Sizes[0].BasePrice).toFixed(2) %></span>
+                        <% } else if (item.Sizes && item.Sizes.length > 1) { %>
+                            <span class="price">₱ <%= Math.min(...item.Sizes.map(s => s.BasePrice)).toFixed(2) %> - ₱ <%= Math.max(...item.Sizes.map(s => s.BasePrice)).toFixed(2) %></span>
+                        <% } else if (item.BasePrice) { %>
+                            <span class="price">₱ <%= Number(item.BasePrice).toFixed(2) %></span>
+                        <% } else { %>
+                            <span class="price">Price TBA</span>
+                        <% } %>
+                        <button class="menu-item-order" onclick="loginToOrder()">View Details</button>
+                    </div>
+                </div>
+            <% }); %>
         </div>
-    </div>
+    <% } %>
 </section>
-
-<style>
-    .hero {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 4rem 2rem;
-        text-align: center;
-    }
-    .hero-content h1 {
-        font-size: 3rem;
-        margin-bottom: 1rem;
-    }
-    .hero-content p {
-        font-size: 1.2rem;
-        margin-bottom: 2rem;
-        max-width: 600px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-    .hero-actions {
-        display: flex;
-        gap: 1rem;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-    .btn {
-        padding: 0.75rem 1.5rem;
-        border: none;
-        border-radius: 5px;
-        text-decoration: none;
-        font-weight: 500;
-        cursor: pointer;
-        display: inline-block;
-    }
-    .btn-primary {
-        background-color: #3498db;
-        color: white;
-    }
-    .btn-secondary {
-        background-color: transparent;
-        color: white;
-        border: 2px solid white;
-    }
-    .btn:hover {
-        opacity: 0.9;
-        transform: translateY(-2px);
-        transition: all 0.3s ease;
-    }
-    .features {
-        padding: 4rem 2rem;
-        background: #f8f9fa;
-    }
-    .container {
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-    .feature-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
-    }
-    .feature-card {
-        background: white;
-        padding: 2rem;
-        border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        text-align: center;
-    }
-    .feature-card h3 {
-        color: #2c3e50;
-        margin-bottom: 1rem;
-    }
-    .feature-card p {
-        color: #666;
-        line-height: 1.6;
-    }
-</style>

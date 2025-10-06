@@ -19,21 +19,51 @@ function nocache(req, res, next) {
 }
 
 // Home page
-router.get('/', (req, res) => {
-  if (!req.session.user) {
-    return res.render('home', { title: 'Home | Blessings Cafe' });
+router.get('/', async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const menuCollection = db.collection('Menu');
+
+    // Get all menu items for gallery display
+    const featuredItems = await menuCollection.find().toArray();
+
+    await client.close();
+
+    if (req.session.user) {
+      if (req.session.user.role === 'admin') {
+        return res.redirect('/admin/dashboard');
+      }
+      return res.render('home', {
+        title: 'Home | Blessings Cafe',
+        user: req.session.user,
+        featuredItems: featuredItems,
+        layout: 'layout'
+      });
+    }
+    return res.render('home', {
+      title: 'Home | Blessings Cafe',
+      user: null,
+      featuredItems: featuredItems,
+      layout: 'layout'
+    });
+  } catch (err) {
+    console.error('Home page error:', err);
+    res.render('home', {
+      title: 'Home | Blessings Cafe',
+      user: null,
+      featuredItems: [],
+      layout: 'layout'
+    });
   }
-  if (req.session.user.role === 'admin') {
-    return res.redirect('/admin/dashboard');
-  }
-  res.render('home', { title: 'Home | Blessings Cafe', user: req.session.user, layout: false });
 });
 
 // About page
 router.get('/about', (req, res) => {
   res.render('about', {
     title: 'About Us | Blessings Cafe',
-    user: req.session?.user || null
+    user: req.session?.user || null,
+    layout: 'layout'
   });
 });
 
@@ -41,7 +71,8 @@ router.get('/about', (req, res) => {
 router.get('/contact', (req, res) => {
   res.render('contact', {
     title: 'Contact Us | Blessings Cafe',
-    user: req.session?.user || null
+    user: req.session?.user || null,
+    layout: 'layout'
   });
 });
 
@@ -58,15 +89,20 @@ router.get('/dashboard', isLoggedIn, nocache, (req, res) => {
   res.render('home', { title: 'Dashboard | Blessings Cafe', user: req.session.user, layout: false });
 });
 
-// Menu route
-router.get('/menu', isLoggedIn, nocache, async (req, res) => {
+// Menu route (public for guests)
+router.get('/menu', async (req, res) => {
   try {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
     const menuCollection = db.collection('Menu');
     const menuItems = await menuCollection.find().toArray();
     await client.close();
-    res.render('menu', { menuItems, title: 'Menu | Blessings Cafe', user: req.session.user });
+    res.render('menu', {
+      menuItems,
+      title: 'Menu | Blessings Cafe',
+      user: req.session?.user || null,
+      layout: 'layout'
+    });
   } catch (err) {
     res.status(500).send('Internal Server Error');
   }
