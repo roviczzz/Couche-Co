@@ -26,9 +26,22 @@ router.get('/', async (req, res) => {
     const menuCollection = db.collection('Menu');
 
     // Get all menu items for gallery display
-    const featuredItems = await menuCollection.find().toArray();
+    const allItems = await menuCollection.find().toArray();
 
     await client.close();
+
+    // Categorize items
+    const categorizedItems = {};
+    allItems.forEach(item => {
+      const category = item.Category || 'Others';
+      if (!categorizedItems[category]) {
+        categorizedItems[category] = [];
+      }
+      categorizedItems[category].push(item);
+    });
+
+    // Define category order
+    const categoryOrder = ['Coffee', 'Milktea', 'Fruit Tea', 'Pastries'];
 
     if (req.session.user) {
       if (req.session.user.role === 'admin') {
@@ -37,14 +50,16 @@ router.get('/', async (req, res) => {
       return res.render('home', {
         title: 'Home | Blessings Cafe',
         user: req.session.user,
-        featuredItems: featuredItems,
+        categorizedItems: categorizedItems,
+        categoryOrder: categoryOrder,
         layout: 'layout'
       });
     }
     return res.render('home', {
       title: 'Home | Blessings Cafe',
       user: null,
-      featuredItems: featuredItems,
+      categorizedItems: categorizedItems,
+      categoryOrder: categoryOrder,
       layout: 'layout'
     });
   } catch (err) {
@@ -95,8 +110,17 @@ router.get('/menu', async (req, res) => {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
     const menuCollection = db.collection('Menu');
-    const menuItems = await menuCollection.find().toArray();
+    let menuItems = await menuCollection.find().toArray();
     await client.close();
+
+    // Filter by search query if provided
+    const searchQuery = req.query.search;
+    if (searchQuery) {
+      menuItems = menuItems.filter(item =>
+        item.Name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
     res.render('menu', {
       menuItems,
       title: 'Menu | Blessings Cafe',

@@ -4,23 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= typeof title !== 'undefined' ? title : 'Blessings Cafe' %></title>
-  <% if (!user) { %>
+  <% if (typeof user === 'undefined' || !user) { %>
     <link rel="stylesheet" href="/css/navbar.css">
   <% } %>
 </head>
 <body>
-  <% if (!user) { %>
+  <% if (typeof user === 'undefined' || !user) { %>
     <header>
       <nav>
         <div class="logo">
-          <img src="/resources/logo.png" alt="Blessings Cafe Logo">
-          <span>Blessings Cafe</span>
+          <a href="/"><img src="/resources/logo.png" alt="Blessings Cafe Logo"></a>
         </div>
         <div class="nav-links">
           <a href="/">Home</a>
-          <a href="/menu">Menu</a>
           <a href="/about">About Us</a>
           <a href="/contact">Contact</a>
+          <a href="#" id="search-link">Search</a>
         </div>
         <div class="account-menu">
           <button class="account-btn" onclick="toggleAccountDropdown()">
@@ -35,12 +34,31 @@
         </div>
       </nav>
     </header>
+    <!-- Search Popup -->
+    <div id="search-popup" class="search-popup-overlay">
+      <div class="search-popup-content">
+        <div class="search-header">
+          <div class="search-input-container">
+            <input type="text" id="search-input" placeholder="Search products..." autocomplete="off">
+            <button class="search-icon-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+              </svg>
+            </button>
+          </div>
+          <button id="search-close" class="search-close-btn">&times;</button>
+        </div>
+        <div id="search-results" class="search-dropdown"></div>
+      </div>
+    </div>
   <% } %>
 
   <%- body %>
 
-  <% if (!user) { %>
+  <% if (typeof user === 'undefined' || !user) { %>
     <script src="/js/navbar.js"></script>
+    <script src="/js/search.js"></script>
   <% } %>
 </body>
 </html>

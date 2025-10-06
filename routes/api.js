@@ -864,4 +864,31 @@ router.get('/products/:id', async (req, res) => {
 
 
 
+// Product search for navbar
+router.get('/search', async (req, res) => {
+  try {
+    const query = req.query.q || '';
+
+    if (!query || query.trim().length < 2) {
+      return res.json([]);
+    }
+
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    // Search for products that match the Name
+    const results = await db.collection('Menu')
+      .find({ Name: { $regex: query, $options: 'i' } })
+      .project({ Name: 1, Category: 1, _id: 0 })
+      .limit(10)
+      .toArray();
+
+    await client.close();
+    res.json(results);
+  } catch (err) {
+    console.error('Error in product search:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 module.exports = router;

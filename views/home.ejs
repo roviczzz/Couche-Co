@@ -1,10 +1,12 @@
 <link rel="stylesheet" href="/css/home.css">
 
 <section class="menu-gallery">
-    <% if (featuredItems && featuredItems.length > 0) { %>
-        <div class="menu-gallery-container">
-            <% featuredItems.forEach(item => { %>
-                <div class="gallery-item">
+    <% categoryOrder.forEach(cat => { %>
+        <% if (categorizedItems[cat] && categorizedItems[cat].length > 0) { %>
+            <h2 class="category-title"><%= cat %></h2>
+            <div class="menu-gallery-container">
+                <% categorizedItems[cat].forEach(item => { %>
+                <div class="gallery-item" onclick="loginToOrder()">
                     <div class="gallery-image">
                         <% if (item.imagelink && item.imagelink.length > 0) { %>
                             <img src="<%= item.imagelink %>" alt="<%= item.Name %>">
@@ -14,19 +16,19 @@
                     </div>
                     <div class="gallery-content">
                         <h4><%= item.Name %></h4>
-                        <% if (item.Sizes && item.Sizes.length === 1) { %>
-                            <span class="price">₱ <%= Number(item.Sizes[0].BasePrice).toFixed(2) %></span>
-                        <% } else if (item.Sizes && item.Sizes.length > 1) { %>
-                            <span class="price">₱ <%= Math.min(...item.Sizes.map(s => s.BasePrice)).toFixed(2) %> - ₱ <%= Math.max(...item.Sizes.map(s => s.BasePrice)).toFixed(2) %></span>
+                        <% if (item.Sizes && item.Sizes.length > 0) { %>
+                            <% item.Sizes.forEach(size => { %>
+                                <p><%= size.Size %> ₱ <%= Number(size.BasePrice).toFixed(2) %></p>
+                            <% }); %>
                         <% } else if (item.BasePrice) { %>
                             <span class="price">₱ <%= Number(item.BasePrice).toFixed(2) %></span>
                         <% } else { %>
                             <span class="price">Price TBA</span>
                         <% } %>
-                        <button class="menu-item-order" onclick="loginToOrder()">View Details</button>
                     </div>
                 </div>
-            <% }); %>
-        </div>
-    <% } %>
+                <% }); %>
+            </div>
+        <% } %>
+    <% }); %>
 </section>
