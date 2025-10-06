@@ -184,4 +184,16 @@
 
 <link rel="stylesheet" href="/css/settings.css">
 
+<script>
+    // Load current settings from server-side rendered values
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check if dark mode is enabled and apply it immediately
+        const darkModeToggle = document.getElementById('darkMode');
+        if (darkModeToggle && darkModeToggle.checked) {
+            document.body.classList.add('dark-theme');
+        }
+        console.log('Staff settings page loaded');
+    });
+</script>
+
 <script src="/js/settings.js"></script>

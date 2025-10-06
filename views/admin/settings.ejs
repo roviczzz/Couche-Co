@@ -197,7 +197,11 @@
 <script>
     // Load current settings from server-side rendered values
     document.addEventListener('DOMContentLoaded', function() {
-        // Preferences are now pre-loaded from server, but we can add any additional JS init here
+        // Check if dark mode is enabled and apply it immediately
+        const darkModeToggle = document.getElementById('darkMode');
+        if (darkModeToggle && darkModeToggle.checked) {
+            document.body.classList.add('dark-theme');
+        }
         console.log('Admin settings page loaded');
     });
 </script>

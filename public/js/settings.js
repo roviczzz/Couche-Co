@@ -61,9 +61,30 @@ document.getElementById('passwordForm').addEventListener('submit', function(e) {
     document.getElementById('passwordForm').reset();
 });
 
+// Function to apply dark mode
+function applyDarkMode(enabled) {
+    if (enabled) {
+        document.body.classList.add('dark-theme');
+    } else {
+        document.body.classList.remove('dark-theme');
+    }
+}
+
+// Function to update checkbox state
+function updateCheckbox(checkboxId, enabled) {
+    const checkbox = document.getElementById(checkboxId);
+    if (checkbox) {
+        checkbox.checked = enabled;
+    }
+}
+
 // Preference handling
 document.querySelectorAll('.toggle-switch input').forEach(toggle => {
     toggle.addEventListener('change', function() {
+        // For dark mode, apply immediately
+        if (this.id === 'darkMode') {
+            applyDarkMode(this.checked);
+        }
         savePreferences();
     });
 });

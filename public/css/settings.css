@@ -1,7 +1,19 @@
 /* Dark theme styles */
+.dark-theme .settings-container,
+.dark-theme .settings-header h2,
+.dark-theme .settings-header p {
+    color: var(--text-color);
+}
+
 .dark-theme .settings-card, .dark-theme .info-card {
     background: var(--card-bg);
     box-shadow: 0 2px 8px var(--card-shadow);
+    border: 1px solid var(--border-color);
+}
+
+.dark-theme .card-header {
+    background: rgba(37, 37, 41, 0.6);
+    border-bottom-color: var(--border-color);
 }
 
 /* Form elements in dark theme */
@@ -13,19 +25,26 @@
     color: var(--text-color);
 }
 
+.dark-theme .form-group input:focus,
+.dark-theme .form-group select:focus,
+.dark-theme .number-input input:focus {
+    border-color: #a05c2f;
+    box-shadow: 0 0 0 2px rgba(160, 92, 47, 0.2);
+}
+
+.dark-theme .form-group input::placeholder,
+.dark-theme .form-group select::placeholder {
+    color: var(--sidebar-text);
+}
+
 .dark-theme .form-group label,
-.dark-theme .action-btn,
-.dark-theme .card-header h3,
+.dark-theme .card-header h3 {
+    color: var(--text-color);
+}
+
 .dark-theme .info-item .label,
-.dark-theme .info-item .value {
-    color: var(--text-color);
-}
-
-.dark-theme .number-input input {
-    background-color: var(--input-bg);
-    color: var(--text-color);
-}
-
+.dark-theme .info-item .value,
+.dark-theme .action-btn,
 .dark-theme .preference-info h4,
 .dark-theme .preference-info p {
     color: var(--text-color);
@@ -34,11 +53,16 @@
 .dark-theme .action-btn {
     background: var(--card-bg);
     border-color: var(--border-color);
-    color: var(--text-color);
 }
 
 .dark-theme .action-btn:hover {
     background: var(--sidebar-hover-bg);
+    color: var(--text-color);
+}
+
+.dark-theme .status-badge.active {
+    background: rgba(40, 167, 69, 0.2);
+    color: #90ee90;
 }
 
 /* Light theme styles */

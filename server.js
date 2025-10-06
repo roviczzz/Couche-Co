@@ -33,6 +33,42 @@ app.use((req, res, next) => {
   next();
 });
 
+// Middleware to load user settings for all authenticated users
+app.use(async (req, res, next) => {
+  if (req.session.user) {
+    try {
+      const client = await MongoClient.connect(uri);
+      const db = client.db('blessingscafe');
+
+      // Load user settings from UserSettings collection
+      const userSettings = await db.collection('UserSettings').findOne({
+        userId: req.session.user._id
+      });
+
+      // Set default settings if none exist
+      res.locals.settings = userSettings || {
+        darkMode: false,
+        soundEnabled: true,
+        printReceipts: false,
+        orderConfirmations: true,
+        lowStockAlertRange: 5
+      };
+
+      await client.close();
+    } catch (error) {
+      console.error('Error loading user settings:', error);
+      res.locals.settings = {
+        darkMode: false,
+        soundEnabled: true,
+        printReceipts: false,
+        orderConfirmations: true,
+        lowStockAlertRange: 5
+      };
+    }
+  }
+  next();
+});
+
 app.use((req, res, next) => {
   res.locals.sidebarItems = [
     { path: '/dashboard', label: 'Home', icon: 'house' },

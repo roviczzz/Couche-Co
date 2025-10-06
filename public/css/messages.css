@@ -1,4 +1,6 @@
-/* Dark theme styles for messages */
+/* Enhanced Dark theme styles for messages with maximum readability */
+.dark-theme .messages-container,
+.dark-theme .email-container,
 .dark-theme .email-container .inbox-panel,
 .dark-theme .email-container .message-view,
 .dark-theme .email-container .main-content,
@@ -7,81 +9,170 @@
     background: var(--card-bg);
     box-shadow: 0 2px 8px var(--card-shadow);
     color: var(--text-color);
+    border: 1px solid var(--border-color);
 }
 
 .dark-theme .inbox-header,
 .dark-theme .conversations-header,
 .dark-theme .chat-header {
     border-bottom-color: var(--border-color);
+    background: rgba(37, 37, 41, 0.8);
 }
 
+/* All text elements with maximum readability */
 .dark-theme .email-header h2,
 .dark-theme .messages-header h2,
 .dark-theme .inbox-header h3,
 .dark-theme .conversations-header h3,
 .dark-theme .chat-info h3,
-.dark-theme .modal-header h3 {
-    color: var(--text-color);
-}
-
+.dark-theme .modal-header h3,
 .dark-theme .email-message-sender,
 .dark-theme .conversation-name,
 .dark-theme .conversation-last-message,
-.dark-theme .recipient-display {
-    color: var(--text-color);
+.dark-theme .recipient-display,
+.dark-theme .email-message-subject,
+.dark-theme .message-placeholder h3,
+.dark-theme .message-placeholder p,
+.dark-theme .chat-placeholder h3,
+.dark-theme .chat-placeholder p,
+.dark-theme .no-conversations p,
+.dark-theme .no-conversations small {
+    color: var(--text-color) !important;
 }
 
+/* Secondary text with good contrast */
 .dark-theme .email-message-time,
 .dark-theme .conversation-time,
-.dark-theme .email-message-attachments h4 {
-    color: var(--sidebar-text);
+.dark-theme .email-message-attachments h4,
+.dark-theme .message-time,
+.dark-theme .conversation-last-message,
+.dark-theme .email-message-content,
+.dark-theme .chat-info p {
+    color: var(--sidebar-text) !important;
 }
 
-.dark-theme .email-message-subject {
-    border-bottom-color: var(--border-color);
-    color: var(--text-color);
-}
-
-.dark-theme .email-message-content {
-    color: var(--sidebar-text);
-}
-
+/* Borders and separators */
+.dark-theme .email-message-subject,
 .dark-theme .email-message,
 .dark-theme .conversation-item {
-    border-bottom-color: var(--border-color);
+    border-bottom-color: var(--border-color) !important;
 }
 
+/* Message content */
 .dark-theme .message-content {
     background: var(--card-bg);
     color: var(--text-color);
+    border: 1px solid var(--border-color);
 }
 
 .dark-theme .message.own .message-content {
     background: #a05c2f;
+    color: white;
 }
 
+.dark-theme .message.own .message-time {
+    color: rgba(255,255,255,0.85) !important;
+}
+
+/* Input fields with high contrast */
 .dark-theme .message-input,
 .dark-theme .form-group select,
-.dark-theme .form-group textarea {
-    background: var(--input-bg);
-    border-color: var(--input-border);
-    color: var(--text-color);
+.dark-theme .form-group textarea,
+.dark-theme .message-input:focus,
+.dark-theme .form-group select:focus,
+.dark-theme .form-group textarea:focus {
+    background: var(--input-bg) !important;
+    border-color: var(--input-border) !important;
+    color: var(--text-color) !important;
 }
 
+.dark-theme .message-input::placeholder,
+.dark-theme .form-group select::placeholder,
+.dark-theme .form-group textarea::placeholder {
+    color: var(--sidebar-text) !important;
+}
+
+/* Toolbars and UI elements */
 .dark-theme .compose-toolbar,
 .dark-theme .chat-format-tools,
-.dark-theme .modal-footer {
-    background: var(--card-bg);
-    border-color: var(--border-color);
+.dark-theme .modal-footer,
+.dark-theme .chat-input-area {
+    background: var(--card-bg) !important;
+    border-color: var(--border-color) !important;
+}
+
+.dark-theme .chat-input-area {
+    border-top-color: var(--border-color) !important;
 }
 
 .dark-theme .reply-quote {
-    background: var(--sidebar-bg);
+    background: var(--sidebar-bg) !important;
+    border-left-color: #a05c2f !important;
 }
 
 .dark-theme .modal-content,
 .dark-theme .product-modal-content {
-    background: var(--card-bg);
+    background: var(--card-bg) !important;
+    color: var(--text-color) !important;
+}
+
+/* Formatting buttons */
+.dark-theme .format-btn {
+    border-color: var(--border-color) !important;
+}
+
+.dark-theme .format-btn:hover {
+    background: var(--sidebar-hover-bg) !important;
+    color: var(--text-color) !important;
+}
+
+.dark-theme .format-btn.active {
+    background: #a05c2f !important;
+    color: white !important;
+}
+
+/* Attachments */
+.dark-theme .attachment-preview,
+.dark-theme .attachment-item {
+    background: var(--sidebar-bg) !important;
+    border-color: var(--border-color) !important;
+}
+
+.dark-theme .attachment-name,
+.dark-theme .attachment-item i,
+.dark-theme .attachment-item a {
+    color: var(--text-color) !important;
+}
+
+/* Modal overlays with better contrast */
+.dark-theme .modal {
+    background: rgba(0,0,0,0.7) !important;
+}
+
+.dark-theme .modal-content.image-gallery-modal {
+    background: var(--card-bg) !important;
+    color: var(--text-color) !important;
+    border: 2px solid var(--border-color);
+}
+
+/* Status badges and notifications */
+.dark-theme .unread-badge {
+    background: #e85959 !important;
+    color: white !important;
+}
+
+/* Toast notifications */
+.dark-theme .toast.success { background-color: rgba(76, 175, 80, 0.9) !important; }
+.dark-theme .toast.error { background-color: rgba(244, 67, 54, 0.9) !important; }
+.dark-theme .toast.info { background-color: rgba(33, 150, 243, 0.9) !important; }
+.dark-theme .toast.warning { background-color: rgba(255, 152, 0, 0.9) !important; }
+
+.dark-theme .toast-message {
+    color: white !important;
+}
+
+.dark-theme .toast-close:hover {
+    background: rgba(255,255,255,0.1) !important;
 }
 
 /* Messages Interface Styles */

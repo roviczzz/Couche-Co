@@ -1,6 +1,15 @@
-/* CSS Variables for Theme (in addition to site.css) */
+/* Enhanced variables for better contrast */
 :root {
-  /* Dark theme additional variables for layout.css */
+  /* Additional light theme variables */
+}
+
+.dark-theme {
+  /* Enhanced dark theme with better readability */
+  --text-color: #f8f8fa;
+  --sidebar-text: #d0d0d2;
+  --border-color: #45454a;
+  --card-shadow: rgba(255,255,255,0.10);
+  --shadow: rgba(0,0,0,0.6);
 }
 
 .dark-theme .header {

@@ -5,7 +5,156 @@ html, body {
 }
 
 .main-content{
-  background-color: #f8f9fb;
+  background-color: var(--main-bg);
+}
+
+/* Dark theme enhancements for order management */
+.dark-theme .orders-table-container {
+    color: var(--text-color);
+}
+
+.dark-theme .orders-table-container table thead {
+    background-color: var(--card-bg);
+    border-bottom: 2px solid var(--border-color);
+    color: var(--text-color);
+}
+
+.dark-theme tbody tr {
+    background-color: var(--card-bg);
+    border-bottom: 8px solid var(--main-bg);
+    color: var(--text-color);
+}
+
+.dark-theme tbody tr:hover {
+    background-color: var(--sidebar-hover-bg);
+}
+
+.dark-theme tbody tr.selected {
+    background-color: rgba(160, 92, 47, 0.1);
+    border-left-color: #a05c2f;
+}
+
+.dark-theme .order-detail-panel {
+    background: var(--card-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+.dark-theme .panel-header {
+    border-bottom-color: var(--border-color);
+}
+
+.dark-theme .panel-header h2 {
+    color: var(--text-color);
+}
+
+.dark-theme .info-label {
+    color: var(--sidebar-text);
+}
+
+.dark-theme .info-value {
+    color: var(--text-color);
+}
+
+.dark-theme .order-detail-section h3 {
+    color: var(--text-color);
+    border-bottom-color: var(--border-color);
+}
+
+.dark-theme .order-detail-section ul li {
+    background-color: var(--card-bg);
+    border-bottom-color: var(--border-color);
+    color: var(--text-color);
+}
+
+.dark-theme .order-detail-section ul li:nth-child(even) {
+    background-color: var(--sidebar-bg);
+}
+
+.dark-theme .order-detail-section ul li:hover {
+    background-color: var(--sidebar-hover-bg);
+}
+
+.dark-theme .product-name {
+    color: var(--text-color);
+}
+
+.dark-theme .product-quantity-price {
+    color: var(--sidebar-text);
+}
+
+.dark-theme .promo-label {
+    background-color: rgba(40, 167, 69, 0.2);
+    border-color: rgba(40, 167, 69, 0.3);
+    color: #90ee90;
+}
+
+.dark-theme .summary-totals {
+    background-color: var(--sidebar-bg);
+    border: 1px solid var(--border-color);
+}
+
+.dark-theme .summary-totals .total-line {
+    color: var(--text-color);
+}
+
+.dark-theme .summary-totals .total-line.final {
+    border-top-color: var(--border-color);
+    color: var(--text-color);
+}
+
+.dark-theme .btn-accent {
+    background-color: #a05c2f;
+    color: white;
+}
+
+.dark-theme .btn-accent:hover {
+    background-color: #8b4a26;
+}
+
+.dark-theme .btn-secondary {
+    background-color: var(--sidebar-hover-bg);
+    color: var(--text-color);
+}
+
+.dark-theme .btn-secondary:hover {
+    background-color: var(--sidebar-active-bg);
+}
+
+.dark-theme .btn-danger {
+    background-color: #e85959;
+}
+
+.dark-theme .btn-danger:hover {
+    background-color: #d44949;
+}
+
+.dark-theme .btn-success {
+    background-color: #28a745;
+}
+
+.dark-theme .btn-success:hover {
+    background-color: #218838;
+}
+
+/* Modal dark theme */
+.dark-theme .cancel-confirmation-modal-content,
+.dark-theme .completed-orders-modal-content {
+    background: var(--card-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+.dark-theme .completed-orders-modal-header h2 {
+    color: #90ee90;
+}
+
+.dark-theme .cancel-confirmation-modal-header h2 {
+    color: #ffb3ba;
+}
+
+.dark-theme .modal-close-btn:hover {
+    background: var(--sidebar-hover-bg) !important;
 }
 
 .layout-container {
