@@ -9,7 +9,7 @@ let salesTrendData = [];
 async function drawPopularProductsChart() {
   const loadingEl = document.getElementById('popularProductsLoading');
   const chartEl = document.getElementById('popularProductsChart');
-  
+
   try {
     const res = await fetch('/api/analytics/popular-products');
     if (!res.ok) {
@@ -61,16 +61,16 @@ async function drawPopularProductsChart() {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { 
+          legend: {
             display: false
           },
-          title: { 
+          title: {
             display: false
           }
         },
         scales: {
           x: {
-            ticks: { 
+            ticks: {
               font: { size: 11, weight: '500' },
               maxRotation: 0,
               color: '#6d7175'
@@ -82,9 +82,9 @@ async function drawPopularProductsChart() {
               display: false
             }
           },
-          y: { 
+          y: {
             beginAtZero: true,
-            ticks: { 
+            ticks: {
               font: { size: 11, weight: '500' },
               color: '#6d7175',
               stepSize: 1
@@ -118,7 +118,7 @@ async function drawPopularProductsChart() {
 async function drawAverageSalesChart() {
   const loadingEl = document.getElementById('averageSalesLoading');
   const chartEl = document.getElementById('averageSalesChart');
-  
+
   try {
     const res = await fetch('/api/analytics/sales-per-day');
     if (!res.ok) {
@@ -189,18 +189,18 @@ async function drawAverageSalesChart() {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { 
+          legend: {
             display: false
           },
-          title: { 
+          title: {
             display: false
           }
         },
         scales: {
           x: {
-            ticks: { 
-              font: { size: 11, weight: '500' }, 
-              maxRotation: 0, 
+            ticks: {
+              font: { size: 11, weight: '500' },
+              maxRotation: 0,
               color: '#6d7175'
             },
             grid: {
@@ -212,7 +212,7 @@ async function drawAverageSalesChart() {
           },
           y: {
             beginAtZero: true,
-            ticks: { 
+            ticks: {
               font: { size: 11, weight: '500' },
               color: '#6d7175',
               callback: function(value) {
@@ -240,13 +240,26 @@ async function drawAverageSalesChart() {
   }
 }
 
-async function loadOrderHistory() {
+async function loadOrderHistory(days = 7) {
+  console.log('loadOrderHistory called with days:', days);
   try {
-    const res = await fetch("/admin/analytics/order-history");
+    let url = "/admin/analytics/order-history";
+    if (days !== 'all') {
+      url += `?days=${days}`;
+    }
+    console.log('Fetching URL:', url);
+    const res = await fetch(url);
     const orders = await res.json();
+    console.log('Received orders:', orders.length);
 
     const tbody = document.getElementById("orderHistoryBody");
     tbody.innerHTML = "";
+
+    if (!orders || orders.length === 0) {
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:10px;">No orders found</td></tr>';
+  return;
+}
+
 
     orders.forEach(o => {
       const row = `
@@ -264,6 +277,22 @@ async function loadOrderHistory() {
   } catch (err) {
     console.error("Error loading orders:", err);
   }
+}
+
+// Filter button handlers
+function setupOrderHistoryFilters() {
+  const buttons = document.querySelectorAll(".filter-btn");
+
+  buttons.forEach(btn => {
+    btn.addEventListener("click", function () {
+      const days = this.getAttribute("data-days"); // get "7", "30", or "all"
+      loadOrderHistory(days); // call backend with parameter
+
+      // remove active from all, then add to clicked one
+      buttons.forEach(b => b.classList.remove("active"));
+      this.classList.add("active");
+    });
+  });
 }
 
 // Payment Methods Doughnut Chart
@@ -413,5 +442,7 @@ document.addEventListener("DOMContentLoaded", function() {
   drawAverageSalesChart();
   drawPaymentMethodsChart();
   drawOrderSourcesChart();
-  loadOrderHistory();
+  setupOrderHistoryFilters();
+  document.getElementById('filter7days').classList.add('active');
+  loadOrderHistory(7);
 });

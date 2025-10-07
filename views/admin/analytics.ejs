@@ -1,16 +1,13 @@
-  <!DOCTYPE html>
-  <html>
-  <head>
-
-    <title>Analytics | Blessings Cafe</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="/css/analytics.css" rel="stylesheet">
-
-
-  </head>
-  <body>
-    <header class="header">
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Analytics | Blessings Cafe</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="/css/analytics.css" rel="stylesheet">
+</head>
+<body>
+  <header class="header">
     <div class="container">
       <div class="header-content">
         <div class="brand-section">
@@ -21,147 +18,151 @@
     </div>
   </header>
 
-    <main class="main-content">
-      <div class="container">
-        <div class="dashboard-grid">
-          <div class="stats-card">
-            <div class="stat-header">
-              <div class="stat-label">Active Products</div>
-              <svg class="stat-icon" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
-              </svg>
-            </div>
-            <div class="stat-number" id="totalProducts">--</div>
-            <div class="stat-change">Active in menu</div>
+  <main class="main-content">
+    <div class="container">
+      <!-- Top Stats Cards -->
+      <div class="dashboard-grid">
+        <div class="stats-card">
+          <div class="stat-header">
+            <div class="stat-label">Active Products</div>
+            <svg class="stat-icon" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
+            </svg>
           </div>
-          
-          <div class="stats-card">
-            <div class="stat-header">
-              <div class="stat-label">Avg Daily Sales</div>
-              <svg class="stat-icon" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"></path>
-              </svg>
-            </div>
-            <div class="stat-number" id="avgDailySales">₱--</div>
-            <div class="stat-change">Revenue per day</div>
-          </div>
+          <div class="stat-number" id="totalProducts">--</div>
+          <div class="stat-change">Active in menu</div>
         </div>
+        
+        <div class="stats-card">
+          <div class="stat-header">
+            <div class="stat-label">Avg Daily Sales</div>
+            <svg class="stat-icon" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"></path>
+            </svg>
+          </div>
+          <div class="stat-number" id="avgDailySales">₱--</div>
+          <div class="stat-change">Revenue per day</div>
+        </div>
+      </div>
 
-        <div class="section">
+      <!-- Two Column Chart Grid -->
+      <div class="analytics-grid">
+        <!-- Popular Products -->
+        <div class="section full-width-section">
           <div class="section-header">
             <h2 class="section-title">Popular Products</h2>
-            <p class="section-description">
-              Your best-performing menu items based on recent sales data. Use this to optimize inventory and identify trending items.
-            </p>
+            <p class="section-description">Best-performing menu items</p>
           </div>
           <div class="chart-container">
             <div class="loading" id="popularProductsLoading">
               <div class="spinner"></div>
-              Loading popular products...
+              Loading...
             </div>
             <canvas id="popularProductsChart" style="display: none;"></canvas>
           </div>
         </div>
 
+        <!-- Payment Methods -->
         <div class="section">
           <div class="section-header">
-            <h2 class="section-title">Payment Methods Distribution</h2>
-            <p class="section-description">
-              Revenue breakdown by payment method to understand customer preferences and optimize payment processing.
-            </p>
+            <h2 class="section-title">Payment Methods</h2>
+            <p class="section-description">Revenue by payment type</p>
           </div>
           <div class="chart-container">
             <div class="loading" id="paymentMethodsLoading">
               <div class="spinner"></div>
-              Loading payment methods data...
+              Loading...
             </div>
             <canvas id="paymentMethodsChart" style="display: none;"></canvas>
           </div>
         </div>
 
+        <!-- Order Sources -->
         <div class="section">
           <div class="section-header">
             <h2 class="section-title">Order Sources</h2>
-            <p class="section-description">
-              Track which channels (POS, Chatbot, etc.) are driving your orders and revenue.
-            </p>
+            <p class="section-description">Orders by channel</p>
           </div>
           <div class="chart-container">
             <div class="loading" id="orderSourcesLoading">
               <div class="spinner"></div>
-              Loading order sources data...
+              Loading...
             </div>
             <canvas id="orderSourcesChart" style="display: none;"></canvas>
           </div>
         </div>
 
-        <div class="section">
+        <!-- Sales Trend - Full Width -->
+        <div class="section full-width-section">
           <div class="section-header">
             <h2 class="section-title">Sales Trend Analysis</h2>
-            <p class="section-description">
-              Daily sales performance over time. Monitor patterns, seasonal trends, and growth opportunities.
-            </p>
+            <p class="section-description">Daily sales performance over time</p>
           </div>
-
-          
           <div class="chart-container">
             <div class="loading" id="averageSalesLoading">
               <div class="spinner"></div>
-              Analyzing sales trends...
+              Analyzing...
             </div>
             <canvas id="averageSalesChart" style="display: none;"></canvas>
           </div>
         </div>
-        <!-- Order History Table -->
-<div class="section">
-  <div class="section-header">
-    <h2 class="section-title">Order History</h2>
-    <p class="section-description">Recent customer orders with status and total amount.</p>
-  </div>
-  <div style="overflow-x:auto; padding: 1.5rem;">
-    <table>
-      <thead>
-        <tr>
-          <th>Order ID</th>
-          <th>Customer</th>
-          <th>Date</th>
-          <th>Total</th>
-          <th>Payment</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody id="orderHistoryBody">
-        <tr><td colspan="6" style="text-align:center; padding:10px;">Loading...</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
+      </div>
 
-
-        <div class="section">
-          <div class="section-header">
-            <h2 class="section-title">Quick Insights</h2>
-            <p class="section-description">Key performance indicators at a glance</p>
+      <!-- Order History Table - Full Width -->
+      <div class="section" style="margin-bottom: 1.5rem;">
+        <div class="section-header">
+          <h2 class="section-title">Order History</h2>
+          <p class="section-description">Recent customer orders</p>
+          <div class="filter-buttons" style="margin-top: 0.5rem; display: flex; gap: 0.5rem;">
+            <button id="filter7days"  type="button" class="filter-btn" data-days="7">Last 7 Days</button>
+            <button id="filter30days" type="button" class="filter-btn" data-days="30">Last 30 Days</button>
+            <button id="filterAll"  type="button" class="filter-btn" data-days="all">Display all</button>
           </div>
-          <div class="insights-grid">
-            <div class="insight-item">
-              <div class="insight-title">Top Product</div>
-              <div class="insight-value" id="topProduct">Loading...</div>
-            </div>
-            <div class="insight-item">
-              <div class="insight-title">Sales Trend</div>
-              <div class="insight-value" id="salesTrend">Loading...</div>
-            </div>
-            <div class="insight-item">
-              <div class="insight-title">Peak Day</div>
-              <div class="insight-value" id="peakDay">Loading...</div>
-            </div>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Date</th>
+                <th>Total</th>
+                <th>Payment</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="orderHistoryBody">
+              <tr><td colspan="6" style="text-align:center; padding:10px;">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Quick Insights - Bottom -->
+      <div class="insights-section">
+        <div class="insights-header">
+          <h2 class="insights-title">Quick Insights</h2>
+          <p class="insights-subtitle">Key performance indicators at a glance</p>
+        </div>
+        <div class="insights-grid">
+          <div class="insight-item">
+            <div class="insight-title">Top Product</div>
+            <div class="insight-value" id="topProduct">Loading...</div>
+          </div>
+          <div class="insight-item">
+            <div class="insight-title">Sales Trend</div>
+            <div class="insight-value" id="salesTrend">Loading...</div>
+          </div>
+          <div class="insight-item">
+            <div class="insight-title">Peak Day</div>
+            <div class="insight-value" id="peakDay">Loading...</div>
           </div>
         </div>
       </div>
-    </main>
+    </div>
+  </main>
 
-    <!-- External Analytics JavaScript -->
-    <script src="/js/analytics.js"></script>
-  </body>
-  </html>
+  <!-- External Analytics JavaScript -->
+  <script src="/js/analytics.js?v=1"></script>
+</body>
+</html>

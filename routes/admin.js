@@ -1733,24 +1733,49 @@ async function connectDB() {
   return db;
 }
 
-// Route: Order History (last 30 days)
 router.get("/analytics/order-history", async (req, res) => {
   try {
     const db = await connectDB();
-    const orders = await db.collection("Orders") // try lowercase
-      .find({})
+    const days = req.query.days;
+
+    let orders = [];
+
+    if (days && days !== "all" && !isNaN(parseInt(days))) {
+      const numDays = parseInt(days);
+      const fromDate = new Date();
+      fromDate.setDate(fromDate.getDate() - numDays);
+
+      // Format as "YYYY-MM-DD" string to match DB format
+      const cutoff = fromDate.toISOString().split('T')[0];
+
+      orders = await db.collection("Orders").find({
+        Date: { $gte: cutoff }
+      })
       .sort({ Date: -1 })
       .limit(50)
       .toArray();
 
-    console.log("Orders fetched:", orders.length);
-    res.setHeader("Cache-Control", "no-store"); // prevent 304 caching
+      console.log(`Orders fetched: ${orders.length} (filtered by ${days} days), cutoff=${cutoff}`);
+    } else {
+      orders = await db.collection("Orders")
+        .find({})
+        .sort({ Date: -1 })
+        .limit(50)
+        .toArray();
+
+      console.log(`Orders fetched: ${orders.length} (no filter)`);
+    }
+
+    res.setHeader("Cache-Control", "no-store");
     res.json(orders);
+
   } catch (err) {
     console.error("Order history fetch failed:", err);
     res.status(500).json({ error: "Failed to fetch order history" });
   }
 });
+
+
 
 router.get("/products", async (req, res) => {
   const products = await Product.find(); // returns 18

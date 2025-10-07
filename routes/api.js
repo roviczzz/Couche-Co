@@ -508,11 +508,65 @@ router.get('/stocks/health', async (req, res) => {
 // Add Analytics Routes
 router.get('/analytics/popular-products', async (req, res) => {
   try {
+    const { days = 'all', startDate, endDate, category } = req.query;
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
 
-    const results = await db.collection('Orders').aggregate([
-      { $unwind: "$Cart" },
+    let pipeline = [
+      { $unwind: "$Cart" }
+    ];
+
+    // Add date filter if not 'all'
+    if (days !== 'all' || startDate || endDate) {
+      let startDateFilter, endDateFilter;
+
+      if (startDate || endDate) {
+        // Custom date range
+        if (startDate) startDateFilter = new Date(startDate + 'T00:00:00.000Z');
+        if (endDate) {
+          endDateFilter = new Date(endDate + 'T23:59:59.999Z');
+        }
+      } else if (days !== 'all') {
+        // Preset days
+        const daysNumber = parseInt(days);
+        startDateFilter = new Date();
+        startDateFilter.setDate(startDateFilter.getDate() - daysNumber);
+        startDateFilter.setHours(0, 0, 0, 0);
+      }
+
+      pipeline.push({
+        $addFields: {
+          orderDate: {
+            $cond: {
+              if: { $eq: [{ $type: "$Date" }, "string"] },
+              then: {
+                $dateFromString: {
+                  dateString: {
+                    $concat: [
+                      { $substr: ["$Date", 0, 10] }, // Extract YYYY-MM-DD
+                      "T00:00:00.000Z" // Add UTC time
+                    ]
+                  }
+                }
+              },
+              else: "$Date"
+            }
+          }
+        }
+      });
+
+      const dateMatch = {};
+      if (startDateFilter) dateMatch.$gte = startDateFilter;
+      if (endDateFilter) dateMatch.$lte = endDateFilter;
+
+      if (Object.keys(dateMatch).length > 0) {
+        pipeline.push({
+          $match: { orderDate: dateMatch }
+        });
+      }
+    }
+
+    pipeline.push(
       {
         $group: {
           _id: "$Cart.ProductName",
@@ -520,8 +574,18 @@ router.get('/analytics/popular-products', async (req, res) => {
         }
       },
       { $sort: { totalQuantity: -1 } }
-    ]).toArray();
+    );
 
+    const ordersFiltered = await db.collection('Orders').aggregate(pipeline.slice(0, days !== 'all' ? 3 : 1)).toArray();
+    const monthCounts = {};
+    ordersFiltered.forEach(order => {
+      const dateStr = order.Date.substring(0, 7); // YYYY-MM
+      monthCounts[dateStr] = (monthCounts[dateStr] || 0) + 1;
+    });
+
+    const results = await db.collection('Orders').aggregate(pipeline).toArray();
+    console.log(`Popular products for days=${days}:`, results.length, 'products, from', ordersFiltered.length, 'filtered orders');
+    console.log('Orders by month:', monthCounts);
     await client.close();
     res.json(results);
   } catch (err) {
@@ -532,10 +596,11 @@ router.get('/analytics/popular-products', async (req, res) => {
 
 router.get('/analytics/sales-per-day', async (req, res) => {
   try {
+    const { days = 'all' } = req.query;
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
 
-    const salesPerDay = await db.collection('Orders').aggregate([
+    let pipeline = [
       {
         $addFields: {
           parsedDate: {
@@ -546,7 +611,23 @@ router.get('/analytics/sales-per-day', async (req, res) => {
             }
           }
         }
-      },
+      }
+    ];
+
+    // Add date range filter if not 'all'
+    if (days !== 'all') {
+      const daysNumber = parseInt(days);
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - daysNumber);
+
+      pipeline.push({
+        $match: {
+          parsedDate: { $gte: startDate }
+        }
+      });
+    }
+
+    pipeline.push(
       {
         $group: {
           _id: { $dateToString: { format: "%Y-%m-%d", date: "$parsedDate" } },
@@ -554,8 +635,9 @@ router.get('/analytics/sales-per-day', async (req, res) => {
         }
       },
       { $sort: { _id: 1 } }
-    ]).toArray();
+    );
 
+    const salesPerDay = await db.collection('Orders').aggregate(pipeline).toArray();
     await client.close();
     res.json(salesPerDay);
   } catch (err) {
