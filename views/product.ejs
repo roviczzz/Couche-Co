@@ -1,0 +1,50 @@
+<link rel="stylesheet" href="/css/product.css">
+<link rel="stylesheet" href="/css/site-public.css">
+
+<script id="product-data" type="application/json"><%= JSON.stringify(product) %></script>
+
+  <main class="product-page">
+    <div class="product-container">
+      <div class="product-image">
+        <% if (product.imagelink && product.imagelink !== 'null' && product.imagelink !== 'placeholder' && product.imagelink !== null && product.imagelink.trim() !== '') { %>
+          <img src="<%= product.imagelink %>" alt="<%= product.Name %>">
+        <% } else { %>
+          <div class="placeholder-div">Image Unavailable</div>
+        <% } %>
+      </div>
+      <div class="product-details">
+        <h1><%= product.Name %></h1>
+        <p class="product-description"><%= product.Description || 'Delicious drink from Blessings Cafe.' %></p>
+
+        <% if (product.Sizes && product.Sizes.length > 0) { %>
+          <div class="sizes-section">
+            <div class="size-options">
+              <% product.Sizes.forEach((size, index) => { %>
+                <label class="size-option-btn" data-size="<%= size.Size %>" data-price="<%= size.BasePrice %>">
+                  <input type="radio" name="size-radio" value="<%= size.Size %>" style="display: none;">
+                  <span><%= size.Size %> - ₱<%= Number(size.BasePrice).toFixed(2) %></span>
+                </label>
+              <% }); %>
+            </div>
+          </div>
+        <% } else { %>
+          <div class="price-section">
+            <p class="price">₱<%= product.BasePrice ? Number(product.BasePrice).toFixed(2) : '0.00' %></p>
+          </div>
+        <% } %>
+
+        <div class="quantity-section">
+          <label for="quantity">Quantity</label>
+          <input type="number" id="quantity" name="quantity" min="1" value="1">
+        </div>
+
+        <button id="add-to-cart-btn" class="add-to-cart-btn">Add to Cart</button>
+      </div>
+    </div>
+  </main>
+
+  <% if (typeof user === 'undefined' || !user) { %>
+    <script src="/js/navbar.js"></script>
+    <script src="/js/search.js"></script>
+    <script src="/js/product.js"></script>
+  <% } %>

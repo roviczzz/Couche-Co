@@ -17,6 +17,10 @@ localStorage.removeItem('orderItems');
 // Function to save order items to localStorage
 function saveOrderItems() {
     localStorage.setItem('orderItems', JSON.stringify(orderItems));
+    // Update navbar cart count if function exists
+    if (typeof window.updateCartCount === 'function') {
+        window.updateCartCount();
+    }
 }
 
 // Handle product click - show size/addon modal or add directly if no size options

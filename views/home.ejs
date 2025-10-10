@@ -1,12 +1,29 @@
 <link rel="stylesheet" href="/css/home.css">
+<link rel="stylesheet" href="/css/site-public.css">
 
-<section class="menu-gallery">
+<section class="welcome-section">
+    <div class="welcome-content">
+        <h1>Blessings Cafe</h1>
+        <p>placeholder intro</p>
+        <div class="welcome-actions">
+            <a onclick="scrollToMenu()" class="btn btn-primary">View Menu</a>
+        </div>
+    </div>
+</section>
+
+<script>
+function scrollToMenu() {
+    document.getElementById('menu-gallery').scrollIntoView({behavior: 'smooth'});
+}
+</script>
+
+<section id="menu-gallery" class="menu-gallery">
     <% categoryOrder.forEach(cat => { %>
         <% if (categorizedItems[cat] && categorizedItems[cat].length > 0) { %>
             <h2 class="category-title"><%= cat %></h2>
             <div class="menu-gallery-container">
                 <% categorizedItems[cat].forEach(item => { %>
-                <div class="gallery-item" onclick="loginToOrder()">
+                <div class="gallery-item" onclick="window.location.href='/product/<%= item.ProductID %>'" style="cursor: pointer;">
                     <div class="gallery-image">
                         <% if (item.imagelink && item.imagelink.length > 0) { %>
                             <img src="<%= item.imagelink %>" alt="<%= item.Name %>">

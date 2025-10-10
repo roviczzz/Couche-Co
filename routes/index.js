@@ -132,6 +132,42 @@ router.get('/menu', async (req, res) => {
   }
 });
 
+// Product page
+router.get('/product/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { ObjectId } = require('mongodb');
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const menuCollection = db.collection('Menu');
+
+    const product = await menuCollection.findOne({
+      $or: [
+        { ProductID: id },
+        { _id: ObjectId.isValid(id) ? new ObjectId(id) : null }
+      ]
+    });
+
+    if (!product) {
+      await client.close();
+      return res.status(404).send('Product not found');
+    }
+
+    await client.close();
+
+    res.render('product', {
+      product,
+      title: `${product.Name} | Blessings Cafe`,
+      user: req.session?.user || null,
+      extraCSS: '/css/product.css',
+      layout: 'layout'
+    });
+  } catch (err) {
+    console.error('Product page error:', err);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
 // Products route
 router.get('/products', isLoggedIn, nocache, async (req, res) => {
   try {
@@ -145,7 +181,7 @@ router.get('/products', isLoggedIn, nocache, async (req, res) => {
       user: req.session.user,
       products
     });
-    
+
     await client.close();
   } catch (error) {
     console.error('Products error:', error);

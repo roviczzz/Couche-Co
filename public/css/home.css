@@ -1,3 +1,32 @@
+/* Font Faces */
+@font-face {
+    font-family: 'TNR Condensed';
+    src: url('/fonts/TNR-Condensed.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'TNR Condensed Bold';
+    src: url('/fonts/TNR-Bold-Condensed.otf') format('opentype');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'TNR Bold';
+    src: url('/fonts/TNR-Bold.otf') format('opentype');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'TNR Regular';
+    src: url('/fonts/TNR-Regular.otf') format('opentype');
+    font-weight: bold;
+    font-style: normal;
+}
+
 /* Home Page Styles */
 
 body {
@@ -13,8 +42,12 @@ body {
 }
 
 .welcome-content h1 {
-    font-size: 3rem;
+    font-family: 'TNR Regular';
+    font-size: 8rem;
+    letter-spacing: -0.8vh;
     margin-bottom: 1rem;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.004);
+    text-rendering: optimizeLegibility !important;
 }
 
 .welcome-content p {

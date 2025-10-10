@@ -12,6 +12,13 @@ nav {
     padding: 1rem 2rem;
     max-width: 1200px;
     margin: 0 auto;
+    letter-spacing: -0.6px;
+}
+
+.user-menu {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .logo {
@@ -190,6 +197,90 @@ nav {
     text-align: center;
     color: #666;
     font-size: 0.9rem;
+}
+
+.cart-menu {
+    position: relative;
+}
+
+.cart-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: background 0.3s ease;
+    color: #2c3e50;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cart-btn:hover {
+    background: #f8f9fa;
+}
+
+.cart-count {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: #e74c3c;
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.cart-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border-radius: 8px;
+    overflow: hidden;
+    min-width: 250px;
+    max-width: 300px;
+    display: none;
+    z-index: 102;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.cart-dropdown-content {
+    padding: 1rem;
+}
+
+.cart-dropdown-content h4 {
+    margin: 0 0 1rem 0;
+    color: #2c3e50;
+    font-size: 1.1rem;
+}
+
+.cart-summary p {
+    margin: 0.5rem 0;
+    color: #666;
+}
+
+.view-cart-btn {
+    background: #8B4513;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.3s ease;
+}
+
+.view-cart-btn:hover {
+    background: #5a4b3a;
 }
 
 .account-menu {
