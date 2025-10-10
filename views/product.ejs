@@ -21,7 +21,7 @@
             <div class="size-options">
               <% product.Sizes.forEach((size, index) => { %>
                 <label class="size-option-btn" data-size="<%= size.Size %>" data-price="<%= size.BasePrice %>">
-                  <input type="radio" name="size-radio" value="<%= size.Size %>" style="display: none;">
+                  <input type="checkbox" name="size-checkbox" value="<%= size.Size %>" style="display: none;" autocomplete="off">
                   <span><%= size.Size %> - ₱<%= Number(size.BasePrice).toFixed(2) %></span>
                 </label>
               <% }); %>
