@@ -514,8 +514,6 @@ router.post('/products/add', upload.single('imagelink'), async (req, res) => {
 
   // Image handling
   let imagelink = req.file ? `/uploads/${req.file.filename}` : 'placeholder';
-  let imgbbUrl = null;
-  let deleteUrl = null;
 
   if (req.file) {
     try {
@@ -527,8 +525,7 @@ router.post('/products/add', upload.single('imagelink'), async (req, res) => {
           `https://api.imgbb.com/1/upload?key=${imgbbKey}`,
           new URLSearchParams({ image: fileData })
         );
-        imgbbUrl = response.data.data.url;
-        deleteUrl = response.data.data.delete_url;
+        imagelink = response.data.data.url; // Set imagelink to the imgbb URL
       }
     } catch (err) {
       console.error("ImgBB upload failed:", err.message);
@@ -545,8 +542,6 @@ router.post('/products/add', upload.single('imagelink'), async (req, res) => {
     Category,
     Allergen: Allergen || null,
     imagelink,
-    imgbbUrl,
-    deleteUrl,
     isEnabled: isEnabled === 'true'
   };
 
@@ -702,9 +697,7 @@ router.post('/products/edit/:id', upload.single('imagelink'), async (req, res) =
 
         console.log("✅ ImgBB Upload Success:", response.data);
 
-        updateFields.imgbbUrl = response.data.data.url;
-        updateFields.deleteUrl = response.data.data.delete_url;
-        updateFields.imagelink = `/uploads/${req.file.filename}`;
+        updateFields.imagelink = response.data.data.url;
       } catch (err) {
         console.error("❌ ImgBB upload failed:", err.response?.data || err.message);
       }
