@@ -513,9 +513,11 @@ router.post('/products/add', upload.single('imagelink'), async (req, res) => {
   const ingredientsArray = Ingredients ? Ingredients.split(',').map(i => i.trim()) : [];
 
   // Image handling
-  let imagelink = req.file ? `/uploads/${req.file.filename}` : 'placeholder';
+  let imagelink = 'placeholder';
+  let localImagePath = null;
 
   if (req.file) {
+    localImagePath = `/uploads/${req.file.filename}`;
     try {
       const fileData = fs.readFileSync(req.file.path, { encoding: "base64" });
       const imgbbKey = process.env.IMGBB_API_KEY;
@@ -542,6 +544,7 @@ router.post('/products/add', upload.single('imagelink'), async (req, res) => {
     Category,
     Allergen: Allergen || null,
     imagelink,
+    localImagePath,
     isEnabled: isEnabled === 'true'
   };
 
@@ -698,6 +701,7 @@ router.post('/products/edit/:id', upload.single('imagelink'), async (req, res) =
         console.log("✅ ImgBB Upload Success:", response.data);
 
         updateFields.imagelink = response.data.data.url;
+        updateFields.localImagePath = `/uploads/${req.file.filename}`;
       } catch (err) {
         console.error("❌ ImgBB upload failed:", err.response?.data || err.message);
       }
@@ -1773,6 +1777,386 @@ router.get("/analytics/order-history", async (req, res) => {
 router.get("/products", async (req, res) => {
   const products = await Product.find(); // returns 18
   res.render("products", { products });  // ✅ pass to EJS
+});
+
+router.get("/analytics/sales-report-pdf", async (req, res) => {
+  try {
+    const { start_date, end_date, days } = req.query;
+
+    // Validate date range
+    let startDate, endDate;
+    let reportTitle = "Sales Report";
+
+    if (days && days !== "custom") {
+      const numDays = parseInt(days);
+      endDate = new Date();
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() - numDays);
+      reportTitle = `Sales Report - Last ${numDays} Days`;
+    } else if (start_date && end_date) {
+      startDate = new Date(start_date);
+      endDate = new Date(end_date);
+      reportTitle = `Sales Report - ${startDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} to ${endDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`;
+    } else {
+      // Default to last 30 days
+      endDate = new Date();
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() - 30);
+      reportTitle = "Sales Report - Last 30 Days";
+    }
+
+    // Get sales data from database
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    // Query orders within date range
+    const orders = await db.collection('Orders').aggregate([
+      {
+        $addFields: {
+          orderDate: {
+            $cond: {
+              if: { $eq: [{ $type: "$Date" }, "string"] },
+              then: { $dateFromString: { dateString: "$Date" } },
+              else: "$Date"
+            }
+          }
+        }
+      },
+      {
+        $match: {
+          orderDate: { $gte: startDate, $lte: endDate },
+          PaymentStatus: { $ne: "Cancelled" }
+        }
+      },
+      {
+        $project: {
+          OrderID: 1,
+          Customer: 1,
+          Date: 1,
+          Total: 1,
+          PaymentMode: 1,
+          PaymentStatus: 1,
+          Cart: 1,
+          orderDate: 1
+        }
+      },
+      { $sort: { orderDate: -1 } }
+    ]).toArray();
+
+    // Calculate summary statistics
+    const totalRevenue = orders.reduce((sum, order) => sum + order.Total, 0);
+    const totalOrders = orders.length;
+    const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
+    // Get payment method breakdown
+    const paymentBreakdown = orders.reduce((acc, order) => {
+      const method = order.PaymentMode || 'Unknown';
+      acc[method] = (acc[method] || 0) + order.Total;
+      return acc;
+    }, {});
+
+    // Get daily sales data
+    const dailySales = orders.reduce((acc, order) => {
+      const date = new Date(order.orderDate).toISOString().split('T')[0];
+      acc[date] = (acc[date] || 0) + order.Total;
+      return acc;
+    }, {});
+
+    const dailySalesData = Object.entries(dailySales)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, total]) => ({
+        date,
+        total,
+        count: orders.filter(order => new Date(order.orderDate).toISOString().split('T')[0] === date).length
+      }));
+
+    // Get top selling products
+    const productSales = orders.reduce((acc, order) => {
+      if (order.Cart) {
+        order.Cart.forEach(item => {
+          const productName = item.name || item.Name || 'Unknown Product';
+          acc[productName] = (acc[productName] || 0) + (item.quantity || item.Quantity || 0);
+        });
+      }
+      return acc;
+    }, {});
+
+    const topProducts = Object.entries(productSales)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 10)
+      .map(([name, quantity]) => ({ name, quantity }));
+
+    await client.close();
+
+    // Generate HTML for PDF
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>${reportTitle}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 30px;
+            background: white;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #8b5a2b;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #8b5a2b;
+            margin-bottom: 10px;
+        }
+        .report-title {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .report-date {
+            font-size: 12px;
+            color: #999;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .summary-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            background: #f9f9f9;
+        }
+        .summary-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #8b5a2b;
+            margin-bottom: 5px;
+        }
+        .summary-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            border-bottom: 2px solid #8b5a2b;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 11px;
+        }
+        th, td {
+            border: 1px solid #e0e0e0;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background: #f5f5f5;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 1px;
+        }
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .payment-method {
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 10px;
+            background: white;
+        }
+        .payment-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .payment-amount {
+            font-size: 18px;
+            color: #8b5a2b;
+        }
+        .page-break {
+            page-break-before: always;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">Blessings Cafe</div>
+        <div class="report-title">${reportTitle}</div>
+        <div class="report-date">Generated on ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+    </div>
+
+    <div class="summary-grid">
+        <div class="summary-card">
+            <div class="summary-value">${totalOrders.toLocaleString()}</div>
+            <div class="summary-label">Total Orders</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-value">₱${totalRevenue.toLocaleString()}</div>
+            <div class="summary-label">Total Revenue</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-value">₱${averageOrderValue.toFixed(2)}</div>
+            <div class="summary-label">Avg Order Value</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-value">${(totalRevenue / (Math.max(Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)), 1))).toFixed(2)}</div>
+            <div class="summary-label">Daily Revenue</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Payment Methods</div>
+        <div class="payment-methods">
+            ${Object.entries(paymentBreakdown).map(([method, amount]) => `
+                <div class="payment-method">
+                    <div class="payment-name">${method}</div>
+                    <div class="payment-amount">₱${amount.toLocaleString()}</div>
+                    <div style="font-size: 12px; color: #666;">${((amount / totalRevenue) * 100).toFixed(1)}% of total</div>
+                </div>
+            `).join('')}
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Top Selling Products</div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 70%">Product Name</th>
+                    <th style="width: 30%">Quantity Sold</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${topProducts.map(product => `
+                    <tr>
+                        <td>${product.name}</td>
+                        <td>${product.quantity}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section page-break">
+        <div class="section-title">Daily Sales Breakdown</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Orders</th>
+                    <th>Revenue</th>
+                    <th>Average Order Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${dailySalesData.map(day => `
+                    <tr>
+                        <td>${new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+                        <td>${day.count}</td>
+                        <td>₱${day.total.toLocaleString()}</td>
+                        <td>₱${day.count > 0 ? (day.total / day.count).toFixed(2) : '0.00'}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Recent Orders</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Date</th>
+                    <th>Total</th>
+                    <th>Payment Method</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${orders.slice(0, 50).map(order => `
+                    <tr>
+                        <td>${order.OrderID}</td>
+                        <td>${order.Customer || 'N/A'}</td>
+                        <td>${new Date(order.Date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+                        <td>₱${order.Total.toLocaleString()}</td>
+                        <td>${order.PaymentMode || 'N/A'}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+        ${orders.length > 50 ? '<p style="font-size: 12px; color: #666; font-style: italic;">Showing first 50 orders. Full list available in system.</p>' : ''}
+    </div>
+</body>
+</html>`;
+
+    const puppeteer = require('puppeteer');
+
+    // Launch browser
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+
+    const page = await browser.newPage();
+
+    // Set content and wait for it to load
+    await page.setContent(html, {
+      waitUntil: 'networkidle0',
+      timeout: 30000
+    });
+
+    // Generate PDF
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      margin: {
+        top: '20mm',
+        right: '15mm',
+        bottom: '20mm',
+        left: '15mm'
+      }
+    });
+
+    await browser.close();
+
+    // Set headers and send PDF
+    const filename = `${reportTitle.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+
+    res.send(pdfBuffer);
+
+  } catch (error) {
+    console.error('PDF generation error:', error);
+    res.status(500).json({ error: 'Failed to generate PDF report', details: error.message });
+  }
 });
 
 module.exports = router;

@@ -436,6 +436,107 @@ async function drawOrderSourcesChart() {
   }
 }
 
+// Report Modal Functions
+document.addEventListener('DOMContentLoaded', function() {
+  // Setup Generate Report Button
+  const generateReportBtn = document.getElementById('generateReportBtn');
+  if (generateReportBtn) {
+    generateReportBtn.addEventListener('click', openReportModal);
+  }
+
+  // Setup Report Form
+  const reportForm = document.getElementById('reportForm');
+  const reportDateRange = document.getElementById('reportDateRange');
+  const customDateRange = document.getElementById('customDateRange');
+
+  if (reportDateRange) {
+    reportDateRange.addEventListener('change', function() {
+      if (this.value === 'custom') {
+        customDateRange.style.display = 'block';
+      } else {
+        customDateRange.style.display = 'none';
+      }
+    });
+  }
+
+  if (reportForm) {
+    reportForm.addEventListener('submit', handleReportGeneration);
+  }
+});
+
+function openReportModal() {
+  const modal = document.getElementById('reportModal');
+  if (modal) {
+    modal.classList.remove('hidden');
+  }
+}
+
+function closeReportModal() {
+  const modal = document.getElementById('reportModal');
+  if (modal) {
+    modal.classList.add('hidden');
+  }
+}
+
+async function handleReportGeneration(event) {
+  event.preventDefault();
+
+  const formData = new FormData(event.target);
+  const dateRange = formData.get('dateRange');
+  const fromDate = formData.get('fromDate');
+  const toDate = formData.get('toDate');
+
+  // Validate inputs
+  if (dateRange === 'custom') {
+    if (!fromDate || !toDate) {
+      alert('Please select both from and to dates');
+      return;
+    }
+    if (new Date(fromDate) > new Date(toDate)) {
+      alert('From date must be earlier than to date');
+      return;
+    }
+  }
+
+  // Build URL with parameters
+  let url = '/admin/analytics/sales-report-pdf?';
+  if (dateRange === 'custom') {
+    url += `start_date=${fromDate}&end_date=${toDate}`;
+  } else {
+    url += `days=${dateRange}`;
+  }
+
+  // Close modal and show loading
+  closeReportModal();
+
+  const originalButtonText = event.target.querySelector('#generatePdfBtn').textContent;
+  event.target.querySelector('#generatePdfBtn').textContent = 'Generating...';
+  event.target.querySelector('#generatePdfBtn').disabled = true;
+
+  try {
+    // Create hidden link to trigger download
+    const link = document.createElement('a');
+    link.href = url;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Show success message
+    setTimeout(() => {
+      alert('Report downloaded successfully!');
+      event.target.querySelector('#generatePdfBtn').textContent = originalButtonText;
+      event.target.querySelector('#generatePdfBtn').disabled = false;
+    }, 2000);
+
+  } catch (error) {
+    console.error('Report generation error:', error);
+    alert('Failed to generate report. Please try again.');
+    event.target.querySelector('#generatePdfBtn').textContent = originalButtonText;
+    event.target.querySelector('#generatePdfBtn').disabled = false;
+  }
+}
+
 // Initialize charts and load data on page load
 document.addEventListener("DOMContentLoaded", function() {
   drawPopularProductsChart();
@@ -445,4 +546,12 @@ document.addEventListener("DOMContentLoaded", function() {
   setupOrderHistoryFilters();
   document.getElementById('filter7days').classList.add('active');
   loadOrderHistory(7);
+});
+
+// Close modal when clicking outside
+document.addEventListener('click', function(event) {
+  const modal = document.getElementById('reportModal');
+  if (modal && event.target === modal) {
+    closeReportModal();
+  }
 });

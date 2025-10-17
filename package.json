@@ -23,6 +23,7 @@
     "form-data": "^4.0.4",
     "mongodb": "^6.17.0",
     "multer": "^2.0.2",
+    "puppeteer": "^24.25.0",
     "serve-favicon": "^2.5.1"
   },
   "description": ""

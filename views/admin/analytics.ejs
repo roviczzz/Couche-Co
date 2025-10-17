@@ -9,14 +9,23 @@
 <body>
   <header class="header">
     <div class="container">
-      <div class="header-content">
-        <div class="brand-section">
-          <h1>Analytics</h1>
-          <div class="date-range">Last 30 days</div>
-        </div>
-      </div>
+  <div class="header-content">
+  <div class="header-left">
+    <h1>Analytics</h1>
+    <div class="date-range">Last 30 days</div>
+  </div>
+</div>
+
     </div>
   </header>
+
+  <!-- Floating Generate Reports Button -->
+  <button id="generateReportBtn" class="fab-btn" onclick="openReportModal()" title="Generate Reports">
+    <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+      <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/>
+      <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"/>
+    </svg>
+  </button>
 
   <main class="main-content">
     <div class="container">
@@ -161,6 +170,51 @@
       </div>
     </div>
   </main>
+
+  <!-- Report Generation Modal -->
+  <div id="reportModal" class="custom-confirm hidden">
+    <div class="report-modal-box">
+      <div class="form-header">
+        <div class="form-title">Generate Sales Report</div>
+        <span class="modal-close" onclick="closeReportModal()">&times;</span>
+      </div>
+
+      <form id="reportForm">
+        <div class="form-group">
+          <label class="form-label">Select Date Range</label>
+          <select class="form-input" id="reportDateRange" name="dateRange" required>
+            <option value="">-- Select Date Range --</option>
+            <option value="7">Last 7 Days</option>
+            <option value="30">Last 30 Days</option>
+            <option value="60">Last 60 Days</option>
+            <option value="custom">Custom Date Range</option>
+          </select>
+        </div>
+
+        <div id="customDateRange" class="custom-date-section" style="display: none;">
+          <div class="form-group">
+            <label class="form-label">From Date</label>
+            <input class="form-input" type="date" id="fromDate" name="fromDate">
+          </div>
+          <div class="form-group">
+            <label class="form-label">To Date</label>
+            <input class="form-input" type="date" id="toDate" name="toDate">
+          </div>
+        </div>
+
+        <div class="button-group">
+          <button type="submit" class="submit-button add" id="generatePdfBtn">
+            Generate PDF Report
+          </button>
+          <button type="button" class="submit-button cancel" onclick="closeReportModal()">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
 
   <!-- External Analytics JavaScript -->
   <script src="/js/analytics.js?v=1"></script>
