@@ -5,6 +5,8 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("openAddModal").addEventListener("click", () => addModal.classList.remove("hidden"));
   document.getElementById("cancelAdd").addEventListener("click", () => addModal.classList.add("hidden"));
 
+
+
   // ---------- IMAGE DROPBOX SETUP ----------
   function setupImageDropbox(dropboxId, inputId, previewId) {
     const dropbox = document.getElementById(dropboxId);
@@ -203,6 +205,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Cancel edit modal
   document.getElementById("cancelEdit").addEventListener("click", () => editModal.classList.add("hidden"));
+
+
 
   // ---------- EDIT MODAL: ENABLE/DISABLE LIKE OUTSIDE TOGGLE ----------
   editEnabledCheckbox.addEventListener("change", async () => {

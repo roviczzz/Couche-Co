@@ -922,12 +922,12 @@ async function getPopularProducts() {
   try {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
-    // Aggregate product sales from Orders
+    // Aggregate product sales from Orders using Cart array
     const results = await db.collection('Orders').aggregate([
-      { $unwind: "$Items" },
+      { $unwind: "$Cart" },
       { $group: {
-        _id: "$Items.name",
-        totalQuantity: { $sum: "$Items.quantity" }
+        _id: "$Cart.ProductName",
+        totalQuantity: { $sum: "$Cart.Quantity" }
       }},
       { $sort: { totalQuantity: -1 } }
     ]).toArray();

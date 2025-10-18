@@ -1781,70 +1781,79 @@ router.get("/products", async (req, res) => {
 
 router.get("/analytics/sales-report-pdf", async (req, res) => {
   try {
+    // Get user fullname for PDF header (same as analytics page route)
+    const userData = req.session.user;
+
     const { start_date, end_date, days } = req.query;
 
     // Validate date range
     let startDate, endDate;
     let reportTitle = "Sales Report";
 
-    if (days && days !== "custom") {
-      const numDays = parseInt(days);
-      endDate = new Date();
-      startDate = new Date();
-      startDate.setDate(startDate.getDate() - numDays);
-      reportTitle = `Sales Report - Last ${numDays} Days`;
-    } else if (start_date && end_date) {
-      startDate = new Date(start_date);
-      endDate = new Date(end_date);
-      reportTitle = `Sales Report - ${startDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} to ${endDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`;
-    } else {
-      // Default to last 30 days
-      endDate = new Date();
-      startDate = new Date();
-      startDate.setDate(startDate.getDate() - 30);
-      reportTitle = "Sales Report - Last 30 Days";
+    try {
+      if (days && days !== "custom") {
+        const numDays = parseInt(days);
+        if (!isNaN(numDays) && numDays > 0) {
+          endDate = new Date();
+          startDate = new Date();
+          startDate.setDate(startDate.getDate() - numDays);
+          reportTitle = `Sales Report - Last ${numDays} Days`;
+        } else {
+          throw new Error('Invalid days parameter');
+        }
+      } else if (start_date && end_date) {
+        startDate = new Date(start_date);
+        endDate = new Date(end_date);
+
+        // Validate dates
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+          throw new Error('Invalid date format');
+        }
+
+        if (startDate > endDate) {
+          throw new Error('Start date cannot be after end date');
+        }
+
+        reportTitle = `Sales Report - ${startDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} to ${endDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`;
+      } else {
+        // Default to last 30 days
+        endDate = new Date();
+        startDate = new Date();
+        startDate.setDate(startDate.getDate() - 30);
+        reportTitle = "Sales Report - Last 30 Days";
+      }
+
+      // Ensure dates are valid
+      if (!startDate || !endDate || isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        throw new Error('Invalid date range');
+      }
+
+    } catch (error) {
+      console.error('Date validation error:', error);
+      return res.status(400).json({ error: 'Invalid date parameters', details: error.message });
     }
 
-    // Get sales data from database
+    // Get sales data from database (simplified like the working order-history route)
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
 
-    // Query orders within date range
-    const orders = await db.collection('Orders').aggregate([
-      {
-        $addFields: {
-          orderDate: {
-            $cond: {
-              if: { $eq: [{ $type: "$Date" }, "string"] },
-              then: { $dateFromString: { dateString: "$Date" } },
-              else: "$Date"
-            }
-          }
-        }
-      },
-      {
-        $match: {
-          orderDate: { $gte: startDate, $lte: endDate },
-          PaymentStatus: { $ne: "Cancelled" }
-        }
-      },
-      {
-        $project: {
-          OrderID: 1,
-          Customer: 1,
-          Date: 1,
-          Total: 1,
-          PaymentMode: 1,
-          PaymentStatus: 1,
-          Cart: 1,
-          orderDate: 1
-        }
-      },
-      { $sort: { orderDate: -1 } }
-    ]).toArray();
+    // Create date strings for comparison (same format as order-history route)
+    const cutoffStart = startDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+    const cutoffEnd = endDate.toISOString().split('T')[0];
 
-    // Calculate summary statistics
-    const totalRevenue = orders.reduce((sum, order) => sum + order.Total, 0);
+    // Query orders within date range (like the working order-history route)
+    const orders = await db.collection('Orders').find({
+      Date: { $gte: cutoffStart, $lte: cutoffEnd },
+      PaymentStatus: { $ne: "Cancelled" }
+    })
+    .sort({ Date: -1 })
+    .toArray();
+
+    // Calculate summary statistics with proper null handling
+    const totalRevenue = orders.reduce((sum, order) => {
+      const orderTotal = typeof order.Total === 'number' && !isNaN(order.Total) ? order.Total : 0;
+      return sum + orderTotal;
+    }, 0);
     const totalOrders = orders.length;
     const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
@@ -1855,10 +1864,20 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
       return acc;
     }, {});
 
-    // Get daily sales data
+    // Get daily sales data (using raw Date field like working order-history)
     const dailySales = orders.reduce((acc, order) => {
-      const date = new Date(order.orderDate).toISOString().split('T')[0];
-      acc[date] = (acc[date] || 0) + order.Total;
+      if (order.Date) {
+        const date = order.Date; // Date is stored as string YYYY-MM-DD
+        acc[date] = (acc[date] || 0) + (typeof order.Total === 'number' ? order.Total : 0);
+      }
+      return acc;
+    }, {});
+
+    // Count orders per date accurately
+    const ordersPerDate = orders.reduce((acc, order) => {
+      if (order.Date) {
+        acc[order.Date] = (acc[order.Date] || 0) + 1;
+      }
       return acc;
     }, {});
 
@@ -1867,24 +1886,36 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
       .map(([date, total]) => ({
         date,
         total,
-        count: orders.filter(order => new Date(order.orderDate).toISOString().split('T')[0] === date).length
+        count: ordersPerDate[date] || 0
       }));
 
-    // Get top selling products
-    const productSales = orders.reduce((acc, order) => {
-      if (order.Cart) {
-        order.Cart.forEach(item => {
-          const productName = item.name || item.Name || 'Unknown Product';
-          acc[productName] = (acc[productName] || 0) + (item.quantity || item.Quantity || 0);
-        });
-      }
+    // Get top selling products (by revenue, like the "Top Product" insight) with actual quantities
+    const productStats = orders.reduce((acc, order) => {
+      // Use Cart array with correct field names
+      const cartItems = order.Cart || [];
+      cartItems.forEach(item => {
+        const productName = item.ProductName || 'Unknown Product';
+        const price = item.BasePrice || 0;
+        const quantity = item.Quantity || 1;
+        const itemSubtotal = price * quantity;
+
+        if (!acc[productName]) {
+          acc[productName] = { revenue: 0, quantity: 0 };
+        }
+        acc[productName].revenue += itemSubtotal;
+        acc[productName].quantity += quantity;
+      });
       return acc;
     }, {});
 
-    const topProducts = Object.entries(productSales)
-      .sort(([,a], [,b]) => b - a)
+    const topProducts = Object.entries(productStats)
+      .sort(([,a], [,b]) => b.revenue - a.revenue)
       .slice(0, 10)
-      .map(([name, quantity]) => ({ name, quantity }));
+      .map(([name, stats]) => ({
+        name,
+        revenue: Math.round(stats.revenue),
+        quantity: stats.quantity
+      }));
 
     await client.close();
 
@@ -1920,9 +1951,21 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
             color: #666;
             margin-bottom: 5px;
         }
+        .report-meta {
+            text-align: center;
+            margin-top: 10px;
+        }
         .report-date {
             font-size: 12px;
             color: #999;
+            margin-bottom: 2px;
+            display: block;
+        }
+        .report-user {
+            font-size: 12px;
+            color: #666;
+            font-weight: 500;
+            display: block;
         }
         .summary-grid {
             display: grid;
@@ -2007,7 +2050,10 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
     <div class="header">
         <div class="logo">Blessings Cafe</div>
         <div class="report-title">${reportTitle}</div>
-        <div class="report-date">Generated on ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+        <div class="report-meta">
+            <div class="report-date">Generated on ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+            <div class="report-user">Generated by: ${userData.fullname || userData.displayName || 'Unknown User'}</div>
+        </div>
     </div>
 
     <div class="summary-grid">
@@ -2019,12 +2065,15 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
             <div class="summary-value">₱${totalRevenue.toLocaleString()}</div>
             <div class="summary-label">Total Revenue</div>
         </div>
-        <div class="summary-card">
-            <div class="summary-value">₱${averageOrderValue.toFixed(2)}</div>
+    <div class="summary-card">
+            <div class="summary-value">₱${(!isNaN(averageOrderValue) ? averageOrderValue.toFixed(2) : '0.00')}</div>
             <div class="summary-label">Avg Order Value</div>
         </div>
         <div class="summary-card">
-            <div class="summary-value">${(totalRevenue / (Math.max(Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)), 1))).toFixed(2)}</div>
+            <div class="summary-value">₱${(() => {
+                const daysDiff = Math.max(Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)), 1);
+                return (totalRevenue / daysDiff).toFixed(2);
+            })()}</div>
             <div class="summary-label">Daily Revenue</div>
         </div>
     </div>
@@ -2043,18 +2092,20 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
     </div>
 
     <div class="section">
-        <div class="section-title">Top Selling Products</div>
+        <div class="section-title">Top Selling Products (by Revenue)</div>
         <table>
             <thead>
                 <tr>
-                    <th style="width: 70%">Product Name</th>
-                    <th style="width: 30%">Quantity Sold</th>
+                    <th style="width: 55%">Product Name</th>
+                    <th style="width: 22%">Total Revenue</th>
+                    <th style="width: 23%">Units Sold</th>
                 </tr>
             </thead>
             <tbody>
                 ${topProducts.map(product => `
                     <tr>
                         <td>${product.name}</td>
+                        <td>₱${product.revenue.toLocaleString()}</td>
                         <td>${product.quantity}</td>
                     </tr>
                 `).join('')}
@@ -2076,10 +2127,10 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
             <tbody>
                 ${dailySalesData.map(day => `
                     <tr>
-                        <td>${new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+                        <td>${day.date ? new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}</td>
                         <td>${day.count}</td>
-                        <td>₱${day.total.toLocaleString()}</td>
-                        <td>₱${day.count > 0 ? (day.total / day.count).toFixed(2) : '0.00'}</td>
+                        <td>₱${(day.total || 0).toLocaleString()}</td>
+                        <td>₱${day.count > 0 ? ((day.total || 0) / day.count).toFixed(2) : '0.00'}</td>
                     </tr>
                 `).join('')}
             </tbody>
@@ -2087,30 +2138,61 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
     </div>
 
     <div class="section">
-        <div class="section-title">Recent Orders</div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Order ID</th>
-                    <th>Customer</th>
-                    <th>Date</th>
-                    <th>Total</th>
-                    <th>Payment Method</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${orders.slice(0, 50).map(order => `
-                    <tr>
-                        <td>${order.OrderID}</td>
-                        <td>${order.Customer || 'N/A'}</td>
-                        <td>${new Date(order.Date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
-                        <td>₱${order.Total.toLocaleString()}</td>
-                        <td>${order.PaymentMode || 'N/A'}</td>
-                    </tr>
-                `).join('')}
-            </tbody>
-        </table>
-        ${orders.length > 50 ? '<p style="font-size: 12px; color: #666; font-style: italic;">Showing first 50 orders. Full list available in system.</p>' : ''}
+        <div class="section-title">Detailed Order History</div>
+        ${orders.map(order => {
+            const orderDate = order.Date || order.orderDate;
+            const formatDate = orderDate ? new Date(orderDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A';
+            const totalValue = typeof order.Total === 'number' ? order.Total : 0;
+            return `
+            <div style="border: 1px solid #e0e0e0; border-radius: 6px; margin-bottom: 15px; padding: 15px; background: #fafafa;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h4 style="margin: 0; color: #8b5a2b; font-size: 14px;">Order #${order.OrderID}</h4>
+                    <div style="text-align: right;">
+                        <div style="font-weight: bold; color: #8b5a2b; font-size: 16px;">₱${totalValue.toLocaleString()}</div>
+                        <div style="font-size: 12px; color: #666;">${formatDate} • ${order.PaymentMode || 'N/A'}</div>
+                    </div>
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <strong style="font-size: 12px; color: #666;">Customer:</strong> ${order.Customer || 'N/A'}
+                </div>
+                <div style="border-top: 1px solid #e0e0e0; padding-top: 10px;">
+                    <div style="font-weight: bold; font-size: 12px; margin-bottom: 8px; color: #333;">Order Items:</div>
+                    ${(() => {
+                        // Use Cart array with correct field names: ProductName, Quantity, BasePrice
+                        const cartItems = order.Cart || [];
+                        if (cartItems && Array.isArray(cartItems) && cartItems.length > 0) {
+                            return cartItems.map(item => {
+                                const productName = item.ProductName || 'Unknown Item';
+                                const quantity = item.Quantity || 1;
+                                const price = item.BasePrice || 0;
+                                const subtotal = price * quantity;
+                                return `
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; font-size: 11px;">
+                                        <span style="flex: 1; font-weight: 500;">${productName}</span>
+                                        <span style="margin: 0 10px; color: #666;">Qty: ${quantity}</span>
+                                        <span style="font-weight: bold; color: #8b5a2b;">₱${subtotal.toLocaleString()}</span>
+                                    </div>
+                                `;
+                            }).join('');
+                        }
+                        return `<div style="font-size: 11px; color: #666; font-style: italic;">No item details available</div>`;
+                    })()}
+                </div>
+            </div>
+            `;
+        }).join('')}
+    </div>
+
+    <div class="section" style="border-top: 3px solid #8b5a2b; margin-top: 40px; padding-top: 20px;">
+        <div style="background: #8b5a2b; color: white; padding: 20px; border-radius: 8px; text-align: center;">
+            <h3 style="margin: 0 0 10px 0; font-size: 18px;">Total Sales Summary</h3>
+            <div style="font-size: 32px; font-weight: bold; margin-bottom: 15px;">₱${totalRevenue.toLocaleString()}</div>
+            <div style="font-size: 14px; opacity: 0.9;">
+                Based on ${totalOrders.toLocaleString()} orders processed between<br>
+                ${startDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} and
+                ${endDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            </div>
+        </div>
     </div>
 </body>
 </html>`;

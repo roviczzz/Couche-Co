@@ -241,6 +241,31 @@ body {
   padding: 20px 30px;
   box-sizing: border-box;
 }
+
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.form-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #2c1810;
+  margin: 0;
+}
+
+.modal-close {
+  font-size: 28px;
+  cursor: pointer;
+  color: #666;
+  line-height: 1;
+}
+
+.modal-close:hover {
+  color: #000;
+}
 @keyframes scaleIn {
   from { transform: scale(0.9); opacity: 0; }
   to   { transform: scale(1); opacity: 1; }

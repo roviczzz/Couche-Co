@@ -44,7 +44,10 @@
 <!-- Add Product Modal -->
 <div id="addProductModal" class="custom-confirm hidden">
   <div class="confirm-box add-form-box">
-    <h2>Add Product</h2>
+    <div class="form-header">
+      <div class="form-title">Add Product</div>
+      <span class="modal-close" onclick="document.getElementById('addProductModal').classList.add('hidden')">&times;</span>
+    </div>
     <form id="addProductForm" action="/admin/products/add" method="POST" enctype="multipart/form-data">
       <div class="form-grid">
         <div class="form-group">
@@ -134,7 +137,10 @@
 <!-- Edit Product Modal -->
 <div id="editProductModal" class="custom-confirm hidden">
   <div class="confirm-box add-form-box">
-    <h2>Edit Product</h2>
+    <div class="form-header">
+      <div class="form-title">Edit Product</div>
+      <span class="modal-close" onclick="document.getElementById('editProductModal').classList.add('hidden')">&times;</span>
+    </div>
     <form id="editProductForm" method="POST" enctype="multipart/form-data">
       <div class="form-grid">
         <div class="form-group">

@@ -751,6 +751,13 @@ tr:hover td {
   margin: 0;
 }
 
+.form-subtitle {
+  font-size: 14px;
+  color: #666;
+  margin-top: 5px;
+  font-weight: 400;
+}
+
 .modal-close {
   font-size: 28px;
   cursor: pointer;
