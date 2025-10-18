@@ -2,7 +2,148 @@
 var orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
 
 // Get product data from EJS
-var product = JSON.parse(document.getElementById('product-data').textContent);
+try {
+    var product = JSON.parse(document.getElementById('product-data').textContent);
+} catch (error) {
+    console.error('Error parsing product data:', error);
+    var product = {};
+}
+
+// Array to store selected add-ons
+var selectedAddons = [];
+
+// Array to store selected ingredients
+var selectedIngredients = [];
+
+// Update ingredients badge - show when ANY ingredient checkboxes are checked
+function updateIngredientsBadge() {
+    const badge = document.getElementById('ingredients-badge');
+
+    if (!badge) {
+        console.error('❌ Badge element not found!');
+        return;
+    }
+
+    // Count any checked ingredient checkboxes, not just the selectedIngredients array
+    const checkedCheckboxes = document.querySelectorAll('.ingredient-checkbox:checked');
+    const count = checkedCheckboxes.length;
+
+    // Check if modal is currently open
+    const modal = document.getElementById('more-options-modal');
+    const isModalOpen = modal && modal.style.display === 'block';
+
+    // Show badge only if ingredients are checked AND modal is NOT open
+    if (count > 0 && !isModalOpen) {
+        badge.textContent = count;
+        badge.style.display = 'flex';
+        badge.classList.remove('hidden');
+        badge.style.visibility = 'visible';
+        badge.style.opacity = '1';
+        badge.style.zIndex = '9999';
+        badge.style.position = 'absolute';
+
+        // Trigger animation
+        badge.style.animation = 'none';
+        setTimeout(() => {
+            badge.style.animation = 'badgePulse 0.6s ease-out';
+        }, 10);
+    } else {
+        // Hide badge when no ingredients checked OR modal is open
+        badge.textContent = '';
+        badge.style.display = 'none';
+        badge.classList.add('hidden');
+        badge.style.visibility = 'hidden';
+        badge.style.opacity = '0';
+        badge.style.zIndex = '0';
+    }
+}
+
+// Initialize badge state
+function initializeBadge() {
+    const badge = document.getElementById('ingredients-badge');
+
+    if (!badge) {
+        console.error('Badge element not found during initialization!');
+        return;
+    }
+
+    // Ensure badge starts completely hidden and empty
+    badge.textContent = '';
+    badge.style.display = 'none';
+    badge.classList.add('hidden');
+    badge.style.visibility = 'hidden';
+    badge.style.opacity = '0';
+    badge.style.zIndex = '0';
+
+    // Clear any selected ingredients on page load
+    selectedIngredients.length = 0;
+}
+
+// Initialize ingredient checkboxes event listeners using event delegation
+function initializeIngredientListeners() {
+    // Use event delegation on the ingredients container (modal)
+    const modalIngredientsContainer = document.querySelector('.ingredients-options');
+
+    if (modalIngredientsContainer) {
+        // Remove any existing listeners to prevent duplicates
+        modalIngredientsContainer.removeEventListener('change', handleIngredientChange);
+        // Add event delegation listener for modal
+        modalIngredientsContainer.addEventListener('change', handleIngredientChange);
+    }
+
+    // Also set up listeners for any existing checkboxes outside modal
+    const allIngredientCheckboxes = document.querySelectorAll('.ingredient-checkbox');
+
+    allIngredientCheckboxes.forEach((checkbox) => {
+        // Remove existing listeners to prevent duplicates
+        checkbox.removeEventListener('change', handleIngredientCheckboxChange);
+        // Add direct listener
+        checkbox.addEventListener('change', handleIngredientCheckboxChange);
+    });
+}
+
+// Handle ingredient checkbox changes
+function handleIngredientChange(event) {
+    const checkbox = event.target;
+
+    // Only handle ingredient checkboxes
+    if (!checkbox.classList.contains('ingredient-checkbox')) {
+        return;
+    }
+
+    const ingredientId = checkbox.dataset.ingredientId;
+    const ingredientName = checkbox.dataset.ingredientName;
+    const ingredientPrice = parseFloat(checkbox.dataset.ingredientPrice) || 10;
+
+    if (checkbox.checked) {
+        // Add to selectedIngredients array
+        selectedIngredients.push({
+            IngredientID: ingredientId,
+            Name: ingredientName,
+            BasePrice: ingredientPrice
+        });
+        // Also add to selectedAddons for cart functionality
+        selectedAddons.push({
+            IngredientID: ingredientId,
+            Name: ingredientName,
+            BasePrice: ingredientPrice
+        });
+    } else {
+        // Remove from selectedIngredients array
+        const ingredientIndex = selectedIngredients.findIndex(a => a.IngredientID == ingredientId);
+        if (ingredientIndex > -1) {
+            selectedIngredients.splice(ingredientIndex, 1);
+        }
+        // Remove from selectedAddons array
+        const addonIndex = selectedAddons.findIndex(a => a.IngredientID == ingredientId);
+        if (addonIndex > -1) {
+            selectedAddons.splice(addonIndex, 1);
+        }
+    }
+
+    // Update the badge
+    updateIngredientsBadge();
+}
 
 // Save order to localStorage and update cart count
 function saveOrderItems() {
@@ -35,31 +176,132 @@ function addToOrder(name, price, size, category, productId, addons, imagelink, i
     alert(`${quantity} x ${name}${size ? ' (' + size + ')' : ''} added to cart!`);
 }
 
+// Fetch and display add-ons - try server-side data first, then API as fallback
+function loadAddons() {
+    // Try server-side data first
+    const addonsDataScript = document.getElementById('addons-data');
+    let addons = [];
+
+    if (addonsDataScript) {
+        try {
+            addons = JSON.parse(addonsDataScript.textContent);
+        } catch (e) {
+            console.error('Error parsing server-side addons data:', e);
+        }
+    }
+
+    // If no server-side data, try API as fallback
+    if (addons.length === 0) {
+        loadAddonsFromAPI();
+        return;
+    }
+
+    // Use server-side data
+    displayAddons(addons);
+}
+
+// Load add-ons from API (fallback)
+async function loadAddonsFromAPI() {
+    try {
+        const response = await fetch('/api/addons');
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const addons = await response.json();
+        displayAddons(addons);
+    } catch (error) {
+        console.error('Error loading add-ons:', error);
+        const addonOptionsContainer = document.querySelector('.addon-options');
+        if (addonOptionsContainer) {
+            addonOptionsContainer.innerHTML = '<span style="font-size:12px;color:#ff6b6b">Error loading add-ons.</span>';
+        }
+    }
+}
+
+// Display add-ons in the UI
+function displayAddons(addons) {
+    const addonOptionsContainer = document.querySelector('.addon-options');
+    if (!addonOptionsContainer) {
+        console.error('addon-options container not found');
+        return;
+    }
+
+    addonOptionsContainer.innerHTML = '';
+
+    if (addons && Array.isArray(addons) && addons.length > 0) {
+        addons.forEach(addon => {
+            const addonLabel = document.createElement('label');
+            addonLabel.className = 'addon-checkbox-label';
+
+            const addonText = document.createElement('span');
+            addonText.className = 'addon-text';
+            addonText.textContent = `${addon.Name} - ₱${Number(addon.BasePrice).toFixed(2)}`;
+
+            const addonCheckbox = document.createElement('input');
+            addonCheckbox.type = 'checkbox';
+            addonCheckbox.className = 'addon-checkbox';
+            addonCheckbox.dataset.addonId = addon.AddOnID;
+            addonCheckbox.dataset.addonName = addon.Name;
+            addonCheckbox.dataset.addonPrice = addon.BasePrice;
+
+            addonLabel.addEventListener('change', function() {
+                if (addonCheckbox.checked) {
+                    selectedAddons.push({
+                        AddOnID: addon.AddOnID,
+                        Name: addon.Name,
+                        BasePrice: addon.BasePrice
+                    });
+                } else {
+                    const index = selectedAddons.findIndex(a => a.AddOnID === addon.AddOnID);
+                    if (index > -1) {
+                        selectedAddons.splice(index, 1);
+                    }
+                }
+            });
+
+            addonLabel.appendChild(addonText);
+            addonLabel.appendChild(addonCheckbox);
+            addonOptionsContainer.appendChild(addonLabel);
+        });
+    } else {
+        addonOptionsContainer.innerHTML = '<span style="font-size:12px;color:#999">No add-ons available.</span>';
+    }
+}
+
 // Initialize function
 function initializePage() {
-    console.log('Initializing page...'); // Debug
+    // Load add-ons
+    loadAddons();
+
+    // Load ingredients
+    loadIngredients();
+
+    // Initialize ingredient listeners for existing checkboxes
+    initializeIngredientListeners();
+
+    // Setup modal functionality
+    setupModal();
+
+    // Initialize badge state - ensure it's hidden on load
+    initializeBadge();
 
     // Ensure all size options are unselected on load
-    document.querySelectorAll('input[name="size-checkbox"]').forEach(cb => {
-        cb.checked = false;
+    document.querySelectorAll('input[name="size-radio"]').forEach(rb => {
+        rb.checked = false;
     });
 
-    // Add event listeners to checkboxes for radio button behavior
-    const allCheckboxes = document.querySelectorAll('input[name="size-checkbox"]');
-    allCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            if (this.checked) {
-                // This checkbox was checked: uncheck all others
-                allCheckboxes.forEach(other => {
-                    if (other !== this) {
-                        other.checked = false;
-                    }
-                });
-            } else {
-                // This checkbox was unchecked: prevent unselection by checking it again
-                // This mimics radio button behavior where selection is mandatory
-                this.checked = true;
-            }
+    // Add event listeners to radio buttons to allow deselection
+    const allRadios = document.querySelectorAll('input[name="size-radio"]');
+    allRadios.forEach(radio => {
+        radio.addEventListener('click', function() {
+            const wasChecked = this.checked;
+            setTimeout(() => {
+                if (wasChecked && this.checked) {
+                    this.checked = false;
+                }
+            }, 0);
         });
     });
 
@@ -68,16 +310,229 @@ function initializePage() {
     if (addToCartBtn) {
         addToCartBtn.addEventListener('click', function() {
             const quantity = document.getElementById('quantity').value;
-            const selectedCheckbox = document.querySelector('input[name="size-checkbox"]:checked');
-            let size = selectedCheckbox ? selectedCheckbox.value : null;
-            let price = selectedCheckbox ? parseFloat(selectedCheckbox.closest('.size-option-btn').dataset.price) : parseFloat(product.BasePrice || 0);
+            const selectedRadio = document.querySelector('input[name="size-radio"]:checked');
+            let size = selectedRadio ? selectedRadio.value : null;
+            let price = selectedRadio ? parseFloat(selectedRadio.closest('.size-option-btn').dataset.price) : parseFloat(product.BasePrice || 0);
 
-            addToOrder(product.Name, price, size, product.Category, product.ProductID, [], product.imagelink, false, null, quantity);
+            addToOrder(product.Name, price, size, product.Category, product.ProductID, selectedAddons.slice(), product.imagelink, false, null, quantity);
         });
     }
 }
 
-console.log('EJS template script loading...'); // Keep this line that works
+// Setup modal functionality with enhanced UX
+function setupModal() {
+    const modal = document.getElementById('more-options-modal');
+    const btn = document.getElementById('more-options-btn');
+    const span = document.getElementsByClassName('close')[0];
 
-// Just run initialization immediately since DOM is already loaded
-initializePage();
+    if (!modal || !btn) {
+        return;
+    }
+
+    // Variable to store the element that had focus before modal opened
+    let previousFocusElement = null;
+
+    // Function to open modal with enhanced UX
+    function openModal() {
+        previousFocusElement = document.activeElement;
+
+        // Prevent body scroll
+        document.body.style.overflow = 'hidden';
+
+        // Show modal
+        modal.style.display = 'block';
+
+        // Hide badge completely when modal opens
+        const badge = document.getElementById('ingredients-badge');
+        if (badge) {
+            badge.style.display = 'none';
+            badge.classList.add('hidden');
+        }
+
+        // Reinitialize ingredient listeners when modal opens
+        setTimeout(() => {
+            setupIngredientEventListeners();
+        }, 150);
+
+        // Focus management: focus the close button after modal animation
+        setTimeout(() => {
+            if (span) {
+                span.focus();
+            }
+        }, 100);
+    }
+
+    // Function to close modal with enhanced UX
+    function closeModal() {
+        // Hide modal
+        modal.style.display = 'none';
+
+        // Restore body scroll
+        document.body.style.overflow = '';
+
+        // Return focus to the button that opened the modal
+        if (previousFocusElement) {
+            previousFocusElement.focus();
+        }
+
+        // Don't clear ingredients on modal close - badge should stay if checkboxes are checked
+
+        // Restore badge z-index when modal closes
+        const badge = document.getElementById('ingredients-badge');
+        if (badge) {
+            badge.style.zIndex = '9999';
+        }
+
+        // Update badge one more time when closing to ensure consistency
+        updateIngredientsBadge();
+    }
+
+    // Show modal when button is clicked
+    btn.addEventListener('click', function(event) {
+        event.preventDefault();
+        openModal();
+    });
+
+    // Close modal when close button is clicked
+    if (span) {
+        span.addEventListener('click', function(event) {
+            event.preventDefault();
+            closeModal();
+        });
+    }
+
+    // Close modal when clicking outside
+    window.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
+
+    // Close modal on ESC key press
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' && modal.style.display === 'block') {
+            closeModal();
+        }
+    });
+}
+
+// Load ingredients for modal
+function loadIngredients() {
+    const ingredientsDataScript = document.getElementById('ingredients-data');
+    let ingredients = [];
+
+    if (ingredientsDataScript) {
+        try {
+            ingredients = JSON.parse(ingredientsDataScript.textContent);
+        } catch (e) {
+            console.error('Error parsing server-side ingredients data:', e);
+        }
+    }
+
+    // Display ingredients in modal
+    displayIngredients(ingredients);
+}
+
+// Display ingredients in modal
+function displayIngredients(ingredients) {
+    const ingredientsOptionsContainer = document.querySelector('.ingredients-options');
+    if (!ingredientsOptionsContainer) {
+        console.error('ingredients-options container not found');
+        return;
+    }
+
+    // Check if ingredients already exist from EJS template
+    const existingIngredients = ingredientsOptionsContainer.querySelectorAll('.ingredient-checkbox-label');
+    if (existingIngredients.length > 0) {
+        // Set up event listeners for existing ingredients
+        setupIngredientEventListeners();
+        return;
+    }
+
+    ingredientsOptionsContainer.innerHTML = '';
+
+    if (ingredients && Array.isArray(ingredients) && ingredients.length > 0) {
+        ingredients.forEach(ingredient => {
+            const ingredientLabel = document.createElement('label');
+            ingredientLabel.className = 'ingredient-checkbox-label';
+
+            const ingredientText = document.createElement('span');
+            ingredientText.className = 'ingredient-text';
+            ingredientText.textContent = `${ingredient.Name} ₱10.00`;
+
+            const ingredientCheckbox = document.createElement('input');
+            ingredientCheckbox.type = 'checkbox';
+            ingredientCheckbox.className = 'ingredient-checkbox';
+            ingredientCheckbox.dataset.ingredientId = ingredient.IngredientID;
+            ingredientCheckbox.dataset.ingredientName = ingredient.Name;
+            ingredientCheckbox.dataset.ingredientPrice = 10;
+
+            ingredientLabel.appendChild(ingredientText);
+            ingredientLabel.appendChild(ingredientCheckbox);
+            ingredientsOptionsContainer.appendChild(ingredientLabel);
+        });
+
+        // Set up event listeners after creating elements
+        setupIngredientEventListeners();
+    } else {
+        ingredientsOptionsContainer.innerHTML = '<span style="font-size:12px;color:#999">No ingredients available.</span>';
+    }
+}
+
+// Setup ingredient event listeners
+function setupIngredientEventListeners() {
+    const ingredientCheckboxes = document.querySelectorAll('.ingredient-checkbox');
+
+    ingredientCheckboxes.forEach((checkbox) => {
+        // Remove existing listeners to prevent duplicates
+        checkbox.removeEventListener('change', handleIngredientCheckboxChange);
+
+        // Add new listener
+        checkbox.addEventListener('change', handleIngredientCheckboxChange);
+    });
+}
+
+// Handle ingredient checkbox changes
+function handleIngredientCheckboxChange(event) {
+    const checkbox = event.target;
+    const ingredientId = checkbox.dataset.ingredientId;
+    const ingredientName = checkbox.dataset.ingredientName;
+    const ingredientPrice = parseFloat(checkbox.dataset.ingredientPrice) || 10;
+
+    if (checkbox.checked) {
+        // Add to selectedIngredients array
+        selectedIngredients.push({
+            IngredientID: ingredientId,
+            Name: ingredientName,
+            BasePrice: ingredientPrice
+        });
+        // Also add to selectedAddons for cart functionality
+        selectedAddons.push({
+            IngredientID: ingredientId,
+            Name: ingredientName,
+            BasePrice: ingredientPrice
+        });
+    } else {
+        // Remove from selectedIngredients array
+        const ingredientIndex = selectedIngredients.findIndex(a => a.IngredientID == ingredientId);
+        if (ingredientIndex > -1) {
+            selectedIngredients.splice(ingredientIndex, 1);
+        }
+        // Remove from selectedAddons array
+        const addonIndex = selectedAddons.findIndex(a => a.IngredientID == ingredientId);
+        if (addonIndex > -1) {
+            selectedAddons.splice(addonIndex, 1);
+        }
+    }
+
+    // Update the badge immediately - this should work with the new logic
+    updateIngredientsBadge();
+}
+
+// Ensure DOM is fully loaded before initializing
+document.addEventListener('DOMContentLoaded', function() {
+    initializePage();
+});
+
+// Re-export setupModal for potential external access (if needed)
+window.setupProductModal = setupModal;

@@ -1,7 +1,9 @@
 <link rel="stylesheet" href="/css/product.css">
 <link rel="stylesheet" href="/css/site-public.css">
 
-<script id="product-data" type="application/json"><%= JSON.stringify(product) %></script>
+<script id="product-data" type="application/json"><%- JSON.stringify(product) %></script>
+<script id="addons-data" type="application/json"><%- JSON.stringify(addons || []) %></script>
+<script id="ingredients-data" type="application/json"><%- JSON.stringify(ingredients || []) %></script>
 
   <main class="product-page">
     <div class="product-container">
@@ -21,7 +23,7 @@
             <div class="size-options">
               <% product.Sizes.forEach((size, index) => { %>
                 <label class="size-option-btn" data-size="<%= size.Size %>" data-price="<%= size.BasePrice %>">
-                  <input type="checkbox" name="size-checkbox" value="<%= size.Size %>" style="display: none;" autocomplete="off">
+                  <input type="radio" name="size-radio" value="<%= size.Size %>" style="display: none;" autocomplete="off">
                   <span><%= size.Size %> - ₱<%= Number(size.BasePrice).toFixed(2) %></span>
                 </label>
               <% }); %>
@@ -33,6 +35,23 @@
           </div>
         <% } %>
 
+        <div class="addons-section">
+          <h4>Add-ons</h4>
+          <div class="addon-options">
+            <% (addons || []).forEach((addon) => { %>
+              <label class="addon-checkbox-label">
+                <input type="checkbox" class="addon-checkbox" data-addon-id="<%= addon.AddOnID %>" data-addon-name="<%= addon.Name %>" data-addon-price="<%= addon.BasePrice %>">
+                <span class="addon-text"><%= addon.Name %> - ₱<%= Number(addon.BasePrice).toFixed(2) %></span>
+              </label>
+            <% }); %>
+          </div>
+        </div>
+
+        <button type="button" id="more-options-btn" class="more-options-btn" onclick="openModal()">
+          More Options
+          <span id="ingredients-badge" class="ingredients-badge" style="display: none;"></span>
+        </button>
+
         <div class="quantity-section">
           <label for="quantity">Quantity</label>
           <input type="number" id="quantity" name="quantity" min="1" value="1">
@@ -43,8 +62,49 @@
     </div>
   </main>
 
-  <% if (typeof user === 'undefined' || !user) { %>
-    <script src="/js/navbar.js"></script>
-    <script src="/js/search.js"></script>
-    <script src="/js/product.js"></script>
-  <% } %>
+  <!-- More Options Modal -->
+  <div id="more-options-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>More Options (Ingredients)</h2>
+        <span class="close">&times;</span>
+      </div>
+      <div class="ingredients-options">
+        <% (ingredients || []).forEach((ingredient) => { %>
+          <label class="ingredient-checkbox-label">
+            <input type="checkbox" class="ingredient-checkbox" data-ingredient-id="<%= ingredient.IngredientID %>" data-ingredient-name="<%= ingredient.Name %>" data-ingredient-price="10">
+            <span class="ingredient-text"><%= ingredient.Name %> - ₱10.00</span>
+          </label>
+        <% }); %>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/product.js"></script>
+
+  <script>
+    function openModal() {
+      const modal = document.getElementById('more-options-modal');
+      if (modal) {
+        modal.style.display = 'block';
+      }
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('more-options-modal');
+      if (modal) {
+        modal.style.display = 'none';
+      }
+    }
+
+    // Close modal when clicking the close button
+    document.querySelector('.close').addEventListener('click', closeModal);
+
+    // Close modal when clicking outside the modal content
+    window.addEventListener('click', function(event) {
+      const modal = document.getElementById('more-options-modal');
+      if (event.target === modal) {
+        closeModal();
+      }
+    });
+  </script>

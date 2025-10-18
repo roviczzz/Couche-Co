@@ -153,10 +153,20 @@ router.get('/product/:id', async (req, res) => {
       return res.status(404).send('Product not found');
     }
 
+    // Fetch add-ons for the product page
+    const addons = await db.collection('Add-ons').find({ isEnabled: true }).toArray();
+    console.log('Add-ons found:', addons.length, addons.map(a => a.Name));
+
+    // Fetch ingredients for the product page
+    const ingredients = await db.collection('Ingredients').find({ isEnabled: true }).toArray();
+    console.log('Ingredients found:', ingredients.length, ingredients.map(i => i.Name));
+
     await client.close();
 
     res.render('product', {
       product,
+      addons,
+      ingredients,
       title: `${product.Name} | Blessings Cafe`,
       user: req.session?.user || null,
       extraCSS: '/css/product.css',
