@@ -253,7 +253,7 @@ router.get('/analytics/payment-types', nocache, async (req, res) => {
         $project: {
           PaymentMode: {
             $cond: {
-              if: { $in: ['$PaymentMode', ['E-PAYMENT', 'E-Payment']] },
+              if: { $in: ['$PaymentMode', ['E-PAYMENT', 'E-Payment', 'E_Payment']] },
               then: 'E-Payment',
               else: '$PaymentMode'
             }
@@ -470,11 +470,8 @@ router.get('/products', nocache, async (req, res) => {
   }
 });
 
-// --- Multer setup ---
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads/'),
-  filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname)),
-});
+// --- Multer setup (memory storage for direct ImgBB upload) ---
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 // Add Product route
@@ -512,14 +509,12 @@ router.post('/products/add', upload.single('imagelink'), async (req, res) => {
   // Ingredients array
   const ingredientsArray = Ingredients ? Ingredients.split(',').map(i => i.trim()) : [];
 
-  // Image handling
+  // Image handling - upload directly to ImgBB
   let imagelink = 'placeholder';
-  let localImagePath = null;
 
   if (req.file) {
-    localImagePath = `/uploads/${req.file.filename}`;
     try {
-      const fileData = fs.readFileSync(req.file.path, { encoding: "base64" });
+      const fileData = req.file.buffer.toString('base64');
       const imgbbKey = process.env.IMGBB_API_KEY;
 
       if (imgbbKey) {
@@ -544,7 +539,6 @@ router.post('/products/add', upload.single('imagelink'), async (req, res) => {
     Category,
     Allergen: Allergen || null,
     imagelink,
-    localImagePath,
     isEnabled: isEnabled === 'true'
   };
 
@@ -625,7 +619,7 @@ router.get('/api/products/:id', async (req, res) => {
 });
 
 
-const FormData = require('form-data'); // 🆕 add this at the top with other requires
+
 
 // ✅ Edit Product route (with FormData upload to ImgBB)
 router.post('/products/edit/:id', upload.single('imagelink'), async (req, res) => {
@@ -660,21 +654,9 @@ router.post('/products/edit/:id', upload.single('imagelink'), async (req, res) =
 
     // ✅ If new image uploaded
     if (req.file) {
-      console.log("🖼 New image uploaded:", req.file.filename);
+      console.log("🖼 New image uploaded to memory");
 
-      // Delete old local file if exists
-      if (
-        existingProduct.imagelink &&
-        existingProduct.imagelink !== 'placeholder' &&
-        existingProduct.imagelink.startsWith('/uploads/')
-      ) {
-        const oldPath = path.join(__dirname, '..', existingProduct.imagelink);
-        fs.unlink(oldPath, err => {
-          if (err) console.error('Error deleting old image:', err.message);
-        });
-      }
-
-      // Delete old ImgBB image if deleteUrl exists
+      // Delete old ImgBB image if exists (no local files to clean up anymore)
       if (existingProduct.deleteUrl) {
         try {
           await axios.get(existingProduct.deleteUrl);
@@ -684,24 +666,20 @@ router.post('/products/edit/:id', upload.single('imagelink'), async (req, res) =
         }
       }
 
-      // 🆕 Upload new image to ImgBB using FormData
+      // Upload new image directly to ImgBB from memory buffer
       try {
-        const imageData = fs.readFileSync(req.file.path, { encoding: 'base64' });
-
-        const formData = new FormData();
-        formData.append("key", process.env.IMGBB_API_KEY);
-        formData.append("image", imageData);
+        const imageData = req.file.buffer.toString('base64');
 
         const response = await axios.post(
-          "https://api.imgbb.com/1/upload",
-          formData,
-          { headers: formData.getHeaders() }
+          `https://api.imgbb.com/1/upload?key=${process.env.IMGBB_API_KEY}`,
+          new URLSearchParams({ image: imageData })
         );
 
         console.log("✅ ImgBB Upload Success:", response.data);
-
         updateFields.imagelink = response.data.data.url;
-        updateFields.localImagePath = `/uploads/${req.file.filename}`;
+
+        // No longer saving localImagePath - only ImgBB URL
+        // updateFields.localImagePath is removed
       } catch (err) {
         console.error("❌ ImgBB upload failed:", err.response?.data || err.message);
       }
@@ -782,18 +760,14 @@ router.post('/delete-product/:id', async (req, res) => {
     const product = await productCollection.findOne({ _id: new ObjectId(productId) });
     if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
 
-    // Delete local file if exists
-    const fs = require('fs');
-    if (product.imagelink && product.imagelink !== 'placeholder') {
-      fs.unlink(product.imagelink.replace(/^\//, ''), err => {
-        if (err) console.error("Local file deletion error:", err.message);
-      });
-    }
-
-    // Delete ImgBB image if exists
+    // Delete ImgBB image if exists (no local files to delete anymore)
     if (product.deleteUrl) {
-      try { await axios.get(product.deleteUrl); } 
-      catch (err) { console.error("ImgBB delete error:", err.message); }
+      try {
+        await axios.get(product.deleteUrl);
+        console.log("🗑 ImgBB image deleted for product:", productId);
+      } catch (err) {
+        console.error("ImgBB delete error:", err.message);
+      }
     }
 
     await productCollection.deleteOne({ _id: new ObjectId(productId) });
@@ -1857,9 +1831,13 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
     const totalOrders = orders.length;
     const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
-    // Get payment method breakdown
+    // Get payment method breakdown (normalize E-Payment variations)
     const paymentBreakdown = orders.reduce((acc, order) => {
-      const method = order.PaymentMode || 'Unknown';
+      let method = order.PaymentMode || 'Unknown';
+      // Normalize different variations of E-Payment to a single category
+      if (method === 'E_Payment' || method === 'E-PAYMENT' || method === 'E-Payment') {
+        method = 'E-Payment';
+      }
       acc[method] = (acc[method] || 0) + order.Total;
       return acc;
     }, {});
