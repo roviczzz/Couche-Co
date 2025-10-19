@@ -91,15 +91,8 @@ function initializeIngredientListeners() {
         modalIngredientsContainer.addEventListener('change', handleIngredientChange);
     }
 
-    // Also set up listeners for any existing checkboxes outside modal
-    const allIngredientCheckboxes = document.querySelectorAll('.ingredient-checkbox');
-
-    allIngredientCheckboxes.forEach((checkbox) => {
-        // Remove existing listeners to prevent duplicates
-        checkbox.removeEventListener('change', handleIngredientCheckboxChange);
-        // Add direct listener
-        checkbox.addEventListener('change', handleIngredientCheckboxChange);
-    });
+    // No longer setting up direct listeners to prevent duplication with delegation
+    // Event delegation handles all ingredient checkboxes within the modal
 }
 
 // Handle ingredient checkbox changes
@@ -113,7 +106,7 @@ function handleIngredientChange(event) {
 
     const ingredientId = checkbox.dataset.ingredientId;
     const ingredientName = checkbox.dataset.ingredientName;
-    const ingredientPrice = parseFloat(checkbox.dataset.ingredientPrice) || 10;
+    const ingredientPrice = parseFloat(checkbox.dataset.ingredientPrice) || 15;
 
     if (checkbox.checked) {
         // Add to selectedIngredients array
@@ -292,16 +285,30 @@ function initializePage() {
         rb.checked = false;
     });
 
-    // Add event listeners to radio buttons to allow deselection
-    const allRadios = document.querySelectorAll('input[name="size-radio"]');
-    allRadios.forEach(radio => {
-        radio.addEventListener('click', function() {
-            const wasChecked = this.checked;
-            setTimeout(() => {
-                if (wasChecked && this.checked) {
-                    this.checked = false;
-                }
-            }, 0);
+    // Add event listeners to size option buttons to handle selection
+    const sizeOptionBtns = document.querySelectorAll('.size-option-btn');
+    sizeOptionBtns.forEach(btn => {
+        btn.addEventListener('click', function(event) {
+            event.preventDefault(); // Prevent default label behavior
+
+            const radio = this.querySelector('input[type="radio"]');
+            const wasChecked = radio.checked;
+
+            // If already checked, allow deselection
+            if (wasChecked) {
+                radio.checked = false;
+                this.classList.remove('selected');
+            } else {
+                // Uncheck all other radio buttons and remove selected class
+                document.querySelectorAll('input[name="size-radio"]').forEach(rb => {
+                    rb.checked = false;
+                    rb.closest('.size-option-btn').classList.remove('selected');
+                });
+
+                // Check this radio button and add selected class
+                radio.checked = true;
+                this.classList.add('selected');
+            }
         });
     });
 
@@ -349,10 +356,7 @@ function setupModal() {
             badge.classList.add('hidden');
         }
 
-        // Reinitialize ingredient listeners when modal opens
-        setTimeout(() => {
-            setupIngredientEventListeners();
-        }, 150);
+        // Ingredient listeners are handled by event delegation in initializeIngredientListeners
 
         // Focus management: focus the close button after modal animation
         setTimeout(() => {
@@ -370,9 +374,13 @@ function setupModal() {
         // Restore body scroll
         document.body.style.overflow = '';
 
-        // Return focus to the button that opened the modal
+        // Return focus to the button that opened the modal, then blur to remove focus styles
         if (previousFocusElement) {
             previousFocusElement.focus();
+            // Immediately blur to remove persistent focus styles (border/outline)
+            setTimeout(() => {
+                previousFocusElement.blur();
+            }, 0);
         }
 
         // Don't clear ingredients on modal close - badge should stay if checkboxes are checked
@@ -444,8 +452,7 @@ function displayIngredients(ingredients) {
     // Check if ingredients already exist from EJS template
     const existingIngredients = ingredientsOptionsContainer.querySelectorAll('.ingredient-checkbox-label');
     if (existingIngredients.length > 0) {
-        // Set up event listeners for existing ingredients
-        setupIngredientEventListeners();
+        // Event listeners handled by delegation
         return;
     }
 
@@ -458,22 +465,21 @@ function displayIngredients(ingredients) {
 
             const ingredientText = document.createElement('span');
             ingredientText.className = 'ingredient-text';
-            ingredientText.textContent = `${ingredient.Name} ₱10.00`;
+            ingredientText.textContent = `${ingredient.Name} ₱15.00`;
 
             const ingredientCheckbox = document.createElement('input');
             ingredientCheckbox.type = 'checkbox';
             ingredientCheckbox.className = 'ingredient-checkbox';
             ingredientCheckbox.dataset.ingredientId = ingredient.IngredientID;
             ingredientCheckbox.dataset.ingredientName = ingredient.Name;
-            ingredientCheckbox.dataset.ingredientPrice = 10;
+            ingredientCheckbox.dataset.ingredientPrice = 15;
 
             ingredientLabel.appendChild(ingredientText);
             ingredientLabel.appendChild(ingredientCheckbox);
             ingredientsOptionsContainer.appendChild(ingredientLabel);
         });
 
-        // Set up event listeners after creating elements
-        setupIngredientEventListeners();
+        // Event listeners handled by event delegation on the container
     } else {
         ingredientsOptionsContainer.innerHTML = '<span style="font-size:12px;color:#999">No ingredients available.</span>';
     }
@@ -497,7 +503,7 @@ function handleIngredientCheckboxChange(event) {
     const checkbox = event.target;
     const ingredientId = checkbox.dataset.ingredientId;
     const ingredientName = checkbox.dataset.ingredientName;
-    const ingredientPrice = parseFloat(checkbox.dataset.ingredientPrice) || 10;
+    const ingredientPrice = parseFloat(checkbox.dataset.ingredientPrice) || 15;
 
     if (checkbox.checked) {
         // Add to selectedIngredients array

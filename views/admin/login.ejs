@@ -8,8 +8,8 @@
 </head>
 <body>
 <div class="login-box">
-    <img src="https://iili.io/F5oAbt9.png" alt="Blessings Cafe Logo" />
-    <h2>Staff & Admin Login</h2>
+    <img src="https://i.ibb.co/KcNnHLxH/Blessings-Logo.png" alt="Blessings Cafe Logo" />
+    <h2>Administrator Login</h2>
     <form action="/auth/unified/login" method="post">
         <label for="Username">Username</label>
         <input id="Username" name="Username" type="text" placeholder="Enter username"
@@ -26,17 +26,14 @@
         <% if (errors && errors.Password) { %>
             <span class="error"><%= errors.Password.msg %></span>
         <% } %>
-
+        <div class="forgot-password-group">
         <a href="/forgot-password" class="forgot">Forgot password</a>
-
+        </div>
         <button type="submit">Log In</button>
         <% if (error) { %>
             <div class="error"><%= error %></div>
         <% } %>
     </form>
-    <div class="login-links">
-        <p>Use your admin or staff credentials to access the system</p>
-    </div>
 </div>
 </body>
 </html>

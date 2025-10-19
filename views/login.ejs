@@ -2,149 +2,17 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>Login - Couche Co</title>
+    <title>Login - Blessings Cafe</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #000000;
-            --primary-hover: #3a3a3a;
-            --text: #2d3748;
-            --text-light: #718096;
-            --border: #e2e8f0;
-            --error: #e53e3e;
-        }
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8f9fa;
-            color: var(--text);
-            line-height: 1.5;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-        }
-        .login-container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-            width: 100%;
-            max-width: 400px;
-            padding: 2.5rem 2rem;
-            text-align: center;
-        }
-        .logo {
-            width: 100px;
-            margin-bottom: 1.5rem;
-        }
-        h1 {
-            font-size: 1.5rem;
-            margin-bottom: 1.5rem;
-            font-weight: 600;
-            color: var(--text);
-        }
-        .form-group {
-            margin-bottom: 1.25rem;
-            text-align: left;
-        }
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--text);
-        }
-        input {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 0.9375rem;
-            transition: all 0.2s ease;
-        }
-        input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
-        }
-        .btn {
-            display: block;
-            width: 100%;
-            padding: 0.75rem;
-            border: none;
-            border-radius: 8px;
-            font-size: 0.9375rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-            text-decoration: none;
-            text-align: center;
-        }
-        .btn-primary {
-            background-color: var(--primary);
-            color: white;
-        }
-        .btn-primary:hover {
-            background-color: var(--primary-hover);
-        }
-        .btn-text {
-            color: var(--primary);
-            background: none;
-            padding: 0.5rem;
-            font-size: 0.875rem;
-        }
-        .btn-text:hover {
-            text-decoration: underline;
-        }
-        .error {
-            color: var(--error);
-            font-size: 0.8125rem;
-            margin-top: 0.25rem;
-            text-align: left;
-        }
-        .divider {
-            display: flex;
-            align-items: center;
-            margin: 1.5rem 0;
-            color: var(--text-light);
-            font-size: 0.875rem;
-        }
-        .divider::before,
-        .divider::after {
-            content: "";
-            flex: 1;
-            border-bottom: 1px solid var(--border);
-        }
-        .divider::before {
-            margin-right: 1rem;
-        }
-        .divider::after {
-            margin-left: 1rem;
-        }
-        .admin-section {
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--border);
-        }
-        .admin-text {
-            font-size: 0.875rem;
-            color: var(--text-light);
-            margin-bottom: 0.75rem;
-        }
-    </style>
+    <link rel="stylesheet" href="/css/login.css">
 </head>
-<body>
+<body class="login-body">
     <div class="login-container">
-        <img src="https://iili.io/F5oAbt9.png" alt="Couche Co" class="logo">
-        <h1>Welcome Back</h1>
+        <img src="https://i.ibb.co/KcNnHLxH/Blessings-Logo.png" alt="Blessings Cafe Logo" class="logo">
+        <h1>Blessings Cafe</h1>
 
         <% if (error) { %>
-            <div class="error" style="margin-bottom: 1rem; text-align: center;"><%= error %></div>
+            <div class="error login-flash-error"><%= error %></div>
         <% } %>
 
         <form action="/user/login" method="post">
@@ -164,10 +32,7 @@
             </div>
 
             <div class="form-group">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <label for="password">Password</label>
-                    <a href="/forgot-password" class="btn-text" style="font-size: 0.8125rem;">Forgot password?</a>
-                </div>
+                <label for="password">Password</label>
                 <input
                     id="password"
                     name="password"
@@ -175,6 +40,7 @@
                     placeholder="••••••••"
                     required
                 />
+                <a href="/forgot-password" class="btn-text forgot-password-link">Forgot password?</a>
                 <% if (errors && errors.password) { %>
                     <span class="error"><%= errors.password.msg %></span>
                 <% } %>
@@ -183,16 +49,14 @@
             <button type="submit" class="btn btn-primary">Sign In</button>
         </form>
 
-        <div class="register-link" style="margin-top: 1.5rem; text-align: center;">
-            <span style="color: var(--text-light);">Don't have an account?</span>
-            <a href="/register" class="btn-text" style="margin-left: 0.5rem;">Sign up</a>
+        <div class="register-link">
+            <span>Don't have an account?</span>
+            <a href="/register" class="btn-text">Sign up</a>
         </div>
 
         <div class="admin-section">
             <p class="admin-text">Are you an administrator?</p>
-            <a href="/auth/admin/login" class="btn" style="border: 1px solid var(--border); color: var(--text);">
-                Admin Login
-            </a>
+            <a href="/auth/admin/login" class="btn btn-admin">Admin Login</a>
         </div>
     </div>
 </body>

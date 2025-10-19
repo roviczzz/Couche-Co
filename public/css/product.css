@@ -100,10 +100,11 @@
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.size-option-btn:has(input:checked) {
-    background: white;
-    color: black;
-    border: 2px solid #000;
+.size-option-btn.selected {
+    background: #8B4513;
+    color: white;
+    border: 2px solid #8B4513;
+    box-shadow: 0 2px 8px rgba(139, 69, 19, 0.3);
 }
 
 
@@ -182,18 +183,48 @@
     color: #333;
 }
 
-.quantity-section input {
-    width: 100px;
-    padding: 0.75rem;
-    font-size: 1rem;
+.quantity-controls {
+    display: flex;
+    align-items: center;
+    width: fit-content;
     border: 2px solid #ddd;
     border-radius: 8px;
-    text-align: center;
+    overflow: hidden;
 }
 
-.quantity-section input:focus {
+.quantity-btn {
+    background: #f8f9fa;
+    border: none;
+    width: 40px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.quantity-section input {
+    width: 60px;
+    padding: 0.75rem 0.5rem;
+    font-size: 1rem;
+    border: none;
+    text-align: center;
+    background: #f8f9fa;
     outline: none;
-    border-color: #8B4513;
+    appearance: textfield; /* Hide spinners - standard property */
+    -moz-appearance: textfield; /* Hide spinners in Firefox */
+}
+
+/* Hide spinners in WebKit browsers (Chrome, Safari, Edge) */
+.quantity-section input::-webkit-outer-spin-button,
+.quantity-section input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 .add-to-cart-btn {

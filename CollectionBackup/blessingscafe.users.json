@@ -16,5 +16,131 @@
     "$date": "2025-08-19T07:07:58.000Z"
   },
   "passwordChangedBy": "BlessingsAdmin",
-  "role": "admin"
+  "role": "admin",
+  "fullname": "asdf",
+  "lastLogin": {
+    "$date": "2025-10-18T14:10:07.482Z"
+  },
+  "staffId": "ADM001",
+  "email": "",
+  "phone": ""
+},
+{
+  "_id": {
+    "$oid": "687c62a141b9b5ed88341592"
+  },
+  "password": "$2a$12$rY/6hEevWlnzatSctzEDUu75SfRDyc.ttf8fvelarJs5LSPGhRNBu",
+  "username": "staff001",
+  "fullname": "Maria Santos",
+  "secretCode": "Staff123!",
+  "passwordUpgraded": {
+    "$date": "2025-09-22T08:52:19.000Z"
+  },
+  "upgradedBy": "admin-creation",
+  "lastModified": {
+    "$date": "2025-09-22T08:52:19.000Z"
+  },
+  "passwordChangedAt": {
+    "$date": "2025-09-22T08:52:19.000Z"
+  },
+  "passwordChangedBy": "BlessingsAdmin",
+  "role": "staff",
+  "displayName": "Maria",
+  "email": "testemail@gmail.com",
+  "phone": "09123798171",
+  "lastLogin": {
+    "$date": "2025-10-07T04:36:08.987Z"
+  },
+  "staffId": "BC002"
+},
+{
+  "_id": {
+    "$oid": "687c62a141b9b5ed88341593"
+  },
+  "password": "$2a$12$rY/6hEevWlnzatSctzEDUu75SfRDyc.ttf8fvelarJs5LSPGhRNBu",
+  "username": "staff002",
+  "fullname": "Juan Dela Cruz",
+  "secretCode": "Staff456!",
+  "passwordUpgraded": {
+    "$date": "2025-09-22T08:52:19.000Z"
+  },
+  "upgradedBy": "admin-creation",
+  "lastModified": {
+    "$date": "2025-09-22T08:52:19.000Z"
+  },
+  "passwordChangedAt": {
+    "$date": "2025-09-22T08:52:19.000Z"
+  },
+  "passwordChangedBy": "BlessingsAdmin",
+  "role": "staff",
+  "staffId": "BC003"
+},
+{
+  "_id": {
+    "$oid": "687c62a141b9b5ed88341594"
+  },
+  "password": "$2a$12$rY/6hEevWlnzatSctzEDUu75SfRDyc.ttf8fvelarJs5LSPGhRNBu",
+  "username": "staff003",
+  "fullname": "Ana Reyes",
+  "secretCode": "Staff789!",
+  "passwordUpgraded": {
+    "$date": "2025-09-22T08:52:19.000Z"
+  },
+  "upgradedBy": "admin-creation",
+  "lastModified": {
+    "$date": "2025-09-22T08:52:19.000Z"
+  },
+  "passwordChangedAt": {
+    "$date": "2025-09-22T08:52:19.000Z"
+  },
+  "passwordChangedBy": "BlessingsAdmin",
+  "role": "staff",
+  "staffId": "BC004"
+},
+{
+  "_id": {
+    "$oid": "687c62a141b9b5ed88341595"
+  },
+  "password": "$2a$12$rY/6hEevWlnzatSctzEDUu75SfRDyc.ttf8fvelarJs5LSPGhRNBu",
+  "username": "staff004",
+  "fullname": "Carlos Garcia",
+  "secretCode": "Staff012!",
+  "passwordUpgraded": {
+    "$date": "2025-09-22T08:52:19.000Z"
+  },
+  "upgradedBy": "admin-creation",
+  "lastModified": {
+    "$date": "2025-09-22T08:52:19.000Z"
+  },
+  "passwordChangedAt": {
+    "$date": "2025-09-22T08:52:19.000Z"
+  },
+  "passwordChangedBy": "BlessingsAdmin",
+  "role": "staff",
+  "staffId": "BC005"
+},
+{
+  "_id": {
+    "$oid": "687c62a141b9b5ed88341596"
+  },
+  "password": "$2a$12$h266obrjs/HduX4w3Ep.fOKT5sSbzf5MxO/R.A1aZO5xbCfkPzVne",
+  "username": "BlessingsOwner",
+  "fullname": "Red Yabut",
+  "secretCode": "Owner123!",
+  "passwordUpgraded": {
+    "$date": "2025-09-22T08:52:19.000Z"
+  },
+  "upgradedBy": "admin-creation",
+  "lastModified": {
+    "$date": "2025-09-22T08:52:19.000Z"
+  },
+  "passwordChangedAt": {
+    "$date": "2025-09-22T08:52:19.000Z"
+  },
+  "passwordChangedBy": "BlessingsAdmin",
+  "role": "owner",
+  "staffId": "OWN001",
+  "lastLogin": {
+    "$date": "2025-10-03T04:33:59.995Z"
+  }
 }]

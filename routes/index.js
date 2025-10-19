@@ -96,6 +96,16 @@ router.get('/login', (req, res) => {
   res.redirect('/auth/login');
 });
 
+// Register route redirect
+router.get('/register', (req, res) => {
+  res.redirect('/auth/register');
+});
+
+// Forgot password route redirect
+router.get('/forgot-password', (req, res) => {
+  res.redirect('/auth/forgot-password');
+});
+
 // Dashboard route
 router.get('/dashboard', isLoggedIn, nocache, (req, res) => {
   if (req.session.user && req.session.user.role === 'admin') {
@@ -155,11 +165,9 @@ router.get('/product/:id', async (req, res) => {
 
     // Fetch add-ons for the product page
     const addons = await db.collection('Add-ons').find({ isEnabled: true }).toArray();
-    console.log('Add-ons found:', addons.length, addons.map(a => a.Name));
 
     // Fetch ingredients for the product page
     const ingredients = await db.collection('Ingredients').find({ isEnabled: true }).toArray();
-    console.log('Ingredients found:', ingredients.length, ingredients.map(i => i.Name));
 
     await client.close();
 
@@ -176,6 +184,15 @@ router.get('/product/:id', async (req, res) => {
     console.error('Product page error:', err);
     res.status(500).send('Internal Server Error');
   }
+});
+
+// Cart page
+router.get('/cart', (req, res) => {
+  res.render('cart', {
+    title: 'Cart | Blessings Cafe',
+    user: req.session?.user || null,
+    layout: 'layout'
+  });
 });
 
 // Products route

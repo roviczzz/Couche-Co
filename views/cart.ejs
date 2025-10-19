@@ -1,0 +1,22 @@
+<link rel="stylesheet" href="/css/cart.css">
+<link rel="stylesheet" href="/css/site-public.css">
+
+<div class="cart-container">
+  <h2>Your Cart</h2>
+  <div id="cart-items" class="cart-items">
+    <!-- Cart items will be populated here -->
+  </div>
+  <div id="cart-total" class="cart-total">
+    <!-- Total will be displayed here -->
+  </div>
+  <div class="cart-login-prompt">
+    <h3 style="color: black">Have an account?</h3>
+    <p style="color: black"><a href="/auth/login">Log in</a> to check out faster.</p>
+  </div>
+  <div class="cart-actions">
+    <button onclick="window.location.href='/'" class="continue-shopping-btn">Continue Shopping</button>
+    <button id="checkout-btn" class="checkout-btn" style="display: none;">Proceed to Checkout</button>
+  </div>
+</div>
+
+<script src="/js/cart.js"></script>

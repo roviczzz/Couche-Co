@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= typeof title !== 'undefined' ? title : 'Blessings Cafe' %></title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <% if (typeof user === 'undefined' || !user) { %>
     <link rel="stylesheet" href="/css/navbar.css">
   <% } %>
@@ -38,7 +39,7 @@
                 <div id="cart-summary">
                   <p>Cart is empty</p>
                 </div>
-                <button onclick="window.location.href='/menu'" class="view-cart-btn">View Full Cart</button>
+                <button onclick="window.location.href='/cart'" class="view-cart-btn">View Full Cart</button>
               </div>
             </div>
           </div>

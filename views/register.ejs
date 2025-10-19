@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Sign Up - Blessings Cafe</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/login.css">
+</head>
+<body class="login-body">
+    <div class="login-container">
+        <img src="https://i.ibb.co/KcNnHLxH/Blessings-Logo.png" alt="Blessings Cafe Logo" class="logo">
+        <h1>Sign Up</h1>
+
+        <% if (error) { %>
+            <div class="error login-flash-error"><%= error %></div>
+        <% } %>
+
+        <% if (typeof success !== 'undefined' && success) { %>
+            <div id="success-modal" class="success-modal">
+                <div class="success-modal-content">
+                    <div class="success-icon"></div>
+                    <div class="success-message">Registration Successful!</div>
+                    <div class="success-submessage">You will be redirected to login shortly...</div>
+                    <div class="success-loader">
+                        <div class="success-progress"></div>
+                    </div>
+                </div>
+            </div>
+        <% } %>
+
+        <form action="/auth/register" method="post">
+            <div class="form-group name-row">
+                <div class="name-input">
+                    <label for="firstName">First Name</label>
+                    <input
+                        id="firstName"
+                        name="firstName"
+                        type="text"
+                        placeholder="John"
+                        value="<%= typeof formData !== 'undefined' ? formData.firstName : '' %>"
+                        required
+                    />
+                    <% if (errors && errors.firstName) { %>
+                        <span class="error"><%= errors.firstName.msg %></span>
+                    <% } %>
+                </div>
+                <div class="name-input">
+                    <label for="lastName">Last Name</label>
+                    <input
+                        id="lastName"
+                        name="lastName"
+                        type="text"
+                        placeholder="Doe"
+                        value="<%= typeof formData !== 'undefined' ? formData.lastName : '' %>"
+                        required
+                    />
+                    <% if (errors && errors.lastName) { %>
+                        <span class="error"><%= errors.lastName.msg %></span>
+                    <% } %>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="contactNumber">Contact Number</label>
+                <input
+                    id="contactNumber"
+                    name="contactNumber"
+                    type="tel"
+                    placeholder="09xxxxxxxxx"
+                    value="<%= typeof formData !== 'undefined' ? formData.contactNumber : '' %>"
+                    pattern="^09[0-9]{9}$"
+                    title="Please enter a valid Philippine mobile number (09xxxxxxxxx)"
+                    oninput="this.value = this.value.replace(/\D/g, '')"
+                    maxlength="11"
+                    required
+                />
+                <% if (errors && errors.contactNumber) { %>
+                    <span class="error"><%= errors.contactNumber.msg %></span>
+                <% } %>
+            </div>
+
+            <div class="form-group address-row">
+                <div class="address-input">
+                    <label for="addressLine">Address Line</label>
+                    <input
+                        id="addressLine"
+                        name="addressLine"
+                        type="text"
+                        placeholder="Street Address"
+                        value="<%= typeof formData !== 'undefined' ? formData.addressLine : '' %>"
+                        required
+                    />
+                    <% if (errors && errors.addressLine) { %>
+                        <span class="error"><%= errors.addressLine.msg %></span>
+                    <% } %>
+                </div>
+                <div class="address-input">
+                    <label for="city">City</label>
+                    <select id="city" name="city" required>
+                        <option value="">Select City</option>
+                        <option value="Imus, Cavite" <%= typeof formData !== 'undefined' && formData.city === 'Imus, Cavite' ? 'selected' : '' %>>Imus, Cavite</option>
+                        <option value="Kawit, Cavite" <%= typeof formData !== 'undefined' && formData.city === 'Kawit, Cavite' ? 'selected' : '' %>>Kawit, Cavite</option>
+                    </select>
+                    <% if (errors && errors.city) { %>
+                        <span class="error"><%= errors.city.msg %></span>
+                    <% } %>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="your@email.com"
+                    value="<%= typeof formData !== 'undefined' ? formData.email : '' %>"
+                    required
+                />
+                <% if (errors && errors.email) { %>
+                    <span class="error"><%= errors.email.msg %></span>
+                <% } %>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    placeholder="••••••••"
+                    required
+                />
+                <% if (errors && errors.password) { %>
+                    <span class="error"><%= errors.password.msg %></span>
+                <% } %>
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    placeholder="••••••••"
+                    required
+                />
+                <% if (errors && errors.confirmPassword) { %>
+                    <span class="error"><%= errors.confirmPassword.msg %></span>
+                <% } %>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Sign Up</button>
+        </form>
+
+        <div class="register-link">
+            <span>Already have an account?</span>
+            <a href="/auth/login" class="btn-text">Sign in</a>
+        </div>
+    </div>
+</body>
+</html>
+
+<% if (typeof success !== 'undefined' && success) { %>
+<script>
+setTimeout(function() {
+    window.location.href = '/auth/login';
+}, 4000);
+</script>
+<% } %>
+
+<script>
+document.querySelector('form').addEventListener('submit', function(e) {
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const contactNumber = document.getElementById('contactNumber').value;
+
+    if (password !== confirmPassword) {
+        e.preventDefault();
+        alert('Passwords do not match!');
+        return false;
+    }
+
+    if (!/^09[0-9]{9}$/.test(contactNumber)) {
+        e.preventDefault();
+        alert('Please enter a valid Philippine mobile number (09xxxxxxxxx)');
+        return false;
+    }
+});
+</script>

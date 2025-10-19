@@ -16,7 +16,7 @@
       </div>
       <div class="product-details">
         <h1><%= product.Name %></h1>
-        <p class="product-description"><%= product.Description || 'Delicious drink from Blessings Cafe.' %></p>
+        <p class="product-description"><%= product.description || 'Delicious drink from Blessings Cafe.' %></p>
 
         <% if (product.Sizes && product.Sizes.length > 0) { %>
           <div class="sizes-section">
@@ -35,6 +35,7 @@
           </div>
         <% } %>
 
+        <% if (product.Category !== "Pastries") { %>
         <div class="addons-section">
           <h4>Add-ons</h4>
           <div class="addon-options">
@@ -51,10 +52,15 @@
           More Options
           <span id="ingredients-badge" class="ingredients-badge" style="display: none;"></span>
         </button>
+        <% } %>
 
         <div class="quantity-section">
           <label for="quantity">Quantity</label>
-          <input type="number" id="quantity" name="quantity" min="1" value="1">
+          <div class="quantity-controls">
+            <button type="button" class="quantity-btn quantity-decrease" onclick="decreaseQuantity()">-</button>
+            <input type="number" id="quantity" name="quantity" min="1" value="1" readonly>
+            <button type="button" class="quantity-btn quantity-increase" onclick="increaseQuantity()">+</button>
+          </div>
         </div>
 
         <button id="add-to-cart-btn" class="add-to-cart-btn">Add to Cart</button>
@@ -66,14 +72,14 @@
   <div id="more-options-modal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2>More Options (Ingredients)</h2>
+        <h2>Additional Add-ons</h2>
         <span class="close">&times;</span>
       </div>
       <div class="ingredients-options">
         <% (ingredients || []).forEach((ingredient) => { %>
           <label class="ingredient-checkbox-label">
-            <input type="checkbox" class="ingredient-checkbox" data-ingredient-id="<%= ingredient.IngredientID %>" data-ingredient-name="<%= ingredient.Name %>" data-ingredient-price="10">
-            <span class="ingredient-text"><%= ingredient.Name %> - ₱10.00</span>
+            <input type="checkbox" class="ingredient-checkbox" data-ingredient-id="<%= ingredient.IngredientID %>" data-ingredient-name="<%= ingredient.Name %>" data-ingredient-price="15">
+            <span class="ingredient-text"><%= ingredient.Name %> - ₱15.00</span>
           </label>
         <% }); %>
       </div>
@@ -94,6 +100,21 @@
       const modal = document.getElementById('more-options-modal');
       if (modal) {
         modal.style.display = 'none';
+      }
+    }
+
+    // Quantity control functions
+    function increaseQuantity() {
+      const quantityInput = document.getElementById('quantity');
+      let currentValue = parseInt(quantityInput.value) || 1;
+      quantityInput.value = currentValue + 1;
+    }
+
+    function decreaseQuantity() {
+      const quantityInput = document.getElementById('quantity');
+      let currentValue = parseInt(quantityInput.value) || 1;
+      if (currentValue > 1) {
+        quantityInput.value = currentValue - 1;
       }
     }
 

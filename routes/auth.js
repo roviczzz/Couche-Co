@@ -112,7 +112,7 @@ router.post('/login',
       req.session.user = {
         _id: user._id,
         email: user.email,
-        name: user.name,
+        name: user.fullname || user.name,
         fullname: user.fullname,
         role: user.role || 'user',
         staffId: user.staffId || generateStaffId(user.role, user._id),
@@ -164,6 +164,98 @@ router.get('/register', (req, res) => {
     layout: false
   });
 });
+
+// Register form submission
+router.post('/register',
+  [
+    check('firstName').notEmpty().withMessage('First name is required'),
+    check('lastName').notEmpty().withMessage('Last name is required'),
+    check('contactNumber').matches(/^09[0-9]{9}$/).withMessage('Invalid Philippine mobile number'),
+    check('addressLine').notEmpty().withMessage('Address line is required'),
+    check('city').isIn(['Imus, Cavite', 'Kawit, Cavite']).withMessage('Invalid city'),
+    check('email').isEmail().withMessage('Invalid email address'),
+    check('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+    check('confirmPassword').custom((value, { req }) => {
+      if (value !== req.body.password) {
+        throw new Error('Passwords do not match');
+      }
+      return true;
+    })
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.render('register', {
+        title: 'Sign Up | Blessings Cafe',
+        layout: false,
+        errors: errors.mapped(),
+        error: 'Please fix the errors below',
+        formData: req.body
+      });
+    }
+
+    let client;
+    try {
+      client = new MongoClient(uri);
+      await client.connect();
+      const db = client.db('blessingscafe');
+
+      // Check if email already exists
+      const existingUser = await db.collection('users').findOne({ email: req.body.email });
+      if (existingUser) {
+        return res.render('register', {
+          title: 'Sign Up | Blessings Cafe',
+          layout: false,
+          errors: {},
+          error: 'Email already registered',
+          formData: req.body
+        });
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(req.body.password, SALT_ROUNDS);
+
+      // Create user object with merged fields
+      const fullname = req.body.firstName + ' ' + req.body.lastName;
+      const address = req.body.addressLine + ', ' + req.body.city;
+
+      const newUser = {
+        email: req.body.email,
+        fullname: fullname,
+        phone: req.body.contactNumber,
+        address: address,
+        password: hashedPassword,
+        role: 'user',
+        createdAt: new Date()
+      };
+
+      // Insert user
+      await db.collection('users').insertOne(newUser);
+
+      // Show success message before redirecting
+      res.render('register', {
+        success: true,
+        error: null,
+        errors: {},
+        formData: {},
+        layout: false
+      });
+    } catch (error) {
+      console.error('Registration error:', error);
+      res.render('register', {
+        title: 'Sign Up | Blessings Cafe',
+        layout: false,
+        errors: {},
+        error: 'Registration failed. Please try again.',
+        formData: req.body
+      });
+    } finally {
+      if (client) {
+        await client.close();
+      }
+    }
+  }
+);
 
 // Account login route (for legacy compatibility)
 router.get('/account/login', (req, res) => {
@@ -272,6 +364,7 @@ router.post('/account/login',
         _id: user._id,
         username: user.username,
         email: user.email,
+        name: user.fullname || user.name,
         fullname: user.fullname,
         role: user.role || 'admin',
         staffId: user.staffId || generateStaffId(user.role, user._id),
@@ -309,39 +402,61 @@ router.get('/forgot-password', (req, res) => {
   res.render('forgot-password', { layout: false });
 });
 
-// Forgot password form submission
-router.post('/forgot-password', async (req, res) => {
-  const { username, secretCode, newPassword } = req.body;
-
-  if (!username || !secretCode || !newPassword) {
-    return res.status(400).send('Username, secret code, and new password are required');
-  }
-
-  let client;
-  try {
-    client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const usersCollection = db.collection('users');
-
-    const user = await usersCollection.findOne({ username: username, secretCode: secretCode });
-    if (!user) {
-      await client.close();
-      return res.status(404).send('User not found or invalid secret code');
+// Forgot password form submission (email based)
+router.post('/forgot-password',
+  [
+    check('email').isEmail().withMessage('Invalid email address')
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.render('forgot-password', {
+        layout: false,
+        errors: errors.mapped(),
+        error: 'Invalid email',
+        formData: req.body
+      });
     }
 
-    await usersCollection.updateOne(
-        { username: username, secretCode: secretCode },
-        { $set: { password: newPassword } }
-    );
+    let client;
+    try {
+      client = new MongoClient(uri);
+      await client.connect();
+      const db = client.db('blessingscafe');
 
-    await client.close();
-    res.send('Password updated successfully. You can now log in.');
-  } catch (error) {
-    if (client) await client.close();
-    console.error('Error updating password:', error);
-    res.status(500).send('Server error');
+      const user = await db.collection('users').findOne({ email: req.body.email });
+      if (!user) {
+        return res.render('forgot-password', {
+          layout: false,
+          errors: {},
+          error: 'Email not registered',
+          formData: req.body
+        });
+      }
+
+      // Here you would send reset email, but for now just show success
+      res.render('forgot-password', {
+        success: 'Password reset email sent. Please check your inbox.',
+        layout: false,
+        errors: {},
+        error: null,
+        formData: req.body
+      });
+    } catch (error) {
+      console.error('Forgot password error:', error);
+      res.render('forgot-password', {
+        layout: false,
+        errors: {},
+        error: 'Server error. Please try again.',
+        formData: req.body
+      });
+    } finally {
+      if (client) {
+        await client.close();
+      }
+    }
   }
-});
+);
 
 // Unified login route for both admin and staff
 router.post('/unified/login',
@@ -436,6 +551,7 @@ router.post('/unified/login',
         _id: user._id,
         username: user.username,
         email: user.email,
+        name: user.fullname || user.name,
         fullname: user.fullname,
         role: user.role || 'admin',
         staffId: user.staffId || generateStaffId(user.role, user._id),
