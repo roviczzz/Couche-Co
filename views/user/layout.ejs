@@ -83,8 +83,9 @@
   <script src="/js/cart.js" defer></script>
 
   <% if (typeof user !== 'undefined' && user) { %>
+    <% let userJson = JSON.stringify(user); %>
     <script>
-      window.user = <%- JSON.stringify(user) %>;
+      window.user = JSON.parse('<%- userJson %>');
 
       let cartLoaded = false;
 
