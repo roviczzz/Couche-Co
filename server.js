@@ -33,6 +33,12 @@ app.use((req, res, next) => {
   next();
 });
 
+// Middleware to make request path available to templates
+app.use((req, res, next) => {
+  res.locals.currentPath = req.path;
+  next();
+});
+
 // Middleware to load user settings for all authenticated users
 app.use(async (req, res, next) => {
   if (req.session.user) {
@@ -82,6 +88,14 @@ app.use((req, res, next) => {
   next();
 });
 
+// Middleware to set layout based on user role
+app.use((req, res, next) => {
+  if (req.session.user && req.session.user.role === 'user') {
+    res.locals.layout = 'user/layout';
+  }
+  next();
+});
+
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/views');
 
@@ -93,11 +107,11 @@ app.use(expressLayouts);
 app.set('layout', 'layout');
 
 // Use route modules
+app.use('/api', apiRoutes);
 app.use('/', indexRoutes);
 app.use('/auth', authRoutes);
 app.use('/user', userRoutes);
 app.use('/admin', adminRoutes);
-app.use('/api', apiRoutes);
 app.use('/staff', staffRoutes);
 
 // Legacy route compatibility

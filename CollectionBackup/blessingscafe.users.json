@@ -19,7 +19,7 @@
   "role": "admin",
   "fullname": "asdf",
   "lastLogin": {
-    "$date": "2025-10-18T14:10:07.482Z"
+    "$date": "2025-10-20T02:44:19.856Z"
   },
   "staffId": "ADM001",
   "email": "",
@@ -142,5 +142,19 @@
   "staffId": "OWN001",
   "lastLogin": {
     "$date": "2025-10-03T04:33:59.995Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68f5a2fb244b800640fc603e"
+  },
+  "email": "asdf@gmail.com",
+  "fullname": "john asd",
+  "phone": "09817263876",
+  "address": "asd, Imus, Cavite",
+  "password": "$2b$12$yI/WNrwIcmfXGxVBrzbM1.8mgoz4r9rDaCvciioe9VV/yy5SSWe8y",
+  "role": "user",
+  "createdAt": {
+    "$date": "2025-10-20T02:48:27.010Z"
   }
 }]

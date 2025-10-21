@@ -8,14 +8,12 @@
 </head>
 <body class="login-body">
     <div class="login-container">
-        <img src="https://i.ibb.co/KcNnHLxH/Blessings-Logo.png" alt="Blessings Cafe Logo" class="logo">
+    <img src="/resources/Blessings-Logo.png" alt="Blessings Cafe Logo" class="logo">
         <h1>Blessings Cafe</h1>
 
-        <% if (error) { %>
-            <div class="error login-flash-error"><%= error %></div>
-        <% } %>
+            <div class="error login-flash-error" <%= error ? '' : 'style="display: none;"' %>><%= error || '' %></div>
 
-        <form action="/user/login" method="post">
+        <form action="/user/login" method="post" onsubmit="return validateForm()">
             <div class="form-group">
                 <label for="email">Email</label>
                 <input
@@ -59,5 +57,53 @@
             <a href="/auth/admin/login" class="btn btn-admin">Admin Login</a>
         </div>
     </div>
+
+    <script>
+    function validateForm() {
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const button = document.querySelector('.btn-primary');
+        const errorDiv = document.querySelector('.login-flash-error');
+
+        // Clear previous client-side errors
+        if (errorDiv && errorDiv.classList.contains('client-error')) {
+            errorDiv.style.display = 'none';
+        }
+
+        let errors = [];
+
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!email) {
+            errors.push('Email is required');
+        } else if (!emailRegex.test(email)) {
+            errors.push('Please enter a valid email address');
+        }
+
+        // Password validation
+        if (!password) {
+            errors.push('Password is required');
+        } else if (password.length < 6) {
+            errors.push('Password must be at least 6 characters');
+        }
+
+        if (errors.length > 0) {
+            if (errorDiv) {
+                errorDiv.textContent = errors.join('. ');
+                errorDiv.style.display = 'block';
+                errorDiv.classList.add('client-error'); // Mark as client error
+            }
+            return false; // Prevent form submission
+        }
+
+        // Show loading state
+        if (button) {
+            button.disabled = true;
+            button.textContent = 'Signing In...';
+        }
+
+        return true; // Allow submission
+    }
+    </script>
 </body>
 </html>

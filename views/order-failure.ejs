@@ -1,0 +1,82 @@
+<link rel="stylesheet" href="/css/site-public.css">
+
+<div class="failure-container">
+  <div class="failure-icon">❌</div>
+  <h1>Payment Failed</h1>
+  <p>We couldn't process your payment, <%= user ? user.name : 'Valued Customer' %>.</p>
+  <p>Please try again or contact support if the problem persists.</p>
+  <div class="order-details">
+    <p><strong>Order ID:</strong> <%= orderId %></p>
+  </div>
+  <div class="failure-actions">
+    <a href="/checkout" class="btn btn-primary">Try Again</a>
+    <a href="/" class="btn btn-secondary">Back to Store</a>
+  </div>
+</div>
+
+<style>
+  .failure-container {
+    max-width: 600px;
+    margin: 50px auto;
+    text-align: center;
+    padding: 40px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .failure-icon {
+    font-size: 4em;
+    margin-bottom: 20px;
+  }
+
+  .failure-container h1 {
+    color: #dc3545;
+    margin-bottom: 20px;
+  }
+
+  .failure-container p {
+    color: #666;
+    margin-bottom: 20px;
+  }
+
+  .order-details {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+  }
+
+  .failure-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 12px 30px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background-color 0.3s;
+  }
+
+  .btn-primary {
+    background-color: #007bff;
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background-color: #0056b3;
+  }
+
+  .btn-secondary {
+    background-color: #6c757d;
+    color: white;
+  }
+
+  .btn-secondary:hover {
+    background-color: #545b62;
+  }
+</style>

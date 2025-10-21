@@ -43,16 +43,12 @@ const nocache = (req, res, next) => {
   next();
 };
 
-// Apply login check and nocache to all routes in this file
-router.use(isLoggedIn);
-router.use(nocache);
-
-// User login route
+// User login route (unprotected)
 router.get('/login', (req, res) => {
   if (req.session.user) {
-    return res.redirect('/user/home');
+    return res.redirect('/');
   }
-  res.render('user/login', {
+  res.render('login', {
     title: 'Login | Couche Co',
     layout: false,
     errors: {},
@@ -73,7 +69,7 @@ router.post('/login',
         errors.array().forEach(err => {
           errorsObj[err.param] = err;
         });
-        return res.render('user/login', {
+        return res.render('login', {
           title: 'Login | Couche Co',
           errors: errorsObj,
           error: null,
@@ -87,11 +83,10 @@ router.post('/login',
         client = await MongoClient.connect(uri);
         const db = client.db('blessingscafe');
         const users = db.collection('users');
-
         const user = await users.findOne({ email: req.body.email });
 
         if (!user) {
-          return res.render('user/login', {
+          return res.render('login', {
             title: 'Login | Couche Co',
             errors: {},
             error: 'Invalid email or password',
@@ -102,7 +97,7 @@ router.post('/login',
 
         const isMatch = await bcrypt.compare(req.body.password, user.password);
         if (!isMatch) {
-          return res.render('user/login', {
+          return res.render('login', {
             title: 'Login | Couche Co',
             errors: {},
             error: 'Invalid email or password',
@@ -121,16 +116,16 @@ router.post('/login',
           _id: user._id,
           email: user.email,
           name: user.name || user.email,
-          role: 'user',
-          staffId: user.staffId || generateStaffId('user', user._id),
+          role: user.role || 'user',
+          staffId: user.staffId || generateStaffId(user.role || 'user', user._id),
           username: user.username,
           loginTime: new Date().toISOString()
         };
 
-        res.redirect('/user/home');
+        res.redirect('/');
       } catch (err) {
         console.error('Login error:', err);
-        res.status(500).render('user/login', {
+        res.status(500).render('login', {
           title: 'Login | Couche Co',
           errors: {},
           error: 'An error occurred during login',
@@ -145,7 +140,50 @@ router.post('/login',
     }
 );
 
+// Apply login check and nocache to all routes in this file
+router.use(isLoggedIn);
+router.use(nocache);
 
+// User home route
+router.get('/home', async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const menuCollection = db.collection('Menu');
+
+    // Get all menu items for gallery display
+    const allItems = await menuCollection.find().toArray();
+
+    await client.close();
+
+    // Categorize items
+    const categorizedItems = {};
+    allItems.forEach(item => {
+      const category = item.Category || 'Others';
+      if (!categorizedItems[category]) {
+        categorizedItems[category] = [];
+      }
+      categorizedItems[category].push(item);
+    });
+
+    // Define category order
+    const categoryOrder = ['Coffee', 'Milktea', 'Fruit Tea', 'Pastries'];
+
+    res.render('home', {
+      title: 'Home | Blessings Cafe',
+      user: req.session.user,
+      categorizedItems: categorizedItems,
+      categoryOrder: categoryOrder
+    });
+  } catch (err) {
+    console.error('User home error:', err);
+    res.status(500).render('error', {
+      title: 'Server Error',
+      message: 'Failed to load home page',
+      status: 500
+    });
+  }
+});
 
 // User profile route
 router.get('/profile', async (req, res) => {
@@ -468,6 +506,36 @@ router.get('/management', async (req, res) => {
   res.render('management', {
     currentPage: '/management'
   });
+});
+
+// Checkout route
+router.get('/checkout', nocache, async (req, res) => {
+  try {
+    // Get cart items from UserCart collection
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const cartDoc = await db.collection('UserCart').findOne({ userId: new ObjectId(req.session.user._id) });
+    await client.close();
+
+    const orderItems = (cartDoc && cartDoc.cart) ? cartDoc.cart : [];
+
+    if (orderItems.length === 0) {
+      return res.redirect('/cart');
+    }
+
+    res.render('checkout', {
+      title: 'Checkout | Blessings Cafe',
+      user: req.session.user,
+      orderItems: orderItems
+    });
+  } catch (err) {
+    console.error('Checkout error:', err);
+    res.status(500).render('error', {
+      title: 'Server Error',
+      message: 'Failed to load checkout page',
+      status: 500
+    });
+  }
 });
 
 // User settings route

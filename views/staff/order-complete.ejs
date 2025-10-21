@@ -1,0 +1,143 @@
+<div class="order-complete-container">
+  <div class="success-icon">✅</div>
+  <h1>Order Completed Successfully!</h1>
+  <p><strong>Order ID:</strong> <%= orderId %></p>
+  <p><%= message %></p>
+
+  <% if (order) { %>
+  <div class="order-summary">
+    <h3>Order Summary</h3>
+    <div class="order-details">
+      <p><strong>Customer:</strong> <%= order.Customer.fullname %></p>
+      <p><strong>Contact:</strong> <%= order.Customer.contactnumber %></p>
+      <p><strong>Items:</strong> <%= order.Cart.length %> item(s)</p>
+      <p><strong>Total:</strong> ₱<%= order.Total.toFixed(2) %></p>
+      <% if (order.FulfillmentStatus) { %>
+      <p><strong>Status:</strong>
+        <span class="status-badge <%= order.FulfillmentStatus.toLowerCase() %>">
+          <%= order.FulfillmentStatus %>
+        </span>
+      </p>
+      <% } %>
+    </div>
+  </div>
+  <% } %>
+
+  <div class="action-buttons">
+    <a href="/staff/order" class="btn btn-primary">Back to Orders</a>
+    <a href="/staff/dashboard" class="btn btn-secondary">Go to Dashboard</a>
+  </div>
+</div>
+
+<style>
+  .order-complete-container {
+    max-width: 700px;
+    margin: 50px auto;
+    text-align: center;
+    padding: 40px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .success-icon {
+    font-size: 4em;
+    margin-bottom: 20px;
+  }
+
+  .order-complete-container h1 {
+    color: #28a745;
+    margin-bottom: 20px;
+  }
+
+  .order-summary {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 30px 0;
+    text-align: left;
+  }
+
+  .order-summary h3 {
+    margin-top: 0;
+    color: #333;
+  }
+
+  .order-details p {
+    margin: 8px 0;
+  }
+
+  .status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+
+  .status-badge.completed {
+    background-color: #28a745;
+    color: white;
+  }
+
+  .status-badge.preparing, .status-badge.in-progress, .status-badge.ready {
+    background-color: #ffc107;
+    color: black;
+  }
+
+  .status-badge.cancelled {
+    background-color: #dc3545;
+    color: white;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 12px 24px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background-color 0.3s;
+    min-width: 120px;
+    text-align: center;
+  }
+
+  .btn-primary {
+    background-color: #007bff;
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background-color: #0056b3;
+  }
+
+  .btn-secondary {
+    background-color: #6c757d;
+    color: white;
+  }
+
+  .btn-secondary:hover {
+    background-color: #545b62;
+  }
+
+  @media (max-width: 600px) {
+    .order-complete-container {
+      margin: 20px;
+      padding: 20px;
+    }
+
+    .action-buttons {
+      flex-direction: column;
+    }
+
+    .btn {
+      width: 100%;
+    }
+  }
+</style>

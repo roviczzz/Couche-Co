@@ -491,6 +491,66 @@ router.get('/messages', async (req, res) => {
   }
 });
 
+router.get('/complete-order/:orderId', async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const ordersCollection = db.collection('Orders');
+
+    // Get current order status
+    const order = await ordersCollection.findOne({ OrderID: orderId });
+    if (!order) {
+      await client.close();
+      return res.status(404).render('error', {
+        title: 'Order Not Found',
+        message: 'The order you\'re trying to complete was not found.',
+        status: 404
+      });
+    }
+
+    // Only allow completion if not already completed
+    if (order.FulfillmentStatus === 'Completed') {
+      await client.close();
+      return res.render('staff/order-complete', {
+        title: 'Order Already Completed',
+        layout: 'staff/layout',
+        orderId: orderId,
+        order: order,
+        message: 'This order has already been completed.',
+        currentUser: req.session.user
+      });
+    }
+
+    // Update order status to Completed
+    await ordersCollection.updateOne(
+      { OrderID: orderId },
+      { $set: { FulfillmentStatus: 'Completed', fulfillmentStatus: 'Completed' } }
+    );
+
+    await client.close();
+
+    // Render success page
+    res.render('staff/order-complete', {
+      title: 'Order Completed Successfully',
+      layout: 'staff/layout',
+      orderId: orderId,
+      order: { ...order, FulfillmentStatus: 'Completed' },
+      message: `Order ${orderId} has been marked as completed.`,
+      currentUser: req.session.user
+    });
+
+  } catch (error) {
+    console.error('Error completing order:', error);
+    res.status(500).render('error', {
+      title: 'Server Error',
+      message: 'Failed to complete the order.',
+      status: 500
+    });
+  }
+});
+
 // API Routes for messaging
 // Get conversations for current user
 router.get('/messages/api/conversations', async (req, res) => {

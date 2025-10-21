@@ -1,0 +1,298 @@
+<link rel="stylesheet" href="/css/checkout.css">
+<div class="checkout-container">
+  <div class="checkout-header">
+    <h1>Checkout</h1>
+    <p class="checkout-subtitle">Complete your order in just a few simple steps</p>
+    
+    <div class="checkout-progress">
+      <div class="progress-step">
+        <span class="progress-step-number">1</span>
+        Cart Review
+      </div>
+      <div class="progress-step active">
+        <span class="progress-step-number">2</span>
+        Checkout
+      </div>
+      <div class="progress-step">
+        <span class="progress-step-number">3</span>
+        Payment
+      </div>
+      <div class="progress-step">
+        <span class="progress-step-number">4</span>
+        Confirmation
+      </div>
+    </div>
+  </div>
+
+  <div class="checkout-content">
+    <!-- Shipping/Billing Form -->
+    <div class="checkout-form">
+      <div class="form-section">
+        <div class="form-section-title">Billing Information</div>
+      <form id="checkoutForm">
+        <div class="form-group">
+          <label for="name">Full Name</label>
+          <input type="text" id="name" name="name" value="<%= user.name || '' %>" required>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" value="<%= user.email || '' %>" required>
+        </div>
+
+        <div class="form-group">
+          <label for="phone">Phone Number</label>
+          <input type="tel" id="phone" name="phone" placeholder="09xxxxxxxxx" maxlength="11" required>
+        </div>
+
+        <div class="form-group">
+          <label for="deliveryMethod">Delivery Method</label>
+          <select id="deliveryMethod" name="deliveryMethod" required>
+            <option value="">Select Delivery Method</option>
+            <option value="Pick-up">Pick-up</option>
+            <option value="Delivery">Delivery</option>
+          </select>
+        </div>
+
+        <div class="form-group checkbox-group" id="pickupAgreement" style="display: none;">
+          <div class="checkbox-container">
+            <input type="checkbox" id="pickupAgreed" name="pickupAgreed">
+            <label for="pickupAgreed">I agree to pick up my order within 24 hours from Blessings Cafe.</label>
+          </div>
+          <small style="display: block; color: #666; margin-top: 4px; font-size: 0.85rem;">Valid ID required for pick-up</small>
+        </div>
+
+        <div class="delivery-fields" id="deliveryFields" style="display: none;">
+          <div class="form-group">
+            <label for="city">City Area:</label>
+          <select id="city" name="city">
+            <option value="">Select City Area</option>
+            <option value="Alapan I-C, Imus">Alapan I-C, Imus</option>
+            <option value="Alapan I-B, Imus">Alapan I-B, Imus</option>
+            <option value="Alapan I-A, Imus">Alapan I-A, Imus</option>
+            <option value="Buhay na Tubig, Imus">Buhay na Tubig, Imus</option>
+            <option value="Malagasang, Imus">Malagasang, Imus</option>
+            <option value="Toclong, Kawit">Toclong, Kawit</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="address">Delivery Address</label>
+          <textarea id="address" name="address"></textarea>
+        </div>
+        </div>
+
+        <div class="form-group">
+          <label for="notes">Notes (Optional)</label>
+          <textarea id="notes" name="notes" placeholder="Any special instructions or notes for your order..."></textarea>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Payment Method</div>
+        <div class="payment-methods">
+          <div class="payment-method">
+            <input type="radio" id="gcash" name="paymentMethod" value="GCASH" required>
+            <label for="gcash" class="payment-label">
+              <div class="payment-info">
+                <div class="payment-name">GCash</div>
+                <div class="payment-desc">Pay with your GCash wallet</div>
+              </div>
+            </label>
+          </div>
+
+          <div class="payment-method">
+            <input type="radio" id="maya" name="paymentMethod" value="PAYMAYA" required>
+            <label for="maya" class="payment-label">
+              <div class="payment-info">
+                <div class="payment-name">Maya</div>
+                <div class="payment-desc">Pay with your Maya account</div>
+              </div>
+            </label>
+          </div>
+
+          <div class="payment-method">
+            <input type="radio" id="shopeepay" name="paymentMethod" value="SHOPEEPAY" required>
+            <label for="shopeepay" class="payment-label">
+              <div class="payment-info">
+                <div class="payment-name">ShopeePay</div>
+                <div class="payment-desc">Pay with your ShopeePay balance</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <button type="submit" class="place-order-btn" id="placeOrderBtn">
+          Place Order
+        </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Order Summary -->
+    <div class="order-summary">
+      <h2>Order Summary</h2>
+      <div class="order-items">
+        <% orderItems.forEach(item => { %>
+          <div class="order-item">
+            <div class="item-info">
+              <h3><%= item.name %></h3>
+              <% if (item.size) { %>
+                <p>Size: <%= item.size %></p>
+              <% } %>
+              <% if (item.addons && item.addons.length > 0) { %>
+                <div class="item-addons">
+                  <% item.addons.forEach(addon => { %>
+                    <span class="addon">+ <%= addon.Name || addon.IngredientID %> (₱<%= addon.BasePrice || 0 %>)</span>
+                  <% }) %>
+                </div>
+              <% } %>
+              <p class="quantity">Qty: <%= item.quantity %></p>
+            </div>
+            <div class="item-price">
+              ₱<%= ((item.price || 0) + (item.addons ? item.addons.reduce((sum, ad) => sum + (ad.BasePrice || 0), 0) : 0)) * item.quantity %>.00
+            </div>
+          </div>
+        <% }) %>
+      </div>
+
+      <div class="order-total">
+        <div class="total-row">
+          <span>Total Items:</span>
+          <span><%= orderItems.reduce((sum, item) => sum + item.quantity, 0) %></span>
+        </div>
+        <% const subtotal = orderItems.reduce((sum, item) => {
+            if (item.isFree) return sum;
+            const addonsTotal = item.addons ? item.addons.reduce((sum, ad) => sum + (ad.BasePrice || 0), 0) : 0;
+            return sum + ((item.price + addonsTotal) * item.quantity);
+          }, 0);
+        %>
+        <div class="total-row">
+          <span>Subtotal:</span>
+          <span>₱<%= subtotal.toFixed(2) %></span>
+        </div>
+        <div class="total-row" id="deliveryFeeRow" style="display: none;">
+          <span>Delivery Fee:</span>
+          <span>₱20.00</span>
+        </div>
+        <div class="total-row final-total">
+          <span>Total:</span>
+          <span id="totalAmountDisplay">₱<%= subtotal.toFixed(2) %></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Payment Processing Overlay -->
+<div id="paymentProcessingOverlay" class="payment-overlay hidden">
+  <div class="payment-processing-modal">
+    <div class="processing-header">
+      <h2>Processing Your Order</h2>
+    </div>
+
+    <div class="processing-body">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+      </div>
+
+      <div class="processing-message" id="processingMessage">
+        Creating your order...
+      </div>
+
+      <div class="payment-instructions" id="paymentInstructions" style="display: none;">
+        <h3>Complete Your Payment</h3>
+        <p id="paymentWindowStatus">Please complete your payment in the new tab that just opened.</p>
+        <p>The page will automatically update once payment is confirmed.</p>
+
+        <div id="paymentLinkContainer" class="payment-link-container" style="display: none;">
+          <p><strong>If the payment window didn't open, click here:</strong></p>
+          <a id="paymentUrlLink" href="#" target="_blank" class="payment-url-btn">
+            🖱️ Open Payment Gateway
+          </a>
+        </div>
+
+        <div class="payment-actions">
+          <button id="checkPaymentStatusBtn" class="check-status-btn">
+            Manual Check
+          </button>
+          <button id="closePaymentModalBtn" class="close-modal-btn">
+            Close & Return
+          </button>
+        </div>
+
+        <div class="payment-note">
+          <p><strong>Note:</strong> Don't close this window until payment is complete.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Ensure cart data is available before checkout.js loads
+window.checkoutCartReady = false;
+document.addEventListener('DOMContentLoaded', function() {
+  // Double-check cart is ready
+  const cartData = localStorage.getItem('orderItems');
+  if (cartData) {
+    try {
+      const items = JSON.parse(cartData);
+      if (items && items.length > 0) {
+        window.checkoutCartReady = true;
+        console.log('Checkout cart ready with', items.length, 'items');
+      }
+    } catch (e) {
+      console.log('Could not parse cart data');
+    }
+  }
+
+  // Delivery method toggle
+  const deliveryMethodSelect = document.getElementById('deliveryMethod');
+  deliveryMethodSelect.addEventListener('change', function() {
+    const method = this.value;
+    const pickupAgreement = document.getElementById('pickupAgreement');
+    const deliveryFields = document.getElementById('deliveryFields');
+    const pickupCheckbox = document.getElementById('pickupAgreed');
+    const cityInput = document.getElementById('city');
+    const addressInput = document.getElementById('address');
+    const deliveryFeeRow = document.getElementById('deliveryFeeRow');
+    const totalAmountDisplay = document.getElementById('totalAmountDisplay');
+
+    // Calculate current subtotal (this matches the server-side calculation)
+    const subtotal = parseFloat('<%= orderItems.reduce((sum, item) => { if (item.isFree) return sum; const addonsTotal = item.addons ? item.addons.reduce((sum, ad) => sum + (ad.BasePrice || 0), 0) : 0; return sum + ((item.price + addonsTotal) * item.quantity); }, 0).toFixed(2) %>');
+
+    if (method === 'Pick-up') {
+      pickupAgreement.style.display = 'block';
+      deliveryFields.style.display = 'none';
+      deliveryFeeRow.style.display = 'none';
+      pickupCheckbox.setAttribute('required', '');
+      cityInput.removeAttribute('required');
+      addressInput.removeAttribute('required');
+      // Update total (subtotal only)
+      totalAmountDisplay.textContent = '₱' + subtotal.toFixed(2);
+    } else if (method === 'Delivery') {
+      pickupAgreement.style.display = 'none';
+      deliveryFields.style.display = 'block';
+      deliveryFeeRow.style.display = 'table-row'; // Show delivery fee row
+      pickupCheckbox.removeAttribute('required');
+      cityInput.setAttribute('required', '');
+      addressInput.setAttribute('required', '');
+      // Update total (subtotal + delivery fee)
+      const totalWithDelivery = subtotal + 20;
+      totalAmountDisplay.textContent = '₱' + totalWithDelivery.toFixed(2);
+    } else {
+      // Default/unselected state
+      pickupAgreement.style.display = 'none';
+      deliveryFields.style.display = 'none';
+      deliveryFeeRow.style.display = 'none';
+      pickupCheckbox.removeAttribute('required');
+      cityInput.removeAttribute('required');
+      addressInput.removeAttribute('required');
+      // Update total (subtotal only)
+      totalAmountDisplay.textContent = '₱' + subtotal.toFixed(2);
+    }
+  });
+});
+</script>
+<script src="/js/checkout.js"></script>

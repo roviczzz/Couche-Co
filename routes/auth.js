@@ -38,7 +38,7 @@ function isLoggedIn(req, res, next) {
 router.get('/login', (req, res) => {
   console.log('Login page requested');
   if (req.session.user) {
-    return res.redirect(req.session.user.role === 'admin' ? '/admin/dashboard' : '/user/home');
+    return res.redirect(req.session.user.role === 'admin' ? '/admin/dashboard' : '/');
   }
 
   try {
@@ -120,7 +120,7 @@ router.post('/login',
       };
 
       // Redirect based on role
-      const redirectPath = user.role === 'admin' ? '/admin/dashboard' : '/user/home';
+      const redirectPath = user.role === 'admin' ? '/admin/dashboard' : '/';
       res.redirect(redirectPath);
 
     } catch (error) {
@@ -260,7 +260,7 @@ router.post('/register',
 // Account login route (for legacy compatibility)
 router.get('/account/login', (req, res) => {
   if (req.session.user) {
-    return res.redirect(req.session.user.role === 'admin' ? '/admin/dashboard' : '/user/home');
+    return res.redirect(req.session.user.role === 'admin' ? '/admin/dashboard' : '/');
   }
   res.render('login', {
     title: 'Login | Blessings Cafe',
@@ -374,7 +374,7 @@ router.post('/account/login',
       console.log(`✅ Login successful for user: ${user.username} (ID: ${user._id}) at ${new Date().toISOString()}`);
 
       // Redirect based on role
-      const redirectPath = user.role === 'admin' ? '/admin/dashboard' : '/user/home';
+      const redirectPath = user.role === 'admin' ? '/admin/dashboard' : '/';
       res.redirect(redirectPath);
     } catch (err) {
       console.error('❌ Login error:', err);

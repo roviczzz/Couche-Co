@@ -1,0 +1,353 @@
+<link rel="stylesheet" href="/css/site-public.css">
+
+<div class="success-container">
+  <!-- Header Section - Full Width -->
+  <div class="success-header">
+    <div class="success-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM438 209.7C427.3 201.9 412.3 204.3 404.5 215L285.1 379.2L233 327.1C223.6 317.7 208.4 317.7 199.1 327.1C189.8 336.5 189.7 351.7 199.1 361L271.1 433C276.1 438 282.9 440.5 289.9 440C296.9 439.5 303.3 435.9 307.4 430.2L443.3 243.2C451.1 232.5 448.7 217.5 438 209.7z"/></svg>
+    </div>
+    <h1>Order Successful!</h1>
+    <p>Thank you for your order, <%= user ? user.name : 'Valued Customer' %>!</p>
+    <p>Your order has been placed successfully.</p>
+  </div>
+
+  <!-- Two Column Layout -->
+  <div class="content-columns">
+    <!-- Left Column -->
+    <div class="left-column">
+      <% if (order && order.FulfillmentStatus) { %>
+      <div class="order-progress-section">
+        <h2>Order Progress</h2>
+        <div class="progress-bar-container">
+          <%
+// Define progress levels based on status
+let progressPercentage = 25; // Default preparing
+let statusText = 'Preparing your order';
+if (order.FulfillmentStatus === 'In Progress') {
+  progressPercentage = 50;
+  statusText = 'Your order is being prepared';
+} else if (order.FulfillmentStatus === 'Ready') {
+  progressPercentage = 90;
+  statusText = 'Your order is ready for pickup';
+} else if (order.FulfillmentStatus === 'Completed') {
+  progressPercentage = 100;
+  statusText = 'Order completed successfully';
+}
+%>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: <%= progressPercentage %>%"></div>
+          </div>
+          <div class="progress-text">
+            <span class="progress-percentage"><%= progressPercentage %>%</span>
+            <span class="status-message"><%= statusText %></span>
+          </div>
+        </div>
+        <div class="current-status">
+          <p><strong>Current Status:</strong> <%= order.FulfillmentStatus %></p>
+          <p><small>Status updates will be reflected here in real-time</small></p>
+        </div>
+      </div>
+      <% } %>
+
+      <div class="order-details">
+        <h3>Order Details</h3>
+        <p><strong>Order ID:</strong> <%= orderId %></p>
+        <p>You will receive an email confirmation with your order details.</p>
+        <%
+        if (order && order.Total) {
+        %>
+        <p><strong>Order Total:</strong> ₱<%= order.Total.toFixed(2) %></p>
+        <%
+        }
+        %>
+      </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="right-column">
+      <div class="proof-message">
+        <div class="proof-icon">🛡️</div>
+        <h3>Receipt Proof</h3>
+        <p>You can use this page as proof of payment upon receiving your order. Simply show this confirmation to our staff for verification.</p>
+      </div>
+
+      <% if (order && order.OrderID) { %>
+      <%
+// Generate QR code URL for order completion
+const qrUrl = `${process.env.BASE_URL || 'http://localhost:3000'}/staff/complete-order/${order.OrderID}`;
+%>
+      <div class="qr-section">
+        <h3>Completion QR Code</h3>
+        <p>Show this QR code to staff when receiving your order</p>
+        <div class="qr-code-container" data-url="<%= qrUrl %>">
+          <div id="qr-placeholder" style="width: 150px; height: 150px; background: #f0f0f0; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; margin: 0 auto; padding: 10px;">
+            <div style="text-align: center;">
+              <div style="font-size: 2em; margin-bottom: 5px;">📱</div>
+              <div style="font-size: 12px; color: #666;">Staff Scan URL:</div>
+              <div style="font-size: 10px; color: #007bff; word-break: break-all; margin-top: 5px;"><%= qrUrl %></div>
+            </div>
+          </div>
+        </div>
+        <p><small>This QR code links to order completion and can only be scanned by authorized staff</small></p>
+      </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Footer Section - Full Width -->
+  <div class="success-actions">
+    <a href="/" class="btn btn-primary">Continue Shopping</a>
+    <a href="/cart" class="btn btn-secondary">Back to Cart</a>
+  </div>
+<!-- Hidden data for JavaScript -->
+<div id="order-data" data-order-id="<%= orderId %>" style="display:none;"></div>
+
+<!-- Status poller will auto-initialize when this loads -->
+<script src="/js/order-status-poller.js"></script>
+
+<style>
+  .success-container {
+    max-width: 1000px;
+    margin: 50px auto;
+    padding: 40px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .success-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .content-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 40px;
+  }
+
+  .left-column,
+  .right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .success-actions {
+    text-align: center;
+  }
+
+  .success-icon {
+    margin-bottom: 20px;
+  }
+
+  .success-icon svg {
+    width: 80px;
+    height: 80px;
+    color: #28a745;
+    fill: #28a745;
+  }
+
+  .success-container h1 {
+    color: #28a745;
+    margin-bottom: 20px;
+  }
+
+  .success-container p {
+    color: #666;
+    margin-bottom: 20px;
+  }
+
+  .order-details {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+  }
+
+  .order-details h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #333;
+  }
+
+  .success-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 12px 30px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background-color 0.3s;
+  }
+
+  .btn-primary {
+    background-color: #8B4513;
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background-color: #8B4513;
+  }
+
+  .btn-secondary {
+    background-color: #6c757d;
+    color: white;
+  }
+
+  .btn-secondary:hover {
+    background-color: #545b62;
+  }
+
+  /* Order Progress Section */
+  .order-progress-section {
+    background-color: #f8f9fa;
+    padding: 25px;
+    border-radius: 8px;
+  }
+
+  .order-progress-section h2 {
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 1.4em;
+  }
+
+  .progress-bar-container {
+    margin-bottom: 15px;
+  }
+
+  .progress-bar {
+    width: 100%;
+    height: 20px;
+    background-color: #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+    border-radius: 10px;
+    transition: width 0.3s ease;
+  }
+
+  .progress-text {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .progress-percentage {
+    font-weight: bold;
+    color: #28a745;
+    font-size: 1.2em;
+  }
+
+  .status-message {
+    color: #666;
+    font-style: italic;
+  }
+
+  .current-status {
+    text-align: left;
+  }
+
+  .current-status p {
+    margin: 5px 0;
+  }
+
+  /* Proof Message */
+  .proof-message {
+    background-color: #e7f3ff;
+    border: 1px solid #b3d9ff;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .proof-icon {
+    font-size: 2em;
+    margin-bottom: 10px;
+  }
+
+  .proof-message h3 {
+    color: #0066cc;
+    margin-bottom: 10px;
+  }
+
+  .proof-message p {
+    color: #0052a3;
+    margin: 0;
+  }
+
+  /* QR Code Section */
+  .qr-section {
+    background-color: #fff3cd;
+    border: 1px solid #ffecb5;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .qr-section h3 {
+    color: #856404;
+    margin-bottom: 10px;
+  }
+
+  .qr-code-container {
+    margin: 15px 0;
+  }
+
+  .qr-code-container img,
+  .qr-code-container canvas {
+    border: 3px solid #856404;
+    border-radius: 8px;
+    background: white;
+    padding: 5px;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .success-container {
+      margin: 20px;
+      padding: 20px;
+    }
+
+    .content-columns {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    .progress-text {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 5px;
+    }
+
+    .success-actions {
+      flex-direction: column;
+    }
+
+    .btn {
+      width: 100%;
+      text-align: center;
+    }
+  }
+
+  @media (max-width: 992px) and (min-width: 769px) {
+    .success-container {
+      max-width: 800px;
+    }
+    
+    .content-columns {
+      gap: 25px;
+    }
+  }
+</style>

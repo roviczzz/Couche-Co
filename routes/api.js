@@ -17,14 +17,10 @@ function isLoggedIn(req, res, next) {
 
 router.get('/addons', async (req, res) => {
   try {
-    console.log('Fetching add-ons...');
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
 
     const addOns = await db.collection('Add-ons').find({ isEnabled: true }).toArray();
-
-    console.log('Found add-ons:', addOns.length);
-    console.log('Add-ons data:', addOns);
 
     await client.close();
     res.json(addOns);
@@ -50,37 +46,113 @@ router.post('/xendit/create-payment', async (req, res) => {
   try {
     const invoicePayload = req.body
 
+    // Check API configuration
+    const apiKey = process.env.XENDIT_SECRET_KEY || 'xnd_development_9YDHJULGUWulhmoYgQxildVQ3EWsAeviiJHwF3PSi9zmNcCKll8zEP3thAc5VvD9'
+
+    // Validate payload structure
+    const requiredFields = ['external_id', 'amount', 'currency', 'customer']
+    const missing = requiredFields.filter(field => !invoicePayload[field])
+    if (missing.length > 0) {
+      console.error('❌ Missing required fields:', missing)
+      return res.status(400).json({
+        error: 'Invalid request data',
+        message: `Missing required fields: ${missing.join(', ')}`,
+        details: 'Request payload validation failed'
+      })
+    }
+
+    console.log('📤 Sending request to Xendit...')
+    const authHeader = `Basic ${Buffer.from(apiKey + ':').toString('base64')}`
+    console.log('🔐 Authorization header:', authHeader.substring(0, 20) + '...')
+    console.log('📦 Request body:', JSON.stringify(invoicePayload, null, 2))
+
     const response = await fetch(`${XENDIT_API_URL}/invoices`, {
       method: 'POST',
       headers: {
-        'Authorization': `Basic ${Buffer.from(XENDIT_SECRET_KEY + ':').toString('base64')}`,
+        'Authorization': authHeader,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(invoicePayload)
     })
 
+    console.log('📥 Xendit response status:', response.status)
+    console.log('📥 Xendit response headers:', Object.fromEntries(response.headers.entries()))
+
+    const responseText = await response.text()
+    console.log('📄 Raw response:', responseText)
+
     if (!response.ok) {
-      const errorData = await response.text()
-      console.error('Xendit API Error:', errorData)
-      return res.status(response.status).json({
-        error: 'Failed to create payment',
-        details: errorData
+      console.error('❌ INVOICE CREATION FAILED')
+      console.error('Status:', response.status)
+      console.error('Response:', responseText)
+
+      try {
+        const errorJson = JSON.parse(responseText)
+        console.error('Parsed error:', errorJson)
+      } catch (e) {
+        console.error('Could not parse error response')
+      }
+
+      // Return user-friendly error
+      return res.status(400).json({
+        error: 'Payment setup failed',
+        message: 'Unable to prepare payment. Please try again or contact support.',
+        details: `Xendit API error: ${response.status}`
       })
     }
 
-    const paymentData = await response.json()
+    let paymentData
+    try {
+      paymentData = JSON.parse(responseText)
+      console.log('✅ INVOICE CREATED SUCCESSFULLY')
+      console.log('🔹 Invoice ID:', paymentData.id)
+      console.log('🔹 External ID:', paymentData.external_id)
+      console.log('🔹 Invoice URL:', paymentData.invoice_url)
+      console.log('🔹 Status:', paymentData.status)
+      console.log('===================================================\n')
+    } catch (e) {
+      console.error('❌ Failed to parse successful response:', responseText)
+      return res.status(500).json({
+        error: 'Response parsing error',
+        message: 'Payment created but response was invalid.'
+      })
+    }
+
     res.json(paymentData)
   } catch (error) {
-    console.error('Error creating Xendit payment:', error)
-    res.status(500).json({ error: 'Internal server error' })
+    console.error('💥 UNEXPECTED ERROR in invoice creation:', error)
+    console.log('===================================================\n')
+    res.status(500).json({
+      error: 'Unexpected error',
+      message: 'An unexpected error occurred. Please try again or contact support.'
+    })
   }
 })
 
-router.get('/xendit/check-payment/:paymentId', async (req, res) => {
+router.get('/xendit/check-payment-by-order/:OrderID', async (req, res) => {
   try {
-    const { paymentId } = req.params
+    const { OrderID } = req.params
 
-    const response = await fetch(`${XENDIT_API_URL}/invoices/${paymentId}`, {
+    console.log('Checking payment status for OrderID:', OrderID)
+
+    // Get the invoice ID from the order
+    const client = await MongoClient.connect(uri)
+    const db = client.db('blessingscafe')
+    const order = await db.collection('Orders').findOne({ OrderID: OrderID })
+    await client.close()
+
+    if (!order || !order.XenditPaymentID) {
+      return res.status(400).json({
+        error: 'Payment not found',
+        message: 'This order may not have been properly processed for payment. Please contact customer support.',
+        details: 'Invoice ID not found in order'
+      })
+    }
+
+    const invoiceId = order.XenditPaymentID
+    console.log('Using Xendit Invoice ID:', invoiceId)
+
+    const response = await fetch(`${XENDIT_API_URL}/invoices/${invoiceId}`, {
       method: 'GET',
       headers: {
         'Authorization': `Basic ${Buffer.from(XENDIT_SECRET_KEY + ':').toString('base64')}`,
@@ -88,9 +160,26 @@ router.get('/xendit/check-payment/:paymentId', async (req, res) => {
       }
     })
 
+    console.log('Xendit API response status:', response.status)
+
     if (!response.ok) {
       const errorData = await response.text()
-      console.error('Xendit API Error:', errorData)
+      console.error('Xendit check-payment error:', {
+        status: response.status,
+        OrderID: OrderID,
+        invoiceId: invoiceId,
+        error: errorData
+      })
+
+      // Handle specific error cases
+      if (response.status === 400) {
+        return res.status(400).json({
+          error: 'Payment not found',
+          message: 'This order may not have been properly processed for payment. Please contact customer support.',
+          details: 'Invoice not found in Xendit'
+        })
+      }
+
       return res.status(response.status).json({
         error: 'Failed to check payment status',
         details: errorData
@@ -98,10 +187,14 @@ router.get('/xendit/check-payment/:paymentId', async (req, res) => {
     }
 
     const paymentData = await response.json()
+    console.log('Payment data retrieved:', paymentData.status)
     res.json(paymentData)
   } catch (error) {
     console.error('Error checking payment status:', error)
-    res.status(500).json({ error: 'Internal server error' })
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Unable to verify payment. Please try again or contact support.'
+    })
   }
 })
 
@@ -113,6 +206,8 @@ router.post('/xendit/webhook', express.raw({type: 'application/json'}), (req, re
 
     if (payload.status === 'PAID') {
       console.log(`Payment completed for invoice: ${payload.external_id}`)
+      // Update order status in database
+      updateOrderAfterPayment(payload.external_id)
     }
 
     res.status(200).send('OK')
@@ -121,6 +216,27 @@ router.post('/xendit/webhook', express.raw({type: 'application/json'}), (req, re
     res.status(400).send('Bad Request')
   }
 })
+
+// Helper function to update order after payment
+async function updateOrderAfterPayment(externalId) {
+  try {
+    const client = await MongoClient.connect(uri)
+    const db = client.db('blessingscafe')
+    const result = await db.collection('Orders').updateOne(
+      { OrderID: externalId },
+      {
+        $set: {
+          PaymentStatus: 'Paid',
+          FulfillmentStatus: 'Preparing' // or 'Ready for Processing'
+        }
+      }
+    )
+    console.log(`Updated order ${externalId} payment status: ${result.matchedCount} matched`)
+    await client.close()
+  } catch (error) {
+    console.error('Error updating order after payment:', error)
+  }
+}
 
 router.post('/orders', async (req, res) => {
   try {
@@ -145,17 +261,17 @@ router.post('/orders', async (req, res) => {
 });
 
 router.post('/orders/update-payment-status', async (req, res) => {
-  const { paymentId, status } = req.body;
-  if (!paymentId || !status) {
-    return res.status(400).json({ success: false, error: 'Missing paymentId or status.' });
+  const { paymentId, invoiceId, status } = req.body;
+  if (!paymentId || !invoiceId || !status) {
+    return res.status(400).json({ success: false, error: 'Missing paymentId, invoiceId or status.' });
   }
   try {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
     const orders = db.collection('Orders');
     const result = await orders.updateOne(
-        { XenditPaymentID: paymentId },
-        { $set: { PaymentStatus: status } }
+        { OrderID: paymentId },
+        { $set: { PaymentStatus: status, XenditPaymentID: invoiceId } }
     );
     await client.close();
     if (result.matchedCount === 0) {
@@ -326,6 +442,60 @@ router.patch('/orders/:OrderID/restore', async (req, res) => {
   } catch (error) {
     console.error('Error restoring order:', error);
     return res.status(500).json({ error: 'Server error while restoring order' });
+  }
+});
+
+router.get('/orders/:orderId/status', async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const ordersCollection = db.collection('Orders');
+
+    const order = await ordersCollection.findOne({ OrderID: orderId });
+
+    if (!order) {
+      await client.close();
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    // Calculate progress percentage based on FulfillmentStatus
+    let progressPercentage = 25; // Default preparing
+    let statusText = 'Preparing your order';
+    switch (order.FulfillmentStatus) {
+      case 'Preparing':
+        progressPercentage = 25;
+        statusText = 'Preparing your order';
+        break;
+      case 'In Progress':
+        progressPercentage = 50;
+        statusText = 'Your order is being prepared';
+        break;
+      case 'Ready':
+        progressPercentage = 90;
+        statusText = 'Your order is ready for pickup';
+        break;
+      case 'Completed':
+        progressPercentage = 100;
+        statusText = 'Order completed successfully';
+        break;
+      default:
+        progressPercentage = 25;
+        statusText = 'Preparing your order';
+    }
+
+    await client.close();
+
+    res.json({
+      FulfillmentStatus: order.FulfillmentStatus,
+      PaymentStatus: order.PaymentStatus,
+      progressPercentage: progressPercentage,
+      statusText: statusText,
+      orderId: order.OrderID
+    });
+  } catch (error) {
+    console.error('Error fetching order status:', error);
+    res.status(500).json({ error: 'Failed to fetch order status' });
   }
 });
 
@@ -888,6 +1058,85 @@ router.get('/search', async (req, res) => {
   } catch (err) {
     console.error('Error in product search:', err);
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Simple cache for user carts
+const cartCache = new Map();
+const CART_CACHE_DURATION = 30 * 1000; // 30 seconds
+
+router.get('/cart', isLoggedIn, async (req, res) => {
+  try {
+    const userId = req.session.user._id;
+    const cacheKey = `cart_${userId}`;
+    const now = Date.now();
+
+    // Check cache
+    if (cartCache.has(cacheKey)) {
+      const { data, timestamp } = cartCache.get(cacheKey);
+      if (now - timestamp < CART_CACHE_DURATION) {
+        return res.json(data);
+      } else {
+        cartCache.delete(cacheKey);
+      }
+    }
+
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const cartDoc = await db.collection('UserCart').findOne({
+      userId: new ObjectId(userId)
+    });
+    await client.close();
+
+    const cartData = cartDoc ? cartDoc.cart : [];
+    // Cache the result
+    cartCache.set(cacheKey, { data: cartData, timestamp: now });
+
+    res.json(cartData);
+  } catch (err) {
+    console.error('Error getting cart:', err);
+    res.status(500).json([]);
+  }
+});
+
+router.post('/cart', isLoggedIn, async (req, res) => {
+  try {
+    const userId = req.session.user._id;
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    await db.collection('UserCart').updateOne(
+      { userId: new ObjectId(userId) },
+      { $set: { cart: req.body || [] } },
+      { upsert: true }
+    );
+    await client.close();
+    // Invalidate cache
+    cartCache.delete(`cart_${userId}`);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error saving cart:', err);
+    res.status(500).json({ success: false });
+  }
+});
+
+router.delete('/cart', isLoggedIn, async (req, res) => {
+  try {
+    const userId = req.session.user._id;
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const result = await db.collection('UserCart').deleteOne({
+      userId: new ObjectId(userId)
+    });
+    await client.close();
+    // Invalidate cache
+    cartCache.delete(`cart_${userId}`);
+    res.json({
+      success: true,
+      deletedCount: result.deletedCount
+    });
+  } catch (err) {
+    console.error('Error deleting cart:', err);
+    res.status(500).json({ success: false });
   }
 });
 

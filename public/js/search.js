@@ -8,28 +8,35 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Show search popup
     function showSearchPopup() {
-        searchPopup.classList.add('active');
-        searchInput.focus(); // Focus the input when opened
+        if (searchPopup) searchPopup.classList.add('active');
+        if (searchInput) searchInput.focus(); // Focus the input when opened
     }
 
     // Hide search popup
     function hideSearchPopup() {
-        searchPopup.classList.remove('active');
-        searchResults.innerHTML = '';
-        searchInput.value = '';
+        if (searchPopup) searchPopup.classList.remove('active');
+        if (searchResults) {
+            searchResults.innerHTML = '';
+            searchResults.style.display = 'none';
+        }
+        if (searchInput) searchInput.value = '';
     }
 
     // Event listeners for show/hide
-    searchLink.addEventListener('click', function(e) {
-        e.preventDefault();
-        showSearchPopup();
-    });
+    if (searchLink) {
+        searchLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            showSearchPopup();
+        });
+    }
 
-    searchClose.addEventListener('click', hideSearchPopup);
+    if (searchClose) {
+        searchClose.addEventListener('click', hideSearchPopup);
+    }
 
     // Hide on ESC key
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && searchPopup.classList.contains('active')) {
+        if (e.key === 'Escape' && searchPopup && searchPopup.classList.contains('active')) {
             hideSearchPopup();
         }
     });

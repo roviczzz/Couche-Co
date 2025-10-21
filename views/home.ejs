@@ -26,7 +26,7 @@ function scrollToMenu() {
                 <div class="gallery-item" onclick="window.location.href='/product/<%= item.ProductID %>'" style="cursor: pointer;">
                     <div class="gallery-image">
                         <% if (item.imagelink && item.imagelink.length > 0) { %>
-                            <img src="<%= item.imagelink %>" alt="<%= item.Name %>">
+                            <img src="<%= item.imagelink %>" alt="<%= item.Name %>" loading="lazy" onerror="this.alt='Image not available'; this.style.display='none';">
                         <% } else { %>
                             <div class="no-image">No Image</div>
                         <% } %>

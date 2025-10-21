@@ -25,8 +25,16 @@ router.get('/', async (req, res) => {
     const db = client.db('blessingscafe');
     const menuCollection = db.collection('Menu');
 
-    // Get all menu items for gallery display
-    const allItems = await menuCollection.find().toArray();
+    // Check cache for menu items
+    const now = Date.now();
+    let allItems;
+    if (!cachedMenuItems || (now - menuCacheTimestamp) > CACHE_DURATION) {
+      allItems = await menuCollection.find().toArray();
+      cachedMenuItems = allItems;
+      menuCacheTimestamp = now;
+    } else {
+      allItems = cachedMenuItems;
+    }
 
     await client.close();
 
@@ -51,16 +59,14 @@ router.get('/', async (req, res) => {
         title: 'Home | Blessings Cafe',
         user: req.session.user,
         categorizedItems: categorizedItems,
-        categoryOrder: categoryOrder,
-        layout: 'layout'
+        categoryOrder: categoryOrder
       });
     }
     return res.render('home', {
       title: 'Home | Blessings Cafe',
       user: null,
       categorizedItems: categorizedItems,
-      categoryOrder: categoryOrder,
-      layout: 'layout'
+      categoryOrder: categoryOrder
     });
   } catch (err) {
     console.error('Home page error:', err);
@@ -77,8 +83,7 @@ router.get('/', async (req, res) => {
 router.get('/about', (req, res) => {
   res.render('about', {
     title: 'About Us | Blessings Cafe',
-    user: req.session?.user || null,
-    layout: 'layout'
+    user: req.session?.user || null
   });
 });
 
@@ -86,8 +91,7 @@ router.get('/about', (req, res) => {
 router.get('/contact', (req, res) => {
   res.render('contact', {
     title: 'Contact Us | Blessings Cafe',
-    user: req.session?.user || null,
-    layout: 'layout'
+    user: req.session?.user || null
   });
 });
 
@@ -134,13 +138,22 @@ router.get('/menu', async (req, res) => {
     res.render('menu', {
       menuItems,
       title: 'Menu | Blessings Cafe',
-      user: req.session?.user || null,
-      layout: 'layout'
+      user: req.session?.user || null
     });
   } catch (err) {
     res.status(500).send('Internal Server Error');
   }
 });
+
+// Simple cache for add-ons and ingredients
+let cachedAddons = null;
+let cachedIngredients = null;
+let cacheTimestamp = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+// Cache for menu items
+let cachedMenuItems = null;
+let menuCacheTimestamp = 0;
 
 // Product page
 router.get('/product/:id', async (req, res) => {
@@ -163,22 +176,26 @@ router.get('/product/:id', async (req, res) => {
       return res.status(404).send('Product not found');
     }
 
-    // Fetch add-ons for the product page
-    const addons = await db.collection('Add-ons').find({ isEnabled: true }).toArray();
-
-    // Fetch ingredients for the product page
-    const ingredients = await db.collection('Ingredients').find({ isEnabled: true }).toArray();
+    // Check cache for add-ons and ingredients
+    const now = Date.now();
+    if (!cachedAddons || !cachedIngredients || (now - cacheTimestamp) > CACHE_DURATION) {
+      [cachedAddons, cachedIngredients] = await Promise.all([
+        db.collection('Add-ons').find({ isEnabled: true }).toArray(),
+        db.collection('Ingredients').find({ isEnabled: true }).toArray()
+      ]);
+      cacheTimestamp = now;
+    } else {
+    }
 
     await client.close();
 
     res.render('product', {
       product,
-      addons,
-      ingredients,
+      addons: cachedAddons,
+      ingredients: cachedIngredients,
       title: `${product.Name} | Blessings Cafe`,
       user: req.session?.user || null,
-      extraCSS: '/css/product.css',
-      layout: 'layout'
+      extraCSS: '/css/product.css'
     });
   } catch (err) {
     console.error('Product page error:', err);
@@ -191,7 +208,53 @@ router.get('/cart', (req, res) => {
   res.render('cart', {
     title: 'Cart | Blessings Cafe',
     user: req.session?.user || null,
-    layout: 'layout'
+    orderItems: req.session.cart || []
+  });
+});
+
+// Order success page
+router.get('/order/success', async (req, res) => {
+  const { orderId } = req.query;
+  const client = await MongoClient.connect(uri);
+  const db = client.db('blessingscafe');
+  const ordersCollection = db.collection('Orders');
+
+  try {
+    const order = await ordersCollection.findOne({ OrderID: orderId });
+    await client.close();
+
+    if (!order) {
+      return res.status(404).render('error', {
+        title: 'Order Not Found',
+        message: 'Could not find order details.',
+        status: 404
+      });
+    }
+
+    res.render('order-success', {
+      title: 'Order Success | Blessings Cafe',
+      user: req.session?.user || null,
+      order: order,
+      orderId: orderId || 'Unknown'
+    });
+  } catch (err) {
+    console.error('Order success page error:', err);
+    await client.close();
+    res.status(500).render('error', {
+      title: 'Server Error',
+      message: 'Failed to load order details',
+      status: 500
+    });
+  }
+});
+
+// Order failure page
+router.get('/order/failure', (req, res) => {
+  const { orderId } = req.query;
+  res.render('order-failure', {
+    title: 'Order Failed | Blessings Cafe',
+    user: req.session?.user || null,
+    orderId: orderId || 'Unknown'
   });
 });
 

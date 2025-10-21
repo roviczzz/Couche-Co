@@ -9,6 +9,23 @@ document.addEventListener('DOMContentLoaded', function() {
   if (typeof updateCartCount === 'function') {
     updateCartCount();
   }
+
+  // Handle checkout button click
+  const checkoutBtn = document.getElementById('checkout-btn');
+  if (checkoutBtn) {
+    checkoutBtn.addEventListener('click', function() {
+      console.log('Checkout button clicked, window.user:', window.user);
+      if (!window.user) {
+        // Redirect to login if not logged in
+        console.log('Redirecting to login');
+        window.location.href = '/auth/login';
+      } else {
+        // Redirect to checkout if logged in
+        console.log('Redirecting to /user/checkout');
+        window.location.href = '/user/checkout';
+      }
+    });
+  }
 });
 
 // Display cart items
@@ -18,7 +35,7 @@ function displayCartItems() {
   const checkoutBtn = document.getElementById('checkout-btn');
 
   if (orderItems.length === 0) {
-    checkoutBtn.style.display = 'none';
+    if (checkoutBtn) checkoutBtn.style.display = 'none';
     cartItemsContainer.innerHTML = `
       <div class="empty-cart">
         <h3>Your cart is empty</h3>
@@ -30,7 +47,7 @@ function displayCartItems() {
     return;
   }
 
-  checkoutBtn.style.display = 'block';
+  if (checkoutBtn) checkoutBtn.style.display = 'block';
 
   let itemsHTML = '';
   orderItems.forEach((item, index) => {
@@ -155,17 +172,27 @@ function updateCartTotal() {
   }, 0);
 
   cartTotalContainer.innerHTML = `
-    <h3>Total</h3>
-    <div>
-      <p><strong>Total Items:</strong> ${totalItems}</p>
-      <p><strong>Total Price:</strong> ₱${totalPrice.toFixed(2)}</p>
+    <div">
+      <p>Subtotal: ₱${totalPrice.toFixed(2)} PHP</p>
+      <p style="font-size: 1rem;">Shipping calculated at checkout</p>
     </div>
   `;
 }
 
-// Save cart to localStorage
+// Save cart to localStorage and server for logged-in users
 function saveCart() {
   localStorage.setItem('orderItems', JSON.stringify(orderItems));
+
+  // Sync with server for logged-in users
+  if (window.user && window.user._id) {
+    fetch('/api/cart', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(orderItems)
+    }).catch(err => console.error('Error saving cart to server:', err));
+  }
 }
 
 // Clear cart (if needed for testing)

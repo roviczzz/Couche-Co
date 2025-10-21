@@ -144,6 +144,17 @@ function saveOrderItems() {
     if (typeof window.updateCartCount === 'function') {
         window.updateCartCount();
     }
+
+    // Sync with server for logged-in users
+    if (window.user && window.user._id) {
+        fetch('/api/cart', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(orderItems)
+        }).catch(err => console.error('Error saving cart to server:', err));
+    }
 }
 
 // Add item to order (similar to menu.js addToOrder)
