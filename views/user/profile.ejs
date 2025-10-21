@@ -1,0 +1,768 @@
+<div class="profile-modal-overlay" id="profileModal" style="display: none;">
+  <div class="profile-modal">
+    <div class="modal-header">
+      <h2>My Profile</h2>
+      <button class="modal-close-btn" onclick="closeProfileModal()">&times;</button>
+    </div>
+
+    <div class="profile-content">
+      <!-- Sidebar Navigation -->
+      <div class="profile-sidebar">
+        <div class="sidebar-nav">
+          <button class="nav-item active" data-section="orders">
+            <i class="fas fa-receipt"></i> Order History
+          </button>
+          <button class="nav-item" data-section="settings">
+            <i class="fas fa-user-cog"></i> Account Settings
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="profile-main">
+        <!-- Order History Section -->
+        <div class="profile-section" id="orders-section">
+          <div class="section-header">
+            <h3>Order History</h3>
+            <p>View all your previous orders</p>
+          </div>
+
+          <div class="orders-table-container">
+            <% if (orders && orders.length > 0) { %>
+              <table class="orders-table">
+                <thead>
+                  <tr>
+                    <th>Order ID</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% orders.forEach(order => { %>
+                    <tr class="order-row" onclick="viewOrderDetails('<%= order.OrderID %>')" style="cursor: pointer;">
+                      <td><%= order.OrderID %></td>
+                      <td><%= order.CreationTime ? new Date(order.CreationTime).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A' %></td>
+                      <td>
+                        <span class="status-badge status-<%= order.FulfillmentStatus ? order.FulfillmentStatus.toLowerCase().replace(' ', '-') : 'unknown' %>">
+                          <%= order.FulfillmentStatus || 'Unknown' %>
+                        </span>
+                      </td>
+                      <td>₱<%= order.Total ? order.Total.toFixed(2) : '0.00' %></td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            <% } else { %>
+              <div class="no-orders">
+                <i class="fas fa-shopping-bag"></i>
+                <h4>No orders found</h4>
+                <p>You haven't placed any orders yet.</p>
+                <a href="/menu" class="btn-primary">Start Shopping</a>
+              </div>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Account Settings Section -->
+        <div class="profile-section" id="settings-section" style="display: none;">
+          <div class="section-header">
+            <h3>Account Settings</h3>
+            <p>Manage your personal information</p>
+          </div>
+
+          <div class="settings-form-container">
+            <form id="profileForm" class="settings-form">
+              <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" value="<%= userDoc?.fullname || user.name || '' %>" placeholder="Juan Dela Cruz" data-original="<%= userDoc?.fullname || user.name || '' %>" required>
+                <div class="field-error" id="name-error"></div>
+              </div>
+
+              <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" value="<%= user.email || '' %>" data-original="<%= user.email || '' %>" required>
+                <div class="field-error" id="email-error"></div>
+              </div>
+
+              <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" name="phone" value="<%= userDoc?.phone || '' %>" data-original="<%= userDoc?.phone || '' %>" placeholder="09xxxxxxxxx" maxlength="11">
+                <div class="field-error" id="phone-error"></div>
+              </div>
+
+              <div class="form-group">
+                <label for="city">City Area</label>
+                <select id="city" name="city" data-original="<%= userDoc?.city || '' %>">
+                  <option value="">Select City Area</option>
+                  <option value="Alapan I-C, Imus" <%= (userDoc?.city === 'Alapan I-C, Imus') ? 'selected' : '' %>>Alapan I-C, Imus</option>
+                  <option value="Alapan I-B, Imus" <%= (userDoc?.city === 'Alapan I-B, Imus') ? 'selected' : '' %>>Alapan I-B, Imus</option>
+                  <option value="Alapan I-A, Imus" <%= (userDoc?.city === 'Alapan I-A, Imus') ? 'selected' : '' %>>Alapan I-A, Imus</option>
+                  <option value="Buhay na Tubig, Imus" <%= (userDoc?.city === 'Buhay na Tubig, Imus') ? 'selected' : '' %>>Buhay na Tubig, Imus</option>
+                  <option value="Malagasang, Imus" <%= (userDoc?.city === 'Malagasang, Imus') ? 'selected' : '' %>>Malagasang, Imus</option>
+                  <option value="Toclong, Kawit" <%= (userDoc?.city === 'Toclong, Kawit') ? 'selected' : '' %>>Toclong, Kawit</option>
+                </select>
+                <div class="field-error" id="city-error"></div>
+              </div>
+
+              <div class="form-group">
+                <label for="address">Delivery Address</label>
+                <textarea id="address" name="address" rows="3" placeholder="Complete delivery address" data-original="<%= userDoc?.address || '' %>"><%= userDoc?.address || '' %></textarea>
+                <div class="field-error" id="address-error"></div>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn-primary" id="saveBtn">
+                  <i class="fas fa-save"></i> Save Changes
+                </button>
+                <button type="button" class="btn-secondary" onclick="resetForm()">
+                  <i class="fas fa-undo"></i> Reset
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Success/Error message container -->
+<div id="messageContainer" class="message-container" style="display: none;">
+  <div class="message-content">
+    <span id="messageText"></span>
+    <button onclick="hideMessage()">&times;</button>
+  </div>
+</div>
+
+<style>
+  /* Modal Overlay */
+  .profile-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+
+  .profile-modal {
+    background: white;
+    border-radius: 12px;
+    max-width: 90vw;
+    max-height: 90vh;
+    width: 1000px;
+    height: 700px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e1e5e9;
+    background: #f8f9fa;
+  }
+
+  .modal-header h2 {
+    margin: 0;
+    color: #333;
+    font-size: 24px;
+  }
+
+  .modal-close-btn {
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: #666;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+  }
+
+  .modal-close-btn:hover {
+    background: #e9ecef;
+    color: #333;
+  }
+
+  .profile-content {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* Sidebar */
+  .profile-sidebar {
+    width: 250px;
+    background: #f8f9fa;
+    border-right: 1px solid #e1e5e9;
+    padding: 24px 0;
+  }
+
+  .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 24px;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    color: #666;
+    font-size: 16px;
+    transition: all 0.2s;
+  }
+
+  .nav-item:hover {
+    background: #e9ecef;
+    color: #a05c2f;
+  }
+
+  .nav-item.active {
+    background: #a05c2f;
+    color: white;
+  }
+
+  .nav-item i {
+    width: 20px;
+    text-align: center;
+  }
+
+  /* Main Content */
+  .profile-main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+  }
+
+  .profile-section {
+    height: 100%;
+  }
+
+  .section-header {
+    margin-bottom: 24px;
+  }
+
+  .section-header h3 {
+    margin: 0 0 8px 0;
+    color: #333;
+    font-size: 20px;
+  }
+
+  .section-header p {
+    margin: 0;
+    color: #666;
+  }
+
+  /* Orders Table */
+  .orders-table-container {
+    height: calc(100% - 80px);
+    overflow-y: auto;
+  }
+
+  .orders-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+  }
+
+  .orders-table th,
+  .orders-table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid #e1e5e9;
+  }
+
+  .orders-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .orders-table tr:hover {
+    background: #f8f9fa;
+  }
+
+  .status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .status-badge.status-preparing {
+    background: #fff3cd;
+    color: #856404;
+  }
+
+  .status-badge.status-in-progress {
+    background: #cce5ff;
+    color: #004085;
+  }
+
+  .status-badge.status-ready {
+    background: #d1ecf1;
+    color: #0c5460;
+  }
+
+  .status-badge.status-completed {
+    background: #d4edda;
+    color: #155724;
+  }
+
+  .status-badge.status-processing {
+    background: #ffeaa7;
+    color: #d68910;
+  }
+
+  .status-badge.status-pending {
+    background: #f8d7da;
+    color: #721c24;
+  }
+
+  /* No Orders State */
+  .no-orders {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+  }
+
+  .no-orders i {
+    font-size: 64px;
+    margin-bottom: 16px;
+    color: #ccc;
+  }
+
+  .no-orders h4 {
+    margin: 0 0 8px 0;
+    color: #333;
+  }
+
+  .no-orders p {
+    margin: 0 0 24px 0;
+  }
+
+  /* Settings Form */
+  .settings-form-container {
+    max-width: 600px;
+  }
+
+  .settings-form .form-group {
+    margin-bottom: 24px;
+  }
+
+  .settings-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .settings-form input,
+  .settings-form select,
+  .settings-form textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e1e5e9;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+  }
+
+  .settings-form textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+
+  .settings-form input:focus,
+  .settings-form select:focus,
+  .settings-form textarea:focus {
+    outline: none;
+    border-color: #a05c2f;
+  }
+
+  .field-error {
+    color: #dc3545;
+    font-size: 12px;
+    margin-top: 4px;
+    display: none;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 1px solid #e1e5e9;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-primary {
+    background: #a05c2f;
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background: #8b4a26;
+    transform: translateY(-2px);
+  }
+
+  .btn-primary:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .btn-secondary {
+    background: #6c757d;
+    color: white;
+  }
+
+  .btn-secondary:hover {
+    background: #545b62;
+    transform: translateY(-2px);
+  }
+
+  /* Message Container */
+  .message-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1001;
+    max-width: 400px;
+  }
+
+  .message-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    animation: slideIn 0.3s ease-out;
+  }
+
+  .message-content.success {
+    background: #d4edda;
+    color: #155724;
+    border-left: 4px solid #28a745;
+  }
+
+  .message-content.error {
+    background: #f8d7da;
+    color: #721c24;
+    border-left: 4px solid #dc3545;
+  }
+
+  .message-content button {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    opacity: 0.7;
+    margin-left: auto;
+  }
+
+  .message-content button:hover {
+    opacity: 1;
+  }
+
+  @keyframes slideIn {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .profile-modal {
+      width: 95vw;
+      height: 95vh;
+    }
+
+    .profile-sidebar {
+      width: 200px;
+    }
+
+    .orders-table th,
+    .orders-table td {
+      padding: 8px 12px;
+      font-size: 14px;
+    }
+
+    .form-actions {
+      flex-direction: column;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .profile-content {
+      flex-direction: column;
+    }
+
+    .profile-sidebar {
+      width: 100%;
+      border-right: none;
+      border-bottom: 1px solid #e1e5e9;
+    }
+
+    .section-header h3 {
+      font-size: 18px;
+    }
+  }
+</style>
+
+<script>
+  let currentSection = 'orders';
+
+  function openProfileModal() {
+    document.getElementById('profileModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => {
+      document.getElementById('profileModal').style.opacity = '1';
+    }, 10);
+  }
+
+  function closeProfileModal() {
+    document.getElementById('profileModal').style.opacity = '0';
+    setTimeout(() => {
+      document.getElementById('profileModal').style.display = 'none';
+      document.body.style.overflow = 'auto';
+      hideMessage();
+    }, 300);
+  }
+
+  function switchSection(sectionName) {
+    // Update active nav item
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.classList.remove('active');
+    });
+    document.querySelector(`[data-section="${sectionName}"]`).classList.add('active');
+
+    // Hide all sections
+    document.querySelectorAll('.profile-section').forEach(section => {
+      section.style.display = 'none';
+    });
+
+    // Show selected section
+    document.getElementById(`${sectionName}-section`).style.display = 'block';
+    currentSection = sectionName;
+  }
+
+  function viewOrderDetails(orderId) {
+    window.location.href = `/order/success?orderId=${orderId}`;
+  }
+
+  function showMessage(message, type = 'success') {
+    const container = document.getElementById('messageContainer');
+    const content = document.getElementById('messageText');
+
+    content.textContent = message;
+    container.querySelector('.message-content').className = `message-content ${type}`;
+
+    container.style.display = 'block';
+    setTimeout(() => {
+      container.style.opacity = '1';
+    }, 10);
+
+    // Auto-hide after 5 seconds
+    setTimeout(hideMessage, 5000);
+  }
+
+  function hideMessage() {
+    const container = document.getElementById('messageContainer');
+    container.style.opacity = '0';
+    setTimeout(() => {
+      container.style.display = 'none';
+    }, 300);
+  }
+
+  function resetForm() {
+    // Reset to original values using data-original attributes
+    document.getElementById('name').value = document.getElementById('name').getAttribute('data-original') || '';
+    document.getElementById('email').value = document.getElementById('email').getAttribute('data-original') || '';
+    document.getElementById('phone').value = document.getElementById('phone').getAttribute('data-original') || '';
+    document.getElementById('city').value = document.getElementById('city').getAttribute('data-original') || '';
+    document.getElementById('address').value = document.getElementById('address').getAttribute('data-original') || '';
+
+    // Clear errors
+    document.querySelectorAll('.field-error').forEach(error => {
+      error.style.display = 'none';
+      error.textContent = '';
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    // Navigation event listeners
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', function() {
+        const section = this.dataset.section;
+        switchSection(section);
+      });
+    });
+
+    // Form submission
+    document.getElementById('profileForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const formData = new FormData(this);
+      const data = {
+        name: formData.get('name').trim(),
+        email: formData.get('email').trim(),
+        phone: formData.get('phone').trim(),
+        city: formData.get('city'),
+        address: formData.get('address').trim()
+      };
+
+      // Clear previous errors
+      document.querySelectorAll('.field-error').forEach(error => {
+        error.style.display = 'none';
+        error.textContent = '';
+      });
+
+      // Basic validation
+      let hasErrors = false;
+
+      if (!data.name) {
+        document.getElementById('name-error').textContent = 'Full name is required';
+        document.getElementById('name-error').style.display = 'block';
+        hasErrors = true;
+      }
+
+      if (!data.email) {
+        document.getElementById('email-error').textContent = 'Email is required';
+        document.getElementById('email-error').style.display = 'block';
+        hasErrors = true;
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+        document.getElementById('email-error').textContent = 'Please enter a valid email address';
+        document.getElementById('email-error').style.display = 'block';
+        hasErrors = true;
+      }
+
+      if (data.phone && !/^09\d{9}$/.test(data.phone)) {
+        document.getElementById('phone-error').textContent = 'Please enter a valid Philippine mobile number';
+        document.getElementById('phone-error').style.display = 'block';
+        hasErrors = true;
+      }
+
+      if (hasErrors) return;
+
+      // Show loading state
+      const saveBtn = document.getElementById('saveBtn');
+      const originalText = saveBtn.innerHTML;
+      saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+      saveBtn.disabled = true;
+
+      try {
+        const response = await fetch('/user/profile', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          showMessage(result.message, 'success');
+          // Update UI with new values if email changed
+          if (data.email !== '<%= user.email %>') {
+            // Email changed, might need to reload or show specific message
+            showMessage('Profile updated! Please log in again with your new email.', 'success');
+          }
+        } else {
+          if (result.field) {
+            document.getElementById(`${result.field}-error`).textContent = result.message;
+            document.getElementById(`${result.field}-error`).style.display = 'block';
+          } else {
+            showMessage(result.message, 'error');
+          }
+        }
+      } catch (error) {
+        console.error('Profile update error:', error);
+        showMessage('An error occurred while updating your profile', 'error');
+      } finally {
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
+      }
+    });
+
+    // Close modal on escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeProfileModal();
+      }
+    });
+
+    // Close modal on overlay click
+    document.getElementById('profileModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeProfileModal();
+      }
+    });
+
+    // Phone number formatting
+    document.getElementById('phone').addEventListener('input', function(e) {
+      let value = e.target.value.replace(/\D/g, '');
+      if (value.startsWith('0')) {
+        // Keep as is
+      } else if (value.startsWith('63') && value.length >= 10) {
+        value = '0' + value.substring(2);
+      }
+      e.target.value = value;
+    });
+
+    // Auto-open modal (since this is the profile page)
+    openProfileModal();
+  });
+</script>
+
+<link rel="stylesheet" href="/css/settings.css">

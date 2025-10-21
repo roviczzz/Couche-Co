@@ -15,14 +15,22 @@ document.addEventListener('DOMContentLoaded', function() {
 // Toggle account dropdown
 function toggleAccountDropdown() {
   const dropdown = document.getElementById('account-dropdown');
-  dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+  if (dropdown) {
+    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+  } else {
+    console.warn('Account dropdown element not found');
+  }
 }
 
 // Toggle cart dropdown
 function toggleCartDropdown() {
   const dropdown = document.getElementById('cart-dropdown');
-  dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-  updateCartSummary();
+  if (dropdown) {
+    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    updateCartSummary();
+  } else {
+    console.warn('Cart dropdown element not found');
+  }
 }
 
 // Update cart count and summary

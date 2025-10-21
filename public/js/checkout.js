@@ -12,6 +12,90 @@ document.addEventListener('DOMContentLoaded', function() {
   const checkStatusBtn = document.getElementById('checkPaymentStatusBtn');
   const closeModalBtn = document.getElementById('closePaymentModalBtn');
 
+  // Retrieve and populate saved user data
+  async function loadUserData() {
+    if (window.user) {
+      console.log('User data available:', window.user); // Debug log
+      
+      const nameField = document.getElementById('name');
+      const emailField = document.getElementById('email');
+      const phoneField = document.getElementById('phone');
+      const cityField = document.getElementById('city');
+      const addressField = document.getElementById('address');
+
+      // Try to fetch complete user profile from the server
+      try {
+        const response = await fetch('/user/profile', {
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const profileData = await response.json();
+          console.log('Profile data:', profileData); // Debug log
+          
+          const userDoc = profileData.userDoc || {};
+          const sessionUser = profileData.user || window.user;
+          
+          // Populate fields with complete user data
+          if (nameField && (userDoc.fullname || sessionUser.fullname || sessionUser.name)) {
+            nameField.value = userDoc.fullname || sessionUser.fullname || sessionUser.name;
+          }
+          if (emailField && (sessionUser.email)) {
+            emailField.value = sessionUser.email;
+          }
+          if (phoneField && userDoc.phone) {
+            phoneField.value = userDoc.phone;
+          }
+          if (cityField && userDoc.city) {
+            cityField.value = userDoc.city;
+          }
+          if (addressField && userDoc.address) {
+            addressField.value = userDoc.address;
+          }
+        } else {
+          // Fallback to session user data
+          populateFromSessionUser();
+        }
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+        // Fallback to session user data
+        populateFromSessionUser();
+      }
+    } else {
+      console.log('No user data available'); // Debug log
+    }
+  }
+
+  function populateFromSessionUser() {
+    const nameField = document.getElementById('name');
+    const emailField = document.getElementById('email');
+    const phoneField = document.getElementById('phone');
+    const cityField = document.getElementById('city');
+    const addressField = document.getElementById('address');
+
+    // Populate fields with session user data if available
+    if (nameField && (window.user.fullname || window.user.name)) {
+      nameField.value = window.user.fullname || window.user.name;
+    }
+    if (emailField && window.user.email) {
+      emailField.value = window.user.email;
+    }
+    if (phoneField && window.user.phone) {
+      phoneField.value = window.user.phone;
+    }
+    if (cityField && window.user.city) {
+      cityField.value = window.user.city;
+    }
+    if (addressField && window.user.address) {
+      addressField.value = window.user.address;
+    }
+  }
+
+  // Load user data when page loads
+  loadUserData();
+
   // Phone number formatting
   document.getElementById('phone').addEventListener('input', function() {
     let val = this.value.replace(/\D/g, ''); // remove non-digits
@@ -44,11 +128,23 @@ document.addEventListener('DOMContentLoaded', function() {
             paymentStatusInterval = null;
           }
 
+          // Update progress to step 3 (Confirmation)
+          if (window.updateProgressStep) window.updateProgressStep(3);
+
           // Clear user's cart upon successful payment
           await clearUserCart();
 
-          alert('Payment successful! Redirecting...');
-          window.location.href = `/order/success?orderId=${currentOrderId}`;
+          processingMessage.textContent = 'Payment successful! Redirecting...';
+          processingMessage.style.display = 'block';
+          paymentInstructions.style.display = 'none';
+
+          // Replace spinner with checkmark
+          const loadingSpinner = document.querySelector('.loading-spinner');
+          loadingSpinner.innerHTML = '<div class="payment-checkmark"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M480 96C515.3 96 544 124.7 544 160L544 480C544 515.3 515.3 544 480 544L160 544C124.7 544 96 515.3 96 480L96 160C96 124.7 124.7 96 160 96L480 96zM438 209.7C427.3 201.9 412.3 204.3 404.5 215L285.1 379.2L233 327.1C223.6 317.7 208.4 317.7 199.1 327.1C189.8 336.5 189.7 351.7 199.1 361L271.1 433C276.1 438 283 440.5 289.9 440C296.8 439.5 303.3 435.9 307.4 430.2L443.3 243.2C451.1 232.5 448.7 217.5 438 209.7z"/></svg></div>';
+
+          setTimeout(() => {
+            window.location.href = `/order/success?orderId=${currentOrderId}`;
+          }, 3000);
         } else if (!paymentStatusInterval) {
           // This is from manual check, show alert
           alert('Payment not yet confirmed. Please complete the payment in the new tab.');
@@ -267,7 +363,6 @@ document.addEventListener('DOMContentLoaded', function() {
             paymentUrlLink.href = paymentData.invoice_url;
           } else {
             paymentWindowStatus.textContent = 'Please complete your payment in the new tab that just opened.';
-            paymentLinkContainer.style.display = 'none';
           }
         } catch (error) {
           // Fallback if popup is blocked
@@ -276,10 +371,16 @@ document.addEventListener('DOMContentLoaded', function() {
           paymentUrlLink.href = paymentData.invoice_url;
         }
 
+        // Always display the fallback link
+        paymentLinkContainer.style.display = 'block';
+        paymentUrlLink.href = paymentData.invoice_url;
+
         // Show payment instructions
         setTimeout(() => {
           processingMessage.style.display = 'none';
           paymentInstructions.style.display = 'block';
+          // Update progress to step 2 (Payment)
+          if (window.updateProgressStep) window.updateProgressStep(2);
           // Start automatic payment status checking
           paymentStatusInterval = setInterval(checkPaymentStatus, 3000); // Check every 3 seconds
         }, 1000);

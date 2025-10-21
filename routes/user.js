@@ -188,13 +188,123 @@ router.get('/home', async (req, res) => {
 // User profile route
 router.get('/profile', async (req, res) => {
   try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const ordersCollection = db.collection('Orders');
+    const usersCollection = db.collection('users');
+
+    // Fetch user's full profile from database
+    const userDoc = await usersCollection.findOne({ _id: new ObjectId(req.session.user._id) });
+
+    // Fetch user's orders (sorted by newest first)
+    const userOrders = await ordersCollection
+      .find({ 'Customer.email': req.session.user.email })
+      .project({
+        OrderID: 1,
+        CreationTime: 1,
+        Total: 1,
+        FulfillmentStatus: 1,
+        'Customer.fullname': 1
+      })
+      .sort({ CreationTime: -1 })
+      .toArray();
+
+    await client.close();
+
+    // Check if request expects JSON (AJAX request)
+    if (req.headers.accept && req.headers.accept.includes('application/json')) {
+      return res.json({
+        user: req.session.user,
+        userDoc: userDoc,
+        orders: userOrders
+      });
+    }
+
     res.render('user/profile', {
       title: 'My Profile',
-      user: req.session.user
+      user: req.session.user,
+      userDoc: userDoc,
+      orders: userOrders
     });
   } catch (error) {
     console.error('Profile error:', error);
-    res.status(500).send('Error loading profile');
+    if (req.headers.accept && req.headers.accept.includes('application/json')) {
+      return res.status(500).json({ error: 'Failed to load profile' });
+    }
+    res.status(500).render('error', {
+      title: 'Server Error',
+      message: 'Failed to load profile',
+      status: 500
+    });
+  }
+});
+
+// Update user profile
+router.post('/profile', async (req, res) => {
+  try {
+    const { name, email, phone, city, address } = req.body;
+
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const users = db.collection('users');
+
+    const updateData = {
+      fullname: name,
+      phone: phone,
+      city: city,
+      address: address
+    };
+
+    // Check if email is being changed and if it's already taken
+    if (email && email !== req.session.user.email) {
+      const existingUser = await users.findOne({ email: email });
+      if (existingUser) {
+        await client.close();
+        return res.status(400).json({
+          success: false,
+          message: 'Email address is already in use',
+          field: 'email'
+        });
+      }
+      updateData.email = email;
+    }
+
+    const updateResult = await users.updateOne(
+      { _id: new ObjectId(req.session.user._id) },
+      {
+        $set: {
+          ...updateData,
+          lastModified: new Date()
+        }
+      }
+    );
+
+    await client.close();
+
+    if (updateResult.modifiedCount === 1) {
+      // Update session data
+      req.session.user.name = name;
+      if (email && email !== req.session.user.email) {
+        req.session.user.email = email;
+      }
+
+      res.json({
+        success: true,
+        message: 'Profile updated successfully'
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update profile'
+      });
+    }
+
+  } catch (error) {
+    console.error('Profile update error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error occurred while updating profile'
+    });
   }
 });
 

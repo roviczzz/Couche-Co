@@ -7,6 +7,8 @@
 
   <link rel="stylesheet" href="/css/site-public.css">
   <link rel="stylesheet" href="/css/navbar-user.css">
+  <link rel="stylesheet" href="/css/profile-modal.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
 
@@ -49,8 +51,7 @@
               </svg>
             </button>
             <div id="account-dropdown" class="account-dropdown">
-              <a href="/user/profile">My Profile</a>
-              <a href="/user/settings">Settings</a>
+              <a href="#" onclick="openProfileModal(); return false;">My Profile</a>
               <a href="/auth/logout">Logout</a>
             </div>
           </div>
@@ -77,6 +78,114 @@
   <% } %>
 
   <%- body %>
+
+  <!-- Profile Modal -->
+  <% if (typeof user !== 'undefined' && user) { %>
+    <div class="profile-modal-overlay" id="profileModal" style="display: none;">
+      <div class="profile-modal">
+        <div class="modal-header">
+          <h2>My Profile</h2>
+          <button class="modal-close-btn" onclick="closeProfileModal()">&times;</button>
+        </div>
+
+        <div class="profile-content">
+          <!-- Sidebar Navigation -->
+          <div class="profile-sidebar">
+            <div class="sidebar-nav">
+              <button class="nav-item active" data-section="orders">
+                <i class="fas fa-receipt"></i> Order History
+              </button>
+              <button class="nav-item" data-section="settings">
+                <i class="fas fa-user-cog"></i> Account Settings
+              </button>
+            </div>
+          </div>
+
+          <!-- Main Content -->
+          <div class="profile-main">
+            <!-- Order History Section -->
+            <div class="profile-section" id="orders-section">
+              <div class="section-header">
+                <h3>Order History</h3>
+                <p>View all your previous orders</p>
+              </div>
+
+              <div class="orders-table-container">
+                <!-- Orders will be populated here -->
+              </div>
+            </div>
+
+            <!-- Account Settings Section -->
+            <div class="profile-section" id="settings-section" style="display: none;">
+              <div class="section-header">
+                <h3>Account Settings</h3>
+                <p>Manage your personal information</p>
+              </div>
+
+              <div class="settings-form-container">
+                <form id="profileForm" class="settings-form">
+                  <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" name="name" placeholder="Juan Dela Cruz" data-original="" required>
+                    <div class="field-error" id="name-error"></div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" data-original="" required>
+                    <div class="field-error" id="email-error"></div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" placeholder="09xxxxxxxxx" maxlength="11" data-original="">
+                    <div class="field-error" id="phone-error"></div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="city">City Area</label>
+                    <select id="city" name="city" data-original="">
+                      <option value="">Select City Area</option>
+                      <option value="Alapan I-C, Imus">Alapan I-C, Imus</option>
+                      <option value="Alapan I-B, Imus">Alapan I-B, Imus</option>
+                      <option value="Alapan I-A, Imus">Alapan I-A, Imus</option>
+                      <option value="Buhay na Tubig, Imus">Buhay na Tubig, Imus</option>
+                      <option value="Malagasang, Imus">Malagasang, Imus</option>
+                      <option value="Toclong, Kawit">Toclong, Kawit</option>
+                    </select>
+                    <div class="field-error" id="city-error"></div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="address">Delivery Address</label>
+                    <textarea id="address" name="address" rows="3" placeholder="Complete delivery address" data-original=""></textarea>
+                    <div class="field-error" id="address-error"></div>
+                  </div>
+
+                  <div class="form-actions">
+                    <button type="submit" class="btn-primary" id="saveBtn">
+                      <i class="fas fa-save"></i> Save Changes
+                    </button>
+                    <button type="button" class="btn-secondary" onclick="resetForm()">
+                      <i class="fas fa-undo"></i> Reset
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success/Error message container -->
+    <div id="messageContainer" class="message-container" style="display: none;">
+      <div class="message-content">
+        <span id="messageText"></span>
+        <button onclick="hideMessage()">&times;</button>
+      </div>
+    </div>
+  <% } %>
 
   <script src="/js/navbar.js" defer></script>
   <script src="/js/search.js" defer></script>
@@ -136,6 +245,7 @@
         loadCartIfNeeded();
       });
     </script>
+    <script src="/js/profile-modal.js"></script>
   <% } %>
 </body>
 </html>

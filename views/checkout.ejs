@@ -5,20 +5,16 @@
     <p class="checkout-subtitle">Complete your order in just a few simple steps</p>
     
     <div class="checkout-progress">
-      <div class="progress-step">
+      <div class="progress-step" id="progress-step-1">
         <span class="progress-step-number">1</span>
-        Cart Review
-      </div>
-      <div class="progress-step active">
-        <span class="progress-step-number">2</span>
         Checkout
       </div>
-      <div class="progress-step">
-        <span class="progress-step-number">3</span>
+      <div class="progress-step" id="progress-step-2">
+        <span class="progress-step-number">2</span>
         Payment
       </div>
-      <div class="progress-step">
-        <span class="progress-step-number">4</span>
+      <div class="progress-step" id="progress-step-3">
+        <span class="progress-step-number">3</span>
         Confirmation
       </div>
     </div>
@@ -32,7 +28,7 @@
       <form id="checkoutForm">
         <div class="form-group">
           <label for="name">Full Name</label>
-          <input type="text" id="name" name="name" value="<%= user.name || '' %>" required>
+          <input type="text" id="name" name="name" placeholder="Juan Dela Cruz" required>
         </div>
 
         <div class="form-group">
@@ -208,16 +204,16 @@
         <div id="paymentLinkContainer" class="payment-link-container" style="display: none;">
           <p><strong>If the payment window didn't open, click here:</strong></p>
           <a id="paymentUrlLink" href="#" target="_blank" class="payment-url-btn">
-            🖱️ Open Payment Gateway
+            Open Payment Gateway
           </a>
         </div>
 
         <div class="payment-actions">
           <button id="checkPaymentStatusBtn" class="check-status-btn">
-            Manual Check
+            Check Payment Status
           </button>
           <button id="closePaymentModalBtn" class="close-modal-btn">
-            Close & Return
+            Cancel & Return
           </button>
         </div>
 
@@ -233,6 +229,12 @@
 // Ensure cart data is available before checkout.js loads
 window.checkoutCartReady = false;
 document.addEventListener('DOMContentLoaded', function() {
+  // Clear full name input on load
+  document.getElementById('name').value = '';
+
+  // Clear invalid styling on load
+  document.querySelectorAll('.form-group').forEach(group => group.classList.add('no-invalid'));
+
   // Double-check cart is ready
   const cartData = localStorage.getItem('orderItems');
   if (cartData) {
@@ -274,7 +276,7 @@ document.addEventListener('DOMContentLoaded', function() {
     } else if (method === 'Delivery') {
       pickupAgreement.style.display = 'none';
       deliveryFields.style.display = 'block';
-      deliveryFeeRow.style.display = 'table-row'; // Show delivery fee row
+      deliveryFeeRow.style.display = 'flex'; // Show delivery fee row
       pickupCheckbox.removeAttribute('required');
       cityInput.setAttribute('required', '');
       addressInput.setAttribute('required', '');
@@ -293,6 +295,18 @@ document.addEventListener('DOMContentLoaded', function() {
       totalAmountDisplay.textContent = '₱' + subtotal.toFixed(2);
     }
   });
+
+  // Function to update progress step
+  window.updateProgressStep = function(stepNumber) {
+    // Remove active class from all steps
+    document.querySelectorAll('.progress-step').forEach(el => el.classList.remove('active'));
+    // Add active class to the specified step
+    const step = document.getElementById(`progress-step-${stepNumber}`);
+    if (step) step.classList.add('active');
+  };
+
+  // Set active step to 1 on load
+  updateProgressStep(1);
 });
 </script>
 <script src="/js/checkout.js"></script>

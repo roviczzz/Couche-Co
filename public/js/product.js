@@ -9,6 +9,49 @@ try {
     var product = {};
 }
 
+// Toast notification functions
+function createToastContainer() {
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+    }
+    return container;
+}
+
+function showToast(message, type = 'info', duration = 5000) {
+    const container = createToastContainer();
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+
+    const icon = type === 'success' ? 'fas fa-check-circle' :
+                 type === 'error' ? 'fas fa-exclamation-circle' :
+                 type === 'warning' ? 'fas fa-exclamation-triangle' : 'fas fa-info-circle';
+
+    toast.innerHTML = `
+        <i class="${icon} toast-icon"></i>
+        <span class="toast-message">${message}</span>
+        <button class="toast-close" onclick="this.parentElement.remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+
+    container.appendChild(toast);
+
+    // Auto-remove after duration
+    setTimeout(() => {
+        toast.classList.add('fade-out');
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.remove();
+            }
+        }, 300);
+    }, duration);
+}
+
 // Array to store selected add-ons
 var selectedAddons = [];
 
@@ -177,7 +220,7 @@ function addToOrder(name, price, size, category, productId, addons, imagelink, i
     };
     orderItems.push(orderItem);
     saveOrderItems();
-    alert(`${quantity} x ${name}${size ? ' (' + size + ')' : ''} added to cart!`);
+    showToast(`${quantity} x ${name}${size ? ' (' + size + ')' : ''} added to cart!`, 'success');
 }
 
 // Fetch and display add-ons - try server-side data first, then API as fallback
@@ -329,6 +372,13 @@ function initializePage() {
         addToCartBtn.addEventListener('click', function() {
             const quantity = document.getElementById('quantity').value;
             const selectedRadio = document.querySelector('input[name="size-radio"]:checked');
+
+            // Validate size selection for products that have sizes
+            if (product.Sizes && product.Sizes.length > 0 && !selectedRadio) {
+                showToast('Please select a size before adding to cart.', 'error');
+                return;
+            }
+
             let size = selectedRadio ? selectedRadio.value : null;
             let price = selectedRadio ? parseFloat(selectedRadio.closest('.size-option-btn').dataset.price) : parseFloat(product.BasePrice || 0);
 

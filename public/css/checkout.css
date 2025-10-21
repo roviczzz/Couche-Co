@@ -265,14 +265,6 @@
   transform: translateY(-1px);
 }
 
-.form-group input:invalid {
-  border-color: #ef4444;
-}
-
-.form-group input:valid {
-  border-color: #10b981;
-}
-
 .payment-methods {
   margin-bottom: 32px;
 }
@@ -827,6 +819,25 @@
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* Payment Checkmark */
+.payment-checkmark {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 50px;
+  height: 50px;
+  margin: 0 auto;
+}
+
+.payment-checkmark svg {
+  width: 40px;
+  height: 40px;
+}
+
+.payment-checkmark path {
+  fill: #28a745;
 }
 
 /* Responsive adjustments for payment modal */

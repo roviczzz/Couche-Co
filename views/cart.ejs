@@ -4,10 +4,11 @@
 <div class="cart-container">
   <h2>Your Cart</h2>
   <div id="cart-items" class="cart-items">
-    <!-- Cart items will be populated here -->
+    <div class="loading-spinner">
+      <div class="loading-spinner-text">Loading cart...</div>
+    </div>
   </div>
   <div id="cart-total" class="cart-total">
-    <!-- Total will be displayed here -->
   </div>
 <% if (!user) { %>
   <div class="cart-login-prompt">
@@ -21,4 +22,5 @@
   </div>
 </div>
 
-<script src="/js/cart.js"></script>
+<!-- Remove the conflicting script that's causing the error -->
+<!-- The cart functionality is now handled by cart.js which is included in the layout -->

@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const html = results.map(result => `
-            <div class="search-result-item" onclick="window.location.href='/menu?search=${encodeURIComponent(result.Name)}'">
+            <div class="search-result-item" data-product-id="${result._id || result.id}">
                 <div class="search-result-name">${result.Name}</div>
                 <div class="search-result-category">${result.Category}</div>
             </div>
@@ -78,6 +78,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
         searchResults.innerHTML = html;
         searchResults.style.display = 'block';
+
+        // Add click event listeners to search result items
+        document.querySelectorAll('.search-result-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const productId = this.dataset.productId;
+                if (productId) {
+                    window.location.href = `/product/${productId}`;
+                } else {
+                    // Fallback to menu search if no product ID
+                    const productName = this.querySelector('.search-result-name').textContent;
+                    window.location.href = `/menu?search=${encodeURIComponent(productName)}`;
+                }
+            });
+        });
     }
 
     // Input event listener with debounce

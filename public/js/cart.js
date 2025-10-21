@@ -2,8 +2,12 @@
 let orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
 
 document.addEventListener('DOMContentLoaded', function() {
-  displayCartItems();
-  updateCartTotal();
+  // Only run cart functions if cart elements exist
+  const cartItemsContainer = document.getElementById('cart-items');
+  if (cartItemsContainer) {
+    displayCartItems();
+    updateCartTotal();
+  }
 
   // Update navbar cart count if function exists
   if (typeof updateCartCount === 'function') {
@@ -33,6 +37,12 @@ function displayCartItems() {
   const cartItemsContainer = document.getElementById('cart-items');
   const cartTotalContainer = document.getElementById('cart-total');
   const checkoutBtn = document.getElementById('checkout-btn');
+
+  // Check if cart elements exist (they might not exist on all pages)
+  if (!cartItemsContainer) {
+    console.warn('Cart items container not found on this page');
+    return;
+  }
 
   if (orderItems.length === 0) {
     if (checkoutBtn) checkoutBtn.style.display = 'none';
@@ -158,6 +168,11 @@ function removeItem(index) {
 // Update cart total display
 function updateCartTotal() {
   const cartTotalContainer = document.getElementById('cart-total');
+
+  // Check if cart total element exists
+  if (!cartTotalContainer) {
+    return;
+  }
 
   if (orderItems.length === 0) {
     cartTotalContainer.innerHTML = '';
