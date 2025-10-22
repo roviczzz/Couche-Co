@@ -261,7 +261,7 @@ router.post('/orders', async (req, res) => {
 });
 
 router.post('/orders/update-payment-status', async (req, res) => {
-  const { paymentId, invoiceId, status } = req.body;
+  const { paymentId, invoiceId, status, PaymentMethod } = req.body;
   if (!paymentId || !invoiceId || !status) {
     return res.status(400).json({ success: false, error: 'Missing paymentId, invoiceId or status.' });
   }
@@ -269,9 +269,18 @@ router.post('/orders/update-payment-status', async (req, res) => {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
     const orders = db.collection('Orders');
+    
+    // Build update object
+    const updateFields = { PaymentStatus: status, XenditPaymentID: invoiceId };
+    
+    // Add PaymentMethod if provided
+    if (PaymentMethod) {
+      updateFields.PaymentMethod = PaymentMethod;
+    }
+    
     const result = await orders.updateOne(
         { OrderID: paymentId },
-        { $set: { PaymentStatus: status, XenditPaymentID: invoiceId } }
+        { $set: updateFields }
     );
     await client.close();
     if (result.matchedCount === 0) {

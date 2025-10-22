@@ -2,6 +2,10 @@
 // Get user data
 const user = JSON.parse(document.getElementById('user-data').textContent);
 
+// Global payment variables for automatic checking
+let currentOrderId = null;
+let paymentStatusInterval = null;
+
 // Initialize delivery type handling
 document.addEventListener('DOMContentLoaded', function() {
     const deliveryTypeSelect = document.getElementById('delivery-type');
@@ -10,13 +14,31 @@ document.addEventListener('DOMContentLoaded', function() {
         // Initialize payment options on page load
         handleDeliveryTypeChange();
     }
+
+    const proceedOrderBtn = document.getElementById('proceed-order-btn');
+    if (proceedOrderBtn) {
+        proceedOrderBtn.addEventListener('click', proceedOrder);
+    }
+
+    // Initialize cart if not exists
+    if (!window.cartItems) {
+        window.cartItems = [];
+    }
 });
 
 // Handle delivery type changes and update payment options
 function handleDeliveryTypeChange() {
     const deliveryType = document.getElementById('delivery-type').value;
+    const addressContainer = document.getElementById('address-container');
     const cashOption = document.querySelector('.payment-option[onclick*="cash"]');
     const epaymentOption = document.querySelector('.payment-option[onclick*="epayment"]');
+
+    // Toggle address container for Delivery
+    if (deliveryType === 'Delivery') {
+        if (addressContainer) addressContainer.style.display = 'block';
+    } else {
+        if (addressContainer) addressContainer.style.display = 'none';
+    }
 
     if (deliveryType === 'Delivery' || deliveryType === 'Pick-Up') {
         // Hide cash option and auto-select E-Payment
@@ -292,6 +314,7 @@ function addToCart(item, selectedSize = null, addons = []) {
     const totalPrice = basePrice + addonPrice;
 
     const cartItem = {
+        itemId: Date.now() + Math.random(),
         ProductName: item.Name,
         ProductID: item._id || item.id,
         Size: sizeName,
@@ -345,8 +368,8 @@ function updateCartDisplay() {
                     </div>
                 </div>
                 <div style="text-align: right;">
-                    <div style="font-weight: 600; ${item.isB1T1 ? 'text-decoration: line-through; color: #999;' : ''}">₱ ${itemTotal.toFixed(2)}</div>
-                    ${item.isB1T1 ? '<div style="font-weight: 600; color: #4caf50;">₱ 0.00</div>' : ''}
+                    ${item.isB1T1 ? '<div style="font-weight: 600; text-decoration: line-through; color: #999;">₱ ' + Number(item.originalPrice || 0).toFixed(2) + '</div><div style="font-weight: 600; color: #4caf50;">₱ 0.00</div>' : '<div style="font-weight: 600;">₱ ' + itemTotal.toFixed(2) + '</div>'}
+                    ${!item.isB1T1 ? `
                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px;">
                         <!-- Quantity Controls -->
                         <button class="qty-btn qty-minus" onclick="updateQuantity(${index}, -1)"
@@ -376,6 +399,31 @@ function updateCartDisplay() {
                             <i class="fa-solid fa-trash" style="font-size: 11px;"></i>
                         </button>
                     </div>
+                    ` : `
+                    <div style="margin-top: 10px;">
+                        <button class="remove-btn" onclick="removeFromCart(${index})"
+                                style="width: 32px; height: 32px; border: 2px solid #dc3545; background: #dc3545; color: white; cursor: pointer; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 12px; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center;"
+                                onmouseover="this.style.backgroundColor='#c82333'; this.style.borderColor='#c82333'; this.style.transform='scale(1.05)';"
+                                onmouseout="this.style.backgroundColor='#dc3545'; this.style.borderColor='#dc3545'; this.style.transform='scale(1)';"
+                                title="Remove item">
+                            <i class="fa-solid fa-trash" style="font-size: 11px;"></i>
+                        </button>
+                    </div>
+                    `}
+                    ${(() => {
+                        if (!item.isB1T1 && !item.b1t1Used) {
+                            const menuData = JSON.parse(document.getElementById('menu-data').textContent);
+                            const menuItem = menuData.find(mItem => mItem._id === item.ProductID || mItem.id === item.ProductID || mItem.Name === item.ProductName);
+                            if (menuItem && menuItem.Category !== 'Pastries') {
+                                return `<button class="b1t1-btn" onclick="showB1T1Modal('${menuItem.Category.replace(/'/g, "\\'")}', '${item.Size.replace(/'/g, "\\'")}', ${index})"
+                                        style="margin-top: 8px; padding: 8px 12px; background: #8B4513; color: white; border: none; border-radius: 8px; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; transition: all 0.2s ease;"
+                                        onmouseover="this.style.backgroundColor='#a05c2f'; this.style.transform='scale(1.05)';"
+                                        onmouseout="this.style.backgroundColor='#8B4513'; this.style.transform='scale(1)';"
+                                        title="Buy 1 Take 1">🛍️ B1T1</button>`;
+                            }
+                        }
+                        return '';
+                    })()}
                 </div>
             </div>
         `;
@@ -402,6 +450,20 @@ function updateCartDisplay() {
     totalItemsElement.textContent = totalItems.toString();
     subtotalElement.textContent = `₱ ${subtotal.toFixed(2)}`;
 
+    // Update promotional labels
+    const promoAppliedElement = document.getElementById('promo-applied');
+    const b1t1Applied = window.cartItems.some(item => item.isB1T1);
+    const buy3Applied = calculateBuy3For143Savings(window.cartItems) > 0;
+
+    let promoLabels = [];
+    if (b1t1Applied) promoLabels.push('B1T1');
+    if (buy3Applied) promoLabels.push('Buy 3 for ₱143');
+
+    promoAppliedElement.textContent = promoLabels.length > 0 ? `${promoLabels.join(', ')}` : '';
+    promoAppliedElement.style.textAlign = 'right';
+    promoAppliedElement.style.color = '#a05c2f';
+    promoAppliedElement.style.fontSize = '14px';
+
     // Calculate promotional total
     const promotionalTotal = calculatePromotionalTotal(window.cartItems);
     totalElement.textContent = `₱ ${promotionalTotal.toFixed(2)}`;
@@ -413,6 +475,19 @@ function updateQuantity(index, change) {
     window.cartItems[index].Quantity += change;
 
     if (window.cartItems[index].Quantity <= 0) {
+        const itemToRemove = window.cartItems[index];
+
+        // If this is a basis drink that availed B1T1, remove all associated free drinks
+        if (itemToRemove.b1t1Used) {
+            // Remove from end to start to avoid index issues
+            for (let i = window.cartItems.length - 1; i >= 0; i--) {
+                if (window.cartItems[i].b1t1BasisId === itemToRemove.itemId && window.cartItems[i].isB1T1) {
+                    window.cartItems.splice(i, 1);
+                }
+            }
+        }
+
+        // Now remove the main item
         window.cartItems.splice(index, 1);
     }
 
@@ -422,6 +497,19 @@ function updateQuantity(index, change) {
 function removeFromCart(index) {
     if (!window.cartItems || !window.cartItems[index]) return;
 
+    const itemToRemove = window.cartItems[index];
+
+    // If this is a basis drink that availed B1T1, remove all associated free drinks
+    if (itemToRemove.b1t1Used) {
+        // Remove from end to start to avoid index issues
+        for (let i = window.cartItems.length - 1; i >= 0; i--) {
+            if (window.cartItems[i].b1t1BasisId === itemToRemove.itemId && window.cartItems[i].isB1T1) {
+                window.cartItems.splice(i, 1);
+            }
+        }
+    }
+
+    // Now remove the main item
     window.cartItems.splice(index, 1);
     updateCartDisplay();
 }
@@ -450,7 +538,8 @@ function submitOrder() {
 
     const orderData = {
         OrderID: generateOrderID(),
-        Date: dateStr,
+        Date: new Date().toISOString(),
+        Source: "POS",
         Cart: cart.map(item => ({
             ProductName: item.ProductName,
             ProductID: item.ProductID,
@@ -460,26 +549,25 @@ function submitOrder() {
             Price: item.BasePrice,
             ImageLink: item.ImageLink || ""
         })),
-        Customer: customerName,
-        customerId: generateCustomerId(),
-        ContactNumber: contactNumber,
-        PaymentStatus: paymentMethod === "cash" ? "Payment pending" : "Pending",
-        PaymentMode: paymentMethod === "cash" ? "Cash on Hand" : "E-Payment",
+        Customer: {
+            fullname: customerName,
+            email: '',
+            contactnumber: contactNumber,
+            deliveryMethod: deliveryType
+        },
         Total: total,
-        ItemTotal: itemTotal,
-        DeliveryStatus: deliveryType,
-        Address: deliveryType === "Delivery" ? `${streetAddress}, ${areaSelect}` : "",
         Notes: notes,
+        PaymentStatus: paymentMethod === "cash" ? "Payment pending" : "Pending",
         FulfillmentStatus: "Preparing",
-        Source: "POS",
+        FulfillmentMethod: deliveryType,
+        PaymentMethod: paymentMethod,
+        PaymentMode: paymentMethod === "cash" ? "Cash on Hand" : "E-Payment",
         cashierName: user ? user.fullname : "Staff"
     };
 
     // Add XenditPaymentID if e-payment is selected
     if (paymentMethod === "epayment") {
         orderData.XenditPaymentID = generateXenditPaymentId();
-        orderData.paymentStatus = "Pending";
-        orderData.fulfillmentStatus = "Preparing";
     }
 
     return orderData;
@@ -519,7 +607,7 @@ function getSelectedPaymentMethod() {
             return option.onclick.toString().includes("'cash'") ? 'cash' : 'epayment';
         }
     }
-    return 'cash'; // default to cash for Take-Out
+    return null; // No payment method explicitly selected
 }
 
 // Helper function to calculate total (this should match your existing calculation logic)
@@ -538,6 +626,41 @@ function getOrderItems() {
     // You'll need to implement this based on how your cart is structured
     // For now, returning empty array - you should replace this with actual cart logic
     return window.cartItems || [];
+}
+
+function checkB1T1Eligibility(cart, category = null) {
+    // Check if cart has eligible drinks for B1T1
+    let eligibleDrinks = [];
+    cart.forEach((item, index) => {
+        if (item.ProductName && item.ProductName.toLowerCase().indexOf('pastry') === -1 && !item.isB1T1) {
+            const menuItem = getMenuItem(item.ProductID, item.ProductName);
+            if (!category || (menuItem && menuItem.Category === category)) {
+                eligibleDrinks.push({ ...item, cartIndex: index });
+            }
+        }
+    });
+
+    return eligibleDrinks.length > 0 ? eligibleDrinks : null;
+}
+
+function getMenuDrinksWithSize(category, basisSize) {
+    const menuData = JSON.parse(document.getElementById('menu-data').textContent);
+    let availableDrinks = [];
+    menuData.forEach(menuItem => {
+        if (menuItem.Category === category && menuItem.Category !== 'Pastries') {
+            const sizeObj = menuItem.Sizes ? menuItem.Sizes.find(s => (s.SizeName || s.Size) === basisSize) : null;
+            if (sizeObj) {
+                availableDrinks.push({ menuItem, sizeObj });
+            }
+        }
+    });
+    return availableDrinks;
+}
+
+// Helper function to get menu item by ProductID or Name
+function getMenuItem(productID, productName) {
+    const menuData = JSON.parse(document.getElementById('menu-data').textContent);
+    return menuData.find(item => item._id === productID || item.id === productID || item.Name === productName);
 }
 
 // Promotion functions
@@ -607,41 +730,48 @@ function calculateBuy3For143Savings(cart) {
     return totalSavings;
 }
 
-function checkB1T1Eligibility(cart) {
+function checkB1T1Eligibility(cart, category = null) {
     // Check if cart has eligible drinks for B1T1
     let eligibleDrinks = [];
     cart.forEach((item, index) => {
-        if (item.ProductName && item.ProductName.toLowerCase().indexOf('pastry') === -1) {
-            eligibleDrinks.push({ ...item, cartIndex: index });
+        if (item.ProductName && item.ProductName.toLowerCase().indexOf('pastry') === -1 && !item.isB1T1) {
+            const menuItem = getMenuItem(item.ProductID, item.ProductName);
+            if (!category || (menuItem && menuItem.Category === category)) {
+                eligibleDrinks.push({ ...item, cartIndex: index });
+            }
         }
     });
 
     return eligibleDrinks.length > 0 ? eligibleDrinks : null;
 }
 
-function showB1T1Modal() {
-    const eligibleDrinks = checkB1T1Eligibility(window.cartItems || []);
-    if (!eligibleDrinks || eligibleDrinks.length === 0) {
-        alert('No eligible drinks for Buy 1 Take 1 promotion.');
+function showB1T1Modal(category, basisSize, basisIndex) {
+    const availableDrinks = getMenuDrinksWithSize(category, basisSize);
+    if (!availableDrinks || availableDrinks.length === 0) {
+        alert('No eligible drinks for Buy 1 Take 1 promotion in this category and size.');
         return;
     }
+
+    // Store drink options and basis index globally to avoid JSON stringify issues
+    window.b1t1Options = availableDrinks;
+    window.b1t1BasisIndex = basisIndex;
 
     const modal = document.getElementById('b1t1-modal');
     const drinkOptions = document.getElementById('b1t1-drink-options');
 
     let html = '';
-    eligibleDrinks.forEach(drink => {
+    availableDrinks.forEach((drink, index) => {
         html += `
-            <div class="b1t1-drink-option" onclick="selectB1T1Drink('${drink.cartIndex}')" style="display: flex; align-items: center; gap: 12px; padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+            <div class="b1t1-drink-option" onclick="selectB1T1DrinkFromIndex(${index})" style="display: flex; align-items: center; gap: 12px; padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
                 <div style="width: 40px; height: 40px; flex-shrink: 0;">
-                    ${drink.ImageLink ?
-                        `<img src="${drink.ImageLink}" alt="${drink.ProductName}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px;">` :
+                    ${drink.menuItem.imagelink ?
+                        `<img src="${drink.menuItem.imagelink}" alt="${drink.menuItem.Name}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px;">` :
                         `<div style="width: 40px; height: 40px; background: #f0f0f0; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #999;">No img</div>`
                     }
                 </div>
                 <div>
-                    <div style="font-weight: 600; font-size: 14px;">${drink.ProductName}</div>
-                    <div style="font-size: 12px; color: #666;">${drink.Size}</div>
+                    <div style="font-weight: 600; font-size: 14px;">${drink.menuItem.Name}</div>
+                    <div style="font-size: 12px; color: #666;">${basisSize}</div>
                 </div>
                 <div style="margin-left: auto; font-size: 12px; color: #a05c2f; font-weight: 600;">FREE</div>
             </div>
@@ -652,25 +782,26 @@ function showB1T1Modal() {
     modal.style.display = 'flex';
 }
 
-function selectB1T1Drink(cartIndex) {
-    if (!window.cartItems || !window.cartItems[cartIndex]) return;
+function selectB1T1DrinkFromIndex(index) {
+    const drinkData = window.b1t1Options[index];
+    if (!drinkData) return;
 
-    const selectedDrink = window.cartItems[cartIndex];
+    addToCart(drinkData.menuItem, drinkData.sizeObj);
+    const freeItemIndex = window.cartItems.length - 1;
+    const calculatedPrice = window.cartItems[freeItemIndex].BasePrice; // Store calculated price before setting to 0
+    window.cartItems[freeItemIndex].originalPrice = calculatedPrice;
+    window.cartItems[freeItemIndex].isB1T1 = true;
+    window.cartItems[freeItemIndex].b1t1BasisId = window.cartItems[window.b1t1BasisIndex].itemId; // Track which basis drink this free drink belongs to
+    window.cartItems[freeItemIndex].BasePrice = 0;
+    window.cartItems[freeItemIndex].ProductName += ' (B1T1 FREE)';
 
-    // Add a free version of the selected drink
-    const freeDrink = {
-        ...selectedDrink,
-        ProductName: `${selectedDrink.ProductName} (B1T1 FREE)`,
-        BasePrice: 0, // Free
-        Quantity: 1,
-        isB1T1: true
-    };
+    // Mark the basis item as having used B1T1
+    if (window.b1t1BasisIndex >= 0) {
+        window.cartItems[window.b1t1BasisIndex].b1t1Used = true;
+    }
 
-    window.cartItems.push(freeDrink);
     updateCartDisplay();
     closeB1T1Modal();
-
-    // Show success message
     showPromotionMessage('Buy 1 Take 1 promotion applied! You get one free drink.');
 }
 
@@ -694,6 +825,611 @@ function showBuy3For143Modal() {
 
     // Show success message with correct savings
     showPromotionMessage(`Buy 3 for ₱143 promotion applied! You save ₱${savings.toFixed(2)} on ${promoSets} set${promoSets > 1 ? 's' : ''} of drinks.`);
+}
+
+// Generate a unique customer name with format "Customer#XXXXX" (range 10000-99999, 90,000 possible unique names)
+function generateUniqueCustomerName() {
+    // Generate random number between 10000 and 99999
+    const customerNumber = Math.floor(Math.random() * 90000) + 10000;
+    return `Customer#${customerNumber}`;
+}
+
+function showFeedbackMessage(message, type = 'success') {
+    const isSuccess = type === 'success';
+    const bgColor = isSuccess ? '#4caf50' : '#f44336';
+    const emoji = isSuccess ? '✅' : '❌';
+
+    // Create a temporary message element
+    const messageDiv = document.createElement('div');
+    messageDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${bgColor};
+        color: white;
+        padding: 16px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 10000;
+        font-weight: 600;
+        max-width: 300px;
+        animation: slideIn 0.3s ease-out;
+    `;
+    messageDiv.innerHTML = `${emoji} ${message}`;
+
+    // Add animation styles
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    `;
+    document.head.appendChild(style);
+
+    document.body.appendChild(messageDiv);
+
+    // Remove after 5 seconds for errors, 4 for success
+    const duration = isSuccess ? 4000 : 5000;
+    setTimeout(() => {
+        messageDiv.style.animation = 'slideIn 0.3s ease-in reverse';
+        setTimeout(() => {
+            document.body.removeChild(messageDiv);
+        }, 300);
+    }, duration);
+}
+
+function validateOrderInputs() {
+    const customerName = document.getElementById('customer-name').value.trim();
+    const deliveryType = document.getElementById('delivery-type').value;
+    const cartItems = window.cartItems || [];
+
+    let errors = [];
+
+    // Check if customer name is provided (skip for Take-Out orders)
+    if (!customerName && deliveryType !== 'Take-Out') {
+        errors.push('Customer name is required');
+    }
+
+    // Check if cart has items
+    if (!cartItems || cartItems.length === 0) {
+        errors.push('Please add items to the cart');
+    }
+
+    // Check address for delivery
+    if (deliveryType === 'Delivery') {
+        const streetAddress = document.getElementById('street-address').value.trim();
+        const areaSelect = document.getElementById('area-select').value;
+
+        if (!streetAddress) {
+            errors.push('Street address is required for delivery');
+        }
+        if (!areaSelect || areaSelect === '') {
+            errors.push('Please select an area for delivery');
+        }
+    }
+
+    // Check payment method selection
+    const paymentMethod = getSelectedPaymentMethod();
+    if (!paymentMethod || (paymentMethod !== 'cash' && paymentMethod !== 'epayment')) {
+        errors.push('Please select a payment method');
+    }
+
+    return {
+        isValid: errors.length === 0,
+        errors: errors
+    };
+}
+
+// Proceed with order function
+function proceedOrder() {
+    // Validate inputs
+    const validation = validateOrderInputs();
+    if (!validation.isValid) {
+        showFeedbackMessage(validation.errors.join('\n'), 'error');
+        return;
+    }
+
+    // Show order confirmation modal
+    showOrderConfirmation();
+}
+
+function showOrderConfirmation() {
+    let customerName = document.getElementById('customer-name').value.trim();
+    const contactNumber = document.getElementById('contact-number').value.trim();
+    const deliveryType = document.getElementById('delivery-type').value;
+    const streetAddress = document.getElementById('street-address').value.trim();
+    const areaSelect = document.getElementById('area-select').value;
+    const notes = document.getElementById('notes-textarea').value.trim();
+    const paymentMethod = getSelectedPaymentMethod();
+    const cartItems = window.cartItems || [];
+
+    // Auto-generate customer name for Take-Out orders if not provided
+    if (deliveryType === 'Take-Out' && !customerName) {
+        customerName = generateUniqueCustomerName();
+        // Update the form field to show the generated name
+        document.getElementById('customer-name').value = customerName;
+        showFeedbackMessage(`Generated customer name: ${customerName}`, 'success');
+    }
+
+    let confirmMessage = `Customer: ${customerName}\n`;
+    if (contactNumber) confirmMessage += `Contact: ${contactNumber}\n\n`;
+    confirmMessage += `Delivery Type: ${deliveryType}\n`;
+
+    if (deliveryType === 'Delivery') {
+        confirmMessage += `Address: ${streetAddress}, ${areaSelect}\n\n`;
+    } else {
+        confirmMessage += `\n`;
+    }
+
+    confirmMessage += `Order Items:\n`;
+    let itemCount = 0;
+    cartItems.forEach(item => {
+        itemCount += item.Quantity;
+        confirmMessage += `- ${item.ProductName} (x${item.Quantity}) - ₱${(item.BasePrice * item.Quantity).toFixed(2)}\n`;
+        if (item.AddOns && item.AddOns.length > 0) {
+            confirmMessage += `  Add-ons: ${item.AddOns.join(', ')}\n`;
+        }
+    });
+
+    confirmMessage += `\nTotal Items: ${itemCount}\n`;
+    const subtotal = cartItems.reduce((sum, item) => sum + (item.BasePrice * item.Quantity), 0);
+    confirmMessage += `Subtotal: ₱${subtotal.toFixed(2)}\n`;
+
+    const promotionalTotal = calculatePromotionalTotal(cartItems);
+    if (promotionalTotal < subtotal) {
+        const savings = subtotal - promotionalTotal;
+        confirmMessage += `Discount Applied: ₱${savings.toFixed(2)}\n`;
+    }
+
+    confirmMessage += `Total: ₱${promotionalTotal.toFixed(2)}\n\n`;
+    confirmMessage += `Payment Method: ${paymentMethod === 'cash' ? 'Cash on Hand' : 'E-Payment'}`;
+
+    if (notes) {
+        confirmMessage += `\n\nNotes: ${notes}`;
+    }
+
+    // Set the confirmation message
+    const confirmMessageElement = document.getElementById('confirm-message');
+    confirmMessageElement.textContent = confirmMessage;
+
+    // Setup confirmation buttons
+    const confirmSubmitBtn = document.getElementById('confirm-submit-btn');
+    const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
+
+    // Remove previous event listeners
+    const newConfirmSubmitBtn = confirmSubmitBtn.cloneNode(true);
+    const newConfirmCancelBtn = confirmCancelBtn.cloneNode(true);
+
+    confirmSubmitBtn.parentNode.replaceChild(newConfirmSubmitBtn, confirmSubmitBtn);
+    confirmCancelBtn.parentNode.replaceChild(newConfirmCancelBtn, confirmCancelBtn);
+
+    // Add new event listeners
+    newConfirmSubmitBtn.addEventListener('click', () => {
+        finalizeOrder();
+    });
+
+    newConfirmCancelBtn.addEventListener('click', closeOrderConfirmation);
+
+    // Show the modal
+    document.getElementById('order-confirm-modal').classList.remove('hidden');
+}
+
+function showOrderConfirmationProcessing() {
+    // Hide confirmation state and show processing state
+    document.getElementById('confirm-state').style.display = 'none';
+    document.getElementById('processing-state').style.display = 'block';
+    document.getElementById('success-state').style.display = 'none';
+
+    // Change title
+    document.getElementById('confirm-title').textContent = 'Processing Order';
+}
+
+function showOrderConfirmationSuccess() {
+    // Hide processing state and show success state
+    document.getElementById('confirm-state').style.display = 'none';
+    document.getElementById('processing-state').style.display = 'none';
+    document.getElementById('success-state').style.display = 'block';
+
+    // Change title
+    document.getElementById('confirm-title').textContent = 'Order Confirmed';
+
+    // Auto-close modal after 3 seconds
+    setTimeout(() => {
+        closeOrderConfirmation();
+    }, 3000);
+}
+
+function resetOrderConfirmationModal() {
+    // Show confirmation state and hide others
+    document.getElementById('confirm-state').style.display = 'block';
+    document.getElementById('processing-state').style.display = 'none';
+    document.getElementById('success-state').style.display = 'none';
+
+    // Reset title
+    document.getElementById('confirm-title').textContent = 'Confirm Order';
+}
+
+function closeOrderConfirmation() {
+    document.getElementById('order-confirm-modal').classList.add('hidden');
+    resetOrderConfirmationModal();
+}
+
+function finalizeOrder() {
+    const paymentMethod = getSelectedPaymentMethod();
+    const orderData = submitOrder();
+
+    // Hide the confirmation buttons to prevent multiple clicks
+    document.getElementById('confirm-submit-btn').style.display = 'none';
+    document.getElementById('confirm-cancel-btn').style.display = 'none';
+
+    if (paymentMethod === 'cash') {
+        // For cash payment, show processing message in confirm-message
+        const confirmMessage = document.getElementById('confirm-message');
+        confirmMessage.innerHTML = `
+            <div style="text-align: center; padding: 20px;">
+                <div class="loading-spinner" style="margin: 0 auto 15px auto; width: 40px; height: 40px;">
+                    <div style="border: 4px solid #f3f3f3; border-top: 4px solid #007bff; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite;"></div>
+                </div>
+                <p style="font-size: 16px; color: #333; margin: 0;">Processing order...</p>
+            </div>
+            <style>
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            </style>
+        `;
+        
+        // Submit order and handle success
+        submitToServer(orderData);
+    } else if (paymentMethod === 'epayment') {
+        // Immediately show processing state for e-payment
+        showOrderConfirmationProcessing();
+        // Show payment gateway
+        showXenditGateway(orderData);
+    }
+}
+
+async function submitToServer(orderData) {
+    try {
+        const response = await fetch('/staff/orders/submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(orderData)
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+            // Show success message in confirm-message
+            const confirmMessage = document.getElementById('confirm-message');
+            confirmMessage.innerHTML = `
+                <div style="text-align: center; padding: 20px;">
+                    <div style="margin: 0 auto 15px auto; width: 50px; height: 50px; color: #28a745;">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width: 50px; height: 50px;">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                        </svg>
+                    </div>
+                    <p style="font-size: 18px; color: #28a745; margin: 0; font-weight: bold;">Order Confirmed!</p>
+                    <p style="font-size: 14px; color: #666; margin: 5px 0 0 0;">Order has been successfully submitted</p>
+                </div>
+            `;
+
+            // Update modal title
+            document.getElementById('confirm-title').textContent = 'Order Confirmed';
+            
+            showFeedbackMessage('Order submitted successfully!', 'success');
+            clearOrderForm();
+            
+            // Auto-close modal after 3 seconds
+            setTimeout(() => {
+                closeOrderConfirmation();
+            }, 3000);
+        } else {
+            throw new Error(result.message || 'Failed to submit order');
+        }
+    } catch (error) {
+        console.error('Order submission error:', error);
+        showFeedbackMessage('Failed to submit order. Please try again.', 'error');
+        // Reset modal to default state on error
+        resetOrderConfirmationModal();
+    }
+}
+
+async function showXenditGateway(orderData) {
+    const gatewayModal = document.getElementById('xendit-gateway-modal');
+    const loadingElement = document.getElementById('xendit-gateway-loading');
+    const detailsElement = document.getElementById('xendit-gateway-details');
+
+    // Show loading
+    loadingElement.style.display = 'block';
+    detailsElement.style.display = 'none';
+    gatewayModal.classList.remove('hidden');
+
+    try {
+        // Create order first like in checkout.js
+        const createOrderResponse = await fetch('/api/orders', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(orderData)
+        });
+
+        if (!createOrderResponse.ok) {
+            throw new Error('Failed to create order');
+        }
+
+        const orderResult = await createOrderResponse.json();
+        currentOrderId = orderResult.orderId;
+
+        // Get customer data for invoice
+        const customerName = document.getElementById('customer-name').value.trim();
+        const contactNumber = document.getElementById('contact-number').value.trim();
+        const email = user?.email || "";
+
+        // Build minimal customer object (only include non-empty fields)
+        const customerData = {
+            given_names: customerName || user?.fullname || 'POS Customer'
+        };
+
+        if (email.trim()) {
+            customerData.email = email.trim();
+        }
+
+        if (contactNumber.trim()) {
+            customerData.mobile_number = contactNumber.trim();
+        }
+
+        // Create Xendit payment invoice with proper payload
+        const invoicePayload = {
+            external_id: orderResult.orderId,
+            amount: orderData.Total,
+            currency: 'PHP',
+            description: `Payment for Order ${orderResult.orderId}`,
+            customer: customerData,
+            payment_methods: ['SHOPEEPAY', 'PAYMAYA', 'GCASH', 'QRPH'], // Philippine e-wallets and QR
+            customer_notification_preference: {
+                invoice_created: email.trim() ? ['email'] : [],
+                reminding: email.trim() ? ['email'] : [],
+                payment_attempt: email.trim() ? ['email'] : []
+            },
+            // Fix expiry format - use invoice_duration to match checkout.js working implementation
+            invoice_duration: 600 // 10 minutes in seconds
+        };
+
+        const paymentResponse = await fetch('/api/xendit/create-payment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(invoicePayload)
+        });
+
+        if (!paymentResponse.ok) {
+            const errorData = await paymentResponse.text();
+            throw new Error(`Failed to create payment: ${errorData}`);
+        }
+
+        const paymentData = await paymentResponse.json();
+
+        // Save payment ID to order
+        await fetch(`/api/orders/update-payment-status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                paymentId: paymentData.external_id,
+                invoiceId: paymentData.id,
+                status: 'Pending'
+            })
+        });
+
+        // Show payment amount
+        const total = orderData.Total.toFixed(2);
+        document.getElementById('xendit-payment-amount').textContent = total;
+
+        // Use real invoice_url from Xendit API
+        const paymentUrl = paymentData.invoice_url;
+
+        if (paymentUrl) {
+            const linkElement = document.getElementById('xendit-payment-link');
+            linkElement.href = paymentUrl;
+
+            // Try to open payment window
+            let paymentWindow;
+            try {
+                paymentWindow = window.open(paymentUrl, '_blank');
+
+                if (!paymentWindow || paymentWindow.closed || typeof paymentWindow.closed === 'undefined') {
+                    // Popup blocked - show fallback
+                    const paymentWindowStatus = document.getElementById('payment-window-status') || document.createElement('p');
+                    if (!document.getElementById('payment-window-status')) {
+                        paymentWindowStatus.id = 'payment-window-status';
+                        paymentWindowStatus.textContent = 'The payment window was blocked by your browser. Please click the link below:';
+                        paymentWindowStatus.style.color = '#f44336';
+                        paymentWindowStatus.style.marginBottom = '10px';
+                        detailsElement.insertBefore(paymentWindowStatus, document.getElementById('payment-link-container'));
+                    }
+
+                    document.getElementById('payment-link-container').style.display = 'block';
+                } else {
+                    paymentWindowStatus.textContent = 'Please complete your payment in the new tab that just opened.';
+                }
+            } catch (error) {
+                document.getElementById('payment-link-container').style.display = 'block';
+                console.error('Failed to open payment window:', error);
+            }
+
+            // Set up check payment status
+            document.getElementById('xendit-check-payment-status').onclick = () => {
+                checkPaymentStatus(currentOrderId, false); // Manual check
+            };
+
+            // Clear any existing interval before starting new one
+            if (paymentStatusInterval) {
+                clearInterval(paymentStatusInterval);
+                paymentStatusInterval = null;
+            }
+
+            // Start automatic payment status checking
+            paymentStatusInterval = setInterval(() => {
+                checkPaymentStatus(currentOrderId, true); // Automatic check
+            }, 5000); // Increased to 5 seconds to reduce frequency
+
+        } else {
+            alert('Invoice created successfully. Check your email for payment instructions.');
+        }
+
+        // Set up cancel
+        document.getElementById('xendit-cancel-gateway').onclick = () => {
+            closeXenditGateway();
+        };
+
+        // Set up close
+        document.getElementById('close-payment-modal-btn').onclick = () => {
+            closeXenditGateway();
+        };
+
+        // Show details
+        loadingElement.style.display = 'none';
+        detailsElement.style.display = 'block';
+
+    } catch (error) {
+        console.error('Payment gateway error:', error);
+        showFeedbackMessage('Failed to create payment gateway. Please try again.', 'error');
+        closeXenditGateway();
+        resetOrderConfirmationModal();
+    }
+}
+
+function closeXenditGateway() {
+    // Clear interval when closing gateway
+    if (paymentStatusInterval) {
+        clearInterval(paymentStatusInterval);
+        paymentStatusInterval = null;
+    }
+    document.getElementById('xendit-gateway-modal').classList.add('hidden');
+}
+
+async function checkPaymentStatus(orderId, isAutomatic = false) {
+    try {
+        const response = await fetch(`/api/xendit/check-payment-by-order/${orderId}`);
+        if (response.ok) {
+            const paymentData = await response.json();
+            if (paymentData.status === 'PAID') {
+                // Clear the polling interval FIRST to prevent multiple calls
+                if (paymentStatusInterval) {
+                    clearInterval(paymentStatusInterval);
+                    paymentStatusInterval = null;
+                }
+
+                // Only show success message once by checking if modal is still open
+                const gatewayModal = document.getElementById('xendit-gateway-modal');
+                if (!gatewayModal.classList.contains('hidden')) {
+                    // Update PaymentStatus to "Paid"
+                    try {
+                        // Extract payment method from various possible locations in Xendit response
+                        const invoiceId = paymentData.id || paymentData.invoice_id || 'unknown';
+                        const paymentMethod = paymentData.payment_method || 
+                                            (paymentData.payments && paymentData.payments[0] && 
+                                             (paymentData.payments[0].payment_method || 
+                                              paymentData.payments[0].payment_channel || 
+                                              paymentData.payments[0].channel_code)) || 
+                                            null;
+
+                        const updatePayload = {
+                            paymentId: orderId,
+                            invoiceId: invoiceId,
+                            status: 'Paid'
+                        };
+
+                        // Add PaymentMethod to payload if available
+                        if (paymentMethod) {
+                            updatePayload.PaymentMethod = paymentMethod;
+                        }
+
+                        console.log('Updating payment with payload:', updatePayload);
+
+                        const updateResponse = await fetch(`/api/orders/update-payment-status`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(updatePayload)
+                        });
+
+                        if (!updateResponse.ok) {
+                            console.error('Failed to update payment status:', await updateResponse.text());
+                        } else {
+                            console.log('Payment status updated successfully to Paid');
+                        }
+                    } catch (error) {
+                        console.error('Error updating payment status:', error);
+                    }
+
+                    showFeedbackMessage('Payment successful!', 'success');
+                    showOrderConfirmationSuccess(); // Show success state in modal
+                    closeXenditGateway();
+                    clearOrderForm();
+                }
+            } else if (!isAutomatic) {
+                // This is from manual check, show alert
+                alert('Payment not yet confirmed. Please complete the payment in the new tab.');
+            } // If polling, just continue without alert
+        } else {
+            const errorData = await response.json().catch(() => ({}));
+            console.error('Payment check error:', errorData);
+
+            // Use user-friendly error message from API
+            const errorMessage = errorData.message ||
+                                errorData.error ||
+                                'Unable to check payment status. Please try again.';
+            if (!isAutomatic) {
+                // Only show alert if manual check
+                alert(errorMessage);
+            }
+        }
+    } catch (error) {
+        console.error('Error checking payment status:', error);
+        if (!isAutomatic) {
+            // Only show alert if manual check
+            alert('Error checking payment status. Please try again or contact support.');
+        }
+    }
+}
+
+function clearOrderForm() {
+    // Reset all form fields
+    document.getElementById('customer-name').value = '';
+    document.getElementById('contact-number').value = '';
+    document.getElementById('delivery-type').value = 'Take-Out';
+    document.getElementById('street-address').value = '';
+    document.getElementById('area-select').value = '';
+    document.getElementById('notes-textarea').value = '';
+
+    // Reset address container display
+    const addressContainer = document.getElementById('address-container');
+    if (addressContainer) addressContainer.style.display = 'none';
+
+    // Reset payment selection
+    const paymentOptions = document.querySelectorAll('.payment-option');
+    paymentOptions.forEach(option => {
+        const check = option.querySelector('.payment-check');
+        check.style.backgroundColor = '#ddd';
+    });
+
+    // Reset cart
+    window.cartItems = [];
+    updateCartDisplay();
+
+    // Close all modals
+    closeOrderConfirmation();
+    closeXenditGateway();
 }
 
 function showPromotionMessage(message) {

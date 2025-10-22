@@ -195,9 +195,9 @@ menuItems.forEach(item => {
 <div id="b1t1-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;z-index:1002;">
     <div style="background:#fff;border-radius:16px;min-width:320px;max-width:500px;width:90vw;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.15);display:flex;flex-direction:column;">
         <div style="padding:20px;border-bottom:1px solid #f0f0f0;position:relative;">
-            <div style="font-size:18px;font-weight:600;color:#333;">Select Your Free Drink</div>
+            <div style="font-size:18px;font-weight:600;color:#333;padding-right:40px;">Select Your Free Drink</div>
             <div style="font-size:14px;color:#666;margin-top:4px;">Choose a drink from the same category</div>
-            <button onclick="closeB1T1Modal()" style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;color:#666;">&times;</button>
+            <button onclick="closeB1T1Modal()" style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;color:#666;width:40px;height:40px;display:flex;align-items:center;justify-content:center;">&times;</button>
         </div>
         <div id="b1t1-drink-options" style="padding:16px;display:flex;flex-direction:column;gap:12px;">
             <!-- Drink options will be populated here -->
@@ -243,10 +243,11 @@ menuItems.forEach(item => {
             <div>Generating payment link...</div>
         </div>
         <div id="xendit-gateway-details" style="display: none;">
+            <div id="payment-window-status" style="margin-bottom: 10px;"></div>
             <div style="margin-bottom: 10px;">
                 <strong>Amount:</strong> ₱<span id="xendit-payment-amount">0.00</span>
             </div>
-            <div style="margin-bottom: 10px;">
+            <div id="payment-link-container" style="margin-bottom: 10px;">
                 <a id="xendit-payment-link" href="#" target="_blank" style="display: inline-block; padding: 10px 20px; background: #8B4513; color: #fff; border-radius: 4px; text-decoration: none; font-weight: 500;">Open Payment Link</a>
             </div>
             <div style="font-size: 13px; color: #888; margin-bottom: 18px;">The payment link will open in a new window. Please complete the payment and return to this page.</div>
@@ -259,11 +260,33 @@ menuItems.forEach(item => {
 <!-- Order Confirmation Modal -->
 <div id="order-confirm-modal" class="modal hidden" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 2000; display: flex; align-items: center; justify-content: center;">
     <div class="modal-content" style="background: white; border-radius: 12px; width: 90%; max-width: 400px; max-height: 80vh; overflow-y: auto; position: relative; text-align: center; padding: 30px 20px;">
-        <h3 style="margin-top:0;">Confirm Order</h3>
-        <div id="confirm-message" style="margin-bottom: 20px; color: #444; text-align: left; white-space: pre-line;"></div>
-        <div style="display: flex; justify-content: center; gap: 12px;">
-            <button id="confirm-submit-btn" style="background: #4caf50; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;">Confirm</button>
-            <button id="confirm-cancel-btn" style="background: #ccc; color: #222; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;">Cancel</button>
+        <h3 style="margin-top:0;" id="confirm-title">Confirm Order</h3>
+
+        <!-- Confirmation State -->
+        <div id="confirm-state" style="margin-bottom: 20px;">
+            <div id="confirm-message" style="color: #444; text-align: left; white-space: pre-line;"></div>
+            <div style="display: flex; justify-content: center; gap: 12px; margin-top: 20px;">
+                <button id="confirm-submit-btn" style="background: #4caf50; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;">Confirm</button>
+                <button id="confirm-cancel-btn" style="background: #ccc; color: #222; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;">Cancel</button>
+            </div>
+        </div>
+
+        <!-- Processing State -->
+        <div id="processing-state" style="display: none; margin-bottom: 20px;">
+            <div style="margin-bottom: 20px;">
+                <div class="spinner" style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #8B4513; border-radius: 50%; margin: 0 auto 15px; animation: spin 1s linear infinite;"></div>
+                <div style="font-size: 16px; font-weight: 600; color: #333;">Processing order...</div>
+            </div>
+        </div>
+
+        <!-- Success State -->
+        <div id="success-state" style="display: none; margin-bottom: 20px;">
+            <div style="font-size: 24px; margin-bottom: 15px;">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="80" height="80">
+                    <path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM438 209.7C427.3 201.9 412.3 204.3 404.5 215L285.1 379.2L233 327.1C223.6 317.7 208.4 317.7 199.1 327.1C189.8 336.5 189.7 351.7 199.1 361L271.1 433C276.1 438 282.9 440.5 289.9 440C296.9 439.5 303.3 435.9 307.4 430.2L443.3 243.2C451.1 232.5 448.7 217.5 438 209.7z" fill="#28a745"/>
+                </svg>
+            </div>
+            <div style="font-size: 18px; font-weight: 600; color: #28a745;">Order confirmed!</div>
         </div>
     </div>
 </div>

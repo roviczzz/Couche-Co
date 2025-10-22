@@ -36,7 +36,6 @@ function isLoggedIn(req, res, next) {
 
 // Login page
 router.get('/login', (req, res) => {
-  console.log('Login page requested');
   if (req.session.user) {
     return res.redirect(req.session.user.role === 'admin' ? '/admin/dashboard' : '/');
   }

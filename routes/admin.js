@@ -804,6 +804,73 @@ router.post('/delete-product/:id', async (req, res) => {
 
 
 // Orders Management
+
+// POS Order Submission Route (for both admin and staff POS)
+router.post('/orders/submit', ensureAdmin, async (req, res) => {
+  try {
+    const orderData = req.body;
+
+    // Basic validation
+    if (!orderData.OrderID || !orderData.Cart || !Array.isArray(orderData.Cart) || orderData.Cart.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid order data: missing OrderID or empty cart'
+      });
+    }
+
+    if (!orderData.Customer || !orderData.Customer.fullname) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid order data: missing customer name'
+      });
+    }
+
+    if (!orderData.Total || orderData.Total <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid order data: invalid total amount'
+      });
+    }
+
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const ordersCollection = db.collection('Orders');
+
+    // Ensure order is from POS with proper Source
+    const orderToInsert = {
+      ...orderData,
+      Source: 'POS', // Ensure Source is always 'POS' for POS submissions
+      cashierName: req.session.user?.fullname || 'Unknown',
+      insertedAt: new Date()
+    };
+
+    const result = await ordersCollection.insertOne(orderToInsert);
+
+    if (result.acknowledged && result.insertedId) {
+      // Log successful order submission
+      console.log(`✅ POS Order submitted successfully: ${orderData.OrderID} by ${req.session.user?.fullname}`);
+
+      res.json({
+        success: true,
+        message: 'Order submitted successfully',
+        orderId: orderData.OrderID,
+        insertedId: result.insertedId
+      });
+    } else {
+      throw new Error('Order insertion failed');
+    }
+
+    await client.close();
+  } catch (error) {
+    console.error('POS Order submission error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to submit order. Please try again.',
+      error: error.message
+    });
+  }
+});
+
 router.get('/orders', nocache, async (req, res) => {
   try {
     const [orders, menu] = await Promise.all([

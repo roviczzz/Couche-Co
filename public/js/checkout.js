@@ -128,6 +128,47 @@ document.addEventListener('DOMContentLoaded', function() {
             paymentStatusInterval = null;
           }
 
+          // Update PaymentStatus to "Paid"
+          try {
+            // Extract payment method from various possible locations in Xendit response
+            const invoiceId = paymentData.id || paymentData.invoice_id || 'unknown';
+            const paymentMethod = paymentData.payment_method || 
+                                (paymentData.payments && paymentData.payments[0] && 
+                                 (paymentData.payments[0].payment_method || 
+                                  paymentData.payments[0].payment_channel || 
+                                  paymentData.payments[0].channel_code)) || 
+                                null;
+
+            const updatePayload = {
+              paymentId: currentOrderId,
+              invoiceId: invoiceId,
+              status: 'Paid'
+            };
+
+            // Add PaymentMethod to payload if available
+            if (paymentMethod) {
+              updatePayload.PaymentMethod = paymentMethod;
+            }
+
+            console.log('Updating payment with payload:', updatePayload);
+
+            const updateResponse = await fetch(`/api/orders/update-payment-status`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(updatePayload)
+            });
+
+            if (!updateResponse.ok) {
+              console.error('Failed to update payment status:', await updateResponse.text());
+            } else {
+              console.log('Payment status updated successfully to Paid');
+            }
+          } catch (error) {
+            console.error('Error updating payment status:', error);
+          }
+
           // Update progress to step 3 (Confirmation)
           if (window.updateProgressStep) window.updateProgressStep(3);
 
