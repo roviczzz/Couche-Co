@@ -91,6 +91,12 @@ router.get('/menu', async (req, res) => {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
     const currentUser = await db.collection('users').findOne({ _id: new ObjectId(req.session.user._id) });
+    
+    // Fetch menu items, addons, and ingredients
+    const menu = await getMenu();
+    const addons = await db.collection('Add-ons').find({ isEnabled: true }).toArray();
+    const ingredients = await db.collection('Ingredients').find({ isEnabled: true }).toArray();
+    
     await client.close();
 
     // Merge session data with fresh database data
@@ -99,12 +105,13 @@ router.get('/menu', async (req, res) => {
       fullname: currentUser?.fullname
     };
 
-    const menu = await getMenu();
     res.render('staff/menu', {
       title: 'POS Menu',
       layout: 'staff/layout',
       user: userData,
-      menuItems: menu
+      menuItems: menu,
+      addons,
+      ingredients
     });
   } catch (error) {
     console.error('Staff Menu error:', error);

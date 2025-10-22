@@ -888,6 +888,12 @@ router.get('/menu', nocache, async (req, res) => {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
     const currentUser = await db.collection('users').findOne({ _id: new ObjectId(req.session.user._id) });
+    
+    // Fetch menu items, addons, and ingredients
+    const menuItems = await getMenu();
+    const addons = await db.collection('Add-ons').find({ isEnabled: true }).toArray();
+    const ingredients = await db.collection('Ingredients').find({ isEnabled: true }).toArray();
+    
     await client.close();
 
     // Merge session data with fresh database data
@@ -896,13 +902,14 @@ router.get('/menu', nocache, async (req, res) => {
       fullname: currentUser?.fullname
     };
 
-    const menuItems = await getMenu();
     res.render('admin/menu', {
       title: 'Menu Management | Blessings Cafe',
       user: userData,
       currentPage: '/admin/menu',
       layout: 'admin/layout',
-      menuItems
+      menuItems,
+      addons,
+      ingredients
     });
   } catch (error) {
     console.error('Menu error:', error);

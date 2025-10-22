@@ -768,7 +768,7 @@ html, body {
     background: white;
     border-radius: 16px;
     width: 90%;
-    max-width: 480px;
+    max-width: 700px;
     max-height: 90vh;
     overflow: hidden;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);

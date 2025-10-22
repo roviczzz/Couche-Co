@@ -1,0 +1,88 @@
+/* Staff Menu Styles - Same as Admin Menu */
+.options-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.size-option,
+.addon-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    border: 2px solid #e1e5e9;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.size-option:hover,
+.addon-option:hover {
+    border-color: #a05c2f;
+    background-color: #f8f9fa;
+}
+
+.size-option input[type="radio"]:checked + .size-label,
+.addon-option input[type="checkbox"]:checked + .addon-label {
+    font-weight: 600;
+    color: #a05c2f;
+}
+
+.size-option input[type="radio"]:checked {
+    border-color: #a05c2f;
+}
+
+.addon-group {
+    margin-bottom: 20px;
+}
+
+.addon-group h5 {
+    margin: 0 0 12px 0;
+    color: #333;
+    font-size: 16px;
+    font-weight: 600;
+    border-bottom: 1px solid #e1e5e9;
+    padding-bottom: 8px;
+}
+
+.addon-group .options-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+
+@media (max-width: 768px) {
+    .addon-group .options-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .addon-group .options-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.size-label,
+.addon-label {
+    font-size: 14px;
+    color: #333;
+}
+
+.modal-section {
+    margin-bottom: 24px;
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: #333;
+}
+
+.optional {
+    font-size: 14px;
+    font-weight: 400;
+    color: #666;
+}

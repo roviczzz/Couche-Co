@@ -1,4 +1,5 @@
 <link rel="stylesheet" href="/css/menu.css">
+<link rel="stylesheet" href="/css/staff-menu.css">
 
 <%
 // Group menu items by category
@@ -79,7 +80,7 @@ menuItems.forEach(item => {
         </div>
         <div class="customer-details-section" style="margin-bottom: 20px;">
             <label for="delivery-type" style="font-weight: bold; display: block; margin-bottom: 6px; color: black;">Delivery Type</label>
-            <select id="delivery-type" style="width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; margin-bottom: 15px; cursor: pointer;">
+            <select id="delivery-type" onchange="handleDeliveryTypeChange()" style="width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; margin-bottom: 15px; cursor: pointer;">
                 <option value="Take-Out" selected>Take-Out</option>
                 <option value="Pick-Up">Pick-Up</option>
                 <option value="Delivery">Delivery</option>
@@ -176,7 +177,7 @@ menuItems.forEach(item => {
         </div>
         <div class="modal-footer">
             <button onclick="closeSizeModal()" class="modal-cancel-btn">Cancel</button>
-            <button id="modal-add-to-order-btn" class="modal-add-btn">Add to Order</button>
+            <button id="modal-add-to-order-btn" class="modal-add-btn" onclick="addModalItemToCart()">Add to Order</button>
         </div>
     </div>
 </div>
@@ -296,5 +297,11 @@ menuItems.forEach(item => {
 <!-- User data for JavaScript -->
 <script id="user-data" type="application/json"><%- JSON.stringify(user) %></script>
 
+<!-- Addons data for JavaScript -->
+<script id="addons-data" type="application/json"><%- JSON.stringify(addons || []) %></script>
+
+<!-- Ingredients data for JavaScript -->
+<script id="ingredients-data" type="application/json"><%- JSON.stringify(ingredients || []) %></script>
+
 <!-- External JavaScript file -->
-<script src="/js/menu.js"></script>
+<script src="/js/staff-menu.js"></script>
