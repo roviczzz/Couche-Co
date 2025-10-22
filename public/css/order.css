@@ -597,6 +597,10 @@ tbody tr.selected {
     background-color: #f0ad4e;
 }
 
+.status-ready {
+    background-color: #17a2b8;
+}
+
 .status-in-delivery {
     background-color: #0275d8;
 }

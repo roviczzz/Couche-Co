@@ -5,6 +5,7 @@ const user = JSON.parse(document.getElementById('user-data').textContent);
 // Global payment variables for automatic checking
 let currentOrderId = null;
 let paymentStatusInterval = null;
+let selectedPaymentMethod = null;
 
 // Initialize delivery type handling
 document.addEventListener('DOMContentLoaded', function() {
@@ -33,6 +34,9 @@ function handleDeliveryTypeChange() {
     const cashOption = document.querySelector('.payment-option[onclick*="cash"]');
     const epaymentOption = document.querySelector('.payment-option[onclick*="epayment"]');
 
+    // Reset selected payment method when delivery type changes
+    selectedPaymentMethod = null;
+
     // Toggle address container for Delivery
     if (deliveryType === 'Delivery') {
         if (addressContainer) addressContainer.style.display = 'block';
@@ -41,14 +45,21 @@ function handleDeliveryTypeChange() {
     }
 
     if (deliveryType === 'Delivery' || deliveryType === 'Pick-Up') {
-        // Hide cash option and auto-select E-Payment
+        // Hide cash option, show e-payment but don't auto-select
         if (cashOption) {
             cashOption.style.display = 'none';
         }
         if (epaymentOption) {
             epaymentOption.style.display = 'flex';
-            // Auto-select E-Payment
-            selectPayment('epayment');
+            // Reset selection - user must manually select
+            const epaymentCheck = epaymentOption.querySelector('.payment-check');
+            if (epaymentCheck) {
+                epaymentCheck.style.backgroundColor = '';
+            }
+            // Reset border styling and remove selected class
+            epaymentOption.style.border = '2px solid #e0e0e0';
+            epaymentOption.style.boxShadow = 'none';
+            epaymentOption.classList.remove('payment-selected');
         }
     } else {
         // Show both options for Take-Out
@@ -58,8 +69,22 @@ function handleDeliveryTypeChange() {
         if (epaymentOption) {
             epaymentOption.style.display = 'flex';
         }
-        // Don't auto-select anything, let user choose
+        // Reset all selections for take-out
+        const paymentOptions = document.querySelectorAll('.payment-option');
+        paymentOptions.forEach(option => {
+            const check = option.querySelector('.payment-check');
+            if (check) {
+                check.style.backgroundColor = '';
+            }
+            // Reset border styling and remove selected class
+            option.style.border = '2px solid #e0e0e0';
+            option.style.boxShadow = 'none';
+            option.classList.remove('payment-selected');
+        });
     }
+
+    // Update cart display to show/hide delivery fee
+    updateCartDisplay();
 }
 
 // Product click handler
@@ -267,16 +292,29 @@ function closeB1T1Modal() {
 
 // Payment selection function
 function selectPayment(method) {
+    // Store the selected payment method globally
+    selectedPaymentMethod = method;
+    
     const paymentOptions = document.querySelectorAll('.payment-option');
     paymentOptions.forEach(option => {
         const check = option.querySelector('.payment-check');
         check.style.backgroundColor = '#ddd';
+        // Reset border to default
+        option.style.border = '2px solid #e0e0e0';
+        option.style.boxShadow = 'none';
+        // Remove selected class if it exists
+        option.classList.remove('payment-selected');
     });
 
     // Find the clicked option and highlight it
     const clickedOption = event.currentTarget;
     const selectedCheck = clickedOption.querySelector('.payment-check');
-    selectedCheck.style.backgroundColor = '#a05c2f';
+    selectedCheck.style.backgroundColor = '#5cb85c';
+    // Add darker border and shadow for selected state
+    clickedOption.style.border = '2px solid #2c5aa0';
+    clickedOption.style.boxShadow = '0 2px 8px rgba(44, 90, 160, 0.3)';
+    // Add selected class for easy identification
+    clickedOption.classList.add('payment-selected');
 }
 
 // Cart functions
@@ -380,7 +418,7 @@ function updateCartDisplay() {
                                 onmouseup="this.style.transform='scale(1.05)';"
                                 title="Decrease quantity">−</button>
 
-                        <span style="min-width: 32px; text-align: center; font-weight: 700; font-size: 15px; color: #372b2a; font-family: 'Inter', sans-serif;">${item.Quantity}</span>
+                        <span style="min-width: 32px; text-align: center; font-weight: 700; font-size: 15px; margin-top: 12px; color: #372b2a; font-family: 'Inter', sans-serif;">${item.Quantity}</span>
 
                         <button class="qty-btn qty-plus" onclick="updateQuantity(${index}, 1)"
                                 style="width: 28px; height: 28px; border: none; background: #ffffff; color: #a05c2f; cursor: pointer; border-radius: 50%; font-family: 'Inter', sans-serif; font-size: 16px; font-weight: bold; line-height: 1; transition: all 0.15s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center;"
@@ -461,12 +499,23 @@ function updateCartDisplay() {
 
     promoAppliedElement.textContent = promoLabels.length > 0 ? `${promoLabels.join(', ')}` : '';
     promoAppliedElement.style.textAlign = 'right';
-    promoAppliedElement.style.color = '#a05c2f';
-    promoAppliedElement.style.fontSize = '14px';
 
     // Calculate promotional total
     const promotionalTotal = calculatePromotionalTotal(window.cartItems);
     totalElement.textContent = `₱ ${promotionalTotal.toFixed(2)}`;
+
+    // Handle delivery fee
+    const deliveryType = document.getElementById('delivery-type').value;
+    const deliveryFeeRow = document.getElementById('delivery-fee-row');
+    let finalTotal = promotionalTotal;
+
+    if (deliveryType === 'Delivery') {
+        deliveryFeeRow.style.display = 'flex';
+        finalTotal += 20;
+        totalElement.textContent = `₱ ${finalTotal.toFixed(2)}`;
+    } else {
+        deliveryFeeRow.style.display = 'none';
+    }
 }
 
 function updateQuantity(index, change) {
@@ -525,7 +574,12 @@ function submitOrder() {
     const notes = document.getElementById('notes-textarea').value;
     const paymentMethod = getSelectedPaymentMethod();
     const itemTotal = cart.reduce((sum, item) => sum + item.Quantity, 0);
-    const total = calculatePromotionalTotal(cart);
+    let total = calculatePromotionalTotal(cart);
+
+    // Add delivery fee for delivery orders
+    if (deliveryType === 'Delivery') {
+        total += 20;
+    }
 
     // Generate current date in the format from Orders collection
     const now = new Date();
@@ -592,21 +646,38 @@ function generateXenditPaymentId() {
 
 // Helper function to get selected payment method
 function getSelectedPaymentMethod() {
-    const deliveryType = document.getElementById('delivery-type').value;
-
-    // For Delivery and Pick-Up, only E-Payment is allowed
-    if (deliveryType === 'Delivery' || deliveryType === 'Pick-Up') {
-        return 'epayment';
+    // First check if we have a globally stored selection
+    if (selectedPaymentMethod) {
+        return selectedPaymentMethod;
     }
-
-    // For Take-Out, check which option is selected
+    
+    // Fallback: check for selected class or visual indicators
+    const selectedOption = document.querySelector('.payment-option.payment-selected');
+    if (selectedOption) {
+        // Try to determine payment method from onclick attribute
+        const onclickStr = selectedOption.getAttribute('onclick') || '';
+        if (onclickStr.includes("'cash'") || onclickStr.includes('"cash"')) {
+            return 'cash';
+        } else if (onclickStr.includes("'epayment'") || onclickStr.includes('"epayment"')) {
+            return 'epayment';
+        }
+    }
+    
+    // Final fallback: check visual styling
     const paymentOptions = document.querySelectorAll('.payment-option');
     for (let option of paymentOptions) {
         const check = option.querySelector('.payment-check');
-        if (check.style.backgroundColor === 'rgb(160, 92, 47)' || check.style.backgroundColor === '#a05c2f') {
-            return option.onclick.toString().includes("'cash'") ? 'cash' : 'epayment';
+        if (check && (check.style.backgroundColor === '#5cb85c' || 
+                     check.style.backgroundColor === 'rgb(92, 184, 92)')) {
+            const onclickStr = option.getAttribute('onclick') || '';
+            if (onclickStr.includes("'cash'") || onclickStr.includes('"cash"')) {
+                return 'cash';
+            } else if (onclickStr.includes("'epayment'") || onclickStr.includes('"epayment"')) {
+                return 'epayment';
+            }
         }
     }
+    
     return null; // No payment method explicitly selected
 }
 
@@ -787,7 +858,7 @@ function selectB1T1DrinkFromIndex(index) {
 
     updateCartDisplay();
     closeB1T1Modal();
-    showPromotionMessage('Buy 1 Take 1 promotion applied! You get one free drink.');
+    showPromotionMessage('Buy 1 Take 1 promotion applied!');
 }
 
 function showBuy3For143Modal() {
@@ -961,12 +1032,24 @@ function showOrderConfirmation() {
     confirmMessage += `Subtotal: ₱${subtotal.toFixed(2)}\n`;
 
     const promotionalTotal = calculatePromotionalTotal(cartItems);
+    let finalTotal = promotionalTotal;
+    let deliveryFee = 0;
+
+    if (deliveryType === 'Delivery') {
+        deliveryFee = 20;
+        finalTotal += deliveryFee;
+    }
+
     if (promotionalTotal < subtotal) {
         const savings = subtotal - promotionalTotal;
         confirmMessage += `Discount Applied: ₱${savings.toFixed(2)}\n`;
     }
 
-    confirmMessage += `Total: ₱${promotionalTotal.toFixed(2)}\n\n`;
+    if (deliveryFee > 0) {
+        confirmMessage += `Delivery Fee: ₱${deliveryFee.toFixed(2)}\n`;
+    }
+
+    confirmMessage += `Total: ₱${finalTotal.toFixed(2)}\n\n`;
     confirmMessage += `Payment Method: ${paymentMethod === 'cash' ? 'Cash on Hand' : 'E-Payment'}`;
 
     if (notes) {
@@ -1397,6 +1480,9 @@ function clearOrderForm() {
     document.getElementById('area-select').value = '';
     document.getElementById('notes-textarea').value = '';
 
+    // Reset selected payment method
+    selectedPaymentMethod = null;
+
     // Reset address container display
     const addressContainer = document.getElementById('address-container');
     if (addressContainer) addressContainer.style.display = 'none';
@@ -1406,6 +1492,10 @@ function clearOrderForm() {
     paymentOptions.forEach(option => {
         const check = option.querySelector('.payment-check');
         check.style.backgroundColor = '#ddd';
+        // Reset border styling and remove selected class
+        option.style.border = '2px solid #e0e0e0';
+        option.style.boxShadow = 'none';
+        option.classList.remove('payment-selected');
     });
 
     // Reset cart

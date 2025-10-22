@@ -66,15 +66,17 @@ function getPriceAndSize(productName, sizeLabel) {
 }
 
 function calculatePromoInfo(order) {
-  if (!order.Cart || !order.Cart.length) {
-    return { promoSets: 0, promoSavings: 0 };
+  // Handle different cart field names
+  const cart = order.Cart || order.cart;
+  if (!cart || !cart.length) {
+    return { promoSets: 0, promoSavings: 0, drinkCount: 0 };
   }
 
   let drinkCount = 0;
-  order.Cart.forEach(item => {
-    const itemCategory = item.Category || '';
+  cart.forEach(item => {
+    const itemCategory = item.Category || item.category || '';
     if (itemCategory.toLowerCase() !== 'pastries') {
-      drinkCount += Number(item.Quantity) || 0;
+      drinkCount += Number(item.Quantity || item.quantity) || 0;
     }
   });
 
@@ -85,40 +87,76 @@ function calculatePromoInfo(order) {
 }
 
 function createProductList(order) {
-  if (!order.Cart || !order.Cart.length) {
+  // Handle different cart field names
+  const cart = order.Cart || order.cart;
+  if (!cart || !cart.length) {
     return '<p style="text-align: center; color: #999; padding: 20px;">No products in this order.</p>';
   }
 
   const { promoSets, promoSavings, drinkCount } = calculatePromoInfo(order);
 
   let html = '<ul>';
-  order.Cart.forEach(item => {
-    const quantity = Number(item.Quantity) || 0;
-    const sizeLabel = item.Size || null;
-    const basePrice = Number(item.BasePrice) || 0;
+  cart.forEach(item => {
+    const quantity = Number(item.Quantity || item.quantity) || 0;
+    const sizeLabel = item.Size || item.size || null;
+    
+    // Handle different price field structures
+    let basePrice = 0;
+    if (item.BasePrice !== undefined) {
+      basePrice = Number(item.BasePrice);
+    } else if (item.basePrice !== undefined) {
+      basePrice = Number(item.basePrice);
+    } else if (item.Price !== undefined) {
+      basePrice = Number(item.Price);
+    } else if (item.price !== undefined) {
+      basePrice = Number(item.price);
+    }
 
     let addOnsTotal = 0;
     let addOnsHtml = '';
 
-    if (item.AddOns && item.AddOns.length > 0) {
+    // Handle different add-ons structures
+    const addOns = item.AddOns || item.addOns;
+    if (addOns && addOns.length > 0) {
       addOnsHtml = '<div class="product-addons">';
-      item.AddOns.forEach(addon => {
-        const addonPrice = Number(addon.BasePrice) || 0;
+      addOns.forEach(addon => {
+        let addonPrice = 0;
+        let addonName = 'Unknown Add-on';
+        
+        if (typeof addon === 'object') {
+          addonPrice = Number(addon.BasePrice || addon.basePrice || addon.Price || addon.price) || 0;
+          addonName = addon.Name || addon.name || addon.ProductName || addon.productName || 'Unknown Add-on';
+        } else if (typeof addon === 'string') {
+          addonName = addon;
+        }
+        
         addOnsTotal += addonPrice;
         addOnsHtml += `
           <div class="addon-item">
-            <span class="addon-name">+ ${addon.Name || 'Unknown Add-on'}</span>
+            <span class="addon-name">+ ${addonName}</span>
             <span class="addon-price">${formatCurrency(addonPrice)}</span>
           </div>
         `;
       });
       addOnsHtml += '</div>';
+    } else if (item.AddOnsPrice !== undefined || item.addOnsPrice !== undefined) {
+      // Handle cases where add-ons price is stored as a single value
+      addOnsTotal = Number(item.AddOnsPrice || item.addOnsPrice) || 0;
+      if (addOnsTotal > 0) {
+        addOnsHtml = `<div class="product-addons">
+          <div class="addon-item">
+            <span class="addon-name">+ Add-ons</span>
+            <span class="addon-price">${formatCurrency(addOnsTotal)}</span>
+          </div>
+        </div>`;
+      }
     }
 
     const itemTotal = (basePrice + addOnsTotal) * quantity;
+    const productName = item.ProductName || item.productName || item.Name || item.name || 'N/A';
 
     html += `<li>
-      <span class="product-name">${item.ProductName || 'N/A'}</span>
+      <span class="product-name">${productName}</span>
       <div class="product-quantity-price">
         <span><strong>Size:</strong> ${sizeLabel || 'N/A'}</span>
         <span><strong>Qty:</strong> ${quantity}</span>
@@ -142,16 +180,37 @@ function createProductList(order) {
 function calculateOrderTotals(order) {
   let productsSubtotal = 0;
 
-  if (order.Cart && order.Cart.length) {
-    order.Cart.forEach(item => {
-      const quantity = Number(item.Quantity) || 0;
-      const basePrice = Number(item.BasePrice) || 0;
+  // Handle different cart field names and structures
+  const cart = order.Cart || order.cart;
+  if (cart && cart.length) {
+    cart.forEach(item => {
+      const quantity = Number(item.Quantity || item.quantity) || 0;
+      
+      // Handle different price field structures
+      let basePrice = 0;
+      if (item.BasePrice !== undefined) {
+        basePrice = Number(item.BasePrice);
+      } else if (item.basePrice !== undefined) {
+        basePrice = Number(item.basePrice);
+      } else if (item.Price !== undefined) {
+        basePrice = Number(item.Price);
+      } else if (item.price !== undefined) {
+        basePrice = Number(item.price);
+      }
 
       let addOnsTotal = 0;
-      if (item.AddOns && item.AddOns.length > 0) {
-        item.AddOns.forEach(addon => {
-          addOnsTotal += Number(addon.BasePrice) || 0;
+      // Handle different add-ons structures
+      const addOns = item.AddOns || item.addOns;
+      if (addOns && addOns.length > 0) {
+        addOns.forEach(addon => {
+          if (typeof addon === 'object') {
+            addOnsTotal += Number(addon.BasePrice || addon.basePrice || addon.Price || addon.price) || 0;
+          }
         });
+      } else if (item.AddOnsPrice !== undefined) {
+        addOnsTotal = Number(item.AddOnsPrice);
+      } else if (item.addOnsPrice !== undefined) {
+        addOnsTotal = Number(item.addOnsPrice);
       }
 
       productsSubtotal += (basePrice + addOnsTotal) * quantity;
@@ -313,10 +372,51 @@ function showOrderDetails(order, rowIndex) {
     selectedRow.classList.add('selected');
   }
 
-  let address = order.Address || order.address || 'N/A';
-  let customer = order.Customer || order.customer || 'N/A';
-  let contact = order.ContactNumber || order.contactNumber || 'N/A';
+  // Enhanced data extraction to handle different document formats
+  let address = 'N/A';
+  let customer = 'N/A';
+  let contact = 'N/A';
   let source = order.Source || order.source || 'N/A';
+  
+  // Handle customer data (string or object)
+  if (order.Customer) {
+    if (typeof order.Customer === 'string') {
+      customer = order.Customer;
+    } else if (typeof order.Customer === 'object') {
+      if (order.Customer.fullname) {
+        customer = order.Customer.fullname;
+      } else if (order.Customer.firstName) {
+        customer = (order.Customer.firstName + ' ' + (order.Customer.lastName || '')).trim();
+      } else {
+        customer = order.Customer.name || order.Customer.Name || (order.Customer.firstName ? (order.Customer.firstName + ' ' + (order.Customer.lastName || '')).trim() : '') || 'Unknown Customer';
+      }
+      address = order.Customer.address || address;
+      contact = order.Customer.contactNumber || order.Customer.phone || contact;
+    }
+  } else if (order.customer) {
+    if (typeof order.customer === 'string') {
+      customer = order.customer;
+    } else if (typeof order.customer === 'object') {
+      if (order.customer.fullname) {
+        customer = order.customer.fullname;
+      } else if (order.customer.firstName) {
+        customer = (order.customer.firstName + ' ' + (order.customer.lastName || '')).trim();
+      } else {
+        customer = order.customer.name || order.customer.Name || (order.customer.firstName ? (order.customer.firstName + ' ' + (order.customer.lastName || '')).trim() : '') || 'Unknown Customer';
+      }
+      address = order.customer.address || address;
+      contact = order.customer.contactNumber || order.customer.phone || contact;
+    }
+  }
+  
+  // Handle address and contact fields separately if not found in customer object
+  if (address === 'N/A') {
+    address = order.Address || order.address || 'N/A';
+  }
+  if (contact === 'N/A') {
+    contact = order.ContactNumber || order.contactNumber || 'N/A';
+  }
+  
   const deliveryFee = 15;
 
   const productsSubtotal = calculateOrderTotals(order);
@@ -326,8 +426,17 @@ function showOrderDetails(order, rowIndex) {
   const paymentStatusBadge = getPaymentStatusBadge(order.PaymentStatus || order.paymentStatus);
   const fulfillmentStatusBadge = getFulfillmentStatusBadge(order.FulfillmentStatus || order.fulfillmentStatus);
 
-  const orderDate = order.Date ? new Date(order.Date).toLocaleString() :
-        (order.date ? new Date(order.date).toLocaleString() : 'N/A');
+  // Enhanced date handling
+  let orderDate = 'N/A';
+  if (order.Date) {
+    if (typeof order.Date === 'string' && order.Date.includes('-') && !order.Date.includes('T')) {
+      orderDate = new Date(order.Date.replace(' ', 'T')).toLocaleString();
+    } else {
+      orderDate = new Date(order.Date).toLocaleString();
+    }
+  } else if (order.date) {
+    orderDate = new Date(order.date).toLocaleString();
+  }
 
   const summaryHtml = `
   <div class="order-detail-section">
@@ -380,8 +489,8 @@ function showOrderDetails(order, rowIndex) {
         <span class="info-value">${address}</span>
       </div>
       <div class="info-item">
-        <span class="info-label">Delivery Type:</span>
-        <span class="info-value">${order.DeliveryStatus || 'N/A'}</span>
+        <span class="info-label">Fulfillment Method:</span>
+        <span class="info-value">${order.FulfillmentMethod || order.fulfillmentMethod || order.DeliveryStatus || order.deliveryStatus || 'N/A'}</span>
       </div>
     </div>
   </div>
@@ -411,6 +520,24 @@ function showOrderDetails(order, rowIndex) {
   orderSummaryContent.innerHTML = summaryHtml;
   orderDetailButtons.style.display = 'flex';
   orderDetailPanel.classList.add('show');
+
+  const fulfillmentDropdown = document.getElementById('fulfillmentDropdown');
+  const fulfillmentMethod = order.FulfillmentMethod || order.fulfillmentMethod || order.DeliveryStatus || order.deliveryStatus || '';
+  if (fulfillmentMethod.toLowerCase() === 'delivery') {
+    fulfillmentDropdown.style.display = 'block';
+    // Add "In Delivery" option
+    const ul = fulfillmentDropdown.querySelector('ul');
+    const inDeliveryLi = document.createElement('li');
+    inDeliveryLi.className = 'fulfill-option';
+    inDeliveryLi.setAttribute('data-status', 'In Delivery');
+    inDeliveryLi.textContent = 'In Delivery';
+    const completedLi = ul.querySelector('[data-status="Completed"]');
+    if (completedLi && !ul.querySelector('[data-status="In Delivery"]')) {
+      ul.insertBefore(inDeliveryLi, completedLi);
+    }
+  } else {
+    fulfillmentDropdown.style.display = 'none';
+  }
 
   const isCancelled = (order.FulfillmentStatus === 'Cancelled' || order.fulfillmentStatus === 'Cancelled');
   orderDetailButtons.querySelectorAll('button').forEach(btn => {
@@ -444,6 +571,12 @@ function hideOrderDetails() {
 
     currentOrder = null;
     orderSummaryContent.innerHTML = '<p style="text-align: center; color: #999; padding: 40px 20px;">Select an order to see details.</p>';
+    // Remove "In Delivery" option if exists
+    const inDeliveryLi = fulfillmentDropdown.querySelector('[data-status="In Delivery"]');
+    if (inDeliveryLi) {
+      inDeliveryLi.remove();
+    }
+    fulfillmentDropdown.style.display = 'none';
     isTransitioning = false;
   }, 400);
 }
@@ -490,9 +623,8 @@ function sortOrders(columnKey) {
     created: 'Date',
     customer: 'Customer',
     payment: 'PaymentStatus',
-    total: 'Total',
-    delivery: 'DeliveryStatus',
-    items: 'ItemTotal',
+    total: 'FulfillmentMethod',
+    fulfillmentmethod: 'Total',
     fulfillment: 'FulfillmentStatus'
   };
 
@@ -526,7 +658,7 @@ function renderOrdersTable() {
   ordersTableBody.innerHTML = '';
 
   if (orders.length === 0) {
-    ordersTableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 20px;">No orders found.</td></tr>`;
+    ordersTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 20px;">No orders found.</td></tr>`;
     renderCancelledOrders();
     renderCompletedOrders();
     return;
@@ -550,11 +682,36 @@ function renderOrdersTable() {
       <td>${order.OrderID || 'N/A'}</td>
       <td>${order.Date ? new Date(order.Date).toLocaleString()
             : order.date ? new Date(order.date).toLocaleString() : 'N/A'}</td>
-      <td>${order.Customer || order.customer || 'N/A'}</td>
+      <td>${
+        (() => {
+          let customerName = 'N/A';
+          if (order.Customer) {
+            if (typeof order.Customer === 'string') {
+              customerName = order.Customer;
+            } else if (typeof order.Customer === 'object' && order.Customer.fullname) {
+              customerName = order.Customer.fullname;
+            } else if (typeof order.Customer === 'object' && order.Customer.firstName) {
+              customerName = (order.Customer.firstName + ' ' + (order.Customer.lastName || '')).trim();
+            } else if (typeof order.Customer === 'object') {
+              customerName = order.Customer.name || order.Customer.Name || (order.Customer.firstName ? (order.Customer.firstName + ' ' + (order.Customer.lastName || '')).trim() : '') || 'Unknown Customer';
+            }
+          } else if (order.customer) {
+            if (typeof order.customer === 'string') {
+              customerName = order.customer;
+            } else if (typeof order.customer === 'object' && order.customer.fullname) {
+              customerName = order.customer.fullname;
+            } else if (typeof order.customer === 'object' && order.customer.firstName) {
+              customerName = (order.customer.firstName + ' ' + (order.customer.lastName || '')).trim();
+            } else if (typeof order.customer === 'object') {
+              customerName = order.customer.name || order.customer.Name || (order.customer.firstName ? (order.customer.firstName + ' ' + (order.customer.lastName || '')).trim() : '') || 'Unknown Customer';
+            }
+          }
+          return customerName;
+        })()
+      }</td>
       <td>${paymentBadge}</td>
+      <td>${order.FulfillmentMethod || order.fulfillmentMethod || order.DeliveryStatus || order.deliveryStatus || 'N/A'}</td>
       <td>${order.Total !== undefined && order.Total !== null ? '₱ ' + Number(order.Total).toFixed(2) : 'N/A'}</td>
-      <td>${order.DeliveryStatus || order.deliveryStatus || 'N/A'}</td>
-      <td>${order.ItemTotal !== undefined && order.ItemTotal !== null ? order.ItemTotal : 'N/A'}</td>
       <td>${fulfillmentBadge}</td>
     </tr>
   `;
@@ -620,6 +777,8 @@ function getFulfillmentStatusBadge(status) {
     return `<span class="status-fulfillment status-ful-cancelled" title="Order Cancelled">Cancelled</span>`;
   } else if (normalized.includes('preparing')) {
     return `<span class="status-fulfillment status-preparing" title="Being Prepared">Preparing</span>`;
+  } else if (normalized.includes('ready')) {
+    return `<span class="status-fulfillment status-ready" title="Order Ready">Ready</span>`;
   } else if (normalized.includes('in delivery') || normalized.includes('delivering')) {
     return `<span class="status-fulfillment status-in-delivery" title="Out for Delivery">In Delivery</span>`;
   } else if (normalized.includes('complete') || normalized.includes('delivered')) {

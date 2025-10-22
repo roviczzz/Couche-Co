@@ -11,42 +11,110 @@
           <th data-column="created">Created</th>
           <th data-column="customer">Customer</th>
           <th data-column="payment">Payment</th>
+          <th data-column="fulfillmentmethod">Fulfillment Method</th>
           <th data-column="total">Total</th>
-          <th data-column="delivery">Delivery</th>
-          <th data-column="items">Items</th>
           <th data-column="fulfillment">Fulfillment</th>
         </tr>
         </thead>
         <tbody>
         <% if (orders.length === 0) { %>
           <tr>
-            <td colspan="8" style="text-align:center; padding: 20px;">No orders found.</td>
+            <td colspan="7" style="text-align:center; padding: 20px;">No orders found.</td>
           </tr>
         <% } else { %>
           <% orders.forEach((order, index) => { %>
             <tr class="order-row" data-idx="<%= index %>">
               <td><%= order.OrderID || 'N/A' %></td>
               <td>
-                <% if(order.Date) { %>
-                  <%= new Date(order.Date).toLocaleString() %>
-                <% } else if(order.date) { %>
-                  <%= new Date(order.date).toLocaleString() %>
-                <% } else { %>
-                  N/A
-                <% } %>
+                <%
+                  let displayDate = 'N/A';
+                  if (order.Date) {
+                    if (typeof order.Date === 'string' && order.Date.includes('-') && !order.Date.includes('T')) {
+                      displayDate = new Date(order.Date.replace(' ', 'T')).toLocaleString();
+                    } else {
+                      displayDate = new Date(order.Date).toLocaleString();
+                    }
+                  } else if (order.date) {
+                    displayDate = new Date(order.date).toLocaleString();
+                  }
+                %>
+                <%= displayDate %>
               </td>
-              <td><%= order.Customer || order.customer || 'N/A' %></td>
-              <td><%= order.PaymentStatus || order.paymentStatus || 'Unpaid' %></td>
               <td>
-                <% if(order.Total !== undefined && order.Total !== null) { %>
-                  ₱ <%= Number(order.Total).toFixed(2) %>
-                <% } else { %>
-                  N/A
-                <% } %>
+                <%
+                  let customerName = 'N/A';
+                  if (order.Customer) {
+                    if (typeof order.Customer === 'string') {
+                      customerName = order.Customer;
+                    } else if (typeof order.Customer === 'object' && order.Customer.fullname) {
+                      customerName = order.Customer.fullname;
+                    } else if (typeof order.Customer === 'object' && order.Customer.firstName) {
+                      customerName = (order.Customer.firstName + ' ' + (order.Customer.lastName || '')).trim();
+                    } else if (typeof order.Customer === 'object') {
+                      customerName = order.Customer.name || order.Customer.Name || (order.Customer.firstName ? (order.Customer.firstName + ' ' + (order.Customer.lastName || '')).trim() : '') || 'Unknown Customer';
+                    }
+                  } else if (order.customer) {
+                    if (typeof order.customer === 'string') {
+                      customerName = order.customer;
+                    } else if (typeof order.customer === 'object' && order.customer.fullname) {
+                      customerName = order.customer.fullname;
+                    } else if (typeof order.customer === 'object' && order.customer.firstName) {
+                      customerName = (order.customer.firstName + ' ' + (order.customer.lastName || '')).trim();
+                    } else if (typeof order.customer === 'object') {
+                      customerName = order.customer.name || order.customer.Name || (order.customer.firstName ? (order.customer.firstName + ' ' + (order.customer.lastName || '')).trim() : '') || 'Unknown Customer';
+                    }
+                  }
+                %>
+                <%= customerName %>
               </td>
-              <td><%= order.DeliveryStatus || order.deliveryStatus || 'N/A' %></td>
-              <td><%= order.ItemTotal !== undefined && order.ItemTotal !== null ? order.ItemTotal : 'N/A' %></td>
-              <td><%= order.FulfillmentStatus || order.fulfillmentStatus || 'N/A' %></td>
+              <td>
+                <%
+                  let paymentStatus = 'Unpaid';
+                  if (order.PaymentStatus) {
+                    paymentStatus = order.PaymentStatus;
+                  } else if (order.paymentStatus) {
+                    paymentStatus = order.paymentStatus;
+                  }
+                %>
+                <%= paymentStatus %>
+              </td>
+              <td>
+                <%
+                  let fulfillmentMethod = 'N/A';
+                  if (order.FulfillmentMethod) {
+                    fulfillmentMethod = order.FulfillmentMethod;
+                  } else if (order.fulfillmentMethod) {
+                    fulfillmentMethod = order.fulfillmentMethod;
+                  } else if (order.DeliveryStatus) {
+                    fulfillmentMethod = order.DeliveryStatus;
+                  } else if (order.deliveryStatus) {
+                    fulfillmentMethod = order.deliveryStatus;
+                  }
+                %>
+                <%= fulfillmentMethod %>
+              </td>
+              <td>
+                <%
+                  let totalAmount = 'N/A';
+                  if (order.Total !== undefined && order.Total !== null) {
+                    totalAmount = '₱ ' + Number(order.Total).toFixed(2);
+                  } else if (order.total !== undefined && order.total !== null) {
+                    totalAmount = '₱ ' + Number(order.total).toFixed(2);
+                  }
+                %>
+                <%= totalAmount %>
+              </td>
+              <td>
+                <%
+                  let fulfillmentStatus = 'N/A';
+                  if (order.FulfillmentStatus) {
+                    fulfillmentStatus = order.FulfillmentStatus;
+                  } else if (order.fulfillmentStatus) {
+                    fulfillmentStatus = order.fulfillmentStatus;
+                  }
+                %>
+                <%= fulfillmentStatus %>
+              </td>
             </tr>
           <% }); %>
         <% } %>
@@ -90,10 +158,11 @@
         <button class="btn-accent btn-secondary" id="printInvoiceBtn">Print Invoice</button>
       </div>
 
-      <div id="fulfillmentDropdown">
+      <div id="fulfillmentDropdown" style="display: none;">
         <ul>
           <li class="fulfill-option" data-status="Preparing">Preparing</li>
-          <li class="fulfill-option" data-status="In Delivery">In Delivery</li>
+          <li class="fulfill-option" data-status="In Progress">In Progress</li>
+          <li class="fulfill-option" data-status="Ready">Ready</li>
           <li class="fulfill-option" data-status="Completed">Completed</li>
         </ul>
       </div>
