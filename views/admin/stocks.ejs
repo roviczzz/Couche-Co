@@ -4,151 +4,57 @@
       <h1>Ingredient Inventory</h1>
     </div>
 
-    <% if (typeof message !== 'undefined' && message) { %>
-      <div id="message" class="message"><%= message %></div>
+    <% if (message) { %>
+      <div id="message" class="message"></div>
     <% } %>
 
-  <!-- Add Buttons Section -->
-  <div class="add-buttons-section">
-    <button id="showAddIngredientForm" class="stocks-add-btn">Add Ingredient</button>
-    <button id="showAddAddonForm" class="stocks-add-btn addon-btn">Add Add-Ons</button>
-  </div>
+    <!-- Add Item FAB Button (like products/discounts pages) -->
+    <button id="addItemBtn" class="fab-btn">+</button>
 
-  <!-- Ingredients Section -->
-  <div class="section-header">
-    <h2>Ingredients</h2>
-  </div>
-
-  <!-- Modal Overlay for Ingredients -->
-  <div id="ingredientModalOverlay" class="modal-overlay" style="display: none;">
-    <div id="addIngredientForm" class="modal-container">
-      <div class="modal-header">
-        <h2>Add Ingredient</h2>
-        <button type="button" id="closeIngredientModal" class="close-btn">×</button>
-      </div>
-      <form action="/admin/stocks" method="POST" class="stocks-form-vertical">
-        <div class="form-group">
-          <label for="IngredientID">Ingredient ID:</label>
-          <div class="ingredient-id-group">
-            <div class="prefix-display">ING</div>
-            <input type="text" id="IngredientSuffix" name="IngredientSuffix" placeholder="Enter unique ID (e.g. HERSHEYS)" required>
-          </div>
-          <input type="hidden" name="IngredientPrefix" value="ING">
+    <!-- Item Type Selection Modal -->
+    <div id="itemTypeModalOverlay" class="modal-overlay" style="display: none;">
+      <div class="type-selection-container">
+        <div class="type-selection-header">
+          <h3>What would you like to add?</h3>
         </div>
-
-        <div class="form-group">
-          <label for="Name">Name:</label>
-          <input type="text" id="IngredientName" name="Name" placeholder="Enter ingredient name" required>
-        </div>
-
-        <div class="form-group">
-          <label for="Quantity">Quantity:</label>
-          <input type="number" id="IngredientQuantity" name="Quantity" placeholder="Enter quantity" required>
-        </div>
-
-        <div class="form-group">
-          <label for="Category">Category:</label>
-          <div class="category-display">Ingredients</div>
-          <input type="hidden" name="Category" value="Ingredients">
-        </div>
-
-        <div class="form-group">
-          <label for="Allergen">Allergen (optional):</label>
-          <input type="text" id="IngredientAllergen" name="Allergen" placeholder="Enter allergen (if any)">
-        </div>
-
-        <!-- Only Enabled switch - Available field removed -->
-        <div class="form-group switch-group">
-          <label class="switch-label">
-            <div class="switch-container">
-              <input type="checkbox" name="isEnabledStock" value="true" checked class="switch-input">
-              <span class="switch-slider"></span>
+        <div class="type-selection-buttons">
+          <button type="button" id="selectIngredientBtn" class="type-select-btn ingredient-btn">
+            <div class="type-icon">🥣</div>
+            <div class="type-text">
+              <h4>Add Ingredient</h4>
+              <p>Milk, Coffee, Tea, Syrup, etc.</p>
             </div>
-            <span class="switch-text">Enabled</span>
-          </label>
-        </div>
-
-        <div class="button-group">
-          <button type="submit" class="add-product-btn">Add Ingredient</button>
-          <button type="button" id="cancelAddIngredient" class="cancel-btn">Cancel</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Modal Overlay for Add-Ons -->
-  <div id="addonModalOverlay" class="modal-overlay" style="display: none;">
-    <div id="addAddonForm" class="modal-container">
-      <div class="modal-header">
-        <h2>Add Add-On</h2>
-        <button type="button" id="closeAddonModal" class="close-btn">×</button>
-      </div>
-      <form action="/admin/stocks" method="POST" class="stocks-form-vertical">
-        <div class="form-group">
-          <label for="AddOnID">Add-On ID:</label>
-          <div class="ingredient-id-group">
-            <div class="prefix-display">ADD</div>
-            <input type="text" id="AddOnSuffix" name="AddOnSuffix" placeholder="Enter unique ID (e.g. PEARLS)" required>
-          </div>
-          <input type="hidden" name="AddOnPrefix" value="ADD">
-        </div>
-
-        <div class="form-group">
-          <label for="Name">Name:</label>
-          <input type="text" id="AddOnName" name="Name" placeholder="Enter add-on name" required>
-        </div>
-
-        <div class="form-group">
-          <label for="Quantity">Quantity:</label>
-          <input type="number" id="AddOnQuantity" name="Quantity" placeholder="Enter quantity" required>
-        </div>
-
-        <div class="form-group">
-          <label for="Category">Category:</label>
-          <div class="category-display">Add-Ons</div>
-          <input type="hidden" name="Category" value="Add-Ons">
-        </div>
-
-        <div class="form-group">
-          <label for="Allergen">Allergen (optional):</label>
-          <input type="text" id="AddOnAllergen" name="Allergen" placeholder="Enter allergen (if any)">
-        </div>
-
-        <div class="form-group switch-group">
-          <label class="switch-label">
-            <div class="switch-container">
-              <input type="checkbox" name="isEnabledAddon" value="true" checked class="switch-input">
-              <span class="switch-slider"></span>
+          </button>
+          <button type="button" id="selectAddonBtn" class="type-select-btn addon-btn">
+            <div class="type-icon">🥣</div>
+            <div class="type-text">
+              <h4>Add Add-On</h4>
+              <p>Pearls, Pudding, Toppings, etc.</p>
             </div>
-            <span class="switch-text">Enabled</span>
-          </label>
+          </button>
         </div>
-
-        <div class="button-group">
-          <button type="submit" class="add-product-btn">Add Add-On</button>
-          <button type="button" id="cancelAddAddon" class="cancel-btn">Cancel</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Confirmation Modal -->
-  <div id="confirmationModal" class="modal-overlay confirmation-modal" style="display: none;">
-    <div class="confirmation-container">
-      <div class="confirmation-header">
-        <h3 id="confirmationTitle">Confirm Action</h3>
-      </div>
-      <div class="confirmation-body">
-        <p id="confirmationMessage">Are you sure you want to proceed?</p>
-      </div>
-      <div class="confirmation-buttons">
-        <button type="button" id="confirmProceed" class="confirm-btn proceed">Proceed</button>
-        <button type="button" id="confirmCancel" class="confirm-btn cancel">Cancel</button>
+        <button type="button" id="cancelTypeSelect" class="cancel-type-btn">Cancel</button>
       </div>
     </div>
-  </div>
 
-    <div class="table-container">
+    <!-- Ingredients Section -->
+    <div class="section-header">
+      <h2>Ingredients</h2>
+    </div>
+
+    <div class="table-controls-container">
+      <div class="search-container">
+        <input type="text" id="ingredientSearchInput" placeholder="Search ingredients..." class="search-input">
+      </div>
+
+      <div class="sort-buttons-container">
+        <button type="button" class="sort-btn ingredient-sort active" data-sort="default">Show All Data</button>
+        <button type="button" class="sort-btn ingredient-sort" data-sort="a-z">A-Z</button>
+        <button type="button" class="sort-btn ingredient-sort" data-sort="z-a">Z-A</button>
+      </div>
+    </div>
+
+    <div id="ingredientTableContainer" class="table-container">
       <table class="stocks-table">
         <thead>
         <tr>
@@ -162,29 +68,30 @@
         </tr>
         </thead>
         <tbody>
-        <% if (typeof ingredients === 'undefined' || (Array.isArray(ingredients) && ingredients.length === 0)) { %>
+        <% if (!ingredients || ingredients.length === 0) { %>
           <tr><td colspan="7" class="stocks-center">No ingredients found.</td></tr>
         <% } else { %>
-          <% (ingredients || []).forEach(i => {
-            const parts = (i.IngredientID || '').split('-');
+          <% ingredients.forEach(i => {
+            const ingredientId = i && i.IngredientID ? i.IngredientID : 'ING-0';
+            const parts = ingredientId.split('-');
             const prefix = parts[0] || 'ING';
             const suffix = parts[1] || '';
           %>
-            <tr>
+            <tr data-item-id="<%= i._id %>" data-type="ingredient">
                 <td class="ingredient-id-cell">
                   <div class="ingredient-id-group-table">
                     <div class="prefix-display-table">ING</div>
                     <input type="text" name="IngredientSuffix" value="<%= suffix %>" class="table-input suffix-input" data-field="suffix" data-original="<%= suffix %>" required>
                   </div>
                 </td>
-                <td><input type="text" name="Name" value="<%= i.Name %>" class="table-input" data-field="name" data-original="<%= i.Name %>" required></td>
-                <td><input type="number" name="Quantity" value="<%= i.Quantity %>" class="table-input number-input" data-field="quantity" data-original="<%= i.Quantity %>" required></td>
+                <td><input type="text" name="Name" value="<%= i && i.Name ? i.Name : '' %>" class="table-input" data-field="name" data-original="<%= i && i.Name ? i.Name : '' %>" required></td>
+                <td><input type="number" name="Quantity" value="<%= i && i.Quantity ? i.Quantity : 0 %>" class="table-input number-input" data-field="quantity" data-original="<%= i && i.Quantity ? i.Quantity : 0 %>" required></td>
                 <td><div class="category-display-table">Ingredients</div></td>
-                <td><input type="text" name="Allergen" value="<%= i.Allergen %>" class="table-input" data-field="allergen" data-original="<%= i.Allergen %>" required></td>
+                <td><input type="text" name="Allergen" value="<%= i && i.Allergen ? i.Allergen : '' %>" class="table-input" data-field="allergen" data-original="<%= i && i.Allergen ? i.Allergen : '' %>" required></td>
                 <td>
-                  <select name="isEnabled" class="table-input status-select" data-field="enabled" data-original="<%= i.isEnabled %>" required>
-                    <option value="true" <%= i.isEnabled ? 'selected' : '' %>>Enabled</option>
-                    <option value="false" <%= !i.isEnabled ? 'selected' : '' %>>Disabled</option>
+                  <select name="isEnabled" class="table-input status-select" data-field="enabled" data-original="<%= i && i.isEnabled ? i.isEnabled : false %>" required>
+                    <option value="true" <%= (i && i.isEnabled) ? 'selected' : '' %>>Enabled</option>
+                    <option value="false" <%= (!i || !i.isEnabled) ? 'selected' : '' %>>Disabled</option>
                   </select>
                 </td>
                 <td class="actions-cell">
@@ -200,13 +107,23 @@
     </table>
   </div>
 
-  <!-- Add-Ons Section -->
   <div class="section-header">
     <h2>Add-Ons</h2>
   </div>
 
-  <!-- Add-Ons Table -->
-  <div class="table-container">
+  <div class="table-controls-container">
+    <div class="search-container">
+      <input type="text" id="addonSearchInput" placeholder="Search add-ons..." class="search-input">
+    </div>
+
+    <div class="sort-buttons-container">
+      <button type="button" class="sort-btn addon-sort active" data-sort="default">Show All Data</button>
+      <button type="button" class="sort-btn addon-sort" data-sort="a-z">A-Z</button>
+      <button type="button" class="sort-btn addon-sort" data-sort="z-a">Z-A</button>
+    </div>
+  </div>
+
+  <div id="addonTableContainer" class="table-container">
     <table class="stocks-table">
       <thead>
         <tr>
@@ -220,30 +137,30 @@
         </tr>
       </thead>
       <tbody>
-        <% if (typeof addons === 'undefined' || (Array.isArray(addons) && addons.length === 0)) { %>
+        <% if (!addons || addons.length === 0) { %>
           <tr><td colspan="7" class="stocks-center">No add-ons found.</td></tr>
         <% } else { %>
-          <% (addons || []).forEach(a => {
-            const addonId = a && a.AddOnID ? a.AddOnID : 'ADD-0';
+          <% addons.forEach(a => {
+            const addonId = a && a.AddOnID ? a.AddOnID : 'AD-0';
             const parts = addonId.split('-');
-            const prefix = parts[0] || 'ADD';
+            const prefix = parts[0] || 'AD';
             const suffix = parts[1] || '';
           %>
-            <tr>
+            <tr data-item-id="<%= a._id %>" data-type="addon">
                 <td class="ingredient-id-cell">
                   <div class="ingredient-id-group-table">
-                    <div class="prefix-display-table">ADD</div>
+                    <div class="prefix-display-table">AD</div>
                     <input type="text" name="AddOnSuffix" value="<%= suffix %>" class="table-input suffix-input" data-field="suffix" data-original="<%= suffix %>" required>
                   </div>
                 </td>
-                <td><input type="text" name="Name" value="<%= a.Name %>" class="table-input" data-field="name" data-original="<%= a.Name %>" required></td>
-                <td><input type="number" name="Quantity" value="<%= a.Quantity %>" class="table-input number-input" data-field="quantity" data-original="<%= a.Quantity %>" required></td>
+                <td><input type="text" name="Name" value="<%= a && a.Name ? a.Name : '' %>" class="table-input" data-field="name" data-original="<%= a && a.Name ? a.Name : '' %>" required></td>
+                <td><input type="number" name="Quantity" value="<%= a && a.Quantity ? a.Quantity : 0 %>" class="table-input number-input" data-field="quantity" data-original="<%= a && a.Quantity ? a.Quantity : 0 %>" required></td>
                 <td><div class="category-display-table">Add-Ons</div></td>
-                <td><input type="text" name="Allergen" value="<%= a.Allergen %>" class="table-input" data-field="allergen" data-original="<%= a.Allergen %>" required></td>
+                <td><input type="text" name="Allergen" value="<%= a && a.Allergen ? a.Allergen : '' %>" class="table-input" data-field="allergen" data-original="<%= a && a.Allergen ? a.Allergen : '' %>" required></td>
                 <td>
-                  <select name="isEnabled" class="table-input status-select" data-field="enabled" data-original="<%= a.isEnabled %>" required>
-                    <option value="true" <%= a.isEnabled ? 'selected' : '' %>>Enabled</option>
-                    <option value="false" <%= !a.isEnabled ? 'selected' : '' %>>Disabled</option>
+                  <select name="isEnabled" class="table-input status-select" data-field="enabled" data-original="<%= a && a.isEnabled ? a.isEnabled : false %>" required>
+                    <option value="true" <%= (a && a.isEnabled) ? 'selected' : '' %>>Enabled</option>
+                    <option value="false" <%= (!a || !a.isEnabled) ? 'selected' : '' %>>Disabled</option>
                   </select>
                 </td>
                 <td class="actions-cell">
@@ -260,2166 +177,144 @@
     </div>
   </div>
 
+  <!-- Add Ingredient Modal -->
+  <div id="ingredientModalOverlay" class="modal-overlay" style="display: none;">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Add New Ingredient</h3>
+        <button type="button" class="close-btn" id="closeIngredientModal">&times;</button>
+      </div>
+      <form class="stocks-form-vertical" action="/admin/stocks" method="POST">
+        <div class="form-group">
+          <label for="IngredientSuffix">Ingredient ID:</label>
+          <div class="ingredient-id-group">
+            <div class="prefix-display">ING</div>
+            <input type="text" id="IngredientSuffix" name="IngredientSuffix" required placeholder="e.g.,mlk">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="Name">Name:</label>
+          <input type="text" id="Name" name="Name" required placeholder="e.g., Milk">
+        </div>
+        <div class="form-group">
+          <label for="Quantity">Quantity:</label>
+          <input type="number" id="Quantity" name="Quantity" required min="0" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label for="Allergen">Allergen:</label>
+          <input type="text" id="Allergen" name="Allergen" placeholder="e.g., Dairy (optional)">
+        </div>
+        <div class="form-group switch-group">
+          <label class="switch-label">
+            <span class="switch-text">Enabled</span>
+            <div class="switch-container">
+              <input type="checkbox" class="switch-input" name="isEnabled" id="isEnabledStock" checked>
+              <span class="switch-slider"></span>
+            </div>
+          </label>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Add Ingredient</button>
+          <button type="button" class="btn btn-secondary" id="cancelIngredientModal">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Add-On Modal -->
+  <div id="addonModalOverlay" class="modal-overlay" style="display: none;">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Add New Add-On</h3>
+        <button type="button" class="close-btn" id="closeAddonModal">&times;</button>
+      </div>
+      <form class="stocks-form-vertical" action="/admin/stocks" method="POST">
+        <div class="form-group">
+          <label for="AddOnSuffix">Add-On ID:</label>
+          <div class="ingredient-id-group">
+            <div class="prefix-display">AD</div>
+            <input type="text" id="AddOnSuffix" name="AddOnSuffix" required placeholder="e.g., Prl">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="Name">Name:</label>
+          <input type="text" id="Name" name="Name" required placeholder="e.g., Pearls">
+        </div>
+        <div class="form-group">
+          <label for="Quantity">Quantity:</label>
+          <input type="number" id="Quantity" name="Quantity" required min="0" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label for="Allergen">Allergen:</label>
+          <input type="text" id="Allergen" name="Allergen" placeholder="e.g., None (optional)">
+        </div>
+        <div class="form-group switch-group">
+          <label class="switch-label">
+            <span class="switch-text">Enabled</span>
+            <div class="switch-container">
+              <input type="checkbox" class="switch-input" name="isEnabled" id="isEnabledAddon" checked>
+              <span class="switch-slider"></span>
+            </div>
+          </label>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Add Add-On</button>
+          <button type="button" class="btn btn-secondary" id="cancelAddonModal">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Hidden forms for ingredients -->
-  <% if (typeof ingredients !== 'undefined' && Array.isArray(ingredients)) { %>
-    <% ingredients.forEach(i => { %>
-      <form id="update-ingredient-form-<%= i._id %>" action="/admin/stocks/edit/<%= i._id %>" method="POST" style="display: none;">
-        <input type="hidden" name="IngredientID" value="">
-        <input type="hidden" name="IngredientPrefix" value="ING">
-        <input type="hidden" name="IngredientSuffix" value="">
-        <input type="hidden" name="Name" value="">
-        <input type="hidden" name="Quantity" value="">
-        <input type="hidden" name="Category" value="Ingredients">
-        <input type="hidden" name="Allergen" value="">
-        <input type="hidden" name="isAvailable" value="true">
-        <input type="hidden" name="isEnabled" value="">
-      </form>
-      <form id="delete-ingredient-form-<%= i._id %>" action="/admin/stocks/delete/<%= i._id %>" method="POST" style="display: none;">
-      </form>
-    <% }); %>
-  <% } %>
+  <% (ingredients || []).forEach(i => { %>
+    <form id="update-ingredient-form-<%= i._id %>" action="/admin/stocks/edit/<%= i._id %>" method="POST" style="display: none;">
+      <input type="hidden" name="IngredientID" value="">
+      <input type="hidden" name="IngredientPrefix" value="ING">
+      <input type="hidden" name="IngredientSuffix" value="">
+      <input type="hidden" name="Name" value="">
+      <input type="hidden" name="Quantity" value="">
+      <input type="hidden" name="Category" value="Ingredients">
+      <input type="hidden" name="Allergen" value="">
+      <input type="hidden" name="isAvailable" value="true">
+      <input type="hidden" name="isEnabled" value="">
+    </form>
+    <form id="delete-ingredient-form-<%= i._id %>" action="/admin/stocks/delete/<%= i._id %>" method="POST" style="display: none;">
+    </form>
+  <% }) %>
 
   <!-- Hidden forms for add-ons -->
-  <% if (typeof addons !== 'undefined' && Array.isArray(addons)) { %>
-    <% addons.forEach(a => { %>
-      <form id="update-addon-form-<%= a._id %>" action="/admin/stocks/edit/<%= a._id %>" method="POST" style="display: none;">
-        <input type="hidden" name="AddOnID" value="">
-        <input type="hidden" name="AddOnPrefix" value="ADD">
-        <input type="hidden" name="AddOnSuffix" value="">
-        <input type="hidden" name="Name" value="">
-        <input type="hidden" name="Quantity" value="">
-        <input type="hidden" name="Category" value="Add-Ons">
-        <input type="hidden" name="Allergen" value="">
-        <input type="hidden" name="isEnabled" value="">
-      </form>
-      <form id="delete-addon-form-<%= a._id %>" action="/admin/stocks/delete/<%= a._id %>" method="POST" style="display: none;">
-      </form>
-    <% }); %>
-  <% } %>
+  <% (addons || []).forEach(a => { %>
+    <form id="update-addon-form-<%= a._id %>" action="/admin/stocks/edit/<%= a._id %>" method="POST" style="display: none;">
+      <input type="hidden" name="AddOnID" value="">
+      <input type="hidden" name="AddOnPrefix" value="AD">
+      <input type="hidden" name="AddOnSuffix" value="">
+      <input type="hidden" name="Name" value="">
+      <input type="hidden" name="Quantity" value="">
+      <input type="hidden" name="Category" value="Add-Ons">
+      <input type="hidden" name="Allergen" value="">
+      <input type="hidden" name="isEnabled" value="">
+    </form>
+    <form id="delete-addon-form-<%= a._id %>" action="/admin/stocks/delete/<%= a._id %>" method="POST" style="display: none;">
+    </form>
+  <% }) %>
 </div>
 
-<style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    overflow: hidden;
-  }
-
-  body {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-  }
-
-  .navbar,
-  .nav,
-  .header-nav,
-  .main-nav,
-  nav,
-  header,
-  .header,
-  .site-header,
-  .page-header {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    width: 100% !important;
-    z-index: 9999 !important;
-    background: rgba(255, 255, 255, 0.98) !important;
-    backdrop-filter: blur(12px) !important;
-    box-shadow: 0 2px 20px rgba(0,0,0,0.1) !important;
-    transition: all 0.3s ease !important;
-    flex-shrink: 0; /* Prevent navbar from shrinking */
-  }
-
-  /* Main content area that will scroll */
-  .main-content,
-  .content,
-  .page-content,
-  main {
-    margin-top: 80px; /* Default navbar height */
-    height: calc(100vh - 80px);
-    overflow-y: auto;
-    overflow-x: hidden;
-    flex: 1;
-    position: relative;
-  }
-
-  /* If no main content wrapper exists, create one for stocks-container */
-  .stocks-container {
-    margin-top: 0; /* Remove default margin since we handle it with main content */
-    padding: 20px;
-    height: calc(100vh - 80px); /* Full viewport minus navbar */
-    overflow-y: auto;
-    overflow-x: hidden;
-    position: relative;
-    box-sizing: border-box;
-  }
-
-  /* Custom scrollbar for main content */
-  .stocks-container::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  .stocks-container::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-  }
-
-  .stocks-container::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 4px;
-  }
-
-  .stocks-container::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
-  }
-
-  /* Ensure modals appear above everything */
-  .modal-overlay {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    z-index: 10000 !important;
-    background-color: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity var(--transition), visibility var(--transition);
-  }
-
-  /* Confirmation Modal Specific */
-  .confirmation-modal {
-    z-index: 10001 !important;
-  }
-
-  /* Design tokens */
- :root {
-  --brown: #7a4e2b;
-  --brown-dark: #5a3921;
-  --brown-light: #a06b3b;
-  --brown-gradient: linear-gradient(to bottom, #7a4e2b, #5a3921);
-  --green: #28a745;
-  --green-dark: #218838;
-  --green-gradient: linear-gradient(to bottom, #28a745, #218838);
-  --red: #dc3545;
-  --red-dark: #bd2130;
-  --red-gradient: linear-gradient(to bottom, #dc3545, #bd2130);
-  --gray: #6c757d;
-  --gray-dark: #545b62;
-  --gray-gradient: linear-gradient(to bottom, #6c757d, #545b62);
-  --gray-light: #f5f5f5;
-  --blue: #007bff;
-  --blue-light: #e3f2fd;
-  --orange: #fd7e14;
-  --orange-light: #ffb366;
-  --orange-gradient: linear-gradient(to bottom, #fd7e14, #e8610e);
-  --white: #ffffff;
-  --bg-light: #f8f9fa;
-  --bg-lighter: #fafafa;
-  --border: #e0e0e0;
-  --border-light: #ddd;
-  --text: #333;
-  --text-light: #666;
-  --muted: #999;
-
-  --radius: 12px;
-  --radius-sm: 8px;
-  --radius-xs: 4px;
-  --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
-  --shadow-md: 0 8px 24px rgba(0,0,0,0.12);
-  --shadow-lg: 0 16px 32px rgba(0,0,0,0.16);
-  --shadow-inner: inset 0 2px 4px rgba(0,0,0,0.05);
-  --transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
-
-  /* Navbar height variables for easy adjustment */
-  --navbar-height: 80px;
-  --navbar-height-mobile: 60px;
-}
-
-/* Enhanced header */
-.header-section {
-  margin-bottom: 30px;
-  position: relative;
-  padding-bottom: 16px;
-  border-bottom: 2px solid var(--border);
-}
-
-.header-section h1 {
-  margin: 0;
-  color: var(--brown-dark);
-  font-size: 32px;
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.5px;
-}
-
-.header-section:after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 80px;
-  height: 2px;
-  background: var(--brown);
-}
-
-/* Section Headers */
-.section-header {
-  margin: 40px 0 20px 0;
-  position: relative;
-  padding-bottom: 12px;
-  border-bottom: 2px solid var(--border-light);
-}
-
-.section-header h2 {
-  margin: 0;
-  color: var(--brown-dark);
-  font-size: 24px;
-  font-weight: 600;
-  letter-spacing: -0.3px;
-}
-
-.section-header:after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 60px;
-  height: 2px;
-  background: var(--brown-light);
-}
-
-/* Flash message */
-.message {
-  color: #155724;
-  background-color: #d4edda;
-  background-image: linear-gradient(to bottom, #d4edda, #c3e6cb);
-  border: 1px solid #c3e6cb;
-  border-left: 4px solid #28a745;
-  padding: 16px 20px;
-  margin: 0 0 24px 0;
-  border-radius: var(--radius-sm);
-  text-align: center;
-  font-weight: 600;
-  box-shadow: var(--shadow-sm);
-  animation: fadeSlideIn var(--transition);
-}
-
-.message.error {
-  color: #721c24;
-  background-color: #f8d7da;
-  background-image: linear-gradient(to bottom, #f8d7da, #f5c6cb);
-  border-color: #f5c6cb;
-  border-left-color: #dc3545;
-}
-
-@keyframes fadeSlideIn {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Add buttons section */
-.add-buttons-section {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  margin: 24px 0 30px;
-  flex-wrap: wrap;
-}
-
-.stocks-add-btn {
-  background: var(--green-gradient);
-  color: var(--white);
-  border: none;
-  padding: 14px 32px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
-  transition: box-shadow var(--transition), transform var(--transition), filter var(--transition);
-  box-shadow: var(--shadow-sm), 0 1px 3px rgba(40, 167, 69, 0.3);
-  position: relative;
-  overflow: hidden;
-  min-width: 160px;
-}
-
-.stocks-add-btn.addon-btn {
-  background: var(--green-gradient);
-  box-shadow: var(--shadow-sm), 0 1px 3px rgba(253, 126, 20, 0.3);
-}
-
-.stocks-add-btn:before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-  transition: left 0.7s;
-}
-
-.stocks-add-btn:hover {
-  box-shadow: var(--shadow-md), 0 4px 8px rgba(40, 167, 69, 0.4);
-  transform: translateY(-2px);
-  filter: brightness(1.05);
-}
-
-.stocks-add-btn.addon-btn:hover {
-  box-shadow: var(--shadow-md), 0 4px 8px rgba(253, 126, 20, 0.4);
-}
-
-.stocks-add-btn:active {
-  transform: translateY(0);
-  box-shadow: var(--shadow-sm), 0 1px 2px rgba(40, 167, 69, 0.4);
-}
-
-.stocks-add-btn.addon-btn:active {
-  box-shadow: var(--shadow-sm), 0 1px 2px rgba(253, 126, 20, 0.4);
-}
-
-/* Modal styles */
-.modal-overlay.show {
-  opacity: 1;
-  visibility: visible;
-}
-
-/* Modal Container */
-.modal-container {
-  background: var(--white);
-  border-radius: var(--radius);
-  width: 100%;
-  max-width: 500px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: var(--shadow-lg);
-  position: relative;
-  transform: scale(0.9) translateY(-20px);
-  transition: transform var(--transition);
-}
-
-.modal-overlay.show .modal-container {
-  transform: scale(1) translateY(0);
-}
-
-/* Confirmation Container */
-.confirmation-container {
-  background: var(--white);
-  border-radius: var(--radius);
-  width: 100%;
-  max-width: 450px;
-  box-shadow: var(--shadow-lg);
-  position: relative;
-  transform: scale(0.9) translateY(-20px);
-  transition: transform var(--transition);
-  overflow: hidden;
-}
-
-.modal-overlay.show .confirmation-container {
-  transform: scale(1) translateY(0);
-}
-
-/* Modal Header */
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24px 30px 16px;
-  border-bottom: 1px solid var(--border-light);
-  background: linear-gradient(to bottom, var(--white), var(--bg-lighter));
-  border-top-left-radius: var(--radius);
-  border-top-right-radius: var(--radius);
-}
-
-.modal-header h2 {
-  margin: 0;
-  color: var(--brown-dark);
-  font-size: 26px;
-  font-weight: 700;
-}
-
-/* Confirmation Header */
-.confirmation-header {
-  padding: 24px 30px 16px;
-  border-bottom: 1px solid var(--border-light);
-  background: linear-gradient(135deg, var(--brown-light), var(--brown));
-  text-align: center;
-}
-
-.confirmation-header h3 {
-  margin: 0;
-  color: var(--white);
-  font-size: 22px;
-  font-weight: 700;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-}
-
-/* Confirmation Body */
-.confirmation-body {
-  padding: 30px;
-  text-align: center;
-  background: var(--white);
-}
-
-.confirmation-body p {
-  margin: 0;
-  font-size: 16px;
-  color: var(--text);
-  line-height: 1.5;
-  font-weight: 500;
-}
-
-/* Confirmation Buttons */
-.confirmation-buttons {
-  display: flex;
-  gap: 12px;
-  padding: 20px 30px 30px;
-  background: var(--white);
-  justify-content: center;
-}
-
-.confirm-btn {
-  flex: 1;
-  max-width: 140px;
-  padding: 14px 24px;
-  border: none;
-  border-radius: var(--radius-sm);
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all var(--transition);
-  box-shadow: var(--shadow-sm);
-  position: relative;
-  overflow: hidden;
-}
-
-.confirm-btn:before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-  transition: left 0.7s;
-}
-
-.confirm-btn:hover:before {
-  left: 100%;
-}
-
-.confirm-btn.proceed {
-  background: var(--green-gradient);
-  color: var(--white);
-  box-shadow: var(--shadow-sm), 0 2px 4px rgba(40, 167, 69, 0.3);
-}
-
-.confirm-btn.proceed:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md), 0 4px 8px rgba(40, 167, 69, 0.4);
-  filter: brightness(1.05);
-}
-
-.confirm-btn.cancel {
-  background: var(--red-gradient);
-  color: var(--white);
-  box-shadow: var(--shadow-sm), 0 2px 4px rgba(220, 53, 69, 0.3);
-}
-
-.confirm-btn.cancel:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md), 0 4px 8px rgba(220, 53, 69, 0.4);
-  filter: brightness(1.05);
-}
-
-.confirm-btn:active {
-  transform: translateY(0);
-  filter: brightness(0.95);
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 28px;
-  color: var(--gray);
-  cursor: pointer;
-  padding: 0;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: all var(--transition);
-  line-height: 1;
-}
-
-.close-btn:hover {
-  background: var(--bg-light);
-  color: var(--text);
-  transform: rotate(90deg);
-}
-
-/* Modal Form */
-.stocks-form-vertical {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  padding: 30px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-}
-
-.form-group label {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text);
-  margin-bottom: 8px;
-}
-
-/* Enhanced Prefix/Category Display Styles */
-.prefix-display {
-  flex: 0 0 auto;
-  padding: 14px 16px;
-  background: linear-gradient(135deg, var(--brown-light), var(--brown));
-  color: var(--white);
-  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
-  font-size: 14px;
-  font-weight: 700;
-  text-align: center;
-  border: 2px solid var(--brown);
-  border-right: none;
-  letter-spacing: 0.5px;
-  min-width: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-}
-
-.category-display {
-  padding: 14px 16px;
-  background: linear-gradient(135deg, var(--green), var(--green-dark));
-  color: var(--white);
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  font-weight: 600;
-  text-align: center;
-  border: 2px solid var(--green);
-  letter-spacing: 0.3px;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-  box-shadow: var(--shadow-sm);
-}
-
-/* Ingredient ID Group for Modal */
-.ingredient-id-group {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  width: 100%;
-}
-
-.ingredient-id-group input[type="text"] {
-  flex: 1;
-  padding: 14px 16px;
-  border: 2px solid var(--brown);
-  border-left: none;
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  background-color: var(--bg-lighter);
-  font-size: 14px;
-  transition: all var(--transition);
-  box-shadow: var(--shadow-inner);
-}
-
-.ingredient-id-group input[type="text"]:focus {
-  outline: none;
-  border-color: var(--green);
-  background-color: var(--white);
-  box-shadow: 0 0 0 3px rgba(40,167,69,0.15);
-  transform: translateY(-1px);
-}
-
-.form-group input[type="text"],
-.form-group input[type="number"] {
-  padding: 14px 16px;
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  background-color: var(--bg-lighter);
-  transition: all var(--transition);
-  box-shadow: var(--shadow-inner);
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.form-group input[type="text"]:hover,
-.form-group input[type="number"]:hover {
-  border-color: #bbb;
-  background-color: #f5f5f5;
-}
-
-.form-group input[type="text"]:focus,
-.form-group input[type="number"]:focus {
-  outline: none;
-  border-color: var(--green);
-  background-color: var(--white);
-  box-shadow: 0 0 0 3px rgba(40,167,69,0.15);
-  transform: translateY(-1px);
-}
-
-/* Enhanced Switch Styles - Minimal design matching image 6 */
-.switch-group {
-  flex-direction: row;
-  align-items: center;
-  padding: 12px 0;
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  box-shadow: none;
-  margin: 8px 0;
-  border-bottom: none;
-}
-
-.switch-group:last-of-type {
-  border-bottom: none;
-}
-
-.switch-label {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  width: 100%;
-  cursor: pointer;
-  user-select: none;
-  margin-bottom: 0 !important;
-  padding: 0;
-  gap: 12px;
-}
-
-.switch-text {
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--text);
-  margin-right: 0;
-  flex: 0 0 auto;
-  order: 2;
-}
-
-.switch-container {
-  position: relative;
-  display: inline-block;
-  width: 48px;
-  height: 28px;
-  flex-shrink: 0;
-  order: 1;
-}
-
-.switch-input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-  position: absolute;
-}
-
-.switch-slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: #e0e0e0;
-  transition: all var(--transition);
-  border-radius: 28px;
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.switch-slider:before {
-  position: absolute;
-  content: "";
-  height: 20px;
-  width: 20px;
-  left: 4px;
-  bottom: 4px;
-  background: var(--white);
-  transition: all var(--transition);
-  border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-}
-
-.switch-input:checked + .switch-slider {
-  background: #4CAF50;
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.switch-input:focus + .switch-slider {
-  box-shadow: 0 0 0 3px rgba(76,175,80,0.25);
-}
-
-.switch-input:checked + .switch-slider:before {
-  transform: translateX(20px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-}
-
-.switch-slider:hover {
-  filter: brightness(1.02);
-}
-
-.switch-input:checked + .switch-slider:hover {
-  filter: brightness(1.05);
-  background: #45a049;
-}
-
-.switch-slider:active {
-  transform: scale(0.98);
-}
-
-/* Enhanced Buttons */
-.button-group {
-  display: flex;
-  gap: 16px;
-  margin-top: 20px;
-  justify-content: center;
-}
-
-.add-product-btn,
-.cancel-btn {
-  border: none;
-  border-radius: var(--radius-sm);
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all var(--transition);
-  padding: 16px 32px;
-  box-shadow: var(--shadow-sm);
-  position: relative;
-  overflow: hidden;
-  min-width: 140px;
-}
-
-.add-product-btn:before,
-.cancel-btn:before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-  transition: left 0.7s;
-}
-
-.add-product-btn:hover:before,
-.cancel-btn:hover:before {
-  left: 100%;
-}
-
-.add-product-btn {
-  background: var(--green-gradient);
-  color: var(--white);
-  box-shadow: var(--shadow-sm), 0 1px 3px rgba(40, 167, 69, 0.3);
-}
-
-.add-product-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md), 0 4px 8px rgba(40, 167, 69, 0.4);
-  filter: brightness(1.05);
-}
-
-.add-product-btn:active {
-  transform: translateY(0);
-  filter: brightness(0.95);
-}
-
-.cancel-btn {
-  background: var(--red-gradient);
-  color: var(--white);
-  box-shadow: var(--shadow-sm), 0 1px 3px rgba(220, 53, 69, 0.3);
-}
-
-.cancel-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md), 0 4px 8px rgba(220, 53, 69, 0.4);
-  filter: brightness(1.05);
-}
-
-.cancel-btn:active {
-  transform: translateY(0);
-  filter: brightness(0.95);
-}
-
-/* Enhanced Table Container */
-.table-container {
-  overflow-x: auto;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-md);
-  margin-top: 30px;
-  margin-bottom: 40px;
-  background: var(--white);
-  border: 1px solid var(--border);
-  width: 100%;
-}
-
-/* Enhanced Table */
-.stocks-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  font-size: 14px;
-  table-layout: fixed;
-}
-
-/* Column widths for both tables (7 columns each) */
-.stocks-table th:nth-child(1), .stocks-table td:nth-child(1) { width: 18%; }
-.stocks-table th:nth-child(2), .stocks-table td:nth-child(2) { width: 16%; }
-.stocks-table th:nth-child(3), .stocks-table td:nth-child(3) { width: 12%; }
-.stocks-table th:nth-child(4), .stocks-table td:nth-child(4) { width: 14%; }
-.stocks-table th:nth-child(5), .stocks-table td:nth-child(5) { width: 12%; }
-.stocks-table th:nth-child(6), .stocks-table td:nth-child(6) { width: 10%; }
-.stocks-table th:nth-child(7), .stocks-table td:nth-child(7) { width: 18%; }
-
-.stocks-table th,
-.stocks-table td {
-  text-align: center;
-  padding: 12px 8px;
-  border-bottom: 1px solid var(--border);
-  word-wrap: break-word;
-  vertical-align: middle;
-}
-
-.stocks-table thead {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.stocks-table thead th {
-  background: var(--gray-light);
-  color: var(--brown-dark);
-  font-weight: 700;
-  font-size: 13px;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  padding: 16px 12px;
-  box-shadow: 0 2px 3px rgba(0,0,0,0.05);
-}
-
-.stocks-table thead th:first-child {
-  border-top-left-radius: var(--radius-xs);
-}
-
-.stocks-table thead th:last-child {
-  border-top-right-radius: var(--radius-xs);
-}
-
-.stocks-table tbody tr {
-  transition: background-color var(--transition);
-}
-
-.stocks-table tbody tr:nth-child(even) {
-  background-color: #f7f9fc;
-}
-
-.stocks-table tbody tr:hover {
-  background-color: #eef2f7;
-}
-
-/* Clean table inputs */
-.table-input {
-  width: 100%;
-  padding: 8px 10px;
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-xs);
-  background: var(--white);
-  transition: all var(--transition);
-  font-size: 13px;
-  box-sizing: border-box;
-  height: 36px;
-}
-
-.table-input:hover {
-  border-color: #bbb;
-  background-color: #f9f9f9;
-}
-
-.table-input:focus {
-  outline: none;
-  border-color: var(--green);
-  background: var(--white);
-  box-shadow: 0 0 0 2px rgba(40,167,69,0.15);
-}
-
-/* Enhanced Table Displays */
-.prefix-display-table {
-  background: linear-gradient(135deg, var(--brown-light), var(--brown));
-  color: var(--white);
-  padding: 8px 12px;
-  border-radius: var(--radius-xs);
-  font-size: 11px;
-  font-weight: 700;
-  text-align: center;
-  letter-spacing: 0.5px;
-  min-width: 45px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-  box-shadow: var(--shadow-sm);
-}
-
-.category-display-table {
-  background: linear-gradient(135deg, var(--green), var(--green-dark));
-  color: var(--white);
-  padding: 8px 12px;
-  border-radius: var(--radius-xs);
-  font-size: 11px;
-  font-weight: 600;
-  text-align: center;
-  letter-spacing: 0.3px;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-  box-shadow: var(--shadow-sm);
-}
-
-/* Ingredient ID Group for Table */
-.ingredient-id-group-table {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-}
-
-.suffix-input {
-  flex: 1;
-  min-width: 0;
-}
-
-.number-input {
-  text-align: center;
-}
-
-.status-select {
-  font-size: 12px;
-}
-
-/* Modified/Changed field highlighting */
-.table-input.modified {
-  border-color: var(--blue);
-  background-color: var(--blue-light);
-  box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
-}
-
-/* Animation for fade out highlight */
-.table-input.highlight-fade {
-  transition: all 1s ease-out;
-}
-
-/* Actions Cell - Improved Button Layout */
-.actions-cell {
-  padding: 8px 6px;
-}
-
-.button-wrapper {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  width: 100%;
-  max-width: 180px;
-  margin: 0 auto;
-}
-
-/* Enhanced Action Buttons with better spacing and uniformity */
-.stocks-btn {
-  padding: 10px 16px;
-  border: none;
-  border-radius: var(--radius-xs);
-  color: var(--white);
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all var(--transition);
-  box-shadow: var(--shadow-sm);
-  position: relative;
-  overflow: hidden;
-  min-width: 75px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  white-space: nowrap;
-}
-
-.stocks-btn:before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-  transition: left 0.7s;
-}
-
-.stocks-btn:hover:before {
-  left: 100%;
-}
-
-.stocks-btn.update {
-  background: var(--green-gradient);
-  box-shadow: var(--shadow-sm), 0 1px 3px rgba(40, 167, 69, 0.3);
-}
-
-.stocks-btn.update:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm), 0 3px 6px rgba(40, 167, 69, 0.4);
-  filter: brightness(1.05);
-}
-
-.stocks-btn.delete {
-  background: var(--red-gradient);
-  box-shadow: var(--shadow-sm), 0 1px 3px rgba(220, 53, 69, 0.3);
-}
-
-.stocks-btn.delete:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm), 0 3px 6px rgba(220, 53, 69, 0.4);
-  filter: brightness(1.05);
-}
-
-.stocks-btn:active {
-  transform: translateY(0);
-  filter: brightness(0.95);
-}
-
-.stocks-center {
-  text-align: center;
-  font-style: italic;
-  color: var(--muted);
-  padding: 25px;
-  font-size: 15px;
-  background: linear-gradient(to bottom, var(--bg-light), #eef2f7);
-}
-
-/* Enhanced Responsive Design */
-@media (max-width: 768px) {
-  /* Adjust for smaller navbar on mobile */
-  .stocks-container {
-    height: calc(100vh - var(--navbar-height-mobile));
-  }
-
-  .add-buttons-section {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .stocks-add-btn {
-    width: 100%;
-    max-width: 300px;
-  }
-
-  .switch-container {
-    width: 44px;
-    height: 24px;
-  }
-
-  .switch-slider:before {
-    height: 16px;
-    width: 16px;
-    left: 4px;
-    bottom: 4px;
-  }
-
-  .switch-input:checked + .switch-slider:before {
-    transform: translateX(20px);
-  }
-
-  .switch-text {
-    font-size: 14px;
-  }
-
-  .switch-group {
-    padding: 10px 0;
-  }
-
-  .switch-label {
-    gap: 10px;
-  }
-}
-
-@media (max-width: 600px) {
-  .stocks-container {
-    padding: 15px;
-    height: calc(100vh - var(--navbar-height-mobile));
-  }
-
-  .modal-container, .confirmation-container {
-    margin: 10px;
-    max-width: calc(100vw - 20px);
-  }
-
-  .stocks-form-vertical {
-    padding: 20px;
-  }
-
-  .button-group {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .add-product-btn,
-  .cancel-btn {
-    width: 100%;
-  }
-
-  .header-section h1 {
-    font-size: 28px;
-  }
-
-  .section-header h2 {
-    font-size: 20px;
-  }
-
-  .stocks-table thead th {
-    font-size: 11px;
-    padding: 12px 6px;
-  }
-
-  .stocks-table th,
-  .stocks-table td {
-    padding: 10px 4px;
-  }
-
-  .stocks-btn {
-    padding: 8px 12px;
-    font-size: 11px;
-    min-width: 65px;
-    height: 32px;
-  }
-
-  .button-wrapper {
-    grid-template-columns: 1fr;
-    gap: 4px;
-    max-width: 100px;
-  }
-
-  .prefix-display-table {
-    min-width: 35px;
-    font-size: 10px;
-    padding: 6px 8px;
-  }
-
-  .table-input {
-    font-size: 12px;
-    height: 32px;
-    padding: 6px 8px;
-  }
-
-  .confirmation-buttons {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .confirm-btn {
-    max-width: none;
-  }
-
-  .switch-text {
-    font-size: 14px;
-  }
-
-  .switch-group {
-    padding: 12px 0;
-  }
-}
-
-@media (max-width: 500px) {
-  .stocks-container {
-    padding: 12px;
-    height: calc(100vh - 50px); /* Even smaller navbar for very small screens */
-  }
-
-  .stocks-table {
-    font-size: 12px;
-  }
-
-  .table-input {
-    padding: 6px;
-    height: 30px;
-  }
-
-  .button-wrapper {
-    max-width: 90px;
-  }
-
-  .stocks-btn {
-    font-size: 10px;
-    min-width: 60px;
-    height: 30px;
-  }
-
-  .switch-container {
-    width: 40px;
-    height: 20px;
-  }
-
-  .switch-slider:before {
-    height: 14px;
-    width: 14px;
-    left: 3px;
-    bottom: 3px;
-  }
-
-  .switch-input:checked + .switch-slider:before {
-    transform: translateX(17px);
-  }
-
-  .switch-text {
-    font-size: 13px;
-  }
-
-  .switch-group {
-    padding: 8px 0;
-  }
-
-  .switch-label {
-    gap: 8px;
-  }
-
-  .prefix-display-table {
-    min-width: 30px;
-    font-size: 9px;
-    padding: 4px 6px;
-  }
-}
-
-/* Focus States for Accessibility */
-.stocks-add-btn:focus,
-.add-product-btn:focus,
-.cancel-btn:focus,
-.stocks-btn:focus,
-.close-btn:focus,
-.table-input:focus,
-.confirm-btn:focus,
-.switch-input:focus + .switch-slider {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(40,167,69,0.25);
-}
-
-</style>
-
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    console.log(`[2025-09-16 07:36:28] Initializing Enhanced Inventory Management System by MathDaenniel`);
-    
-    // ===============================================
-    // ENHANCED FIXED NAVBAR - CONTENT ONLY SCROLLING
-    // ===============================================
-    
-    function setupFixedNavbar() {
-      console.log(`[2025-09-16 07:36:28] Setting up fixed navbar with content-only scrolling by MathDaenniel`);
-      
-      // Find navbar elements (multiple selectors for compatibility)
-      const navbarSelectors = [
-        'nav', '.navbar', '.nav', '.header-nav', '.main-nav',
-        'header', '.header', '.site-header', '.page-header',
-        '.navigation', '.top-nav', '.primary-nav'
-      ];
-      
-      let navbar = null;
-      
-      // Try to find navbar element
-      for (const selector of navbarSelectors) {
-        const element = document.querySelector(selector);
-        if (element) {
-          navbar = element;
-          break;
-        }
-      }
-      
-      if (navbar) {
-        console.log(`[2025-09-16 07:36:28] Navbar found, applying fixed positioning by MathDaenniel`);
-        
-        // Force fixed positioning styles
-        Object.assign(navbar.style, {
-          position: 'fixed',
-          top: '0',
-          left: '0',
-          right: '0',
-          width: '100%',
-          zIndex: '9999',
-          background: 'rgba(255, 255, 255, 0.98)',
-          backdropFilter: 'blur(12px)',
-          boxShadow: '0 2px 20px rgba(0,0,0,0.1)',
-          transition: 'all 0.3s ease'
-        });
-        
-        // Add sticky class for CSS targeting
-        navbar.classList.add('navbar-fixed');
-        
-        // Measure navbar height and adjust container accordingly
-        const navbarHeight = navbar.offsetHeight;
-        const container = document.querySelector('.stocks-container');
-        
-        if (container) {
-          container.style.marginTop = '0';
-          container.style.height = `calc(100vh - ${navbarHeight}px)`;
-          container.style.overflowY = 'auto';
-          container.style.overflowX = 'hidden';
-          
-          console.log(`[2025-09-16 07:36:28] Container adjusted: height=calc(100vh - ${navbarHeight}px) by MathDaenniel`);
-        }
-        
-        // Ensure body doesn't scroll
-        document.body.style.overflow = 'hidden';
-        document.documentElement.style.overflow = 'hidden';
-        
-        console.log(`[2025-09-16 07:36:28] Fixed navbar setup complete: height=${navbarHeight}px by MathDaenniel`);
-      } else {
-        console.log(`[2025-09-16 07:36:28] No navbar found, applying default content scrolling by MathDaenniel`);
-        
-        // Fallback: just make sure body doesn't scroll
-        document.body.style.overflow = 'hidden';
-        document.documentElement.style.overflow = 'hidden';
-        
-        const container = document.querySelector('.stocks-container');
-        if (container) {
-          container.style.height = 'calc(100vh - 80px)'; // Default navbar height
-          container.style.overflowY = 'auto';
-          container.style.overflowX = 'hidden';
-        }
-      }
-    }
-    
-    // Apply navbar fix immediately and on resize
-    setupFixedNavbar();
-    window.addEventListener('resize', setupFixedNavbar);
-    
-    // ===============================================
-    // ENHANCED SCROLL BEHAVIOR FOR CONTENT ONLY
-    // ===============================================
-    
-    const scrollContainer = document.querySelector('.stocks-container');
-    const navbar = document.querySelector('.navbar-fixed, nav, .navbar, header');
-    
-    if (scrollContainer) {
-      scrollContainer.addEventListener('scroll', function() {
-        const scrollTop = scrollContainer.scrollTop;
-        
-        if (navbar) {
-          // Enhanced navbar shadow based on content scroll
-          if (scrollTop > 10) {
-            navbar.style.boxShadow = '0 4px 25px rgba(0,0,0,0.15)';
-            navbar.style.background = 'rgba(255, 255, 255, 0.99)';
-            navbar.style.backdropFilter = 'blur(15px)';
-          } else {
-            navbar.style.boxShadow = '0 2px 20px rgba(0,0,0,0.1)';
-            navbar.style.background = 'rgba(255, 255, 255, 0.98)';
-            navbar.style.backdropFilter = 'blur(12px)';
-          }
-        }
-      });
-      
-      console.log(`[2025-09-16 07:36:28] Content scroll listener attached by MathDaenniel`);
-    }
-
-    // Show success message based on query parameter
-    const messageDiv = document.getElementById('message');
-    if (messageDiv) {
-      const urlParams = new URLSearchParams(window.location.search);
-      const msg = urlParams.get('msg');
-
-      let text = '';
-      if (msg === 'add_success') text = 'Item successfully added.';
-      else if (msg === 'update_success') text = 'Item successfully updated.';
-      else if (msg === 'delete_success') text = 'Item successfully deleted.';
-      else if (msg === 'duplicate_id') text = 'Error: Item ID already exists. Please use a different ID.';
-      else if (msg === 'delete_failed') text = 'Error: Failed to delete item. It may not exist.';
-      else if (msg === 'item_not_found') text = 'Error: Item not found.';
-      else if (msg === 'item_in_use') text = 'Error: Cannot delete item as it is being used in recipes.';
-
-      if (text) {
-        messageDiv.textContent = text;
-
-        // Change styling for error messages
-        if (msg === 'duplicate_id' || msg === 'delete_failed' || msg === 'item_not_found' || msg === 'item_in_use') {
-          messageDiv.classList.add('error');
-        }
-
-        // Auto fade out after 5 seconds for error messages, 4 for success
-        const isError = msg === 'duplicate_id' || msg === 'delete_failed' || msg === 'item_not_found' || msg === 'item_in_use';
-        const fadeTime = isError ? 5000 : 4000;
-        setTimeout(() => {
-          messageDiv.style.transition = 'opacity 1s ease';
-          messageDiv.style.opacity = 0;
-        }, fadeTime);
-      }
-    }
-
-    // Modal Elements for Ingredients
-    const showAddIngredientBtn = document.getElementById('showAddIngredientForm');
-    const ingredientModalOverlay = document.getElementById('ingredientModalOverlay');
-    const cancelAddIngredientBtn = document.getElementById('cancelAddIngredient');
-    const closeIngredientModalBtn = document.getElementById('closeIngredientModal');
-
-    // Modal Elements for Add-Ons
-    const showAddAddonBtn = document.getElementById('showAddAddonForm');
-    const addonModalOverlay = document.getElementById('addonModalOverlay');
-    const cancelAddAddonBtn = document.getElementById('cancelAddAddon');
-    const closeAddonModalBtn = document.getElementById('closeAddonModal');
-
-    // Confirmation Modal Elements
-    const confirmationModal = document.getElementById('confirmationModal');
-    const confirmationTitle = document.getElementById('confirmationTitle');
-    const confirmationMessage = document.getElementById('confirmationMessage');
-    const confirmProceed = document.getElementById('confirmProceed');
-    const confirmCancel = document.getElementById('confirmCancel');
-
-    let currentAction = null;
-    let currentItemId = null;
-    let currentItemType = null;
-
-    console.log(`[2025-09-16 07:32:51] Modal elements initialized by MathDaenniel`);
-
-    // Show Ingredient Modal
-    function showIngredientModal() {
-      console.log(`[2025-09-16 07:32:51] Opening ingredient modal by MathDaenniel`);
-      ingredientModalOverlay.style.display = 'flex';
-      setTimeout(() => {
-        ingredientModalOverlay.classList.add('show');
-      }, 10);
-      document.body.style.overflow = 'hidden';
-    }
-
-    // Hide Ingredient Modal
-    function hideIngredientModal() {
-      console.log(`[2025-09-16 07:32:51] Closing ingredient modal by MathDaenniel`);
-      ingredientModalOverlay.classList.remove('show');
-      setTimeout(() => {
-        ingredientModalOverlay.style.display = 'none';
-        const form = ingredientModalOverlay.querySelector('form');
-        form.reset();
-        const switches = form.querySelectorAll('.switch-input');
-        switches.forEach(switchInput => switchInput.checked = true);
-      }, 200);
-      document.body.style.overflow = '';
-    }
-
-    // Show Add-On Modal
-    function showAddonModal() {
-      console.log(`[2025-09-16 07:32:51] Opening add-on modal by MathDaenniel`);
-      addonModalOverlay.style.display = 'flex';
-      setTimeout(() => {
-        addonModalOverlay.classList.add('show');
-      }, 10);
-      document.body.style.overflow = 'hidden';
-    }
-
-    // Hide Add-On Modal
-    function hideAddonModal() {
-      console.log(`[2025-09-16 07:32:51] Closing add-on modal by MathDaenniel`);
-      addonModalOverlay.classList.remove('show');
-      setTimeout(() => {
-        addonModalOverlay.style.display = 'none';
-        const form = addonModalOverlay.querySelector('form');
-        form.reset();
-        const switches = form.querySelectorAll('.switch-input');
-        switches.forEach(switchInput => switchInput.checked = true);
-      }, 200);
-      document.body.style.overflow = '';
-    }
-
-    // Show Confirmation Modal
-    function showConfirmationModal(action, itemId, itemType) {
-      console.log(`[2025-09-16 07:32:51] Opening confirmation modal for ${action} on ${itemType} by MathDaenniel`);
-      currentAction = action;
-      currentItemId = itemId;
-      currentItemType = itemType;
-
-      const itemLabel = itemType === 'ingredient' ? 'ingredient' : 'add-on';
-
-      if (action === 'update') {
-        confirmationTitle.textContent = `Update ${itemLabel.charAt(0).toUpperCase() + itemLabel.slice(1)}`;
-        confirmationMessage.textContent = `Are you sure you want to update this ${itemLabel} with the current values?`;
-      } else if (action === 'delete') {
-        confirmationTitle.textContent = `Delete ${itemLabel.charAt(0).toUpperCase() + itemLabel.slice(1)}`;
-        confirmationMessage.textContent = `Are you sure you want to delete this ${itemLabel}? This action cannot be undone.`;
-      }
-
-      confirmationModal.style.display = 'flex';
-      setTimeout(() => {
-        confirmationModal.classList.add('show');
-      }, 10);
-      document.body.style.overflow = 'hidden';
-    }
-
-    // Hide Confirmation Modal
-    function hideConfirmationModal() {
-      console.log(`[2025-09-16 07:32:51] Closing confirmation modal by MathDaenniel`);
-      confirmationModal.classList.remove('show');
-      setTimeout(() => {
-        confirmationModal.style.display = 'none';
-        currentAction = null;
-        currentItemId = null;
-        currentItemType = null;
-      }, 200);
-      document.body.style.overflow = '';
-    }
-
-    // Event Listeners for Modal Controls
-    if (showAddIngredientBtn) {
-      showAddIngredientBtn.addEventListener('click', showIngredientModal);
-      console.log(`[2025-09-16 07:32:51] Ingredient button listener attached by MathDaenniel`);
-    }
-
-    if (cancelAddIngredientBtn) {
-      cancelAddIngredientBtn.addEventListener('click', hideIngredientModal);
-    }
-
-    if (closeIngredientModalBtn) {
-      closeIngredientModalBtn.addEventListener('click', hideIngredientModal);
-    }
-
-    if (showAddAddonBtn) {
-      showAddAddonBtn.addEventListener('click', showAddonModal);
-      console.log(`[2025-09-16 07:32:51] Add-on button listener attached by MathDaenniel`);
-    }
-
-    if (cancelAddAddonBtn) {
-      cancelAddAddonBtn.addEventListener('click', hideAddonModal);
-    }
-
-    if (closeAddonModalBtn) {
-      closeAddonModalBtn.addEventListener('click', hideAddonModal);
-    }
-
-    // Close modals when clicking on overlay
-    if (ingredientModalOverlay) {
-      ingredientModalOverlay.addEventListener('click', (e) => {
-        if (e.target === ingredientModalOverlay) {
-          hideIngredientModal();
-        }
-      });
-    }
-
-    if (addonModalOverlay) {
-      addonModalOverlay.addEventListener('click', (e) => {
-        if (e.target === addonModalOverlay) {
-          hideAddonModal();
-        }
-      });
-    }
-
-    if (confirmationModal) {
-      confirmationModal.addEventListener('click', (e) => {
-        if (e.target === confirmationModal) {
-          hideConfirmationModal();
-        }
-      });
-    }
-
-    // Close modals with Escape key
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        if (confirmationModal && confirmationModal.classList.contains('show')) {
-          hideConfirmationModal();
-        } else if (ingredientModalOverlay && ingredientModalOverlay.classList.contains('show')) {
-          hideIngredientModal();
-        } else if (addonModalOverlay && addonModalOverlay.classList.contains('show')) {
-          hideAddonModal();
-        }
-      }
-    });
-
-    // Handle Update and Delete button clicks
-    document.addEventListener('click', (e) => {
-      if (e.target.classList.contains('stocks-btn')) {
-        e.preventDefault();
-        const action = e.target.dataset.action;
-        const itemId = e.target.dataset.itemId;
-        const itemType = e.target.dataset.type;
-
-        console.log(`[2025-09-16 07:32:51] ${action} button clicked for ${itemType} ${itemId} by MathDaenniel`);
-        showConfirmationModal(action, itemId, itemType);
-      }
-    });
-
-    // Confirmation modal button handlers
-    if (confirmProceed) {
-      confirmProceed.addEventListener('click', () => {
-        console.log(`[2025-09-16 07:32:51] Confirmation proceed clicked by MathDaenniel`);
-        
-        if (currentAction && currentItemId && currentItemType) {
-          if (currentAction === 'update') {
-            // Get the row containing this item
-            const updateButton = document.querySelector(`[data-item-id="${currentItemId}"][data-action="update"]`);
-            const row = updateButton.closest('tr');
-
-            if (currentItemType === 'ingredient') {
-              // Handle ingredient update - Fixed prefix is ING
-              const prefix = 'ING';
-              const suffix = row.querySelector('input[name="IngredientSuffix"]').value.trim();
-              const name = row.querySelector('input[name="Name"]').value.trim();
-              const quantity = row.querySelector('input[name="Quantity"]').value;
-              const category = 'Ingredients'; // Fixed category
-              const allergen = row.querySelector('input[name="Allergen"]').value.trim();
-              const enabled = row.querySelector('select[name="isEnabled"]').value;
-
-              if (!suffix || !name || !quantity) {
-                alert('Please fill in all required fields.');
-                hideConfirmationModal();
-                return;
-              }
-
-              const form = document.getElementById(`update-ingredient-form-${currentItemId}`);
-              const fullIngredientId = `${prefix}-${suffix}`;
-
-              // Update form fields with new values
-              form.querySelector('input[name="IngredientID"]').value = fullIngredientId;
-              form.querySelector('input[name="IngredientPrefix"]').value = prefix;
-              form.querySelector('input[name="IngredientSuffix"]').value = suffix;
-              form.querySelector('input[name="Name"]').value = name;
-              form.querySelector('input[name="Quantity"]').value = quantity;
-              form.querySelector('input[name="Category"]').value = category;
-              form.querySelector('input[name="Allergen"]').value = allergen || 'None';
-              // Ensure isEnabled is properly set as a boolean string for ingredients
-              const isEnabledInput = form.querySelector('input[name="isEnabled"]');
-              if (isEnabledInput) {
-                isEnabledInput.value = (enabled === 'true' || enabled === true) ? 'true' : 'false';
-                console.log('Setting isEnabled to:', isEnabledInput.value);
-              }
-              
-              // Add a timestamp for lastModified
-              const lastModifiedInput = document.createElement('input');
-              lastModifiedInput.type = 'hidden';
-              lastModifiedInput.name = 'lastModified';
-              lastModifiedInput.value = new Date().toISOString();
-              form.appendChild(lastModifiedInput);
-
-              console.log(`[2025-09-16 07:32:51] Updating ingredient with ID: ${fullIngredientId} by MathDaenniel`);
-              form.submit();
-            } else if (currentItemType === 'addon') {
-              // Handle add-on update - Fixed prefix is ADD
-              const prefix = 'ADD';
-              const suffix = row.querySelector('input[name="AddOnSuffix"]').value.trim();
-              const name = row.querySelector('input[name="Name"]').value.trim();
-              const quantity = row.querySelector('input[name="Quantity"]').value;
-              const category = 'Add-Ons'; // Fixed category
-              const allergen = row.querySelector('input[name="Allergen"]').value.trim();
-              const enabled = row.querySelector('select[name="isEnabled"]').value;
-
-              if (!suffix || !name || !quantity) {
-                alert('Please fill in all required fields.');
-                hideConfirmationModal();
-                return;
-              }
-
-              const form = document.getElementById(`update-addon-form-${currentItemId}`);
-              const fullAddonId = `${prefix}-${suffix}`;
-
-              form.querySelector('input[name="AddOnID"]').value = fullAddonId;
-              form.querySelector('input[name="AddOnPrefix"]').value = prefix;
-              form.querySelector('input[name="AddOnSuffix"]').value = suffix;
-              form.querySelector('input[name="Name"]').value = name;
-              form.querySelector('input[name="Quantity"]').value = quantity;
-              form.querySelector('input[name="Category"]').value = category;
-              form.querySelector('input[name="Allergen"]').value = allergen || 'None';
-              // Ensure isEnabled is properly set as a boolean string for add-ons
-              const isEnabledInput = form.querySelector('input[name="isEnabled"]');
-              if (isEnabledInput) {
-                isEnabledInput.value = (enabled === 'true' || enabled === true) ? 'true' : 'false';
-              }
-
-              console.log(`[2025-09-16 07:32:51] Updating add-on with ID: ${fullAddonId} by MathDaenniel`);
-              form.submit();
-            }
-
-            // Remove highlight classes from all inputs in the row
-            const inputs = row.querySelectorAll('.table-input');
-            inputs.forEach(input => {
-              input.classList.remove('modified');
-              input.classList.add('highlight-fade');
-            });
-
-          } else if (currentAction === 'delete') {
-            const formId = currentItemType === 'ingredient' ?
-              `delete-ingredient-form-${currentItemId}` :
-              `delete-addon-form-${currentItemId}`;
-            const form = document.getElementById(formId);
-            console.log(`[2025-09-16 07:32:51] Deleting ${currentItemType} by MathDaenniel`);
-            form.submit();
-          }
-        }
-        hideConfirmationModal();
-      });
-    }
-
-    if (confirmCancel) {
-      confirmCancel.addEventListener('click', hideConfirmationModal);
-    }
-
-    // Handle ingredient form submission
-    const ingredientModalForm = ingredientModalOverlay?.querySelector('.stocks-form-vertical');
-    if (ingredientModalForm) {
-      ingredientModalForm.addEventListener('submit', (e) => {
-        console.log(`[2025-09-16 07:32:51] Ingredient form submission by MathDaenniel`);
-        
-        const prefix = 'ING'; // Fixed prefix
-        const suffix = ingredientModalForm.querySelector('input[name="IngredientSuffix"]').value.trim();
-
-        if (!suffix) {
-          alert('Please provide suffix for the ingredient ID.');
-          e.preventDefault();
-          return;
-        }
-
-        const fullId = `${prefix}-${suffix}`;
-
-        // Remove existing hidden ID input if present
-        const existingHiddenId = ingredientModalForm.querySelector('input[name="IngredientID"][type="hidden"]');
-        if (existingHiddenId) {
-          existingHiddenId.remove();
-        }
-
-        // Add full ingredient ID as hidden input
-        const hiddenInput = document.createElement('input');
-        hiddenInput.type = 'hidden';
-        hiddenInput.name = 'IngredientID';
-        hiddenInput.value = fullId;
-        ingredientModalForm.appendChild(hiddenInput);
-
-        // Handle isEnabledStock switch
-        const enabledSwitch = ingredientModalForm.querySelector('input[name="isEnabledStock"]');
-        const existingHiddenEnabled = ingredientModalForm.querySelector('input[name="isEnabled"][type="hidden"]');
-
-        if (existingHiddenEnabled) {
-          existingHiddenEnabled.remove();
-        }
-
-        const newHiddenEnabledInput = document.createElement('input');
-        newHiddenEnabledInput.type = 'hidden';
-        newHiddenEnabledInput.name = 'isEnabled';
-        newHiddenEnabledInput.value = enabledSwitch.checked ? 'true' : 'false';
-        ingredientModalForm.appendChild(newHiddenEnabledInput);
-
-        // Always set available to true since we removed the Available field
-        const existingHiddenAvailable = ingredientModalForm.querySelector('input[name="isAvailable"][type="hidden"]');
-        if (existingHiddenAvailable) {
-          existingHiddenAvailable.remove();
-        }
-
-        const newHiddenAvailableInput = document.createElement('input');
-        newHiddenAvailableInput.type = 'hidden';
-        newHiddenAvailableInput.name = 'isAvailable';
-        newHiddenAvailableInput.value = 'true';
-        ingredientModalForm.appendChild(newHiddenAvailableInput);
-
-        // Remove name attribute so switch doesn't interfere
-        enabledSwitch.removeAttribute('name');
-
-        console.log(`[2025-09-16 07:32:51] Adding new ingredient with ID: ${fullId} by MathDaenniel`);
-      });
-    }
-
-    // Handle add-on form submission
-    const addonModalForm = addonModalOverlay?.querySelector('.stocks-form-vertical');
-    if (addonModalForm) {
-      addonModalForm.addEventListener('submit', (e) => {
-        console.log(`[2025-09-16 07:32:51] Add-on form submission by MathDaenniel`);
-        
-        const prefix = 'ADD'; // Fixed prefix
-        const suffix = addonModalForm.querySelector('input[name="AddOnSuffix"]').value.trim();
-
-        if (!suffix) {
-          alert('Please provide suffix for the add-on ID.');
-          e.preventDefault();
-          return;
-        }
-
-        const fullId = `${prefix}-${suffix}`;
-
-        // Remove existing hidden ID input if present
-        const existingHiddenId = addonModalForm.querySelector('input[name="AddOnID"][type="hidden"]');
-        if (existingHiddenId) {
-          existingHiddenId.remove();
-        }
-
-        // Add full add-on ID as hidden input
-        const hiddenInput = document.createElement('input');
-        hiddenInput.type = 'hidden';
-        hiddenInput.name = 'AddOnID';
-        hiddenInput.value = fullId;
-        addonModalForm.appendChild(hiddenInput);
-
-        // Handle isEnabledAddon switch
-        const enabledSwitch = addonModalForm.querySelector('input[name="isEnabledAddon"]');
-        const existingHiddenEnabled = addonModalForm.querySelector('input[name="isEnabled"][type="hidden"]');
-
-        if (existingHiddenEnabled) {
-          existingHiddenEnabled.remove();
-        }
-
-        const newHiddenEnabledInput = document.createElement('input');
-        newHiddenEnabledInput.type = 'hidden';
-        newHiddenEnabledInput.name = 'isEnabled';
-        newHiddenEnabledInput.value = enabledSwitch.checked ? 'true' : 'false';
-        addonModalForm.appendChild(newHiddenEnabledInput);
-
-        // Remove name attribute so switch doesn't interfere
-        enabledSwitch.removeAttribute('name');
-
-        console.log(`[2025-09-16 07:32:51] Adding new add-on with ID: ${fullId} by MathDaenniel`);
-      });
-    }
-
-    // Track changes and add highlighting for both ingredients and add-ons
-    document.addEventListener('input', (e) => {
-      if (e.target.classList.contains('table-input')) {
-        const originalValue = e.target.dataset.original;
-        const currentValue = e.target.value;
-
-        if (currentValue !== originalValue) {
-          e.target.classList.add('modified');
-          e.target.classList.remove('highlight-fade');
-        } else {
-          e.target.classList.remove('modified');
-        }
-      }
-    });
-
-    document.addEventListener('change', (e) => {
-      if (e.target.classList.contains('table-input')) {
-        const originalValue = e.target.dataset.original;
-        const currentValue = e.target.value;
-
-        if (currentValue !== originalValue) {
-          e.target.classList.add('modified');
-          e.target.classList.remove('highlight-fade');
-        } else {
-          e.target.classList.remove('modified');
-        }
-      }
-    });
-
-    // Auto-focus on suffix input when modals open
-    showAddIngredientBtn?.addEventListener('click', () => {
-      setTimeout(() => {
-        const suffixInput = document.getElementById('IngredientSuffix');
-        if (suffixInput) {
-          suffixInput.focus();
-          console.log(`[2025-09-16 07:32:51] Auto-focused on ingredient suffix input by MathDaenniel`);
-        }
-      }, 300);
-    });
-
-    showAddAddonBtn?.addEventListener('click', () => {
-      setTimeout(() => {
-        const suffixInput = document.getElementById('AddOnSuffix');
-        if (suffixInput) {
-          suffixInput.focus();
-          console.log(`[2025-09-16 07:32:51] Auto-focused on add-on suffix input by MathDaenniel`);
-        }
-      }, 300);
-    });
-
-    // Handle keyboard shortcuts
-    document.addEventListener('keydown', (e) => {
-      // Ctrl/Cmd + I for Add Ingredient
-      if ((e.ctrlKey || e.metaKey) && e.key === 'i' && !e.target.matches('input, textarea')) {
-        e.preventDefault();
-        showIngredientModal();
-        console.log(`[2025-09-16 07:32:51] Keyboard shortcut for ingredient modal by MathDaenniel`);
-      }
-
-      // Ctrl/Cmd + O for Add-Ons
-      if ((e.ctrlKey || e.metaKey) && e.key === 'o' && !e.target.matches('input, textarea')) {
-        e.preventDefault();
-        showAddonModal();
-        console.log(`[2025-09-16 07:32:51] Keyboard shortcut for add-on modal by MathDaenniel`);
-      }
-
-      // Enter key for confirmation modal proceed
-      if (e.key === 'Enter' && confirmationModal && confirmationModal.classList.contains('show')) {
-        e.preventDefault();
-        if (confirmProceed) {
-          confirmProceed.click();
-        }
-      }
-    });
-
-    // Enhanced form validation
-    function validateIngredientForm(form) {
-      const requiredFields = ['IngredientSuffix', 'Name', 'Quantity'];
-      const missingFields = [];
-
-      requiredFields.forEach(fieldName => {
-        const field = form.querySelector(`[name="${fieldName}"]`);
-        if (!field || !field.value.trim()) {
-          missingFields.push(fieldName.replace('Ingredient', ''));
-        }
-      });
-
-      if (missingFields.length > 0) {
-        alert(`Please fill in the following required fields: ${missingFields.join(', ')}`);
-        return false;
-      }
-
-      // Validate quantity is positive
-      const quantityField = form.querySelector('[name="Quantity"]');
-      if (quantityField && parseInt(quantityField.value) < 0) {
-        alert('Quantity cannot be negative.');
-        return false;
-      }
-
-      return true;
-    }
-
-    function validateAddonForm(form) {
-      const requiredFields = ['AddOnSuffix', 'Name', 'Quantity'];
-      const missingFields = [];
-
-      requiredFields.forEach(fieldName => {
-        const field = form.querySelector(`[name="${fieldName}"]`);
-        if (!field || !field.value.trim()) {
-          missingFields.push(fieldName.replace('AddOn', ''));
-        }
-      });
-
-      if (missingFields.length > 0) {
-        alert(`Please fill in the following required fields: ${missingFields.join(', ')}`);
-        return false;
-      }
-
-      // Validate quantity is positive
-      const quantityField = form.querySelector('[name="Quantity"]');
-      if (quantityField && parseInt(quantityField.value) < 0) {
-        alert('Quantity cannot be negative.');
-        return false;
-      }
-
-      return true;
-    }
-
-    // Add enhanced form validation to submit handlers
-    if (ingredientModalForm) {
-      ingredientModalForm.addEventListener('submit', (e) => {
-        if (!validateIngredientForm(ingredientModalForm)) {
-          e.preventDefault();
-          return;
-        }
-        console.log(`[2025-09-16 07:32:51] Ingredient form validation passed by MathDaenniel`);
-      });
-    }
-
-    if (addonModalForm) {
-      addonModalForm.addEventListener('submit', (e) => {
-        if (!validateAddonForm(addonModalForm)) {
-          e.preventDefault();
-          return;
-        }
-        console.log(`[2025-09-16 07:32:51] Add-on form validation passed by MathDaenniel`);
-      });
-    }
-
-    // Add tooltips for accessibility
-    const tooltips = [
-      { selector: '#IngredientSuffix', text: 'Enter unique identifier (e.g., HERSHEYS)' },
-      { selector: '#AddOnSuffix', text: 'Enter unique identifier (e.g., PEARLS)' },
-      { selector: '#IngredientQuantity', text: 'Enter quantity in stock' },
-      { selector: '#AddOnQuantity', text: 'Enter quantity in stock' }
-    ];
-
-    tooltips.forEach(tooltip => {
-      const element = document.querySelector(tooltip.selector);
-      if (element) {
-        element.title = tooltip.text;
-      }
-    });
-
-    // Prevent form double-submission
-    let isSubmitting = false;
-
-    function handleFormSubmission(form) {
-      if (isSubmitting) {
-        return false;
-      }
-
-      isSubmitting = true;
-
-      // Re-enable after 3 seconds to prevent permanent lock
-      setTimeout(() => {
-        isSubmitting = false;
-      }, 3000);
-
-      return true;
-    }
-
-    // Apply to all forms
-    document.querySelectorAll('form').forEach(form => {
-      form.addEventListener('submit', (e) => {
-        if (!handleFormSubmission(form)) {
-          e.preventDefault();
-        }
-      });
-    });
-
-    // Switch interaction enhancements
-    function initializeSwitchEnhancements() {
-      // Add visual feedback for switch interactions
-      document.querySelectorAll('.switch-input').forEach(switchInput => {
-        switchInput.addEventListener('change', () => {
-          // Add haptic feedback for mobile devices
-          if (navigator.vibrate) {
-            navigator.vibrate(50);
-          }
-
-          // Add visual feedback
-          const slider = switchInput.nextElementSibling;
-          if (slider) {
-            slider.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-              slider.style.transform = 'scale(1)';
-            }, 100);
-          }
-        });
-      });
-
-      console.log(`[2025-09-16 07:32:51] Switch enhancements initialized by MathDaenniel`);
-    }
-
-    // Initialize switch enhancements
-    initializeSwitchEnhancements();
-
-    // Enhanced accessibility features
-    function initializeAccessibility() {
-      // Add ARIA labels
-      const tables = document.querySelectorAll('.stocks-table');
-      tables.forEach((table, index) => {
-        const section = index === 0 ? 'Ingredients' : 'Add-Ons';
-        table.setAttribute('aria-label', `${section} inventory table`);
-      });
-
-      // Add role attributes
-      document.querySelectorAll('.modal-overlay').forEach(modal => {
-        modal.setAttribute('role', 'dialog');
-        modal.setAttribute('aria-modal', 'true');
-      });
-
-      // Add focus management
-      const modals = document.querySelectorAll('.modal-container, .confirmation-container');
-      modals.forEach(modal => {
-        const firstFocusable = modal.querySelector('input, button, select, textarea');
-        if (firstFocusable) {
-          modal.addEventListener('focus', () => {
-            firstFocusable.focus();
-          });
-        }
-      });
-
-      // Add switch accessibility
-      document.querySelectorAll('.switch-input').forEach(switchInput => {
-        switchInput.setAttribute('role', 'switch');
-        switchInput.setAttribute('aria-checked', switchInput.checked);
-
-        switchInput.addEventListener('change', () => {
-          switchInput.setAttribute('aria-checked', switchInput.checked);
-        });
-      });
-
-      console.log(`[2025-09-16 07:32:51] Accessibility features initialized by MathDaenniel`);
-    }
-
-    // Initialize accessibility
-    initializeAccessibility();
-
-    // Performance monitoring
-    function initializePerformanceMonitoring() {
-      const startTime = performance.now();
-
-      window.addEventListener('load', () => {
-        const loadTime = performance.now() - startTime;
-        console.log(`[2025-09-16 07:32:51] Page load time: ${Math.round(loadTime)}ms by MathDaenniel`);
-      });
-    }
-
-    // Initialize performance monitoring
-    initializePerformanceMonitoring();
-
-    // Error boundary for JavaScript errors
-    window.addEventListener('error', (event) => {
-      console.error(`[2025-09-16 07:32:51] JavaScript error caught by MathDaenniel:`, {
-        message: event.message,
-        filename: event.filename,
-        lineno: event.lineno,
-        colno: event.colno,
-        error: event.error
-      });
-    });
-
-    // Advanced inventory management features
-    function initializeAdvancedFeatures() {
-      // Category-based filtering
-      const categoryFilters = new Set();
-      document.querySelectorAll('.category-display-table').forEach(display => {
-        if (display.textContent && display.textContent.trim()) {
-          categoryFilters.add(display.textContent.trim());
-        }
-      });
-
-      // Low stock monitoring
-      const lowStockThreshold = 10;
-      let lowStockItems = 0;
-      document.querySelectorAll('.table-input[data-field="quantity"]').forEach(input => {
-        const quantity = parseInt(input.value) || 0;
-        if (quantity <= lowStockThreshold) {
-          lowStockItems++;
-        }
-      });
-
-      if (lowStockItems > 0) {
-        console.log(`[2025-09-16 07:32:51] Low stock alert: ${lowStockItems} items below threshold by MathDaenniel`);
-      }
-
-      console.log(`[2025-09-16 07:32:51] Advanced features initialized - Categories: ${categoryFilters.size}, Low stock: ${lowStockItems} by MathDaenniel`);
-    }
-
-    // Initialize advanced features
-    initializeAdvancedFeatures();
-
-    // User session management
-    function initializeSessionManagement() {
-      // Track user activity
-      let lastActivity = Date.now();
-      const activityTimeout = 30 * 60 * 1000; // 30 minutes
-
-      // Update activity timestamp on user interaction
-      ['click', 'keypress', 'scroll', 'mousemove'].forEach(event => {
-        document.addEventListener(event, () => {
-          lastActivity = Date.now();
-        }, { passive: true });
-      });
-
-      // Check for session timeout periodically
-      setInterval(() => {
-        if (Date.now() - lastActivity > activityTimeout) {
-        }
-      }, 60000); // Check every minute
-
-    }
-
-    initializeSessionManagement();
-
-  });
-</script>
+<!-- Confirmation Modal for Update/Delete Actions -->
+<div id="confirmationModal" class="modal-overlay" style="display: none;">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="confirmationTitle">Confirm Action</h3>
+    </div>
+    <div class="modal-body">
+      <p id="confirmationMessage"></p>
+    </div>
+    <div class="modal-footer">
+      <button id="confirmProceed" class="btn btn-primary">Proceed</button>
+      <button id="confirmCancel" class="btn btn-secondary">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- External CSS and JS files -->
+<link rel="stylesheet" href="/css/stocks.css">
+<script src="/js/stocks.js"></script>

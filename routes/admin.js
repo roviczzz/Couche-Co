@@ -1525,26 +1525,57 @@ router.post('/migrate-passwords', async (req, res) => {
 // STOCKS ROUTES
 router.post('/stocks', async (req, res) => {
   try {
-    await addIngredient(req.body);
+    // Check if this is an add-on or ingredient
+    if (req.body.AddOnPrefix && req.body.AddOnID) {
+      // Handle Add-On directly
+      const client = await MongoClient.connect(uri);
+      const db = client.db('blessingscafe');
+
+      const addOnData = {
+        AddOnID: req.body.AddOnID,
+        Name: req.body.Name,
+        Quantity: parseInt(req.body.Quantity) || 0,
+        Category: req.body.Category || 'Add-Ons',
+        Allergen: req.body.Allergen || 'None',
+        isEnabled: req.body.isEnabled === 'true',
+        isAvailable: true,
+        createdAt: new Date(),
+        lastModified: new Date()
+      };
+
+      await db.collection('Add-ons').insertOne(addOnData);
+      await client.close();
+      console.log('Added new add-on:', addOnData.AddOnID);
+    } else {
+      // Handle Ingredient using existing function
+      await addIngredient(req.body);
+      console.log('Added new ingredient');
+    }
+
     res.redirect('/admin/stocks?msg=add_success');
   } catch (err) {
-    res.status(500).send('Failed to add ingredient');
+    console.error('Add item error:', err);
+    res.status(500).send('Failed to add item');
   }
 });
+
 router.post('/stocks/edit/:id', async (req, res) => {
   try {
     await updateIngredient(req.params.id, req.body);
     res.redirect('/admin/stocks?msg=update_success');
   } catch (err) {
-    res.status(500).send('Failed to update ingredient');
+    console.error('Update item error:', err);
+    res.status(500).send('Failed to update item');
   }
 });
+
 router.post('/stocks/delete/:id', async (req, res) => {
   try {
     await deleteIngredient(req.params.id);
     res.redirect('/admin/stocks?msg=delete_success');
   } catch (err) {
-    res.status(500).send('Failed to delete ingredient');
+    console.error('Delete item error:', err);
+    res.status(500).send('Failed to delete item');
   }
 });
 router.post('/stocks/bulk-update', async (req, res) => {
