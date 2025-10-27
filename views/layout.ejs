@@ -42,10 +42,15 @@
   <% if (typeof user === 'undefined' || !user) { %>
     <header>
       <nav>
+        <button class="hamburger" id="hamburger-btn">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+            <path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/>
+          </svg>
+        </button>
         <div class="logo">
           <a href="/"><img src="https://i.ibb.co/G4FLWT32/logo.png" alt="Blessings Cafe Logo"></a>
         </div>
-        <div class="nav-links">
+        <div class="nav-links" id="nav-links">
           <a href="/">Home</a>
           <a href="/about">About Us</a>
           <a href="/contact">Contact</a>

@@ -258,6 +258,38 @@ router.get('/order/failure', (req, res) => {
   });
 });
 
+// Checkout routes
+// POST /checkout - for guests to submit cart data
+router.post('/checkout', (req, res) => {
+  req.session.guestOrderItems = req.body.orderItems;
+  res.redirect('/checkout');
+});
+
+// GET /checkout - unprotected, renders checkout page
+router.get('/checkout', nocache, async (req, res) => {
+  let orderItems = [];
+  if (req.session.user) {
+    // Load from database for logged-in users
+    try {
+      const client = await MongoClient.connect(uri);
+      const db = client.db('blessingscafe');
+      const cartDoc = await db.collection('UserCart').findOne({ userId: new ObjectId(req.session.user._id) });
+      orderItems = (cartDoc && cartDoc.cart) ? cartDoc.cart : [];
+      await client.close();
+    } catch (err) {
+      console.error('Error loading user cart:', err);
+    }
+  } else {
+    // For guests, use session data
+    orderItems = req.session.guestOrderItems || [];
+  }
+  res.render('checkout', {
+    title: 'Checkout | Blessings Cafe',
+    user: req.session.user || null,
+    orderItems: orderItems
+  });
+});
+
 // Products route
 router.get('/products', isLoggedIn, nocache, async (req, res) => {
   try {

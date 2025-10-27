@@ -21,6 +21,19 @@ function scrollToMenu() {
     <% categoryOrder.forEach(cat => { %>
         <% if (categorizedItems[cat] && categorizedItems[cat].length > 0) { %>
             <h2 class="category-title"><%= cat %></h2>
+            <% if (cat === 'Coffee') { %>
+                <p class="category-caption">Freshly brewed premium coffee drinks crafted with love</p>
+            <% } else if (cat === 'Non-Coffee') { %>
+                <p class="category-caption">Delicious non-coffee beverages perfect for any taste preference</p>
+            <% } else if (cat === 'Milk Tea') { %>
+                <p class="category-caption">Creamy and flavorful milk tea blends with a variety of toppings</p>
+            <% } else if (cat === 'Frappe') { %>
+                <p class="category-caption">Cool and refreshing blended ice drinks to beat the heat</p>
+            <% } else if (cat === 'Pastries') { %>
+                <p class="category-caption">Freshly baked pastries and treats to complement your drinks</p>
+            <% } else { %>
+                <p class="category-caption">Discover our specially crafted <%= cat.toLowerCase() %> selections</p>
+            <% } %>
             <div class="menu-gallery-container">
                 <% categorizedItems[cat].forEach(item => { %>
                 <div class="gallery-item" onclick="window.location.href='/product/<%= item.ProductID %>'" style="cursor: pointer;">

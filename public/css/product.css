@@ -1,30 +1,34 @@
 .product-page {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 2rem;
+    padding: 1rem;
+    box-sizing: border-box;
 }
 
 .product-container {
     display: flex;
-    gap: 3rem;
+    gap: 2rem;
     align-items: flex-start;
+    width: 100%;
 }
 
 .product-image {
     flex-shrink: 0;
+    width: 100%;
+    max-width: 750px;
 }
 
 .product-image img {
-    width: 400px;
-    height: 400px;
+    width: 100%;
+    height: 750px;
     object-fit: cover;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .placeholder-div {
-    width: 600px;
-    height: 600px;
+    width: 100%;
+    height: 750px;
     background: #ccc;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -41,45 +45,47 @@
 .product-details {
     flex: 1;
     min-width: 0;
+    width: 100%;
 }
 
 .product-details h1 {
     margin: 0 0 1rem 0;
-    font-size: 2.5rem;
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
     color: #8B4513;
     font-weight: bold;
+    line-height: 1.2;
 }
 
 .product-description {
-    margin: 0 0 2rem 0;
-    font-size: 1.1rem;
+    margin: 0 0 1.5rem 0;
+    font-size: clamp(1rem, 2.5vw, 1.1rem);
     line-height: 1.6;
     color: #555;
 }
 
 .price-section .price {
-    font-size: 1.5rem;
+    font-size: clamp(1.2rem, 3vw, 1.5rem);
     font-weight: bold;
     color: #8B4513;
-    margin: 0 0 2rem 0;
+    margin: 0 0 1.5rem 0;
 }
 
 .sizes-section {
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
 }
 
 .sizes-section h3 {
     margin: 0 0 1rem 0;
-    font-size: 1.2rem;
+    font-size: clamp(1.1rem, 2.5vw, 1.2rem);
     color: #333;
     font-weight: 600;
 }
 
 .size-options {
     display: flex;
-    gap: 1rem;
+    gap: 0.75rem;
     flex-wrap: wrap;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
 }
 
 .size-option-btn {
@@ -91,8 +97,11 @@
     background: white;
     color: black;
     transition: all 0.3s ease;
-    font-size: 1rem;
-    margin-right: 0.5rem;
+    font-size: clamp(0.9rem, 2vw, 1rem);
+    margin-right: 0;
+    flex: 1;
+    min-width: 120px;
+    text-align: center;
 }
 
 .size-option-btn:active {
@@ -115,7 +124,7 @@
 
 .addons-section h4 {
     margin: 0 0 1rem 0;
-    font-size: 1.2rem;
+    font-size: clamp(1.1rem, 2.5vw, 1.2rem);
     color: #333;
     font-weight: 600;
 }
@@ -124,7 +133,7 @@
     display: flex;
     gap: 0.75rem;
     flex-wrap: wrap;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
 }
 
 .addon-checkbox-label {
@@ -136,9 +145,12 @@
     background: white;
     color: black;
     transition: all 0.3s ease;
-    font-size: 1rem;
+    font-size: clamp(0.85rem, 2vw, 1rem);
     position: relative;
     user-select: none;
+    flex: 1;
+    min-width: 140px;
+    text-align: center;
 }
 
 .addon-checkbox-label:active {
@@ -173,7 +185,7 @@
 }
 
 .quantity-section {
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
 }
 
 .quantity-section label {
@@ -181,6 +193,7 @@
     margin-bottom: 0.5rem;
     font-weight: 600;
     color: #333;
+    font-size: clamp(1rem, 2.5vw, 1.1rem);
 }
 
 .quantity-controls {
@@ -195,12 +208,12 @@
 .quantity-btn {
     background: #f8f9fa;
     border: none;
-    width: 40px;
-    height: 48px;
+    width: clamp(36px, 8vw, 40px);
+    height: clamp(44px, 10vw, 48px);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.2rem;
+    font-size: clamp(1rem, 2.5vw, 1.2rem);
     font-weight: bold;
     color: #333;
     cursor: pointer;
@@ -209,9 +222,9 @@
 }
 
 .quantity-section input {
-    width: 60px;
+    width: clamp(50px, 12vw, 60px);
     padding: 0.75rem 0.5rem;
-    font-size: 1rem;
+    font-size: clamp(0.9rem, 2vw, 1rem);
     border: none;
     text-align: center;
     background: #f8f9fa;
@@ -231,15 +244,15 @@
     background: #8B4513;
     color: white;
     border: none;
-    padding: 1rem 2rem;
-    font-size: 1.1rem;
+    padding: clamp(0.875rem, 2.5vw, 1rem) clamp(1.5rem, 4vw, 2rem);
+    font-size: clamp(1rem, 2.5vw, 1.1rem);
     font-weight: 600;
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
     display: block;
     width: 100%;
-    max-width: 300px;
+    max-width: 100%;
 }
 
 .add-to-cart-btn:hover {
@@ -252,16 +265,16 @@
     background: #f0f0f0;
     color: #333;
     border: 2px solid #ddd;
-    padding: 1rem 2rem;
-    font-size: 1rem;
+    padding: clamp(0.875rem, 2.5vw, 1rem) clamp(1.5rem, 4vw, 2rem);
+    font-size: clamp(0.9rem, 2.5vw, 1rem);
     font-weight: 600;
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
     display: block;
     width: 100%;
-    max-width: 300px;
-    margin-bottom: 2rem;
+    max-width: 100%;
+    margin-bottom: 1.5rem;
     position: relative;
 }
 
@@ -456,32 +469,71 @@
     border-color: #6d3510;
 }
 
+/* Tablet and Mobile Responsive Design */
+@media (max-width: 1024px) {
+    .product-page {
+        padding: 1rem 0.75rem;
+    }
+
+    .product-container {
+        gap: 1.5rem;
+    }
+
+    .product-image img,
+    .placeholder-div {
+        height: 600px;
+    }
+
+    .ingredients-options {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.75rem;
+    }
+}
+
 @media (max-width: 768px) {
+    .product-page {
+        padding: 0.75rem 0.5rem;
+    }
+
     .product-container {
         flex-direction: column;
-        gap: 2rem;
+        gap: 1.5rem;
     }
 
-    .product-image img {
-        width: 100%;
-        height: 300px;
+    .product-image {
+        max-width: 100%;
     }
 
-    .product-details h1 {
-        font-size: 2rem;
+    .product-image img,
+    .placeholder-div {
+        height: 450px;
     }
 
     .size-options {
-        flex-direction: column;
-        gap: 0.5rem;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
     }
 
-    .add-to-cart-btn {
-        max-width: none;
+    .size-option-btn {
+        margin-right: 0;
+        min-width: auto;
+        padding: 0.875rem 0.75rem;
     }
 
-    .more-options-btn {
-        max-width: none;
+    .addon-options {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+
+    .addon-checkbox-label {
+        min-width: auto;
+        padding: 0.875rem 0.75rem;
+    }
+
+    .quantity-controls {
+        justify-content: center;
     }
 
     .ingredients-badge {
@@ -526,6 +578,32 @@
 }
 
 @media (max-width: 480px) {
+    .product-page {
+        padding: 0.5rem 0.25rem;
+    }
+
+    .product-container {
+        gap: 1rem;
+    }
+
+    .product-image img,
+    .placeholder-div {
+        height: 350px;
+    }
+
+    .size-options {
+        grid-template-columns: 1fr;
+    }
+
+    .addon-options {
+        grid-template-columns: 1fr;
+    }
+
+    .addon-checkbox-label,
+    .size-option-btn {
+        padding: 1rem 0.75rem;
+    }
+
     .ingredients-options {
         grid-template-columns: repeat(2, 1fr);
         gap: 0.5rem;
@@ -536,5 +614,51 @@
         min-height: 60px;
         padding: 0.5rem 0.25rem;
         font-size: 0.8rem;
+    }
+
+    .modal-content {
+        margin: 2% auto;
+        width: 98%;
+        max-height: 90vh;
+    }
+
+    .modal-header {
+        padding: 0.75rem;
+    }
+
+    .modal-content h2 {
+        font-size: 1.2rem;
+    }
+}
+
+/* Very small mobile devices */
+@media (max-width: 360px) {
+    .product-page {
+        padding: 0.5rem 0.125rem;
+    }
+
+    .product-image img,
+    .placeholder-div {
+        height: 200px;
+    }
+
+    .ingredient-checkbox-label {
+        min-height: 50px;
+        padding: 0.4rem 0.2rem;
+        font-size: 0.75rem;
+    }
+
+    .modal-header {
+        padding: 0.5rem;
+    }
+
+    .modal-content h2 {
+        font-size: 1.1rem;
+    }
+
+    .close {
+        width: 30px;
+        height: 30px;
+        font-size: 20px;
     }
 }

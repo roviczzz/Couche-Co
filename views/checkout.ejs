@@ -33,7 +33,7 @@
 
         <div class="form-group">
           <label for="email">Email</label>
-          <input type="email" id="email" name="email" value="<%= user.email || '' %>" required>
+          <input type="email" id="email" name="email" placeholder="blessingscafe@yourmail.com" value="<%= user && user.email || '' %>" required>
         </div>
 
         <div class="form-group">
@@ -63,10 +63,12 @@
             <label for="city">City Area:</label>
           <select id="city" name="city">
             <option value="">Select City Area</option>
-            <option value="Alapan I-C, Imus">Alapan I-C, Imus</option>
-            <option value="Alapan I-B, Imus">Alapan I-B, Imus</option>
             <option value="Alapan I-A, Imus">Alapan I-A, Imus</option>
+            <option value="Alapan I-B, Imus">Alapan I-B, Imus</option>
+            <option value="Alapan I-C, Imus">Alapan I-C, Imus</option>
+            <option value="Bayan Luma, Imus">Bayan Luma, Imus</option>
             <option value="Buhay na Tubig, Imus">Buhay na Tubig, Imus</option>
+            <option value="Carsadang Bago, Imus">Carsadang Bago, Imus</option>
             <option value="Malagasang, Imus">Malagasang, Imus</option>
             <option value="Toclong, Kawit">Toclong, Kawit</option>
           </select>
@@ -80,7 +82,7 @@
 
         <div class="form-group">
           <label for="notes">Notes (Optional)</label>
-          <textarea id="notes" name="notes" placeholder="Any special instructions or notes for your order..."></textarea>
+          <textarea id="notes" name="notes" placeholder="Any special instructions, notes for your order, or landmarks for delivery..."></textarea>
         </div>
       </div>
 
@@ -90,6 +92,9 @@
           <div class="payment-method">
             <input type="radio" id="gcash" name="paymentMethod" value="GCASH" required>
             <label for="gcash" class="payment-label">
+              <div class="payment-logo">
+                <img src="/resources/gcash.png" alt="GCash logo" width="24" height="24">
+              </div>
               <div class="payment-info">
                 <div class="payment-name">GCash</div>
                 <div class="payment-desc">Pay with your GCash wallet</div>
@@ -100,6 +105,9 @@
           <div class="payment-method">
             <input type="radio" id="maya" name="paymentMethod" value="PAYMAYA" required>
             <label for="maya" class="payment-label">
+              <div class="payment-logo">
+                <img src="/resources/maya.png" alt="Maya logo" width="24" height="24">
+              </div>
               <div class="payment-info">
                 <div class="payment-name">Maya</div>
                 <div class="payment-desc">Pay with your Maya account</div>
@@ -110,6 +118,9 @@
           <div class="payment-method">
             <input type="radio" id="shopeepay" name="paymentMethod" value="SHOPEEPAY" required>
             <label for="shopeepay" class="payment-label">
+              <div class="payment-logo">
+                <img src="/resources/shopeepay.png" alt="ShopeePay logo" width="24" height="24">
+              </div>
               <div class="payment-info">
                 <div class="payment-name">ShopeePay</div>
                 <div class="payment-desc">Pay with your ShopeePay balance</div>
@@ -170,6 +181,13 @@
         <div class="total-row" id="deliveryFeeRow" style="display: none;">
           <span>Delivery Fee:</span>
           <span>₱20.00</span>
+        </div>
+        <div class="promo-code-section">
+          <label for="promoCode">Promo Code</label>
+          <div class="promo-input-row">
+            <input type="text" id="promoCode" placeholder="Enter promo code">
+            <button id="applyPromoBtn" class="redeem-btn">Redeem</button>
+          </div>
         </div>
         <div class="total-row final-total">
           <span>Total:</span>

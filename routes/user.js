@@ -618,34 +618,9 @@ router.get('/management', async (req, res) => {
   });
 });
 
-// Checkout route
-router.get('/checkout', nocache, async (req, res) => {
-  try {
-    // Get cart items from UserCart collection
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const cartDoc = await db.collection('UserCart').findOne({ userId: new ObjectId(req.session.user._id) });
-    await client.close();
-
-    const orderItems = (cartDoc && cartDoc.cart) ? cartDoc.cart : [];
-
-    if (orderItems.length === 0) {
-      return res.redirect('/cart');
-    }
-
-    res.render('checkout', {
-      title: 'Checkout | Blessings Cafe',
-      user: req.session.user,
-      orderItems: orderItems
-    });
-  } catch (err) {
-    console.error('Checkout error:', err);
-    res.status(500).render('error', {
-      title: 'Server Error',
-      message: 'Failed to load checkout page',
-      status: 500
-    });
-  }
+// Checkout route - redirect to public /checkout
+router.get('/checkout', (req, res) => {
+  res.redirect('/checkout');
 });
 
 // User settings route

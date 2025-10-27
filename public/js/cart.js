@@ -17,16 +17,27 @@ document.addEventListener('DOMContentLoaded', function() {
   // Handle checkout button click
   const checkoutBtn = document.getElementById('checkout-btn');
   if (checkoutBtn) {
-    checkoutBtn.addEventListener('click', function() {
+    checkoutBtn.addEventListener('click', async function() {
       console.log('Checkout button clicked, window.user:', window.user);
       if (!window.user) {
-        // Redirect to login if not logged in
-        console.log('Redirecting to login');
-        window.location.href = '/auth/login';
+        // For guests, POST cart data to server
+        console.log('Posting guest cart data');
+        const orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+        try {
+          await fetch('/checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderItems })
+          });
+          console.log('Posted guest cart, redirecting to /checkout');
+          window.location.href = '/checkout';
+        } catch (err) {
+          console.error('Error submitting guest cart:', err);
+        }
       } else {
         // Redirect to checkout if logged in
-        console.log('Redirecting to /user/checkout');
-        window.location.href = '/user/checkout';
+        console.log('Redirecting to /checkout');
+        window.location.href = '/checkout';
       }
     });
   }
