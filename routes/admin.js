@@ -1845,7 +1845,7 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
     // Get daily sales data (using raw Date field like working order-history)
     const dailySales = orders.reduce((acc, order) => {
       if (order.Date) {
-        const date = order.Date; // Date is stored as string YYYY-MM-DD
+        const date = order.Date.substring(0, 10); // Extract YYYY-MM-DD part only
         acc[date] = (acc[date] || 0) + (typeof order.Total === 'number' ? order.Total : 0);
       }
       return acc;
@@ -1854,7 +1854,8 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
     // Count orders per date accurately
     const ordersPerDate = orders.reduce((acc, order) => {
       if (order.Date) {
-        acc[order.Date] = (acc[order.Date] || 0) + 1;
+        const date = order.Date.substring(0, 10); // Extract YYYY-MM-DD part only
+        acc[date] = (acc[date] || 0) + 1;
       }
       return acc;
     }, {});
@@ -1867,13 +1868,43 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
         count: ordersPerDate[date] || 0
       }));
 
-    // Get top selling products (by revenue, like the "Top Product" insight) with actual quantities
+    // Fetch current menu items for price lookups (keep connection open)
+    const currentMenu = await db.collection('Menu').find({ isEnabled: true }).toArray();
+    const menuLookup = {};
+    currentMenu.forEach(menuItem => {
+      menuLookup[menuItem.Name] = menuItem;
+      if (menuItem.ProductName) menuLookup[menuItem.ProductName] = menuItem;
+    });
+
+    // Get top selling products (by revenue, like the "Top Product" insight) with actual quantities - keeping minimal report sections
     const productStats = orders.reduce((acc, order) => {
       // Use Cart array with correct field names
       const cartItems = order.Cart || [];
       cartItems.forEach(item => {
-        const productName = item.ProductName || 'Unknown Product';
-        const price = item.BasePrice || 0;
+        const productName = item.ProductName || item.Name || 'Unknown Product';
+        // Check multiple possible price fields in order of preference
+        let price = item.Price || item.BasePrice || 0;
+
+        // If price is still 0, try to look up from current menu
+        if (price === 0) {
+          const menuItem = menuLookup[productName];
+          if (menuItem) {
+            // If it has sizes and item specifies size, use that price
+            if (menuItem.Sizes && item.Size) {
+              const sizeInfo = menuItem.Sizes.find(size => size.Size === item.Size);
+              if (sizeInfo) {
+                price = sizeInfo.BasePrice || 0;
+              }
+            } else if (menuItem.BasePrice) {
+              // Use base price for items like pastries
+              price = menuItem.BasePrice;
+            } else if (menuItem.Sizes && menuItem.Sizes.length > 0) {
+              // Default to first size if available
+              price = menuItem.Sizes[0].BasePrice || 0;
+            }
+          }
+        }
+
         const quantity = item.Quantity || 1;
         const itemSubtotal = price * quantity;
 
@@ -2113,52 +2144,6 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
                 `).join('')}
             </tbody>
         </table>
-    </div>
-
-    <div class="section">
-        <div class="section-title">Detailed Order History</div>
-        ${orders.map(order => {
-            const orderDate = order.Date || order.orderDate;
-            const formatDate = orderDate ? new Date(orderDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A';
-            const totalValue = typeof order.Total === 'number' ? order.Total : 0;
-            return `
-            <div style="border: 1px solid #e0e0e0; border-radius: 6px; margin-bottom: 15px; padding: 15px; background: #fafafa;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <h4 style="margin: 0; color: #8b5a2b; font-size: 14px;">Order #${order.OrderID}</h4>
-                    <div style="text-align: right;">
-                        <div style="font-weight: bold; color: #8b5a2b; font-size: 16px;">₱${totalValue.toLocaleString()}</div>
-                        <div style="font-size: 12px; color: #666;">${formatDate} • ${order.PaymentMode || 'N/A'}</div>
-                    </div>
-                </div>
-                <div style="margin-bottom: 10px;">
-                    <strong style="font-size: 12px; color: #666;">Customer:</strong> ${order.Customer || 'N/A'}
-                </div>
-                <div style="border-top: 1px solid #e0e0e0; padding-top: 10px;">
-                    <div style="font-weight: bold; font-size: 12px; margin-bottom: 8px; color: #333;">Order Items:</div>
-                    ${(() => {
-                        // Use Cart array with correct field names: ProductName, Quantity, BasePrice
-                        const cartItems = order.Cart || [];
-                        if (cartItems && Array.isArray(cartItems) && cartItems.length > 0) {
-                            return cartItems.map(item => {
-                                const productName = item.ProductName || 'Unknown Item';
-                                const quantity = item.Quantity || 1;
-                                const price = item.BasePrice || 0;
-                                const subtotal = price * quantity;
-                                return `
-                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; font-size: 11px;">
-                                        <span style="flex: 1; font-weight: 500;">${productName}</span>
-                                        <span style="margin: 0 10px; color: #666;">Qty: ${quantity}</span>
-                                        <span style="font-weight: bold; color: #8b5a2b;">₱${subtotal.toLocaleString()}</span>
-                                    </div>
-                                `;
-                            }).join('');
-                        }
-                        return `<div style="font-size: 11px; color: #666; font-style: italic;">No item details available</div>`;
-                    })()}
-                </div>
-            </div>
-            `;
-        }).join('')}
     </div>
 
     <div class="section" style="border-top: 3px solid #8b5a2b; margin-top: 40px; padding-top: 20px;">

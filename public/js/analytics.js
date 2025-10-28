@@ -32,8 +32,13 @@ async function drawPopularProductsChart() {
     }
 
     const top = results.slice(0, 10);
-    const labels = top.map(r => r._id);
+    const labels = top.map(r => {
+      const fullName = r._id || 'Unknown Product';
+      // Truncate long names for display while keeping them readable
+      return fullName.length > 15 ? fullName.substring(0, 12) + '...' : fullName;
+    });
     const data = top.map(r => r.totalQuantity);
+    const fullProductNames = top.map(r => r._id || 'Unknown Product'); // Store full names for tooltips
 
     // Update stats
     document.getElementById('totalProducts').textContent = results.length;
@@ -66,14 +71,29 @@ async function drawPopularProductsChart() {
           },
           title: {
             display: false
+          },
+          tooltip: {
+            callbacks: {
+              title: function(context) {
+                // Show full product name in tooltip
+                const index = context[0].dataIndex;
+                return fullProductNames[index];
+              },
+              label: function(context) {
+                return `Units Sold: ${context.parsed.y}`;
+              }
+            }
           }
         },
         scales: {
           x: {
             ticks: {
               font: { size: 11, weight: '500' },
-              maxRotation: 0,
-              color: '#6d7175'
+              maxRotation: 45,
+              minRotation: 0,
+              color: '#6d7175',
+              autoSkip: false,
+              maxTicksLimit: labels.length
             },
             grid: {
               display: false
@@ -356,85 +376,107 @@ async function drawPaymentMethodsChart() {
   }
 }
 
-// Order Sources Bar Chart
-async function drawOrderSourcesChart() {
-  const loadingEl = document.getElementById('orderSourcesLoading');
-  const chartEl = document.getElementById('orderSourcesChart');
+        // Order Sources Bar Chart
+        async function drawOrderSourcesChart() {
+          const loadingEl = document.getElementById('orderSourcesLoading');
+          const chartEl = document.getElementById('orderSourcesChart');
 
-  try {
-    const res = await fetch('/api/analytics/order-sources');
-    if (!res.ok) {
-      throw new Error(`Server returned ${res.status}: ${res.statusText}`);
-    }
-    const data = await res.json();
+          try {
+            const res = await fetch('/api/analytics/order-sources');
+            if (!res.ok) {
+              throw new Error(`Server returned ${res.status}: ${res.statusText}`);
+            }
+            const data = await res.json();
 
-    if (!Array.isArray(data) || data.length === 0) {
-      loadingEl.innerHTML = '<div class="error-message">No order source data available. Try again later.</div>';
-      return;
-    }
+            if (!Array.isArray(data) || data.length === 0) {
+              loadingEl.innerHTML = '<div class="error-message">No order source data available. Try again later.</div>';
+              return;
+            }
 
-    // Hide loading, show chart
-    loadingEl.style.display = 'none';
-    chartEl.style.display = 'block';
+            // Hide loading, show chart
+            loadingEl.style.display = 'none';
+            chartEl.style.display = 'block';
 
-    new Chart(chartEl, {
-      type: 'bar',
-      data: {
-        labels: data.map(d => d._id),
-        datasets: [{
-          label: 'Orders',
-          data: data.map(d => d.orderCount),
-          backgroundColor: '#8b5a2b',
-          borderColor: '#8b5a2b',
-          borderWidth: 0,
-          borderRadius: 4,
-          borderSkipped: false
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          x: {
-            ticks: {
-              font: { size: 11, weight: '500' },
-              maxRotation: 0,
-              color: '#6d7175'
-            },
-            grid: { display: false },
-            border: { display: false }
-          },
-          y: {
-            beginAtZero: true,
-            ticks: {
-              font: { size: 11, weight: '500' },
-              color: '#6d7175',
-              stepSize: 1
-            },
-            grid: {
-              color: '#f1f2f3',
-              drawBorder: false
-            },
-            border: { display: false }
+            const labels = data.map(d => {
+              const name = d._id || 'Unknown';
+              // Truncate long names for display while keeping them readable
+              return name.length > 15 ? name.substring(0, 12) + '...' : name;
+            });
+            const fullSourceNames = data.map(d => d._id || 'Unknown'); // Store full names for tooltips
+
+            new Chart(chartEl, {
+              type: 'bar',
+              data: {
+                labels: labels,
+                datasets: [{
+                  label: 'Orders',
+                  data: data.map(d => d.orderCount),
+                  backgroundColor: '#8b5a2b',
+                  borderColor: '#8b5a2b',
+                  borderWidth: 0,
+                  borderRadius: 4,
+                  borderSkipped: false
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: { display: false },
+                  tooltip: {
+                    callbacks: {
+                      title: function(context) {
+                        // Show full order source name in tooltip
+                        const index = context[0].dataIndex;
+                        return fullSourceNames[index];
+                      },
+                      label: function(context) {
+                        return `Orders: ${context.parsed.y}`;
+                      }
+                    }
+                  }
+                },
+                scales: {
+                  x: {
+                    ticks: {
+                      font: { size: 11, weight: '500' },
+                      maxRotation: 45,
+                      minRotation: 0,
+                      color: '#6d7175',
+                      autoSkip: false,
+                      maxTicksLimit: labels.length
+                    },
+                    grid: { display: false },
+                    border: { display: false }
+                  },
+                  y: {
+                    beginAtZero: true,
+                    ticks: {
+                      font: { size: 11, weight: '500' },
+                      color: '#6d7175',
+                      stepSize: 1
+                    },
+                    grid: {
+                      color: '#f1f2f3',
+                      drawBorder: false
+                    },
+                    border: { display: false }
+                  }
+                },
+                interaction: {
+                  intersect: false,
+                  mode: 'index'
+                },
+                elements: {
+                  bar: { borderRadius: 4 }
+                }
+              }
+            });
+          } catch (err) {
+            console.error('Order sources chart error:', err);
+            loadingEl.innerHTML = `<div class="error-message">Failed to load order sources data: ${err.message}</div>`;
           }
-        },
-        plugins: {
-          legend: { display: false }
-        },
-        interaction: {
-          intersect: false,
-          mode: 'index'
-        },
-        elements: {
-          bar: { borderRadius: 4 }
         }
-      }
-    });
-  } catch (err) {
-    console.error('Order sources chart error:', err);
-    loadingEl.innerHTML = `<div class="error-message">Failed to load order sources data: ${err.message}</div>`;
-  }
-}
 
 // Report Modal Functions
 document.addEventListener('DOMContentLoaded', function() {
