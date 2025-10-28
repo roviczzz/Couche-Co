@@ -37,6 +37,32 @@
       </div>
     </div>
 
+    <!-- Unit Selection Modal -->
+    <div id="unitTypeModalOverlay" class="modal-overlay" style="display: none;">
+      <div class="type-selection-container">
+        <div class="type-selection-header">
+          <h3>Select Measurement Unit</h3>
+        </div>
+        <div class="type-selection-buttons">
+          <button type="button" id="selectGramsBtn" class="type-select-btn ingredient-btn">
+            <div class="type-icon">⚖️</div>
+            <div class="type-text">
+              <h4>Grams (g)</h4>
+              <p>For solid ingredients like powder, flour, etc.</p>
+            </div>
+          </button>
+          <button type="button" id="selectMilliLitersBtn" class="type-select-btn addon-btn">
+            <div class="type-icon">⚖️</div>
+            <div class="type-text">
+              <h4>Milliliters (mL)</h4>
+              <p>For liquid ingredients like syrup, milk, etc.</p>
+            </div>
+          </button>
+        </div>
+        <button type="button" id="cancelUnitSelect" class="cancel-type-btn">Cancel</button>
+      </div>
+    </div>
+
     <!-- Ingredients Section -->
     <div class="section-header">
       <h2>Ingredients</h2>
@@ -60,7 +86,7 @@
         <tr>
           <th>Ingredient ID</th>
           <th>Name</th>
-          <th>Quantity</th>
+          <th>Amount Per Pack</th>
           <th>Category</th>
           <th>Allergen</th>
           <th>Status</th>
@@ -76,6 +102,9 @@
             const parts = ingredientId.split('-');
             const prefix = parts[0] || 'ING';
             const suffix = parts[1] || '';
+            const amountPerPack = i && i.AmountPerPack ? i.AmountPerPack.split(' ') : null;
+            const amount = amountPerPack ? parseFloat(amountPerPack[0]) : (i && i.Quantity ? i.Quantity : 0);
+            const unit = amountPerPack ? amountPerPack[1] : 'g';
           %>
             <tr data-item-id="<%= i._id %>" data-type="ingredient">
                 <td class="ingredient-id-cell">
@@ -85,7 +114,15 @@
                   </div>
                 </td>
                 <td><input type="text" name="Name" value="<%= i && i.Name ? i.Name : '' %>" class="table-input" data-field="name" data-original="<%= i && i.Name ? i.Name : '' %>" required></td>
-                <td><input type="number" name="Quantity" value="<%= i && i.Quantity ? i.Quantity : 0 %>" class="table-input number-input" data-field="quantity" data-original="<%= i && i.Quantity ? i.Quantity : 0 %>" required></td>
+                <td>
+                  <div class="amount-pack-group">
+                    <select name="Unit" class="table-input unit-select" data-field="unit" data-original="<%= unit %>" required>
+                      <option value="g" <%= unit === 'g' ? 'selected' : '' %>> G</option>
+                      <option value="mL" <%= unit === 'mL' ? 'selected' : '' %>> mL</option>
+                    </select>
+                    <input type="number" name="Amount" value="<%= amount %>" class="table-input number-input" data-field="amount" data-original="<%= amount %>" required min="0">
+                  </div>
+                </td>
                 <td><div class="category-display-table">Ingredients</div></td>
                 <td><input type="text" name="Allergen" value="<%= i && i.Allergen ? i.Allergen : '' %>" class="table-input" data-field="allergen" data-original="<%= i && i.Allergen ? i.Allergen : '' %>" required></td>
                 <td>
@@ -129,7 +166,7 @@
         <tr>
           <th>Add-On ID</th>
           <th>Name</th>
-          <th>Quantity</th>
+          <th>Amount Per Pack</th>
           <th>Category</th>
           <th>Allergen</th>
           <th>Status</th>
@@ -145,6 +182,9 @@
             const parts = addonId.split('-');
             const prefix = parts[0] || 'AD';
             const suffix = parts[1] || '';
+            const amountPerPack = a && a.AmountPerPack ? a.AmountPerPack.split(' ') : null;
+            const amount = amountPerPack ? parseFloat(amountPerPack[0]) : (a && a.Quantity ? a.Quantity : 0);
+            const unit = amountPerPack ? amountPerPack[1] : 'g';
           %>
             <tr data-item-id="<%= a._id %>" data-type="addon">
                 <td class="ingredient-id-cell">
@@ -154,7 +194,15 @@
                   </div>
                 </td>
                 <td><input type="text" name="Name" value="<%= a && a.Name ? a.Name : '' %>" class="table-input" data-field="name" data-original="<%= a && a.Name ? a.Name : '' %>" required></td>
-                <td><input type="number" name="Quantity" value="<%= a && a.Quantity ? a.Quantity : 0 %>" class="table-input number-input" data-field="quantity" data-original="<%= a && a.Quantity ? a.Quantity : 0 %>" required></td>
+                <td>
+                  <div class="amount-pack-group">
+                    <select name="Unit" class="table-input unit-select" data-field="unit" data-original="<%= unit %>" required>
+                      <option value="g" <%= unit === 'g' ? 'selected' : '' %>> G</option>
+                      <option value="mL" <%= unit === 'mL' ? 'selected' : '' %>> mL</option>
+                    </select>
+                    <input type="number" name="Amount" value="<%= amount %>" class="table-input number-input" data-field="amount" data-original="<%= amount %>" required min="0">
+                  </div>
+                </td>
                 <td><div class="category-display-table">Add-Ons</div></td>
                 <td><input type="text" name="Allergen" value="<%= a && a.Allergen ? a.Allergen : '' %>" class="table-input" data-field="allergen" data-original="<%= a && a.Allergen ? a.Allergen : '' %>" required></td>
                 <td>
@@ -197,8 +245,14 @@
           <input type="text" id="Name" name="Name" required placeholder="e.g., Milk">
         </div>
         <div class="form-group">
-          <label for="Quantity">Quantity:</label>
-          <input type="number" id="Quantity" name="Quantity" required min="0" placeholder="0">
+          <label for="Amount">Amount Per Pack:</label>
+          <div class="amount-group">
+            <select id="Unit" name="Unit" required>
+              <option value="g" selected> g</option>
+              <option value="mL"> mL</option>
+            </select>
+            <input type="number" id="Amount" name="Amount" required min="0" placeholder="0" step="0.01">
+          </div>
         </div>
         <div class="form-group">
           <label for="Allergen">Allergen:</label>
@@ -241,8 +295,14 @@
           <input type="text" id="Name" name="Name" required placeholder="e.g., Pearls">
         </div>
         <div class="form-group">
-          <label for="Quantity">Quantity:</label>
-          <input type="number" id="Quantity" name="Quantity" required min="0" placeholder="0">
+          <label for="Amount">Amount Per Pack:</label>
+          <div class="amount-group">
+            <select id="Unit" name="Unit" required>
+              <option value="g" selected> g</option>
+              <option value="mL"> mL</option>
+            </select>
+            <input type="number" id="Amount" name="Amount" required min="0" placeholder="0" step="0.01">
+          </div>
         </div>
         <div class="form-group">
           <label for="Allergen">Allergen:</label>
@@ -272,7 +332,7 @@
       <input type="hidden" name="IngredientPrefix" value="ING">
       <input type="hidden" name="IngredientSuffix" value="">
       <input type="hidden" name="Name" value="">
-      <input type="hidden" name="Quantity" value="">
+      <input type="hidden" name="AmountPerPack" value="">
       <input type="hidden" name="Category" value="Ingredients">
       <input type="hidden" name="Allergen" value="">
       <input type="hidden" name="isAvailable" value="true">
@@ -289,7 +349,7 @@
       <input type="hidden" name="AddOnPrefix" value="AD">
       <input type="hidden" name="AddOnSuffix" value="">
       <input type="hidden" name="Name" value="">
-      <input type="hidden" name="Quantity" value="">
+      <input type="hidden" name="AmountPerPack" value="">
       <input type="hidden" name="Category" value="Add-Ons">
       <input type="hidden" name="Allergen" value="">
       <input type="hidden" name="isEnabled" value="">

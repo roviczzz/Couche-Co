@@ -155,6 +155,12 @@ document.addEventListener('DOMContentLoaded', function() {
   const selectIngredientBtn = document.getElementById('selectIngredientBtn');
   const selectAddonBtn = document.getElementById('selectAddonBtn');
 
+  // Unit selection modal
+  const unitTypeModalOverlay = document.getElementById('unitTypeModalOverlay');
+  const cancelUnitSelect = document.getElementById('cancelUnitSelect');
+  const selectGramsBtn = document.getElementById('selectGramsBtn');
+  const selectMilliLitersBtn = document.getElementById('selectMilliLitersBtn');
+
   const confirmationModal = document.getElementById('confirmationModal');
   const confirmationTitle = document.getElementById('confirmationTitle');
   const confirmationMessage = document.getElementById('confirmationMessage');
@@ -173,6 +179,7 @@ document.addEventListener('DOMContentLoaded', function() {
   let currentAction = null;
   let currentItemId = null;
   let currentItemType = null;
+  let selectedItemType = null; // For unit selection flow
 
   let originalItemData = new Map();
   let updateActiveItemsTimeout = null;
@@ -335,6 +342,42 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log(`[2025-10-15 17:45:23] Add-on modal closed successfully by MathDaenniel`);
   }
 
+  function showUnitSelectionModal() {
+    console.log(`[2025-10-15 17:45:23] Opening unit selection modal by MathDaenniel`);
+
+    if (!unitTypeModalOverlay) {
+      console.error(`[2025-10-15 17:45:23] Unit modal overlay not found by MathDaenniel`);
+      return;
+    }
+
+    unitTypeModalOverlay.style.display = 'flex';
+    unitTypeModalOverlay.style.visibility = 'visible';
+    unitTypeModalOverlay.style.opacity = '0';
+
+    setTimeout(() => {
+      unitTypeModalOverlay.classList.add('show');
+      unitTypeModalOverlay.style.opacity = '1';
+    }, 10);
+
+    console.log(`[2025-10-15 17:45:23] Unit selection modal opened successfully by MathDaenniel`);
+  }
+
+  function hideUnitSelectionModal() {
+    console.log(`[2025-10-15 17:45:23] Closing unit selection modal by MathDaenniel`);
+
+    if (!unitTypeModalOverlay) return;
+
+    unitTypeModalOverlay.classList.remove('show');
+    unitTypeModalOverlay.style.opacity = '0';
+
+    setTimeout(() => {
+      unitTypeModalOverlay.style.display = 'none';
+      unitTypeModalOverlay.style.visibility = 'hidden';
+    }, 200);
+
+    console.log(`[2025-10-15 17:45:23] Unit selection modal closed successfully by MathDaenniel`);
+  }
+
   function showConfirmationModal(action, itemId, itemType) {
     console.log(`[2025-10-15 17:45:23] Opening confirmation modal for ${action} on ${itemType} ${itemId} by MathDaenniel`);
 
@@ -436,9 +479,10 @@ document.addEventListener('DOMContentLoaded', function() {
     selectIngredientBtn.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
+      selectedItemType = 'ingredient';
       hideTypeSelectionModal();
-      setTimeout(() => showIngredientModal(), 100);
-      console.log(`[2025-10-15 17:45:23] Ingredient selected from type modal by MathDaenniel`);
+      setTimeout(() => showUnitSelectionModal(), 100);
+      console.log(`[2025-10-15 17:45:23] Ingredient selected from type modal, showing unit selection by MathDaenniel`);
     });
   }
 
@@ -446,9 +490,87 @@ document.addEventListener('DOMContentLoaded', function() {
     selectAddonBtn.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
+      selectedItemType = 'addon';
       hideTypeSelectionModal();
-      setTimeout(() => showAddonModal(), 100);
-      console.log(`[2025-10-15 17:45:23] Add-on selected from type modal by MathDaenniel`);
+      setTimeout(() => showUnitSelectionModal(), 100);
+      console.log(`[2025-10-15 17:45:23] Add-on selected from type modal, showing unit selection by MathDaenniel`);
+    });
+  }
+
+  // Unit selection modal listeners
+  if (cancelUnitSelect) {
+    cancelUnitSelect.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      hideUnitSelectionModal();
+    });
+  }
+
+  if (selectGramsBtn) {
+    selectGramsBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log(`[2025-10-15 17:45:23] Grams selected, selectedItemType: ${selectedItemType} by MathDaenniel`);
+
+      // Hide unit selection modal
+      hideUnitSelectionModal();
+
+      // Set unit and show appropriate modal
+      if (selectedItemType === 'ingredient') {
+        const unitField = ingredientModalOverlay.querySelector('select[name="Unit"]');
+        if (unitField) {
+          unitField.value = 'g';
+          console.log(`[2025-10-15 17:45:23] Set unit to grams in ingredient form, showing modal by MathDaenniel`);
+          showIngredientModal();
+        } else {
+          console.error(`[2025-10-15 17:45:23] Could not find Unit field in ingredient modal by MathDaenniel`);
+        }
+      } else if (selectedItemType === 'addon') {
+        const unitField = addonModalOverlay.querySelector('select[name="Unit"]');
+        if (unitField) {
+          unitField.value = 'g';
+          console.log(`[2025-10-15 17:45:23] Set unit to grams in addon form, showing modal by MathDaenniel`);
+          showAddonModal();
+        } else {
+          console.error(`[2025-10-15 17:45:23] Could not find Unit field in addon modal by MathDaenniel`);
+        }
+      } else {
+        console.error(`[2025-10-15 17:45:23] Invalid selectedItemType: ${selectedItemType}, cannot show modal by MathDaenniel`);
+      }
+    });
+  }
+
+  if (selectMilliLitersBtn) {
+    selectMilliLitersBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log(`[2025-10-15 17:45:23] MilliLiters selected, selectedItemType: ${selectedItemType} by MathDaenniel`);
+
+      // Hide unit selection modal
+      hideUnitSelectionModal();
+
+      // Set unit and show appropriate modal
+      if (selectedItemType === 'ingredient') {
+        const unitField = ingredientModalOverlay.querySelector('select[name="Unit"]');
+        if (unitField) {
+          unitField.value = 'mL';
+          console.log(`[2025-10-15 17:45:23] Set unit to mL in ingredient form, showing modal by MathDaenniel`);
+          showIngredientModal();
+        } else {
+          console.error(`[2025-10-15 17:45:23] Could not find Unit field in ingredient modal by MathDaenniel`);
+        }
+      } else if (selectedItemType === 'addon') {
+        const unitField = addonModalOverlay.querySelector('select[name="Unit"]');
+        if (unitField) {
+          unitField.value = 'mL';
+          console.log(`[2025-10-15 17:45:23] Set unit to mL in addon form, showing modal by MathDaenniel`);
+          showAddonModal();
+        } else {
+          console.error(`[2025-10-15 17:45:23] Could not find Unit field in addon modal by MathDaenniel`);
+        }
+      } else {
+        console.error(`[2025-10-15 17:45:23] Invalid selectedItemType: ${selectedItemType}, cannot show modal by MathDaenniel`);
+      }
     });
   }
 
@@ -504,6 +626,14 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Close modals on overlay click
+  if (unitTypeModalOverlay) {
+    unitTypeModalOverlay.addEventListener('click', function(e) {
+      if (e.target === unitTypeModalOverlay) {
+        hideUnitSelectionModal();
+      }
+    });
+  }
+
   if (itemTypeModalOverlay) {
     itemTypeModalOverlay.addEventListener('click', function(e) {
       if (e.target === itemTypeModalOverlay) {
@@ -544,6 +674,8 @@ document.addEventListener('DOMContentLoaded', function() {
         hideIngredientModal();
       } else if (addonModalOverlay && addonModalOverlay.classList.contains('show')) {
         hideAddonModal();
+      } else if (unitTypeModalOverlay && unitTypeModalOverlay.classList.contains('show')) {
+        hideUnitSelectionModal();
       } else if (itemTypeModalOverlay && itemTypeModalOverlay.classList.contains('show')) {
         hideTypeSelectionModal();
       }
@@ -609,7 +741,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const suffix = form.querySelector('input[name="IngredientSuffix"]');
     const name = form.querySelector('input[name="Name"]');
-    const quantity = form.querySelector('input[name="Quantity"]');
+    const amount = form.querySelector('input[name="Amount"]');
+    const unit = form.querySelector('select[name="Unit"]');
 
     if (!suffix || !suffix.value.trim()) {
       alert('Please enter an ingredient ID suffix');
@@ -623,9 +756,15 @@ document.addEventListener('DOMContentLoaded', function() {
       return false;
     }
 
-    if (!quantity || quantity.value === '' || parseInt(quantity.value) < 0) {
-      alert('Please enter a valid quantity (0 or more)');
-      if (quantity) quantity.focus();
+    if (!amount || amount.value === '' || parseFloat(amount.value) < 0) {
+      alert('Please enter a valid amount (0 or more)');
+      if (amount) amount.focus();
+      return false;
+    }
+
+    if (!unit || !unit.value || (unit.value !== 'g' && unit.value !== 'mL')) {
+      alert('Please select a valid unit (g or mL)');
+      if (unit) unit.focus();
       return false;
     }
 
@@ -638,7 +777,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const suffix = form.querySelector('input[name="AddOnSuffix"]');
     const name = form.querySelector('input[name="Name"]');
-    const quantity = form.querySelector('input[name="Quantity"]');
+    const amount = form.querySelector('input[name="Amount"]');
+    const unit = form.querySelector('select[name="Unit"]');
 
     if (!suffix || !suffix.value.trim()) {
       alert('Please enter an add-on ID suffix');
@@ -652,9 +792,15 @@ document.addEventListener('DOMContentLoaded', function() {
       return false;
     }
 
-    if (!quantity || quantity.value === '' || parseInt(quantity.value) < 0) {
-      alert('Please enter a valid quantity (0 or more)');
-      if (quantity) quantity.focus();
+    if (!amount || amount.value === '' || parseFloat(amount.value) < 0) {
+      alert('Please enter a valid amount (0 or more)');
+      if (amount) amount.focus();
+      return false;
+    }
+
+    if (!unit || !unit.value || (unit.value !== 'g' && unit.value !== 'mL')) {
+      alert('Please select a valid unit (g or mL)');
+      if (unit) unit.focus();
       return false;
     }
 
@@ -688,6 +834,22 @@ document.addEventListener('DOMContentLoaded', function() {
       hiddenInput.value = fullId;
       ingredientModalForm.appendChild(hiddenInput);
 
+      // Create AmountPerPack from Amount and Unit
+      const amount = ingredientModalForm.querySelector('input[name="Amount"]').value.trim();
+      const unit = ingredientModalForm.querySelector('select[name="Unit"]').value;
+      const amountPerPack = `${amount} ${unit}`;
+
+      const existingHiddenAmountPerPack = ingredientModalForm.querySelector('input[name="AmountPerPack"][type="hidden"]');
+      if (existingHiddenAmountPerPack) {
+        existingHiddenAmountPerPack.remove();
+      }
+
+      const hiddenAmountPerPack = document.createElement('input');
+      hiddenAmountPerPack.type = 'hidden';
+      hiddenAmountPerPack.name = 'AmountPerPack';
+      hiddenAmountPerPack.value = amountPerPack;
+      ingredientModalForm.appendChild(hiddenAmountPerPack);
+
       const enabledSwitch = ingredientModalForm.querySelector('input[name="isEnabledStock"]');
       if (enabledSwitch) {
         const existingHiddenEnabled = ingredientModalForm.querySelector('input[name="isEnabled"][type="hidden"]');
@@ -704,7 +866,7 @@ document.addEventListener('DOMContentLoaded', function() {
         enabledSwitch.removeAttribute('name');
       }
 
-      console.log(`[2025-10-15 17:45:23] Adding new ingredient with ID: ${fullId} by MathDaenniel`);
+      console.log(`[2025-10-15 17:45:23] Adding new ingredient with ID: ${fullId} and AmountPerPack: ${amountPerPack} by MathDaenniel`);
     });
   }
 
@@ -734,6 +896,22 @@ document.addEventListener('DOMContentLoaded', function() {
       hiddenInput.value = fullId;
       addonModalForm.appendChild(hiddenInput);
 
+      // Create AmountPerPack from Amount and Unit
+      const amount = addonModalForm.querySelector('input[name="Amount"]').value.trim();
+      const unit = addonModalForm.querySelector('select[name="Unit"]').value;
+      const amountPerPack = `${amount} ${unit}`;
+
+      const existingHiddenAmountPerPack = addonModalForm.querySelector('input[name="AmountPerPack"][type="hidden"]');
+      if (existingHiddenAmountPerPack) {
+        existingHiddenAmountPerPack.remove();
+      }
+
+      const hiddenAmountPerPack = document.createElement('input');
+      hiddenAmountPerPack.type = 'hidden';
+      hiddenAmountPerPack.name = 'AmountPerPack';
+      hiddenAmountPerPack.value = amountPerPack;
+      addonModalForm.appendChild(hiddenAmountPerPack);
+
       const enabledSwitch = addonModalForm.querySelector('input[name="isEnabledAddon"]');
       if (enabledSwitch) {
         const existingHiddenEnabled = addonModalForm.querySelector('input[name="isEnabled"][type="hidden"]');
@@ -750,7 +928,7 @@ document.addEventListener('DOMContentLoaded', function() {
         enabledSwitch.removeAttribute('name');
       }
 
-      console.log(`[2025-10-15 17:45:23] Adding new add-on with ID: ${fullId} by MathDaenniel`);
+      console.log(`[2025-10-15 17:45:23] Adding new add-on with ID: ${fullId} and AmountPerPack: ${amountPerPack} by MathDaenniel`);
     });
   }
 
@@ -1230,7 +1408,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
-    let formId, suffix, name, quantity, category, allergen, enabled;
+    let formId, suffix, name, amount, unit, category, allergen, enabled;
 
     if (itemType === 'ingredient') {
       suffix = row.querySelector('input[name="IngredientSuffix"]')?.value?.trim();
@@ -1241,12 +1419,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     name = row.querySelector('input[name="Name"]')?.value?.trim();
-    quantity = row.querySelector('input[name="Quantity"]')?.value;
+    amount = row.querySelector('input[name="Amount"]')?.value;
+    unit = row.querySelector('select[name="Unit"]')?.value;
     category = itemType === 'ingredient' ? 'Ingredients' : 'Add-Ons';
     allergen = row.querySelector('input[name="Allergen"]')?.value?.trim() || 'None';
     enabled = row.querySelector('select[name="isEnabled"]')?.value;
 
-    if (!suffix || !name || !quantity) {
+    if (!suffix || !name || !amount || !unit) {
       alert('Please fill in all required fields.');
       return;
     }
@@ -1257,18 +1436,21 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
+    // Create AmountPerPack from Amount and Unit
+    const amountPerPack = `${amount} ${unit}`;
+
     form.querySelector('input[name="' + (itemType === 'ingredient' ? 'IngredientID' : 'AddOnID') + '"]').value =
       itemType === 'ingredient' ? `ING-${suffix}` : `AD-${suffix}`;
     form.querySelector('input[name="' + (itemType === 'ingredient' ? 'IngredientPrefix' : 'AddOnPrefix') + '"]').value =
       itemType === 'ingredient' ? 'ING' : 'AD';
     form.querySelector('input[name="' + (itemType === 'ingredient' ? 'IngredientSuffix' : 'AddOnSuffix') + '"]').value = suffix;
     form.querySelector('input[name="Name"]').value = name;
-    form.querySelector('input[name="Quantity"]').value = quantity;
+    form.querySelector('input[name="AmountPerPack"]').value = amountPerPack;
     form.querySelector('input[name="Category"]').value = category;
     form.querySelector('input[name="Allergen"]').value = allergen;
     form.querySelector('input[name="isEnabled"]').value = enabled;
 
-    console.log(`[2025-10-15 17:45:23] Submitting update form for ${itemType} ${itemId} by MathDaenniel`);
+    console.log(`[2025-10-15 17:45:23] Submitting update form for ${itemType} ${itemId} with AmountPerPack: ${amountPerPack} by MathDaenniel`);
     form.submit();
   }
 
@@ -1311,11 +1493,16 @@ document.addEventListener('DOMContentLoaded', function() {
         return false;
       }
 
+      // Get Amount and Unit from table row
+      const amount = row.querySelector('input[name="Amount"]').value;
+      const unit = row.querySelector('select[name="Unit"]').value;
+      const amountPerPack = `${amount} ${unit}`;
+
       form.querySelector(`input[name="${fullIdField}"]`).value = fullId;
       form.querySelector(`input[name="${itemType === 'ingredient' ? 'IngredientPrefix' : 'AddOnPrefix'}"]`).value = prefix;
       form.querySelector(`input[name="${suffixField}"]`).value = suffix;
       form.querySelector('input[name="Name"]').value = row.querySelector('input[name="Name"]').value;
-      form.querySelector('input[name="Quantity"]').value = row.querySelector('input[name="Quantity"]').value;
+      form.querySelector('input[name="AmountPerPack"]').value = amountPerPack;
       form.querySelector('input[name="Category"]').value = itemType === 'ingredient' ? 'Ingredients' : 'Add-Ons';
       form.querySelector('input[name="Allergen"]').value = row.querySelector('input[name="Allergen"]').value || 'None';
       form.querySelector('input[name="isEnabled"]').value = row.querySelector('select[name="isEnabled"]').value;

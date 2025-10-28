@@ -890,17 +890,81 @@ main {
   font-size: 12px;
 }
 
-/* Required field indicator */
-.form-group label::after {
-  content: " *";
-  color: var(--red);
-  font-weight: 700;
-}
+/* Required field indicator removed per user request */
+/* Forms now rely on JavaScript validation without visual asterisks */
 
 .form-group input[required] + label::after {
   content: " *";
   color: var(--red);
   font-weight: 700;
+}
+
+/* Amount Group for Modal Forms - Same alignment as ID fields */
+.amount-group {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  width: 100%;
+}
+
+.amount-group select {
+  flex: 0 0 auto;
+  padding: 12px 16px;
+  border: 2px solid var(--brown);
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  background-color: var(--bg-lighter);
+  font-size: 14px;
+  transition: all var(--transition);
+  box-shadow: var(--shadow-inner);
+  min-width: 80px;
+  text-align: center;
+  border-right: none;
+}
+
+.amount-group select:focus {
+  outline: none;
+  border-color: var(--green);
+  background-color: var(--white);
+  box-shadow: 0 0 0 3px rgba(40,167,69,0.15);
+  transform: translateY(-1px);
+}
+
+.amount-group input[type="number"] {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid var(--brown);
+  border-left: none;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background-color: var(--bg-lighter);
+  font-size: 14px;
+  transition: all var(--transition);
+  box-shadow: var(--shadow-inner);
+}
+
+.amount-group input[type="number"]:focus {
+  outline: none;
+  border-color: var(--green);
+  background-color: var(--white);
+  box-shadow: 0 0 0 3px rgba(40,167,69,0.15);
+  transform: translateY(-1px);
+}
+
+/* Amount Pack Group for Table */
+.amount-pack-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+}
+
+.amount-pack-group input[type="number"] {
+  width: 60px;
+  text-align: center;
+}
+
+.amount-pack-group select {
+  width: 50px;
+  font-size: 12px;
 }
 
 /* Enhanced placeholder styling */
@@ -1017,9 +1081,9 @@ main {
   font-size: 15px;
   font-weight: 500;
   color: var(--text);
-  margin-right: 0;
+  margin-right: 8px;
   flex: 0 0 auto;
-  order: 2;
+  order: 1;
 }
 
 .switch-container {
@@ -1028,7 +1092,8 @@ main {
   width: 50px;
   height: 26px;
   flex-shrink: 0;
-  order: 1;
+  order: 2;
+  margin-left: 8px;
 }
 
 .switch-input {
