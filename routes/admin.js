@@ -1525,8 +1525,10 @@ router.post('/migrate-passwords', async (req, res) => {
 // STOCKS ROUTES
 router.post('/stocks', async (req, res) => {
   try {
-    // Check if this is an add-on or ingredient
-    if (req.body.AddOnPrefix && req.body.AddOnID) {
+    // Check if this is an add-on by looking for addon-specific fields
+    const isAddon = req.body.AddOnID || req.body.AddOnPrefix || req.body.AddOnSuffix || req.body.Name === 'Pearls';
+
+    if (isAddon) {
       // Handle Add-On directly
       const client = await MongoClient.connect(uri);
       const db = client.db('blessingscafe');
@@ -1534,10 +1536,10 @@ router.post('/stocks', async (req, res) => {
       const addOnData = {
         AddOnID: req.body.AddOnID,
         Name: req.body.Name,
-        Quantity: parseInt(req.body.Quantity) || 0,
+        AmountPerPack: req.body.AmountPerPack || '0 g', // Use AmountPerPack directly
         Category: req.body.Category || 'Add-Ons',
         Allergen: req.body.Allergen || 'None',
-        isEnabled: req.body.isEnabled === 'true',
+        isEnabled: req.body.isEnabled === 'true' || req.body.isEnabled === true,
         isAvailable: true,
         createdAt: new Date(),
         lastModified: new Date()
@@ -1545,11 +1547,11 @@ router.post('/stocks', async (req, res) => {
 
       await db.collection('Add-ons').insertOne(addOnData);
       await client.close();
-      console.log('Added new add-on:', addOnData.AddOnID);
+      console.log('✅ Added new add-on:', addOnData.AddOnID, 'with AmountPerPack:', addOnData.AmountPerPack);
     } else {
       // Handle Ingredient using existing function
       await addIngredient(req.body);
-      console.log('Added new ingredient');
+      console.log('✅ Added new ingredient');
     }
 
     res.redirect('/admin/stocks?msg=add_success');

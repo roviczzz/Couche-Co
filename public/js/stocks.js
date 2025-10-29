@@ -878,12 +878,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
       if (!validateAddonForm(addonModalForm)) {
         e.preventDefault();
+        console.log(`[2025-10-15 17:45:23] Add-on form validation failed, preventing submission by MathDaenniel`);
         return;
       }
 
       const prefix = 'AD';
       const suffix = addonModalForm.querySelector('input[name="AddOnSuffix"]').value.trim();
       const fullId = `${prefix}-${suffix}`;
+
+      console.log(`[2025-10-15 17:45:23] Add-on form fullId: ${fullId} by MathDaenniel`);
 
       const existingHiddenId = addonModalForm.querySelector('input[name="AddOnID"][type="hidden"]');
       if (existingHiddenId) {
@@ -896,23 +899,59 @@ document.addEventListener('DOMContentLoaded', function() {
       hiddenInput.value = fullId;
       addonModalForm.appendChild(hiddenInput);
 
-      // Create AmountPerPack from Amount and Unit
-      const amount = addonModalForm.querySelector('input[name="Amount"]').value.trim();
-      const unit = addonModalForm.querySelector('select[name="Unit"]').value;
-      const amountPerPack = `${amount} ${unit}`;
+      // Create AmountPerPack from Amount and Unit - ROBUST VERSION
+      console.log(`[2025-10-15 17:45:23] Starting AmountPerPack creation... by MathDaenniel`);
 
+      // Get references to the form elements more explicitly
+      const amountField = addonModalForm.querySelector('.amount-group input[name="Amount"]') ||
+                          addonModalForm.querySelector('input[name="Amount"]');
+      const unitField = addonModalForm.querySelector('.amount-group select[name="Unit"]') ||
+                        addonModalForm.querySelector('select[name="Unit"]');
+
+      console.log(`[2025-10-15 17:45:23] Field selectors found - amountField: ${!!amountField}, unitField: ${!!unitField} by MathDaenniel`);
+
+      // Get raw values with comprehensive fallbacks
+      const rawAmount = amountField ? amountField.value : '';
+      const rawUnit = unitField ? unitField.value : '';
+
+      console.log(`[2025-10-15 17:45:23] Raw values - amount: "${rawAmount}", unit: "${rawUnit}" by MathDaenniel`);
+
+      // Process amount with strict validation
+      let processedAmount = '0'; // Default fallback
+      if (rawAmount !== '' && rawAmount !== null && rawAmount !== undefined) {
+        const numVal = parseFloat(rawAmount);
+        if (!isNaN(numVal) && numVal >= 0) {
+          processedAmount = numVal.toString();
+        }
+      }
+
+      // Process unit with strict validation
+      let processedUnit = 'g'; // Default fallback for add-ons
+      if (rawUnit && (rawUnit === 'g' || rawUnit === 'mL')) {
+        processedUnit = rawUnit;
+      }
+
+      const amountPerPack = `${processedAmount} ${processedUnit}`;
+
+      console.log(`[2025-10-15 17:45:23] FINAL AmountPerPack: "${amountPerPack}" (from raw amount: "${rawAmount}", processed: "${processedAmount}", unit: "${processedUnit}") by MathDaenniel`);
+
+      // Remove any existing AmountPerPack field
       const existingHiddenAmountPerPack = addonModalForm.querySelector('input[name="AmountPerPack"][type="hidden"]');
       if (existingHiddenAmountPerPack) {
         existingHiddenAmountPerPack.remove();
+        console.log(`[2025-10-15 17:45:23] Removed existing AmountPerPack field by MathDaenniel`);
       }
 
+      // Create new AmountPerPack field
       const hiddenAmountPerPack = document.createElement('input');
       hiddenAmountPerPack.type = 'hidden';
       hiddenAmountPerPack.name = 'AmountPerPack';
       hiddenAmountPerPack.value = amountPerPack;
       addonModalForm.appendChild(hiddenAmountPerPack);
 
-      const enabledSwitch = addonModalForm.querySelector('input[name="isEnabledAddon"]');
+      console.log(`[2025-10-15 17:45:23] Created new AmountPerPack hidden field with value: "${amountPerPack}" by MathDaenniel`);
+
+      const enabledSwitch = addonModalForm.querySelector('input[name="isEnabled"]');
       if (enabledSwitch) {
         const existingHiddenEnabled = addonModalForm.querySelector('input[name="isEnabled"][type="hidden"]');
         if (existingHiddenEnabled) {
@@ -925,10 +964,11 @@ document.addEventListener('DOMContentLoaded', function() {
         newHiddenEnabled.value = enabledSwitch.checked ? 'true' : 'false';
         addonModalForm.appendChild(newHiddenEnabled);
 
+        // Remove name to prevent form submission of the checkbox
         enabledSwitch.removeAttribute('name');
       }
 
-      console.log(`[2025-10-15 17:45:23] Adding new add-on with ID: ${fullId} and AmountPerPack: ${amountPerPack} by MathDaenniel`);
+      console.log(`[2025-10-15 17:45:23] ✅ Add-on submission ready with AmountPerPack: "${amountPerPack}" by MathDaenniel`);
     });
   }
 
