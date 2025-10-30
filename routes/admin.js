@@ -1528,10 +1528,22 @@ router.post('/stocks', async (req, res) => {
     // Check if this is an add-on by looking for addon-specific fields
     const isAddon = req.body.AddOnID || req.body.AddOnPrefix || req.body.AddOnSuffix || req.body.Name === 'Pearls';
 
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
     if (isAddon) {
       // Handle Add-On directly
-      const client = await MongoClient.connect(uri);
-      const db = client.db('blessingscafe');
+
+      // Check for existing add-on with same ID and Name combination
+      const existingAddon = await db.collection('Add-ons').findOne({
+        AddOnID: req.body.AddOnID,
+        Name: req.body.Name.trim()
+      });
+
+      if (existingAddon) {
+        await client.close();
+        return res.redirect('/admin/stocks?msg=duplicate_id_name');
+      }
 
       const addOnData = {
         AddOnID: req.body.AddOnID,
@@ -1557,6 +1569,16 @@ router.post('/stocks', async (req, res) => {
     res.redirect('/admin/stocks?msg=add_success');
   } catch (err) {
     console.error('Add item error:', err);
+
+    // Handle specific duplicate data error
+    if (err.message === 'DUPLICATE_DATA') {
+      return res.redirect('/admin/stocks?msg=duplicate_data');
+    }
+
+    if (err.message === 'DUPLICATE_ID_NAME') {
+      return res.redirect('/admin/stocks?msg=duplicate_id_name');
+    }
+
     res.status(500).send('Failed to add item');
   }
 });

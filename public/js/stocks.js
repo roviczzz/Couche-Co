@@ -120,6 +120,8 @@ document.addEventListener('DOMContentLoaded', function() {
     else if (msg === 'bulk_update_success') text = 'Bulk update completed successfully.';
     else if (msg === 'bulk_delete_success') text = 'Bulk delete completed successfully.';
     else if (msg === 'duplicate_id') text = 'Error: Item ID already exists. Please use a different ID.';
+    else if (msg === 'duplicate_id_name') text = 'Error: An item with this ID and name already exists. Please use a different ID or name.';
+    else if (msg === 'duplicate_data') text = 'Error: An item with identical name, quantity, allergen, and status already exists.';
     else if (msg === 'delete_failed') text = 'Error: Failed to delete item. It may not exist.';
     else if (msg === 'item_not_found') text = 'Error: Item not found.';
     else if (msg === 'item_in_use') text = 'Error: Cannot delete item as it is being used in recipes.';
@@ -128,11 +130,11 @@ document.addEventListener('DOMContentLoaded', function() {
       messageDiv.textContent = text;
       messageDiv.style.display = 'block';
 
-      if (msg === 'duplicate_id' || msg === 'delete_failed' || msg === 'item_not_found' || msg === 'item_in_use') {
+      if (msg === 'duplicate_id' || msg === 'duplicate_id_name' || msg === 'duplicate_data' || msg === 'delete_failed' || msg === 'item_not_found' || msg === 'item_in_use') {
         messageDiv.classList.add('error');
       }
 
-      const isError = msg === 'duplicate_id' || msg === 'delete_failed' || msg === 'item_not_found' || msg === 'item_in_use';
+      const isError = msg === 'duplicate_id' || msg === 'duplicate_id_name' || msg === 'duplicate_data' || msg === 'delete_failed' || msg === 'item_not_found' || msg === 'item_in_use';
       const fadeTime = isError ? 5000 : 4000;
       setTimeout(() => {
         messageDiv.style.transition = 'opacity 1s ease';
@@ -743,6 +745,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const name = form.querySelector('input[name="Name"]');
     const amount = form.querySelector('input[name="Amount"]');
     const unit = form.querySelector('select[name="Unit"]');
+    const allergen = form.querySelector('input[name="Allergen"]');
 
     if (!suffix || !suffix.value.trim()) {
       alert('Please enter an ingredient ID suffix');
@@ -756,6 +759,12 @@ document.addEventListener('DOMContentLoaded', function() {
       return false;
     }
 
+    if (!allergen || !allergen.value.trim()) {
+      alert('Please enter allergen information');
+      if (allergen) allergen.focus();
+      return false;
+    }
+
     if (!amount || amount.value === '' || parseFloat(amount.value) < 0) {
       alert('Please enter a valid amount (0 or more)');
       if (amount) amount.focus();
@@ -765,6 +774,21 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!unit || !unit.value || (unit.value !== 'g' && unit.value !== 'mL')) {
       alert('Please select a valid unit (g or mL)');
       if (unit) unit.focus();
+      return false;
+    }
+
+    // Check for existing ingredient with same ID and name
+    const fullId = `ING-${suffix.value.trim()}`;
+    const nameValue = name.value.trim();
+    const existingIngredient = ingredientRowsData.find(row =>
+      row.itemId === `${fullId}_${nameValue}` ||
+      (row.name.toLowerCase() === nameValue.toLowerCase() &&
+       row.row.querySelector('input[name="IngredientSuffix"]').getAttribute('data-original') === suffix.value.trim())
+    );
+
+    if (existingIngredient) {
+      alert('An ingredient with this ID and name already exists. Please choose a different ID or name.');
+      if (suffix) suffix.focus();
       return false;
     }
 
@@ -779,6 +803,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const name = form.querySelector('input[name="Name"]');
     const amount = form.querySelector('input[name="Amount"]');
     const unit = form.querySelector('select[name="Unit"]');
+    const allergen = form.querySelector('input[name="Allergen"]');
 
     if (!suffix || !suffix.value.trim()) {
       alert('Please enter an add-on ID suffix');
@@ -792,6 +817,12 @@ document.addEventListener('DOMContentLoaded', function() {
       return false;
     }
 
+    if (!allergen || !allergen.value.trim()) {
+      alert('Please enter allergen information');
+      if (allergen) allergen.focus();
+      return false;
+    }
+
     if (!amount || amount.value === '' || parseFloat(amount.value) < 0) {
       alert('Please enter a valid amount (0 or more)');
       if (amount) amount.focus();
@@ -801,6 +832,21 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!unit || !unit.value || (unit.value !== 'g' && unit.value !== 'mL')) {
       alert('Please select a valid unit (g or mL)');
       if (unit) unit.focus();
+      return false;
+    }
+
+    // Check for existing add-on with same ID and name
+    const fullId = `AD-${suffix.value.trim()}`;
+    const nameValue = name.value.trim();
+    const existingAddon = addonRowsData.find(row =>
+      row.itemId === `${fullId}_${nameValue}` ||
+      (row.name.toLowerCase() === nameValue.toLowerCase() &&
+       row.row.querySelector('input[name="AddOnSuffix"]').getAttribute('data-original') === suffix.value.trim())
+    );
+
+    if (existingAddon) {
+      alert('An add-on with this ID and name already exists. Please choose a different ID or name.');
+      if (suffix) suffix.focus();
       return false;
     }
 

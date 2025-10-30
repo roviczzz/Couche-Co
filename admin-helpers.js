@@ -345,15 +345,16 @@ async function addIngredient(ingredientData) {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
 
-    // Check for existing ingredient with same ID
-    if (ingredientData.IngredientID) {
+    // Check for existing ingredient with same ID and Name combination
+    if (ingredientData.IngredientID && ingredientData.Name) {
       const existingIngredient = await db.collection('Ingredients').findOne({
-        IngredientID: ingredientData.IngredientID
+        IngredientID: ingredientData.IngredientID,
+        Name: ingredientData.Name.trim()
       });
 
       if (existingIngredient) {
         await client.close();
-        throw new Error('Ingredient ID already exists');
+        throw new Error('DUPLICATE_ID_NAME');
       }
     }
 
