@@ -686,7 +686,7 @@ router.get('/api/products/:id', async (req, res) => {
 // ✅ Edit Product route (with FormData upload to ImgBB)
 router.post('/products/edit/:id', upload.single('imagelink'), async (req, res) => {
   const { id } = req.params;
-  const { description, Allergen, size16, size22, BasePrice } = req.body;
+  const { description, Allergen, size16, size22, BasePrice, Quantity } = req.body;
 
 
 
@@ -750,7 +750,14 @@ router.post('/products/edit/:id', upload.single('imagelink'), async (req, res) =
       }
     }
 
-
+    // Update Quantity only if it was provided and is different
+    if (Quantity !== undefined && Quantity !== "") {
+      const quantityValue = parseInt(Quantity);
+      const existingQuantity = parseInt(existingProduct.Quantity) || 0;
+      if (!isNaN(quantityValue) && quantityValue !== existingQuantity) {
+        updateFields.Quantity = quantityValue;
+      }
+    }
 
     console.log("DEBUG: API Key value ->", process.env.IMGBB_API_KEY);
 

@@ -343,6 +343,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const editForm = document.getElementById("editProductForm");
   const editCategoryHidden = document.getElementById("editCategoryHidden");
   const editBasePriceContainer = document.getElementById("editBasePriceContainer");
+  const editQuantityContainer = document.getElementById("editQuantityContainer");
   const editPriceRow = document.getElementById("editPriceRow");
   const editEnabledCheckbox = document.getElementById("editEnabled");
 
@@ -370,13 +371,16 @@ document.addEventListener("DOMContentLoaded", () => {
         const isPastries = p.Category === "Pastries" || p.Category === "BK";
 
         if (isPastries) {
-          // For pastries: show BasePrice, hide size-specific prices
+          // For pastries: show BasePrice and Quantity, hide size-specific prices
           editBasePriceContainer.style.display = "block";
+          editQuantityContainer.style.display = "block";
           editPriceRow.style.display = "none";
           document.getElementById("editBasePrice").value = p.BasePrice || p.basePrice || "";
+          document.getElementById("editQuantity").value = p.Quantity || "";
         } else {
-          // For drinks: show size-specific prices, hide BasePrice
+          // For drinks: show size-specific prices, hide BasePrice and Quantity
           editBasePriceContainer.style.display = "none";
+          editQuantityContainer.style.display = "none";
           editPriceRow.style.display = "block";
 
           if (p.Sizes && Array.isArray(p.Sizes)) {
