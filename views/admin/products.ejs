@@ -85,12 +85,17 @@
         <input class="form-input" type="number" name="BasePrice" step="0.01">
       </div>
 
+      <div id="quantityContainer" class="form-group hidden">
+        <label class="form-label">Quantity</label>
+        <input class="form-input" type="number" name="Quantity" step="1" min="0" placeholder="Enter quantity">
+      </div>
+
       <div class="form-group">
         <label class="form-label">Description</label>
         <textarea class="form-input" name="description" rows="4" placeholder="Enter product description..."></textarea>
       </div>
 
-      <div class="form-group">
+      <div id="ingredientsContainer" class="form-group">
         <label class="form-label">Ingredients</label>
         <div class="chip-container" id="chipContainer">
           <input type="text" id="chipInput" class="chip-input" placeholder="Type ingredient...">

@@ -483,6 +483,7 @@ router.post('/products/add', upload.single('imagelink'), async (req, res) => {
     size16,
     size22,
     Ingredients,
+    Quantity,
     Allergen,
     isEnabled,
     BasePrice,
@@ -506,8 +507,31 @@ router.post('/products/add', upload.single('imagelink'), async (req, res) => {
   if (size16) Sizes.push({ Size: '16oz', BasePrice: parseFloat(size16) });
   if (size22) Sizes.push({ Size: '22oz', BasePrice: parseFloat(size22) });
 
-  // Ingredients array
-  const ingredientsArray = Ingredients ? Ingredients.split(',').map(i => i.trim()) : [];
+  // Ingredients array - now expecting JSON string of objects with ingredientID and usedGrams
+  let ingredientsArray = [];
+  if (Ingredients) {
+    try {
+      ingredientsArray = JSON.parse(Ingredients);
+      // Validate the structure
+      if (!Array.isArray(ingredientsArray)) {
+        ingredientsArray = [];
+      } else {
+      // Ensure each item has the required properties
+      ingredientsArray = ingredientsArray.filter(item => {
+        if (!item || typeof item !== 'object' || !item.ingredientID) return false;
+        // usedGrams can be a number (for non-Milktea) or an object (for Milktea)
+        const usedGrams = item.usedGrams;
+        if (typeof usedGrams === 'number') return true; // non-Milktea
+        if (typeof usedGrams === 'object' && usedGrams !== null &&
+            typeof usedGrams['16oz'] === 'number' && typeof usedGrams['22oz'] === 'number') return true; // Milktea
+        return false;
+      });
+      }
+    } catch (err) {
+      console.error('Error parsing ingredients JSON:', err);
+      ingredientsArray = [];
+    }
+  }
 
   // Image handling - upload directly to ImgBB
   let imagelink = 'placeholder';
@@ -535,16 +559,25 @@ router.post('/products/add', upload.single('imagelink'), async (req, res) => {
     Name,
     description: description || "",        // <-- lowercase key so it matches your textarea name
     Sizes: Sizes.length > 0 ? Sizes : null,
-    Ingredients: ingredientsArray,
     Category,
     Allergen: Allergen || null,
     imagelink,
     isEnabled: isEnabled === 'true'
   };
 
-  // Base price for pastries
-  if (Category.toLowerCase() === 'pastries' && !isNaN(parseFloat(BasePrice))) {
-    productData.BasePrice = parseFloat(BasePrice);
+  // Handle ingredients vs quantity based on category
+  if (Category.toLowerCase() === 'pastries') {
+    // For pastries, save Quantity instead of Ingredients
+    if (Quantity && !isNaN(parseInt(Quantity))) {
+      productData.Quantity = parseInt(Quantity);
+    }
+    // Base price for pastries
+    if (!isNaN(parseFloat(BasePrice))) {
+      productData.BasePrice = parseFloat(BasePrice);
+    }
+  } else {
+    // For other categories, save Ingredients
+    productData.Ingredients = ingredientsArray;
   }
 
   try {

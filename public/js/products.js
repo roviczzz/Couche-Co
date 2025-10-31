@@ -53,23 +53,82 @@ document.addEventListener("DOMContentLoaded", () => {
   const chipInput = document.getElementById("chipInput");
   const hiddenIngredients = document.getElementById("hiddenIngredients");
   const suggestionsBox = document.getElementById("suggestions");
-  let ingredients = []; // selected ingredient IDs
+  let ingredients = []; // array of { ingredientID: string, usedGrams: number }
 
   function updateHiddenInput() {
-    hiddenIngredients.value = ingredients.join(",");
+    hiddenIngredients.value = JSON.stringify(ingredients);
   }
 
   function addChip(id, name) {
-    if (!id || ingredients.includes(id)) return;
-    ingredients.push(id);
+    if (!id || ingredients.some(ing => ing.ingredientID === id)) return;
+
+    const categorySelect = document.getElementById("categorySelect");
+    const isMilktea = categorySelect.value === "MT"; // MT = Milktea
+
+    const ingredientObj = {
+      ingredientID: id,
+      name: name,
+      usedGrams: isMilktea ? { "16oz": 0, "22oz": 0 } : 0
+    };
+    ingredients.push(ingredientObj);
+
     const chip = document.createElement("div");
     chip.className = "chip";
-    chip.innerHTML = `${name} <span>&times;</span>`;
-    chip.querySelector("span").addEventListener("click", () => {
-      ingredients = ingredients.filter(i => i !== id);
+
+    let inputsHtml = "";
+    if (isMilktea) {
+      inputsHtml = `
+        <span class="chip-separator">|</span>
+        <span class="chip-grams-label">16oz:</span>
+        <input type="number" class="chip-grams-input chip-grams-16oz" value="0" min="0" step="0.1" placeholder="g">
+        <span class="chip-grams-label">22oz:</span>
+        <input type="number" class="chip-grams-input chip-grams-22oz" value="0" min="0" step="0.1" placeholder="g">
+        <span class="chip-unit">g</span>
+      `;
+    } else {
+      inputsHtml = `
+        <span class="chip-separator">|</span>
+        <span class="chip-grams-label">Used:</span>
+        <input type="number" class="chip-grams-input" value="0" min="0" step="0.1" placeholder="g">
+        <span class="chip-unit">g</span>
+      `;
+    }
+
+    chip.innerHTML = `
+      <span class="chip-name">${name}</span>
+      ${inputsHtml}
+      <span class="chip-remove">&times;</span>
+    `;
+
+    // Handle grams input changes
+    if (isMilktea) {
+      const grams16oz = chip.querySelector(".chip-grams-16oz");
+      const grams22oz = chip.querySelector(".chip-grams-22oz");
+
+      grams16oz.addEventListener("input", (e) => {
+        ingredientObj.usedGrams["16oz"] = parseFloat(e.target.value) || 0;
+        updateHiddenInput();
+      });
+
+      grams22oz.addEventListener("input", (e) => {
+        ingredientObj.usedGrams["22oz"] = parseFloat(e.target.value) || 0;
+        updateHiddenInput();
+      });
+    } else {
+      const gramsInput = chip.querySelector(".chip-grams-input");
+      gramsInput.addEventListener("input", (e) => {
+        ingredientObj.usedGrams = parseFloat(e.target.value) || 0;
+        updateHiddenInput();
+      });
+    }
+
+    // Handle remove button
+    chip.querySelector(".chip-remove").addEventListener("click", () => {
+      ingredients = ingredients.filter(ing => ing.ingredientID !== id);
       chip.remove();
       updateHiddenInput();
     });
+
     chipContainer.insertBefore(chip, chipInput);
     chipInput.value = "";
     updateHiddenInput();
@@ -88,17 +147,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const uniqueNames = new Set();
         const filteredResults = results.filter(item => {
-          const lowerName = item.Name.toLowerCase();
-          if (uniqueNames.has(lowerName) || ingredients.includes(item.IngredientID)) return false;
+          const name = item.Name || item.itemName || item.name || 'Unknown Ingredient';
+          const lowerName = name.toLowerCase();
+          const id = item.IngredientID || item.ingredientID || item.id || 'unknown';
+          if (uniqueNames.has(lowerName) || ingredients.some(ing => ing.ingredientID === id)) return false;
           uniqueNames.add(lowerName);
           return true;
         });
 
         filteredResults.forEach(item => {
+          const name = item.Name || item.itemName || item.name || 'Unknown Ingredient';
+          const id = item.IngredientID || item.ingredientID || item.id || 'unknown';
           const div = document.createElement("div");
-          div.textContent = item.Name;
+          div.textContent = name;
           div.addEventListener("click", () => {
-            addChip(item.IngredientID, item.Name);
+            addChip(id, name);
             suggestionsBox.innerHTML = "";
           });
           suggestionsBox.appendChild(div);
@@ -122,19 +185,33 @@ document.addEventListener("DOMContentLoaded", () => {
   const categorySelect = document.getElementById("categorySelect");
   const basePriceContainer = document.getElementById("basePriceContainer");
   const priceRow = document.getElementById("priceRow");
+  const quantityContainer = document.getElementById("quantityContainer");
+  const ingredientsContainer = document.getElementById("ingredientsContainer");
 
-  function togglePriceFields() {
-    if (categorySelect.value === "BK") { // BK = Pastries
+  function toggleFields() {
+    const isPastries = categorySelect.value === "BK"; // BK = Pastries
+
+    if (isPastries) {
       basePriceContainer.classList.remove("hidden");
       priceRow.classList.add("hidden");
+      quantityContainer.classList.remove("hidden");
+      ingredientsContainer.classList.add("hidden");
     } else {
       basePriceContainer.classList.add("hidden");
       priceRow.classList.remove("hidden");
+      quantityContainer.classList.add("hidden");
+      ingredientsContainer.classList.remove("hidden");
     }
   }
 
-  categorySelect.addEventListener("change", togglePriceFields);
-  togglePriceFields();
+  categorySelect.addEventListener("change", () => {
+    toggleFields();
+    // Clear ingredients when category changes, since different categories have different formats
+    ingredients = [];
+    chipContainer.querySelectorAll('.chip').forEach(chip => chip.remove());
+    updateHiddenInput();
+  });
+  toggleFields();
 
   // ---------- EDIT PRODUCT MODAL ----------
   const editModal = document.getElementById("editProductModal");

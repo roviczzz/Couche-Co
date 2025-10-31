@@ -337,11 +337,57 @@ body {
   font-size: 13px;
   font-weight: 500;
   color: #3b2d1f;
+  gap: 2px;
+  flex-wrap: wrap;
 }
-.chip span {
-  margin-left: 8px;
+
+.chip-name {
+  white-space: nowrap;
+}
+
+.chip-separator {
+  color: #8b5a2b;
+  font-weight: bold;
+}
+
+.chip-grams-label {
+  font-size: 10px;
+  color: #666;
+  white-space: nowrap;
+}
+
+.chip-grams-input {
+  width: 35px;
+  padding: 1px 2px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font-size: 10px;
+  text-align: center;
+  background: #fff;
+  margin: 0 1px;
+}
+
+.chip-grams-input:focus {
+  outline: none;
+  border-color: #8B4513;
+}
+
+.chip-unit {
+  font-size: 10px;
+  color: #666;
+  font-weight: bold;
+}
+
+.chip-remove {
   cursor: pointer;
   font-weight: bold;
+  color: #8B4513;
+  margin-left: 4px;
+  font-size: 14px;
+}
+
+.chip-remove:hover {
+  color: #a0522d;
 }
 
 /* Suggestions dropdown */
