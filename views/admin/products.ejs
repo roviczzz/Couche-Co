@@ -104,6 +104,15 @@
         <input type="hidden" name="Ingredients" id="hiddenIngredients">
       </div>
 
+      <div id="addOnsContainer" class="form-group hidden">
+        <label class="form-label">Add-Ons</label>
+        <div class="chip-container" id="addOnsChipContainer">
+          <input type="text" id="addOnsChipInput" class="chip-input" placeholder="Type add-on...">
+          <div id="addOnsSuggestions"></div>
+        </div>
+        <input type="hidden" name="AddOns" id="hiddenAddOns">
+      </div>
+
       <div class="form-group">
         <label class="form-label">Allergen (optional)</label>
         <select class="form-input" name="Allergen">

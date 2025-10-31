@@ -59,6 +59,68 @@ document.addEventListener("DOMContentLoaded", () => {
     hiddenIngredients.value = JSON.stringify(ingredients);
   }
 
+  // ---------- ADD-ONS CHIPS ----------
+  const addOnsChipContainer = document.getElementById("addOnsChipContainer");
+  const addOnsChipInput = document.getElementById("addOnsChipInput");
+  const hiddenAddOns = document.getElementById("hiddenAddOns");
+  const addOnsSuggestionsBox = document.getElementById("addOnsSuggestions");
+  let addOns = []; // array of { addOnID: string, name: string, usedGrams16oz: number, usedGrams22oz: number }
+
+  function updateHiddenAddOns() {
+    hiddenAddOns.value = JSON.stringify(addOns);
+  }
+
+  function addAddOnChip(id, name) {
+    if (!id || addOns.some(addOn => addOn.addOnID === id)) return;
+
+    const addOnObj = {
+      addOnID: id,
+      name: name,
+      usedGrams16oz: 0,
+      usedGrams22oz: 0
+    };
+    addOns.push(addOnObj);
+
+    const chip = document.createElement("div");
+    chip.className = "chip";
+
+    chip.innerHTML = `
+      <span class="chip-name">${name}</span>
+      <span class="chip-separator">|</span>
+      <span class="chip-grams-label">16oz:</span>
+      <input type="number" class="chip-grams-input chip-grams-16oz" value="0" min="0" step="0.1" placeholder="g">
+      <span class="chip-grams-label">22oz:</span>
+      <input type="number" class="chip-grams-input chip-grams-22oz" value="0" min="0" step="0.1" placeholder="g">
+      <span class="chip-unit">g</span>
+      <span class="chip-remove">&times;</span>
+    `;
+
+    // Handle grams input changes
+    const grams16oz = chip.querySelector(".chip-grams-16oz");
+    const grams22oz = chip.querySelector(".chip-grams-22oz");
+
+    grams16oz.addEventListener("input", (e) => {
+      addOnObj.usedGrams16oz = parseFloat(e.target.value) || 0;
+      updateHiddenAddOns();
+    });
+
+    grams22oz.addEventListener("input", (e) => {
+      addOnObj.usedGrams22oz = parseFloat(e.target.value) || 0;
+      updateHiddenAddOns();
+    });
+
+    // Handle remove button
+    chip.querySelector(".chip-remove").addEventListener("click", () => {
+      addOns = addOns.filter(addOn => addOn.addOnID !== id);
+      chip.remove();
+      updateHiddenAddOns();
+    });
+
+    addOnsChipContainer.insertBefore(chip, addOnsChipInput);
+    addOnsChipInput.value = "";
+    updateHiddenAddOns();
+  }
+
   function addChip(id, name) {
     if (!id || ingredients.some(ing => ing.ingredientID === id)) return;
 
@@ -181,26 +243,84 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.key === "Enter") e.preventDefault();
   });
 
+  // ---------- ADD-ONS INPUT HANDLING ----------
+  let addOnsDebounceTimeout;
+  addOnsChipInput.addEventListener("input", () => {
+    clearTimeout(addOnsDebounceTimeout);
+    addOnsDebounceTimeout = setTimeout(async () => {
+      const query = addOnsChipInput.value.trim();
+      addOnsSuggestionsBox.innerHTML = "";
+      if (!query) return;
+      try {
+        const res = await fetch(`/api/addons/search?q=${encodeURIComponent(query)}`);
+        let results = await res.json();
+
+        const uniqueNames = new Set();
+        const filteredResults = results.filter(item => {
+          const name = item.Name || item.itemName || item.name || 'Unknown Add-on';
+          const lowerName = name.toLowerCase();
+          const id = item.AddOnID || item.addOnID || item.id || 'unknown';
+          if (uniqueNames.has(lowerName) || addOns.some(addOn => addOn.addOnID === id)) return false;
+          uniqueNames.add(lowerName);
+          return true;
+        });
+
+        filteredResults.forEach(item => {
+          const name = item.Name || item.itemName || item.name || 'Unknown Add-on';
+          const id = item.AddOnID || item.addOnID || item.id || 'unknown';
+          const div = document.createElement("div");
+          div.textContent = name;
+          div.addEventListener("click", () => {
+            addAddOnChip(id, name);
+            addOnsSuggestionsBox.innerHTML = "";
+          });
+          addOnsSuggestionsBox.appendChild(div);
+        });
+
+      } catch (err) {
+        console.error(err);
+      }
+    }, 200);
+  });
+
+  document.addEventListener("click", e => {
+    if (e.target !== addOnsChipInput) addOnsSuggestionsBox.innerHTML = "";
+  });
+
+  addOnsChipInput.addEventListener("keydown", e => {
+    if (e.key === "Enter") e.preventDefault();
+  });
+
   // ---------- CATEGORY TOGGLE ----------
   const categorySelect = document.getElementById("categorySelect");
   const basePriceContainer = document.getElementById("basePriceContainer");
   const priceRow = document.getElementById("priceRow");
   const quantityContainer = document.getElementById("quantityContainer");
   const ingredientsContainer = document.getElementById("ingredientsContainer");
+  const addOnsContainer = document.getElementById("addOnsContainer");
 
   function toggleFields() {
     const isPastries = categorySelect.value === "BK"; // BK = Pastries
+    const isDrink = ["CF", "FT", "MT"].includes(categorySelect.value); // CF = Coffee, FT = Fruit Tea, MT = Milktea
 
     if (isPastries) {
       basePriceContainer.classList.remove("hidden");
       priceRow.classList.add("hidden");
       quantityContainer.classList.remove("hidden");
       ingredientsContainer.classList.add("hidden");
+      addOnsContainer.classList.add("hidden");
     } else {
       basePriceContainer.classList.add("hidden");
       priceRow.classList.remove("hidden");
       quantityContainer.classList.add("hidden");
       ingredientsContainer.classList.remove("hidden");
+
+      // Show add-ons for all drink categories (Coffee, Fruit Tea, Milktea)
+      if (isDrink) {
+        addOnsContainer.classList.remove("hidden");
+      } else {
+        addOnsContainer.classList.add("hidden");
+      }
     }
   }
 
@@ -210,6 +330,11 @@ document.addEventListener("DOMContentLoaded", () => {
     ingredients = [];
     chipContainer.querySelectorAll('.chip').forEach(chip => chip.remove());
     updateHiddenInput();
+
+    // Clear add-ons when category changes
+    addOns = [];
+    addOnsChipContainer.querySelectorAll('.chip').forEach(chip => chip.remove());
+    updateHiddenAddOns();
   });
   toggleFields();
 

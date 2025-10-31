@@ -462,6 +462,28 @@ router.get('/ingredients/search', async (req, res) => {
   }
 });
 
+router.get('/addons/search', async (req, res) => {
+  try {
+    const query = req.query.q || '';
+
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    // Search for add-ons that match the Name
+    const results = await db.collection('Add-ons')
+      .find({ Name: { $regex: query, $options: 'i' }, isEnabled: true })
+      .project({ AddOnID: 1, Name: 1, _id: 0 })
+      .limit(50)
+      .toArray();
+
+    await client.close();
+    res.json(results);
+  } catch (err) {
+    console.error('Error in add-on search:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 router.get('/stocks/health', async (req, res) => {
   try {
     const startTime = Date.now();

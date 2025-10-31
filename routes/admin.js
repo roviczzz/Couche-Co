@@ -483,6 +483,7 @@ router.post('/products/add', upload.single('imagelink'), async (req, res) => {
     size16,
     size22,
     Ingredients,
+    AddOns,
     Quantity,
     Allergen,
     isEnabled,
@@ -533,6 +534,29 @@ router.post('/products/add', upload.single('imagelink'), async (req, res) => {
     }
   }
 
+  // AddOns array - expecting JSON string of objects with addOnID, name, usedGrams16oz, usedGrams22oz
+  let addOnsArray = [];
+  if (AddOns) {
+    try {
+      addOnsArray = JSON.parse(AddOns);
+      // Validate the structure
+      if (!Array.isArray(addOnsArray)) {
+        addOnsArray = [];
+      } else {
+      // Ensure each item has the required properties
+      addOnsArray = addOnsArray.filter(item => {
+        if (!item || typeof item !== 'object' || !item.addOnID || !item.name) return false;
+        // usedGrams16oz and usedGrams22oz must be numbers
+        if (typeof item.usedGrams16oz !== 'number' || typeof item.usedGrams22oz !== 'number') return false;
+        return true;
+      });
+      }
+    } catch (err) {
+      console.error('Error parsing addOns JSON:', err);
+      addOnsArray = [];
+    }
+  }
+
   // Image handling - upload directly to ImgBB
   let imagelink = 'placeholder';
 
@@ -564,6 +588,11 @@ router.post('/products/add', upload.single('imagelink'), async (req, res) => {
     imagelink,
     isEnabled: isEnabled === 'true'
   };
+
+  // Add AddOns if provided
+  if (addOnsArray.length > 0) {
+    productData.AddOns = addOnsArray;
+  }
 
   // Handle ingredients vs quantity based on category
   if (Category.toLowerCase() === 'pastries') {

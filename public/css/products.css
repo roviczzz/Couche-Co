@@ -391,7 +391,7 @@ body {
 }
 
 /* Suggestions dropdown */
-#suggestions {
+#suggestions, #addOnsSuggestions {
   position: absolute;
   background: #fff;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
@@ -402,14 +402,14 @@ body {
   z-index: 1000;
   width: calc(100% - 18px);
 }
-#suggestions div {
+#suggestions div, #addOnsSuggestions div {
   padding: 10px;
   cursor: pointer;
   transition: background 0.2s;
   color: #333;
   font-size: 14px;
 }
-#suggestions div:hover {
+#suggestions div:hover, #addOnsSuggestions div:hover {
   background: #f8f1eb;
   color: #000;
 }
