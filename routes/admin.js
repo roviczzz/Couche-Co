@@ -1526,13 +1526,13 @@ router.post('/migrate-passwords', async (req, res) => {
 router.post('/stocks', async (req, res) => {
   try {
     // Check if this is an add-on by looking for addon-specific fields
-    const isAddon = req.body.AddOnID || req.body.AddOnPrefix || req.body.AddOnSuffix || req.body.Name === 'Pearls';
+    const isAddon = req.body.AddOnID || req.body.AddOnPrefix || req.body.AddOnSuffix || req.body.BasePrice;
 
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
 
     if (isAddon) {
-      // Handle Add-On directly
+      // Handle Add-On with correct field formatting
 
       // Check for existing add-on with same ID and Name combination
       const existingAddon = await db.collection('Add-ons').findOne({
@@ -1547,23 +1547,56 @@ router.post('/stocks', async (req, res) => {
 
       const addOnData = {
         AddOnID: req.body.AddOnID,
+        AddOnPrefix: req.body.AddOnPrefix || 'AD',
+        AddOnSuffix: req.body.AddOnSuffix,
         Name: req.body.Name,
-        AmountPerPack: req.body.AmountPerPack || '0 g', // Use AmountPerPack directly
+        AmountPerPack: req.body.AmountPerPack,
+        Amount: parseInt(req.body.Amount),
+        Unit: req.body.Unit,
         Category: req.body.Category || 'Add-Ons',
         Allergen: req.body.Allergen || 'None',
-        isEnabled: req.body.isEnabled === 'true' || req.body.isEnabled === true,
-        isAvailable: true,
-        createdAt: new Date(),
+        BasePrice: parseFloat(req.body.BasePrice) || 10,
+        isEnabled: req.body.isEnabled === 'true' || req.body.isEnabled === true || req.body.isEnabled === 'on',
         lastModified: new Date()
       };
 
       await db.collection('Add-ons').insertOne(addOnData);
       await client.close();
-      console.log('✅ Added new add-on:', addOnData.AddOnID, 'with AmountPerPack:', addOnData.AmountPerPack);
+      console.log('✅ Added new add-on:', addOnData.AddOnID, 'with AmountPerPack:', addOnData.AmountPerPack, 'BasePrice:', addOnData.BasePrice);
     } else {
-      // Handle Ingredient using existing function
-      await addIngredient(req.body);
-      console.log('✅ Added new ingredient');
+      // Handle Ingredient with correct field formatting
+      const ingredientData = {
+        IngredientID: req.body.IngredientID,
+        IngredientPrefix: req.body.IngredientPrefix || 'ING',
+        IngredientSuffix: req.body.IngredientSuffix,
+        Name: req.body.Name,
+        AmountPerPack: req.body.AmountPerPack,
+        Amount: parseInt(req.body.Amount),
+        Unit: req.body.Unit,
+        Category: req.body.Category || 'Ingredients',
+        Allergen: req.body.Allergen || 'None',
+        isEnabled: req.body.isEnabled === 'true' || req.body.isEnabled === true || req.body.isEnabled === 'on',
+        isAvailable: req.body.isAvailable === 'true' || req.body.isAvailable === true,
+        createdAt: new Date(),
+        lastModified: new Date()
+      };
+
+      // Check for existing ingredient with same ID and Name combination
+      if (ingredientData.IngredientID && ingredientData.Name) {
+        const existingIngredient = await db.collection('Ingredients').findOne({
+          IngredientID: ingredientData.IngredientID,
+          Name: ingredientData.Name.trim()
+        });
+
+        if (existingIngredient) {
+          await client.close();
+          throw new Error('DUPLICATE_ID_NAME');
+        }
+      }
+
+      await db.collection('Ingredients').insertOne(ingredientData);
+      await client.close();
+      console.log('✅ Added new ingredient:', ingredientData.IngredientID, 'with AmountPerPack:', ingredientData.AmountPerPack);
     }
 
     res.redirect('/admin/stocks?msg=add_success');

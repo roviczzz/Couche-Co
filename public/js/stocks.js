@@ -869,40 +869,55 @@ document.addEventListener('DOMContentLoaded', function() {
       const suffix = ingredientModalForm.querySelector('input[name="IngredientSuffix"]').value.trim();
       const fullId = `${prefix}-${suffix}`;
 
-      const existingHiddenId = ingredientModalForm.querySelector('input[name="IngredientID"][type="hidden"]');
-      if (existingHiddenId) {
-        existingHiddenId.remove();
-      }
+      // Remove any existing hidden fields first (only remove hidden ones, keep visible form inputs)
+      ['IngredientID', 'IngredientPrefix', 'AmountPerPack', 'Category', 'isAvailable', 'isEnabled'].forEach(fieldName => {
+        const existing = ingredientModalForm.querySelector(`input[name="${fieldName}"][type="hidden"]`);
+        if (existing) existing.remove();
+      });
 
-      const hiddenInput = document.createElement('input');
-      hiddenInput.type = 'hidden';
-      hiddenInput.name = 'IngredientID';
-      hiddenInput.value = fullId;
-      ingredientModalForm.appendChild(hiddenInput);
+      // Add IngredientID (derived field)
+      const hiddenIngredientID = document.createElement('input');
+      hiddenIngredientID.type = 'hidden';
+      hiddenIngredientID.name = 'IngredientID';
+      hiddenIngredientID.value = fullId;
+      ingredientModalForm.appendChild(hiddenIngredientID);
 
-      // Create AmountPerPack from Amount and Unit
+      // Add IngredientPrefix (derived field)
+      const hiddenIngredientPrefix = document.createElement('input');
+      hiddenIngredientPrefix.type = 'hidden';
+      hiddenIngredientPrefix.name = 'IngredientPrefix';
+      hiddenIngredientPrefix.value = prefix;
+      ingredientModalForm.appendChild(hiddenIngredientPrefix);
+
+      // Get values from existing visible form fields
       const amount = ingredientModalForm.querySelector('input[name="Amount"]').value.trim();
       const unit = ingredientModalForm.querySelector('select[name="Unit"]').value;
       const amountPerPack = `${amount} ${unit}`;
 
-      const existingHiddenAmountPerPack = ingredientModalForm.querySelector('input[name="AmountPerPack"][type="hidden"]');
-      if (existingHiddenAmountPerPack) {
-        existingHiddenAmountPerPack.remove();
-      }
-
+      // Add AmountPerPack (derived field)
       const hiddenAmountPerPack = document.createElement('input');
       hiddenAmountPerPack.type = 'hidden';
       hiddenAmountPerPack.name = 'AmountPerPack';
       hiddenAmountPerPack.value = amountPerPack;
       ingredientModalForm.appendChild(hiddenAmountPerPack);
 
+      // Add Category
+      const hiddenCategory = document.createElement('input');
+      hiddenCategory.type = 'hidden';
+      hiddenCategory.name = 'Category';
+      hiddenCategory.value = 'Ingredients';
+      ingredientModalForm.appendChild(hiddenCategory);
+
+      // Add isAvailable
+      const hiddenIsAvailable = document.createElement('input');
+      hiddenIsAvailable.type = 'hidden';
+      hiddenIsAvailable.name = 'isAvailable';
+      hiddenIsAvailable.value = 'true';
+      ingredientModalForm.appendChild(hiddenIsAvailable);
+
+      // Handle isEnabled switch
       const enabledSwitch = ingredientModalForm.querySelector('input[name="isEnabledStock"]');
       if (enabledSwitch) {
-        const existingHiddenEnabled = ingredientModalForm.querySelector('input[name="isEnabled"][type="hidden"]');
-        if (existingHiddenEnabled) {
-          existingHiddenEnabled.remove();
-        }
-
         const newHiddenEnabled = document.createElement('input');
         newHiddenEnabled.type = 'hidden';
         newHiddenEnabled.name = 'isEnabled';
@@ -912,7 +927,7 @@ document.addEventListener('DOMContentLoaded', function() {
         enabledSwitch.removeAttribute('name');
       }
 
-      console.log(`[2025-10-15 17:45:23] Adding new ingredient with ID: ${fullId} and AmountPerPack: ${amountPerPack} by MathDaenniel`);
+      console.log(`[2025-10-15 17:45:23] Adding new ingredient with ID: ${fullId}, AmountPerPack: ${amountPerPack}, Amount: ${amount}, Unit: ${unit} by MathDaenniel`);
     });
   }
 
@@ -932,89 +947,66 @@ document.addEventListener('DOMContentLoaded', function() {
       const suffix = addonModalForm.querySelector('input[name="AddOnSuffix"]').value.trim();
       const fullId = `${prefix}-${suffix}`;
 
-      console.log(`[2025-10-15 17:45:23] Add-on form fullId: ${fullId} by MathDaenniel`);
+      // Remove any existing hidden fields first (only remove hidden ones, keep visible form inputs)
+      ['AddOnID', 'AddOnPrefix', 'AmountPerPack', 'Category', 'BasePrice', 'isEnabled'].forEach(fieldName => {
+        const existing = addonModalForm.querySelector(`input[name="${fieldName}"][type="hidden"]`);
+        if (existing) existing.remove();
+      });
 
-      const existingHiddenId = addonModalForm.querySelector('input[name="AddOnID"][type="hidden"]');
-      if (existingHiddenId) {
-        existingHiddenId.remove();
-      }
+      // Add AddOnID (derived field)
+      const hiddenAddOnID = document.createElement('input');
+      hiddenAddOnID.type = 'hidden';
+      hiddenAddOnID.name = 'AddOnID';
+      hiddenAddOnID.value = fullId;
+      addonModalForm.appendChild(hiddenAddOnID);
 
-      const hiddenInput = document.createElement('input');
-      hiddenInput.type = 'hidden';
-      hiddenInput.name = 'AddOnID';
-      hiddenInput.value = fullId;
-      addonModalForm.appendChild(hiddenInput);
+      // Add AddOnPrefix (derived field)
+      const hiddenAddOnPrefix = document.createElement('input');
+      hiddenAddOnPrefix.type = 'hidden';
+      hiddenAddOnPrefix.name = 'AddOnPrefix';
+      hiddenAddOnPrefix.value = prefix;
+      addonModalForm.appendChild(hiddenAddOnPrefix);
 
-      // Create AmountPerPack from Amount and Unit - ROBUST VERSION
-      console.log(`[2025-10-15 17:45:23] Starting AmountPerPack creation... by MathDaenniel`);
+      // Get values from existing visible form fields
+      const amount = addonModalForm.querySelector('input[name="Amount"]').value.trim();
+      const unit = addonModalForm.querySelector('select[name="Unit"]').value;
+      const basePrice = addonModalForm.querySelector('input[name="BasePrice"]')?.value?.trim() || '10';
+      const amountPerPack = `${amount} ${unit}`;
 
-      // Get references to the form elements more explicitly
-      const amountField = addonModalForm.querySelector('.amount-group input[name="Amount"]') ||
-                          addonModalForm.querySelector('input[name="Amount"]');
-      const unitField = addonModalForm.querySelector('.amount-group select[name="Unit"]') ||
-                        addonModalForm.querySelector('select[name="Unit"]');
-
-      console.log(`[2025-10-15 17:45:23] Field selectors found - amountField: ${!!amountField}, unitField: ${!!unitField} by MathDaenniel`);
-
-      // Get raw values with comprehensive fallbacks
-      const rawAmount = amountField ? amountField.value : '';
-      const rawUnit = unitField ? unitField.value : '';
-
-      console.log(`[2025-10-15 17:45:23] Raw values - amount: "${rawAmount}", unit: "${rawUnit}" by MathDaenniel`);
-
-      // Process amount with strict validation
-      let processedAmount = '0'; // Default fallback
-      if (rawAmount !== '' && rawAmount !== null && rawAmount !== undefined) {
-        const numVal = parseFloat(rawAmount);
-        if (!isNaN(numVal) && numVal >= 0) {
-          processedAmount = numVal.toString();
-        }
-      }
-
-      // Process unit with strict validation
-      let processedUnit = 'g'; // Default fallback for add-ons
-      if (rawUnit && (rawUnit === 'g' || rawUnit === 'mL')) {
-        processedUnit = rawUnit;
-      }
-
-      const amountPerPack = `${processedAmount} ${processedUnit}`;
-
-      console.log(`[2025-10-15 17:45:23] FINAL AmountPerPack: "${amountPerPack}" (from raw amount: "${rawAmount}", processed: "${processedAmount}", unit: "${processedUnit}") by MathDaenniel`);
-
-      // Remove any existing AmountPerPack field
-      const existingHiddenAmountPerPack = addonModalForm.querySelector('input[name="AmountPerPack"][type="hidden"]');
-      if (existingHiddenAmountPerPack) {
-        existingHiddenAmountPerPack.remove();
-        console.log(`[2025-10-15 17:45:23] Removed existing AmountPerPack field by MathDaenniel`);
-      }
-
-      // Create new AmountPerPack field
+      // Add AmountPerPack (derived field)
       const hiddenAmountPerPack = document.createElement('input');
       hiddenAmountPerPack.type = 'hidden';
       hiddenAmountPerPack.name = 'AmountPerPack';
       hiddenAmountPerPack.value = amountPerPack;
       addonModalForm.appendChild(hiddenAmountPerPack);
 
-      console.log(`[2025-10-15 17:45:23] Created new AmountPerPack hidden field with value: "${amountPerPack}" by MathDaenniel`);
+      // Add Category
+      const hiddenCategory = document.createElement('input');
+      hiddenCategory.type = 'hidden';
+      hiddenCategory.name = 'Category';
+      hiddenCategory.value = 'Add-Ons';
+      addonModalForm.appendChild(hiddenCategory);
 
-      const enabledSwitch = addonModalForm.querySelector('input[name="isEnabled"]');
+      // Add BasePrice - get it from the form field
+      const hiddenBasePrice = document.createElement('input');
+      hiddenBasePrice.type = 'hidden';
+      hiddenBasePrice.name = 'BasePrice';
+      hiddenBasePrice.value = parseFloat(basePrice) || 10;
+      addonModalForm.appendChild(hiddenBasePrice);
+
+      // Handle isEnabled switch
+      const enabledSwitch = addonModalForm.querySelector('input[name="isEnabledStock"]');
       if (enabledSwitch) {
-        const existingHiddenEnabled = addonModalForm.querySelector('input[name="isEnabled"][type="hidden"]');
-        if (existingHiddenEnabled) {
-          existingHiddenEnabled.remove();
-        }
-
         const newHiddenEnabled = document.createElement('input');
         newHiddenEnabled.type = 'hidden';
         newHiddenEnabled.name = 'isEnabled';
         newHiddenEnabled.value = enabledSwitch.checked ? 'true' : 'false';
         addonModalForm.appendChild(newHiddenEnabled);
 
-        // Remove name to prevent form submission of the checkbox
         enabledSwitch.removeAttribute('name');
       }
 
-      console.log(`[2025-10-15 17:45:23] ✅ Add-on submission ready with AmountPerPack: "${amountPerPack}" by MathDaenniel`);
+      console.log(`[2025-10-15 17:45:23] Adding new add-on with ID: ${fullId}, AmountPerPack: ${amountPerPack}, BasePrice: ${basePrice} by MathDaenniel`);
     });
   }
 
