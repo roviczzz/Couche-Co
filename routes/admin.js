@@ -686,7 +686,9 @@ router.get('/api/products/:id', async (req, res) => {
 // ✅ Edit Product route (with FormData upload to ImgBB)
 router.post('/products/edit/:id', upload.single('imagelink'), async (req, res) => {
   const { id } = req.params;
-  const { description, Allergen, size16, size22 } = req.body;
+  const { description, Allergen, size16, size22, BasePrice } = req.body;
+
+
 
   try {
     const client = await MongoClient.connect(uri);
@@ -701,16 +703,54 @@ router.post('/products/edit/:id', upload.single('imagelink'), async (req, res) =
       return res.redirect('/admin/products');
     }
 
-    const updateFields = {
-      description: description || "",
-      Allergen: Allergen || ""
-    };
+    const updateFields = {};
 
-    // Update sizes/prices
-    const sizes = [];
-    if (size16) sizes.push({ Size: '16oz', BasePrice: parseFloat(size16) });
-    if (size22) sizes.push({ Size: '22oz', BasePrice: parseFloat(size22) });
-    if (sizes.length) updateFields.Sizes = sizes;
+    // Only update description if it was provided and is different
+    if (description !== undefined && description !== existingProduct.description) {
+      updateFields.description = description || "";
+    }
+
+    // Only update allergen if it was provided and is different
+    if (Allergen !== undefined && Allergen !== existingProduct.Allergen) {
+      updateFields.Allergen = Allergen || "";
+    }
+
+    // Update sizes/prices only if they were provided
+    if (size16 !== undefined || size22 !== undefined) {
+      const sizes = [];
+      if (size16 !== undefined && size16 !== "") {
+        const size16Price = parseFloat(size16);
+        if (!isNaN(size16Price)) {
+          sizes.push({ Size: '16oz', BasePrice: size16Price });
+        }
+      }
+      if (size22 !== undefined && size22 !== "") {
+        const size22Price = parseFloat(size22);
+        if (!isNaN(size22Price)) {
+          sizes.push({ Size: '22oz', BasePrice: size22Price });
+        }
+      }
+
+      // Only update sizes if they actually changed
+      const currentSizes = existingProduct.Sizes || [];
+      const sizesChanged = JSON.stringify(sizes.sort((a, b) => a.Size.localeCompare(b.Size))) !==
+                          JSON.stringify(currentSizes.sort((a, b) => a.Size.localeCompare(b.Size)));
+
+      if (sizesChanged) {
+        updateFields.Sizes = sizes.length > 0 ? sizes : null;
+      }
+    }
+
+    // Update BasePrice only if it was provided and is different
+    if (BasePrice !== undefined && BasePrice !== "") {
+      const basePriceValue = parseFloat(BasePrice);
+      const existingBasePrice = parseFloat(existingProduct.BasePrice) || 0;
+      if (!isNaN(basePriceValue) && basePriceValue !== existingBasePrice) {
+        updateFields.BasePrice = basePriceValue;
+      }
+    }
+
+
 
     console.log("DEBUG: API Key value ->", process.env.IMGBB_API_KEY);
 
@@ -747,13 +787,18 @@ router.post('/products/edit/:id', upload.single('imagelink'), async (req, res) =
       }
     }
 
-    await collection.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: updateFields }
-    );
+    // Only update if there are actual changes
+    if (Object.keys(updateFields).length > 0) {
+      await collection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: updateFields }
+      );
+      req.flash('success_msg', 'Product updated successfully');
+    } else {
+      req.flash('info_msg', 'No changes were made to the product');
+    }
 
     await client.close();
-    req.flash('success_msg', 'Product updated successfully');
     res.redirect('/admin/products');
   } catch (err) {
     console.error('Error editing product:', err);

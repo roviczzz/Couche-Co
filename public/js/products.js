@@ -346,15 +346,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const editPriceRow = document.getElementById("editPriceRow");
   const editEnabledCheckbox = document.getElementById("editEnabled");
 
-  function toggleEditFields() {
-    if (editCategoryHidden.value === "BK") {
-      editBasePriceContainer.classList.remove("hidden");
-      editPriceRow.classList.add("hidden");
-    } else {
-      editBasePriceContainer.classList.add("hidden");
-      editPriceRow.classList.remove("hidden");
-    }
-  }
+
 
   // Open edit modal
   document.querySelectorAll(".edit-btn").forEach(btn => {
@@ -374,17 +366,30 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("editCategoryDisplay").value = p.Category || "";
         editCategoryHidden.value = p.Category || "";
 
-        if (p.Sizes && Array.isArray(p.Sizes)) {
-          const size16 = p.Sizes.find(s => s.Size === "16oz" || s.size === "16oz");
-          const size22 = p.Sizes.find(s => s.Size === "22oz" || s.size === "22oz");
-          document.getElementById("editSize16").value = size16 ? (size16.BasePrice || size16.basePrice) : "";
-          document.getElementById("editSize22").value = size22 ? (size22.BasePrice || size22.basePrice) : "";
+        // Check if this is a pastries product
+        const isPastries = p.Category === "Pastries" || p.Category === "BK";
+
+        if (isPastries) {
+          // For pastries: show BasePrice, hide size-specific prices
+          editBasePriceContainer.style.display = "block";
+          editPriceRow.style.display = "none";
+          document.getElementById("editBasePrice").value = p.BasePrice || p.basePrice || "";
         } else {
-          document.getElementById("editSize16").value = "";
-          document.getElementById("editSize22").value = "";
+          // For drinks: show size-specific prices, hide BasePrice
+          editBasePriceContainer.style.display = "none";
+          editPriceRow.style.display = "block";
+
+          if (p.Sizes && Array.isArray(p.Sizes)) {
+            const size16 = p.Sizes.find(s => s.Size === "16oz" || s.size === "16oz");
+            const size22 = p.Sizes.find(s => s.Size === "22oz" || s.size === "22oz");
+            document.getElementById("editSize16").value = size16 ? (size16.BasePrice || size16.basePrice) : "";
+            document.getElementById("editSize22").value = size22 ? (size22.BasePrice || size22.basePrice) : "";
+          } else {
+            document.getElementById("editSize16").value = "";
+            document.getElementById("editSize22").value = "";
+          }
         }
 
-        document.getElementById("editBasePrice").value = p.BasePrice || p.basePrice || "";
         document.getElementById("editDescription").value = p.Description || p.description || "";
         document.getElementById("editAllergen").value = p.Allergen || p.allergen || "";
         editEnabledCheckbox.checked = !!p.isEnabled;
@@ -396,7 +401,6 @@ document.addEventListener("DOMContentLoaded", () => {
           document.getElementById("editImagePreview").innerHTML = "";
         }
 
-        toggleEditFields();
         editModal.classList.remove("hidden");
       } catch (err) {
         console.error(err);
