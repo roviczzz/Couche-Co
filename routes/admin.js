@@ -197,9 +197,91 @@ router.get('/analytics/low-stock', nocache, async (req, res) => {
   }
 });
 
+router.get('/analytics/top-categories', nocache, async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
 
+    const pipeline = [
+      { $unwind: '$Cart' },
+      {
+        $match: {
+          PaymentStatus: { $ne: 'Cancelled' },
+          'Cart.Category': { $exists: true, $ne: null }
+        }
+      },
+      {
+        $group: {
+          _id: '$Cart.Category',
+          total: { $sum: { $multiply: ['$Cart.Price', '$Cart.Quantity'] } },
+          quantity: { $sum: '$Cart.Quantity' },
+          orderCount: { $sum: 1 }
+        }
+      },
+      { $sort: { total: -1 } },
+      { $limit: 8 }
+    ];
 
+    const categories = await db.collection('Orders').aggregate(pipeline).toArray();
+    await client.close();
 
+    res.json(categories.map(cat => ({
+      name: cat._id,
+      value: cat.total,
+      quantity: cat.quantity,
+      orderCount: cat.orderCount
+    })));
+  } catch (error) {
+    console.error('Top categories error:', error);
+    res.status(500).json({ error: 'Failed to load top categories' });
+  }
+});
+
+router.get('/analytics/payment-types', nocache, async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    const pipeline = [
+      {
+        $match: {
+          PaymentStatus: { $ne: 'Cancelled' },
+          PaymentMode: { $exists: true, $ne: null }
+        }
+      },
+      {
+        $project: {
+          PaymentMode: {
+            $cond: {
+              if: { $in: ['$PaymentMode', ['E-PAYMENT', 'E-Payment', 'E_Payment']] },
+              then: 'E-Payment',
+              else: '$PaymentMode'
+            }
+          },
+          PaymentStatus: 1
+        }
+      },
+      {
+        $group: {
+          _id: '$PaymentMode',
+          orderCount: { $sum: 1 }
+        }
+      },
+      { $sort: { orderCount: -1 } }
+    ];
+
+    const paymentTypes = await db.collection('Orders').aggregate(pipeline).toArray();
+    await client.close();
+
+    res.json(paymentTypes.map(pt => ({
+      name: pt._id,
+      orderCount: pt.orderCount
+    })));
+  } catch (error) {
+    console.error('Payment types error:', error);
+    res.status(500).json({ error: 'Failed to load payment types' });
+  }
+});
 
 router.get('/analytics/orders-by-source', nocache, async (req, res) => {
   try {
@@ -463,11 +545,8 @@ router.get('/products', nocache, async (req, res) => {
   }
 });
 
-// --- Multer setup ---
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads/'),
-  filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname)),
-});
+// --- Multer setup (memory storage for direct ImgBB upload) ---
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 // Add Product route
@@ -479,6 +558,8 @@ router.post('/products/add', upload.single('imagelink'), async (req, res) => {
     size16,
     size22,
     Ingredients,
+    AddOns,
+    Quantity,
     Allergen,
     isEnabled,
     BasePrice,
@@ -502,17 +583,61 @@ router.post('/products/add', upload.single('imagelink'), async (req, res) => {
   if (size16) Sizes.push({ Size: '16oz', BasePrice: parseFloat(size16) });
   if (size22) Sizes.push({ Size: '22oz', BasePrice: parseFloat(size22) });
 
-  // Ingredients array
-  const ingredientsArray = Ingredients ? Ingredients.split(',').map(i => i.trim()) : [];
+  // Ingredients array - now expecting JSON string of objects with ingredientID and usedGrams
+  let ingredientsArray = [];
+  if (Ingredients) {
+    try {
+      ingredientsArray = JSON.parse(Ingredients);
+      // Validate the structure
+      if (!Array.isArray(ingredientsArray)) {
+        ingredientsArray = [];
+      } else {
+      // Ensure each item has the required properties
+      ingredientsArray = ingredientsArray.filter(item => {
+        if (!item || typeof item !== 'object' || !item.ingredientID) return false;
+        // usedGrams can be a number (for non-Milktea) or an object (for Milktea)
+        const usedGrams = item.usedGrams;
+        if (typeof usedGrams === 'number') return true; // non-Milktea
+        if (typeof usedGrams === 'object' && usedGrams !== null &&
+            typeof usedGrams['16oz'] === 'number' && typeof usedGrams['22oz'] === 'number') return true; // Milktea
+        return false;
+      });
+      }
+    } catch (err) {
+      console.error('Error parsing ingredients JSON:', err);
+      ingredientsArray = [];
+    }
+  }
 
-  // Image handling
-  let imagelink = req.file ? `/uploads/${req.file.filename}` : 'placeholder';
-  let imgbbUrl = null;
-  let deleteUrl = null;
+  // AddOns array - expecting JSON string of objects with addOnID, name, usedGrams16oz, usedGrams22oz
+  let addOnsArray = [];
+  if (AddOns) {
+    try {
+      addOnsArray = JSON.parse(AddOns);
+      // Validate the structure
+      if (!Array.isArray(addOnsArray)) {
+        addOnsArray = [];
+      } else {
+      // Ensure each item has the required properties
+      addOnsArray = addOnsArray.filter(item => {
+        if (!item || typeof item !== 'object' || !item.addOnID || !item.name) return false;
+        // usedGrams16oz and usedGrams22oz must be numbers
+        if (typeof item.usedGrams16oz !== 'number' || typeof item.usedGrams22oz !== 'number') return false;
+        return true;
+      });
+      }
+    } catch (err) {
+      console.error('Error parsing addOns JSON:', err);
+      addOnsArray = [];
+    }
+  }
+
+  // Image handling - upload directly to ImgBB
+  let imagelink = 'placeholder';
 
   if (req.file) {
     try {
-      const fileData = fs.readFileSync(req.file.path, { encoding: "base64" });
+      const fileData = req.file.buffer.toString('base64');
       const imgbbKey = process.env.IMGBB_API_KEY;
 
       if (imgbbKey) {
@@ -520,8 +645,7 @@ router.post('/products/add', upload.single('imagelink'), async (req, res) => {
           `https://api.imgbb.com/1/upload?key=${imgbbKey}`,
           new URLSearchParams({ image: fileData })
         );
-        imgbbUrl = response.data.data.url;
-        deleteUrl = response.data.data.delete_url;
+        imagelink = response.data.data.url; // Set imagelink to the imgbb URL
       }
     } catch (err) {
       console.error("ImgBB upload failed:", err.message);
@@ -534,18 +658,30 @@ router.post('/products/add', upload.single('imagelink'), async (req, res) => {
     Name,
     description: description || "",        // <-- lowercase key so it matches your textarea name
     Sizes: Sizes.length > 0 ? Sizes : null,
-    Ingredients: ingredientsArray,
     Category,
     Allergen: Allergen || null,
     imagelink,
-    imgbbUrl,
-    deleteUrl,
     isEnabled: isEnabled === 'true'
   };
 
-  // Base price for pastries
-  if (Category.toLowerCase() === 'pastries' && !isNaN(parseFloat(BasePrice))) {
-    productData.BasePrice = parseFloat(BasePrice);
+  // Add AddOns if provided
+  if (addOnsArray.length > 0) {
+    productData.AddOns = addOnsArray;
+  }
+
+  // Handle ingredients vs quantity based on category
+  if (Category.toLowerCase() === 'pastries') {
+    // For pastries, save Quantity instead of Ingredients
+    if (Quantity && !isNaN(parseInt(Quantity))) {
+      productData.Quantity = parseInt(Quantity);
+    }
+    // Base price for pastries
+    if (!isNaN(parseFloat(BasePrice))) {
+      productData.BasePrice = parseFloat(BasePrice);
+    }
+  } else {
+    // For other categories, save Ingredients
+    productData.Ingredients = ingredientsArray;
   }
 
   try {
@@ -620,12 +756,14 @@ router.get('/api/products/:id', async (req, res) => {
 });
 
 
-const FormData = require('form-data'); // 🆕 add this at the top with other requires
+
 
 // ✅ Edit Product route (with FormData upload to ImgBB)
 router.post('/products/edit/:id', upload.single('imagelink'), async (req, res) => {
   const { id } = req.params;
-  const { description, Allergen, size16, size22 } = req.body;
+  const { description, Allergen, size16, size22, BasePrice, Quantity } = req.body;
+
+
 
   try {
     const client = await MongoClient.connect(uri);
@@ -640,36 +778,69 @@ router.post('/products/edit/:id', upload.single('imagelink'), async (req, res) =
       return res.redirect('/admin/products');
     }
 
-    const updateFields = {
-      description: description || "",
-      Allergen: Allergen || ""
-    };
+    const updateFields = {};
 
-    // Update sizes/prices
-    const sizes = [];
-    if (size16) sizes.push({ Size: '16oz', BasePrice: parseFloat(size16) });
-    if (size22) sizes.push({ Size: '22oz', BasePrice: parseFloat(size22) });
-    if (sizes.length) updateFields.Sizes = sizes;
+    // Only update description if it was provided and is different
+    if (description !== undefined && description !== existingProduct.description) {
+      updateFields.description = description || "";
+    }
+
+    // Only update allergen if it was provided and is different
+    if (Allergen !== undefined && Allergen !== existingProduct.Allergen) {
+      updateFields.Allergen = Allergen || "";
+    }
+
+    // Update sizes/prices only if they were provided
+    if (size16 !== undefined || size22 !== undefined) {
+      const sizes = [];
+      if (size16 !== undefined && size16 !== "") {
+        const size16Price = parseFloat(size16);
+        if (!isNaN(size16Price)) {
+          sizes.push({ Size: '16oz', BasePrice: size16Price });
+        }
+      }
+      if (size22 !== undefined && size22 !== "") {
+        const size22Price = parseFloat(size22);
+        if (!isNaN(size22Price)) {
+          sizes.push({ Size: '22oz', BasePrice: size22Price });
+        }
+      }
+
+      // Only update sizes if they actually changed
+      const currentSizes = existingProduct.Sizes || [];
+      const sizesChanged = JSON.stringify(sizes.sort((a, b) => a.Size.localeCompare(b.Size))) !==
+                          JSON.stringify(currentSizes.sort((a, b) => a.Size.localeCompare(b.Size)));
+
+      if (sizesChanged) {
+        updateFields.Sizes = sizes.length > 0 ? sizes : null;
+      }
+    }
+
+    // Update BasePrice only if it was provided and is different
+    if (BasePrice !== undefined && BasePrice !== "") {
+      const basePriceValue = parseFloat(BasePrice);
+      const existingBasePrice = parseFloat(existingProduct.BasePrice) || 0;
+      if (!isNaN(basePriceValue) && basePriceValue !== existingBasePrice) {
+        updateFields.BasePrice = basePriceValue;
+      }
+    }
+
+    // Update Quantity only if it was provided and is different
+    if (Quantity !== undefined && Quantity !== "") {
+      const quantityValue = parseInt(Quantity);
+      const existingQuantity = parseInt(existingProduct.Quantity) || 0;
+      if (!isNaN(quantityValue) && quantityValue !== existingQuantity) {
+        updateFields.Quantity = quantityValue;
+      }
+    }
 
     console.log("DEBUG: API Key value ->", process.env.IMGBB_API_KEY);
 
     // ✅ If new image uploaded
     if (req.file) {
-      console.log("🖼 New image uploaded:", req.file.filename);
+      console.log("🖼 New image uploaded to memory");
 
-      // Delete old local file if exists
-      if (
-        existingProduct.imagelink &&
-        existingProduct.imagelink !== 'placeholder' &&
-        existingProduct.imagelink.startsWith('/uploads/')
-      ) {
-        const oldPath = path.join(__dirname, '..', existingProduct.imagelink);
-        fs.unlink(oldPath, err => {
-          if (err) console.error('Error deleting old image:', err.message);
-        });
-      }
-
-      // Delete old ImgBB image if deleteUrl exists
+      // Delete old ImgBB image if exists (no local files to clean up anymore)
       if (existingProduct.deleteUrl) {
         try {
           await axios.get(existingProduct.deleteUrl);
@@ -679,37 +850,37 @@ router.post('/products/edit/:id', upload.single('imagelink'), async (req, res) =
         }
       }
 
-      // 🆕 Upload new image to ImgBB using FormData
+      // Upload new image directly to ImgBB from memory buffer
       try {
-        const imageData = fs.readFileSync(req.file.path, { encoding: 'base64' });
-
-        const formData = new FormData();
-        formData.append("key", process.env.IMGBB_API_KEY);
-        formData.append("image", imageData);
+        const imageData = req.file.buffer.toString('base64');
 
         const response = await axios.post(
-          "https://api.imgbb.com/1/upload",
-          formData,
-          { headers: formData.getHeaders() }
+          `https://api.imgbb.com/1/upload?key=${process.env.IMGBB_API_KEY}`,
+          new URLSearchParams({ image: imageData })
         );
 
         console.log("✅ ImgBB Upload Success:", response.data);
+        updateFields.imagelink = response.data.data.url;
 
-        updateFields.imgbbUrl = response.data.data.url;
-        updateFields.deleteUrl = response.data.data.delete_url;
-        updateFields.imagelink = `/uploads/${req.file.filename}`;
+        // No longer saving localImagePath - only ImgBB URL
+        // updateFields.localImagePath is removed
       } catch (err) {
         console.error("❌ ImgBB upload failed:", err.response?.data || err.message);
       }
     }
 
-    await collection.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: updateFields }
-    );
+    // Only update if there are actual changes
+    if (Object.keys(updateFields).length > 0) {
+      await collection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: updateFields }
+      );
+      req.flash('success_msg', 'Product updated successfully');
+    } else {
+      req.flash('info_msg', 'No changes were made to the product');
+    }
 
     await client.close();
-    req.flash('success_msg', 'Product updated successfully');
     res.redirect('/admin/products');
   } catch (err) {
     console.error('Error editing product:', err);
@@ -778,18 +949,14 @@ router.post('/delete-product/:id', async (req, res) => {
     const product = await productCollection.findOne({ _id: new ObjectId(productId) });
     if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
 
-    // Delete local file if exists
-    const fs = require('fs');
-    if (product.imagelink && product.imagelink !== 'placeholder') {
-      fs.unlink(product.imagelink.replace(/^\//, ''), err => {
-        if (err) console.error("Local file deletion error:", err.message);
-      });
-    }
-
-    // Delete ImgBB image if exists
+    // Delete ImgBB image if exists (no local files to delete anymore)
     if (product.deleteUrl) {
-      try { await axios.get(product.deleteUrl); } 
-      catch (err) { console.error("ImgBB delete error:", err.message); }
+      try {
+        await axios.get(product.deleteUrl);
+        console.log("🗑 ImgBB image deleted for product:", productId);
+      } catch (err) {
+        console.error("ImgBB delete error:", err.message);
+      }
     }
 
     await productCollection.deleteOne({ _id: new ObjectId(productId) });
@@ -1907,28 +2074,504 @@ async function connectDB() {
   return db;
 }
 
-// Route: Order History (last 30 days)
 router.get("/analytics/order-history", async (req, res) => {
   try {
     const db = await connectDB();
-    const orders = await db.collection("Orders") // try lowercase
-      .find({})
+    const days = req.query.days;
+
+    let orders = [];
+
+    if (days && days !== "all" && !isNaN(parseInt(days))) {
+      const numDays = parseInt(days);
+      const fromDate = new Date();
+      fromDate.setDate(fromDate.getDate() - numDays);
+
+      // Format as "YYYY-MM-DD" string to match DB format
+      const cutoff = fromDate.toISOString().split('T')[0];
+
+      orders = await db.collection("Orders").find({
+        Date: { $gte: cutoff }
+      })
       .sort({ Date: -1 })
       .limit(50)
       .toArray();
 
-    console.log("Orders fetched:", orders.length);
-    res.setHeader("Cache-Control", "no-store"); // prevent 304 caching
+      console.log(`Orders fetched: ${orders.length} (filtered by ${days} days), cutoff=${cutoff}`);
+    } else {
+      orders = await db.collection("Orders")
+        .find({})
+        .sort({ Date: -1 })
+        .limit(50)
+        .toArray();
+
+      console.log(`Orders fetched: ${orders.length} (no filter)`);
+    }
+
+    res.setHeader("Cache-Control", "no-store");
     res.json(orders);
+
   } catch (err) {
     console.error("Order history fetch failed:", err);
     res.status(500).json({ error: "Failed to fetch order history" });
   }
 });
 
+
+
 router.get("/products", async (req, res) => {
   const products = await Product.find(); // returns 18
   res.render("products", { products });  // ✅ pass to EJS
+});
+
+router.get("/analytics/sales-report-pdf", async (req, res) => {
+  try {
+    // Get user fullname for PDF header (same as analytics page route)
+    const userData = req.session.user;
+
+    const { start_date, end_date, days } = req.query;
+
+    // Validate date range
+    let startDate, endDate;
+    let reportTitle = "Sales Report";
+
+    try {
+      if (days && days !== "custom") {
+        const numDays = parseInt(days);
+        if (!isNaN(numDays) && numDays > 0) {
+          endDate = new Date();
+          startDate = new Date();
+          startDate.setDate(startDate.getDate() - numDays);
+          reportTitle = `Sales Report - Last ${numDays} Days`;
+        } else {
+          throw new Error('Invalid days parameter');
+        }
+      } else if (start_date && end_date) {
+        startDate = new Date(start_date);
+        endDate = new Date(end_date);
+
+        // Validate dates
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+          throw new Error('Invalid date format');
+        }
+
+        if (startDate > endDate) {
+          throw new Error('Start date cannot be after end date');
+        }
+
+        reportTitle = `Sales Report - ${startDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} to ${endDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`;
+      } else {
+        // Default to last 30 days
+        endDate = new Date();
+        startDate = new Date();
+        startDate.setDate(startDate.getDate() - 30);
+        reportTitle = "Sales Report - Last 30 Days";
+      }
+
+      // Ensure dates are valid
+      if (!startDate || !endDate || isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        throw new Error('Invalid date range');
+      }
+
+    } catch (error) {
+      console.error('Date validation error:', error);
+      return res.status(400).json({ error: 'Invalid date parameters', details: error.message });
+    }
+
+    // Get sales data from database (simplified like the working order-history route)
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    // Create date strings for comparison (same format as order-history route)
+    const cutoffStart = startDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+    const cutoffEnd = endDate.toISOString().split('T')[0];
+
+    // Query orders within date range (like the working order-history route)
+    const orders = await db.collection('Orders').find({
+      Date: { $gte: cutoffStart, $lte: cutoffEnd },
+      PaymentStatus: { $ne: "Cancelled" }
+    })
+    .sort({ Date: -1 })
+    .toArray();
+
+    // Calculate summary statistics with proper null handling
+    const totalRevenue = orders.reduce((sum, order) => {
+      const orderTotal = typeof order.Total === 'number' && !isNaN(order.Total) ? order.Total : 0;
+      return sum + orderTotal;
+    }, 0);
+    const totalOrders = orders.length;
+    const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
+    // Get payment method breakdown (normalize E-Payment variations)
+    const paymentBreakdown = orders.reduce((acc, order) => {
+      let method = order.PaymentMode || 'Unknown';
+      // Normalize different variations of E-Payment to a single category
+      if (method === 'E_Payment' || method === 'E-PAYMENT' || method === 'E-Payment') {
+        method = 'E-Payment';
+      }
+      acc[method] = (acc[method] || 0) + order.Total;
+      return acc;
+    }, {});
+
+    // Get daily sales data (using raw Date field like working order-history)
+    const dailySales = orders.reduce((acc, order) => {
+      if (order.Date) {
+        const date = order.Date.substring(0, 10); // Extract YYYY-MM-DD part only
+        acc[date] = (acc[date] || 0) + (typeof order.Total === 'number' ? order.Total : 0);
+      }
+      return acc;
+    }, {});
+
+    // Count orders per date accurately
+    const ordersPerDate = orders.reduce((acc, order) => {
+      if (order.Date) {
+        const date = order.Date.substring(0, 10); // Extract YYYY-MM-DD part only
+        acc[date] = (acc[date] || 0) + 1;
+      }
+      return acc;
+    }, {});
+
+    const dailySalesData = Object.entries(dailySales)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, total]) => ({
+        date,
+        total,
+        count: ordersPerDate[date] || 0
+      }));
+
+    // Fetch current menu items for price lookups (keep connection open)
+    const currentMenu = await db.collection('Menu').find({ isEnabled: true }).toArray();
+    const menuLookup = {};
+    currentMenu.forEach(menuItem => {
+      menuLookup[menuItem.Name] = menuItem;
+      if (menuItem.ProductName) menuLookup[menuItem.ProductName] = menuItem;
+    });
+
+    // Get top selling products (by revenue, like the "Top Product" insight) with actual quantities - keeping minimal report sections
+    const productStats = orders.reduce((acc, order) => {
+      // Use Cart array with correct field names
+      const cartItems = order.Cart || [];
+      cartItems.forEach(item => {
+        const productName = item.ProductName || item.Name || 'Unknown Product';
+        // Check multiple possible price fields in order of preference
+        let price = item.Price || item.BasePrice || 0;
+
+        // If price is still 0, try to look up from current menu
+        if (price === 0) {
+          const menuItem = menuLookup[productName];
+          if (menuItem) {
+            // If it has sizes and item specifies size, use that price
+            if (menuItem.Sizes && item.Size) {
+              const sizeInfo = menuItem.Sizes.find(size => size.Size === item.Size);
+              if (sizeInfo) {
+                price = sizeInfo.BasePrice || 0;
+              }
+            } else if (menuItem.BasePrice) {
+              // Use base price for items like pastries
+              price = menuItem.BasePrice;
+            } else if (menuItem.Sizes && menuItem.Sizes.length > 0) {
+              // Default to first size if available
+              price = menuItem.Sizes[0].BasePrice || 0;
+            }
+          }
+        }
+
+        const quantity = item.Quantity || 1;
+        const itemSubtotal = price * quantity;
+
+        if (!acc[productName]) {
+          acc[productName] = { revenue: 0, quantity: 0 };
+        }
+        acc[productName].revenue += itemSubtotal;
+        acc[productName].quantity += quantity;
+      });
+      return acc;
+    }, {});
+
+    const topProducts = Object.entries(productStats)
+      .sort(([,a], [,b]) => b.revenue - a.revenue)
+      .slice(0, 10)
+      .map(([name, stats]) => ({
+        name,
+        revenue: Math.round(stats.revenue),
+        quantity: stats.quantity
+      }));
+
+    await client.close();
+
+    // Generate HTML for PDF
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>${reportTitle}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 30px;
+            background: white;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #8b5a2b;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #8b5a2b;
+            margin-bottom: 10px;
+        }
+        .report-title {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .report-meta {
+            text-align: center;
+            margin-top: 10px;
+        }
+        .report-date {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 2px;
+            display: block;
+        }
+        .report-user {
+            font-size: 12px;
+            color: #666;
+            font-weight: 500;
+            display: block;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .summary-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            background: #f9f9f9;
+        }
+        .summary-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #8b5a2b;
+            margin-bottom: 5px;
+        }
+        .summary-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            border-bottom: 2px solid #8b5a2b;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 11px;
+        }
+        th, td {
+            border: 1px solid #e0e0e0;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background: #f5f5f5;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 1px;
+        }
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .payment-method {
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 10px;
+            background: white;
+        }
+        .payment-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .payment-amount {
+            font-size: 18px;
+            color: #8b5a2b;
+        }
+        .page-break {
+            page-break-before: always;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">Blessings Cafe</div>
+        <div class="report-title">${reportTitle}</div>
+        <div class="report-meta">
+            <div class="report-date">Generated on ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+            <div class="report-user">Generated by: ${userData.fullname || userData.displayName || 'Unknown User'}</div>
+        </div>
+    </div>
+
+    <div class="summary-grid">
+        <div class="summary-card">
+            <div class="summary-value">${totalOrders.toLocaleString()}</div>
+            <div class="summary-label">Total Orders</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-value">₱${totalRevenue.toLocaleString()}</div>
+            <div class="summary-label">Total Revenue</div>
+        </div>
+    <div class="summary-card">
+            <div class="summary-value">₱${(!isNaN(averageOrderValue) ? averageOrderValue.toFixed(2) : '0.00')}</div>
+            <div class="summary-label">Avg Order Value</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-value">₱${(() => {
+                const daysDiff = Math.max(Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)), 1);
+                return (totalRevenue / daysDiff).toFixed(2);
+            })()}</div>
+            <div class="summary-label">Daily Revenue</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Payment Methods</div>
+        <div class="payment-methods">
+            ${Object.entries(paymentBreakdown).map(([method, amount]) => `
+                <div class="payment-method">
+                    <div class="payment-name">${method}</div>
+                    <div class="payment-amount">₱${amount.toLocaleString()}</div>
+                    <div style="font-size: 12px; color: #666;">${((amount / totalRevenue) * 100).toFixed(1)}% of total</div>
+                </div>
+            `).join('')}
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Top Selling Products (by Revenue)</div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 55%">Product Name</th>
+                    <th style="width: 22%">Total Revenue</th>
+                    <th style="width: 23%">Units Sold</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${topProducts.map(product => `
+                    <tr>
+                        <td>${product.name}</td>
+                        <td>₱${product.revenue.toLocaleString()}</td>
+                        <td>${product.quantity}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section page-break">
+        <div class="section-title">Daily Sales Breakdown</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Orders</th>
+                    <th>Revenue</th>
+                    <th>Average Order Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${dailySalesData.map(day => `
+                    <tr>
+                        <td>${day.date ? new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}</td>
+                        <td>${day.count}</td>
+                        <td>₱${(day.total || 0).toLocaleString()}</td>
+                        <td>₱${day.count > 0 ? ((day.total || 0) / day.count).toFixed(2) : '0.00'}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section" style="border-top: 3px solid #8b5a2b; margin-top: 40px; padding-top: 20px;">
+        <div style="background: #8b5a2b; color: white; padding: 20px; border-radius: 8px; text-align: center;">
+            <h3 style="margin: 0 0 10px 0; font-size: 18px;">Total Sales Summary</h3>
+            <div style="font-size: 32px; font-weight: bold; margin-bottom: 15px;">₱${totalRevenue.toLocaleString()}</div>
+            <div style="font-size: 14px; opacity: 0.9;">
+                Based on ${totalOrders.toLocaleString()} orders processed between<br>
+                ${startDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} and
+                ${endDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            </div>
+        </div>
+    </div>
+</body>
+</html>`;
+
+    const puppeteer = require('puppeteer');
+
+    // Launch browser
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+
+    const page = await browser.newPage();
+
+    // Set content and wait for it to load
+    await page.setContent(html, {
+      waitUntil: 'networkidle0',
+      timeout: 30000
+    });
+
+    // Generate PDF
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      margin: {
+        top: '20mm',
+        right: '15mm',
+        bottom: '20mm',
+        left: '15mm'
+      }
+    });
+
+    await browser.close();
+
+    // Set headers and send PDF
+    const filename = `${reportTitle.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+
+    res.send(pdfBuffer);
+
+  } catch (error) {
+    console.error('PDF generation error:', error);
+    res.status(500).json({ error: 'Failed to generate PDF report', details: error.message });
+  }
 });
 
 module.exports = router;

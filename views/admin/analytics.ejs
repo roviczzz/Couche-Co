@@ -1,715 +1,223 @@
-  <!DOCTYPE html>
-  <html>
-  <head>
-    
-    <title>Analytics | Blessings Cafe</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: #fafafa;
-      min-height: 100vh;
-      color: #202223;
-      line-height: 1.5;
-    }
-
-    /* Header */
-    .header {
-      background: hwb(0 100% 0%);
-      border-bottom: 1px solid #e1e3e5;
-      padding: 1.5rem 0;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-
-    .header-content {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .brand-section {
-    display: flex;
-    flex-direction: column;  
-    align-items: center;   
-    gap: 0.25rem;
-    text-align: center;     
-  }
-
-
-
-    h1 {
-      font-size: 1.75rem;
-      font-weight: 600;
-      color: #202223;
-    }
-
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-  .date-range {
-    color: #6d7175;
-    font-size: 0.875rem;
-    font-style: italic;    
-    font-weight: 400;       
-  }
-  
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 1.5rem;
-    }
-
-  
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1.5rem;
-      margin: 2rem 0;
-    }
-
-    .stats-card {
-      background: #ffffff;
-      border: 1px solid #e1e3e5;
-      border-radius: 12px;
-      padding: 1.5rem;
-      transition: all 0.2s ease;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .stats-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, #8b5a2b 0%, #a0632c 100%);
-    }
-
-    .stats-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
-
-    .stat-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 0.75rem;
-    }
-
-    .stat-label {
-      color: #6d7175;
-      font-weight: 500;
-      font-size: 0.875rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .stat-icon {
-      width: 20px;
-      height: 20px;
-      color: #8b5a2b;
-    }
-
-    .sidebar {
-    position: relative;
-    top: 0;
-    left: 0;
-    height: 100%;      
-    z-index: 200;      
-  }
-
-    .stat-number {
-      font-size: 2rem;
-      font-weight: 700;
-      color: #202223;
-      margin-bottom: 0.25rem;
-    }
-
-    .stat-change {
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: #00a47c;
-    }
-
-    /* Section styling */
-    .section {
-      background: #ffffff;
-      border: 1px solid #e1e3e5;
-      border-radius: 12px;
-      margin-bottom: 1.5rem;
-      overflow: hidden;
-      box-shadow: #6d7175;
-    }
-
-    .section-header {
-      padding: 1.5rem 1.5rem 0 1.5rem;
-      border-bottom: 1px solid #f1f2f3;
-      margin-bottom: 0;
-      padding-bottom: 1.5rem;
-    }
-
-    .section-title {
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: #202223;
-      margin-bottom: 0.25rem;
-    }
-
-    .section-description {
-      color: #6d7175;
-      font-size: 0.875rem;
-      line-height: 1.5;
-    }
-
-    /* Chart container */
-    .chart-container {
-      position: relative;
-      padding: 1.5rem;
-      min-height: 400px;
-    }
-
-    canvas {
-      width: 100% !important;
-      height: 350px !important;
-    }
-
-    /* Loading spinner and error */
-    .loading {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 350px;
-      color: #6d7175;
-    }
-
-    .spinner {
-      width: 24px;
-      height: 24px;
-      border: 2px solid #f1f2f3;
-      border-top: 2px solid #8b5a2b;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-right: 0.75rem;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    .error-message {
-      background: #fef7f0;
-      color: #bf4f36;
-      padding: 1rem;
-      border-radius: 8px;
-      border: 1px solid #fcd9cf;
-      font-size: 0.875rem;
-    }
-
-    /* Insights panel */
-    .insights-panel {
-      background: #ffffff;
-      border: 1px solid #e1e3e5;
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin-top: 1.5rem;
-    }
-
-    .insights-header {
-      margin-bottom: 1.5rem;
-    }
-
-    .insights-title {
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: #202223;
-      margin-bottom: 0.25rem;
-    }
-
-    .insights-subtitle {
-      color: #6d7175;
-      font-size: 0.875rem;
-    }
-
-    .insights-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-    }
-
-    .insight-item {
-      background: #fafbfb;
-      padding: 1.25rem;
-      border-radius: 8px;
-      border: 1px solid #f1f2f3;
-      transition: all 0.2s ease;
-    }
-
-    .insight-item:hover {
-      background: #f6f6f7;
-      border-color: #e1e3e5;
-    }
-
-    .insight-title {
-      font-weight: 500;
-      margin-bottom: 0.5rem;
-      font-size: 0.875rem;
-      color: #6d7175;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .insight-value {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: #8b5a2b;
-    }
-
-    /* Responsive design */
-    @media (max-width: 768px) {
-      .dashboard-grid {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-      }
-      .container {
-        padding: 0 1rem;
-      }
-      .section-header,
-      .chart-container {
-        padding: 1rem;
-      }
-      .insights-panel {
-        padding: 1rem;
-      }
-      canvas {
-        height: 280px !important;
-      }
-      .loading {
-        height: 280px;
-      }
-      .header-content {
-        flex-direction: column;
-        gap: 1rem;
-        align-items: flex-start;
-      }
-      h1 {
-        font-size: 1.5rem;
-      }
-    }
-  </style>
-
-  </head>
-  <body>
-    <header class="header">
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Analytics | Blessings Cafe</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="/css/analytics.css" rel="stylesheet">
+</head>
+<body>
+  <header class="header">
     <div class="container">
-      <div class="header-content">
-        <div class="brand-section">
-          <h1>Analytics</h1>
-          <div class="date-range">Last 30 days</div>
-        </div>
-      </div>
+  <div class="header-content">
+  <div class="header-left">
+    <h1>Analytics</h1>
+    
+  </div>
+</div>
+
     </div>
   </header>
 
-    <main class="main-content">
-      <div class="container">
-        <div class="dashboard-grid">
-          <div class="stats-card">
-            <div class="stat-header">
-              <div class="stat-label">Active Products</div>
-              <svg class="stat-icon" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
-              </svg>
-            </div>
-            <div class="stat-number" id="totalProducts">--</div>
-            <div class="stat-change">Active in menu</div>
-          </div>
-          
-          <div class="stats-card">
-            <div class="stat-header">
-              <div class="stat-label">Avg Daily Sales</div>
-              <svg class="stat-icon" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"></path>
-              </svg>
-            </div>
-            <div class="stat-number" id="avgDailySales">₱--</div>
-            <div class="stat-change">Revenue per day</div>
-          </div>
-        </div>
+  <!-- Floating Generate Reports Button -->
+  <button id="generateReportBtn" class="fab-btn" onclick="openReportModal()" title="Generate Reports">
+    <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+      <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/>
+      <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"/>
+    </svg>
+  </button>
 
-        <div class="section">
+  <main class="main-content">
+    <div class="container">
+      <!-- Top Stats Cards -->
+      <div class="dashboard-grid">
+        <div class="stats-card">
+          <div class="stat-header">
+            <div class="stat-label">Active Products</div>
+            <svg class="stat-icon" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
+            </svg>
+          </div>
+          <div class="stat-number" id="totalProducts">--</div>
+          <div class="stat-change">Active in menu</div>
+        </div>
+        
+        <div class="stats-card">
+          <div class="stat-header">
+            <div class="stat-label">Avg Daily Sales</div>
+            <svg class="stat-icon" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"></path>
+            </svg>
+          </div>
+          <div class="stat-number" id="avgDailySales">₱--</div>
+          <div class="stat-change">Revenue per day</div>
+        </div>
+      </div>
+
+      <!-- Two Column Chart Grid -->
+      <div class="analytics-grid">
+        <!-- Popular Products -->
+        <div class="section full-width-section">
           <div class="section-header">
             <h2 class="section-title">Popular Products</h2>
-            <p class="section-description">
-              Your best-performing menu items based on recent sales data. Use this to optimize inventory and identify trending items.
-            </p>
+            <p class="section-description">Best-performing menu items</p>
           </div>
           <div class="chart-container">
             <div class="loading" id="popularProductsLoading">
               <div class="spinner"></div>
-              Loading popular products...
+              Loading...
             </div>
             <canvas id="popularProductsChart" style="display: none;"></canvas>
           </div>
         </div>
 
+        <!-- Payment Methods -->
         <div class="section">
           <div class="section-header">
-            <h2 class="section-title">Sales Trend Analysis</h2>
-            <p class="section-description">
-              Daily average sales performance over time. Monitor patterns, seasonal trends, and growth opportunities.
-            </p>
+            <h2 class="section-title">Payment Methods</h2>
+            <p class="section-description">Revenue by payment type</p>
           </div>
+          <div class="chart-container">
+            <div class="loading" id="paymentMethodsLoading">
+              <div class="spinner"></div>
+              Loading...
+            </div>
+            <canvas id="paymentMethodsChart" style="display: none;"></canvas>
+          </div>
+        </div>
 
-          
+        <!-- Order Sources -->
+        <div class="section">
+          <div class="section-header">
+            <h2 class="section-title">Order Sources</h2>
+            <p class="section-description">Orders by channel</p>
+          </div>
+          <div class="chart-container">
+            <div class="loading" id="orderSourcesLoading">
+              <div class="spinner"></div>
+              Loading...
+            </div>
+            <canvas id="orderSourcesChart" style="display: none;"></canvas>
+          </div>
+        </div>
+
+        <!-- Sales Trend - Full Width -->
+        <div class="section full-width-section">
+          <div class="section-header">
+            <h2 class="section-title">Sales Trend Analysis</h2>
+            <p class="section-description">Daily sales performance over time</p>
+          </div>
           <div class="chart-container">
             <div class="loading" id="averageSalesLoading">
               <div class="spinner"></div>
-              Analyzing sales trends...
+              Analyzing...
             </div>
             <canvas id="averageSalesChart" style="display: none;"></canvas>
           </div>
         </div>
-        <!-- Order History Table -->
-<div class="section" style="margin-top:30px;">
-  <div class="section-header">
-    <h2 class="section-title">Order History</h2>
-    <p class="section-description">Recent customer orders with status and total amount.</p>
-  </div>
-  <div style="overflow-x:auto;">
-    <table>
-      <thead>
-        <tr>
-          <th>Order ID</th>
-          <th>Customer</th>
-          <th>Date</th>
-          <th>Total</th>
-          <th>Payment</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody id="orderHistoryBody">
-        <tr><td colspan="6" style="text-align:center; padding:10px;">Loading...</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
+      </div>
 
-
-        <div class="insights-panel">
-          <div class="insights-header">
-            <h2 class="insights-title">Quick Insights</h2>
-            <p class="insights-subtitle">Key performance indicators at a glance</p>
+      <!-- Order History Table - Full Width -->
+      <div class="section" style="margin-bottom: 1.5rem;">
+        <div class="section-header">
+          <h2 class="section-title">Order History</h2>
+          <p class="section-description">Recent customer orders</p>
+          <div class="filter-buttons" style="margin-top: 0.5rem; display: flex; gap: 0.5rem;">
+            <button id="filter7days"  type="button" class="filter-btn" data-days="7">Last 7 Days</button>
+            <button id="filter30days" type="button" class="filter-btn" data-days="30">Last 30 Days</button>
+            <button id="filterAll"  type="button" class="filter-btn" data-days="all">Display all</button>
           </div>
-          <div class="insights-grid">
-            <div class="insight-item">
-              <div class="insight-title">Top Product</div>
-              <div class="insight-value" id="topProduct">Loading...</div>
-            </div>
-            <div class="insight-item">
-              <div class="insight-title">Sales Trend</div>
-              <div class="insight-value" id="salesTrend">Loading...</div>
-            </div>
-            <div class="insight-item">
-              <div class="insight-title">Peak Day</div>
-              <div class="insight-value" id="peakDay">Loading...</div>
-            </div>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Date</th>
+                <th>Total</th>
+                <th>Payment</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="orderHistoryBody">
+              <tr><td colspan="6" style="text-align:center; padding:10px;">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Quick Insights - Bottom -->
+      <div class="insights-section">
+        <div class="insights-header">
+          <h2 class="insights-title">Quick Insights</h2>
+          <p class="insights-subtitle">Key performance indicators at a glance</p>
+        </div>
+        <div class="insights-grid">
+          <div class="insight-item">
+            <div class="insight-title">Top Product</div>
+            <div class="insight-value" id="topProduct">Loading...</div>
+          </div>
+          <div class="insight-item">
+            <div class="insight-title">Sales Trend</div>
+            <div class="insight-value" id="salesTrend">Loading...</div>
+          </div>
+          <div class="insight-item">
+            <div class="insight-title">Peak Day</div>
+            <div class="insight-value" id="peakDay">Loading...</div>
           </div>
         </div>
       </div>
-    </main>
+    </div>
+  </main>
 
-    <script>
-      // Enhanced chart configuration with Shopify-inspired styling
-      Chart.defaults.font.family = 'Inter';
-      Chart.defaults.font.size = 12;
-      Chart.defaults.color = '#6d7175';
+  <!-- Report Generation Modal -->
+  <div id="reportModal" class="custom-confirm hidden">
+    <div class="report-modal-box">
+      <div class="form-header">
+        <div class="form-title">Generate Sales Report</div>
+        <div class="form-subtitle">Generated by: <%= user.fullname %></div>
+        <span class="modal-close" onclick="closeReportModal()">&times;</span>
+      </div>
 
-      let popularProductsData = [];
-      let salesTrendData = [];
+      <form id="reportForm">
+        <div class="form-group">
+          <label class="form-label">Select Date Range</label>
+          <select class="form-input" id="reportDateRange" name="dateRange" required>
+            <option value="">-- Select Date Range --</option>
+            <option value="7">Last 7 Days</option>
+            <option value="30">Last 30 Days</option>
+            <option value="60">Last 60 Days</option>
+            <option value="custom">Custom Date Range</option>
+          </select>
+        </div>
 
-      async function drawPopularProductsChart() {
-        const loadingEl = document.getElementById('popularProductsLoading');
-        const chartEl = document.getElementById('popularProductsChart');
-        
-        try {
-          const res = await fetch('/api/analytics/popular-products');
-          if (!res.ok) {
-            throw new Error(`Server returned ${res.status}: ${res.statusText}`);
-          }
-          const text = await res.text();
-          let results;
-          try {
-            results = JSON.parse(text);
-          } catch (e) {
-            console.error('JSON parse error:', e, 'Raw response:', text);
-            throw new Error('Invalid JSON response from server');
-          }
+        <div id="customDateRange" class="custom-date-section" style="display: none;">
+          <div class="form-group">
+            <label class="form-label">From Date</label>
+            <input class="form-input" type="date" id="fromDate" name="fromDate">
+          </div>
+          <div class="form-group">
+            <label class="form-label">To Date</label>
+            <input class="form-input" type="date" id="toDate" name="toDate">
+          </div>
+        </div>
 
-          popularProductsData = results;
+        <div class="button-group">
+          <button type="submit" class="submit-button add" id="generatePdfBtn">
+            Generate PDF Report
+          </button>
+          <button type="button" class="submit-button cancel" onclick="closeReportModal()">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-          if (!Array.isArray(results) || results.length === 0) {
-            loadingEl.innerHTML = '<div class="error-message">No product data available. Try again later.</div>';
-            return;
-          }
 
-          const top = results.slice(0, 10);
-          const labels = top.map(r => r._id);
-          const data = top.map(r => r.totalQuantity);
 
-          // Update stats
-          document.getElementById('totalProducts').textContent = results.length;
-          document.getElementById('topProduct').textContent = top[0]?._id || 'N/A';
-
-          // Hide loading, show chart
-          loadingEl.style.display = 'none';
-          chartEl.style.display = 'block';
-
-          new Chart(chartEl, {
-            type: 'bar',
-            data: {
-              labels: labels,
-              datasets: [{
-                label: 'Units Sold',
-                data: data,
-                backgroundColor: '#8b5a2b',
-                borderColor: '#8b5a2b',
-                borderWidth: 0,
-                borderRadius: 4,
-                borderSkipped: false,
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: { 
-                  display: false
-                },
-                title: { 
-                  display: false
-                }
-              },
-              scales: {
-                x: {
-                  ticks: { 
-                    font: { size: 11, weight: '500' },
-                    maxRotation: 0,
-                    color: '#6d7175'
-                  },
-                  grid: {
-                    display: false
-                  },
-                  border: {
-                    display: false
-                  }
-                },
-                y: { 
-                  beginAtZero: true,
-                  ticks: { 
-                    font: { size: 11, weight: '500' },
-                    color: '#6d7175',
-                    stepSize: 1
-                  },
-                  grid: {
-                    color: '#f1f2f3',
-                    drawBorder: false
-                  },
-                  border: {
-                    display: false
-                  }
-                }
-              },
-              interaction: {
-                intersect: false,
-                mode: 'index'
-              },
-              elements: {
-                bar: {
-                  borderRadius: 4
-                }
-              }
-            }
-          });
-        } catch (err) {
-          console.error('Chart error:', err);
-          loadingEl.innerHTML = `<div class="error-message">Failed to load popular products data: ${err.message}</div>`;
-        }
-      }
-
-      async function drawAverageSalesChart() {
-        const loadingEl = document.getElementById('averageSalesLoading');
-        const chartEl = document.getElementById('averageSalesChart');
-        
-        try {
-          const res = await fetch('/api/analytics/sales-per-day');
-          if (!res.ok) {
-            throw new Error(`Server returned ${res.status}: ${res.statusText}`);
-          }
-          const text = await res.text();
-          let results;
-          try {
-            results = JSON.parse(text);
-          } catch (e) {
-            console.error('JSON parse error:', e, 'Raw response:', text);
-            throw new Error('Invalid JSON response from server');
-          }
-
-          salesTrendData = results;
-
-          if (!Array.isArray(results) || results.length === 0) {
-            loadingEl.innerHTML = '<div class="error-message">No sales data available. Try again later.</div>';
-            return;
-          }
-
-          const labels = results.map(r => {
-            const dateObj = new Date(r._id);
-            return dateObj.toLocaleDateString('en-US', {
-              month: 'short',
-              day: 'numeric'
-            });
-          });
-
-          const data = results.map(r => r.totalSales);
-
-          // Calculate insights
-          const avgSales = data.reduce((a, b) => a + b, 0) / data.length;
-          const maxSales = Math.max(...data);
-          const maxIndex = data.indexOf(maxSales);
-          const trend = data[data.length - 1] > data[0] ? '↗ Growing' : '↘ Declining';
-
-          // Update stats
-          document.getElementById('avgDailySales').textContent = `₱${avgSales.toFixed(0)}`;
-          document.getElementById('salesTrend').textContent = trend;
-          document.getElementById('peakDay').textContent = labels[maxIndex];
-
-          // Hide loading, show chart
-          loadingEl.style.display = 'none';
-          chartEl.style.display = 'block';
-
-          new Chart(chartEl, {
-            type: 'line',
-            data: {
-              labels: labels,
-              datasets: [{
-                label: 'Total Sales (₱)',
-                data: data,
-                backgroundColor: 'rgba(139, 90, 43, 0.08)',
-                borderColor: '#8b5a2b',
-                borderWidth: 2,
-                pointBackgroundColor: '#ffffff',
-                pointBorderColor: '#8b5a2b',
-                pointBorderWidth: 2,
-                pointRadius: 4,
-                pointHoverRadius: 6,
-                pointHoverBorderWidth: 3,
-                fill: true,
-                tension: 0.3
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: { 
-                  display: false
-                },
-                title: { 
-                  display: false
-                }
-              },
-              scales: {
-                x: {
-                  ticks: { 
-                    font: { size: 11, weight: '500' }, 
-                    maxRotation: 0, 
-                    color: '#6d7175'
-                  },
-                  grid: {
-                    display: false
-                  },
-                  border: {
-                    display: false
-                  }
-                },
-                y: {
-                  beginAtZero: true,
-                  ticks: { 
-                    font: { size: 11, weight: '500' },
-                    color: '#6d7175',
-                    callback: function(value) {
-                      return '₱' + value.toLocaleString();
-                    }
-                  },
-                  grid: {
-                    color: '#f1f2f3',
-                    drawBorder: false
-                  },
-                  border: {
-                    display: false
-                  }
-                }
-              },
-              interaction: {
-                intersect: false,
-                mode: 'index'
-              }
-            }
-          });
-        } catch (err) {
-          console.error('Average sales chart error:', err);
-          loadingEl.innerHTML = `<div class="error-message">Failed to load sales trend data: ${err.message}</div>`;
-        }
-      }
-
-async function loadOrderHistory() {
-    try {
-      const res = await fetch("/admin/analytics/order-history"); // <-- FIXED // <-- make sure this route returns your Orders data
-      const orders = await res.json();
-
-      const tbody = document.getElementById("orderHistoryBody");
-      tbody.innerHTML = "";
-
-      orders.forEach(o => {
-        const row = `
-          <tr>
-            <td>${o.OrderID}</td>
-            <td>${o.Customer}</td>
-            <td>${o.Date}</td>
-            <td>${o.Total}</td>
-            <td>${o.PaymentMode}</td>
-            <td>${o.PaymentStatus}</td>
-          </tr>
-        `;
-        tbody.insertAdjacentHTML("beforeend", row);
-      });
-    } catch (err) {
-      console.error("Error loading orders:", err);
-    }
-  }
-
-  // Load orders on page load
-  document.addEventListener("DOMContentLoaded", loadOrderHistory);
-
-      // Initialize charts
-      drawPopularProductsChart();
-      drawAverageSalesChart();
-    </script>
-  </body>
-  </html>
+  <!-- External Analytics JavaScript -->
+  <script src="/js/analytics.js?v=1"></script>
+</body>
+</html>

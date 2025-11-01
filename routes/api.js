@@ -4,6 +4,11 @@ const { MongoClient, ObjectId } = require('mongodb');
 
 const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
 
+console.log('API routes module loaded');
+router.get('/', (req, res) => {
+  res.json({ message: 'API routes work' });
+});
+
 // Xendit configuration
 const XENDIT_SECRET_KEY = process.env.XENDIT_SECRET_KEY || 'xnd_development_9YDHJULGUWulhmoYgQxildVQ3EWsAeviiJHwF3PSi9zmNcCKll8zEP3thAc5VvD9'
 const XENDIT_API_URL = 'https://api.xendit.co'
@@ -636,6 +641,28 @@ router.get('/ingredients/search', async (req, res) => {
   }
 });
 
+router.get('/addons/search', async (req, res) => {
+  try {
+    const query = req.query.q || '';
+
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    // Search for add-ons that match the Name
+    const results = await db.collection('Add-ons')
+      .find({ Name: { $regex: query, $options: 'i' }, isEnabled: true })
+      .project({ AddOnID: 1, Name: 1, _id: 0 })
+      .limit(50)
+      .toArray();
+
+    await client.close();
+    res.json(results);
+  } catch (err) {
+    console.error('Error in add-on search:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 router.get('/stocks/health', async (req, res) => {
   try {
     const startTime = Date.now();
@@ -682,11 +709,65 @@ router.get('/stocks/health', async (req, res) => {
 // Add Analytics Routes
 router.get('/analytics/popular-products', async (req, res) => {
   try {
+    const { days = 'all', startDate, endDate, category } = req.query;
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
 
-    const results = await db.collection('Orders').aggregate([
-      { $unwind: "$Cart" },
+    let pipeline = [
+      { $unwind: "$Cart" }
+    ];
+
+    // Add date filter if not 'all'
+    if (days !== 'all' || startDate || endDate) {
+      let startDateFilter, endDateFilter;
+
+      if (startDate || endDate) {
+        // Custom date range
+        if (startDate) startDateFilter = new Date(startDate + 'T00:00:00.000Z');
+        if (endDate) {
+          endDateFilter = new Date(endDate + 'T23:59:59.999Z');
+        }
+      } else if (days !== 'all') {
+        // Preset days
+        const daysNumber = parseInt(days);
+        startDateFilter = new Date();
+        startDateFilter.setDate(startDateFilter.getDate() - daysNumber);
+        startDateFilter.setHours(0, 0, 0, 0);
+      }
+
+      pipeline.push({
+        $addFields: {
+          orderDate: {
+            $cond: {
+              if: { $eq: [{ $type: "$Date" }, "string"] },
+              then: {
+                $dateFromString: {
+                  dateString: {
+                    $concat: [
+                      { $substr: ["$Date", 0, 10] }, // Extract YYYY-MM-DD
+                      "T00:00:00.000Z" // Add UTC time
+                    ]
+                  }
+                }
+              },
+              else: "$Date"
+            }
+          }
+        }
+      });
+
+      const dateMatch = {};
+      if (startDateFilter) dateMatch.$gte = startDateFilter;
+      if (endDateFilter) dateMatch.$lte = endDateFilter;
+
+      if (Object.keys(dateMatch).length > 0) {
+        pipeline.push({
+          $match: { orderDate: dateMatch }
+        });
+      }
+    }
+
+    pipeline.push(
       {
         $group: {
           _id: "$Cart.ProductName",
@@ -694,8 +775,18 @@ router.get('/analytics/popular-products', async (req, res) => {
         }
       },
       { $sort: { totalQuantity: -1 } }
-    ]).toArray();
+    );
 
+    const ordersFiltered = await db.collection('Orders').aggregate(pipeline.slice(0, days !== 'all' ? 3 : 1)).toArray();
+    const monthCounts = {};
+    ordersFiltered.forEach(order => {
+      const dateStr = order.Date.substring(0, 7); // YYYY-MM
+      monthCounts[dateStr] = (monthCounts[dateStr] || 0) + 1;
+    });
+
+    const results = await db.collection('Orders').aggregate(pipeline).toArray();
+    console.log(`Popular products for days=${days}:`, results.length, 'products, from', ordersFiltered.length, 'filtered orders');
+    console.log('Orders by month:', monthCounts);
     await client.close();
     res.json(results);
   } catch (err) {
@@ -706,10 +797,11 @@ router.get('/analytics/popular-products', async (req, res) => {
 
 router.get('/analytics/sales-per-day', async (req, res) => {
   try {
+    const { days = 'all' } = req.query;
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
 
-    const salesPerDay = await db.collection('Orders').aggregate([
+    let pipeline = [
       {
         $addFields: {
           parsedDate: {
@@ -720,7 +812,23 @@ router.get('/analytics/sales-per-day', async (req, res) => {
             }
           }
         }
-      },
+      }
+    ];
+
+    // Add date range filter if not 'all'
+    if (days !== 'all') {
+      const daysNumber = parseInt(days);
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - daysNumber);
+
+      pipeline.push({
+        $match: {
+          parsedDate: { $gte: startDate }
+        }
+      });
+    }
+
+    pipeline.push(
       {
         $group: {
           _id: { $dateToString: { format: "%Y-%m-%d", date: "$parsedDate" } },
@@ -728,8 +836,9 @@ router.get('/analytics/sales-per-day', async (req, res) => {
         }
       },
       { $sort: { _id: 1 } }
-    ]).toArray();
+    );
 
+    const salesPerDay = await db.collection('Orders').aggregate(pipeline).toArray();
     await client.close();
     res.json(salesPerDay);
   } catch (err) {
@@ -964,6 +1073,217 @@ router.get('/analytics/dashboard-stats', async (req, res) => {
   } catch (err) {
     console.error('Error fetching dashboard stats:', err);
     res.status(500).json({ error: 'Failed to fetch dashboard stats' });
+  }
+});
+
+// New Analytics Endpoints - Payment Methods Distribution
+router.get('/analytics/payment-methods', async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    const pipeline = [
+      {
+        $match: {
+          PaymentStatus: { $ne: 'Cancelled' }
+        }
+      },
+      {
+        $project: {
+          PaymentMode: {
+            $cond: {
+              if: { $in: ['$PaymentMode', ['E-PAYMENT', 'E-Payment']] },
+              then: 'E-Payment',
+              else: {
+                $cond: {
+                  if: { $in: ['$PaymentMode', ['Cash on Hand', 'Cash']] },
+                  then: 'Cash',
+                  else: '$PaymentMode'
+                }
+              }
+            }
+          },
+          Total: 1
+        }
+      },
+      {
+        $group: {
+          _id: '$PaymentMode',
+          count: { $sum: 1 },
+          revenue: { $sum: '$Total' }
+        }
+      },
+      { $sort: { revenue: -1 } }
+    ];
+
+    const paymentMethods = await db.collection('Orders').aggregate(pipeline).toArray();
+    await client.close();
+    res.json(paymentMethods);
+  } catch (err) {
+    console.error('Error fetching payment methods:', err);
+    res.status(500).json({ error: 'Failed to fetch payment methods data' });
+  }
+});
+
+// Order Sources Distribution
+router.get('/analytics/order-sources', async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    const pipeline = [
+      {
+        $match: {
+          Source: { $exists: true, $ne: null, $ne: '' },
+          PaymentStatus: { $ne: 'Cancelled' }
+        }
+      },
+      {
+        $group: {
+          _id: '$Source',
+          orderCount: { $sum: 1 },
+          totalRevenue: { $sum: '$Total' }
+        }
+      },
+      { $sort: { orderCount: -1 } }
+    ];
+
+    const orderSources = await db.collection('Orders').aggregate(pipeline).toArray();
+    await client.close();
+    res.json(orderSources);
+  } catch (err) {
+    console.error('Error fetching order sources:', err);
+    res.status(500).json({ error: 'Failed to fetch order sources data' });
+  }
+});
+
+// Peak Hours Analysis
+router.get('/analytics/peak-hours', async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    const pipeline = [
+      {
+        $match: {
+          PaymentStatus: { $ne: 'Cancelled' }
+        }
+      },
+      {
+        $addFields: {
+          orderHour: {
+            $cond: {
+              if: { $eq: [{ $type: '$Date' }, 'string'] },
+              then: { $hour: { $dateFromString: { dateString: '$Date' } } },
+              else: { $hour: '$Date' }
+            }
+          }
+        }
+      },
+      {
+        $group: {
+          _id: '$orderHour',
+          orderCount: { $sum: 1 },
+          totalRevenue: { $sum: '$Total' }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ];
+
+    const peakHours = await db.collection('Orders').aggregate(pipeline).toArray();
+    await client.close();
+    res.json(peakHours);
+  } catch (err) {
+    console.error('Error fetching peak hours:', err);
+    res.status(500).json({ error: 'Failed to fetch peak hours data' });
+  }
+});
+
+// Average Order Value Trend
+router.get('/analytics/avg-order-value', async (req, res) => {
+  try {
+    const days = parseInt(req.query.days) || 7;
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    const pipeline = [
+      {
+        $addFields: {
+          orderDate: {
+            $cond: {
+              if: { $eq: [{ $type: '$Date' }, 'string'] },
+              then: { $dateFromString: { dateString: '$Date' } },
+              else: '$Date'
+            }
+          }
+        }
+      },
+      {
+        $match: {
+          orderDate: { $gte: startDate, $lte: endDate },
+          PaymentStatus: { $ne: 'Cancelled' }
+        }
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$orderDate' } },
+          totalRevenue: { $sum: '$Total' },
+          orderCount: { $sum: 1 }
+        }
+      },
+      {
+        $addFields: {
+          avgOrderValue: { $divide: ['$totalRevenue', '$orderCount'] }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ];
+
+    const aovData = await db.collection('Orders').aggregate(pipeline).toArray();
+    await client.close();
+    res.json(aovData);
+  } catch (err) {
+    console.error('Error fetching AOV data:', err);
+    res.status(500).json({ error: 'Failed to fetch average order value data' });
+  }
+});
+
+// Add-ons Popularity
+router.get('/analytics/addons-popularity', async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    const pipeline = [
+      { $unwind: '$Cart' },
+      {
+        $match: {
+          'Cart.AddOns': { $exists: true, $ne: [] },
+          PaymentStatus: { $ne: 'Cancelled' }
+        }
+      },
+      { $unwind: '$Cart.AddOns' },
+      {
+        $group: {
+          _id: '$Cart.AddOns.Name',
+          orderCount: { $sum: 1 },
+          totalRevenue: { $sum: '$Cart.AddOns.BasePrice' }
+        }
+      },
+      { $sort: { orderCount: -1 } },
+      { $limit: 10 }
+    ];
+
+    const addonsData = await db.collection('Orders').aggregate(pipeline).toArray();
+    await client.close();
+    res.json(addonsData);
+  } catch (err) {
+    console.error('Error fetching addons popularity:', err);
+    res.status(500).json({ error: 'Failed to fetch addons popularity data' });
   }
 });
 
