@@ -345,15 +345,16 @@ async function addIngredient(ingredientData) {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
 
-    // Check for existing ingredient with same ID
-    if (ingredientData.IngredientID) {
+    // Check for existing ingredient with same ID and Name combination
+    if (ingredientData.IngredientID && ingredientData.Name) {
       const existingIngredient = await db.collection('Ingredients').findOne({
-        IngredientID: ingredientData.IngredientID
+        IngredientID: ingredientData.IngredientID,
+        Name: ingredientData.Name.trim()
       });
 
       if (existingIngredient) {
         await client.close();
-        throw new Error('Ingredient ID already exists');
+        throw new Error('DUPLICATE_ID_NAME');
       }
     }
 
@@ -376,17 +377,28 @@ async function updateIngredient(id, ingredientData) {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
 
-    // Check for existing ingredient with same ID (except current one)
+    // Determine collection and ID field based on data type
+    let collection, idField;
     if (ingredientData.IngredientID) {
-      const existingIngredient = await db.collection('Ingredients').findOne({
-        IngredientID: ingredientData.IngredientID,
-        _id: { $ne: new ObjectId(id) }
-      });
+      collection = 'Ingredients';
+      idField = 'IngredientID';
+    } else if (ingredientData.AddOnID) {
+      collection = 'Add-ons';
+      idField = 'AddOnID';
+    } else {
+      await client.close();
+      throw new Error('Invalid data: missing IngredientID or AddOnID');
+    }
 
-      if (existingIngredient) {
-        await client.close();
-        throw new Error('Another ingredient with this ID already exists');
-      }
+    // Check for existing item with same ID (except current one)
+    const existingItem = await db.collection(collection).findOne({
+      [idField]: ingredientData[idField],
+      _id: { $ne: new ObjectId(id) }
+    });
+
+    if (existingItem) {
+      await client.close();
+      throw new Error(`Another ${collection.toLowerCase().replace(/s$/, '')} with this ID already exists`);
     }
 
     // Create a clean update object with proper type conversion
@@ -400,7 +412,7 @@ async function updateIngredient(id, ingredientData) {
       updateData.isEnabled = updateData.isEnabled === 'true' || updateData.isEnabled === true;
     }
 
-    const result = await db.collection('Ingredients').updateOne(
+    const result = await db.collection(collection).updateOne(
       { _id: new ObjectId(id) },
       { $set: updateData }
     );
@@ -408,7 +420,7 @@ async function updateIngredient(id, ingredientData) {
     await client.close();
     return result;
   } catch (err) {
-    console.error('Error updating ingredient:', err);
+    console.error('Error updating item:', err);
     throw err;
   }
 }
@@ -418,12 +430,26 @@ async function deleteIngredient(id) {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
 
-    const result = await db.collection('Ingredients').deleteOne({ _id: new ObjectId(id) });
+    // First, check if the item is an ingredient or add-on
+    let item = await db.collection('Ingredients').findOne({ _id: new ObjectId(id) });
+    let collection = 'Ingredients';
+
+    if (!item) {
+      item = await db.collection('Add-ons').findOne({ _id: new ObjectId(id) });
+      collection = 'Add-ons';
+    }
+
+    if (!item) {
+      await client.close();
+      throw new Error('Item not found');
+    }
+
+    const result = await db.collection(collection).deleteOne({ _id: new ObjectId(id) });
 
     await client.close();
     return result;
   } catch (err) {
-    console.error('Error deleting ingredient:', err);
+    console.error('Error deleting item:', err);
     throw err;
   }
 }

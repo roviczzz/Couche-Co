@@ -1866,26 +1866,114 @@ router.post('/migrate-passwords', async (req, res) => {
 // STOCKS ROUTES
 router.post('/stocks', async (req, res) => {
   try {
-    await addIngredient(req.body);
+    // Check if this is an add-on by looking for addon-specific fields
+    const isAddon = req.body.AddOnID || req.body.AddOnPrefix || req.body.AddOnSuffix || req.body.BasePrice;
+
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    if (isAddon) {
+      // Handle Add-On with correct field formatting
+
+      // Check for existing add-on with same ID and Name combination
+      const existingAddon = await db.collection('Add-ons').findOne({
+        AddOnID: req.body.AddOnID,
+        Name: req.body.Name.trim()
+      });
+
+      if (existingAddon) {
+        await client.close();
+        return res.redirect('/admin/stocks?msg=duplicate_id_name');
+      }
+
+      const addOnData = {
+        AddOnID: req.body.AddOnID,
+        AddOnPrefix: req.body.AddOnPrefix || 'AD',
+        AddOnSuffix: req.body.AddOnSuffix,
+        Name: req.body.Name,
+        AmountPerPack: req.body.AmountPerPack,
+        Amount: parseInt(req.body.Amount),
+        Unit: req.body.Unit,
+        Category: req.body.Category || 'Add-Ons',
+        Allergen: req.body.Allergen || 'None',
+        BasePrice: parseFloat(req.body.BasePrice) || 10,
+        isEnabled: req.body.isEnabled === 'true' || req.body.isEnabled === true || req.body.isEnabled === 'on',
+        lastModified: new Date()
+      };
+
+      await db.collection('Add-ons').insertOne(addOnData);
+      await client.close();
+      console.log('✅ Added new add-on:', addOnData.AddOnID, 'with AmountPerPack:', addOnData.AmountPerPack, 'BasePrice:', addOnData.BasePrice);
+    } else {
+      // Handle Ingredient with correct field formatting
+      const ingredientData = {
+        IngredientID: req.body.IngredientID,
+        IngredientPrefix: req.body.IngredientPrefix || 'ING',
+        IngredientSuffix: req.body.IngredientSuffix,
+        Name: req.body.Name,
+        AmountPerPack: req.body.AmountPerPack,
+        Amount: parseInt(req.body.Amount),
+        Unit: req.body.Unit,
+        Category: req.body.Category || 'Ingredients',
+        Allergen: req.body.Allergen || 'None',
+        isEnabled: req.body.isEnabled === 'true' || req.body.isEnabled === true || req.body.isEnabled === 'on',
+        isAvailable: req.body.isAvailable === 'true' || req.body.isAvailable === true,
+        createdAt: new Date(),
+        lastModified: new Date()
+      };
+
+      // Check for existing ingredient with same ID and Name combination
+      if (ingredientData.IngredientID && ingredientData.Name) {
+        const existingIngredient = await db.collection('Ingredients').findOne({
+          IngredientID: ingredientData.IngredientID,
+          Name: ingredientData.Name.trim()
+        });
+
+        if (existingIngredient) {
+          await client.close();
+          throw new Error('DUPLICATE_ID_NAME');
+        }
+      }
+
+      await db.collection('Ingredients').insertOne(ingredientData);
+      await client.close();
+      console.log('✅ Added new ingredient:', ingredientData.IngredientID, 'with AmountPerPack:', ingredientData.AmountPerPack);
+    }
+
     res.redirect('/admin/stocks?msg=add_success');
   } catch (err) {
-    res.status(500).send('Failed to add ingredient');
+    console.error('Add item error:', err);
+
+    // Handle specific duplicate data error
+    if (err.message === 'DUPLICATE_DATA') {
+      return res.redirect('/admin/stocks?msg=duplicate_data');
+    }
+
+    if (err.message === 'DUPLICATE_ID_NAME') {
+      return res.redirect('/admin/stocks?msg=duplicate_id_name');
+    }
+
+    res.status(500).send('Failed to add item');
   }
 });
+
 router.post('/stocks/edit/:id', async (req, res) => {
   try {
     await updateIngredient(req.params.id, req.body);
     res.redirect('/admin/stocks?msg=update_success');
   } catch (err) {
-    res.status(500).send('Failed to update ingredient');
+    console.error('Update item error:', err);
+    res.status(500).send('Failed to update item');
   }
 });
+
 router.post('/stocks/delete/:id', async (req, res) => {
   try {
     await deleteIngredient(req.params.id);
     res.redirect('/admin/stocks?msg=delete_success');
   } catch (err) {
-    res.status(500).send('Failed to delete ingredient');
+    console.error('Delete item error:', err);
+    res.status(500).send('Failed to delete item');
   }
 });
 router.post('/stocks/bulk-update', async (req, res) => {
