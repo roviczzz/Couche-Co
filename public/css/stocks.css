@@ -45,8 +45,8 @@ header,
 .content,
 .page-content,
 main {
-  margin-top: 80px; /* Default navbar height */
   height: calc(100vh - 80px);
+  background-color: #f8f9fb;
   overflow-y: auto;
   overflow-x: hidden;
   flex: 1;
@@ -958,7 +958,7 @@ main {
 }
 
 .amount-pack-group input[type="number"] {
-  width: 60px;
+  width: 76px;
   text-align: center;
 }
 
@@ -1228,12 +1228,10 @@ main {
 /* Enhanced Table Container */
 .table-container {
   overflow-x: auto;
-  border-radius: var(--radius);
   box-shadow: var(--shadow-md);
   margin-top: 30px;
   margin-bottom: 40px;
   background: var(--white);
-  border: 1px solid var(--border);
   width: 100%;
 }
 
@@ -2023,7 +2021,6 @@ textarea,
   flex-wrap: wrap;
   padding: 15px 20px;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 

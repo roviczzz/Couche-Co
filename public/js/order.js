@@ -275,39 +275,77 @@ function renderCompletedOrders() {
     return dateB - dateA;
   });
 
-  // Limit to 6 items max
-  const completedOrders = allCompletedOrders.slice(0, 6);
+  // Limit to 5 items max for the compact section
+  const completedOrders = allCompletedOrders.slice(0, 5);
 
   const section = document.getElementById('completedOrdersSection');
   const list = document.getElementById('completedOrdersList');
+  
   // Always show the section
   section.style.display = 'block';
   list.innerHTML = '';
+  
   if (!allCompletedOrders.length) {
-    list.innerHTML = '<p style="text-align:center;color:#999;">No completed orders found.</p>';
+    list.innerHTML = `
+      <tr class="empty-state-table">
+        <td colspan="5">
+          <h3>No completed orders found</h3>
+          <p>Completed orders will appear here.</p>
+        </td>
+      </tr>
+    `;
     return;
   }
+  
   completedOrders.forEach(order => {
-    const item = document.createElement('div');
-    item.className = 'completed-order-item';
-    item.style.display = 'flex';
-    item.style.justifyContent = 'space-between';
-    item.style.alignItems = 'center';
-    item.style.padding = '10px 15px';
-    item.style.marginBottom = '8px';
-    item.style.backgroundColor = '#fff';
-    item.style.borderRadius = '6px';
-    item.style.borderLeft = '4px solid #28a745';
-    item.style.boxShadow = '0 1px 3px rgba(0,0,0,0.07)';
-    item.innerHTML = `
-      <div style="display: flex; flex-direction: column;">
-        <div style="font-weight: 600; color: #333; margin-bottom: 3px;">${order.OrderID || 'N/A'}</div>
-        <div style="font-size: 14px; color: #666;">${order.Customer || order.customer || 'N/A'}</div>
-        <div style="font-size: 13px; color: #888;">${order.Date ? new Date(order.Date).toLocaleString() : (order.date ? new Date(order.date).toLocaleString() : 'N/A')}</div>
-      </div>
-      <div style="font-size: 13px; color: #28a745; font-weight: 600;">Completed</div>
+    const orderDate = new Date(order.Date || order.date || 0);
+    const isToday = isOrderFromToday(orderDate);
+    
+    // Get customer name
+    let customerName = 'N/A';
+    if (order.Customer) {
+      if (typeof order.Customer === 'string') {
+        customerName = order.Customer;
+      } else if (typeof order.Customer === 'object' && order.Customer.fullname) {
+        customerName = order.Customer.fullname;
+      } else if (typeof order.Customer === 'object' && order.Customer.firstName) {
+        customerName = (order.Customer.firstName + ' ' + (order.Customer.lastName || '')).trim();
+      }
+    } else if (order.customer) {
+      customerName = typeof order.customer === 'string' ? order.customer : 
+                   (order.customer.fullname || order.customer.name || 'Unknown Customer');
+    }
+
+    const row = document.createElement('tr');
+    row.className = 'completed-order-card';
+    row.style.cursor = 'pointer';
+    
+    row.innerHTML = `
+      <td class="order-id-cell">#${order.OrderID || 'N/A'}</td>
+      <td class="customer-cell">
+        <div class="customer-name-table">${customerName}</div>
+      </td>
+      <td class="date-cell">
+        ${orderDate.toLocaleDateString()} ${isToday ? '<br><small style="color: #a05c2f; font-weight: 600;">Today</small>' : ''}
+      </td>
+      <td class="total-cell">${order.Total !== undefined && order.Total !== null ? formatCurrency(order.Total) : 'N/A'}</td>
+      <td class="status-cell">
+        <span class="status-badge-table">Completed</span>
+      </td>
     `;
-    list.appendChild(item);
+
+    // Add click handler to show order details
+    row.addEventListener('click', () => {
+      const orderRows = document.querySelectorAll('.order-row');
+      orderRows.forEach((mainRow, index) => {
+        const rowOrderId = mainRow.cells[0].textContent.trim();
+        if (rowOrderId === (order.OrderID || 'N/A')) {
+          mainRow.click();
+        }
+      });
+    });
+
+    list.appendChild(row);
   });
 }
 
@@ -1197,58 +1235,74 @@ function openCompletedOrdersModal() {
     return dateB - dateA;
   });
 
+  // Update the orders count badge
+  const ordersCountBadge = document.getElementById('ordersCountBadge');
+  if (ordersCountBadge) {
+    ordersCountBadge.textContent = `${completedOrders.length} Order${completedOrders.length !== 1 ? 's' : ''}`;
+  }
+
   modalCompletedOrdersList.innerHTML = '';
 
   if (completedOrders.length === 0) {
-    modalCompletedOrdersList.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">No completed orders found.</p>';
+    modalCompletedOrdersList.innerHTML = `
+      <tr class="empty-state-table">
+        <td colspan="6">
+          <h3>No completed orders found</h3>
+          <p>Completed orders will appear here once available.</p>
+        </td>
+      </tr>
+    `;
   } else {
     completedOrders.forEach(order => {
       const orderDate = new Date(order.Date || order.date || 0);
       const isToday = isOrderFromToday(orderDate);
+      
+      // Get customer name
+      let customerName = 'N/A';
+      if (order.Customer) {
+        if (typeof order.Customer === 'string') {
+          customerName = order.Customer;
+        } else if (typeof order.Customer === 'object' && order.Customer.fullname) {
+          customerName = order.Customer.fullname;
+        } else if (typeof order.Customer === 'object' && order.Customer.firstName) {
+          customerName = (order.Customer.firstName + ' ' + (order.Customer.lastName || '')).trim();
+        }
+      } else if (order.customer) {
+        customerName = typeof order.customer === 'string' ? order.customer : 
+                     (order.customer.fullname || order.customer.name || 'Unknown Customer');
+      }
 
-      const item = document.createElement('div');
-      item.style.display = 'flex';
-      item.style.justifyContent = 'space-between';
-      item.style.alignItems = 'center';
-      item.style.padding = '15px 20px';
-      item.style.marginBottom = '10px';
-      item.style.backgroundColor = '#fff';
-      item.style.borderRadius = '8px';
-      item.style.borderLeft = '4px solid #28a745';
-      item.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-      item.style.transition = 'transform 0.2s ease, box-shadow 0.2s ease';
-      item.style.cursor = 'pointer';
-
-      item.addEventListener('mouseenter', () => {
-        item.style.transform = 'translateY(-2px)';
-        item.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-      });
-
-      item.addEventListener('mouseleave', () => {
-        item.style.transform = 'translateY(0)';
-        item.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-      });
-
-      item.innerHTML = `
-        <div style="display: flex; flex-direction: column;">
-          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
-            <span style="font-weight: 600; color: #333; font-size: 16px;">${order.OrderID || 'N/A'}</span>
-            ${isToday ? '<span style="background-color: #28a745; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">TODAY</span>' : ''}
-          </div>
-          <div style="font-size: 14px; color: #666; margin-bottom: 3px;">${order.Customer || order.customer || 'N/A'}</div>
-          <div style="font-size: 13px; color: #888;">${orderDate.toLocaleString()}</div>
-        </div>
-        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
-          <div style="font-size: 16px; color: #28a745; font-weight: 600;">
-            ${order.Total !== undefined && order.Total !== null ? formatCurrency(order.Total) : 'N/A'}
-          </div>
-          <div style="font-size: 12px; color: #28a745; font-weight: 600; padding: 4px 8px; background-color: #d4edda; border-radius: 4px;">
-            Completed
-          </div>
-        </div>
+      const row = document.createElement('tr');
+      row.className = 'completed-order-card';
+      row.style.cursor = 'pointer';
+      
+      row.innerHTML = `
+        <td class="order-id-cell">#${order.OrderID || 'N/A'}</td>
+        <td class="customer-cell">
+          <div class="customer-name-table">${customerName}</div>
+          <div class="customer-details-table">${order.Email || order.email || 'No email'}</div>
+        </td>
+        <td class="date-cell">
+          ${orderDate.toLocaleDateString()} ${isToday ? '<br><small style="color: #a05c2f; font-weight: 600;">Today</small>' : ''}
+        </td>
+        <td class="total-cell">${order.Total !== undefined && order.Total !== null ? formatCurrency(order.Total) : 'N/A'}</td>
+        <td class="status-cell">
+          <span class="status-badge-table">Completed</span>
+        </td>
+        <td class="actions-cell">
+          <button class="view-btn-table" onclick="viewOrderDetails('${order.OrderID}')">View</button>
+        </td>
       `;
 
-      modalCompletedOrdersList.appendChild(item);
+      // Add click handler to the entire row (excluding the button)
+      row.addEventListener('click', (e) => {
+        // Don't trigger if clicking the button itself
+        if (!e.target.classList.contains('view-btn-table')) {
+          viewOrderDetails(order.OrderID);
+        }
+      });
+
+      modalCompletedOrdersList.appendChild(row);
     });
   }
 
@@ -1259,6 +1313,46 @@ function openCompletedOrdersModal() {
 function closeCompletedOrders() {
   completedOrdersModal.style.display = 'none';
   document.body.style.overflow = 'auto';
+}
+
+function viewOrderDetails(orderId) {
+  // Find the order by ID
+  const order = orders.find(o => (o.OrderID || o.orderId) === orderId);
+  if (order) {
+    // Close the modal first
+    closeCompletedOrders();
+    
+    // Find the order row in the main table and select it
+    const orderRows = document.querySelectorAll('.order-row');
+    let orderFound = false;
+    
+    orderRows.forEach((row, index) => {
+      const rowOrderId = row.cells[0].textContent.trim();
+      if (rowOrderId === orderId) {
+        orderFound = true;
+        
+        // Get the dataset index for the order
+        const idx = parseInt(row.dataset.idx, 10);
+        
+        if (idx >= 0 && idx < orders.length) {
+          // Use the existing showOrderDetails function
+          showOrderDetails(orders[idx], index);
+          
+          // Scroll the row into view
+          row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    });
+    
+    if (!orderFound) {
+      // If order not found in current view, find it by index
+      const orderIndex = orders.findIndex(o => (o.OrderID || o.orderId) === orderId);
+      if (orderIndex !== -1) {
+        // Use the existing showOrderDetails function
+        showOrderDetails(order, orderIndex);
+      }
+    }
+  }
 }
 
 function isOrderFromToday(orderDate) {

@@ -2,7 +2,9 @@
 
 <div class="layout-container">
   <div class="orders-table-container" id="ordersTableContainer">
-    <h1>Order Details</h1>
+    <div class="header-section">
+      <h1>Orders List</h1>
+    </div>
     <div class="orders-table-scroll">
       <table>
         <thead>
@@ -121,12 +123,32 @@
         </tbody>
       </table>
 
-      <div class="completed-orders-section" id="completedOrdersSection" style="margin-top: 30px; padding: 20px; background-color: #eaf7ea; border-radius: 8px; border: 1px solid #b6e2b6;">
+      <div class="completed-orders-section" id="completedOrdersSection" style="margin-top: 30px; margin-right: 20px;">
         <div class="completed-orders-section-header">
-          <h2 style="color: #28a745; font-size: 18px; font-weight: 600; margin: 0;">Completed Orders Today</h2>
-          <button class="view-all-completed-btn mini" id="viewAllCompletedBtn" style="padding:4px 10px; font-size:11px; height:28px; min-width:28px;">&#128065;</button>
+          <h3>Recent Completed Orders</h3>
+          <button class="view-all-completed-btn mini" id="viewAllCompletedBtn">View All</button>
         </div>
-        <div class="completed-orders-list" id="completedOrdersList"></div>
+        <div class="completed-orders-list">
+          <table class="completed-orders-table" id="completedOrdersTable">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Date</th>
+                <th>Total</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="completedOrdersList">
+              <tr class="empty-state-table">
+                <td colspan="5">
+                  <h3>No completed orders found</h3>
+                  <p>Completed orders will appear here.</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -173,10 +195,37 @@
 <div class="completed-orders-modal" id="completedOrdersModal">
   <div class="completed-orders-modal-content">
     <div class="completed-orders-modal-header">
-      <h2>All Completed Orders</h2>
+      <h2>Completed Orders</h2>
       <button class="modal-close-btn" id="closeCompletedOrdersModal">&times;</button>
     </div>
-    <div class="completed-orders-list" id="modalCompletedOrdersList"></div>
+    <div class="completed-orders-section">
+      <div class="completed-orders-section-header">
+        <h3>Order History</h3>
+        <span class="orders-count-badge" id="ordersCountBadge">0 Orders</span>
+      </div>
+      <div class="completed-orders-list">
+        <table class="completed-orders-table" id="completedOrdersTable">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Customer</th>
+              <th>Date</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="modalCompletedOrdersList">
+            <tr class="empty-state-table">
+              <td colspan="6">
+                <h3>No completed orders found</h3>
+                <p>Completed orders will appear here once available.</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
 
