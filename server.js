@@ -18,6 +18,8 @@ const userRoutes = require('./routes/user');
 const adminRoutes = require('./routes/admin');
 const apiRoutes = require('./routes/api');
 const staffRoutes = require('./routes/staff');
+const inventoryRoutes = require('./routes/inventory');
+const inventoryAdminRoutes = require('./routes/inventory-admin');
 
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')))
 app.use(session({
@@ -108,6 +110,8 @@ app.set('layout', 'layout');
 
 // Use route modules
 app.use('/api', apiRoutes);
+app.use('/api/inventory', inventoryRoutes);
+app.use('/admin/inventory', inventoryAdminRoutes);
 app.use('/', indexRoutes);
 app.use('/auth', authRoutes);
 app.use('/user', userRoutes);

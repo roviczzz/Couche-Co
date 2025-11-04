@@ -256,8 +256,81 @@ document.addEventListener('DOMContentLoaded', function() {
     try {
       // Show overlay
       overlay.classList.remove('hidden');
-      processingMessage.textContent = 'Creating your order...';
+      processingMessage.textContent = 'Checking inventory availability...';
       paymentInstructions.style.display = 'none';
+
+      // Get order items from localStorage
+      const cartItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+
+      if (!cartItems || cartItems.length === 0) {
+        throw new Error('No items in cart');
+      }
+
+      // Check inventory availability before creating order
+      processingMessage.textContent = 'Verifying product availability...';
+      const inventoryCheck = await fetch('/api/inventory/check', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          Cart: cartItems.map(item => ({
+            ProductName: item.name,
+            ProductID: item.ProductID || item.productId,
+            Size: item.size || null,
+            Addons: item.addons || [],
+            Quantity: item.quantity,
+            Price: item.price,
+            ImageLink: item.imagelink,
+            isFree: item.isFree || false
+          })) 
+        })
+      });
+
+      if (!inventoryCheck.ok) {
+        const inventoryError = await inventoryCheck.json();
+        
+        if (inventoryCheck.status === 409) {
+          // Log detailed error information for debugging
+          console.log('Inventory check failed - detailed information:');
+          console.log('Full error response:', inventoryError);
+          
+          // Log each unavailable item with details
+          inventoryError.unavailableItems.forEach(item => {
+            console.log(`Unavailable item: ${item.item} - Reason: ${item.reason}`);
+            if (item.missingIngredients && item.missingIngredients.length > 0) {
+              item.missingIngredients.forEach(ing => {
+                if (ing.type === 'addon') {
+                  console.log(`  Missing add-on: ${ing.name} - Need: ${ing.needed}, Available: ${ing.available}`);
+                } else {
+                  console.log(`  Missing ingredient: ${ing.name} - Need: ${ing.needed}g, Available: ${ing.available}g`);
+                }
+              });
+            }
+          });
+          
+          // Customer-friendly message
+          const unavailableItemNames = inventoryError.unavailableItems.map(item => item.item);
+          let customerMessage;
+          
+          if (unavailableItemNames.length === 1) {
+            customerMessage = `Sorry, ${unavailableItemNames[0]} is currently unavailable due to insufficient ingredients.\n\nPlease choose a different item or modify your order.`;
+          } else {
+            customerMessage = `Sorry, the following items are currently unavailable:\n\n${unavailableItemNames.map(name => `• ${name}`).join('\n')}\n\nPlease choose different items or modify your order.`;
+          }
+          
+          alert(customerMessage);
+          overlay.classList.add('hidden');
+          placeOrderBtn.disabled = false;
+          placeOrderBtn.textContent = 'Place Order & Pay';
+          return;
+        } else {
+          throw new Error(inventoryError.error || 'Inventory check failed');
+        }
+      }
+
+      // Continue with order creation if inventory is available
+      processingMessage.textContent = 'Creating your order...';
 
       // Build customer data
       const customerData = {

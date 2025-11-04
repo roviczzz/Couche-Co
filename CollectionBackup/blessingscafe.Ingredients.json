@@ -1,0 +1,575 @@
+[{
+  "_id": {
+    "$oid": "685f9e806911e4021868ee08"
+  },
+  "IngredientID": "ING-SPANISH",
+  "Name": "Spanish Syrup",
+  "Category": "Ingredients",
+  "Allergen": "None",
+  "isEnabled": true,
+  "AmountPerPack": "950 g",
+  "IngredientPrefix": "ING",
+  "IngredientSuffix": "SPANISH",
+  "isAvailable": "true",
+  "lastModified": {
+    "$date": "2025-11-01T16:51:35.715Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "685f9e806911e4021868ee17"
+  },
+  "IngredientID": "ING-WINTER",
+  "Name": "Wintermelon Powder",
+  "Category": "Ingredients",
+  "Allergen": "None",
+  "isEnabled": true,
+  "AmountPerPack": "500 g",
+  "IngredientPrefix": "ING",
+  "IngredientSuffix": "WINTER",
+  "isAvailable": "true",
+  "lastModified": {
+    "$date": "2025-10-30T12:51:22.965Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "685f9e806911e4021868ee0e"
+  },
+  "IngredientID": "ING-WMOCHA",
+  "Name": "White Mocha Syrup",
+  "Category": "Ingredients",
+  "Allergen": "None",
+  "isEnabled": true,
+  "AmountPerPack": "1000 g",
+  "IngredientPrefix": "ING",
+  "IngredientSuffix": "WMOCHA",
+  "isAvailable": "true",
+  "lastModified": {
+    "$date": "2025-11-01T16:51:53.886Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "685f9e806911e4021868ee12"
+  },
+  "IngredientID": "ING-OKI",
+  "Name": "Okinawa Powder",
+  "Category": "Ingredients",
+  "Allergen": "None",
+  "isEnabled": true,
+  "AmountPerPack": "1000 g",
+  "IngredientPrefix": "ING",
+  "IngredientSuffix": "OKI",
+  "isAvailable": "true",
+  "lastModified": {
+    "$date": "2025-10-30T12:47:42.049Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "685f9e806911e4021868ee06"
+  },
+  "IngredientID": "ING-COND",
+  "Name": "Condensed Milk",
+  "Category": "Ingredients",
+  "Allergen": "Dairy",
+  "isEnabled": true,
+  "AmountPerPack": "545 g",
+  "IngredientPrefix": "ING",
+  "IngredientSuffix": "COND",
+  "isAvailable": "true",
+  "lastModified": {
+    "$date": "2025-10-30T09:19:08.676Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "685f9e806911e4021868ee11"
+  },
+  "IngredientID": "ING-MATCHA",
+  "Name": "Matcha Powder",
+  "Category": "Ingredients",
+  "Allergen": "None",
+  "isEnabled": true,
+  "AmountPerPack": "1000 g",
+  "IngredientPrefix": "ING",
+  "IngredientSuffix": "MATCHA",
+  "isAvailable": "true",
+  "lastModified": {
+    "$date": "2025-10-30T12:47:23.560Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "685f9e806911e4021868ee15"
+  },
+  "IngredientID": "ING-HERSHEY",
+  "Name": "Hershey's Powder",
+  "Category": "Ingredients",
+  "Allergen": "None",
+  "isEnabled": true,
+  "AmountPerPack": "500 g",
+  "IngredientPrefix": "ING",
+  "IngredientSuffix": "HERSHEY",
+  "isAvailable": "true",
+  "lastModified": {
+    "$date": "2025-10-30T12:50:40.973Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "685f9e806911e4021868ee0a"
+  },
+  "IngredientID": "ING-SCARMEL",
+  "Name": "Salted Caramel Syrup",
+  "Category": "Ingredients",
+  "Allergen": "None",
+  "isEnabled": true,
+  "AmountPerPack": "1000 g",
+  "IngredientPrefix": "ING",
+  "IngredientSuffix": "SCARMEL",
+  "isAvailable": "true",
+  "lastModified": {
+    "$date": "2025-10-31T13:11:49.023Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "685f9e806911e4021868ee16"
+  },
+  "IngredientID": "ING-CAPPU",
+  "Name": "Cappuccino Powder",
+  "Category": "Ingredients",
+  "Allergen": "None",
+  "isEnabled": true,
+  "AmountPerPack": "950 g",
+  "IngredientPrefix": "ING",
+  "IngredientSuffix": "CAPPU",
+  "isAvailable": "true",
+  "lastModified": {
+    "$date": "2025-10-30T12:51:04.767Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "685f9e806911e4021868ee19"
+  },
+  "IngredientID": "ING-SCPWDR",
+  "Name": "Salted Caramel Powder",
+  "Category": "Ingredients",
+  "Allergen": "None",
+  "isEnabled": true,
+  "AmountPerPack": "1000 g",
+  "IngredientPrefix": "ING",
+  "IngredientSuffix": "SCPWDR",
+  "isAvailable": "true",
+  "lastModified": {
+    "$date": "2025-10-30T12:52:09.960Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "685f9e806911e4021868ee0b"
+  },
+  "IngredientID": "ING-HAZEL",
+  "Name": "Hazelnut Syrup",
+  "Category": "Ingredients",
+  "Allergen": "Nuts",
+  "isEnabled": true,
+  "AmountPerPack": "1000 g",
+  "IngredientPrefix": "ING",
+  "IngredientSuffix": "HAZEL",
+  "isAvailable": "true",
+  "lastModified": {
+    "$date": "2025-10-30T09:22:31.084Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "685f9e806911e4021868ee1a"
+  },
+  "IngredientID": "ING-DFOREST",
+  "Name": "Dark Forest Powder",
+  "Category": "Ingredients",
+  "Allergen": "None",
+  "IsEnabled": true
+},
+{
+  "_id": {
+    "$oid": "685f9e806911e4021868ee04"
+  },
+  "IngredientID": "ING-MILK",
+  "Name": "Milk",
+  "Category": "Ingredients",
+  "Allergen": "Dairy",
+  "isEnabled": true,
+  "AmountPerPack": "1000 g",
+  "IngredientPrefix": "ING",
+  "IngredientSuffix": "MILK",
+  "isAvailable": "true",
+  "lastModified": {
+    "$date": "2025-10-30T09:18:17.701Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "685f9e806911e4021868ee0c"
+  },
+  "IngredientID": "ING-VANILLA",
+  "Name": "Vanilla Syrup",
+  "Category": "Ingredients",
+  "Allergen": "None",
+  "isEnabled": true,
+  "AmountPerPack": "1000 g",
+  "IngredientPrefix": "ING",
+  "IngredientSuffix": "VANILLA",
+  "isAvailable": "true",
+  "lastModified": {
+    "$date": "2025-10-30T09:22:50.029Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "685f9e806911e4021868ee01"
+  },
+  "IngredientID": "ING-CREAMER",
+  "Name": "Creamer",
+  "Category": "Ingredients",
+  "Allergen": "None",
+  "isEnabled": true,
+  "AmountPerPack": "1000 g",
+  "IngredientPrefix": "ING",
+  "IngredientSuffix": "CREAMER",
+  "isAvailable": "true",
+  "lastModified": {
+    "$date": "2025-10-30T09:16:28.931Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "685f9e806911e4021868ee03"
+  },
+  "IngredientID": "ING-TEA",
+  "Name": "Tea",
+  "Category": "Ingredients",
+  "Allergen": "None",
+  "isEnabled": true,
+  "AmountPerPack": "600 g",
+  "IngredientPrefix": "ING",
+  "IngredientSuffix": "TEA",
+  "isAvailable": "true",
+  "lastModified": {
+    "$date": "2025-10-30T09:17:26.276Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "685f9e806911e4021868ee05"
+  },
+  "IngredientID": "ING-ESP",
+  "Name": "Espresso",
+  "Category": "Ingredients",
+  "Allergen": "None",
+  "isEnabled": true,
+  "AmountPerPack": "2500 g",
+  "IngredientPrefix": "ING",
+  "IngredientSuffix": "ESP",
+  "isAvailable": "true",
+  "lastModified": {
+    "$date": "2025-10-30T09:18:40.378Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "685f9e806911e4021868ee10"
+  },
+  "IngredientID": "ING-TARO",
+  "Name": "Taro Powder",
+  "Category": "Ingredients",
+  "Allergen": "None",
+  "isEnabled": true,
+  "AmountPerPack": "1000 g",
+  "IngredientPrefix": "ING",
+  "IngredientSuffix": "TARO",
+  "isAvailable": "true",
+  "lastModified": {
+    "$date": "2025-10-30T12:47:07.591Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "685f9e806911e4021868ee13"
+  },
+  "IngredientID": "ING-DALGONA",
+  "Name": "Dalgona Powder",
+  "Category": "Ingredients",
+  "Allergen": "None",
+  "isEnabled": true,
+  "AmountPerPack": "1000 g",
+  "IngredientPrefix": "ING",
+  "IngredientSuffix": "DALGONA",
+  "isAvailable": "true",
+  "lastModified": {
+    "$date": "2025-10-30T12:47:54.350Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "685f9e806911e4021868ee18"
+  },
+  "IngredientID": "ING-COOKNCR",
+  "Name": "Cookies'n Cream Powder",
+  "Category": "Ingredients",
+  "Allergen": "None",
+  "isEnabled": true,
+  "AmountPerPack": "1000 g",
+  "IngredientPrefix": "ING",
+  "IngredientSuffix": "COOKNCR",
+  "isAvailable": "true",
+  "lastModified": {
+    "$date": "2025-10-30T12:51:43.538Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69032dbaf1e982ec3c9df818"
+  },
+  "IngredientSuffix": "CARAMEL",
+  "Name": "Caramel Syrup",
+  "Unit": "g",
+  "Amount": "1000",
+  "Allergen": "None",
+  "isEnabled": true,
+  "IngredientID": "ING-CARAMEL",
+  "AmountPerPack": "1000 g",
+  "createdAt": {
+    "$date": "2025-10-30T09:19:54.208Z"
+  },
+  "lastModified": {
+    "$date": "2025-10-31T13:11:59.594Z"
+  },
+  "Category": "Ingredients",
+  "IngredientPrefix": "ING",
+  "isAvailable": "true"
+},
+{
+  "_id": {
+    "$oid": "69032e0cf1e982ec3c9df819"
+  },
+  "IngredientSuffix": "WCH",
+  "Name": "White Choco Syrup",
+  "Unit": "g",
+  "Amount": "950",
+  "Allergen": "None",
+  "isEnabled": true,
+  "IngredientID": "ING-WCH",
+  "AmountPerPack": "950 g",
+  "createdAt": {
+    "$date": "2025-10-30T09:21:16.162Z"
+  },
+  "lastModified": {
+    "$date": "2025-10-31T13:12:30.004Z"
+  },
+  "Category": "Ingredients",
+  "IngredientPrefix": "ING",
+  "isAvailable": "true"
+},
+{
+  "_id": {
+    "$oid": "69032e97f1e982ec3c9df81a"
+  },
+  "IngredientSuffix": "MACAD",
+  "Name": "Macademia Nut",
+  "Unit": "g",
+  "Amount": "1000",
+  "Allergen": "Nuts",
+  "isEnabled": true,
+  "IngredientID": "ING-MACAD",
+  "AmountPerPack": "1000 g",
+  "createdAt": {
+    "$date": "2025-10-30T09:23:35.830Z"
+  },
+  "lastModified": {
+    "$date": "2025-10-30T13:18:04.160Z"
+  },
+  "Category": "Ingredients",
+  "IngredientPrefix": "ING",
+  "isAvailable": "true"
+},
+{
+  "_id": {
+    "$oid": "69032ed5f1e982ec3c9df81b"
+  },
+  "IngredientSuffix": "TOFF",
+  "Name": "Toffee Nut",
+  "Unit": "g",
+  "Amount": "1000",
+  "Allergen": "Nuts",
+  "isEnabled": true,
+  "IngredientID": "ING-TOFF",
+  "AmountPerPack": "1000 g",
+  "createdAt": {
+    "$date": "2025-10-30T09:24:37.486Z"
+  },
+  "lastModified": {
+    "$date": "2025-10-30T13:17:53.590Z"
+  },
+  "Category": "Ingredients",
+  "IngredientPrefix": "ING",
+  "isAvailable": "true"
+},
+{
+  "_id": {
+    "$oid": "69035e27920de598730703e3"
+  },
+  "IngredientSuffix": "MOALMON",
+  "Name": "Mocha Almond Syrup",
+  "Unit": "g",
+  "Amount": "1000",
+  "Allergen": "Nuts",
+  "isEnabled": true,
+  "IngredientID": "ING-MOALMON",
+  "AmountPerPack": "1000 g",
+  "createdAt": {
+    "$date": "2025-10-30T12:46:31.393Z"
+  },
+  "lastModified": {
+    "$date": "2025-10-30T12:46:48.540Z"
+  },
+  "Category": "Ingredients",
+  "IngredientPrefix": "ING",
+  "isAvailable": "true"
+},
+{
+  "_id": {
+    "$oid": "69035f9f920de598730703e4"
+  },
+  "IngredientSuffix": "BFOREST",
+  "Name": "Black Forest Powder",
+  "Unit": "g",
+  "Amount": "500",
+  "Allergen": "None",
+  "isEnabled": true,
+  "IngredientID": "ING-BFOREST",
+  "AmountPerPack": "500 g",
+  "createdAt": {
+    "$date": "2025-10-30T12:52:47.342Z"
+  },
+  "lastModified": {
+    "$date": "2025-10-31T13:13:27.392Z"
+  },
+  "Category": "Ingredients",
+  "IngredientPrefix": "ING",
+  "isAvailable": "true"
+},
+{
+  "_id": {
+    "$oid": "69036012920de598730703e5"
+  },
+  "IngredientSuffix": "STRAW",
+  "Name": "Strawberry Syrup",
+  "Unit": "g",
+  "Amount": "2500",
+  "Allergen": "None",
+  "isEnabled": true,
+  "IngredientID": "ING-STRAW",
+  "AmountPerPack": "2500 mL",
+  "createdAt": {
+    "$date": "2025-10-30T12:54:42.104Z"
+  },
+  "lastModified": {
+    "$date": "2025-10-30T12:57:42.276Z"
+  },
+  "Category": "Ingredients",
+  "IngredientPrefix": "ING",
+  "isAvailable": "true"
+},
+{
+  "_id": {
+    "$oid": "69036038920de598730703e6"
+  },
+  "IngredientSuffix": "GREENAPP",
+  "Name": "Green Apple Syrup",
+  "Unit": "g",
+  "Amount": "2500",
+  "Allergen": "None",
+  "isEnabled": true,
+  "IngredientID": "ING-GREENAPP",
+  "AmountPerPack": "2500 mL",
+  "createdAt": {
+    "$date": "2025-10-30T12:55:20.104Z"
+  },
+  "lastModified": {
+    "$date": "2025-10-31T13:15:30.016Z"
+  },
+  "Category": "Ingredients",
+  "IngredientPrefix": "ING",
+  "isAvailable": "true"
+},
+{
+  "_id": {
+    "$oid": "6903604a920de598730703e7"
+  },
+  "IngredientSuffix": "MANGO",
+  "Name": "Mango Syrup",
+  "Unit": "g",
+  "Amount": "2500",
+  "Allergen": "None",
+  "isEnabled": true,
+  "IngredientID": "ING-MANGO",
+  "AmountPerPack": "2500 mL",
+  "createdAt": {
+    "$date": "2025-10-30T12:55:38.952Z"
+  },
+  "lastModified": {
+    "$date": "2025-10-30T12:57:28.502Z"
+  },
+  "Category": "Ingredients",
+  "IngredientPrefix": "ING",
+  "isAvailable": "true"
+},
+{
+  "_id": {
+    "$oid": "69036063920de598730703e8"
+  },
+  "IngredientSuffix": "PASSFRUIT",
+  "Name": "Passion Fruit Syrup",
+  "Unit": "g",
+  "Amount": "2500",
+  "Allergen": "None",
+  "isEnabled": true,
+  "IngredientID": "ING-PASSFRUIT",
+  "AmountPerPack": "2500 mL",
+  "createdAt": {
+    "$date": "2025-10-30T12:56:03.478Z"
+  },
+  "lastModified": {
+    "$date": "2025-10-30T12:57:20.335Z"
+  },
+  "Category": "Ingredients",
+  "IngredientPrefix": "ING",
+  "isAvailable": "true"
+},
+{
+  "_id": {
+    "$oid": "6904b020388738b90eeaf86e"
+  },
+  "IngredientSuffix": "MOCHA",
+  "Name": "Mocha Syrup",
+  "Unit": "g",
+  "Amount": "1000",
+  "Allergen": "None",
+  "isEnabled": true,
+  "IngredientID": "ING-MOCHA",
+  "AmountPerPack": "1000 g",
+  "createdAt": {
+    "$date": "2025-10-31T12:48:32.154Z"
+  },
+  "lastModified": {
+    "$date": "2025-10-31T13:43:05.194Z"
+  },
+  "Category": "Ingredients",
+  "IngredientPrefix": "ING",
+  "isAvailable": "true"
+}]

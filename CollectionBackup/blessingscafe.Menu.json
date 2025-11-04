@@ -1,9 +1,10 @@
 [{
   "_id": {
-    "$oid": "6877071c1ec987b69ec2349e"
+    "$oid": "690470186f1ac0bed717e731"
   },
-  "ProductID": "MT-TAR",
+  "ProductID": "MT-TARO",
   "Name": "Taro",
+  "description": "",
   "Sizes": [
     {
       "Size": "16oz",
@@ -14,23 +15,52 @@
       "BasePrice": 55
     }
   ],
-  "Ingredients": [
-    "ING-CREAMER",
-    "ING-TEA",
-    "ING-TARO"
-  ],
   "Category": "Milktea",
   "Allergen": "",
-  "imagelink": "placeholder",
-  "description": "placeholder",
-  "isEnabled": false
+  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "isEnabled": true,
+  "AddOns": [
+    {
+      "addOnID": "AD-BOB",
+      "name": "Boba",
+      "usedGrams16oz": 50,
+      "usedGrams22oz": 75
+    }
+  ],
+  "Ingredients": [
+    {
+      "ingredientID": "ING-TEA",
+      "name": "Tea",
+      "usedGrams": {
+        "16oz": 150,
+        "22oz": 200
+      }
+    },
+    {
+      "ingredientID": "ING-CREAMER",
+      "name": "Creamer",
+      "usedGrams": {
+        "16oz": 26,
+        "22oz": 40
+      }
+    },
+    {
+      "ingredientID": "ING-TARO",
+      "name": "Taro Powder",
+      "usedGrams": {
+        "16oz": 33,
+        "22oz": 50
+      }
+    }
+  ]
 },
 {
   "_id": {
-    "$oid": "6877071c1ec987b69ec2349f"
+    "$oid": "690482d46eedb9ce7a339d82"
   },
   "ProductID": "MT-MAT",
   "Name": "Matcha",
+  "description": "",
   "Sizes": [
     {
       "Size": "16oz",
@@ -41,23 +71,52 @@
       "BasePrice": 55
     }
   ],
-  "Ingredients": [
-    "ING-CREAMER",
-    "ING-TEA",
-    "ING-MATCHA"
-  ],
   "Category": "Milktea",
-  "Allergen": "",
-  "imagelink": "https://iili.io/FNeRxHJ.jpg",
-  "description": "placeholder",
-  "isEnabled": false
+  "Allergen": null,
+  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "isEnabled": true,
+  "AddOns": [
+    {
+      "addOnID": "AD-BOB",
+      "name": "Boba",
+      "usedGrams16oz": 50,
+      "usedGrams22oz": 75
+    }
+  ],
+  "Ingredients": [
+    {
+      "ingredientID": "ING-TEA",
+      "name": "Tea",
+      "usedGrams": {
+        "16oz": 150,
+        "22oz": 200
+      }
+    },
+    {
+      "ingredientID": "ING-CREAMER",
+      "name": "Creamer",
+      "usedGrams": {
+        "16oz": 26,
+        "22oz": 40
+      }
+    },
+    {
+      "ingredientID": "ING-MATCHA",
+      "name": "Matcha Powder",
+      "usedGrams": {
+        "16oz": 33,
+        "22oz": 50
+      }
+    }
+  ]
 },
 {
   "_id": {
-    "$oid": "6877071c1ec987b69ec234a0"
+    "$oid": "690483c36eedb9ce7a339d83"
   },
   "ProductID": "MT-OKI",
   "Name": "Okinawa",
+  "description": "",
   "Sizes": [
     {
       "Size": "16oz",
@@ -68,23 +127,52 @@
       "BasePrice": 55
     }
   ],
-  "Ingredients": [
-    "ING-CREAMER",
-    "ING-TEA",
-    "ING-OKINAWA"
-  ],
   "Category": "Milktea",
   "Allergen": "",
-  "imagelink": "https://iili.io/FNeRxHJ.jpg",
-  "description": "placeholder",
-  "isEnabled": true
+  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "isEnabled": true,
+  "AddOns": [
+    {
+      "addOnID": "AD-BOB",
+      "name": "Boba",
+      "usedGrams16oz": 50,
+      "usedGrams22oz": 75
+    }
+  ],
+  "Ingredients": [
+    {
+      "ingredientID": "ING-TEA",
+      "name": "Tea",
+      "usedGrams": {
+        "16oz": 150,
+        "22oz": 200
+      }
+    },
+    {
+      "ingredientID": "ING-CREAMER",
+      "name": "Creamer",
+      "usedGrams": {
+        "16oz": 26,
+        "22oz": 40
+      }
+    },
+    {
+      "ingredientID": "ING-OKI",
+      "name": "Okinawa Powder",
+      "usedGrams": {
+        "16oz": 33,
+        "22oz": 50
+      }
+    }
+  ]
 },
 {
   "_id": {
-    "$oid": "6877071c1ec987b69ec234a1"
+    "$oid": "6904a35770e82d14c4569d93"
   },
   "ProductID": "MT-DAL",
   "Name": "Dalgona",
+  "description": "",
   "Sizes": [
     {
       "Size": "16oz",
@@ -95,23 +183,52 @@
       "BasePrice": 55
     }
   ],
-  "Ingredients": [
-    "ING-CREAMER",
-    "ING-TEA",
-    "ING-DALGONA"
-  ],
   "Category": "Milktea",
   "Allergen": null,
-  "imagelink": "placeholder",
-  "description": "placeholder",
-  "isEnabled": true
+  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "isEnabled": true,
+  "AddOns": [
+    {
+      "addOnID": "AD-BOB",
+      "name": "Boba",
+      "usedGrams16oz": 50,
+      "usedGrams22oz": 75
+    }
+  ],
+  "Ingredients": [
+    {
+      "ingredientID": "ING-TEA",
+      "name": "Tea",
+      "usedGrams": {
+        "16oz": 150,
+        "22oz": 200
+      }
+    },
+    {
+      "ingredientID": "ING-CREAMER",
+      "name": "Creamer",
+      "usedGrams": {
+        "16oz": 26,
+        "22oz": 40
+      }
+    },
+    {
+      "ingredientID": "ING-DALGONA",
+      "name": "Dalgona Powder",
+      "usedGrams": {
+        "16oz": 33,
+        "22oz": 50
+      }
+    }
+  ]
 },
 {
   "_id": {
-    "$oid": "6877071c1ec987b69ec234a2"
+    "$oid": "6904a3e770e82d14c4569d94"
   },
   "ProductID": "MT-HER",
   "Name": "Hershey's",
+  "description": "",
   "Sizes": [
     {
       "Size": "16oz",
@@ -122,26 +239,52 @@
       "BasePrice": 55
     }
   ],
-  "Ingredients": [
-    "ING-CREAMER",
-    "ING-TEA",
-    "ING-HERSHEY"
-  ],
   "Category": "Milktea",
-  "Allergen": "",
-  "imagelink": "placeholder",
-  "description": "placeholder",
-  "isEnabled": false,
-  "Price": {
-    "$numberDouble": "NaN"
-  }
+  "Allergen": null,
+  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "isEnabled": true,
+  "AddOns": [
+    {
+      "addOnID": "AD-BOB",
+      "name": "Boba",
+      "usedGrams16oz": 50,
+      "usedGrams22oz": 75
+    }
+  ],
+  "Ingredients": [
+    {
+      "ingredientID": "ING-TEA",
+      "name": "Tea",
+      "usedGrams": {
+        "16oz": 150,
+        "22oz": 200
+      }
+    },
+    {
+      "ingredientID": "ING-CREAMER",
+      "name": "Creamer",
+      "usedGrams": {
+        "16oz": 26,
+        "22oz": 40
+      }
+    },
+    {
+      "ingredientID": "ING-HERSHEY",
+      "name": "Hershey's Powder",
+      "usedGrams": {
+        "16oz": 33,
+        "22oz": 50
+      }
+    }
+  ]
 },
 {
   "_id": {
-    "$oid": "6877071c1ec987b69ec234a3"
+    "$oid": "6904a51170e82d14c4569d95"
   },
   "ProductID": "MT-WIN",
   "Name": "Wintermelon",
+  "description": "",
   "Sizes": [
     {
       "Size": "16oz",
@@ -152,23 +295,52 @@
       "BasePrice": 55
     }
   ],
-  "Ingredients": [
-    "ING-CREAMER",
-    "ING-TEA",
-    "ING-WINTER"
-  ],
   "Category": "Milktea",
   "Allergen": null,
-  "imagelink": "placeholder",
-  "description": "placeholder",
-  "isEnabled": true
+  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "isEnabled": true,
+  "AddOns": [
+    {
+      "addOnID": "AD-BOB",
+      "name": "Boba",
+      "usedGrams16oz": 50,
+      "usedGrams22oz": 75
+    }
+  ],
+  "Ingredients": [
+    {
+      "ingredientID": "ING-TEA",
+      "name": "Tea",
+      "usedGrams": {
+        "16oz": 150,
+        "22oz": 200
+      }
+    },
+    {
+      "ingredientID": "ING-CREAMER",
+      "name": "Creamer",
+      "usedGrams": {
+        "16oz": 26,
+        "22oz": 40
+      }
+    },
+    {
+      "ingredientID": "ING-WINTER",
+      "name": "Wintermelon Powder",
+      "usedGrams": {
+        "16oz": 33,
+        "22oz": 50
+      }
+    }
+  ]
 },
 {
   "_id": {
-    "$oid": "6877071c1ec987b69ec234a4"
+    "$oid": "6904a58e70e82d14c4569d96"
   },
   "ProductID": "MT-SCA",
   "Name": "Salted Caramel",
+  "description": "",
   "Sizes": [
     {
       "Size": "16oz",
@@ -179,23 +351,52 @@
       "BasePrice": 55
     }
   ],
-  "Ingredients": [
-    "ING-CREAMER",
-    "ING-TEA",
-    "ING-SCPWDR"
-  ],
   "Category": "Milktea",
   "Allergen": null,
-  "imagelink": "placeholder",
-  "description": "placeholder",
-  "isEnabled": true
+  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "isEnabled": true,
+  "AddOns": [
+    {
+      "addOnID": "AD-BOB",
+      "name": "Boba",
+      "usedGrams16oz": 50,
+      "usedGrams22oz": 75
+    }
+  ],
+  "Ingredients": [
+    {
+      "ingredientID": "ING-TEA",
+      "name": "Tea",
+      "usedGrams": {
+        "16oz": 150,
+        "22oz": 200
+      }
+    },
+    {
+      "ingredientID": "ING-CREAMER",
+      "name": "Creamer",
+      "usedGrams": {
+        "16oz": 26,
+        "22oz": 40
+      }
+    },
+    {
+      "ingredientID": "ING-SCPWDR",
+      "name": "Salted Caramel Powder",
+      "usedGrams": {
+        "16oz": 33,
+        "22oz": 50
+      }
+    }
+  ]
 },
 {
   "_id": {
-    "$oid": "6877071c1ec987b69ec234a5"
+    "$oid": "6904a60370e82d14c4569d97"
   },
   "ProductID": "MT-CNC",
   "Name": "Cookies 'N Cream",
+  "description": "",
   "Sizes": [
     {
       "Size": "16oz",
@@ -206,444 +407,547 @@
       "BasePrice": 55
     }
   ],
-  "Ingredients": [
-    "ING-CREAMER",
-    "ING-TEA",
-    "ING-COOKNCR"
-  ],
   "Category": "Milktea",
   "Allergen": null,
-  "imagelink": "placeholder",
-  "description": "placeholder",
-  "isEnabled": true
-},
-{
-  "_id": {
-    "$oid": "6877071c1ec987b69ec234a6"
-  },
-  "ProductID": "MT-BFO",
-  "Name": "Black Forest",
-  "Sizes": [
+  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "isEnabled": true,
+  "AddOns": [
     {
-      "Size": "16oz",
-      "BasePrice": 45
-    },
-    {
-      "Size": "22oz",
-      "BasePrice": 55
+      "addOnID": "AD-BOB",
+      "name": "Boba",
+      "usedGrams16oz": 50,
+      "usedGrams22oz": 75
     }
   ],
   "Ingredients": [
-    "ING-CREAMER",
-    "ING-TEA",
-    "ING-BFOREST"
-  ],
-  "Category": "Milktea",
-  "Allergen": null,
-  "imagelink": "placeholder",
-  "description": "placeholder",
-  "isEnabled": true
+    {
+      "ingredientID": "ING-TEA",
+      "name": "Tea",
+      "usedGrams": {
+        "16oz": 150,
+        "22oz": 200
+      }
+    },
+    {
+      "ingredientID": "ING-CREAMER",
+      "name": "Creamer",
+      "usedGrams": {
+        "16oz": 26,
+        "22oz": 40
+      }
+    },
+    {
+      "ingredientID": "ING-COOKNCR",
+      "name": "Cookies'n Cream Powder",
+      "usedGrams": {
+        "16oz": 33,
+        "22oz": 50
+      }
+    }
+  ]
 },
 {
   "_id": {
-    "$oid": "6877071c1ec987b69ec234a7"
+    "$oid": "6904a99c70e82d14c4569d98"
   },
   "ProductID": "CF-CAR",
   "Name": "Caramel",
+  "description": "",
   "Sizes": [
     {
       "Size": "16oz",
       "BasePrice": 59
     }
-  ],
-  "Ingredients": [
-    "ING-ESP",
-    "ING-MILK",
-    "ING-CARMEL"
-  ],
-  "Category": "Coffee",
-  "Allergen": null,
-  "imagelink": "placeholder",
-  "description": "[Only Available in Cold]",
-  "isEnabled": true
-},
-{
-  "_id": {
-    "$oid": "6877071c1ec987b69ec234a8"
-  },
-  "ProductID": "CF-HAZ",
-  "Name": "Hazelnut",
-  "Sizes": [
-    {
-      "Size": "16oz",
-      "BasePrice": 59
-    }
-  ],
-  "Ingredients": [
-    "ING-ESP",
-    "ING-MILK",
-    "ING-HAZEL"
   ],
   "Category": "Coffee",
   "Allergen": "Peanut",
-  "imagelink": "placeholder",
-  "description": "[Only Available in Cold]",
-  "isEnabled": true
+  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "isEnabled": true,
+  "Ingredients": [
+    {
+      "ingredientID": "ING-HAZEL",
+      "name": "Hazelnut Syrup",
+      "usedGrams": 30
+    },
+    {
+      "ingredientID": "ING-ESP",
+      "name": "Espresso",
+      "usedGrams": 50
+    },
+    {
+      "ingredientID": "ING-MILK",
+      "name": "Milk",
+      "usedGrams": 200
+    }
+  ]
 },
 {
   "_id": {
-    "$oid": "6877071c1ec987b69ec234a9"
+    "$oid": "6904aa1370e82d14c4569d99"
   },
   "ProductID": "CF-TON",
   "Name": "Toffee Nut",
+  "description": "",
   "Sizes": [
     {
       "Size": "16oz",
       "BasePrice": 59
     }
   ],
-  "Ingredients": [
-    "ING-ESP",
-    "ING-MILK",
-    "ING-TOFF"
-  ],
   "Category": "Coffee",
   "Allergen": "Peanut",
-  "imagelink": "placeholder",
-  "description": "[Only Available in Cold]",
-  "isEnabled": true
+  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "isEnabled": true,
+  "Ingredients": [
+    {
+      "ingredientID": "ING-ESP",
+      "name": "Espresso",
+      "usedGrams": 50
+    },
+    {
+      "ingredientID": "ING-MILK",
+      "name": "Milk",
+      "usedGrams": 200
+    },
+    {
+      "ingredientID": "ING-TOFF",
+      "name": "Toffee Nut",
+      "usedGrams": 30
+    }
+  ]
 },
 {
   "_id": {
-    "$oid": "6877071c1ec987b69ec234aa"
+    "$oid": "6904aab070e82d14c4569d9a"
   },
   "ProductID": "CF-MAC",
   "Name": "Macademia Nut",
+  "description": "",
   "Sizes": [
     {
       "Size": "16oz",
       "BasePrice": 59
     }
-  ],
-  "Ingredients": [
-    "ING-ESP",
-    "ING-MILK",
-    "ING-MACAD"
   ],
   "Category": "Coffee",
   "Allergen": "Peanut",
-  "imagelink": "placeholder",
-  "description": "[Only Available in Cold]",
+  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
   "isEnabled": true,
-  "Price": {
-    "$numberDouble": "NaN"
-  },
-  "available": false
+  "Ingredients": [
+    {
+      "ingredientID": "ING-ESP",
+      "name": "Espresso",
+      "usedGrams": 50
+    },
+    {
+      "ingredientID": "ING-MILK",
+      "name": "Milk",
+      "usedGrams": 200
+    },
+    {
+      "ingredientID": "ING-MACAD",
+      "name": "Macademia Nut",
+      "usedGrams": 30
+    }
+  ]
 },
 {
   "_id": {
-    "$oid": "6877071c1ec987b69ec234ab"
+    "$oid": "6904ab4370e82d14c4569d9b"
   },
   "ProductID": "CF-SPL",
   "Name": "Spanish Latte",
+  "description": "",
   "Sizes": [
     {
       "Size": "16oz",
       "BasePrice": 59
     }
   ],
-  "Ingredients": [
-    "ING-ESP",
-    "ING-MILK",
-    "ING-COND"
-  ],
   "Category": "Coffee",
   "Allergen": null,
-  "imagelink": "https://iili.io/FNkVq4j.webp",
-  "description": "[Only Available in Cold]",
-  "isEnabled": true
+  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "isEnabled": true,
+  "Ingredients": [
+    {
+      "ingredientID": "ING-ESP",
+      "name": "Espresso",
+      "usedGrams": 50
+    },
+    {
+      "ingredientID": "ING-MILK",
+      "name": "Milk",
+      "usedGrams": 200
+    },
+    {
+      "ingredientID": "ING-COND",
+      "name": "Condensed Milk",
+      "usedGrams": 30
+    }
+  ]
 },
 {
   "_id": {
-    "$oid": "6877071c1ec987b69ec234ac"
+    "$oid": "6904ac3c70e82d14c4569d9c"
   },
   "ProductID": "CF-SCA",
   "Name": "Salted Caramel",
+  "description": "",
   "Sizes": [
     {
       "Size": "16oz",
       "BasePrice": 59
     }
   ],
-  "Ingredients": [
-    "ING-ESP",
-    "ING-MILK",
-    "ING-SCARMEL"
-  ],
   "Category": "Coffee",
   "Allergen": null,
-  "imagelink": "placeholder",
-  "description": "[Only Available in Cold]",
-  "isEnabled": true
-},
-{
-  "_id": {
-    "$oid": "6877071c1ec987b69ec234ad"
-  },
-  "ProductID": "CF-WCH",
-  "Name": "White Chocolate",
-  "Sizes": [
-    {
-      "Size": "16oz",
-      "BasePrice": 59
-    }
-  ],
-  "Ingredients": [
-    "ING-ESP",
-    "ING-MILK",
-    "ING-WCH"
-  ],
-  "Category": "Coffee",
-  "Allergen": null,
-  "imagelink": "placeholder",
-  "description": "[Only Available in Cold]",
+  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
   "isEnabled": true,
-  "available": false
-},
-{
-  "_id": {
-    "$oid": "6877071c1ec987b69ec234ae"
-  },
-  "ProductID": "FT-STR",
-  "Name": "Strawberry",
-  "Sizes": [
-    {
-      "Size": "22oz",
-      "BasePrice": 39
-    }
-  ],
   "Ingredients": [
-    "ING-TEA",
-    "ING-STRAW"
-  ],
-  "Category": "Fruit Tea",
-  "Allergen": null,
-  "imagelink": "placeholder",
-  "description": "placeholder",
-  "isEnabled": true
-},
-{
-  "_id": {
-    "$oid": "6877071c1ec987b69ec234af"
-  },
-  "ProductID": "FT-GAP",
-  "Name": "Green Apple",
-  "Sizes": [
     {
-      "Size": "22oz",
-      "BasePrice": 39
+      "ingredientID": "ING-SCARMEL",
+      "name": "Salted Caramel Syrup",
+      "usedGrams": 30
+    },
+    {
+      "ingredientID": "ING-ESP",
+      "name": "Espresso",
+      "usedGrams": 50
+    },
+    {
+      "ingredientID": "ING-MILK",
+      "name": "Milk",
+      "usedGrams": 200
     }
-  ],
-  "Ingredients": [
-    "ING-TEA",
-    "ING-GREENAPP"
-  ],
-  "Category": "Fruit Tea",
-  "Allergen": "",
-  "imagelink": "placeholder",
-  "description": "placeholder",
-  "isEnabled": true,
-  "Price": {
-    "$numberDouble": "NaN"
-  }
+  ]
 },
 {
   "_id": {
-    "$oid": "6877071c1ec987b69ec234b0"
+    "$oid": "6904afe370e82d14c4569da2"
   },
   "ProductID": "FT-MAN",
   "Name": "Mango",
+  "description": "",
   "Sizes": [
     {
       "Size": "22oz",
       "BasePrice": 39
     }
   ],
-  "Ingredients": [
-    "ING-TEA",
-    "ING-MANGO"
-  ],
   "Category": "Fruit Tea",
   "Allergen": null,
-  "imagelink": "placeholder",
-  "description": "placeholder",
-  "isEnabled": true
+  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "isEnabled": true,
+  "AddOns": [
+    {
+      "addOnID": "AD-NDC",
+      "name": "Nata De Coco",
+      "usedGrams16oz": 0,
+      "usedGrams22oz": 75
+    }
+  ],
+  "Ingredients": [
+    {
+      "ingredientID": "ING-TEA",
+      "name": "Tea",
+      "usedGrams": 100
+    },
+    {
+      "ingredientID": "ING-MANGO",
+      "name": "Mango Syrup",
+      "usedGrams": 70
+    }
+  ]
 },
 {
   "_id": {
-    "$oid": "6877071c1ec987b69ec234b1"
+    "$oid": "6904b02570e82d14c4569da3"
   },
   "ProductID": "FT-PAF",
   "Name": "Passion Fruit",
+  "description": "",
   "Sizes": [
     {
       "Size": "22oz",
       "BasePrice": 39
     }
   ],
+  "Category": "Fruit Tea",
+  "Allergen": null,
+  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "isEnabled": true,
   "Ingredients": [
-    "ING-TEA",
-    "ING-PASSFRUIT"
+    {
+      "ingredientID": "ING-PASSFRUIT",
+      "name": "Passion Fruit Syrup",
+      "usedGrams": 70
+    },
+    {
+      "ingredientID": "ING-TEA",
+      "name": "Tea",
+      "usedGrams": 100
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "6904b0ab70e82d14c4569da4"
+  },
+  "ProductID": "FT-STR",
+  "Name": "Strawberry",
+  "description": "",
+  "Sizes": [
+    {
+      "Size": "22oz",
+      "BasePrice": 39
+    }
   ],
   "Category": "Fruit Tea",
   "Allergen": null,
-  "imagelink": "placeholder",
-  "description": "placeholder",
-  "isEnabled": true
+  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "isEnabled": true,
+  "AddOns": [
+    {
+      "addOnID": "AD-NDC",
+      "name": "Nata De Coco",
+      "usedGrams16oz": 0,
+      "usedGrams22oz": 75
+    }
+  ],
+  "Ingredients": [
+    {
+      "ingredientID": "ING-TEA",
+      "name": "Tea",
+      "usedGrams": 100
+    },
+    {
+      "ingredientID": "ING-STRAW",
+      "name": "Strawberry Syrup",
+      "usedGrams": 70
+    }
+  ]
 },
 {
   "_id": {
-    "$oid": "6877071c1ec987b69ec234b2"
+    "$oid": "6904b13370e82d14c4569da5"
   },
   "ProductID": "BK-CUP",
   "Name": "Cupcake",
-  "Sizes": [],
-  "BasePrice": 25,
-  "Quantity": 32,
-  "Ingredients": [],
+  "description": "",
+  "Sizes": null,
   "Category": "Pastries",
   "Allergen": null,
-  "imagelink": "placeholder",
-  "description": "placeholder",
-  "isEnabled": true
+  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "isEnabled": true,
+  "Quantity": 999,
+  "BasePrice": 25
 },
 {
   "_id": {
-    "$oid": "6877071c1ec987b69ec234b3"
-  },
-  "ProductID": "BK-CRN",
-  "Name": "Crinkles",
-  "Sizes": [],
-  "BasePrice": 15,
-  "Quantity": 32,
-  "Ingredients": [],
-  "Category": "Pastries",
-  "Allergen": null,
-  "imagelink": "placeholder",
-  "description": "placeholder",
-  "isEnabled": true
-},
-{
-  "_id": {
-    "$oid": "6877071c1ec987b69ec234b4"
+    "$oid": "6904b15370e82d14c4569da6"
   },
   "ProductID": "BK-COO",
   "Name": "Cookies",
-  "Sizes": [],
-  "BasePrice": 20,
-  "Quantity": 32,
-  "Ingredients": [],
+  "description": "",
+  "Sizes": null,
   "Category": "Pastries",
   "Allergen": null,
-  "imagelink": "placeholder",
-  "description": "placeholder",
-  "isEnabled": false
+  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "isEnabled": true,
+  "Quantity": 999,
+  "BasePrice": 50
 },
 {
   "_id": {
-    "$oid": "6877071c1ec987b69ec234b5"
+    "$oid": "6904b16a70e82d14c4569da7"
   },
   "ProductID": "BK-WAF",
   "Name": "Waffles",
-  "Sizes": [],
-  "BasePrice": 120,
-  "Quantity": 32,
-  "Ingredients": [],
+  "description": "",
+  "Sizes": null,
   "Category": "Pastries",
   "Allergen": null,
-  "imagelink": "placeholder",
-  "description": "placeholder",
+  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
   "isEnabled": true,
-  "available": false
+  "Quantity": 999,
+  "BasePrice": 120
 },
 {
   "_id": {
-    "$oid": "689895d79a8e7746639121b8"
+    "$oid": "6904b18d70e82d14c4569da8"
   },
-  "ProductID": "test2121",
-  "Name": "Tarontados",
-  "Sizes": [
-    {
-      "Size": "16oz",
-      "BasePrice": 12
-    },
-    {
-      "Size": "22oz",
-      "BasePrice": 12
-    }
-  ],
-  "Ingredients": [
-    "ING-TEA"
-  ],
-  "Category": "Coffee",
-  "Allergen": "peanut",
-  "imagelink": "Placeholder",
-  "isEnabled": true,
-  "Price": {
-    "$numberDouble": "NaN"
-  },
-  "BasePrice": 90
-},
-{
-  "_id": {
-    "$oid": "689b584f2e78df462f9c0148"
-  },
-  "ProductID": "CF-REDV",
-  "Name": "Red Velvet",
-  "Sizes": [
-    {
-      "Size": "16oz",
-      "BasePrice": 67
-    },
-    {
-      "Size": "22oz",
-      "BasePrice": 78
-    }
-  ],
-  "Ingredients": [
-    "ING-TEA",
-    "ING-MLK"
-  ],
+  "ProductID": "BK-CRN",
+  "Name": "Crinkles",
+  "description": "",
+  "Sizes": null,
   "Category": "Pastries",
-  "Allergen": "peanut",
-  "imagelink": "placeholder",
+  "Allergen": null,
+  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
   "isEnabled": true,
-  "Price": {
-    "$numberDouble": "NaN"
-  }
+  "Quantity": 999,
+  "BasePrice": 50
 },
 {
   "_id": {
-    "$oid": "68a408e19c3e565fea7a8fa9"
+    "$oid": "6904b70a20be68e7d8350ca0"
   },
-  "ProductID": "CF-REDV",
-  "Name": "Red Velvet",
+  "ProductID": "MT-BFO",
+  "Name": "Black Forest",
+  "description": "",
   "Sizes": [
     {
       "Size": "16oz",
-      "BasePrice": 67
+      "BasePrice": 45
     },
     {
       "Size": "22oz",
-      "BasePrice": 78
+      "BasePrice": 55
+    }
+  ],
+  "Category": "Milktea",
+  "Allergen": null,
+  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "isEnabled": true,
+  "AddOns": [
+    {
+      "addOnID": "AD-BOB",
+      "name": "Boba",
+      "usedGrams16oz": 50,
+      "usedGrams22oz": 75
     }
   ],
   "Ingredients": [
-    "ING-TEA",
-    "ING-MLK"
+    {
+      "ingredientID": "ING-CREAMER",
+      "name": "Creamer",
+      "usedGrams": {
+        "16oz": 26,
+        "22oz": 40
+      }
+    },
+    {
+      "ingredientID": "ING-TEA",
+      "name": "Tea",
+      "usedGrams": {
+        "16oz": 150,
+        "22oz": 200
+      }
+    },
+    {
+      "ingredientID": "ING-BFOREST",
+      "name": "Black Forest Powder",
+      "usedGrams": {
+        "16oz": 33,
+        "22oz": 50
+      }
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "6904b76820be68e7d8350ca1"
+  },
+  "ProductID": "CF-CAR",
+  "Name": "Caramel",
+  "description": "",
+  "Sizes": [
+    {
+      "Size": "16oz",
+      "BasePrice": 59
+    }
   ],
   "Category": "Coffee",
-  "Allergen": "peanut",
-  "imagelink": "placeholder",
-  "isEnabled": true
+  "Allergen": null,
+  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "isEnabled": true,
+  "Ingredients": [
+    {
+      "ingredientID": "ING-ESP",
+      "name": "Espresso",
+      "usedGrams": 50
+    },
+    {
+      "ingredientID": "ING-MILK",
+      "name": "Milk",
+      "usedGrams": 200
+    },
+    {
+      "ingredientID": "ING-CARAMEL",
+      "name": "Caramel Syrup",
+      "usedGrams": 30
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "6904b86d20be68e7d8350ca2"
+  },
+  "ProductID": "FT-GAP",
+  "Name": "Green Apple",
+  "description": "",
+  "Sizes": [
+    {
+      "Size": "22oz",
+      "BasePrice": 39
+    }
+  ],
+  "Category": "Fruit Tea",
+  "Allergen": null,
+  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "isEnabled": true,
+  "AddOns": [
+    {
+      "addOnID": "AD-NDC",
+      "name": "Nata De Coco",
+      "usedGrams16oz": 0,
+      "usedGrams22oz": 75
+    }
+  ],
+  "Ingredients": [
+    {
+      "ingredientID": "ING-GREENAPP",
+      "name": "Green Apple Syrup",
+      "usedGrams": 70
+    },
+    {
+      "ingredientID": "ING-TEA",
+      "name": "Tea",
+      "usedGrams": 100
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "6904b98f20be68e7d8350ca3"
+  },
+  "ProductID": "CF-WHC",
+  "Name": "White Chocolate",
+  "description": "",
+  "Sizes": [
+    {
+      "Size": "16oz",
+      "BasePrice": 59
+    }
+  ],
+  "Category": "Coffee",
+  "Allergen": null,
+  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "isEnabled": true,
+  "Ingredients": [
+    {
+      "ingredientID": "ING-ESP",
+      "name": "Espresso",
+      "usedGrams": 50
+    },
+    {
+      "ingredientID": "ING-MILK",
+      "name": "Milk",
+      "usedGrams": 200
+    },
+    {
+      "ingredientID": "ING-WCH",
+      "name": "White Choco Syrup",
+      "usedGrams": 30
+    }
+  ]
 }]

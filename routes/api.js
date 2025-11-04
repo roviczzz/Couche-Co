@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { MongoClient, ObjectId } = require('mongodb');
+const { checkInventoryAvailability, deductInventoryAfterPayment } = require('../middleware/inventoryMiddleware');
 
 const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
 
@@ -243,7 +244,7 @@ async function updateOrderAfterPayment(externalId) {
   }
 }
 
-router.post('/orders', async (req, res) => {
+router.post('/orders', checkInventoryAvailability, async (req, res) => {
   try {
     const orderData = req.body;
 
@@ -254,10 +255,22 @@ router.post('/orders', async (req, res) => {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
 
+    // Add inventory check status to order
+    if (req.inventoryChecked) {
+      orderData.InventoryChecked = true;
+      orderData.InventoryCheckedAt = new Date();
+    } else if (req.inventoryCheckFailed) {
+      orderData.InventoryCheckFailed = true;
+      orderData.InventoryCheckError = req.inventoryError;
+      orderData.InventoryCheckAttemptedAt = new Date();
+      console.warn(`Order ${orderData.OrderID} created without inventory validation due to: ${req.inventoryError}`);
+    }
+
     await db.collection('Orders').insertOne(orderData);
 
     await client.close();
 
+    console.log(`Order created: ${orderData.OrderID} (Inventory ${req.inventoryChecked ? 'validated' : 'check failed'})`);
     res.json({ success: true, orderId: orderData.OrderID });
   } catch (err) {
     console.error('Error saving order:', err);
@@ -276,7 +289,11 @@ router.post('/orders/update-payment-status', async (req, res) => {
     const orders = db.collection('Orders');
     
     // Build update object
-    const updateFields = { PaymentStatus: status, XenditPaymentID: invoiceId };
+    const updateFields = { 
+      PaymentStatus: status, 
+      XenditPaymentID: invoiceId,
+      PaymentUpdatedAt: new Date()
+    };
     
     // Add PaymentMethod if provided
     if (PaymentMethod) {
@@ -287,12 +304,53 @@ router.post('/orders/update-payment-status', async (req, res) => {
         { OrderID: paymentId },
         { $set: updateFields }
     );
-    await client.close();
+
     if (result.matchedCount === 0) {
+      await client.close();
       return res.status(404).json({ success: false, error: 'Order not found.' });
     }
+
+    // If payment is successful, deduct inventory
+    if (status === 'Paid') {
+      const order = await orders.findOne({ OrderID: paymentId });
+      
+      if (order) {
+        console.log(`[ORDER] Payment confirmed for order ${paymentId}, processing inventory deduction...`);
+        const inventoryResult = await deductInventoryAfterPayment(order);
+        
+        if (!inventoryResult.success) {
+          console.error(`[ORDER ERROR] Failed to deduct inventory for order ${paymentId}:`, inventoryResult.error);
+          // Log the error but don't fail the payment update
+          await orders.updateOne(
+            { OrderID: paymentId },
+            { 
+              $set: { 
+                InventoryDeductionError: inventoryResult.error,
+                InventoryDeductionAttemptedAt: new Date()
+              }
+            }
+          );
+        } else {
+          // Log successful inventory deduction
+          await orders.updateOne(
+            { OrderID: paymentId },
+            { 
+              $set: { 
+                InventoryDeducted: true,
+                InventoryDeductedAt: new Date(),
+                InventoryDeductions: inventoryResult.deductions
+              }
+            }
+          );
+          console.log(`[ORDER SUCCESS] Inventory successfully deducted for order ${paymentId}. Items processed: ${inventoryResult.deductions.length}`);
+        }
+      }
+    }
+
+    await client.close();
     res.json({ success: true });
   } catch (err) {
+    console.error('Error updating payment status:', err);
     res.status(500).json({ success: false, error: 'Database error.' });
   }
 });
