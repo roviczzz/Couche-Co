@@ -913,8 +913,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1280,
-        2112
+        1264,
+        2096
       ],
       "id": "49a0584f-c74e-4d9c-a488-7d913ac8d874",
       "name": "Select Add-ons Fruit Tea Message"
@@ -935,13 +935,13 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Boba\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-BOB\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Coffee Jelly\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-CJL\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Nata De Coco\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-NDC\"\n              }\n            ]\n          },\n{\n            \"title\": \"Pearl\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-PEA\"\n              }\n            ]\n          },\n          {\n            \"title\": \"None Add-ons\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"No additional fees.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Proceed\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|NONE\"\n              }\n            ]\n          },\n{\n            \"title\": \"Cancel Item\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Go Back\",\n                \"payload\": \"VIEW_MT\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
+        "jsonBody": "={{ $json }}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1504,
+        1856,
         1712
       ],
       "id": "4e27bc8f-6b28-41ea-bc3f-0da921d6b7ae",
@@ -962,13 +962,13 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Boba\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-BOB\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Coffee Jelly\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-CJL\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Nata De Coco\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-NDC\"\n              }\n            ]\n          },\n{\n            \"title\": \"Pearl\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-PEA\"\n              }\n            ]\n          },\n          {\n            \"title\": \"None Add-ons\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"No additional fees.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Proceed\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|NONE\"\n              }\n            ]\n          },\n{\n            \"title\": \"Cancel Item\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Go Back\",\n                \"payload\": \"VIEW_SIGNATURES\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
+        "jsonBody": "={{ $json }}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1504,
+        1856,
         1904
       ],
       "id": "45bad3c4-1e5d-49ec-9790-ddd7b85d2337",
@@ -989,14 +989,14 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.recipient_id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"generic\",\n        \"elements\": [\n          {\n            \"title\": \"Boba\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-BOB\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Coffee Jelly\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-CJL\"\n              }\n            ]\n          },\n          {\n            \"title\": \"Nata De Coco\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-NDC\"\n              }\n            ]\n          },\n{\n            \"title\": \"Pearl\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"placeholder additional ₱10.00.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Add to Drink\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|AD-PEA\"\n              }\n            ]\n          },\n          {\n            \"title\": \"None Add-ons\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+1\",\n            \"subtitle\": \"No additional fees.\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Proceed\",\n                \"payload\": \"{{ $('Add-Ons Switch').item.json.postback }}|NONE\"\n              }\n            ]\n          },\n{\n            \"title\": \"Cancel Item\",\n            \"image_url\": \"https://via.placeholder.com/300x200?text=Option+4\",\n            \"subtitle\": \"placeholder\",\n            \"buttons\": [\n              {\n                \"type\": \"postback\",\n                \"title\": \"Go Back\",\n                \"payload\": \"VIEW_FT\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
+        "jsonBody": "={{ $json }}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1504,
-        2112
+        1856,
+        2096
       ],
       "id": "12b66931-2c5e-4a63-a981-8dd8d9357f57",
       "name": "Add-ons Fruit Tea"
@@ -1968,7 +1968,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const allInputs = $input.all();\n// Handle the case where stockData might be directly in the first input or in stockCheckData\nconst inputData = allInputs[0]?.json || {};\nconst stockData = inputData._stockCheckData ? inputData : (inputData.stockCheckData || {});\nconst senderId = $('extract values').first()?.json?.senderId;\n\n// Safely destructure with defaults to prevent errors\nconst productData = stockData.productData || inputData.productData || {};\nconst addOnData = stockData.addOnData || inputData.addOnData;\nconst directItems = stockData.directItems || inputData.directItems || {};\nconst requiredIngredients = stockData.requiredIngredients || inputData.requiredIngredients || {};\n\nconst inventoryData = allInputs.filter(item => item.json.IngredientID || item.json.AddOnID);\n\nlet errors = [];\nlet warnings = [];\n\n// Check if product is available and enabled\nif (productData && (!productData.isEnabled && !productData.available)) {\n  errors.push(`\"${productData.Name}\" is not available at this time. Please select another item.`);\n}\n\n// BITES HANDLING: Direct check for bites items\nif (productData && productData.ProductID && productData.ProductID.startsWith('BK-')) {\n  if (productData.Quantity <= 0) {\n    errors.push(`\"${productData.Name}\" is currently out of stock. Please select another item.`);\n  } else if (productData.Quantity <= 5) {\n    warnings.push(`Stock for \"${productData.Name}\" is low (${productData.Quantity} remaining).`);\n  }\n}\n\n// Check add-on quantity\nif (addOnData) {\n  if (!addOnData.IsEnabled) {\n    errors.push(`The add-on \"${addOnData.Name}\" is not available at this time. Please select another option.`);\n  } else if (addOnData.Quantity <= 0) {\n    errors.push(`The add-on \"${addOnData.Name}\" is out of stock. Please select an alternative.`);\n  } else if (addOnData.Quantity <= 3) {\n    warnings.push(`Stock for add-on \"${addOnData.Name}\" is low (${addOnData.Quantity} remaining).`);\n  }\n}\n\n// Check ingredients for non-bites items\nif (Object.keys(requiredIngredients).length > 0) {\n  Object.entries(requiredIngredients).forEach(([ingredientId, required]) => {\n    const ingredient = inventoryData.find(inv => inv.json.IngredientID === ingredientId);\n    if (!ingredient) {\n      errors.push(`An ingredient required for your order could not be found in our inventory. Please select another item.`);\n    } else if (!ingredient.json.IsEnabled) {\n      errors.push(`One of the ingredients required for your order is currently unavailable. Please select another item.`);\n    } else if (ingredient.json.Quantity < required) {\n      errors.push(`We do not have enough stock of an ingredient to fulfill your order. Please select another item.`);\n    } else if (ingredient.json.Quantity <= 5) {\n      warnings.push(`Some ingredients for your order are running low (${ingredient.json.Quantity} remaining).`);\n    }\n  });\n}\n\n// Check add-ons in inventory\nObject.entries(directItems || {}).forEach(([itemId, itemInfo]) => {\n  // Skip bites items here - we already handled them above\n  if (!itemId.startsWith('BK-')) {\n    const addon = inventoryData.find(inv => inv.json.AddOnID === itemId);\n    if (addon) {\n      if (!addon.json.IsEnabled) {\n        errors.push(`${addon.json.Name} add-on is currently disabled`);\n      } else if (addon.json.Quantity < itemInfo.required) {\n        errors.push(`Insufficient ${addon.json.Name} stock (need: ${itemInfo.required}, have: ${addon.json.Quantity})`);\n      } else if (addon.json.Quantity <= 3) {\n        warnings.push(`Low stock: ${addon.json.Name} (${addon.json.Quantity} remaining)`);\n      }\n    }\n  }\n});\n\nreturn {\n  json: {\n    isValid: errors.length === 0,\n    errors,\n    warnings,\n    productData,\n    addOnData,\n    senderId: senderId,\n    canProceed: errors.length === 0,\n    stockCheckData: stockData  // Pass this along for downstream nodes\n  }\n};"
+        "jsCode": "const allInputs = $input.all();\n// Handle the case where stockData might be directly in the first input or in stockCheckData\nconst inputData = allInputs[0]?.json || {};\nconst stockData = inputData._stockCheckData ? inputData : (inputData.stockCheckData || {});\nconst senderId = $('extract values').first()?.json?.senderId;\n\n// Safely destructure with defaults to prevent errors\nconst productData = stockData.productData || inputData.productData || {};\nconst addOnData = stockData.addOnData || inputData.addOnData;\nconst directItems = stockData.directItems || inputData.directItems || {};\nconst requiredIngredients = stockData.requiredIngredients || inputData.requiredIngredients || {};\nconst inventoryData = allInputs.filter(item => item.json.IngredientID || item.json.AddOnID);\n\nlet errors = [];\nlet warnings = [];\n\n// Check if product is available and enabled\nif (productData && (!productData.isEnabled && !productData.available)) {\n  errors.push(`${productData.Name} is not available at this time. Please select another item.`);\n}\n\n// BITES HANDLING: Direct check for bites items\nif (productData && productData.ProductID && productData.ProductID.startsWith('BK-')) {\n  if (productData.Quantity <= 0) {\n    errors.push(`${productData.Name} is currently out of stock. Please select another item.`);\n  } else if (productData.Quantity <= 5) {\n    warnings.push(`Stock for ${productData.Name} is low (${productData.Quantity} remaining).`);\n  }\n}\n\n// Check add-on quantity\nif (addOnData) {\n  if (!addOnData.isEnabled) {  // Fixed: changed IsEnabled to isEnabled\n    errors.push(`The add-on ${addOnData.Name} is not available at this time. Please select another option.`);\n  } else if (addOnData.Quantity <= 0) {\n    errors.push(`The add-on ${addOnData.Name} is out of stock. Please select an alternative.`);\n  } else if (addOnData.Quantity <= 3) {\n    warnings.push(`Stock for add-on ${addOnData.Name} is low (${addOnData.Quantity} remaining).`);\n  }\n}\n\n// Check ingredients for non-bites items\nif (Object.keys(requiredIngredients).length > 0) {\n  Object.entries(requiredIngredients).forEach(([ingredientId, required]) => {\n    const ingredient = inventoryData.find(inv => inv.json.IngredientID === ingredientId);\n    if (!ingredient) {\n      errors.push(`An ingredient required for your order could not be found in our inventory. Please select another item.`);\n    } else if (!ingredient.json.isEnabled) { // <-- fixed here\n      errors.push(`One of the ingredients required for your order is currently unavailable. Please select another item.`);\n    } else if (ingredient.json.Quantity < required) {\n      errors.push(`We do not have enough stock of an ingredient to fulfill your order. Please select another item.`);\n    } else if (ingredient.json.Quantity <= 5) {\n      warnings.push(`Some ingredients for your order are running low (${ingredient.json.Quantity} remaining).`);\n    }\n  });\n}\n\n// Check add-ons in inventory\nObject.entries(directItems || {}).forEach(([itemId, itemInfo]) => {\n  // Skip bites items here - we already handled them above\n  if (!itemId.startsWith('BK-')) {\n    const addon = inventoryData.find(inv => inv.json.AddOnID === itemId);\n    if (addon) {\n      if (!addon.json.isEnabled) { // Fixed: changed IsEnabled to isEnabled\n        errors.push(`${addon.json.Name} add-on is currently disabled`);\n      } else if (addon.json.Quantity < itemInfo.required) {\n        errors.push(`Insufficient ${addon.json.Name} stock (need: ${itemInfo.required}, have: ${addon.json.Quantity})`);\n      } else if (addon.json.Quantity <= 3) {\n        warnings.push(`Low stock: ${addon.json.Name} (${addon.json.Quantity} remaining)`);\n      }\n    }\n  }\n});\n\nreturn {\n  json: {\n    isValid: errors.length === 0,\n    errors,\n    warnings,\n    productData,\n    addOnData,\n    senderId: senderId,\n    canProceed: errors.length === 0,\n    stockCheckData: stockData  // Pass this along for downstream nodes\n  }\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -2423,7 +2423,7 @@
       "typeVersion": 4.2,
       "position": [
         240,
-        4880
+        4656
       ],
       "id": "8e16aaef-3b2d-410d-b02e-395c7d7bdbc3",
       "name": "Display Enter Address Message"
@@ -2517,7 +2517,7 @@
       "typeVersion": 4.2,
       "position": [
         16,
-        4880
+        4656
       ],
       "id": "10bf391a-6972-4f64-8393-64e2d2d89326",
       "name": "Display Enter Delivery Message"
@@ -2611,7 +2611,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const cartData = $input.first().json;\nconst { cartItems, itemCount, subtotal, senderId } = cartData;\n\n// Define your delivery fee here (adjust as needed)\nconst deliveryFee = cartData.deliveryFee !== undefined ? cartData.deliveryFee : 20; // fallback to 25 if not sent\nconst totalPrice = subtotal + deliveryFee;\n\nlet cartMessage = \"📋 *YOUR CART* 📋\\n\\n\";\nlet itemCounter = 1;\n\n// Process each cart item\ncartItems.forEach(item => {\n  const productName = item.productName;\n  const size = item.size;\n  const quantity = item.quantity || 1; \n  const price = item.totalPrice.toFixed(2);\n  \n  // Only show size if category is not 'Pastries' and size is truthy\n  const displaySize = (item.category === \"Pastries\" || !size) ? \"\" : ` (${size})`;\n  \n  cartMessage += `${itemCounter}. ${productName}${displaySize}\\n`;\n  cartMessage += `   ${quantity}x ₱${price}\\n`;\n  \n  if (item.addOns && item.addOns.length > 0) {\n    item.addOns.forEach(addon => {\n      cartMessage += `   + ${addon.addOnName} (₱${addon.addOnPrice.toFixed(2)})\\n`;\n    });\n  }\n  \n  cartMessage += \"\\n\";\n  itemCounter++;\n});\n\n// Add subtotal, delivery fee, and total price\ncartMessage += `------------------------\\n`;\ncartMessage += `Subtotal: ₱${subtotal.toFixed(2)}\\n`;\ncartMessage += `Delivery Fee: ₱${deliveryFee.toFixed(2)}\\n`;\ncartMessage += `*Total: ₱${totalPrice.toFixed(2)}*\\n\\n`;\ncartMessage += \"What would you like to do next?\";\n\nconst messageObject = {\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": senderId\n  },\n  \"message\": {\n    \"text\": cartMessage,\n    \"quick_replies\": [\n      {\n        \"content_type\": \"text\",\n        \"title\": \"Confirm\",\n        \"payload\": \"DELIVERY\"\n      },\n      {\n        \"content_type\": \"text\", \n        \"title\": \"Go Back\",\n        \"payload\": \"GO_BACK_DMETHODS\"\n      }\n    ]\n  }\n};\n\nreturn {\n  json: messageObject\n};\n"
+        "jsCode": "const cartData = $input.first().json;\nconst { cartItems, itemCount, subtotal, senderId } = cartData;\n\n// Define your delivery fee here (adjust as needed)\nconst deliveryFee = cartData.deliveryFee !== undefined ? cartData.deliveryFee : 20; // fallback to 25 if not sent\nconst totalPrice = subtotal + deliveryFee;\n\nlet cartMessage = \"📋 *YOUR CART* 📋\\n\\n\";\nlet itemCounter = 1;\n\n// Process each cart item\ncartItems.forEach(item => {\n  const productName = item.productName;\n  const size = item.size;\n  const quantity = item.quantity || 1; \n  const price = item.totalPrice.toFixed(2);\n  \n  // Only show size if category is not 'Pastries' and size is truthy\n  const displaySize = (item.category === \"Pastries\" || !size) ? \"\" : ` (${size})`;\n  \n  cartMessage += `${itemCounter}. ${productName}${displaySize}\\n`;\n  cartMessage += `   ${quantity}x ₱${price}\\n`;\n  \n  if (item.addOns && item.addOns.length > 0) {\n    item.addOns.forEach(addon => {\n      cartMessage += `   + ${addon.addOnName} (₱${addon.addOnPrice.toFixed(2)})\\n`;\n    });\n  }\n  \n  cartMessage += \"\\n\";\n  itemCounter++;\n});\n\n// Add subtotal, delivery fee, and total price\ncartMessage += `------------------------\\n`;\ncartMessage += `Subtotal: ₱${subtotal.toFixed(2)}\\n`;\ncartMessage += `Delivery Fee: ₱${deliveryFee.toFixed(2)}\\n`;\ncartMessage += `*Total: ₱${totalPrice.toFixed(2)}*\\n\\n`;\ncartMessage += \"Please confirm your order:\";\n\nconst messageObject = {\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": senderId\n  },\n  \"message\": {\n    \"text\": cartMessage,\n    \"quick_replies\": [\n      {\n        \"content_type\": \"text\",\n        \"title\": \"Confirm\",\n        \"payload\": \"DELIVERY\"\n      },\n      {\n        \"content_type\": \"text\", \n        \"title\": \"Go Back\",\n        \"payload\": \"GO_BACK_DMETHODS\"\n      }\n    ]\n  }\n};\n\nreturn {\n  json: messageObject\n};\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -2624,7 +2624,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const cartData = $input.first().json;\nconst { cartItems, subtotal, senderId } = cartData;\n\nlet cartMessage = \"📋 *YOUR CART* 📋\\n\\n\";\nlet itemCounter = 1;\n\ncartItems.forEach(item => {\n  const productName = item.productName;\n  const size = item.size;\n  const quantity = item.quantity || 1;\n  const price = item.totalPrice.toFixed(2);\n\n  const displaySize = (item.category === \"Pastries\" || !size) ? \"\" : ` (${size})`;\n\n  cartMessage += `${itemCounter}. ${productName}${displaySize}\\n`;\n  cartMessage += `   ${quantity}x ₱${price}\\n`;\n\n  if (item.addOns && item.addOns.length > 0) {\n    item.addOns.forEach(addon => {\n      cartMessage += `   + ${addon.addOnName} (₱${addon.addOnPrice.toFixed(2)})\\n`;\n    });\n  }\n\n  cartMessage += \"\\n\";\n  itemCounter++;\n});\n\ncartMessage += `------------------------\\n`;\ncartMessage += `*Total: ₱${subtotal.toFixed(2)}*\\n`;\ncartMessage += `Mode of Delivery: Store Pickup\\n\\n`;\ncartMessage += \"Please select your preferred payment method:\";\n\nconst messageObject = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    text: cartMessage,\n    quick_replies: [\n      {\n        content_type: \"text\",\n        title: \"E-Payment\",\n        payload: \"STOREPICKUP_E_PAYMENT\",\n      },\n      {\n        content_type: \"text\",\n        title: \"Cash On Hand\",\n        payload: \"STOREPICKUP_CASH_ON_HAND\",\n      },\n      {\n        content_type: \"text\",\n        title: \"Go Back\",\n        payload: \"GO_BACK_DMETHODS\",\n      },\n    ],\n  },\n};\n\nreturn {\n  json: messageObject,\n};\n"
+        "jsCode": "const cartData = $input.first().json;\nconst { cartItems, subtotal, senderId } = cartData;\n\nlet cartMessage = \"📋 *YOUR CART* 📋\\n\\n\";\nlet itemCounter = 1;\n\ncartItems.forEach(item => {\n  const productName = item.productName;\n  const size = item.size;\n  const quantity = item.quantity || 1;\n  const price = item.totalPrice.toFixed(2);\n\n  const displaySize = (item.category === \"Pastries\" || !size) ? \"\" : ` (${size})`;\n\n  cartMessage += `${itemCounter}. ${productName}${displaySize}\\n`;\n  cartMessage += `   ${quantity}x ₱${price}\\n`;\n\n  if (item.addOns && item.addOns.length > 0) {\n    item.addOns.forEach(addon => {\n      cartMessage += `   + ${addon.addOnName} (₱${addon.addOnPrice.toFixed(2)})\\n`;\n    });\n  }\n\n  cartMessage += \"\\n\";\n  itemCounter++;\n});\n\ncartMessage += `------------------------\\n`;\ncartMessage += `*Total: ₱${subtotal.toFixed(2)}*\\n`;\ncartMessage += `Delivery Method: Store Pickup\\n\\n`;\ncartMessage += \"Please confirm your order:\";\n\nconst messageObject = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    text: cartMessage,\n    quick_replies: [\n      {\n        content_type: \"text\",\n        title: \"Confirm\",\n        payload: \"STOREPICKUP_E_PAYMENT\",\n      },\n      {\n        content_type: \"text\",\n        title: \"Go Back\",\n        payload: \"GO_BACK_DMETHODS\",\n      },\n    ],\n  },\n};\n\nreturn {\n  json: messageObject,\n};\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -2650,7 +2650,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.senderId }}\"\n  },\n  \"message\": {\n    \"text\": \"Pick a delivery method:\\n\\n🚚 DELIVERY (+₱20 delivery fee)\\n• E-payments only (GCash, GrabPay, PayMaya, ShopeePay)\\n• Available at selected barangays:\\n\\n📍IMUS, CAVITE\\nAlapan I-C, I-B, I-A\\nBuhay na Tubig\\nMalagasang\\n\\n📍KAWIT, CAVITE\\nToclong, Kawit\\n\\n🏪 STORE PICKUP (No additional fee)\\n• E-payments or Cash-on-hand accepted\",\n    \"quick_replies\": [\n      {\n        \"content_type\": \"text\",\n        \"title\": \"Delivery (+₱20)\",\n        \"payload\": \"PRE_DELIVERY\"\n      },\n      {\n        \"content_type\": \"text\",\n        \"title\": \"Store Pickup\",\n        \"payload\": \"PRE_STORE_PICKUP\"\n      },\n      {\n        \"content_type\": \"text\",\n        \"title\": \"Go back\",\n        \"payload\": \"GO_BACK\"\n      }\n    ]\n  }\n}",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.senderId }}\"\n  },\n  \"message\": {\n    \"text\": \"Please select your preferred delivery method:\\n\\n🚚 DELIVERY (PHP 20 delivery fee)\\n• Limited to the following barangays:\\n\\n📍 IMUS, CAVITE\\n• Alapan I-C, I-B, I-A\\n• Buhay na Tubig\\n• Malagasang\\n\\n📍 KAWIT, CAVITE\\n• Toclong\\n• Kawit\\n\\n🏪 STORE PICKUP (No additional fee)\\n\\nNote: Only E-wallets are accepted as mode of payment for both options (GCash, PayMaya, ShopeePay).\\n\\nPlease select an option below.\",\n    \"quick_replies\": [\n      {\n        \"content_type\": \"text\",\n        \"title\": \"Delivery (+₱20)\",\n        \"payload\": \"PRE_DELIVERY\"\n      },\n      {\n        \"content_type\": \"text\",\n        \"title\": \"Store Pickup\",\n        \"payload\": \"PRE_STORE_PICKUP\"\n      },\n      {\n        \"content_type\": \"text\",\n        \"title\": \"Go back\",\n        \"payload\": \"GO_BACK\"\n      }\n    ]\n  }\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -2674,7 +2674,7 @@
       "typeVersion": 1.2,
       "position": [
         240,
-        4640
+        4416
       ],
       "id": "601a1179-354a-4ee8-ba93-0b66db6f8e90",
       "name": "Insert Delivery Details1",
@@ -2695,7 +2695,7 @@
       "typeVersion": 1.2,
       "position": [
         464,
-        4640
+        4416
       ],
       "id": "81c76341-f744-4de8-a3ab-bef9919d6164",
       "name": "Prepare Cart1",
@@ -2715,7 +2715,7 @@
       "typeVersion": 2,
       "position": [
         688,
-        4640
+        4416
       ],
       "id": "d53bff76-77d6-46f8-a4a2-c10f8a0e76f1",
       "name": "Parse User Cart Items1"
@@ -2744,7 +2744,7 @@
       "typeVersion": 4.2,
       "position": [
         1136,
-        4640
+        4416
       ],
       "id": "cd0f92f9-1342-4e5b-bb08-32a930578d93",
       "name": "Xendit POST1",
@@ -2777,7 +2777,7 @@
       "typeVersion": 4.2,
       "position": [
         1360,
-        4640
+        4416
       ],
       "id": "a9d98836-e1d2-4d5f-beb1-2090fb05f3e7",
       "name": "Payment Link1"
@@ -2792,26 +2792,11 @@
       "type": "n8n-nodes-base.stickyNote",
       "position": [
         -464,
-        4608
+        4384
       ],
       "typeVersion": 1,
       "id": "0ca39188-146c-4e18-b720-65e60b13d3b0",
       "name": "Sticky Note16"
-    },
-    {
-      "parameters": {
-        "content": "## Store Pickup Cash-on-Hand",
-        "height": 128,
-        "color": 4
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        -384,
-        4416
-      ],
-      "typeVersion": 1,
-      "id": "e18b9582-4193-47dd-bb1e-c9b5b81fab7f",
-      "name": "Sticky Note17"
     },
     {
       "parameters": {
@@ -2823,7 +2808,7 @@
       "type": "n8n-nodes-base.stickyNote",
       "position": [
         -416,
-        4864
+        4640
       ],
       "typeVersion": 1,
       "id": "335f8c73-2239-4fff-a368-2971d02d35d4",
@@ -2837,7 +2822,7 @@
       "typeVersion": 2,
       "position": [
         912,
-        4640
+        4416
       ],
       "id": "f209099d-beef-4bc6-8155-13115ee78820",
       "name": "Prepare Invoice Payload [Store Pickup]"
@@ -2850,78 +2835,10 @@
       "typeVersion": 2,
       "position": [
         16,
-        4640
+        4416
       ],
       "id": "1cbb77e2-5eac-4bd1-ba23-7510315b2d7a",
       "name": "Parse StorePickup Items [Store Pickup]"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n \"messaging_type\": \"RESPONSE\",\n \"recipient\": {\n   \"id\": \"{{ $json.senderId }}\"\n },\n \"message\": {\n   \"text\": \"You have selected Store Pickup with Cash on Hand payment.\\n\\nTo confirm your order, please fill out the pickup details form that will be sent next. This helps us prepare your order and ensures smooth pickup.\\n\\n⚠️ Important: Your order will only be confirmed after completing the form. Orders expire in 2 hours if not confirmed.\\n\\nNext: Please fill out the pickup confirmation form.\"\n }\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        16,
-        4400
-      ],
-      "id": "85ec54f0-05c7-4685-b723-8722de149a53",
-      "name": "Display Guideline Message [SP Cash-On-Hand]"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            },
-            {}
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n \"messaging_type\": \"RESPONSE\",\n \"recipient\": {\n   \"id\": \"{{ $json.recipient_id }}\"\n },\n \"message\": {\n   \"attachment\": {\n     \"type\": \"template\",\n     \"payload\": {\n       \"template_type\": \"button\",\n       \"text\": \"📋 Pickup Confirmation Form\\nRequired by Blessings Cafe\\n\\nPlease provide your details to confirm your store pickup order.\",\n       \"buttons\": [\n         {\n           \"type\": \"web_url\",\n           \"url\": \"https://regularly-helped-terrapin.ngrok-free.app/webhook/pickup-confirmation?psid={{ $json.recipient_id }}&ngrok-skip-browser-warning=true\",\n           \"title\": \"Confirm Pickup Details\",\n           \"webview_height_ratio\": \"tall\",\n           \"messenger_extensions\": true\n         }\n       ]\n     }\n   },\n   \"quick_replies\": [\n     {\n       \"content_type\": \"text\",\n       \"title\": \"Change Payment Method\",\n       \"payload\": \"CHECKOUT\"\n     }\n   ]\n }\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        240,
-        4400
-      ],
-      "id": "25bfb4c4-6b3d-42b1-b56f-f405c859b6c8",
-      "name": "Display User Form Message [SP Cash-On-Hand]"
-    },
-    {
-      "parameters": {
-        "content": "## add mongodb find node foreach"
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        1744,
-        1856
-      ],
-      "typeVersion": 1,
-      "id": "56a6da75-0858-4dbf-88dd-797e3c9dd9a5",
-      "name": "Sticky Note3"
     },
     {
       "parameters": {
@@ -2951,6 +2868,122 @@
       "typeVersion": 1,
       "id": "559ece89-9a9e-4ddf-a7a9-afd46266bd60",
       "name": "Sticky Note19"
+    },
+    {
+      "parameters": {
+        "collection": "Add-ons",
+        "options": {},
+        "query": "={\n  \"AddOnID\": { \"$regex\": \"^AD-\" },\n  \"isEnabled\": true\n}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        1472,
+        1712
+      ],
+      "id": "6ebe79b0-5940-445f-8d9c-a0532a0a4d9f",
+      "name": "Retrieve Addons [Milktea]",
+      "credentials": {
+        "mongoDb": {
+          "id": "gE9wFiHHKb14x1uQ",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const senderId = $('Listen').first().json.senderId;\nif (!senderId) {\n  throw new Error(\"Sender ID not found in input data\");\n}\n\nconst menuItems = $input.all().map(i => i.json);\n\n// Filter for enabled Add-ons (add more criteria if needed)\nconst filteredItems = menuItems.filter(item =>\n  item.AddOnID && item.AddOnID.startsWith(\"AD-\") && item.isEnabled\n);\n\nconst elements = filteredItems.map(item => ({\n  title: item.Name,\n  image_url: (item.imagelink && item.imagelink !== \"placeholder\")\n    ? item.imagelink\n    : `https://via.placeholder.com/300x200?text=${encodeURIComponent(item.Name)}`,\n  subtitle: `Base price: ₱${item.BasePrice} | Allergen: ${item.Allergen}`,\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Add to Drink\",\n      payload: `${$('Add-Ons Switch').item.json.postback}|${item.AddOnID}`\n    }\n  ]\n}));\n\nelements.push({\n  title: \"None Add-ons\",\n  image_url: \"https://via.placeholder.com/300x200?text=Option+1\",\n  subtitle: \"No additional fees.\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Proceed\",\n      payload: `${$('Add-Ons Switch').item.json.postback}|NONE`\n    }\n  ]\n});\n\nelements.push({\n  title: \"Cancel Item\",\n  image_url: \"https://via.placeholder.com/300x200?text=Option+4\",\n  subtitle: \"placeholder\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Go Back\",\n      payload: \"VIEW_MT\"\n    }\n  ]\n});\n\nconst responsePayload = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    attachment: {\n      type: \"template\",\n      payload: {\n        template_type: \"generic\",\n        elements: elements\n      }\n    }\n  }\n};\n\nreturn [{ json: responsePayload }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1664,
+        1712
+      ],
+      "id": "3b4d05e9-4ad0-4de4-a90e-b6181a11593d",
+      "name": "Parse Bites [Milktea]"
+    },
+    {
+      "parameters": {
+        "collection": "Add-ons",
+        "options": {},
+        "query": "={\n  \"AddOnID\": { \"$regex\": \"^AD-\" },\n  \"isEnabled\": true\n}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        1488,
+        1904
+      ],
+      "id": "f5572e48-a94a-4fd4-8e13-94ad18f2868b",
+      "name": "Retrieve Addons [Coffee]",
+      "credentials": {
+        "mongoDb": {
+          "id": "gE9wFiHHKb14x1uQ",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const senderId = $('Listen').first().json.senderId;\nif (!senderId) {\n  throw new Error(\"Sender ID not found in input data\");\n}\n\nconst menuItems = $input.all().map(i => i.json);\n\n// Filter for enabled Add-ons (add more criteria if needed)\nconst filteredItems = menuItems.filter(item =>\n  item.AddOnID && item.AddOnID.startsWith(\"AD-\") && item.isEnabled\n);\n\nconst elements = filteredItems.map(item => ({\n  title: item.Name,\n  image_url: (item.imagelink && item.imagelink !== \"placeholder\")\n    ? item.imagelink\n    : `https://via.placeholder.com/300x200?text=${encodeURIComponent(item.Name)}`,\n  subtitle: `Base price: ₱${item.BasePrice} | Allergen: ${item.Allergen}`,\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Add to Drink\",\n      payload: `${$('Add-Ons Switch').item.json.postback}|${item.AddOnID}`\n    }\n  ]\n}));\n\nelements.push({\n  title: \"None Add-ons\",\n  image_url: \"https://via.placeholder.com/300x200?text=Option+1\",\n  subtitle: \"No additional fees.\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Proceed\",\n      payload: `${$('Add-Ons Switch').item.json.postback}|NONE`\n    }\n  ]\n});\n\nelements.push({\n  title: \"Cancel Item\",\n  image_url: \"https://via.placeholder.com/300x200?text=Option+4\",\n  subtitle: \"placeholder\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Go Back\",\n      payload: \"VIEW_SIGNATURES\"\n    }\n  ]\n});\n\nconst responsePayload = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    attachment: {\n      type: \"template\",\n      payload: {\n        template_type: \"generic\",\n        elements: elements\n      }\n    }\n  }\n};\n\nreturn [{ json: responsePayload }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1680,
+        1904
+      ],
+      "id": "1b6dde30-24ba-4483-89a4-ea789ae39e87",
+      "name": "Parse Bites [Coffee]"
+    },
+    {
+      "parameters": {
+        "collection": "Add-ons",
+        "options": {},
+        "query": "={\n  \"AddOnID\": { \"$regex\": \"^AD-\" },\n  \"isEnabled\": true\n}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        1472,
+        2096
+      ],
+      "id": "65f66708-fd23-46e6-9146-cddecdd2e5de",
+      "name": "Retrieve Addons [Fruit Tea]",
+      "credentials": {
+        "mongoDb": {
+          "id": "gE9wFiHHKb14x1uQ",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const senderId = $('Listen').first().json.senderId;\nif (!senderId) {\n  throw new Error(\"Sender ID not found in input data\");\n}\n\nconst menuItems = $input.all().map(i => i.json);\n\n// Filter for enabled Add-ons (add more criteria if needed)\nconst filteredItems = menuItems.filter(item =>\n  item.AddOnID && item.AddOnID.startsWith(\"AD-\") && item.isEnabled\n);\n\nconst elements = filteredItems.map(item => ({\n  title: item.Name,\n  image_url: (item.imagelink && item.imagelink !== \"placeholder\")\n    ? item.imagelink\n    : `https://via.placeholder.com/300x200?text=${encodeURIComponent(item.Name)}`,\n  subtitle: `Base price: ₱${item.BasePrice} | Allergen: ${item.Allergen}`,\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Add to Drink\",\n      payload: `${$('Add-Ons Switch').item.json.postback}|${item.AddOnID}`\n    }\n  ]\n}));\n\nelements.push({\n  title: \"None Add-ons\",\n  image_url: \"https://via.placeholder.com/300x200?text=Option+1\",\n  subtitle: \"No additional fees.\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Proceed\",\n      payload: `${$('Add-Ons Switch').item.json.postback}|NONE`\n    }\n  ]\n});\n\nelements.push({\n  title: \"Cancel Item\",\n  image_url: \"https://via.placeholder.com/300x200?text=Option+4\",\n  subtitle: \"placeholder\",\n  buttons: [\n    {\n      type: \"postback\",\n      title: \"Go Back\",\n      payload: \"VIEW_FT\"\n    }\n  ]\n});\n\nconst responsePayload = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    attachment: {\n      type: \"template\",\n      payload: {\n        template_type: \"generic\",\n        elements: elements\n      }\n    }\n  }\n};\n\nreturn [{ json: responsePayload }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1664,
+        2096
+      ],
+      "id": "ff19551e-8be6-48f9-988e-115e6085b959",
+      "name": "Parse Bites [Fruit Tea]"
+    },
+    {
+      "parameters": {
+        "content": "## Add more ingredients options",
+        "width": 384
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1440,
+        1488
+      ],
+      "id": "67708270-2a2c-4b08-bb32-ac7a72bf5d5b",
+      "name": "Sticky Note2"
     }
   ],
   "pinData": {},
@@ -3180,20 +3213,14 @@
             "index": 0
           }
         ],
-        [
-          {
-            "node": "Display Guideline Message [SP Cash-On-Hand]",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     },
     "Select Add-ons Milktea Message": {
       "main": [
         [
           {
-            "node": "Add-ons Milktea",
+            "node": "Retrieve Addons [Milktea]",
             "type": "main",
             "index": 0
           }
@@ -3204,7 +3231,7 @@
       "main": [
         [
           {
-            "node": "Add-ons Coffee",
+            "node": "Retrieve Addons [Coffee]",
             "type": "main",
             "index": 0
           }
@@ -3215,7 +3242,7 @@
       "main": [
         [
           {
-            "node": "Add-ons Fruit Tea",
+            "node": "Retrieve Addons [Fruit Tea]",
             "type": "main",
             "index": 0
           }
@@ -3972,22 +3999,77 @@
         ]
       ]
     },
-    "Display Guideline Message [SP Cash-On-Hand]": {
+    "Gather Size": {
       "main": [
         [
           {
-            "node": "Display User Form Message [SP Cash-On-Hand]",
+            "node": "Merge",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Gather Size": {
+    "Retrieve Addons [Milktea]": {
       "main": [
         [
           {
-            "node": "Merge",
+            "node": "Parse Bites [Milktea]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Bites [Milktea]": {
+      "main": [
+        [
+          {
+            "node": "Add-ons Milktea",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve Addons [Coffee]": {
+      "main": [
+        [
+          {
+            "node": "Parse Bites [Coffee]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Bites [Coffee]": {
+      "main": [
+        [
+          {
+            "node": "Add-ons Coffee",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve Addons [Fruit Tea]": {
+      "main": [
+        [
+          {
+            "node": "Parse Bites [Fruit Tea]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Bites [Fruit Tea]": {
+      "main": [
+        [
+          {
+            "node": "Add-ons Fruit Tea",
             "type": "main",
             "index": 0
           }
@@ -4000,7 +4082,7 @@
     "executionOrder": "v1",
     "callerPolicy": "workflowsFromSameOwner"
   },
-  "versionId": "fbe0917d-a3a7-45d2-bf5e-8833e3ae3a32",
+  "versionId": "cff422f4-f99b-4faa-a2a1-5cb6d3f98fb1",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "818d45e7d7435ffe1fb1a4348f404a0c4a80b891ed8669035a39a5ec5e90d0d6"
