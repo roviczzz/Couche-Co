@@ -4,6 +4,7 @@ const { MongoClient } = require('mongodb');
 const expressLayouts = require('express-ejs-layouts');
 const flash = require('connect-flash');
 const favicon = require('serve-favicon');
+const compression = require('compression');
 const path = require('path');
 
 const app = express();
@@ -20,6 +21,20 @@ const apiRoutes = require('./routes/api');
 const staffRoutes = require('./routes/staff');
 const inventoryRoutes = require('./routes/inventory');
 const inventoryAdminRoutes = require('./routes/inventory-admin');
+
+// Enable gzip compression for all responses
+app.use(compression({
+  level: 6, // Good balance between speed and compression
+  threshold: 1024, // Only compress responses larger than 1KB
+  filter: (req, res) => {
+    // Don't compress responses with this request header
+    if (req.headers['x-no-compression']) {
+      return false;
+    }
+    // Use compression filter function
+    return compression.filter(req, res);
+  }
+}));
 
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')))
 app.use(session({

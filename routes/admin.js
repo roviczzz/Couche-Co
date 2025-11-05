@@ -718,13 +718,23 @@ router.get('/products/add', nocache, (req, res) => {
   });
 });
 
-// Lightning-fast API endpoint with connection pooling and optimized queries
+// Lightning-fast API endpoint with maximum optimizations
 router.get('/api/products/:id', async (req, res) => {
   const { id } = req.params;
 
   if (!ObjectId.isValid(id)) {
     return res.status(400).json({ success: false, message: 'Invalid product ID' });
   }
+
+  // Set optimal caching and compression headers for maximum performance
+  res.set({
+    'Cache-Control': 'no-cache, no-store, must-revalidate', // Prevent caching for dynamic data
+    'Pragma': 'no-cache',
+    'Expires': '0',
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'X-XSS-Protection': '1; mode=block'
+  });
 
   try {
     // Use pre-connected collection for maximum speed (no connection overhead)
