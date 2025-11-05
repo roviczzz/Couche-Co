@@ -417,7 +417,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  // Optimized edit button event delegation
+  // Optimized edit button event delegation - Show modal immediately, load data in background
   document.addEventListener('click', async (e) => {
     const editBtn = e.target.closest('.edit-btn');
     if (!editBtn) return;
@@ -429,17 +429,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const productId = productCard.dataset.id;
     if (!productId) return;
 
-    // Reset modal state
+    // Show modal immediately for instant feedback
     editModalState.reset();
-
-    // Set form action
     editForm.action = `/admin/products/edit/${productId}`;
+    editModalState.show();
 
-    // Load and display data
-    const success = await loadProductData(productId);
-    if (success) {
-      editModalState.show();
-    }
+    // Load data in background and update modal content
+    loadProductData(productId).catch(error => {
+      console.error('Failed to load product data for edit modal:', error);
+      editModalState.hide();
+      alert('Failed to load product data');
+    });
   });
 
   // Optimized cancel button
