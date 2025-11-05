@@ -1,295 +1,197 @@
 // Products Page JavaScript
 document.addEventListener("DOMContentLoaded", () => {
-  // ---------- ADD PRODUCT MODAL ----------
-  const addModal = document.getElementById("addProductModal");
-  document.getElementById("openAddModal").addEventListener("click", () => addModal.classList.remove("hidden"));
-  document.getElementById("cancelAdd").addEventListener("click", () => addModal.classList.add("hidden"));
+  // ========== UTILITY FUNCTIONS ==========
+  const $ = id => document.getElementById(id);
+  const $$ = selector => document.querySelectorAll(selector);
 
+  const createImageHTML = src => `<img src="${src}" style="width:100px;height:100px;object-fit:cover;border-radius:8px;">`;
 
+  // ========== MODAL MANAGEMENT ==========
+  const ModalManager = {
+    show: modal => modal.classList.remove("hidden"),
+    hide: modal => modal.classList.add("hidden"),
+    toggle: modal => modal.classList.toggle("hidden")
+  };
 
-  // ---------- IMAGE DROPBOX SETUP ----------
-  function setupImageDropbox(dropboxId, inputId, previewId) {
-    const dropbox = document.getElementById(dropboxId);
-    const input = document.getElementById(inputId);
-    const preview = document.getElementById(previewId);
+  // ========== IMAGE DROPBOX SETUP ==========
+  const setupImageDropbox = (dropboxId, inputId, previewId) => {
+    const dropbox = $(dropboxId);
+    const input = $(inputId);
+    const preview = $(previewId);
+
+    const handleFile = file => {
+      const reader = new FileReader();
+      reader.onload = e => preview.innerHTML = createImageHTML(e.target.result);
+      reader.readAsDataURL(file);
+    };
 
     dropbox.addEventListener("click", () => input.click());
+    input.addEventListener("change", () => input.files[0] && handleFile(input.files[0]));
 
-    // Handle file selection
-    input.addEventListener("change", () => {
-      if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = e => preview.innerHTML = `<img src="${e.target.result}" style="width:100px;height:100px;object-fit:cover;border-radius:8px;">`;
-        reader.readAsDataURL(input.files[0]);
-      }
+    ["dragover", "dragleave", "drop"].forEach(event => {
+      dropbox.addEventListener(event, e => {
+        e.preventDefault();
+        if (event === "drop") {
+          dropbox.classList.remove("dragover");
+          e.dataTransfer.files[0] && handleFile(e.dataTransfer.files[0]);
+        } else {
+          dropbox.classList.toggle("dragover", event === "dragover");
+        }
+      });
     });
-
-    // Drag & Drop
-    dropbox.addEventListener("dragover", e => {
-      e.preventDefault();
-      dropbox.classList.add("dragover");
-    });
-    dropbox.addEventListener("dragleave", e => {
-      e.preventDefault();
-      dropbox.classList.remove("dragover");
-    });
-    dropbox.addEventListener("drop", e => {
-      e.preventDefault();
-      dropbox.classList.remove("dragover");
-      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-        input.files = e.dataTransfer.files;
-        const reader = new FileReader();
-        reader.onload = ev => preview.innerHTML = `<img src="${ev.target.result}" style="width:100px;height:100px;object-fit:cover;border-radius:8px;">`;
-        reader.readAsDataURL(e.dataTransfer.files[0]);
-      }
-    });
-  }
+  };
 
   setupImageDropbox("addImageDropbox", "addImageFile", "addImagePreview");
   setupImageDropbox("editImageDropbox", "editImageFile", "editImagePreview");
 
-  // ---------- INGREDIENT CHIPS ----------
-  const chipContainer = document.getElementById("chipContainer");
-  const chipInput = document.getElementById("chipInput");
-  const hiddenIngredients = document.getElementById("hiddenIngredients");
-  const suggestionsBox = document.getElementById("suggestions");
-  let ingredients = []; // array of { ingredientID: string, usedGrams: number }
+  // ========== CHIP SYSTEM ==========
+  const ChipSystem = {
+    ingredients: [],
+    addOns: [],
 
-  function updateHiddenInput() {
-    hiddenIngredients.value = JSON.stringify(ingredients);
-  }
+    init(containerId, inputId, hiddenId, suggestionsId, isAddOn = false) {
+      const container = $(containerId);
+      const input = $(inputId);
+      const hidden = $(hiddenId);
+      const suggestions = $(suggestionsId);
+      const items = isAddOn ? this.addOns : this.ingredients;
 
-  // ---------- ADD-ONS CHIPS ----------
-  const addOnsChipContainer = document.getElementById("addOnsChipContainer");
-  const addOnsChipInput = document.getElementById("addOnsChipInput");
-  const hiddenAddOns = document.getElementById("hiddenAddOns");
-  const addOnsSuggestionsBox = document.getElementById("addOnsSuggestions");
-  let addOns = []; // array of { addOnID: string, name: string, usedGrams16oz: number, usedGrams22oz: number }
+      const updateHidden = () => hidden.value = JSON.stringify(items);
 
-  function updateHiddenAddOns() {
-    hiddenAddOns.value = JSON.stringify(addOns);
-  }
+      const createChip = (id, name, isMilktea = false) => {
+        if (!id || items.some(item => item[isAddOn ? 'addOnID' : 'ingredientID'] === id)) return;
 
-  function addAddOnChip(id, name) {
-    if (!id || addOns.some(addOn => addOn.addOnID === id)) return;
+        const itemObj = {
+          [isAddOn ? 'addOnID' : 'ingredientID']: id,
+          name,
+          [isAddOn ? 'usedGrams16oz' : 'usedGrams']: isAddOn ? 0 : (isMilktea ? { "16oz": 0, "22oz": 0 } : 0),
+          ...(isAddOn && { usedGrams22oz: 0 })
+        };
 
-    const addOnObj = {
-      addOnID: id,
-      name: name,
-      usedGrams16oz: 0,
-      usedGrams22oz: 0
-    };
-    addOns.push(addOnObj);
+        items.push(itemObj);
+        const chip = document.createElement("div");
+        chip.className = "chip";
 
-    const chip = document.createElement("div");
-    chip.className = "chip";
+        const inputsHtml = isAddOn ? `
+          <span class="chip-separator">|</span>
+          <span class="chip-grams-label">16oz:</span>
+          <input type="number" class="chip-grams-input chip-grams-16oz" value="0" min="0" step="0.1" placeholder="g">
+          <span class="chip-grams-label">22oz:</span>
+          <input type="number" class="chip-grams-input chip-grams-22oz" value="0" min="0" step="0.1" placeholder="g">
+          <span class="chip-unit">g</span>
+        ` : (isMilktea ? `
+          <span class="chip-separator">|</span>
+          <span class="chip-grams-label">16oz:</span>
+          <input type="number" class="chip-grams-input chip-grams-16oz" value="0" min="0" step="0.1" placeholder="g">
+          <span class="chip-grams-label">22oz:</span>
+          <input type="number" class="chip-grams-input chip-grams-22oz" value="0" min="0" step="0.1" placeholder="g">
+          <span class="chip-unit">g</span>
+        ` : `
+          <span class="chip-separator">|</span>
+          <span class="chip-grams-label">Used:</span>
+          <input type="number" class="chip-grams-input" value="0" min="0" step="0.1" placeholder="g">
+          <span class="chip-unit">g</span>
+        `);
 
-    chip.innerHTML = `
-      <span class="chip-name">${name}</span>
-      <span class="chip-separator">|</span>
-      <span class="chip-grams-label">16oz:</span>
-      <input type="number" class="chip-grams-input chip-grams-16oz" value="0" min="0" step="0.1" placeholder="g">
-      <span class="chip-grams-label">22oz:</span>
-      <input type="number" class="chip-grams-input chip-grams-22oz" value="0" min="0" step="0.1" placeholder="g">
-      <span class="chip-unit">g</span>
-      <span class="chip-remove">&times;</span>
-    `;
+        chip.innerHTML = `<span class="chip-name">${name}</span>${inputsHtml}<span class="chip-remove">&times;</span>`;
 
-    // Handle grams input changes
-    const grams16oz = chip.querySelector(".chip-grams-16oz");
-    const grams22oz = chip.querySelector(".chip-grams-22oz");
-
-    grams16oz.addEventListener("input", (e) => {
-      addOnObj.usedGrams16oz = parseFloat(e.target.value) || 0;
-      updateHiddenAddOns();
-    });
-
-    grams22oz.addEventListener("input", (e) => {
-      addOnObj.usedGrams22oz = parseFloat(e.target.value) || 0;
-      updateHiddenAddOns();
-    });
-
-    // Handle remove button
-    chip.querySelector(".chip-remove").addEventListener("click", () => {
-      addOns = addOns.filter(addOn => addOn.addOnID !== id);
-      chip.remove();
-      updateHiddenAddOns();
-    });
-
-    addOnsChipContainer.insertBefore(chip, addOnsChipInput);
-    addOnsChipInput.value = "";
-    updateHiddenAddOns();
-  }
-
-  function addChip(id, name) {
-    if (!id || ingredients.some(ing => ing.ingredientID === id)) return;
-
-    const categorySelect = document.getElementById("categorySelect");
-    const isMilktea = categorySelect.value === "MT"; // MT = Milktea
-
-    const ingredientObj = {
-      ingredientID: id,
-      name: name,
-      usedGrams: isMilktea ? { "16oz": 0, "22oz": 0 } : 0
-    };
-    ingredients.push(ingredientObj);
-
-    const chip = document.createElement("div");
-    chip.className = "chip";
-
-    let inputsHtml = "";
-    if (isMilktea) {
-      inputsHtml = `
-        <span class="chip-separator">|</span>
-        <span class="chip-grams-label">16oz:</span>
-        <input type="number" class="chip-grams-input chip-grams-16oz" value="0" min="0" step="0.1" placeholder="g">
-        <span class="chip-grams-label">22oz:</span>
-        <input type="number" class="chip-grams-input chip-grams-22oz" value="0" min="0" step="0.1" placeholder="g">
-        <span class="chip-unit">g</span>
-      `;
-    } else {
-      inputsHtml = `
-        <span class="chip-separator">|</span>
-        <span class="chip-grams-label">Used:</span>
-        <input type="number" class="chip-grams-input" value="0" min="0" step="0.1" placeholder="g">
-        <span class="chip-unit">g</span>
-      `;
-    }
-
-    chip.innerHTML = `
-      <span class="chip-name">${name}</span>
-      ${inputsHtml}
-      <span class="chip-remove">&times;</span>
-    `;
-
-    // Handle grams input changes
-    if (isMilktea) {
-      const grams16oz = chip.querySelector(".chip-grams-16oz");
-      const grams22oz = chip.querySelector(".chip-grams-22oz");
-
-      grams16oz.addEventListener("input", (e) => {
-        ingredientObj.usedGrams["16oz"] = parseFloat(e.target.value) || 0;
-        updateHiddenInput();
-      });
-
-      grams22oz.addEventListener("input", (e) => {
-        ingredientObj.usedGrams["22oz"] = parseFloat(e.target.value) || 0;
-        updateHiddenInput();
-      });
-    } else {
-      const gramsInput = chip.querySelector(".chip-grams-input");
-      gramsInput.addEventListener("input", (e) => {
-        ingredientObj.usedGrams = parseFloat(e.target.value) || 0;
-        updateHiddenInput();
-      });
-    }
-
-    // Handle remove button
-    chip.querySelector(".chip-remove").addEventListener("click", () => {
-      ingredients = ingredients.filter(ing => ing.ingredientID !== id);
-      chip.remove();
-      updateHiddenInput();
-    });
-
-    chipContainer.insertBefore(chip, chipInput);
-    chipInput.value = "";
-    updateHiddenInput();
-  }
-
-  let debounceTimeout;
-  chipInput.addEventListener("input", () => {
-    clearTimeout(debounceTimeout);
-    debounceTimeout = setTimeout(async () => {
-      const query = chipInput.value.trim();
-      suggestionsBox.innerHTML = "";
-      if (!query) return;
-      try {
-        const res = await fetch(`/api/ingredients/search?q=${encodeURIComponent(query)}`);
-        let results = await res.json();
-
-        const uniqueNames = new Set();
-        const filteredResults = results.filter(item => {
-          const name = item.Name || item.itemName || item.name || 'Unknown Ingredient';
-          const lowerName = name.toLowerCase();
-          const id = item.IngredientID || item.ingredientID || item.id || 'unknown';
-          if (uniqueNames.has(lowerName) || ingredients.some(ing => ing.ingredientID === id)) return false;
-          uniqueNames.add(lowerName);
-          return true;
-        });
-
-        filteredResults.forEach(item => {
-          const name = item.Name || item.itemName || item.name || 'Unknown Ingredient';
-          const id = item.IngredientID || item.ingredientID || item.id || 'unknown';
-          const div = document.createElement("div");
-          div.textContent = name;
-          div.addEventListener("click", () => {
-            addChip(id, name);
-            suggestionsBox.innerHTML = "";
+        // Event listeners for inputs
+        if (isAddOn) {
+          chip.querySelector(".chip-grams-16oz").addEventListener("input", e => {
+            itemObj.usedGrams16oz = parseFloat(e.target.value) || 0;
+            updateHidden();
           });
-          suggestionsBox.appendChild(div);
-        });
-
-      } catch (err) {
-        console.error(err);
-      }
-    }, 200);
-  });
-
-  document.addEventListener("click", e => {
-    if (e.target !== chipInput) suggestionsBox.innerHTML = "";
-  });
-
-  chipInput.addEventListener("keydown", e => {
-    if (e.key === "Enter") e.preventDefault();
-  });
-
-  // ---------- ADD-ONS INPUT HANDLING ----------
-  let addOnsDebounceTimeout;
-  addOnsChipInput.addEventListener("input", () => {
-    clearTimeout(addOnsDebounceTimeout);
-    addOnsDebounceTimeout = setTimeout(async () => {
-      const query = addOnsChipInput.value.trim();
-      addOnsSuggestionsBox.innerHTML = "";
-      if (!query) return;
-      try {
-        const res = await fetch(`/api/addons/search?q=${encodeURIComponent(query)}`);
-        let results = await res.json();
-
-        const uniqueNames = new Set();
-        const filteredResults = results.filter(item => {
-          const name = item.Name || item.itemName || item.name || 'Unknown Add-on';
-          const lowerName = name.toLowerCase();
-          const id = item.AddOnID || item.addOnID || item.id || 'unknown';
-          if (uniqueNames.has(lowerName) || addOns.some(addOn => addOn.addOnID === id)) return false;
-          uniqueNames.add(lowerName);
-          return true;
-        });
-
-        filteredResults.forEach(item => {
-          const name = item.Name || item.itemName || item.name || 'Unknown Add-on';
-          const id = item.AddOnID || item.addOnID || item.id || 'unknown';
-          const div = document.createElement("div");
-          div.textContent = name;
-          div.addEventListener("click", () => {
-            addAddOnChip(id, name);
-            addOnsSuggestionsBox.innerHTML = "";
+          chip.querySelector(".chip-grams-22oz").addEventListener("input", e => {
+            itemObj.usedGrams22oz = parseFloat(e.target.value) || 0;
+            updateHidden();
           });
-          addOnsSuggestionsBox.appendChild(div);
+        } else if (isMilktea) {
+          chip.querySelector(".chip-grams-16oz").addEventListener("input", e => {
+            itemObj.usedGrams["16oz"] = parseFloat(e.target.value) || 0;
+            updateHidden();
+          });
+          chip.querySelector(".chip-grams-22oz").addEventListener("input", e => {
+            itemObj.usedGrams["22oz"] = parseFloat(e.target.value) || 0;
+            updateHidden();
+          });
+        } else {
+          chip.querySelector(".chip-grams-input").addEventListener("input", e => {
+            itemObj.usedGrams = parseFloat(e.target.value) || 0;
+            updateHidden();
+          });
+        }
+
+        chip.querySelector(".chip-remove").addEventListener("click", () => {
+          const index = items.findIndex(item => item[isAddOn ? 'addOnID' : 'ingredientID'] === id);
+          if (index > -1) items.splice(index, 1);
+          chip.remove();
+          updateHidden();
         });
 
-      } catch (err) {
-        console.error(err);
-      }
-    }, 200);
-  });
+        container.insertBefore(chip, input);
+        input.value = "";
+        updateHidden();
+      };
 
-  document.addEventListener("click", e => {
-    if (e.target !== addOnsChipInput) addOnsSuggestionsBox.innerHTML = "";
-  });
+      // Debounced search
+      let debounceTimeout;
+      input.addEventListener("input", () => {
+        clearTimeout(debounceTimeout);
+        debounceTimeout = setTimeout(async () => {
+          const query = input.value.trim();
+          suggestions.innerHTML = "";
+          if (!query) return;
 
-  addOnsChipInput.addEventListener("keydown", e => {
-    if (e.key === "Enter") e.preventDefault();
-  });
+          try {
+            const endpoint = isAddOn ? '/api/addons/search' : '/api/ingredients/search';
+            const res = await fetch(`${endpoint}?q=${encodeURIComponent(query)}`);
+            const results = await res.json();
+
+            const uniqueNames = new Set();
+            const filteredResults = results.filter(item => {
+              const name = item.Name || item.itemName || item.name || `Unknown ${isAddOn ? 'Add-on' : 'Ingredient'}`;
+              const lowerName = name.toLowerCase();
+              const id = item[isAddOn ? 'AddOnID' : 'IngredientID'] || item[isAddOn ? 'addOnID' : 'ingredientID'] || item.id || 'unknown';
+              if (uniqueNames.has(lowerName) || items.some(existing => existing[isAddOn ? 'addOnID' : 'ingredientID'] === id)) return false;
+              uniqueNames.add(lowerName);
+              return true;
+            });
+
+            filteredResults.forEach(item => {
+              const name = item.Name || item.itemName || item.name || `Unknown ${isAddOn ? 'Add-on' : 'Ingredient'}`;
+              const id = item[isAddOn ? 'AddOnID' : 'addOnID'] || item[isAddOn ? 'addOnID' : 'ingredientID'] || item.id || 'unknown';
+              const div = document.createElement("div");
+              div.textContent = name;
+              div.addEventListener("click", () => {
+                const isMilktea = !isAddOn && $("categorySelect").value === "MT";
+                createChip(id, name, isMilktea);
+                suggestions.innerHTML = "";
+              });
+              suggestions.appendChild(div);
+            });
+          } catch (err) {
+            console.error(err);
+          }
+        }, 200);
+      });
+
+      // Clear suggestions on outside click
+      document.addEventListener("click", e => {
+        if (e.target !== input) suggestions.innerHTML = "";
+      });
+
+      // Prevent Enter key submission
+      input.addEventListener("keydown", e => {
+        if (e.key === "Enter") e.preventDefault();
+      });
+
+      return { createChip, updateHidden };
+    }
+  };
+
+  // Initialize chip systems
+  const ingredientsSystem = ChipSystem.init("chipContainer", "chipInput", "hiddenIngredients", "suggestions");
+  const addOnsSystem = ChipSystem.init("addOnsChipContainer", "addOnsChipInput", "hiddenAddOns", "addOnsSuggestions", true);
 
   // ---------- PRICE INPUT VALIDATION ----------
   function restrictToNumeric(input) {
@@ -353,137 +255,202 @@ document.addEventListener("DOMContentLoaded", () => {
     if (input) restrictToNumeric(input);
   });
 
-  // ---------- CATEGORY TOGGLE ----------
-  const categorySelect = document.getElementById("categorySelect");
-  const basePriceContainer = document.getElementById("basePriceContainer");
-  const priceRow = document.getElementById("priceRow");
-  const quantityContainer = document.getElementById("quantityContainer");
-  const ingredientsContainer = document.getElementById("ingredientsContainer");
-  const addOnsContainer = document.getElementById("addOnsContainer");
+  // ========== CATEGORY FIELD MANAGEMENT ==========
+  const CategoryManager = {
+    elements: {
+      select: $("categorySelect"),
+      basePriceContainer: $("basePriceContainer"),
+      priceRow: $("priceRow"),
+      quantityContainer: $("quantityContainer"),
+      ingredientsContainer: $("ingredientsContainer"),
+      addOnsContainer: $("addOnsContainer")
+    },
 
-  function toggleFields() {
-    const isPastries = categorySelect.value === "BK"; // BK = Pastries
-    const isDrink = ["CF", "FT", "MT"].includes(categorySelect.value); // CF = Coffee, FT = Fruit Tea, MT = Milktea
+    toggleFields() {
+      const category = this.elements.select.value;
+      const isPastries = category === "BK";
+      const isDrink = ["CF", "FT", "MT"].includes(category);
 
-    if (isPastries) {
-      basePriceContainer.classList.remove("hidden");
-      priceRow.classList.add("hidden");
-      quantityContainer.classList.remove("hidden");
-      ingredientsContainer.classList.add("hidden");
-      addOnsContainer.classList.add("hidden");
-    } else {
-      basePriceContainer.classList.add("hidden");
-      priceRow.classList.remove("hidden");
-      quantityContainer.classList.add("hidden");
-      ingredientsContainer.classList.remove("hidden");
+      // Toggle visibility based on category
+      this.elements.basePriceContainer.classList.toggle("hidden", !isPastries);
+      this.elements.priceRow.classList.toggle("hidden", isPastries);
+      this.elements.quantityContainer.classList.toggle("hidden", !isPastries);
+      this.elements.ingredientsContainer.classList.toggle("hidden", isPastries);
+      this.elements.addOnsContainer.classList.toggle("hidden", !isDrink);
+    },
 
-      // Show add-ons for all drink categories (Coffee, Fruit Tea, Milktea)
-      if (isDrink) {
-        addOnsContainer.classList.remove("hidden");
-      } else {
-        addOnsContainer.classList.add("hidden");
-      }
+    clearChips() {
+      // Clear ingredients
+      ChipSystem.ingredients.length = 0;
+      $$('.chip').forEach(chip => chip.remove());
+      ingredientsSystem.updateHidden();
+
+      // Clear add-ons
+      ChipSystem.addOns.length = 0;
+      $$('.chip').forEach(chip => chip.remove());
+      addOnsSystem.updateHidden();
+    },
+
+    init() {
+      this.elements.select.addEventListener("change", () => {
+        this.toggleFields();
+        this.clearChips();
+      });
+      this.toggleFields(); // Initial state
     }
-  }
+  };
 
-  categorySelect.addEventListener("change", () => {
-    toggleFields();
-    // Clear ingredients when category changes, since different categories have different formats
-    ingredients = [];
-    chipContainer.querySelectorAll('.chip').forEach(chip => chip.remove());
-    updateHiddenInput();
-
-    // Clear add-ons when category changes
-    addOns = [];
-    addOnsChipContainer.querySelectorAll('.chip').forEach(chip => chip.remove());
-    updateHiddenAddOns();
-  });
-  toggleFields();
+  CategoryManager.init();
 
   // ---------- EDIT PRODUCT MODAL ----------
   const editModal = document.getElementById("editProductModal");
   const editForm = document.getElementById("editProductForm");
-  const editCategoryHidden = document.getElementById("editCategoryHidden");
-  const editBasePriceContainer = document.getElementById("editBasePriceContainer");
-  const editQuantityContainer = document.getElementById("editQuantityContainer");
-  const editPriceRow = document.getElementById("editPriceRow");
-  const editEnabledCheckbox = document.getElementById("editEnabled");
 
+  // Cache DOM elements for better performance
+  const editElements = {
+    name: document.getElementById("editName"),
+    categoryDisplay: document.getElementById("editCategoryDisplay"),
+    categoryHidden: document.getElementById("editCategoryHidden"),
+    basePriceContainer: document.getElementById("editBasePriceContainer"),
+    quantityContainer: document.getElementById("editQuantityContainer"),
+    priceRow: document.getElementById("editPriceRow"),
+    basePrice: document.getElementById("editBasePrice"),
+    quantity: document.getElementById("editQuantity"),
+    size16: document.getElementById("editSize16"),
+    size22: document.getElementById("editSize22"),
+    description: document.getElementById("editDescription"),
+    allergen: document.getElementById("editAllergen"),
+    enabled: document.getElementById("editEnabled"),
+    imagePreview: document.getElementById("editImagePreview"),
+    cancelBtn: document.getElementById("cancelEdit")
+  };
 
-
-  // Open edit modal
-  document.querySelectorAll(".edit-btn").forEach(btn => {
-    btn.addEventListener("click", async e => {
-      e.preventDefault();
-      const card = btn.closest(".product-card");
-      const id = card.dataset.id;
-
-      editForm.action = `/admin/products/edit/${id}`;
-
-      try {
-        const res = await fetch(`/admin/api/products/${id}`);
-        const data = await res.json();
-        const p = data.product;
-
-        document.getElementById("editName").value = p.Name || "";
-        document.getElementById("editCategoryDisplay").value = p.Category || "";
-        editCategoryHidden.value = p.Category || "";
-
-        // Check if this is a pastries product
-        const isPastries = p.Category === "Pastries" || p.Category === "BK";
-
-        if (isPastries) {
-          // For pastries: show BasePrice and Quantity, hide size-specific prices
-          editBasePriceContainer.style.display = "block";
-          editQuantityContainer.style.display = "block";
-          editPriceRow.style.display = "none";
-          document.getElementById("editBasePrice").value = p.BasePrice || p.basePrice || "";
-          document.getElementById("editQuantity").value = p.Quantity || "";
-        } else {
-          // For drinks: show size-specific prices, hide BasePrice and Quantity
-          editBasePriceContainer.style.display = "none";
-          editQuantityContainer.style.display = "none";
-          editPriceRow.style.display = "block";
-
-          if (p.Sizes && Array.isArray(p.Sizes)) {
-            const size16 = p.Sizes.find(s => s.Size === "16oz" || s.size === "16oz");
-            const size22 = p.Sizes.find(s => s.Size === "22oz" || s.size === "22oz");
-            document.getElementById("editSize16").value = size16 ? (size16.BasePrice || size16.basePrice) : "";
-            document.getElementById("editSize22").value = size22 ? (size22.BasePrice || size22.basePrice) : "";
-          } else {
-            document.getElementById("editSize16").value = "";
-            document.getElementById("editSize22").value = "";
+  // Optimized modal state management
+  const editModalState = {
+    show: () => editModal.classList.remove("hidden"),
+    hide: () => editModal.classList.add("hidden"),
+    reset: () => {
+      // Clear all form fields efficiently
+      Object.values(editElements).forEach(element => {
+        if (element) {
+          if (element.type === 'checkbox') {
+            element.checked = false;
+          } else if (element.tagName === 'SELECT' || element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+            element.value = '';
+          } else if (element.id === 'editImagePreview') {
+            element.innerHTML = '';
           }
         }
+      });
+      // Reset container visibility
+      editElements.basePriceContainer.style.display = 'none';
+      editElements.quantityContainer.style.display = 'none';
+      editElements.priceRow.style.display = 'none';
+    }
+  };
 
-        document.getElementById("editDescription").value = p.Description || p.description || "";
-        document.getElementById("editAllergen").value = p.Allergen || p.allergen || "";
-        editEnabledCheckbox.checked = !!p.isEnabled;
+  // Optimized data population functions
+  const populateDrinkFields = (product) => {
+    editElements.basePriceContainer.style.display = 'none';
+    editElements.quantityContainer.style.display = 'none';
+    editElements.priceRow.style.display = 'block';
 
-        if (p.imagelink || p.imageLink) {
-          document.getElementById("editImagePreview").innerHTML =
-            `<img src="${p.imagelink || p.imageLink}" style="width:100px;height:100px;object-fit:cover;border-radius:8px;">`;
-        } else {
-          document.getElementById("editImagePreview").innerHTML = "";
+    if (product.Sizes && Array.isArray(product.Sizes)) {
+      const size16 = product.Sizes.find(s => (s.Size || s.size) === "16oz");
+      const size22 = product.Sizes.find(s => (s.Size || s.size) === "22oz");
+      editElements.size16.value = size16 ? (size16.BasePrice || size16.basePrice || '') : '';
+      editElements.size22.value = size22 ? (size22.BasePrice || size22.basePrice || '') : '';
+    } else {
+      editElements.size16.value = '';
+      editElements.size22.value = '';
+    }
+  };
+
+  const populatePastryFields = (product) => {
+    editElements.basePriceContainer.style.display = 'block';
+    editElements.quantityContainer.style.display = 'block';
+    editElements.priceRow.style.display = 'none';
+
+    editElements.basePrice.value = product.BasePrice || product.basePrice || '';
+    editElements.quantity.value = product.Quantity || '';
+  };
+
+  // Optimized product data loading
+  const loadProductData = async (productId) => {
+    try {
+      const response = await fetch(`/admin/api/products/${productId}`);
+      if (!response.ok) throw new Error('Failed to fetch product data');
+
+      const data = await response.json();
+      const product = data.product;
+
+      // Batch DOM updates for better performance
+      const updates = [
+        () => editElements.name.value = product.Name || '',
+        () => {
+          editElements.categoryDisplay.value = product.Category || '';
+          editElements.categoryHidden.value = product.Category || '';
+        },
+        () => editElements.description.value = product.Description || product.description || '',
+        () => editElements.allergen.value = product.Allergen || product.allergen || '',
+        () => editElements.enabled.checked = !!product.isEnabled,
+        () => {
+          const imageSrc = product.imagelink || product.imageLink;
+          editElements.imagePreview.innerHTML = imageSrc
+            ? `<img src="${imageSrc}" style="width:100px;height:100px;object-fit:cover;border-radius:8px;">`
+            : '';
         }
+      ];
 
-        editModal.classList.remove("hidden");
-      } catch (err) {
-        console.error(err);
-        alert("Failed to load product data");
-      }
-    });
+      // Execute updates
+      updates.forEach(update => update());
+
+      // Handle category-specific fields
+      const isPastry = product.Category === "Pastries" || product.Category === "BK";
+      isPastry ? populatePastryFields(product) : populateDrinkFields(product);
+
+      return true;
+    } catch (error) {
+      console.error('Error loading product data:', error);
+      alert('Failed to load product data');
+      return false;
+    }
+  };
+
+  // Optimized edit button event delegation
+  document.addEventListener('click', async (e) => {
+    const editBtn = e.target.closest('.edit-btn');
+    if (!editBtn) return;
+
+    e.preventDefault();
+    const productCard = editBtn.closest('.product-card');
+    if (!productCard) return;
+
+    const productId = productCard.dataset.id;
+    if (!productId) return;
+
+    // Reset modal state
+    editModalState.reset();
+
+    // Set form action
+    editForm.action = `/admin/products/edit/${productId}`;
+
+    // Load and display data
+    const success = await loadProductData(productId);
+    if (success) {
+      editModalState.show();
+    }
   });
 
-  // Cancel edit modal
-  document.getElementById("cancelEdit").addEventListener("click", () => editModal.classList.add("hidden"));
+  // Optimized cancel button
+  editElements.cancelBtn.addEventListener('click', editModalState.hide);
 
 
 
   // ---------- EDIT MODAL: ENABLE/DISABLE LIKE OUTSIDE TOGGLE ----------
-  editEnabledCheckbox.addEventListener("change", async () => {
+  editElements.enabled.addEventListener("change", async () => {
     const productId = editForm.action.split("/").pop(); // get ID from form action
-    const newValue = editEnabledCheckbox.checked;
+    const newValue = editElements.enabled.checked;
 
     try {
       const res = await fetch(`/admin/toggle-availability/${productId}`, {
@@ -506,71 +473,115 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error(err);
       alert("Failed to update product availability");
       // revert checkbox in case of error
-      editEnabledCheckbox.checked = !newValue;
+      editElements.enabled.checked = !newValue;
     }
   });
 
-  // ---------- DELETE MODAL ----------
-  let deleteProductId = "";
-  const deleteModal = document.getElementById("deleteConfirmModal");
-  document.querySelectorAll(".delete-btn").forEach(btn => {
-    btn.addEventListener("click", e => {
-      e.preventDefault();
-      deleteProductId = btn.getAttribute("data-url").split('/').pop();
-      deleteModal.classList.remove("hidden");
-    });
-  });
+  // ========== CONFIRMATION MODALS ==========
+  const ConfirmationModal = {
+    delete: {
+      modal: $("deleteConfirmModal"),
+      productId: "",
+      confirmBtn: $("confirmDelete"),
+      cancelBtn: $("cancelDelete"),
 
-  document.getElementById("confirmDelete").addEventListener("click", () => {
-    fetch(`/admin/delete-product/${deleteProductId}`, { method: "POST" })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          const card = document.querySelector(`.product-card[data-id='${deleteProductId}']`);
-          if (card) card.remove();
-          deleteModal.classList.add("hidden");
-        } else {
-          alert(data.message || "Failed to delete product.");
-        }
-      })
-      .catch(err => {
-        console.error(err);
-        alert("Error deleting product.");
-      });
-  });
+      init() {
+        // Delete button event delegation
+        document.addEventListener('click', (e) => {
+          const deleteBtn = e.target.closest('.delete-btn');
+          if (!deleteBtn) return;
 
-  document.getElementById("cancelDelete").addEventListener("click", () => {
-    deleteModal.classList.add("hidden");
-    deleteProductId = "";
-  });
+          e.preventDefault();
+          this.productId = deleteBtn.getAttribute("data-url").split('/').pop();
+          ModalManager.show(this.modal);
+        });
 
-  // ---------- TOGGLE AVAILABILITY ----------
-  let toggleProductId = "";
-  const toggleModal = document.getElementById("toggleConfirmModal");
-  document.querySelectorAll(".product-card").forEach(card => {
-    card.addEventListener("click", e => {
-      if (e.target.closest(".edit-btn") || e.target.closest(".delete-btn")) return;
-      toggleProductId = card.dataset.id;
-      toggleModal.classList.remove("hidden");
-    });
-  });
+        // Confirm delete
+        this.confirmBtn.addEventListener('click', async () => {
+          try {
+            const response = await fetch(`/admin/delete-product/${this.productId}`, { method: "POST" });
+            const data = await response.json();
 
-  document.getElementById("confirmToggle").addEventListener("click", () => {
-    const currentCard = document.querySelector(`.product-card[data-id="${toggleProductId}"]`);
-    const currentlyEnabled = currentCard.dataset.enabled === "true";
-    const newValue = !currentlyEnabled;
-    fetch(`/admin/toggle-availability/${toggleProductId}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ isEnabled: newValue })
-    })
-    .then(res => res.ok ? location.reload() : alert("Failed"))
-    .catch(err => {
-      console.error("Toggle error:", err);
-      alert("Request failed: " + err);
-    });
-    toggleModal.classList.add("hidden");
-  });
+            if (data.success) {
+              const card = document.querySelector(`.product-card[data-id='${this.productId}']`);
+              card?.remove();
+              ModalManager.hide(this.modal);
+            } else {
+              alert(data.message || "Failed to delete product.");
+            }
+          } catch (error) {
+            console.error('Delete error:', error);
+            alert("Error deleting product.");
+          }
+        });
 
-  document.getElementById("cancelToggle").addEventListener("click", () => toggleModal.classList.add("hidden"));
+        // Cancel delete
+        this.cancelBtn.addEventListener('click', () => {
+          ModalManager.hide(this.modal);
+          this.productId = "";
+        });
+      }
+    },
+
+    toggle: {
+      modal: $("toggleConfirmModal"),
+      productId: "",
+      confirmBtn: $("confirmToggle"),
+      cancelBtn: $("cancelToggle"),
+
+      init() {
+        // Product card click for toggle (excluding edit/delete buttons)
+        document.addEventListener('click', (e) => {
+          const productCard = e.target.closest('.product-card');
+          if (!productCard || e.target.closest('.edit-btn') || e.target.closest('.delete-btn')) return;
+
+          e.preventDefault();
+          this.productId = productCard.dataset.id;
+          ModalManager.show(this.modal);
+        });
+
+        // Confirm toggle
+        this.confirmBtn.addEventListener('click', async () => {
+          try {
+            const currentCard = document.querySelector(`.product-card[data-id="${this.productId}"]`);
+            const currentlyEnabled = currentCard.dataset.enabled === "true";
+            const newValue = !currentlyEnabled;
+
+            const response = await fetch(`/admin/toggle-availability/${this.productId}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ isEnabled: newValue })
+            });
+
+            if (response.ok) {
+              // Update UI on success
+              currentCard.dataset.enabled = newValue;
+              currentCard.classList.toggle("enabled", newValue);
+              ModalManager.hide(this.modal);
+            } else {
+              alert("Failed to toggle availability");
+            }
+          } catch (error) {
+            console.error("Toggle error:", error);
+            alert("Request failed: " + error.message);
+          }
+        });
+
+        // Cancel toggle
+        this.cancelBtn.addEventListener('click', () => ModalManager.hide(this.modal));
+      }
+    }
+  };
+
+  // Initialize confirmation modals
+  ConfirmationModal.delete.init();
+  ConfirmationModal.toggle.init();
+
+  // ========== ADD PRODUCT MODAL ==========
+  const addModal = $("addProductModal");
+  const openAddBtn = $("openAddModal");
+  const cancelAddBtn = $("cancelAdd");
+
+  openAddBtn.addEventListener('click', () => ModalManager.show(addModal));
+  cancelAddBtn.addEventListener('click', () => ModalManager.hide(addModal));
 });
