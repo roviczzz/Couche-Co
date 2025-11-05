@@ -98,7 +98,9 @@
   "isAvailable": "true",
   "lastModified": {
     "$date": "2025-10-30T12:47:23.560Z"
-  }
+  },
+  "Amount": "1000",
+  "Unit": "g"
 },
 {
   "_id": {
@@ -244,7 +246,9 @@
   "isAvailable": "true",
   "lastModified": {
     "$date": "2025-10-30T09:16:28.931Z"
-  }
+  },
+  "Amount": "1000",
+  "Unit": "g"
 },
 {
   "_id": {
@@ -261,7 +265,9 @@
   "isAvailable": "true",
   "lastModified": {
     "$date": "2025-10-30T09:17:26.276Z"
-  }
+  },
+  "Amount": "1000",
+  "Unit": "g"
 },
 {
   "_id": {
