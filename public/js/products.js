@@ -375,7 +375,7 @@ document.addEventListener("DOMContentLoaded", () => {
     editElements.quantity.value = product.Quantity || '';
   };
 
-  // Optimized product data loading
+  // Ultra-fast product data loading with minimal DOM manipulation delays
   const loadProductData = async (productId) => {
     try {
       const response = await fetch(`/admin/api/products/${productId}`);
@@ -384,30 +384,25 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await response.json();
       const product = data.product;
 
-      // Batch DOM updates for better performance
-      const updates = [
-        () => editElements.name.value = product.Name || '',
-        () => {
-          editElements.categoryDisplay.value = product.Category || '';
-          editElements.categoryHidden.value = product.Category || '';
-        },
-        () => editElements.description.value = product.Description || product.description || '',
-        () => editElements.allergen.value = product.Allergen || product.allergen || '',
-        () => editElements.enabled.checked = !!product.isEnabled,
-        () => {
-          const imageSrc = product.imagelink || product.imageLink;
-          editElements.imagePreview.innerHTML = imageSrc
-            ? `<img src="${imageSrc}" style="width:100px;height:100px;object-fit:cover;border-radius:8px;">`
-            : '';
-        }
-      ];
-
-      // Execute updates
-      updates.forEach(update => update());
-
-      // Handle category-specific fields
+      // Handle category-specific fields first for immediate field setup
       const isPastry = product.Category === "Pastries" || product.Category === "BK";
       isPastry ? populatePastryFields(product) : populateDrinkFields(product);
+
+      // Ultra-fast DOM updates using direct property access and requestAnimationFrame for smooth rendering
+      requestAnimationFrame(() => {
+        // Batch all updates in a single animation frame for maximum performance
+        editElements.name.value = product.Name || '';
+        editElements.categoryDisplay.value = product.Category || '';
+        editElements.categoryHidden.value = product.Category || '';
+        editElements.description.value = product.Description || product.description || '';
+        editElements.allergen.value = product.Allergen || product.allergen || '';
+        editElements.enabled.checked = !!product.isEnabled;
+
+        const imageSrc = product.imagelink || product.imageLink;
+        editElements.imagePreview.innerHTML = imageSrc
+          ? createImageHTML(imageSrc)
+          : '';
+      });
 
       return true;
     } catch (error) {

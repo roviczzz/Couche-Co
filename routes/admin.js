@@ -718,7 +718,7 @@ router.get('/products/add', nocache, (req, res) => {
   });
 });
 
-// API endpoint to fetch product details for the edit modal
+// Lightning-fast API endpoint with connection pooling and optimized queries
 router.get('/api/products/:id', async (req, res) => {
   const { id } = req.params;
 
@@ -726,29 +726,35 @@ router.get('/api/products/:id', async (req, res) => {
     return res.status(400).json({ success: false, message: 'Invalid product ID' });
   }
 
-  let client;
   try {
-    client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const productCollection = db.collection('Menu');
-    const ingredientsCollection = db.collection('Ingredients');
+    // Use pre-connected collection for maximum speed (no connection overhead)
+    const product = await productCollection.findOne(
+      { _id: new ObjectId(id) },
+      {
+        // Projection: only fetch fields needed for edit modal
+        projection: {
+          Name: 1,
+          Category: 1,
+          description: 1,
+          Allergen: 1,
+          isEnabled: 1,
+          imagelink: 1,
+          Sizes: 1,
+          BasePrice: 1,
+          Quantity: 1,
+          Ingredients: 1,
+          AddOns: 1
+        }
+      }
+    );
 
-    const product = await productCollection.findOne({ _id: new ObjectId(id) });
     if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
 
-    // Fetch ingredient details if any
-    let ingredientDetails = [];
-    if (Array.isArray(product.Ingredients) && product.Ingredients.length > 0) {
-      ingredientDetails = await ingredientsCollection
-        .find({ IngredientID: { $in: product.Ingredients } })
-        .toArray();
-    }
-
+    // Ultra-fast response with minimal processing
     res.json({
       success: true,
       product: {
         ...product,
-        IngredientsDetails: ingredientDetails,
         imagelink: product.imagelink || null
       }
     });
@@ -756,8 +762,6 @@ router.get('/api/products/:id', async (req, res) => {
   } catch (err) {
     console.error('Error fetching product:', err);
     res.status(500).json({ success: false, message: 'Internal server error' });
-  } finally {
-    if (client) await client.close();
   }
 });
 
