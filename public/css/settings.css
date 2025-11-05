@@ -350,3 +350,57 @@ input:checked + .slider:before {
 .action-btn:last-child {
     margin-bottom: 0;
 }
+
+.service-item {
+    padding: 16px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.service-item:last-child {
+    border-bottom: none;
+}
+
+.service-label {
+    display: block;
+    font-weight: 600;
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.service-btn {
+    width: 100%;
+    padding: 10px 16px;
+    background: #f8f9fa;
+    border: 1px solid #e1e5e9;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #333;
+}
+
+.service-btn:hover {
+    background: #e9ecef;
+    transform: translateY(-1px);
+}
+
+/* Dark theme for service items */
+.dark-theme .service-label {
+    color: var(--text-color);
+}
+
+.dark-theme .service-btn {
+    background: var(--card-bg);
+    border-color: var(--border-color);
+    color: var(--text-color);
+}
+
+.dark-theme .service-btn:hover {
+    background: var(--sidebar-hover-bg);
+    color: var(--text-color);
+}

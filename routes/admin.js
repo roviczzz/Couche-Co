@@ -576,6 +576,12 @@ router.post('/products/add', upload.single('imagelink'), async (req, res) => {
     return res.redirect('/admin/products');
   }
 
+  // Automatically append category name for Coffee, Milktea, and Fruit Tea
+  let finalName = Name;
+  if (Category === "Coffee" || Category === "Milktea" || Category === "Fruit Tea") {
+    finalName = `${Name} ${Category}`;
+  }
+
   const ProductID = `${categoryShortcut.toUpperCase()}-${productCode.toUpperCase()}`;
 
   // Sizes
@@ -655,7 +661,7 @@ router.post('/products/add', upload.single('imagelink'), async (req, res) => {
   // ✅ Build the product document to insert
   const productData = {
     ProductID,
-    Name,
+    Name: finalName,
     description: description || "",        // <-- lowercase key so it matches your textarea name
     Sizes: Sizes.length > 0 ? Sizes : null,
     Category,

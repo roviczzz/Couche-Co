@@ -4,7 +4,7 @@ body {
 }
 
 .welcome-section {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #ab8162 0%, #6e5529 100%);
     color: white;
     padding: 4rem 2rem;
     text-align: center;
@@ -47,7 +47,7 @@ body {
 }
 
 .btn-primary {
-    background-color: #3498db;
+    background-color: #be884a;
     color: white;
 }
 

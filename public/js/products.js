@@ -291,6 +291,68 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.key === "Enter") e.preventDefault();
   });
 
+  // ---------- PRICE INPUT VALIDATION ----------
+  function restrictToNumeric(input) {
+    input.addEventListener('keydown', function(e) {
+      // Allow: backspace, delete, tab, escape, enter, and decimal point
+      if ([46, 8, 9, 27, 13, 110, 190].indexOf(e.keyCode) !== -1 ||
+          // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+Z
+          (e.keyCode === 65 && e.ctrlKey === true) ||
+          (e.keyCode === 67 && e.ctrlKey === true) ||
+          (e.keyCode === 86 && e.ctrlKey === true) ||
+          (e.keyCode === 88 && e.ctrlKey === true) ||
+          (e.keyCode === 90 && e.ctrlKey === true) ||
+          // Allow: home, end, left, right
+          (e.keyCode >= 35 && e.keyCode <= 39)) {
+        // Let it happen, don't do anything
+        return;
+      }
+      // Ensure that it is a number and stop the keypress
+      if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+        e.preventDefault();
+      }
+    });
+
+    input.addEventListener('input', function(e) {
+      // Remove any non-numeric characters except decimal point
+      let value = this.value;
+      value = value.replace(/[^0-9.]/g, '');
+      // Ensure only one decimal point
+      const parts = value.split('.');
+      if (parts.length > 2) {
+        value = parts[0] + '.' + parts.slice(1).join('');
+      }
+      this.value = value;
+    });
+
+    input.addEventListener('paste', function(e) {
+      // Allow paste but clean it up
+      setTimeout(() => {
+        let value = this.value;
+        value = value.replace(/[^0-9.]/g, '');
+        const parts = value.split('.');
+        if (parts.length > 2) {
+          value = parts[0] + '.' + parts.slice(1).join('');
+        }
+        this.value = value;
+      }, 0);
+    });
+  }
+
+  // Apply numeric restriction to all price inputs
+  const priceInputs = [
+    document.querySelector('input[name="size16"]'),
+    document.querySelector('input[name="size22"]'),
+    document.querySelector('input[name="BasePrice"]'),
+    document.getElementById('editSize16'),
+    document.getElementById('editSize22'),
+    document.getElementById('editBasePrice')
+  ];
+
+  priceInputs.forEach(input => {
+    if (input) restrictToNumeric(input);
+  });
+
   // ---------- CATEGORY TOGGLE ----------
   const categorySelect = document.getElementById("categorySelect");
   const basePriceContainer = document.getElementById("basePriceContainer");
