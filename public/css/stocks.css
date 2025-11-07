@@ -184,6 +184,22 @@ main {
   box-shadow: var(--shadow-md), 0 2px 8px rgba(40, 167, 69, 0.4);
 }
 
+/* Reset Sort FAB Button - positioned on the left side */
+.reset-sort-btn {
+  left: 30px;
+  right: auto;
+  background-color: #7a4e2b;
+  color: #ffffff;
+}
+
+.reset-sort-btn:hover {
+  background-color: #5a3921;
+}
+
+.reset-sort-btn i {
+  font-size: 20px;
+}
+
 /* Type Selection Modal Styles */
 .type-selection-container {
   background: var(--white);

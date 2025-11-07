@@ -1436,7 +1436,7 @@ router.get('/search', async (req, res) => {
     // Search for products that match the Name
     const results = await db.collection('Menu')
       .find({ Name: { $regex: query, $options: 'i' } })
-      .project({ Name: 1, Category: 1, imagelink: 1, _id: 1 })
+      .project({ Name: 1, Category: 1, _id: 1 })
       .limit(10)
       .toArray();
 
