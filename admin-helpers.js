@@ -615,12 +615,12 @@ async function getLowStockAlerts(threshold = 10, urgentThreshold = 5) {
     const db = client.db('blessingscafe');
 
     const lowStockIngredients = await db.collection('Ingredients').find({
-      Quantity: { $lte: threshold },
+      Amount: { $lte: threshold },
       isEnabled: true
     }).toArray();
 
     const lowStockAddons = await db.collection('Add-ons').find({
-      Quantity: { $lte: threshold },
+      Amount: { $lte: threshold },
       isEnabled: true
     }).toArray();
 

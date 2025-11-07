@@ -66,28 +66,6 @@
 
                     <div class="preference-item">
                         <div class="preference-info">
-                            <h4>Dark Mode</h4>
-                            <p>Switch to dark theme for better visibility</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="darkMode" <%= settings.darkMode ? 'checked' : '' %>>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-
-                    <div class="preference-item">
-                        <div class="preference-info">
-                            <h4>Order Confirmations</h4>
-                            <p>Show confirmation dialog before placing orders</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="orderConfirmations" <%= settings.orderConfirmations ? 'checked' : '' %>>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-
-                    <div class="preference-item">
-                        <div class="preference-info">
                             <h4>Low Stock Alert Range</h4>
                             <p>Set the threshold for low stock alerts (5-100)</p>
                         </div>
@@ -166,26 +144,6 @@
                             <% } %>
                         </span>
                     </div>
-                </div>
-            </div>
-
-            <div class="info-card">
-                <div class="card-header">
-                    <h3>Quick Actions</h3>
-                </div>
-                <div class="card-body">
-                    <button class="action-btn" onclick="exportSettings()">
-                        <i class="fas fa-download"></i>
-                        Export Settings
-                    </button>
-                    <button class="action-btn" onclick="resetSettings()">
-                        <i class="fas fa-undo"></i>
-                        Reset to Default
-                    </button>
-                    <button class="action-btn danger" onclick="logoutAllDevices()">
-                        <i class="fas fa-sign-out-alt"></i>
-                        Logout All Devices
-                    </button>
                 </div>
             </div>
 
