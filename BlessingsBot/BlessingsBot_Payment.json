@@ -16,16 +16,16 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $('Parse User Cart Items [Delivery]').item.json.userId }}\"\n  },\n  \"message\": {\n    \"text\": \"Please proceed to payment: \\n {{ $json.invoice_url }} [Only Valid for 10 Minutes]\"\n  }\n}",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $('Parse User Cart Items [Delivery]').item.json.userId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"button\",\n        \"text\": \"Your order is ready for payment.\\n\\nThis is a secure payment link valid for 10 minutes. Payment is processed by Xendit, a certified and trusted payment provider. Your payment information is protected and processed safely.\\n\\nLearn more: https://www.xendit.co/en-ph/\\n\\n🔒 Blessings Cafe Secured\",\n        \"buttons\": [\n          {\n            \"type\": \"web_url\",\n            \"url\": \"{{ $json.invoice_url }}\",\n            \"title\": \"Proceed to Secure Payment\"\n          }\n        ]\n      }\n    }\n  }\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        320,
-        400
+        1712,
+        272
       ],
-      "id": "c9fa276b-e447-4fd6-9fa5-1f32818291c4",
+      "id": "e5eef1f6-7184-4c29-a2e3-61769e013cf8",
       "name": "Payment Link [Delivery]"
     },
     {
@@ -51,29 +51,29 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        96,
-        400
+        1488,
+        272
       ],
-      "id": "5a061303-ca26-4728-a9dc-02cc7f59b653",
+      "id": "7fa1c784-06d6-4294-8257-ae9ebf1d7f0e",
       "name": "Xendit POST [Delivery]",
       "credentials": {
         "httpBasicAuth": {
-          "id": "69074vEBxY5torkB",
+          "id": "7V9J0SJcjC6XRrf6",
           "name": "Unnamed credential"
         }
       }
     },
     {
       "parameters": {
-        "jsCode": "const data = $input.first().json;\n\nconst items = data.items.flatMap(item => {\n  let baseItems = [{\n    name: item.productName,\n    quantity: item.quantity,\n    price: item.basePrice,\n    category: item.category\n  }];\n  \n  if (item.addOns && item.addOns.length > 0) {\n    item.addOns.forEach(addon => {\n      baseItems.push({\n        name: `Add-on: ${addon.addOnName}`,\n        quantity: addon.quantity,\n        price: addon.addOnPrice,\n        category: \"Add-ons\"\n      });\n    });\n  }\n  \n  return baseItems;\n});\n\nconst deliveryFee = 20;\nitems.push({\n  name: \"Delivery Fee\",\n  quantity: 1,\n  price: deliveryFee,\n  category: \"Service\"\n});\n\nconst email = data.deliveryAddress?.email || \"\";\nconst payerEmail = email.trim() !== \"\" ? email : undefined;\n\nconst transactionId = data.transactionId;\n\nconst amount = items.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity)), 0);\n\nconst invoicePayload = {\n  external_id: transactionId,\n  description: \"Blessings Cafe Payment\",\n  merchant_profile_picture_url: \"https://i.ibb.co/KcNnHLxH/Blessings-Logo.png\",\n  items: items,\n  amount: amount,\n  customer_name: data.userId,\n  customer_phone: data.deliveryAddress?.phone || \"\",\n  should_send_email: Boolean(payerEmail),\n  payment_methods: [\"GCASH\", \"PAYMAYA\", \"SHOPEEPAY\", \"QRPH\"],\n  invoice_duration: 600\n};\n\nif (payerEmail) {\n  invoicePayload.payer_email = payerEmail;\n}\n\nreturn { json: invoicePayload };"
+        "jsCode": "const data = $input.first().json;\n\nconst items = data.items.flatMap(item => {\n  let baseItems = [{\n    name: item.productName,\n    quantity: item.quantity,\n    price: item.basePrice,\n    category: item.category\n  }];\n  \n  if (item.addOns && item.addOns.length > 0) {\n    item.addOns.forEach(addon => {\n      baseItems.push({\n        name: `Add-on: ${addon.ingredientName || addon.addOnName}`,\n        quantity: addon.quantity,\n        price: addon.ingredientPrice || addon.addOnPrice,\n        category: \"Add-ons\"\n      });\n    });\n  }\n  \n  return baseItems;\n});\n\nconst deliveryFee = 20;\nitems.push({\n  name: \"Delivery Fee\",\n  quantity: 1,\n  price: deliveryFee,\n  category: \"Service\"\n});\n\nconst email = data.deliveryAddress?.email || \"\";\nconst payerEmail = email.trim() !== \"\" ? email : undefined;\n\nconst transactionId = data.transactionId;\n\nconst amount = items.reduce((sum, item) => sum + (Number(item.price || 0) * Number(item.quantity || 1)), 0);\n\nconst invoicePayload = {\n  external_id: transactionId,\n  description: \"Blessings Cafe Payment\",\n  merchant_profile_picture_url: \"https://i.ibb.co/KcNnHLxH/Blessings-Logo.png\",\n  items: items,\n  amount: amount,\n  customer_name: data.userId,\n  customer_phone: data.deliveryAddress?.phone || \"\",\n  should_send_email: Boolean(payerEmail),\n  payment_methods: [\"GCASH\", \"PAYMAYA\", \"SHOPEEPAY\", \"QRPH\"],\n  invoice_duration: 600\n};\n\nif (payerEmail) {\n  invoicePayload.payer_email = payerEmail;\n}\n\nreturn { json: invoicePayload };"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -128,
-        400
+        1264,
+        272
       ],
-      "id": "cee5586e-53bf-48a4-b315-f20888320c62",
+      "id": "94b61dab-3b22-45ec-97c9-35146d192701",
       "name": "Prepare Invoice Payload [Delivery]"
     },
     {
@@ -83,10 +83,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -352,
-        400
+        1040,
+        272
       ],
-      "id": "edc527d8-1f19-4a6d-96b8-beccce43addf",
+      "id": "d2d40ce7-cb65-464c-b30b-a16866499a3c",
       "name": "Parse User Cart Items [Delivery]"
     },
     {
@@ -98,15 +98,15 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        -576,
-        400
+        816,
+        272
       ],
-      "id": "87a87b87-7d55-437c-867b-4e6863e8d248",
+      "id": "e74fcd07-d058-44e7-b4b2-9dc179352a01",
       "name": "Prepare Cart [Delivery]",
       "alwaysOutputData": true,
       "credentials": {
         "mongoDb": {
-          "id": "gE9wFiHHKb14x1uQ",
+          "id": "Db6W481X9UBvG6rD",
           "name": "MongoDB account"
         }
       }
@@ -122,14 +122,14 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        -800,
-        400
+        592,
+        272
       ],
-      "id": "9abd5ac6-c38d-4b51-8281-94dfbcdee802",
+      "id": "d2593a1f-d29d-4899-8872-f14166a926d4",
       "name": "Insert Delivery Details [Delivery]",
       "credentials": {
         "mongoDb": {
-          "id": "gE9wFiHHKb14x1uQ",
+          "id": "Db6W481X9UBvG6rD",
           "name": "MongoDB account"
         }
       }
@@ -141,13 +141,13 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "e2885328-a49e-4ca9-a380-258c5635c1b8",
+      "id": "d53d97bc-d3d2-4839-bc4a-d77ea1ec48c1",
       "name": "Address Form Submission [Delivery]",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1.1,
       "position": [
-        -1248,
-        400
+        144,
+        272
       ],
       "webhookId": "30225362-86ba-4e3e-b5bb-6adcf512fd1f"
     },
@@ -173,36 +173,36 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
       "position": [
-        -576,
-        176
+        816,
+        48
       ],
-      "id": "19ef24e5-4a98-42b6-a779-700d4e581ef2",
+      "id": "7aa440bd-4789-4859-bd63-c608090e7fea",
       "name": "Respond to Webhook [Delivery]"
     },
     {
       "parameters": {
-        "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\" />\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no\" />\n  <title>Blessings Cafe - Delivery Address</title>\n  <script>\n    const originalFetch = window.fetch;\n    window.fetch = function(url, options = {}) {\n      if (!options.headers) options.headers = {};\n      options.headers['ngrok-skip-browser-warning'] = 'true';\n      return originalFetch(url, options);\n    }\n  </script>\n  <style>\n    * {\n      box-sizing: border-box;\n      margin: 0;\n      padding: 0;\n    }\n    \n    body {\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;\n      background: #fafafa;\n      color: #1a1a1a;\n      line-height: 1.5;\n      padding: 20px;\n    }\n    \n    .container {\n      max-width: 420px;\n      margin: 40px auto 0;\n      background: white;\n      border-radius: 16px;\n      overflow: hidden;\n      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);\n    }\n    \n    .header {\n      padding: 32px 24px 24px;\n      text-align: center;\n      border-bottom: 1px solid #f0f0f0;\n    }\n    \n    .logo {\n      width: 48px;\n      height: 48px;\n      border-radius: 12px;\n      object-fit: cover;\n      margin-bottom: 16px;\n    }\n    \n    h1 {\n      font-size: 20px;\n      font-weight: 600;\n      color: #1a1a1a;\n      margin-bottom: 4px;\n    }\n    \n    .subheader {\n      font-size: 14px;\n      color: #6b7280;\n    }\n    \n    .form-content {\n      padding: 24px;\n    }\n    \n    .form-group {\n      margin-bottom: 20px;\n    }\n    \n    label {\n      display: block;\n      font-size: 14px;\n      font-weight: 500;\n      color: #374151;\n      margin-bottom: 8px;\n    }\n    \n    .required::after {\n      content: \"*\";\n      color: #ef4444;\n      margin-left: 2px;\n    }\n    \n    input, select, textarea {\n      width: 100%;\n      padding: 12px 16px;\n      border: 1px solid #e5e7eb;\n      border-radius: 8px;\n      font-size: 16px;\n      background: white;\n      transition: border-color 0.15s ease;\n    }\n    \n    input:focus, select:focus, textarea:focus {\n      outline: none;\n      border-color: #3b82f6;\n      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);\n    }\n    \n    input[readonly] {\n      background: #f9fafb;\n      color: #6b7280;\n    }\n    \n    .note {\n      font-size: 12px;\n      color: #9ca3af;\n      margin-top: 6px;\n    }\n    \n    .error {\n      color: #ef4444;\n      font-size: 12px;\n      margin-top: 6px;\n      display: none;\n    }\n    \n    .button {\n      width: 100%;\n      background: #1a1a1a;\n      color: white;\n      border: none;\n      border-radius: 8px;\n      padding: 14px 20px;\n      font-size: 16px;\n      font-weight: 500;\n      cursor: pointer;\n      transition: all 0.15s ease;\n      margin-top: 8px;\n    }\n    \n    .button:hover {\n      background: #333;\n      transform: translateY(-1px);\n    }\n    \n    .button:disabled {\n      background: #d1d5db;\n      color: #9ca3af;\n      cursor: not-allowed;\n      transform: none;\n    }\n    \n    .loading {\n      display: none;\n      text-align: center;\n      padding: 20px;\n    }\n    \n    .spinner {\n      width: 24px;\n      height: 24px;\n      border: 2px solid #f3f4f6;\n      border-top: 2px solid #3b82f6;\n      border-radius: 50%;\n      animation: spin 1s linear infinite;\n      margin: 0 auto 12px;\n    }\n    \n    @keyframes spin {\n      0% { transform: rotate(0deg); }\n      100% { transform: rotate(360deg); }\n    }\n    \n    .loading p {\n      font-size: 14px;\n      color: #6b7280;\n    }\n    \n    .message {\n      padding: 16px;\n      border-radius: 8px;\n      margin-top: 16px;\n      font-size: 14px;\n      text-align: center;\n      display: none;\n    }\n    \n    .success-message {\n      background: #f0fdf4;\n      color: #15803d;\n      border: 1px solid #bbf7d0;\n    }\n    \n    .error-message {\n      background: #fef2f2;\n      color: #dc2626;\n      border: 1px solid #fecaca;\n    }\n    \n    .footer {\n      padding: 16px 24px;\n      text-align: center;\n      border-top: 1px solid #f0f0f0;\n      background: #fafafa;\n    }\n    \n    .footer p {\n      font-size: 12px;\n      color: #9ca3af;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"header\">\n      <img\n        src=\"https://i.imgur.com/jgjiwnv.png\"\n        alt=\"Blessings Cafe Logo\"\n        class=\"logo\"\n        onerror=\"this.src='https://via.placeholder.com/48/1a1a1a/ffffff?text=BC'\"\n      />\n      <h1>Blessings Cafe</h1>\n      <p class=\"subheader\">Customer Delivery address</p>\n    </div>\n\n    <div class=\"form-content\">\n      <form id=\"addressForm\">\n        <input type=\"hidden\" id=\"psid\" name=\"psid\" value=\"{{ $json.psid }}\" />\n\n        <div class=\"form-group\">\n        <label for=\"email\" class=\"required\">Email Address</label>\n        <input type=\"email\" id=\"email\" name=\"email\" placeholder=\"blessingscafe@everysip.com\" required />\n        <div class=\"error\" id=\"emailError\">Please enter a valid email address</div>\n        </div>\n\n        <div class=\"form-group\">\n          <label for=\"phone\" class=\"required\">Phone Number</label>\n          <input \n            type=\"tel\" \n            id=\"phone\" \n            name=\"phone\" \n            placeholder=\"+63 912 345 6789, 63912345678, or 09123456789\"\n            required />\n          <div class=\"error\" id=\"phoneError\">Please enter a valid Philippine phone number</div>\n        </div>\n        \n        <div class=\"form-group\">\n          <label for=\"street\" class=\"required\">Street Address</label>\n          <input type=\"text\" id=\"street\" name=\"street\" placeholder=\"123 Main Street\" required />\n          <div class=\"error\" id=\"streetError\">Please enter your street address</div>\n        </div>\n\n        <div class=\"form-group\">\n          <label for=\"barangay\" class=\"required\">Barangay</label>\n          <select id=\"barangay\" name=\"barangay\" required>\n            <option value=\"\" disabled selected>Select barangay</option>\n            <option value=\"Alapan I-A\">Alapan I-A</option>\n            <option value=\"Alapan I-B\">Alapan I-B</option>\n            <option value=\"Alapan I-C\">Alapan I-C</option>\n            <option value=\"Buhay na Tubig\">Buhay na Tubig</option>\n            <option value=\"Malagasang\">Malagasang</option>\n            <option value=\"Toclong\">Toclong</option>\n          </select>\n          <p class=\"note\">We deliver to selected barangays in Imus only</p>\n          <div class=\"error\" id=\"barangayError\">Please select your barangay</div>\n        </div>\n\n        <div class=\"form-group\">\n          <label for=\"city\" class=\"required\">City</label>\n          <input type=\"text\" id=\"city\" name=\"city\" value=\"Imus\" readonly />\n        </div>\n\n        <div class=\"form-group\">\n          <label for=\"landmarks\">Landmarks</label>\n          <input type=\"text\" id=\"landmarks\" name=\"landmarks\" placeholder=\"Near the church, blue gate\" />\n        </div>\n\n        <div class=\"form-group\">\n          <label for=\"notes\">Delivery Notes</label>\n          <textarea id=\"notes\" name=\"notes\" rows=\"2\" placeholder=\"Special instructions for delivery\"></textarea>\n        </div>\n\n        <button type=\"submit\" class=\"button\" id=\"submitButton\">Save Address</button>\n\n        <div class=\"loading\" id=\"loading\">\n          <div class=\"spinner\"></div>\n          <p>Saving your address...</p>\n        </div>\n\n        <div class=\"success-message message\" id=\"successMessage\">\n          Your delivery address has been saved successfully!\n        </div>\n\n        <div class=\"error-message message\" id=\"errorMessage\">\n          There was a problem saving your address. Please try again.\n        </div>\n      </form>\n    </div>\n\n    <div class=\"footer\">\n      <p>© 2025 Blessings Cafe</p>\n    </div>\n  </div>\n\n  <script>\n    // Function to normalize phone number to 09XXXXXXXXX format\n    function normalizePhoneNumber(phone) {\n      // Remove all spaces, dashes, and other non-digit characters except +\n      let cleaned = phone.replace(/[\\s\\-\\(\\)\\.]/g, '');\n      \n      // Handle different formats\n      if (cleaned.startsWith('+63')) {\n        // +639XXXXXXXXX -> 09XXXXXXXXX\n        return '0' + cleaned.slice(3);\n      } else if (cleaned.startsWith('63') && cleaned.length === 12) {\n        // 639XXXXXXXXX -> 09XXXXXXXXX\n        return '0' + cleaned.slice(2);\n      } else if (cleaned.startsWith('09') && cleaned.length === 11) {\n        // 09XXXXXXXXX -> 09XXXXXXXXX (already correct)\n        return cleaned;\n      } else if (cleaned.startsWith('9') && cleaned.length === 10) {\n        // 9XXXXXXXXX -> 09XXXXXXXXX\n        return '0' + cleaned;\n      }\n      \n      return cleaned; // Return as-is if no pattern matches\n    }\n\n    // Function to validate normalized phone number\n    function isValidPhoneNumber(normalizedPhone) {\n      // Should be exactly 11 digits starting with 09\n      return /^09\\d{9}$/.test(normalizedPhone);\n    }\n\n    document.addEventListener('DOMContentLoaded', function () {\n      const phoneInput = document.getElementById('phone');\n\n      // Auto-correct common input patterns\n      phoneInput.addEventListener('input', function() {\n        let val = phoneInput.value;\n      \n        // If user types just \"9\", auto-prepend \"0\"\n        if (val.length === 1 && val === '9') {\n          phoneInput.value = '0' + val;\n        }\n      });\n\n      const form = document.getElementById('addressForm');\n      const barangaySelect = document.getElementById('barangay');\n      const cityInput = document.getElementById('city');\n\n      barangaySelect.addEventListener('change', function () {\n        if (this.value === 'Toclong') {\n          cityInput.value = 'Kawit';\n        } else {\n          cityInput.value = 'Imus';\n        }\n      });\n\n      form.addEventListener('submit', submitForm);\n    });\n\n    function validateForm() {\n      let valid = true;\n\n      // Validate email\n      const email = document.getElementById('email').value.trim();\n      const emailPattern = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\n      if (!email || !emailPattern.test(email)) {\n        document.getElementById('emailError').style.display = 'block';\n        valid = false;\n      } else {\n        document.getElementById('emailError').style.display = 'none';\n      }\n\n      // Validate phone number\n      const phoneValue = document.getElementById('phone').value.trim();\n      const normalizedPhone = normalizePhoneNumber(phoneValue);\n      \n      if (!phoneValue || !isValidPhoneNumber(normalizedPhone)) {\n        document.getElementById('phoneError').style.display = 'block';\n        valid = false;\n      } else {\n        document.getElementById('phoneError').style.display = 'none';\n      }\n\n      // Validate street\n      const street = document.getElementById('street').value.trim();\n      if (!street) {\n        document.getElementById('streetError').style.display = 'block';\n        valid = false;\n      } else {\n        document.getElementById('streetError').style.display = 'none';\n      }\n    \n      // Validate barangay\n      const barangay = document.getElementById('barangay').value;\n      if (!barangay) {\n        document.getElementById('barangayError').style.display = 'block';\n        valid = false;\n      } else {\n        document.getElementById('barangayError').style.display = 'none';\n      }\n    \n      return valid;\n    }\n\n    async function submitForm(event) {\n      event.preventDefault();\n\n      document.getElementById('successMessage').style.display = 'none';\n      document.getElementById('errorMessage').style.display = 'none';\n\n      if (!validateForm()) {\n        return;\n      }\n\n      document.getElementById('loading').style.display = 'block';\n      document.getElementById('submitButton').disabled = true;\n\n      // Normalize phone number before sending\n      const phoneValue = document.getElementById('phone').value.trim();\n      const normalizedPhone = normalizePhoneNumber(phoneValue);\n\n      const formData = {\n        psid: document.getElementById('psid').value,\n        email: document.getElementById('email').value.trim(),\n        phone: normalizedPhone,\n        street: document.getElementById('street').value.trim(),\n        barangay: document.getElementById('barangay').value,\n        city: document.getElementById('city').value,\n        landmarks: document.getElementById('landmarks').value.trim(),\n        notes: document.getElementById('notes').value.trim(),\n      };\n\n      try {\n        const response = await fetch('https://regularly-helped-terrapin.ngrok-free.app/webhook/save-address', {\n          method: 'POST',\n          headers: {\n            'Content-Type': 'application/json',\n            'ngrok-skip-browser-warning': 'true',\n          },\n          body: JSON.stringify(formData),\n        });\n\n        if (response.ok) {\n          document.getElementById('successMessage').textContent =\n            'Your delivery address has been saved successfully! You may now close this form.';\n          document.getElementById('successMessage').style.display = 'block';\n          document.getElementById('errorMessage').style.display = 'none';\n\n          setTimeout(() => {\n            if (window.MessengerExtensions) {\n              MessengerExtensions.requestCloseBrowser(\n                () => console.log('Webview closed'),\n                (err) => console.log('Unable to close webview: ' + err)\n              );\n            }\n          }, 3000);\n        } else {\n          document.getElementById('errorMessage').style.display = 'block';\n        }\n      } catch (error) {\n        console.error('Error submitting form:', error);\n        document.getElementById('errorMessage').style.display = 'block';\n      } finally {\n        document.getElementById('loading').style.display = 'none';\n        document.getElementById('submitButton').disabled = false;\n      }\n    }\n  </script>\n</body>\n</html>"
+        "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\" />\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no\" />\n  <title>Blessings Cafe | Submit Delivery Address</title>\n  <script>\n    const originalFetch = window.fetch;\n    window.fetch = function(url, options = {}) {\n      if (!options.headers) options.headers = {};\n      options.headers['ngrok-skip-browser-warning'] = 'true';\n      return originalFetch(url, options);\n    }\n  </script>\n  <style>\n    * {\n      box-sizing: border-box;\n      margin: 0;\n      padding: 0;\n    }\n    \n    body {\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;\n      background: #fafafa;\n      color: #1a1a1a;\n      line-height: 1.5;\n      padding: 20px;\n    }\n    \n    .container {\n      max-width: 420px;\n      margin: 40px auto 0;\n      background: white;\n      border-radius: 16px;\n      overflow: hidden;\n      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);\n    }\n    \n    .header {\n      padding: 32px 24px 24px;\n      text-align: center;\n      border-bottom: 1px solid #f0f0f0;\n    }\n    \n    .logo {\n      width: 48px;\n      height: 48px;\n      border-radius: 12px;\n      object-fit: cover;\n      margin-bottom: 16px;\n    }\n    \n    h1 {\n      font-size: 20px;\n      font-weight: 600;\n      color: #1a1a1a;\n      margin-bottom: 4px;\n    }\n    \n    .subheader {\n      font-size: 14px;\n      color: #6b7280;\n    }\n    \n    .form-content {\n      padding: 24px;\n    }\n    \n    .form-group {\n      margin-bottom: 20px;\n    }\n    \n    label {\n      display: block;\n      font-size: 14px;\n      font-weight: 500;\n      color: #374151;\n      margin-bottom: 8px;\n    }\n    \n    .required::after {\n      content: \"*\";\n      color: #ef4444;\n      margin-left: 2px;\n    }\n    \n    input, select, textarea {\n      width: 100%;\n      padding: 12px 16px;\n      border: 1px solid #e5e7eb;\n      border-radius: 8px;\n      font-size: 16px;\n      background: white;\n      transition: border-color 0.15s ease;\n    }\n    \n    input:focus, select:focus, textarea:focus {\n      outline: none;\n      border-color: #3b82f6;\n      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);\n    }\n    \n    input[readonly] {\n      background: #f9fafb;\n      color: #6b7280;\n    }\n    \n    .checkbox-group {\n      display: flex;\n      align-items: flex-start;\n      gap: 8px;\n    }\n    \n    .checkbox-group input[type=\"checkbox\"] {\n      width: auto;\n      margin: 0;\n      flex-shrink: 0;\n    }\n    \n    .checkbox-group label {\n      margin-bottom: 0;\n      line-height: 1.4;\n      cursor: pointer;\n    }\n    \n    .note {\n      font-size: 12px;\n      color: #9ca3af;\n      margin-top: 6px;\n    }\n    \n    .error {\n      color: #ef4444;\n      font-size: 12px;\n      margin-top: 6px;\n      display: none;\n    }\n    \n    .button {\n      width: 100%;\n      background: #1a1a1a;\n      color: white;\n      border: none;\n      border-radius: 8px;\n      padding: 14px 20px;\n      font-size: 16px;\n      font-weight: 500;\n      cursor: pointer;\n      transition: all 0.15s ease;\n      margin-top: 8px;\n    }\n    \n    .button:hover {\n      background: #333;\n      transform: translateY(-1px);\n    }\n    \n    .button:disabled {\n      background: #d1d5db;\n      color: #9ca3af;\n      cursor: not-allowed;\n      transform: none;\n    }\n    \n    .loading {\n      display: none;\n      text-align: center;\n      padding: 20px;\n    }\n    \n    .spinner {\n      width: 24px;\n      height: 24px;\n      border: 2px solid #f3f4f6;\n      border-top: 2px solid #3b82f6;\n      border-radius: 50%;\n      animation: spin 1s linear infinite;\n      margin: 0 auto 12px;\n    }\n    \n    @keyframes spin {\n      0% { transform: rotate(0deg); }\n      100% { transform: rotate(360deg); }\n    }\n    \n    .loading p {\n      font-size: 14px;\n      color: #6b7280;\n    }\n    \n    .message {\n      padding: 16px;\n      border-radius: 8px;\n      margin-top: 16px;\n      font-size: 14px;\n      text-align: center;\n      display: none;\n    }\n    \n    .success-message {\n      background: #f0fdf4;\n      color: #15803d;\n      border: 1px solid #bbf7d0;\n    }\n    \n    .error-message {\n      background: #fef2f2;\n      color: #dc2626;\n      border: 1px solid #fecaca;\n    }\n    \n    .footer {\n      padding: 16px 24px;\n      text-align: center;\n      border-top: 1px solid #f0f0f0;\n      background: #fafafa;\n    }\n    \n    .footer p {\n      font-size: 12px;\n      color: #9ca3af;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"header\">\n      <img\n        src=\"https://i.ibb.co/99jf9D1J/Adobe-Express-file.png\"\n        alt=\"Blessings Cafe Logo\"\n        class=\"logo\"\n        onerror=\"this.src='https://via.placeholder.com/48/1a1a1a/ffffff?text=BC'\"\n      />\n      <h1>Blessings Cafe</h1>\n      <p class=\"subheader\">Customer Delivery address</p>\n    </div>\n\n    <div class=\"form-content\">\n      <form id=\"addressForm\">\n        <input type=\"hidden\" id=\"psid\" name=\"psid\" value=\"{{ $json.psid }}\" />\n\n        <div class=\"form-group\">\n        <label for=\"email\" class=\"required\">Email Address</label>\n        <input type=\"email\" id=\"email\" name=\"email\" placeholder=\"blessingscafe@everysip.com\" required />\n        <div class=\"error\" id=\"emailError\">Please enter a valid email address</div>\n        </div>\n\n        <div class=\"form-group\">\n          <label for=\"recipientName\" class=\"required\">Name of Recipient</label>\n          <input type=\"text\" id=\"recipientName\" name=\"recipientName\" placeholder=\"Juan Dela Cruz\" required />\n          <div class=\"error\" id=\"recipientNameError\">Please enter the recipient's name</div>\n        </div>\n\n        <div class=\"form-group\">\n          <label for=\"phone\" class=\"required\">Phone Number</label>\n          <input \n            type=\"tel\" \n            id=\"phone\" \n            name=\"phone\" \n            placeholder=\"09123456789\"\n            required />\n          <div class=\"error\" id=\"phoneError\">Please enter a valid Philippine phone number</div>\n        </div>\n        \n        <div class=\"form-group\">\n          <label for=\"street\" class=\"required\">Street Address</label>\n          <input type=\"text\" id=\"street\" name=\"street\" placeholder=\"123 Main Street\" required />\n          <div class=\"error\" id=\"streetError\">Please enter your street address</div>\n        </div>\n\n        <div class=\"form-group\">\n          <label for=\"barangay\" class=\"required\">Barangay</label>\n          <select id=\"barangay\" name=\"barangay\" required>\n            <option value=\"\" disabled selected>Select City Area</option>\n            <option value=\"Alapan I-A\">Alapan I-A</option>\n            <option value=\"Alapan I-B\">Alapan I-B</option>\n            <option value=\"Alapan I-C\">Alapan I-C</option>\n            <option value=\"Bayan Luma 2\">Bayan Luma 2</option>\n            <option value=\"Bayan Luma 3\">Bayan Luma 3</option>\n            <option value=\"Bayan Luma 4\">Bayan Luma 4</option>\n            <option value=\"Bayan Luma 5\">Bayan Luma 5</option>\n            <option value=\"Bayan Luma 6\">Bayan Luma 6</option>\n            <option value=\"Bayan Luma 7\">Bayan Luma 7</option>\n            <option value=\"Bayan Luma 8\">Bayan Luma 8</option>\n            <option value=\"Bayan Luma 9\">Bayan Luma 9</option>\n            <option value=\"Buhay na Tubig\">Buhay na Tubig</option>\n            <option value=\"Carsadang Bago 1\">Carsadang Bago 1</option>\n            <option value=\"Carsadang Bago 2\">Carsadang Bago 2</option>\n            <option value=\"Malagasang\">Malagasang</option>\n            <option value=\"Toclong\">Toclong</option>\n          </select>\n          <p class=\"note\">We deliver to selected barangays in Imus only</p>\n          <div class=\"error\" id=\"barangayError\">Please select your barangay</div>\n        </div>\n\n        <div class=\"form-group\">\n          <label for=\"city\" class=\"required\">City</label>\n          <input type=\"text\" id=\"city\" name=\"city\" value=\"Imus\" readonly />\n        </div>\n\n        <div class=\"form-group\">\n          <label for=\"notes\">Delivery Notes</label>\n          <textarea id=\"notes\" name=\"notes\" rows=\"2\" placeholder=\"Special instructions for delivery\"></textarea>\n        </div>\n\n        <div class=\"form-group\">\n          <div class=\"checkbox-group\">\n            <input type=\"checkbox\" id=\"agreement\" name=\"agreement\" required />\n            <label for=\"agreement\">\n              By checking this box, I confirm that the delivery address provided is accurate and complete, and I consent to its use for order fulfillment and communication purposes. I agree to the terms outlined in the privacy policy.\n            </label>\n          </div>\n          <div class=\"error\" id=\"agreementError\">You must agree to the terms and conditions.</div>\n        </div>\n\n        <button type=\"submit\" class=\"button\" id=\"submitButton\">Submit Address</button>\n\n        <div class=\"loading\" id=\"loading\">\n          <div class=\"spinner\"></div>\n          <p>Saving your address...</p>\n        </div>\n\n        <div class=\"success-message message\" id=\"successMessage\">\n          Your delivery address has been submitted successfully!\n        </div>\n\n        <div class=\"error-message message\" id=\"errorMessage\">\n          There was a problem submitting your address. Please try again.\n        </div>\n      </form>\n    </div>\n\n    <div class=\"footer\">\n      <p>© 2025 Blessings Cafe</p>\n    </div>\n  </div>\n\n  <script>\n    // Function to normalize phone number to 09XXXXXXXXX format\n    function normalizePhoneNumber(phone) {\n      // Remove all spaces, dashes, and other non-digit characters except +\n      let cleaned = phone.replace(/[\\s\\-\\(\\)\\.]/g, '');\n      \n      // Handle different formats\n      if (cleaned.startsWith('+63')) {\n        // +639XXXXXXXXX -> 09XXXXXXXXX\n        return '0' + cleaned.slice(3);\n      } else if (cleaned.startsWith('63') && cleaned.length === 12) {\n        // 639XXXXXXXXX -> 09XXXXXXXXX\n        return '0' + cleaned.slice(2);\n      } else if (cleaned.startsWith('09') && cleaned.length === 11) {\n        // 09XXXXXXXXX -> 09XXXXXXXXX (already correct)\n        return cleaned;\n      } else if (cleaned.startsWith('9') && cleaned.length === 10) {\n        // 9XXXXXXXXX -> 09XXXXXXXXX\n        return '0' + cleaned;\n      }\n      \n      return cleaned; // Return as-is if no pattern matches\n    }\n\n    // Function to validate normalized phone number\n    function isValidPhoneNumber(normalizedPhone) {\n      // Should be exactly 11 digits starting with 09\n      return /^09\\d{9}$/.test(normalizedPhone);\n    }\n\n    document.addEventListener('DOMContentLoaded', function () {\n      const phoneInput = document.getElementById('phone');\n\n      // Auto-correct and format phone number input\n      phoneInput.addEventListener('input', function() {\n        let val = phoneInput.value;\n        val = val.replace(/\\D/g, ''); // Remove non-digits\n        if (val.length > 11) {\n          val = val.substring(0, 11);\n        }\n        if (val.length === 1) {\n          if (val === '9') {\n            val = '0' + val;\n          } else {\n            val = '09' + val;\n          }\n        } else if (val.length >= 2 && !val.startsWith('09')) {\n          if (val.startsWith('0')) {\n            val = '09' + val.substring(1);\n          } else {\n            val = '09' + val;\n          }\n        }\n        phoneInput.value = val;\n      });\n\n      const form = document.getElementById('addressForm');\n      const barangaySelect = document.getElementById('barangay');\n      const cityInput = document.getElementById('city');\n\n      barangaySelect.addEventListener('change', function () {\n        if (this.value === 'Toclong') {\n          cityInput.value = 'Kawit';\n        } else {\n          cityInput.value = 'Imus';\n        }\n      });\n\n      form.addEventListener('submit', submitForm);\n    });\n\n    function validateForm() {\n      let valid = true;\n\n      // Validate email\n      const email = document.getElementById('email').value.trim();\n      const emailPattern = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\n      if (!email || !emailPattern.test(email)) {\n        document.getElementById('emailError').style.display = 'block';\n        valid = false;\n      } else {\n        document.getElementById('emailError').style.display = 'none';\n      }\n\n      // Validate recipient name\n      const recipientName = document.getElementById('recipientName').value.trim();\n      if (!recipientName) {\n        document.getElementById('recipientNameError').style.display = 'block';\n        valid = false;\n      } else {\n        document.getElementById('recipientNameError').style.display = 'none';\n      }\n\n      // Validate phone number\n      const phoneValue = document.getElementById('phone').value.trim();\n      const normalizedPhone = normalizePhoneNumber(phoneValue);\n      \n      if (!phoneValue || !isValidPhoneNumber(normalizedPhone)) {\n        document.getElementById('phoneError').style.display = 'block';\n        valid = false;\n      } else {\n        document.getElementById('phoneError').style.display = 'none';\n      }\n\n      // Validate street\n      const street = document.getElementById('street').value.trim();\n      if (!street) {\n        document.getElementById('streetError').style.display = 'block';\n        valid = false;\n      } else {\n        document.getElementById('streetError').style.display = 'none';\n      }\n    \n      // Validate barangay\n      const barangay = document.getElementById('barangay').value;\n      if (!barangay) {\n        document.getElementById('barangayError').style.display = 'block';\n        valid = false;\n      } else {\n        document.getElementById('barangayError').style.display = 'none';\n      }\n\n      // Validate agreement\n      const agreement = document.getElementById('agreement').checked;\n      if (!agreement) {\n        document.getElementById('agreementError').style.display = 'block';\n        valid = false;\n      } else {\n        document.getElementById('agreementError').style.display = 'none';\n      }\n    \n      return valid;\n    }\n\n    async function submitForm(event) {\n      event.preventDefault();\n\n      document.getElementById('successMessage').style.display = 'none';\n      document.getElementById('errorMessage').style.display = 'none';\n\n      if (!validateForm()) {\n        return;\n      }\n\n      document.getElementById('loading').style.display = 'block';\n      document.getElementById('submitButton').disabled = true;\n\n      // Normalize phone number before sending\n      const phoneValue = document.getElementById('phone').value.trim();\n      const normalizedPhone = normalizePhoneNumber(phoneValue);\n\n      const formData = {\n        psid: document.getElementById('psid').value,\n        email: document.getElementById('email').value.trim(),\n        recipientName: document.getElementById('recipientName').value.trim(),\n        phone: normalizedPhone,\n        street: document.getElementById('street').value.trim(),\n        barangay: document.getElementById('barangay').value,\n        city: document.getElementById('city').value,\n        notes: document.getElementById('notes').value.trim(),\n      };\n\n      try {\n        const response = await fetch('https://n8n.blessingsateverysip.me/webhook-test/save-address', {\n          method: 'POST',\n          headers: {\n            'Content-Type': 'application/json',\n            'ngrok-skip-browser-warning': 'true',\n          },\n          body: JSON.stringify(formData),\n        });\n\n        if (response.ok) {\n          document.getElementById('successMessage').textContent =\n            'Your delivery address has been submitted successfully! You may now close this form.';\n          document.getElementById('successMessage').style.display = 'block';\n          document.getElementById('errorMessage').style.display = 'none';\n\n          setTimeout(() => {\n            if (window.MessengerExtensions) {\n              MessengerExtensions.requestCloseBrowser(\n                () => console.log('Webview closed'),\n                (err) => console.log('Unable to close webview: ' + err)\n              );\n            }\n          }, 3000);\n        } else {\n          document.getElementById('errorMessage').style.display = 'block';\n        }\n      } catch (error) {\n        console.error('Error submitting form:', error);\n        document.getElementById('errorMessage').style.display = 'block';\n      } finally {\n        document.getElementById('loading').style.display = 'none';\n        document.getElementById('submitButton').disabled = false;\n      }\n    }\n  </script>\n</body>\n</html>"
       },
       "type": "n8n-nodes-base.html",
       "typeVersion": 1.2,
       "position": [
-        -800,
-        176
+        592,
+        48
       ],
-      "id": "ad20046f-daeb-496b-b729-0669502793c9",
+      "id": "0940730b-bc12-47e3-bfdd-5a9a6eab7c23",
       "name": "HTML [Delivery]"
     },
     {
       "parameters": {
         "jsCode": "let psid = \"unknown\";\n\nif ($input.item.json.query?.psid) {\n  psid = $input.item.json.query.psid;\n} else if ($input.item.json.body?.psid) {\n  psid = $input.item.json.body.psid;\n} else if ($input.item.json.psid) {\n  psid = $input.item.json.psid;\n}\n\nreturn {\n  json: {\n    psid: psid\n  }\n};"
       },
-      "id": "8c83cb47-b1d6-403d-a512-0c0fe72838fe",
+      "id": "c4458b18-8fad-4e79-ba35-dcaf0f2bb410",
       "name": "Generate HTML Form [Delivery]",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1024,
-        176
+        368,
+        48
       ]
     },
     {
@@ -220,27 +220,27 @@
           }
         }
       },
-      "id": "6c5a2846-726c-4084-96ce-b12e9ea7e53e",
+      "id": "71e8e9a6-33e5-42b5-903e-c4125839ba82",
       "name": "Serve Address Form [Delivery]",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1.1,
       "position": [
-        -1248,
-        176
+        144,
+        48
       ],
       "webhookId": "fe06f5d9-9b5d-4f25-96a2-901edb0d1255"
     },
     {
       "parameters": {
-        "jsCode": "// Get current date and time in Philippines timezone (UTC+8)\nconst now = new Date();\nconst philippinesTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);\nconst formattedDate = philippinesTime.toISOString();\n\nfunction pad(num, size = 2) {\n  return num.toString().padStart(size, '0');\n}\nconst idDate =\n  pad(philippinesTime.getMonth() + 1) +\n  pad(philippinesTime.getDate()) +\n  pad(philippinesTime.getHours()) +\n  pad(philippinesTime.getMinutes()) +\n  pad(philippinesTime.getSeconds());\nconst transactionId = `${idDate}-BLESSINGSCAFE`;\n\nlet deliveryMethod = \"DELIVERY\";\nlet deliveryAddress = null;\nlet isDeliverable = false;\nlet nextAction = \"PAYMENT\";\nlet psid = \"unknown\";\nconst paymentMethod = \"E-Payment\";\n\nconst rawInput = $input.item.json;\n\nif ((rawInput && rawInput[0] && rawInput[0].postback === \"STORE_PICKUP\") ||\n    (rawInput && rawInput.postback === \"STORE_PICKUP\")) {\n\n  deliveryMethod = \"PICKUP\";\n  deliveryAddress = null;\n  isDeliverable = true;\n  nextAction = \"PAYMENT\";\n\n  if (rawInput[0] && rawInput[0].senderId) {\n    psid = rawInput[0].senderId;\n  } else if (rawInput.senderId) {\n    psid = rawInput.senderId;\n  }\n\n} else {\n  let formData;\n  try {\n    if (rawInput.body && typeof rawInput.body === 'object') {\n      formData = rawInput.body;\n    } else if (rawInput.body && typeof rawInput.body === 'string') {\n      formData = JSON.parse(rawInput.body);\n    } else {\n      formData = rawInput;\n    }\n    psid = formData.psid || rawInput.psid || (rawInput.senderId || \"unknown\");\n  } catch (e) {\n    formData = rawInput;\n    psid = formData.psid || \"unknown\";\n  }\n\n  const email = formData.email || '';\n  const phone = formData.phone || '';\n  const street = formData.street || '';\n  const barangay = formData.barangay || '';\n  const city = formData.city || '';\n  const landmarks = formData.landmarks || '';\n  const notes = formData.notes || '';\n  const fullAddress = `${street}, ${barangay}, ${city}`;\n\n  const supportedBarangays = [\n    \"Alapan I-C\", \"Alapan I-B\", \"Alapan I-A\",\n    \"Buhay na Tubig\", \"Malagasang\", \"Toclong\"\n  ];\n\n  isDeliverable = supportedBarangays.some(brgy =>\n    barangay.toLowerCase().includes(brgy.toLowerCase())\n  );\n\n  deliveryAddress = {\n    email,\n    phone,\n    street,\n    barangay,\n    city,\n    landmarks,\n    notes,\n    fullAddress,\n    isDeliverable\n  };\n\n  nextAction = isDeliverable ? \"PAYMENT\" : \"NOT_SERVICEABLE\";\n}\n\nreturn {\n  json: {\n    userId: psid,\n    deliveryMethod,\n    deliveryAddress,\n    updatedAt: formattedDate,\n    nextAction,\n    transactionId,\n    paymentMethod\n  }\n}"
+        "jsCode": "// Get current date and time in Philippines timezone (UTC+8)\nconst now = new Date();\nconst philippinesTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);\nconst formattedDate = philippinesTime.toISOString();\n\nfunction pad(num, size = 2) {\n  return num.toString().padStart(size, '0');\n}\nconst idDate =\n  pad(philippinesTime.getMonth() + 1) +\n  pad(philippinesTime.getDate()) +\n  pad(philippinesTime.getHours()) +\n  pad(philippinesTime.getMinutes()) +\n  pad(philippinesTime.getSeconds());\nconst transactionId = `${idDate}-BLESSINGSCAFE`;\n\nlet deliveryMethod = \"Delivery\";\nlet deliveryAddress = null;\nlet isDeliverable = false;\nlet nextAction = \"PAYMENT\";\nlet psid = \"unknown\";\nconst paymentMethod = \"E-Payment\";\n\nconst rawInput = $input.item.json;\n\nif ((rawInput && rawInput[0] && rawInput[0].postback === \"STORE_PICKUP\") ||\n    (rawInput && rawInput.postback === \"STORE_PICKUP\")) {\n\n  deliveryMethod = \"Pick-Up\";\n  deliveryAddress = null;\n  isDeliverable = true;\n  nextAction = \"PAYMENT\";\n\n  if (rawInput[0] && rawInput[0].senderId) {\n    psid = rawInput[0].senderId;\n  } else if (rawInput.senderId) {\n    psid = rawInput.senderId;\n  }\n\n} else {\n  let formData;\n  try {\n    if (rawInput.body && typeof rawInput.body === 'object') {\n      formData = rawInput.body;\n    } else if (rawInput.body && typeof rawInput.body === 'string') {\n      formData = JSON.parse(rawInput.body);\n    } else {\n      formData = rawInput;\n    }\n    psid = formData.psid || rawInput.psid || (rawInput.senderId || \"unknown\");\n  } catch (e) {\n    formData = rawInput;\n    psid = formData.psid || \"unknown\";\n  }\n\n  const email = formData.email || '';\n  const phone = formData.phone || '';\n  const street = formData.street || '';\n  const barangay = formData.barangay || '';\n  const city = formData.city || '';\n  const landmarks = formData.landmarks || '';\n  const notes = formData.notes || '';\n  const fullAddress = `${street}, ${barangay}, ${city}`;\n\n  const supportedBarangays = [\n    \"Alapan I-A\", \"Alapan I-B\", \"Alapan I-C\",\n    \"Bayan Luma 2\", \"Bayan Luma 3\", \"Bayan Luma 4\", \"Bayan Luma 5\", \"Bayan Luma 6\", \"Bayan Luma 7\", \"Bayan Luma 8\", \"Bayan Luma 9\",\n    \"Buhay na Tubig\", \"Carsadang Bago 1\", \"Carsadang Bago 2\", \"Malagasang\", \"Toclong\"\n  ];\n\n  isDeliverable = supportedBarangays.some(brgy =>\n    barangay.toLowerCase().includes(brgy.toLowerCase())\n  );\n\n  deliveryAddress = {\n    email,\n    phone,\n    street,\n    barangay,\n    city,\n    landmarks,\n    notes,\n    fullAddress,\n    isDeliverable\n  };\n\n  nextAction = isDeliverable ? \"PAYMENT\" : \"NOT_SERVICEABLE\";\n}\n\nreturn {\n  json: {\n    userId: psid,\n    deliveryMethod,\n    deliveryAddress,\n    updatedAt: formattedDate,\n    nextAction,\n    transactionId,\n    paymentMethod\n  }\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1024,
-        400
+        368,
+        272
       ],
-      "id": "e83713cf-697d-49d7-8d90-90ea8ddf153b",
+      "id": "196e3105-b4dc-472b-aaf6-073636b6ec27",
       "name": "Process Form Data [Delivery]"
     },
     {
@@ -252,11 +252,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -1136,
-        -16
+        256,
+        -144
       ],
       "typeVersion": 1,
-      "id": "a91e506f-9e35-4ec8-8cbb-cd6e34fed3bd",
+      "id": "a3884086-6976-47a5-ba0f-b211c817b5a4",
       "name": "Sticky Note12"
     },
     {
@@ -268,11 +268,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -1504,
-        -32
+        -112,
+        -160
       ],
       "typeVersion": 1,
-      "id": "e5223c43-84dd-4e1c-b42f-171f0b8138fb",
+      "id": "e06147ac-bd1b-49eb-9044-1e1dcb2426b8",
       "name": "Sticky Note11"
     },
     {
@@ -284,11 +284,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -1568,
-        176
+        -176,
+        48
       ],
       "typeVersion": 1,
-      "id": "fc31bab4-fb74-4b16-936c-16e5944f0238",
+      "id": "4a4ce996-731a-4ffe-b3e5-8f0efb2fd51a",
       "name": "Sticky Note9"
     },
     {
@@ -298,11 +298,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        656,
-        512
+        224,
+        1680
       ],
       "typeVersion": 1,
-      "id": "c75f64e7-d5b0-4bb6-847e-97ff700f6d15",
+      "id": "947e8e04-3990-41f0-ba55-7d0b83180308",
       "name": "Sticky Note2"
     },
     {
@@ -312,11 +312,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        784,
-        1184
+        528,
+        1488
       ],
       "typeVersion": 1,
-      "id": "4a808939-f3c2-4873-b1c5-1fa7d1c638be",
+      "id": "ae4f2e7a-9cf9-47d5-8a8e-03833b3b7075",
       "name": "Sticky Note14"
     },
     {
@@ -326,11 +326,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        976,
-        512
+        544,
+        1680
       ],
       "typeVersion": 1,
-      "id": "8b04dfb6-98cc-44a0-8147-ec986127c13c",
+      "id": "af71e464-5d51-4cbd-adca-631a3fff5140",
       "name": "Sticky Note15"
     },
     {
@@ -342,51 +342,51 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        -800,
-        608
+        592,
+        480
       ],
-      "id": "6765fc77-62f6-4aed-a0a9-df2a299c0304",
+      "id": "744b7f56-61fc-412f-a334-585f909be313",
       "name": "find userId Cart [Order Confirmation]",
       "alwaysOutputData": true,
       "credentials": {
         "mongoDb": {
-          "id": "gE9wFiHHKb14x1uQ",
+          "id": "Db6W481X9UBvG6rD",
           "name": "MongoDB account"
         }
       }
     },
     {
       "parameters": {
-        "jsCode": "const input = $input.first().json;\n\nfunction formatDatePH(dateStr) {\n  const date = new Date(dateStr);\n  const offset = 8 * 60; // Philippines is UTC+8\n  const localDate = new Date(date.getTime() + offset * 60000);\n  const y = localDate.getFullYear();\n  const m = String(localDate.getMonth() + 1).padStart(2, '0');\n  const d = String(localDate.getDate()).padStart(2, '0');\n  const h = String(localDate.getHours()).padStart(2, '0');\n  const min = String(localDate.getMinutes()).padStart(2, '0');\n  const s = String(localDate.getSeconds()).padStart(2, '0');\n  return `${y}-${m}-${d} ${h}:${min}:${s}`;\n}\n\nconst orderCart = input.items.map(item => ({\n  ProductID: item.productId,\n  ProductName: item.productName,\n  Quantity: item.quantity,\n  Size: item.size,\n  BasePrice: item.basePrice\n})); // missing add-ons and additional ingredients \n\nconst order = {\n  OrderID: input.transactionId || \"\",\n  Date: formatDatePH(input.updatedAt || input.createdAt),\n  Cart: orderCart,\n  Customer: input.userId || \"Unknown\",\n  ContactNumber: input.deliveryAddress?.phone || \"\",\n  PaymentStatus: \"Completed\",\n  PaymentMode: input.paymentMethod || \"E-Payment\",\n  Total: input.subtotal,\n  ItemTotal: input.itemCount || orderCart.reduce((sum, i) => sum + (i.Quantity || 1), 0),\n  FulfillmentMethod: input.deliveryMethod === \"DELIVERY\" ? \"Delivery\" : (input.deliveryMethod === \"PICKUP\" ? \"Pick-Up\" : \"Take-Out\"),\n  Address: input.deliveryAddress?.fullAddress || \"\",\n  Notes: input.deliveryAddress?.notes || \"\",\n  FulfillmentStatus: \"Preparing\",\n  Source: \"Chatbot\"\n};\n\nreturn [{ json: order }];"
+        "jsCode": "const input = $input.first().json;\n\nfunction formatDatePH(dateStr) {\n  const date = new Date(dateStr);\n  const offset = 8 * 60; // Philippines is UTC+8\n  const localDate = new Date(date.getTime() + offset * 60000);\n  const y = localDate.getFullYear();\n  const m = String(localDate.getMonth() + 1).padStart(2, '0');\n  const d = String(localDate.getDate()).padStart(2, '0');\n  const h = String(localDate.getHours()).padStart(2, '0');\n  const min = String(localDate.getMinutes()).padStart(2, '0');\n  const s = String(localDate.getSeconds()).padStart(2, '0');\n  return `${y}-${m}-${d} ${h}:${min}:${s}`;\n}\n\nconst orderCart = input.items.map(item => ({\n  ProductName: item.productName,\n  ProductID: item.productId,\n  Size: item.size,\n  Addons: item.addOns ? item.addOns.map(addon => ({\n    AddOnID: addon.ingredientId || addon.addOnId,\n    Name: addon.ingredientName || addon.addOnName,\n    BasePrice: addon.ingredientPrice || addon.addOnPrice,\n    Quantity: addon.quantity // Include quantity if needed\n  })) : [],\n  Quantity: item.quantity,\n  Price: item.totalPrice, // Assuming totalPrice includes base + addons\n  ImageLink: item.imageLink || \"\"\n}));\n\nconst isDelivery = input.deliveryMethod && input.deliveryMethod.toLowerCase().includes(\"delivery\");\n\nconst customer = {\n  fullname: input.deliveryAddress?.recipientName || input.userId || \"Unknown\",\n  email: input.deliveryAddress?.email || \"\",\n  contactnumber: input.deliveryAddress?.phone || \"\",\n  deliveryMethod: isDelivery ? \"Delivery\" : \"Pick-Up\",\n  city: input.deliveryAddress?.city || \"\",\n  address: `${input.deliveryAddress?.street || \"\"}, ${input.deliveryAddress?.barangay || \"\"}`.trim()\n};\n\nconst subtotal = input.items.reduce((sum, item) => sum + item.totalPrice, 0);\n\nconst order = {\n  OrderID: input.transactionId || \"\",\n  Date: formatDatePH(input.updatedAt || input.createdAt),\n  Source: \"Chatbot\", // Or \"Website\" if applicable\n  Cart: orderCart,\n  Customer: customer,\n  Total: subtotal + (isDelivery ? 20 : 0), // Include delivery fee if applicable\n  Notes: input.deliveryAddress?.notes || \"\",\n  PaymentStatus: \"Paid\",\n  FulfillmentStatus: \"Preparing\",\n  FulfillmentMethod: isDelivery ? \"Delivery\" : \"Pick-Up\",\n  PaymentMethod: \"EWALLET\", // Or dynamic based on Xendit data\n  PaymentMode: input.paymentMethod || \"E-Payment\",\n  XenditPaymentID: input.xenditPaymentId || \"\" // Add if available from payment webhook\n};\n\nreturn [{ json: order }];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -576,
-        608
+        816,
+        480
       ],
-      "id": "14374fe4-9549-401b-9993-a03c182404e5",
+      "id": "4bb4e058-3ea3-4424-a932-6a0963336c5e",
       "name": "ParseToOrders [Order Confirmation]"
     },
     {
       "parameters": {
         "operation": "insert",
         "collection": "Orders",
-        "fields": "=OrderID, Date, Source, Cart, Customer, Total, Notes, PaymentStatus, FulfillmentStatus, FulfillmentMethod, PaymentMode, ContactNumber, Address",
+        "fields": "=OrderID, Date, Source, Cart, Customer, Total, Notes, PaymentStatus, FulfillmentStatus, FulfillmentMethod, PaymentMethod, PaymentMode, XenditPaymentID",
         "options": {}
       },
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        -352,
-        608
+        1040,
+        480
       ],
-      "id": "7b2816f7-8cb3-4774-b0f9-14f573c89928",
+      "id": "8088d5bd-c3f6-456e-bcc4-d281d682ce4c",
       "name": "insert to Orders [Order Confirmation]",
       "alwaysOutputData": true,
       "credentials": {
         "mongoDb": {
-          "id": "gE9wFiHHKb14x1uQ",
+          "id": "Db6W481X9UBvG6rD",
           "name": "MongoDB account"
         }
       }
@@ -395,20 +395,20 @@
       "parameters": {
         "operation": "delete",
         "collection": "Chatbot-Cart",
-        "query": "={ \"transactionId\": \"{{ $json.OrderID }}\" } "
+        "query": "={ \"transactionId\": \"{{ $('insert to Orders [Order Confirmation]').first().json.OrderID }}\" }"
       },
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        -128,
+        3920,
         608
       ],
-      "id": "0788634d-2ac7-4113-a3fe-bef3b2976ddb",
+      "id": "8ee9d7a5-1ae8-4bfe-b860-3a8682fbcfe7",
       "name": "remove Cart [Order Confirmation]",
       "alwaysOutputData": true,
       "credentials": {
         "mongoDb": {
-          "id": "gE9wFiHHKb14x1uQ",
+          "id": "Db6W481X9UBvG6rD",
           "name": "MongoDB account"
         }
       }
@@ -434,10 +434,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -800,
-        800
+        592,
+        672
       ],
-      "id": "8c6972a0-70ba-4511-ad68-c03cb8082f88",
+      "id": "0d772de6-cd5b-4bc2-8e14-8d73bd0615f0",
       "name": "Display Invoice Error [Order Confirmation]"
     },
     {
@@ -468,10 +468,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -1024,
-        704
+        368,
+        576
       ],
-      "id": "165b80cb-f078-4678-925b-05ab23c585c9",
+      "id": "14914de5-d9c3-4388-bf0f-dc0e8676565b",
       "name": "Payment Status [E-Pay]"
     },
     {
@@ -483,11 +483,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -1584,
-        688
+        -192,
+        560
       ],
       "typeVersion": 1,
-      "id": "54c83ab7-d1dd-49f4-94e3-1afdfc4a60cc",
+      "id": "35c16340-da0a-41bb-bc67-d687edfe7660",
       "name": "Sticky Note1"
     },
     {
@@ -497,13 +497,13 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "f9eae1e0-29c8-444b-bedd-a57e71367e29",
+      "id": "056b0e65-00ee-416a-bb47-2291ff9f090d",
       "name": "Order Confirmation For Delivery & Pickup [E-Pay]",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1.1,
       "position": [
-        -1248,
-        704
+        144,
+        576
       ],
       "webhookId": "30225362-86ba-4e3e-b5bb-6adcf512fd1f"
     },
@@ -516,10 +516,10 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        832,
-        800
+        576,
+        1104
       ],
-      "id": "a23c3ca5-5542-4406-9489-7ffb05f3d31e",
+      "id": "59e2801b-7c26-4893-88d6-8db03fb6ced5",
       "name": "Notify Delivery Webhook",
       "webhookId": "949aa252-9ae4-4395-8747-924202f2aa42"
     },
@@ -532,10 +532,10 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        832,
-        992
+        576,
+        1296
       ],
-      "id": "19db6461-89ef-41d9-999a-f24f3df70ec8",
+      "id": "5b444129-8bb1-48b6-8e92-a01044370fee",
       "name": "Notify Pickup Webhook",
       "webhookId": "949aa252-9ae4-4395-8747-924202f2aa42"
     },
@@ -554,16 +554,16 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.senderId }}\"\n  },\n  \"message\": {\n    \"text\": \"Payment Success! Please wait while we prepare your order. Standby for chat updates on your order. Thank you!\"\n  }\n}",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $('find userId Cart [Order Confirmation]').first().json.userId }}\"\n  },\n  \"message\": {\n    \"text\": \"✅ Payment Successful!\\n\\nThank you for your order! We're now preparing your items.\\n\\nYou'll receive updates here as your order progresses. Thank you for choosing Blessings Cafe!\\n\\n\"\n  }\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        96,
+        4128,
         608
       ],
-      "id": "108f4fea-b861-49a7-9452-ef67a3df3c2f",
+      "id": "6f8d10c1-43e2-4906-beb2-34ac5686425e",
       "name": "Display Order Success [Order Confirmation]"
     },
     {
@@ -575,12 +575,615 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -1568,
-        384
+        -176,
+        256
       ],
       "typeVersion": 1,
-      "id": "527e9220-a45f-4a53-a3d4-14c169bc6088",
+      "id": "f91b27d5-c495-4dd1-a6a3-f0ad40b2d731",
       "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "jsCode": "const orderData = $input.first().json;\nconst items = orderData.Cart || [];\n\nconst updates = [];\n\nitems.forEach(cartItem => {\n  const quantity = parseInt(cartItem.Quantity) || 1;\n  const productId = cartItem.ProductID;\n  const size = cartItem.Size;\n  \n  // Pastries/Bites\n  if (productId.startsWith('BK-')) {\n    updates.push({\n      type: 'pastrie',\n      productId: productId,\n      deduction: quantity\n    });\n  }\n  \n  // Milkteas\n  if (productId.startsWith('MT-')) {\n    updates.push({\n      type: 'drink',\n      productId: productId,\n      size: size,\n      deduction: quantity\n    });\n  }\n  \n  // Coffee\n  if (productId.startsWith('CF-')) {\n    updates.push({\n      type: 'drink',\n      productId: productId,\n      size: size || \"16oz\",\n      deduction: quantity\n    });\n  }\n  \n  // Fruit Tea\n  if (productId.startsWith('FT-')) {\n    updates.push({\n      type: 'drink',\n      productId: productId,\n      size: size || \"22oz\",\n      deduction: quantity\n    });\n  }\n  \n  // Add-ons\n  if (cartItem.Addons && Array.isArray(cartItem.Addons)) {\n    cartItem.Addons.forEach(addon => {\n      const addonType = addon.AddOnID.startsWith('ING-') ? 'ingredient' : 'addon';\n      updates.push({\n        type: addonType,\n        addonId: addon.AddOnID,\n        deduction: (parseInt(addon.Quantity) || 1) * quantity\n      });\n    });\n  }\n});\n\nreturn { json: { updates, itemsProcessed: items.length } };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1248,
+        480
+      ],
+      "id": "29502fce-7713-491b-ae6c-1b7e7ef4faec",
+      "name": "Update All Inventory [Inventory]"
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputData = $input.first().json;\nconst updates = inputData.updates || [];\n\nconst pastries = updates.filter(u => u.type === 'pastrie');\nconst drinks = updates.filter(u => u.type === 'drink');\nconst addons = updates.filter(u => u.type === 'addon');\nconst ingredients = updates.filter(u => u.type === 'ingredient');\n\nreturn [\n  { json: { type: 'pastries', items: pastries } },\n  { json: { type: 'drinks', items: drinks } },\n  { json: { type: 'addons', items: addons } },\n  { json: { type: 'ingredients', items: ingredients } }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1472,
+        480
+      ],
+      "id": "5417b966-8f15-4d18-b39a-565a72a340a7",
+      "name": "Filter by Type"
+    },
+    {
+      "parameters": {
+        "collection": "Menu",
+        "options": {},
+        "query": "={ \"ProductID\": \"{{ $json.productId }}\" }"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        2576,
+        160
+      ],
+      "id": "1329da88-d61b-4fe3-8cfb-3752de8fa1a3",
+      "name": "Find documents",
+      "credentials": {
+        "mongoDb": {
+          "id": "Db6W481X9UBvG6rD",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        2208,
+        48
+      ],
+      "id": "7ca9fb13-25f9-4fa6-b77b-9174bfec74eb",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputData = $input.first().json;\nconst items = $input.all().map(item => item.json);\n\nreturn items.map(item => ({ json: item }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2368,
+        160
+      ],
+      "id": "db716c79-7ad4-4a42-bc74-f4a1f2d27a75",
+      "name": "SplitInBatches"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        2208,
+        480
+      ],
+      "id": "4ac97b6b-2ed2-4b9c-8582-3d191c0505a7",
+      "name": "Loop Over Items1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const drinkItems = $input.all().map(item => item.json);\n\nconst grouped = drinkItems.reduce((acc, item) => {\n  const id = item.productId;\n  if (acc[id]) {\n    acc[id].deduction += item.deduction;\n  } else {\n    acc[id] = { \n      type: item.type,\n      productId: item.productId,\n      size: item.size,\n      deduction: item.deduction\n    };\n  }\n  return acc;\n}, {});\n\nreturn Object.values(grouped).map(item => ({ json: item }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2368,
+        592
+      ],
+      "id": "10b4cf5a-4f28-4d4d-9883-c9bfc14f554a",
+      "name": "SplitInBatches1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        2192,
+        912
+      ],
+      "id": "ac0db2cd-a8d9-4b15-96d5-d626f4911601",
+      "name": "Loop Over Items2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const addonItems = $input.all().map(item => item.json);\n\nconst grouped = addonItems.reduce((acc, item) => {\n  const id = item.addonId;\n  if (acc[id]) {\n    acc[id].deduction += item.deduction;\n  } else {\n    acc[id] = { \n      type: item.type,\n      addonId: item.addonId,\n      deduction: item.deduction\n    };\n  }\n  return acc;\n}, {});\n\nreturn Object.values(grouped).map(item => ({ json: item }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2352,
+        1024
+      ],
+      "id": "d19bd003-5188-45ad-b1fb-aae61aa65577",
+      "name": "SplitInBatches2",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        2160,
+        1360
+      ],
+      "id": "e7f0bdc7-f62d-4de4-ae24-57663c076bc4",
+      "name": "Loop Over Items3"
+    },
+    {
+      "parameters": {
+        "jsCode": "const addonItems = $input.all().map(item => item.json);\n\nconst grouped = addonItems.reduce((acc, item) => {\n  const id = item.addonId;\n  if (acc[id]) {\n    acc[id].deduction += item.deduction;\n  } else {\n    acc[id] = { \n      type: item.type,\n      addonId: item.addonId,\n      deduction: item.deduction\n    };\n  }\n  return acc;\n}, {});\n\nreturn Object.values(grouped).map(item => ({ json: item }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2320,
+        1472
+      ],
+      "id": "34ad1b9c-1293-4fd0-a60b-4852a4c19ac5",
+      "name": "SplitInBatches3"
+    },
+    {
+      "parameters": {
+        "collection": "Menu",
+        "options": {},
+        "query": "={ \"ProductID\": \"{{ $json.productId }}\" }"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        2576,
+        592
+      ],
+      "id": "23a0dcf8-ffb7-4acb-bef4-07ceff5f08d9",
+      "name": "Find Ingredients",
+      "credentials": {
+        "mongoDb": {
+          "id": "Db6W481X9UBvG6rD",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all().map(item => item.json);\nconst seen = new Set();\nconst results = [];\n\nitems.forEach(item => {\n  if (!seen.has(item.IngredientID)) {\n    results.push({\n      collection: \"Ingredients\",\n      IngredientID: item.IngredientID,\n      Amount: Math.max(0, item.newQuantity)\n    });\n    seen.add(item.IngredientID);\n  }\n});\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2400,
+        416
+      ],
+      "id": "2fef97ba-a07d-47cf-9252-420d38579998",
+      "name": "Update ingredient"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all().map(item => item.json);\n\nreturn items.map(item => {\n  return {\n    ProductID: item.ProductID,\n    Quantity: item.newQuantity\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2400,
+        0
+      ],
+      "id": "a0d1a430-a19b-44d7-98fb-37014810b42c",
+      "name": "Update pastries"
+    },
+    {
+      "parameters": {
+        "collection": "Add-ons",
+        "options": {},
+        "query": "={ \"AddOnID\": \"{{ $json.addonId }}\" }"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        2560,
+        1024
+      ],
+      "id": "4ad8fb10-ca7b-41c4-9767-50be62044502",
+      "name": "Find add-ons",
+      "credentials": {
+        "mongoDb": {
+          "id": "Db6W481X9UBvG6rD",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all().map(item => item.json);\nconst seen = new Set();\nconst results = [];\n\nitems.forEach(item => {\n  if (!seen.has(item.AddOnID)) {\n    results.push({\n      AddOnID: item.AddOnID,\n      Amount: Math.max(0, item.newQuantity)\n    });\n    seen.add(item.AddOnID);\n  }\n});\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2384,
+        864
+      ],
+      "id": "ef8ef3e0-2ba2-45f4-a4d7-62c666a50064",
+      "name": "Update add-on"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "collection": "=Menu",
+        "updateKey": "=ProductID",
+        "fields": "=ProductID, Quantity",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        2576,
+        0
+      ],
+      "id": "4e4cb089-907d-47fa-ae2c-ae442db79a49",
+      "name": "Update pastries quantity",
+      "alwaysOutputData": false,
+      "credentials": {
+        "mongoDb": {
+          "id": "Db6W481X9UBvG6rD",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "collection": "=Ingredients",
+        "updateKey": "=IngredientID",
+        "fields": "=IngredientID, Amount",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        2576,
+        416
+      ],
+      "id": "8c7e0788-f3df-47ea-9b7b-f0d886c6b8dc",
+      "name": "Update ingredient quantity",
+      "alwaysOutputData": false,
+      "credentials": {
+        "mongoDb": {
+          "id": "Db6W481X9UBvG6rD",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "collection": "Ingredients",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        2992,
+        592
+      ],
+      "id": "a7c23bc5-5bb1-4c3b-b8e5-b628a714a6d5",
+      "name": "Fetch Ingredients",
+      "credentials": {
+        "mongoDb": {
+          "id": "Db6W481X9UBvG6rD",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const currentItem = $input.first().json;\nconst loopItem = $('SplitInBatches').first().json; // Replace with your loop node name\nconst deduction = loopItem.deduction;\nconst newQuantity = currentItem.Quantity - deduction;\n\nreturn { \n  json: { \n    ProductID: currentItem.ProductID, \n    newQuantity: newQuantity, \n    currentQuantity: currentItem.Quantity,\n    deduction: deduction\n  } \n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2784,
+        160
+      ],
+      "id": "a719fb43-9c24-4aad-a1dd-06f02b525b14",
+      "name": "Calculate New Quantity [pastries]"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all().map(i => i.json);\nconst loopData = $('SplitInBatches1').all().map(i => i.json);\n\nlet ingredientDeductions = {};\n\nitems.forEach((product, index) => {\n  const orderItem = loopData[index];\n  const selectedSize = orderItem?.size;\n  const deduction = orderItem?.deduction || 1;\n  \n  if (product.Ingredients && product.Ingredients.length > 0) {\n    product.Ingredients.forEach(ingredient => {\n      const ingredientId = ingredient.ingredientID;\n      const gramsNeeded = ingredient.usedGrams[selectedSize] || 0;\n      const totalGramsNeeded = gramsNeeded * deduction;\n      \n      if (!ingredientDeductions[ingredientId]) {\n        ingredientDeductions[ingredientId] = 0;\n      }\n      ingredientDeductions[ingredientId] += totalGramsNeeded;\n    });\n  }\n});\n\nreturn Object.keys(ingredientDeductions).map(ingredientId => ({\n  json: {\n    IngredientID: ingredientId,\n    deduction: ingredientDeductions[ingredientId]\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2784,
+        592
+      ],
+      "id": "1fb398a6-991b-4fe3-8965-aff52c7cc9a7",
+      "name": "Calculate Deduction [Ingredients]"
+    },
+    {
+      "parameters": {
+        "jsCode": "const currentItems = $input.all().map(i => i.json);\nconst deductionItems = $('Calculate Deduction [Ingredients]').all().map(i => i.json);\n\nconst processedIngredients = new Set();\nconst results = [];\n\ncurrentItems.forEach(currentItem => {\n  if (!processedIngredients.has(currentItem.IngredientID)) {\n    const deductionItem = deductionItems.find(d => d.IngredientID === currentItem.IngredientID);\n    const deduction = deductionItem ? deductionItem.deduction : 0;\n    \n    if (deduction > 0) {\n      const newQuantity = currentItem.Amount - deduction;\n      \n      results.push({\n        json: {\n          IngredientID: currentItem.IngredientID,\n          newQuantity: newQuantity,\n          currentQuantity: currentItem.Amount,\n          deduction: deduction\n        }\n      });\n      \n      processedIngredients.add(currentItem.IngredientID);\n    }\n  }\n});\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3200,
+        592
+      ],
+      "id": "ff2ec2ef-730b-41ee-9974-0cb6706a5ea0",
+      "name": "Calculate New Quantity [Drinks]"
+    },
+    {
+      "parameters": {
+        "jsCode": "const currentItem = $input.first().json;\nconst loopItem = $('SplitInBatches2').first().json;\nconst deduction = loopItem.deduction;\nconst deductionQuantityGrams = parseFloat(currentItem.DeductionQuantityGrams) || 0;\nconst totalDeduction = deduction * deductionQuantityGrams;\nconst newQuantity = parseFloat(currentItem.Amount) - totalDeduction;\n\nreturn { \n  json: { \n    AddOnID: currentItem.AddOnID, \n    newQuantity: newQuantity, \n    currentQuantity: parseFloat(currentItem.Amount),\n    deduction: totalDeduction\n  } \n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2768,
+        1024
+      ],
+      "id": "5f895744-2225-4ea0-bff3-5336ad1a7c14",
+      "name": "Calculate New Quantity [Add-ons]"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "collection": "=Add-ons",
+        "updateKey": "=AddOnID",
+        "fields": "=AddOnID, Amount",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        2576,
+        864
+      ],
+      "id": "2cec86f3-3558-40ce-8a62-fc7b738851e1",
+      "name": "Update add-on quantity",
+      "alwaysOutputData": false,
+      "credentials": {
+        "mongoDb": {
+          "id": "Db6W481X9UBvG6rD",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all().map(item => item.json);\n\nreturn items.flatMap(typeGroup => {\n  if (typeGroup.items && typeGroup.items.length > 0) {\n    return typeGroup.items.map(item => ({\n      json: { ...item, groupType: typeGroup.type }\n    }));\n  }\n  return [];\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1680,
+        480
+      ],
+      "id": "cf8f80dc-19fc-4444-87cd-69abec40bd7a",
+      "name": "Parallel"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.groupType }}",
+                    "rightValue": "pastries",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "3d763680-af72-4823-995b-2d0dddeec725"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "pastries"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "5e2d8343-5c47-4d3d-852a-a6cb974cba4a",
+                    "leftValue": "={{ $json.groupType }}",
+                    "rightValue": "drinks",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "drinks"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "2b210d64-dc5d-4b65-a6cb-fc417daac439",
+                    "leftValue": "={{ $json.groupType }}",
+                    "rightValue": "addons",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "addons"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "35965d6d-9e9c-4193-b05e-47a95db8f065",
+                    "leftValue": "={{ $json.groupType }}",
+                    "rightValue": "ingredients",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ingredients"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        1872,
+        464
+      ],
+      "id": "7073dd67-1553-4bf0-9a15-6d5093f0ef19",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "numberInputs": 4
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3520,
+        576
+      ],
+      "id": "08152b39-6a0e-46db-8a2e-bc55f68b8ba8",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "const allItems = [];\n\n$input.all().forEach(item => {\n  if (Array.isArray(item.json)) {\n    allItems.push(...item.json);\n  } else {\n    allItems.push(item.json);\n  }\n});\n\nreturn [{ json: { items: allItems } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3728,
+        608
+      ],
+      "id": "dc361160-e3bc-4f8a-9d3c-0da98ca7e954",
+      "name": "Consolidate Output"
+    },
+    {
+      "parameters": {
+        "jsCode": "const currentItem = $input.first().json;\nconst loopItem = $('SplitInBatches3').first().json; // Replace with your loop node name\nconst deduction = loopItem.deduction; // This is the addon quantity\nconst deductionGrams = deduction * (parseInt(currentItem.DeductionQuantityGrams) || 0);\nconst currentQuantity = parseInt(currentItem.Amount) || 0;\nconst newQuantity = currentQuantity - deductionGrams;\n\nreturn { \n  json: { \n    IngredientID: currentItem.IngredientID, \n    newQuantity: newQuantity, \n    currentQuantity: currentQuantity,\n    deduction: deductionGrams\n  } \n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2736,
+        1472
+      ],
+      "id": "dae84512-e6c2-420d-9581-2c3f7688431c",
+      "name": "Calculate New Quantity [Inventory]"
+    },
+    {
+      "parameters": {
+        "collection": "Ingredients",
+        "options": {},
+        "query": "={ \"IngredientID\": \"{{ $json.addonId }}\" }"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        2528,
+        1472
+      ],
+      "id": "6649a693-ac67-41af-bb54-1cbf16a18768",
+      "name": "Find Ingredients [Add-on]",
+      "credentials": {
+        "mongoDb": {
+          "id": "Db6W481X9UBvG6rD",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all().map(item => item.json);\n\n// Aggregate deductions by IngredientID\nconst aggregated = {};\n\nitems.forEach(item => {\n  if (item.IngredientID) {\n    if (!aggregated[item.IngredientID]) {\n      aggregated[item.IngredientID] = {\n        totalDeduction: 0,\n        currentQuantity: item.currentQuantity\n      };\n    }\n    aggregated[item.IngredientID].totalDeduction += item.deduction;\n  }\n});\n\n// Calculate new quantities\nconst results = Object.keys(aggregated).map(ingredientID => {\n  const agg = aggregated[ingredientID];\n  return {\n    IngredientID: ingredientID,\n    Amount: Math.max(0, agg.currentQuantity - agg.totalDeduction)\n  };\n});\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2384,
+        1280
+      ],
+      "id": "9e6e448f-d231-4c30-8ed7-cddd8fe1c0d0",
+      "name": "Update ingredient [add-on]"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "collection": "=Ingredients",
+        "updateKey": "=IngredientID",
+        "fields": "=IngredientID, Amount",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        2576,
+        1280
+      ],
+      "id": "843cf957-00c2-458e-89d1-c13c937b346d",
+      "name": "Update ingredient quantity [add-on]",
+      "alwaysOutputData": false,
+      "credentials": {
+        "mongoDb": {
+          "id": "Db6W481X9UBvG6rD",
+          "name": "MongoDB account"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -721,7 +1324,7 @@
       "main": [
         [
           {
-            "node": "remove Cart [Order Confirmation]",
+            "node": "Update All Inventory [Inventory]",
             "type": "main",
             "index": 0
           }
@@ -767,16 +1370,418 @@
           }
         ]
       ]
+    },
+    "Update All Inventory [Inventory]": {
+      "main": [
+        [
+          {
+            "node": "Filter by Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter by Type": {
+      "main": [
+        [
+          {
+            "node": "Parallel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find documents": {
+      "main": [
+        [
+          {
+            "node": "Calculate New Quantity [pastries]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Update pastries",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SplitInBatches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SplitInBatches": {
+      "main": [
+        [
+          {
+            "node": "Find documents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [
+          {
+            "node": "Update ingredient",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SplitInBatches1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SplitInBatches1": {
+      "main": [
+        [
+          {
+            "node": "Find Ingredients",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items2": {
+      "main": [
+        [
+          {
+            "node": "Update add-on",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SplitInBatches2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SplitInBatches2": {
+      "main": [
+        [
+          {
+            "node": "Find add-ons",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items3": {
+      "main": [
+        [
+          {
+            "node": "Update ingredient [add-on]",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SplitInBatches3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SplitInBatches3": {
+      "main": [
+        [
+          {
+            "node": "Find Ingredients [Add-on]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Ingredients": {
+      "main": [
+        [
+          {
+            "node": "Calculate Deduction [Ingredients]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update pastries": {
+      "main": [
+        [
+          {
+            "node": "Update pastries quantity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find add-ons": {
+      "main": [
+        [
+          {
+            "node": "Calculate New Quantity [Add-ons]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update ingredient": {
+      "main": [
+        [
+          {
+            "node": "Update ingredient quantity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Ingredients": {
+      "main": [
+        [
+          {
+            "node": "Calculate New Quantity [Drinks]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate New Quantity [pastries]": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Deduction [Ingredients]": {
+      "main": [
+        [
+          {
+            "node": "Fetch Ingredients",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate New Quantity [Drinks]": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate New Quantity [Add-ons]": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update add-on": {
+      "main": [
+        [
+          {
+            "node": "Update add-on quantity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parallel": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update pastries quantity": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update ingredient quantity": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Update add-on quantity": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Consolidate Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consolidate Output": {
+      "main": [
+        [
+          {
+            "node": "remove Cart [Order Confirmation]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate New Quantity [Inventory]": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Ingredients [Add-on]": {
+      "main": [
+        [
+          {
+            "node": "Calculate New Quantity [Inventory]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update ingredient [add-on]": {
+      "main": [
+        [
+          {
+            "node": "Update ingredient quantity [add-on]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update ingredient quantity [add-on]": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "65ec355d-b426-402f-9791-7fb4a9e205fc",
+  "versionId": "c4bc7110-5803-412a-96c2-9081b88a3775",
   "meta": {
-    "instanceId": "818d45e7d7435ffe1fb1a4348f404a0c4a80b891ed8669035a39a5ec5e90d0d6"
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c9a539eddbbcc53188d09f0c160cdca467499addf0ec993ff0d9c5b9cab4ef78"
   },
-  "id": "DrM20f8tfBJ9aTZa",
+  "id": "3GowqONhfcwaxzuQ",
   "tags": []
 }
