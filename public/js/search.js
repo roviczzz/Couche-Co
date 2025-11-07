@@ -71,8 +71,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const html = results.map(result => `
             <div class="search-result-item" data-product-id="${result._id || result.id}">
-                <div class="search-result-name">${result.Name}</div>
-                <div class="search-result-category">${result.Category}</div>
+                <div class="search-result-image">
+                    ${result.imagelink && result.imagelink.length > 0 ?
+                        `<img src="${result.imagelink}" alt="${result.Name}" loading="lazy" onerror="this.style.display='none'; this.parentElement.querySelector('.no-image').style.display='flex';">` : ''}
+                    <div class="no-image" style="display: ${result.imagelink && result.imagelink.length > 0 ? 'none' : 'flex'};">No Image</div>
+                </div>
+                <div class="search-result-info">
+                    <div class="search-result-name">${result.Name}</div>
+                    <div class="search-result-category">${result.Category}</div>
+                </div>
             </div>
         `).join('');
 
