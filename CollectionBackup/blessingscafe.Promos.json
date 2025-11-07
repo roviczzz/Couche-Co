@@ -1,0 +1,44 @@
+[{
+  "_id": {
+    "$oid": "690b74d5997adb87f1986a9a"
+  },
+  "event": "Panis na Kape",
+  "category": "Coffee",
+  "description": "Kapeng",
+  "discountPercentage": 5,
+  "startDate": {
+    "$date": "2025-11-05T00:00:00.000Z"
+  },
+  "endDate": {
+    "$date": "2025-11-25T00:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2025-11-05T16:01:25.905Z"
+  },
+  "lastModified": {
+    "$date": "2025-11-05T16:11:31.098Z"
+  },
+  "isActive": true
+},
+{
+  "_id": {
+    "$oid": "690b77768ed508d3b94428c1"
+  },
+  "event": "Tinapay na Matapang pero di ka pinaglaban",
+  "category": "Pastries",
+  "description": "Tigas",
+  "discountPercentage": 2,
+  "startDate": {
+    "$date": "2025-11-05T00:00:00.000Z"
+  },
+  "endDate": {
+    "$date": "2025-11-24T00:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2025-11-05T16:12:38.172Z"
+  },
+  "lastModified": {
+    "$date": "2025-11-05T16:12:38.172Z"
+  },
+  "isActive": true
+}]

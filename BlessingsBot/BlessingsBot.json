@@ -833,20 +833,43 @@
                 },
                 "conditions": [
                   {
-                    "id": "986ef630-27b5-4aaf-9d1f-061215ed769a",
+                    "id": "36c91a39-b5dc-4858-b861-f656fcdc489f",
                     "leftValue": "={{ $json.postback }}",
-                    "rightValue": "STOREPICKUP_CASH_ON_HAND",
+                    "rightValue": "APPLY_PROMO_",
                     "operator": {
                       "type": "string",
-                      "operation": "equals",
-                      "name": "filter.operator.equals"
+                      "operation": "startsWith"
                     }
                   }
                 ],
                 "combinator": "and"
               },
               "renameOutput": true,
-              "outputKey": "STORE PICKUP CASH ON HAND"
+              "outputKey": "APPLY PROMO"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "b66db014-2798-4838-9d69-b40ecbaae4d4",
+                    "leftValue": "={{ $json.postback }}",
+                    "rightValue": "=REMOVE_PROMO",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "REMOVE PROMO"
             }
           ]
         },
@@ -2035,21 +2058,21 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        752,
-        2688
+        1296,
+        2720
       ],
       "id": "1f7d3e93-1709-42af-a991-c620cd8224d1",
       "name": "Retrieve Cart Items"
     },
     {
       "parameters": {
-        "jsCode": "const cartData = $input.first().json;\nconst { cartItems, itemCount, subtotal, senderId } = cartData;\n\nlet cartMessage = \"📋 *YOUR CART* 📋\\n\\n\";\n\n// Group items by productName and size (for items that have sizes)\nconst groupedItems = {};\n\ncartItems.forEach(item => {\n  // Create a unique key based on productName and size\n  const key = `${item.productName}_${item.size || 'no-size'}`;\n  \n  if (groupedItems[key]) {\n    // Item already exists, add to quantity and total price\n    groupedItems[key].quantity += item.quantity || 1;\n    // Note: We'll recalculate totalPrice after merging\n    \n    // Merge add-ons if any\n    if (item.addOns && item.addOns.length > 0) {\n      item.addOns.forEach(newAddon => {\n        const newAddonName = newAddon.ingredientName || newAddon.addOnName;\n        // Check if this add-on already exists in the grouped item\n        const existingAddon = groupedItems[key].addOns.find(addon => (addon.ingredientName || addon.addOnName) === newAddonName);\n        if (existingAddon) {\n          existingAddon.quantity += newAddon.quantity;\n        } else {\n          groupedItems[key].addOns.push({...newAddon});\n        }\n      });\n    }\n  } else {\n    // New item, create entry\n    groupedItems[key] = {\n      productName: item.productName,\n      category: item.category,\n      size: item.size,\n      quantity: item.quantity || 1,\n      basePrice: item.basePrice,\n      totalPrice: item.totalPrice, // Will be recalculated\n      addOns: item.addOns ? [...item.addOns] : []\n    };\n  }\n});\n\n// Recalculate totalPrice for each grouped item based on merged quantities\nObject.values(groupedItems).forEach(item => {\n  const baseTotal = item.basePrice * item.quantity;\n  const addOnsTotal = item.addOns.reduce((sum, addon) => {\n    const price = addon.ingredientPrice || addon.addOnPrice;\n    return sum + (price * addon.quantity);\n  }, 0);\n  item.totalPrice = baseTotal + addOnsTotal;\n});\n\n// Calculate subtotal from recalculated grouped items\nconst calculatedSubtotal = Object.values(groupedItems).reduce((sum, item) => sum + item.totalPrice, 0);\n\n// Process grouped items\nObject.values(groupedItems).forEach(item => {\n  const productName = item.productName;\n  const size = item.size;\n  const quantity = item.quantity;\n  \n  // Only show size if category is not 'Pastries' and size is truthy\n  const displaySize = (item.category === \"Pastries\" || !size) ? \"\" : ` (${size})`;\n  \n  cartMessage += `${productName}${displaySize}\\n`;\n  \n  // Show base price breakdown\n  const baseTotal = (item.basePrice * quantity);\n  const baseTotalStr = `₱${baseTotal.toFixed(2)}`.padStart(8, ' ');\n  cartMessage += `- ${quantity} X ₱${item.basePrice.toFixed(2)} = ${baseTotalStr}\\n`;\n  \n  // Show add-ons breakdown\n  if (item.addOns && item.addOns.length > 0) {\n    item.addOns.forEach(addon => {\n      const addonName = addon.ingredientName || addon.addOnName;\n      const addonPrice = addon.ingredientPrice || addon.addOnPrice;\n      const addonTotal = (addonPrice * addon.quantity);\n      const addonTotalStr = `₱${addonTotal.toFixed(2)}`.padStart(8, ' ');\n      cartMessage += `${addonName}\\n`;\n      cartMessage += `- ${addon.quantity} X ₱${addonPrice.toFixed(2)} = ${addonTotalStr}\\n`;\n    });\n  }\n  \n  cartMessage += \"\\n\";\n});\n\ncartMessage += `---------------\\n`;\nconst subtotalStr = `₱${calculatedSubtotal.toFixed(2)}`.padStart(8, ' ');\ncartMessage += `Subtotal: ${subtotalStr}\\n\\n`;\ncartMessage += \"Delivery fee will be calculated at checkout\\n\\n\";\ncartMessage += \"What would you like to do next?\";\n\nconst messageObject = {\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": senderId\n  },\n  \"message\": {\n    \"text\": cartMessage,\n    \"quick_replies\": [\n      {\n        \"content_type\": \"text\",\n        \"title\": \"Checkout\",\n        \"payload\": \"CHECKOUT\"\n      },\n      {\n        \"content_type\": \"text\", \n        \"title\": \"Continue Shopping\",\n        \"payload\": \"REVIEW_MENU\"\n      },\n      {\n        \"content_type\": \"text\",\n        \"title\": \"Clear Cart\",\n        \"payload\": \"CLEAR_CART\"\n      }\n    ]\n  }\n};\n\nreturn {\n  json: messageObject\n};"
+        "jsCode": "// Fetch cart data from \"Retrieve Cart Items\" node\nconst cartData = $('Retrieve Cart Items').first().json;\nconst cartItems = cartData.cartItems || [];\nconst itemCount = cartData.itemCount || 0;\nconst subtotal = cartData.subtotal || 0;\nconst senderId = cartData.senderId;\n\n// Fetch promos from \"Fetch Active Promos\" node\nlet allPromos = [];\ntry {\n  allPromos = $('Fetch Active Promos').all().map(item => item.json);\n} catch (e) {\n  allPromos = [];\n}\n\n// Extract unique categories from cart items\nconst cartCategories = [...new Set(cartItems.map(item => item.category))];\n\n// Find applicable promos (match category and active)\nconst applicablePromos = allPromos.filter(promo =>\n  cartCategories.includes(promo.category) && promo.isActive\n);\n\nlet cartMessage = \"📋 *YOUR CART* 📋\\n\\n\";\n\n// Group and display items (existing logic)\nconst groupedItems = {};\ncartItems.forEach(item => {\n  const key = `${item.productName}_${item.size || 'no-size'}`;\n  if (groupedItems[key]) {\n    groupedItems[key].quantity += item.quantity || 1;\n    groupedItems[key].totalPrice += item.totalPrice;\n    if (item.addOns && item.addOns.length > 0) {\n      item.addOns.forEach(newAddon => {\n        const newAddonName = newAddon.ingredientName || newAddon.addOnName;\n        const existingAddon = groupedItems[key].addOns.find(addon => (addon.ingredientName || addon.addOnName) === newAddonName);\n        if (existingAddon) existingAddon.quantity += newAddon.quantity;\n        else groupedItems[key].addOns.push({...newAddon});\n      });\n    }\n  } else {\n    groupedItems[key] = {\n      productName: item.productName,\n      category: item.category,\n      size: item.size,\n      quantity: item.quantity || 1,\n      basePrice: item.basePrice,\n      totalPrice: item.totalPrice,\n      addOns: item.addOns ? [...item.addOns] : []\n    };\n  }\n});\n\nObject.values(groupedItems).forEach(item => {\n  const displaySize = (item.category === \"Pastries\" || !item.size) ? \"\" : ` (${item.size})`;\n  cartMessage += `${item.productName}${displaySize}\\n`;\n  const baseTotal = (item.basePrice * item.quantity);\n  const baseTotalStr = `₱${baseTotal.toFixed(2)}`.padStart(8, ' ');\n  cartMessage += `- ${item.quantity} X ₱${item.basePrice.toFixed(2)} = ${baseTotalStr}\\n`;\n  if (item.addOns && item.addOns.length > 0) {\n    item.addOns.forEach(addon => {\n      const addonName = addon.ingredientName || addon.addOnName;\n      const addonPrice = addon.ingredientPrice || addon.addOnPrice || 0;\n      const addonTotal = (addonPrice * addon.quantity);\n      const addonTotalStr = `₱${addonTotal.toFixed(2)}`.padStart(8, ' ');\n      cartMessage += `${addonName}\\n`;\n      cartMessage += `- ${addon.quantity} X ₱${addonPrice.toFixed(2)} = ${addonTotalStr}\\n`;\n    });\n  }\n  cartMessage += \"\\n\";\n});\n\nconst calculatedSubtotal = Object.values(groupedItems).reduce((sum, item) => sum + item.totalPrice, 0);\nconst subtotalStr = `₱${calculatedSubtotal.toFixed(2)}`.padStart(8, ' ');\ncartMessage += `---------------\\n`;\ncartMessage += `Subtotal: ${subtotalStr}\\n\\n`;\nif (applicablePromos.length > 0) {\n  cartMessage += \"🎉 Great news! You have redeemable promos available for your cart items! Swipe left to apply.\\n\\n\";\n}\ncartMessage += \"Delivery fee will be calculated at checkout\\n\\n\";\n\n// Build quick replies (existing + new promo ones)\nconst quickReplies = [\n  { content_type: \"text\", title: \"Proceed to Checkout\", payload: \"CHECKOUT\" },\n  { content_type: \"text\", title: \"Continue Shopping\", payload: \"REVIEW_MENU\" },\n  { content_type: \"text\", title: \"Clear Cart\", payload: \"CLEAR_CART\" }\n];\n\n// Add promo quick replies\napplicablePromos.forEach(promo => {\n  quickReplies.push({\n    content_type: \"text\",\n    title: `Apply ${promo.discountPercentage}% Promo`,\n    payload: `APPLY_PROMO_${promo._id}`\n  });\n});\n\nconst messageObject = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    text: cartMessage,\n    quick_replies: quickReplies\n  }\n};\n\nreturn { json: messageObject };"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        976,
-        2688
+        1680,
+        2720
       ],
       "id": "a24cc7f2-e024-404c-ad0b-5a14c8cc2d04",
       "name": "Display Items"
@@ -2088,8 +2111,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1200,
-        2688
+        1888,
+        2720
       ],
       "id": "6bf373e3-e7f4-4172-ba0d-618b2af8db1e",
       "name": "Display Cart Message"
@@ -2305,8 +2328,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        976,
-        2880
+        1504,
+        3392
       ],
       "id": "a03eaeb2-73b2-42ef-8f08-b9e298a9cf43",
       "name": "Display Non-Existent Cart Message"
@@ -2318,8 +2341,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        752,
-        2880
+        1280,
+        3392
       ],
       "id": "cbee77fa-28ca-4c9e-8a26-e64b62266b07",
       "name": "Null Cart"
@@ -2461,7 +2484,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const cartData = $input.all().map(item => item.json);\nconst senderId = $input.first().json.userId;\n\n// Handle empty cart\nif (!cartData || cartData.length === 0) {\n  return {\n    json: {\n      isEmpty: true,\n      message: \"Your cart is currently empty.\",\n      senderId\n    }\n  };\n}\n\nlet subtotal = 0;\nlet totalItems = 0;\nlet processedItems = [];\n\n// Handle nested cart structure\ncartData.forEach(cart => {\n  if (cart.cartItems && Array.isArray(cart.cartItems)) {\n    cart.cartItems.forEach(cartItem => {\n      if (cartItem.items && Array.isArray(cartItem.items)) {\n        cartItem.items.forEach(nestedCart => {\n          if (nestedCart.items && Array.isArray(nestedCart.items)) {\n            // Access the actual product items\n            nestedCart.items.forEach(actualItem => {\n              processedItems.push(actualItem);\n              subtotal += actualItem.totalPrice;\n              totalItems += actualItem.quantity;\n            });\n          }\n        });\n      }\n    });\n  }\n});\n\n// If we didn't find any items in the nested structure, try a simpler approach\nif (processedItems.length === 0) {\n  // Try direct approach if nested structure doesn't work\n  cartData.forEach(cart => {\n    if (cart.items && Array.isArray(cart.items)) {\n      cart.items.forEach(item => {\n        processedItems.push(item);\n        subtotal += item.totalPrice || 0;\n        totalItems += item.quantity || 0;\n      });\n    }\n  });\n}\n\nreturn {\n  json: {\n    isEmpty: processedItems.length === 0,\n    cartItems: processedItems,\n    itemCount: totalItems,\n    subtotal,\n    senderId\n  }\n};"
+        "jsCode": "const cartData = $input.all().map(item => item.json);\nconst senderId = $input.first().json.userId;\n\n// Handle empty cart\nif (!cartData || cartData.length === 0) {\n  return {\n    json: {\n      isEmpty: true,\n      message: \"Your cart is currently empty.\",\n      senderId\n    }\n  };\n}\n\nlet subtotal = 0;\nlet totalItems = 0;\nlet processedItems = [];\n\n// Handle nested cart structure\ncartData.forEach(cart => {\n  if (cart.cartItems && Array.isArray(cart.cartItems)) {\n    cart.cartItems.forEach(cartItem => {\n      if (cartItem.items && Array.isArray(cartItem.items)) {\n        cartItem.items.forEach(nestedCart => {\n          if (nestedCart.items && Array.isArray(nestedCart.items)) {\n            // Access the actual product items\n            nestedCart.items.forEach(actualItem => {\n              processedItems.push(actualItem);\n              subtotal += actualItem.totalPrice;\n              totalItems += actualItem.quantity;\n            });\n          }\n        });\n      }\n    });\n  }\n});\n\n// If we didn't find any items in the nested structure, try a simpler approach\nif (processedItems.length === 0) {\n  // Try direct approach if nested structure doesn't work\n  cartData.forEach(cart => {\n    if (cart.items && Array.isArray(cart.items)) {\n      cart.items.forEach(item => {\n        processedItems.push(item);\n        subtotal += item.totalPrice || 0;\n        totalItems += item.quantity || 0;\n      });\n    }\n  });\n}\n\n// Use the cart's subtotal and appliedPromo instead of recalculated\nconst cart = cartData[0];\nsubtotal = cart.subtotal || subtotal;\nconst appliedPromo = cart.appliedPromo;\n\nreturn {\n  json: {\n    isEmpty: processedItems.length === 0,\n    cartItems: processedItems,\n    itemCount: totalItems,\n    subtotal,\n    senderId,\n    appliedPromo\n  }\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -2583,7 +2606,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const cartData = $input.first().json;\nconst { cartItems, itemCount, subtotal, senderId } = cartData;\n\n// Define your delivery fee here (adjust as needed)\nconst deliveryFee = cartData.deliveryFee !== undefined ? cartData.deliveryFee : 20; // fallback to 20 if not sent\n\nlet cartMessage = \"📋 *YOUR CART* 📋\\n\\n\";\n\n// Group items by productName and size (for items that have sizes)\nconst groupedItems = {};\n\ncartItems.forEach(item => {\n  // Create a unique key based on productName and size\n  const key = `${item.productName}_${item.size || 'no-size'}`;\n  \n  if (groupedItems[key]) {\n    // Item already exists, add to quantity and total price\n    groupedItems[key].quantity += item.quantity || 1;\n    // Note: We'll recalculate totalPrice after merging\n    \n    // Merge add-ons if any\n    if (item.addOns && item.addOns.length > 0) {\n      item.addOns.forEach(newAddon => {\n        const newAddonName = newAddon.ingredientName || newAddon.addOnName;\n        // Check if this add-on already exists in the grouped item\n        const existingAddon = groupedItems[key].addOns.find(addon => (addon.ingredientName || addon.addOnName) === newAddonName);\n        if (existingAddon) {\n          existingAddon.quantity += newAddon.quantity;\n        } else {\n          groupedItems[key].addOns.push({...newAddon});\n        }\n      });\n    }\n  } else {\n    // New item, create entry\n    groupedItems[key] = {\n      productName: item.productName,\n      category: item.category,\n      size: item.size,\n      quantity: item.quantity || 1,\n      basePrice: item.basePrice,\n      totalPrice: item.totalPrice, // Will be recalculated\n      addOns: item.addOns ? [...item.addOns] : []\n    };\n  }\n});\n\n// Recalculate totalPrice for each grouped item based on merged quantities\nObject.values(groupedItems).forEach(item => {\n  const baseTotal = item.basePrice * item.quantity;\n  const addOnsTotal = item.addOns.reduce((sum, addon) => {\n    const price = addon.ingredientPrice || addon.addOnPrice || 0; // Fallback to 0 if price is undefined\n    return sum + (price * addon.quantity);\n  }, 0);\n  item.totalPrice = baseTotal + addOnsTotal;\n});\n\n// Calculate subtotal from recalculated grouped items\nconst calculatedSubtotal = Object.values(groupedItems).reduce((sum, item) => sum + item.totalPrice, 0);\nconst totalPrice = calculatedSubtotal + deliveryFee;\n\n// Process grouped items\nObject.values(groupedItems).forEach(item => {\n  const productName = item.productName;\n  const size = item.size;\n  const quantity = item.quantity;\n  \n  // Only show size if category is not 'Pastries' and size is truthy\n  const displaySize = (item.category === \"Pastries\" || !size) ? \"\" : ` (${size})`;\n  \n  cartMessage += `${productName}${displaySize}\\n`;\n  \n  // Show base price breakdown\n  const baseTotal = (item.basePrice * quantity);\n  const baseTotalStr = `₱${baseTotal.toFixed(2)}`.padStart(8, ' ');\n  cartMessage += `- ${quantity} X ₱${item.basePrice.toFixed(2)} = ${baseTotalStr}\\n`;\n  \n  // Show add-ons breakdown\n  if (item.addOns && item.addOns.length > 0) {\n    item.addOns.forEach(addon => {\n      const addonName = addon.ingredientName || addon.addOnName;\n      const addonPrice = addon.ingredientPrice || addon.addOnPrice || 0; // Fallback to 0\n      const addonTotal = (addonPrice * addon.quantity);\n      const addonTotalStr = `₱${addonTotal.toFixed(2)}`.padStart(8, ' ');\n      cartMessage += `${addonName}\\n`;\n      cartMessage += `- ${addon.quantity} X ₱${addonPrice.toFixed(2)} = ${addonTotalStr}\\n`;\n    });\n  }\n  \n  cartMessage += \"\\n\";\n});\n\ncartMessage += `---------------\\n`;\nconst subtotalStr = `₱${calculatedSubtotal.toFixed(2)}`.padStart(8, ' ');\nconst deliveryFeeStr = `₱${deliveryFee.toFixed(2)}`.padStart(8, ' ');\nconst totalPriceStr = `₱${totalPrice.toFixed(2)}`.padStart(8, ' ');\ncartMessage += `Subtotal: ${subtotalStr}\\n`;\ncartMessage += `Delivery Fee: ${deliveryFeeStr}\\n`;\ncartMessage += `*Total: ${totalPriceStr}*\\n\\n`;\ncartMessage += \"Please confirm your order:\";\n\nconst messageObject = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    text: cartMessage,\n    quick_replies: [\n      {\n        content_type: \"text\",\n        title: \"Confirm\",\n        payload: \"DELIVERY\"\n      },\n      {\n        content_type: \"text\", \n        title: \"Go Back\",\n        payload: \"GO_BACK_DMETHODS\"\n      }\n    ]\n  }\n};\n\nreturn {\n  json: messageObject\n};"
+        "jsCode": "const cartData = $input.first().json;\nconst { cartItems, itemCount, subtotal, senderId } = cartData;\n\n// Define your delivery fee here (adjust as needed)\nconst deliveryFee = cartData.deliveryFee !== undefined ? cartData.deliveryFee : 20; // fallback to 20 if not sent\n\nlet cartMessage = \"☕ *YOUR ORDER* ☕\\n\\n\";\n\n// Group items by productName and size (for items that have sizes)\nconst groupedItems = {};\n\ncartItems.forEach(item => {\n  // Create a unique key based on productName and size\n  const key = `${item.productName}_${item.size || 'no-size'}`;\n  \n  if (groupedItems[key]) {\n    // Item already exists, add to quantity and total price\n    groupedItems[key].quantity += item.quantity || 1;\n    // Note: We'll recalculate totalPrice after merging\n    \n    // Merge add-ons if any\n    if (item.addOns && item.addOns.length > 0) {\n      item.addOns.forEach(newAddon => {\n        const newAddonName = newAddon.ingredientName || newAddon.addOnName;\n        // Check if this add-on already exists in the grouped item\n        const existingAddon = groupedItems[key].addOns.find(addon => (addon.ingredientName || addon.addOnName) === newAddonName);\n        if (existingAddon) {\n          existingAddon.quantity += newAddon.quantity;\n        } else {\n          groupedItems[key].addOns.push({...newAddon});\n        }\n      });\n    }\n  } else {\n    // New item, create entry\n    groupedItems[key] = {\n      productName: item.productName,\n      category: item.category,\n      size: item.size,\n      quantity: item.quantity || 1,\n      basePrice: item.basePrice,\n      totalPrice: item.totalPrice, // Will be recalculated\n      addOns: item.addOns ? [...item.addOns] : []\n    };\n  }\n});\n\n// Recalculate totalPrice for each grouped item based on merged quantities\nObject.values(groupedItems).forEach(item => {\n  const baseTotal = item.basePrice * item.quantity;\n  const addOnsTotal = item.addOns.reduce((sum, addon) => {\n    const price = addon.ingredientPrice || addon.addOnPrice || 0; // Fallback to 0 if price is undefined\n    return sum + (price * addon.quantity);\n  }, 0);\n  item.totalPrice = baseTotal + addOnsTotal;\n});\n\n// Use the input subtotal (already discounted if promo applied)\nconst calculatedSubtotal = subtotal;\nconst totalPrice = calculatedSubtotal + deliveryFee;\n\n// Process grouped items\nObject.values(groupedItems).forEach(item => {\n  const productName = item.productName;\n  const size = item.size;\n  const quantity = item.quantity;\n  \n  // Only show size if category is not 'Pastries' and size is truthy\n  const displaySize = (item.category === \"Pastries\" || !size) ? \"\" : ` (${size})`;\n  \n  cartMessage += `${productName}${displaySize}\\n`;\n  \n  // Show base price breakdown\n  const baseTotal = (item.basePrice * quantity);\n  const baseTotalStr = `₱${baseTotal.toFixed(2)}`.padStart(8, ' ');\n  cartMessage += `- ${quantity} X ₱${item.basePrice.toFixed(2)} = ${baseTotalStr}\\n`;\n  \n  // Show add-ons breakdown\n  if (item.addOns && item.addOns.length > 0) {\n    item.addOns.forEach(addon => {\n      const addonName = addon.ingredientName || addon.addOnName;\n      const addonPrice = addon.ingredientPrice || addon.addOnPrice || 0; // Fallback to 0\n      const addonTotal = (addonPrice * addon.quantity);\n      const addonTotalStr = `₱${addonTotal.toFixed(2)}`.padStart(8, ' ');\n      cartMessage += `${addonName}\\n`;\n      cartMessage += `- ${addon.quantity} X ₱${addonPrice.toFixed(2)} = ${addonTotalStr}\\n`;\n    });\n  }\n  \n  cartMessage += \"\\n\";\n});\n\n// Add applied promo line if exists\nif (cartData.appliedPromo) {\n  const promo = cartData.appliedPromo;\n  cartMessage += `Applied Promo 🎉: ${promo.discountPercentage}% off ${promo.event} (-₱${promo.discountAmount.toFixed(2)})\\n`;\n}\n\ncartMessage += `---------------\\n`;\nconst subtotalStr = `₱${calculatedSubtotal.toFixed(2)}`.padStart(8, '');\nconst deliveryFeeStr = `₱${deliveryFee.toFixed(2)}`.padStart(8, '');\nconst totalPriceStr = `₱${totalPrice.toFixed(2)}`.padStart(8, '');\ncartMessage += `Subtotal: ${subtotalStr}\\n`;\ncartMessage += `Delivery Fee: ${deliveryFeeStr}\\n`;\ncartMessage += `*Total: ${totalPriceStr}*\\n\\n`;\ncartMessage += \"Please confirm your order:\";\n\nconst messageObject = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    text: cartMessage,\n    quick_replies: [\n      {\n        content_type: \"text\",\n        title: \"Confirm Delivery\",\n        payload: \"DELIVERY\"\n      },\n      {\n        content_type: \"text\", \n        title: \"Go Back\",\n        payload: \"GO_BACK_DMETHODS\"\n      }\n    ]\n  }\n};\n\nreturn {\n  json: messageObject\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -2596,7 +2619,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const cartData = $input.first().json;\nconst { cartItems, itemCount, subtotal, senderId } = cartData;\n\nlet cartMessage = \"📋 *YOUR CART* 📋\\n\\n\";\n\n// Group items by productName and size (for items that have sizes)\nconst groupedItems = {};\n\ncartItems.forEach(item => {\n  // Create a unique key based on productName and size\n  const key = `${item.productName}_${item.size || 'no-size'}`;\n  \n  if (groupedItems[key]) {\n    // Item already exists, add to quantity and total price\n    groupedItems[key].quantity += item.quantity || 1;\n    // Note: We'll recalculate totalPrice after merging\n    \n    // Merge add-ons if any\n    if (item.addOns && item.addOns.length > 0) {\n      item.addOns.forEach(newAddon => {\n        const newAddonName = newAddon.ingredientName || newAddon.addOnName;\n        // Check if this add-on already exists in the grouped item\n        const existingAddon = groupedItems[key].addOns.find(addon => (addon.ingredientName || addon.addOnName) === newAddonName);\n        if (existingAddon) {\n          existingAddon.quantity += newAddon.quantity;\n        } else {\n          groupedItems[key].addOns.push({...newAddon});\n        }\n      });\n    }\n  } else {\n    // New item, create entry\n    groupedItems[key] = {\n      productName: item.productName,\n      category: item.category,\n      size: item.size,\n      quantity: item.quantity || 1,\n      basePrice: item.basePrice,\n      totalPrice: item.totalPrice, // Will be recalculated\n      addOns: item.addOns ? [...item.addOns] : []\n    };\n  }\n});\n\n// Recalculate totalPrice for each grouped item based on merged quantities\nObject.values(groupedItems).forEach(item => {\n  const baseTotal = item.basePrice * item.quantity;\n  const addOnsTotal = item.addOns.reduce((sum, addon) => {\n    const price = addon.ingredientPrice || addon.addOnPrice;\n    return sum + (price * addon.quantity);\n  }, 0);\n  item.totalPrice = baseTotal + addOnsTotal;\n});\n\n// Calculate subtotal from recalculated grouped items\nconst calculatedSubtotal = Object.values(groupedItems).reduce((sum, item) => sum + item.totalPrice, 0);\n\n// Process grouped items\nObject.values(groupedItems).forEach(item => {\n  const productName = item.productName;\n  const size = item.size;\n  const quantity = item.quantity;\n  \n  // Only show size if category is not 'Pastries' and size is truthy\n  const displaySize = (item.category === \"Pastries\" || !size) ? \"\" : ` (${size})`;\n  \n  cartMessage += `${productName}${displaySize}\\n`;\n  \n  // Show base price breakdown\n  const baseTotal = (item.basePrice * quantity);\n  const baseTotalStr = `₱${baseTotal.toFixed(2)}`.padStart(8, ' ');\n  cartMessage += `- ${quantity} X ₱${item.basePrice.toFixed(2)} = ${baseTotalStr}\\n`;\n  \n  // Show add-ons breakdown\n  if (item.addOns && item.addOns.length > 0) {\n    item.addOns.forEach(addon => {\n      const addonName = addon.ingredientName || addon.addOnName;\n      const addonPrice = addon.ingredientPrice || addon.addOnPrice;\n      const addonTotal = (addonPrice * addon.quantity);\n      const addonTotalStr = `₱${addonTotal.toFixed(2)}`.padStart(8, ' ');\n      cartMessage += `${addonName}\\n`;\n      cartMessage += `- ${addon.quantity} X ₱${addonPrice.toFixed(2)} = ${addonTotalStr}\\n`;\n    });\n  }\n  \n  cartMessage += \"\\n\";\n});\n\ncartMessage += `---------------\\n`;\nconst subtotalStr = `₱${calculatedSubtotal.toFixed(2)}`.padStart(8, ' ');\ncartMessage += `Subtotal: ${subtotalStr}\\n\\n`;\ncartMessage += \"Delivery Method: Store Pickup\\n\\n\";\ncartMessage += \"Please confirm your order:\";\n\nconst messageObject = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    text: cartMessage,\n    quick_replies: [\n      {\n        content_type: \"text\",\n        title: \"Confirm\",\n        payload: \"STOREPICKUP_E_PAYMENT\",\n      },\n      {\n        content_type: \"text\",\n        title: \"Go Back\",\n        payload: \"GO_BACK_DMETHODS\",\n      },\n    ],\n  },\n};\n\nreturn {\n  json: messageObject,\n};"
+        "jsCode": "const cartData = $input.first().json;\nconst { cartItems, itemCount, subtotal, senderId } = cartData;\n\nlet cartMessage = \"☕ *YOUR ORDER* ☕\\n\\n\";\n\n// Group items by productName and size (for items that have sizes)\nconst groupedItems = {};\n\ncartItems.forEach(item => {\n  // Create a unique key based on productName and size\n  const key = `${item.productName}_${item.size || 'no-size'}`;\n  \n  if (groupedItems[key]) {\n    // Item already exists, add to quantity and total price\n    groupedItems[key].quantity += item.quantity || 1;\n    // Note: We'll recalculate totalPrice after merging\n    \n    // Merge add-ons if any\n    if (item.addOns && item.addOns.length > 0) {\n      item.addOns.forEach(newAddon => {\n        const newAddonName = newAddon.ingredientName || newAddon.addOnName;\n        // Check if this add-on already exists in the grouped item\n        const existingAddon = groupedItems[key].addOns.find(addon => (addon.ingredientName || addon.addOnName) === newAddonName);\n        if (existingAddon) {\n          existingAddon.quantity += newAddon.quantity;\n        } else {\n          groupedItems[key].addOns.push({...newAddon});\n        }\n      });\n    }\n  } else {\n    // New item, create entry\n    groupedItems[key] = {\n      productName: item.productName,\n      category: item.category,\n      size: item.size,\n      quantity: item.quantity || 1,\n      basePrice: item.basePrice,\n      totalPrice: item.totalPrice, // Will be recalculated\n      addOns: item.addOns ? [...item.addOns] : []\n    };\n  }\n});\n\n// Recalculate totalPrice for each grouped item based on merged quantities\nObject.values(groupedItems).forEach(item => {\n  const baseTotal = item.basePrice * item.quantity;\n  const addOnsTotal = item.addOns.reduce((sum, addon) => {\n    const price = addon.ingredientPrice || addon.addOnPrice;\n    return sum + (price * addon.quantity);\n  }, 0);\n  item.totalPrice = baseTotal + addOnsTotal;\n});\n\n// Use the input subtotal instead of recalculated\nconst subtotalStr = `₱${subtotal.toFixed(2)}`.padStart(8, '');\n\n// Process grouped items\nObject.values(groupedItems).forEach(item => {\n  const productName = item.productName;\n  const size = item.size;\n  const quantity = item.quantity;\n  \n  // Only show size if category is not 'Pastries' and size is truthy\n  const displaySize = (item.category === \"Pastries\" || !size) ? \"\" : ` (${size})`;\n  \n  cartMessage += `${productName}${displaySize}\\n`;\n  \n  // Show base price breakdown\n  const baseTotal = (item.basePrice * quantity);\n  const baseTotalStr = `₱${baseTotal.toFixed(2)}`.padStart(8, ' ');\n  cartMessage += `- ${quantity} X ₱${item.basePrice.toFixed(2)} = ${baseTotalStr}\\n`;\n  \n  // Show add-ons breakdown\n  if (item.addOns && item.addOns.length > 0) {\n    item.addOns.forEach(addon => {\n      const addonName = addon.ingredientName || addon.addOnName;\n      const addonPrice = addon.ingredientPrice || addon.addOnPrice;\n      const addonTotal = (addonPrice * addon.quantity);\n      const addonTotalStr = `₱${addonTotal.toFixed(2)}`.padStart(8, ' ');\n      cartMessage += `${addonName}\\n`;\n      cartMessage += `- ${addon.quantity} X ₱${addonPrice.toFixed(2)} = ${addonTotalStr}\\n`;\n    });\n  }\n  \n  cartMessage += \"\\n\";\n});\n\n// Add applied promo line if exists\nif (cartData.appliedPromo) {\n  const promo = cartData.appliedPromo;\n  cartMessage += `Applied Promo 🎉: ${promo.discountPercentage}% off ${promo.event} (-₱${promo.discountAmount.toFixed(2)})\\n`;\n}\n\ncartMessage += `---------------\\n`;\ncartMessage += `*Total: ${subtotalStr}*\\n\\n`;\ncartMessage += \"⚠️ Note: Orders must be picked up within 24 hours from Blessings Cafe.\\n\\n\";\ncartMessage += \"Please confirm your order below:\\n\\n\";\n\n\nconst messageObject = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    text: cartMessage,\n    quick_replies: [\n      {\n        content_type: \"text\",\n        title: \"Confirm Pick-Up\",\n        payload: \"STOREPICKUP_E_PAYMENT\",\n      },\n      {\n        content_type: \"text\",\n        title: \"Go Back\",\n        payload: \"GO_BACK_DMETHODS\",\n      },\n    ],\n  },\n};\n\nreturn {\n  json: messageObject,\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -2622,7 +2645,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.senderId }}\"\n  },\n  \"message\": {\n    \"text\": \"Please select your preferred delivery method:\\n\\n🚚 DELIVERY (PHP 20 delivery fee)\\n• Limited to the following barangays:\\n\\n📍 IMUS, CAVITE\\n• Alapan I-A, I-B, I-C\\n• Bayan Luma 2, 3, 4, 5, 6, 7, 8, 9\\n• Buhay na Tubig\\n• Carsadang Bago 1, 2\\n• Malagasang\\n\\n📍 KAWIT, CAVITE\\n• Toclong\\n• Kawit\\n\\n🏪 STORE PICKUP (No additional fee)\\n\\nNote: Only E-wallets are accepted as mode of payment for both options (GCash, PayMaya, ShopeePay).\\n\\nPlease select an option below.\",\n    \"quick_replies\": [\n      {\n        \"content_type\": \"text\",\n        \"title\": \"Delivery (+₱20)\",\n        \"payload\": \"PRE_DELIVERY\"\n      },\n      {\n        \"content_type\": \"text\",\n        \"title\": \"Store Pickup\",\n        \"payload\": \"PRE_STORE_PICKUP\"\n      },\n      {\n        \"content_type\": \"text\",\n        \"title\": \"Go back\",\n        \"payload\": \"GO_BACK\"\n      }\n    ]\n  }\n}",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.senderId }}\"\n  },\n  \"message\": {\n    \"text\": \"Please select your preferred delivery method:\\n\\n🚚 DELIVERY (₱20.00 PHP delivery fee)\\n• Limited to the following barangays:\\n\\n📍 IMUS, CAVITE\\n• Alapan I-A, I-B, I-C\\n• Bayan Luma 2, 3, 4, 5, 6, 7, 8, 9\\n• Buhay na Tubig\\n• Carsadang Bago 1, 2\\n• Malagasang\\n\\n📍 KAWIT, CAVITE\\n• Toclong\\n• Kawit\\n\\n🏪 STORE PICKUP (No additional fee)\\n\\nNote: Only E-wallets are accepted as mode of payment for both options (GCash, PayMaya, ShopeePay).\\n\\nPlease select an option below.\",\n    \"quick_replies\": [\n      {\n        \"content_type\": \"text\",\n        \"title\": \"Delivery (+₱20 PHP)\",\n        \"payload\": \"PRE_DELIVERY\"\n      },\n      {\n        \"content_type\": \"text\",\n        \"title\": \"Store Pickup\",\n        \"payload\": \"PRE_STORE_PICKUP\"\n      },\n      {\n        \"content_type\": \"text\",\n        \"title\": \"Go back\",\n        \"payload\": \"GO_BACK\"\n      }\n    ]\n  }\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -2668,7 +2691,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const data = $input.first().json;\n\nconst items = data.items.flatMap(item => {\n  let baseItems = [{\n    name: item.productName,\n    quantity: item.quantity,\n    price: item.basePrice,\n    category: item.category\n  }];\n  \n  if (item.addOns && item.addOns.length > 0) {\n    item.addOns.forEach(addon => {\n      baseItems.push({\n        name: `Add-on: ${addon.addOnName}`,\n        quantity: addon.quantity,\n        price: addon.addOnPrice,\n        category: \"Add-ons\"\n      });\n    });\n  }\n  \n  return baseItems;\n});\n\nconst email = data.deliveryAddress?.email || \"\";\nconst payerEmail = email.trim() !== \"\" ? email : undefined;\n\nconst transactionId = data.transactionId;\n\nconst amount = items.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity)), 0);\n\nconst invoicePayload = {\n  external_id: transactionId,\n  description: \"Blessings Cafe Payment\",\n  merchant_profile_picture_url: \"https://i.ibb.co/Vpgdp74N/38d27d28d751.png\",\n  items: items,\n  amount: amount,\n  customer_name: data.userId,\n  customer_phone: data.deliveryAddress?.phone || \"\",\n  should_send_email: Boolean(payerEmail),\n  payment_methods: [\"GCASH\", \"SHOPEEPAY\", \"PAYMAYA\", \"QRPH\"],\n  invoice_duration: 600\n};\n\nif (payerEmail) {\n  invoicePayload.payer_email = payerEmail;\n}\n\nreturn { json: invoicePayload };"
+        "jsCode": "const data = $input.first().json;\n\nconst items = data.items.flatMap(item => {\n  let baseItems = [{\n    name: item.productName,\n    quantity: item.quantity,\n    price: item.basePrice,\n    category: item.category\n  }];\n  \n  if (item.addOns && item.addOns.length > 0) {\n    item.addOns.forEach(addon => {\n      baseItems.push({\n        name: `Add-on: ${addon.addOnName || addon.ingredientName}`,\n        quantity: addon.quantity,\n        price: addon.addOnPrice || addon.ingredientPrice,\n        category: \"Add-ons\"\n      });\n    });\n  }\n  \n  return baseItems;\n});\n\n// Add discount if promo is applied\nif (data.appliedPromo) {\n  items.push({\n    name: `Discount: ${data.appliedPromo.discountPercentage}% off ${data.appliedPromo.event}`,\n    quantity: 1,\n    price: -data.appliedPromo.discountAmount,\n    category: \"Discount\"\n  });\n}\n\nconst email = data.deliveryAddress?.email || \"\";\nconst payerEmail = email.trim() !== \"\" ? email : undefined;\n\nconst transactionId = data.transactionId;\n\n// Use the discounted subtotal from input (no delivery fee for store pickup)\nconst amount = data.subtotal;\n\nconst invoicePayload = {\n  external_id: transactionId,\n  description: \"Blessings Cafe Payment\",\n  merchant_profile_picture_url: \"https://i.ibb.co/Vpgdp74N/38d27d28d751.png\",\n  items: items,\n  amount: amount,\n  customer_name: data.userId,\n  customer_phone: data.deliveryAddress?.phone || \"\",\n  should_send_email: Boolean(payerEmail),\n  payment_methods: [\"GCASH\", \"SHOPEEPAY\", \"PAYMAYA\", \"QRPH\"],\n  invoice_duration: 600\n};\n\nif (payerEmail) {\n  invoicePayload.payer_email = payerEmail;\n}\n\nreturn { json: invoicePayload };"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -2786,20 +2809,6 @@
     },
     {
       "parameters": {
-        "content": "## Add more ingredients options",
-        "width": 384
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "typeVersion": 1,
-      "position": [
-        1904,
-        2704
-      ],
-      "id": "c3bd095e-1b10-4cfa-b773-afbb611b6427",
-      "name": "Sticky Note2"
-    },
-    {
-      "parameters": {
         "method": "POST",
         "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
         "sendHeaders": true,
@@ -2862,7 +2871,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Extract and validate order information\nconst input = $input.first().json;\n\nreturn {\n  json: {\n    userId: input.userId,\n    customerName: input.customerName,\n    customerEmail: input.customerEmail,\n    customerPhone: input.customerPhone,\n    items: input.items,\n    subtotal: input.subtotal,\n    totalAmount: input.totalAmount,\n    deliveryMethod: input.deliveryMethod,\n    deliveryAddress: input.deliveryAddress,\n    orderNotes: input.orderNotes,\n    transactionId: input.transactionId\n  }\n};"
+        "jsCode": "// Extract and validate order information\nconst input = $input.first().json;\n\nreturn {\n  json: {\n    userId: input.userId,\n    customerName: input.customerName,\n    customerEmail: input.customerEmail,\n    customerPhone: input.customerPhone,\n    items: input.items,\n    subtotal: input.subtotal,\n    totalAmount: input.totalAmount,\n    deliveryMethod: input.deliveryMethod,\n    deliveryAddress: input.deliveryAddress,\n    orderNotes: input.orderNotes,\n    transactionId: input.transactionId,\n    appliedPromo: input.appliedPromo,\n    paymentMethod: input.paymentMethod\n  }\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -3087,6 +3096,326 @@
       ],
       "id": "7358388f-1304-4de9-b3f7-7309c330286d",
       "name": "Ingredients",
+      "credentials": {
+        "mongoDb": {
+          "id": "Db6W481X9UBvG6rD",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "collection": "Promos",
+        "options": {},
+        "query": "{ \"isActive\": true }"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        1488,
+        2720
+      ],
+      "id": "2261593e-beec-468d-af4e-9e99a65f4834",
+      "name": "Fetch Active Promos",
+      "credentials": {
+        "mongoDb": {
+          "id": "Db6W481X9UBvG6rD",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const postback = $input.first().json.postback;\nconst promoId = postback.replace('APPLY_PROMO_', '');\nreturn { json: { promoId, senderId: $input.first().json.senderId } };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        2864
+      ],
+      "id": "c4835b2d-f37f-428c-9b4c-0515f7e75798",
+      "name": "Extract Promo ID"
+    },
+    {
+      "parameters": {
+        "collection": "Promos",
+        "options": {},
+        "query": "={ \"_id\": \"{{ $json.promoId }}\" } "
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        1472,
+        2864
+      ],
+      "id": "b3b7a645-70e2-454e-9d15-a2b70e62b841",
+      "name": "Fetch Promo Details",
+      "credentials": {
+        "mongoDb": {
+          "id": "Db6W481X9UBvG6rD",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "collection": "Chatbot-Cart",
+        "options": {},
+        "query": "={ \"userId\": \"{{ $('Extract Promo ID').item.json.senderId }}\" }"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        1680,
+        2864
+      ],
+      "id": "79bb23c1-6994-4e03-8a78-cd1a276e183c",
+      "name": "Fetch User Cart for Promo",
+      "credentials": {
+        "mongoDb": {
+          "id": "Db6W481X9UBvG6rD",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const promo = $('Fetch Promo Details').first().json;\nconst cart = $('Fetch User Cart for Promo').first().json;\nconst cartItems = cart.items || [];\n\n// Calculate total eligible for discount (items matching promo.category)\nconst eligibleTotal = cartItems\n  .filter(item => item.category === promo.category)\n  .reduce((sum, item) => sum + item.totalPrice, 0);\n\nconst discountAmount = (eligibleTotal * promo.discountPercentage) / 100;\nconst newSubtotal = cart.items.reduce((sum, item) => sum + item.totalPrice, 0) - discountAmount;\n\n// Prepare flat fields for MongoDB update\nconst updatedFields = {\n  appliedPromo: {\n    id: promo._id,\n    event: promo.event,\n    discountPercentage: promo.discountPercentage,\n    discountAmount\n  },\n  subtotal: newSubtotal,\n  updatedAt: new Date().toISOString(),\n  userId: cart.userId  // For update key\n};\n\nreturn { json: updatedFields };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1888,
+        2864
+      ],
+      "id": "8352571a-f0b7-47cc-bcd6-4aa2908e8234",
+      "name": "Apply Promo to Cart"
+    },
+    {
+      "parameters": {
+        "jsCode": "const cartData = $input.first().json;\nconst cartItems = cartData.cartItems || [];\nconst subtotal = cartData.subtotal || 0;\nconst senderId = cartData.senderId;\n\n// Fetch promos from \"Fetch Active Promos\" node\nlet allPromos = [];\ntry {\n  allPromos = $('Fetch Active Promos').all().map(item => item.json);\n} catch (e) {\n  allPromos = [];\n}\n\n// Extract unique categories from cart items\nconst cartCategories = [...new Set(cartItems.map(item => item.category))];\n\n// Find applicable promos (match category and active)\nconst applicablePromos = allPromos.filter(promo =>\n  cartCategories.includes(promo.category) && promo.isActive\n);\n\nlet cartMessage = \"📋 *YOUR CART* 📋\\n\\n\";\n\n// Group and display items (existing logic)\nconst groupedItems = {};\ncartItems.forEach(item => {\n  const key = `${item.productName}_${item.size || 'no-size'}`;\n  if (groupedItems[key]) {\n    groupedItems[key].quantity += item.quantity || 1;\n    groupedItems[key].totalPrice += item.totalPrice;\n    if (item.addOns && item.addOns.length > 0) {\n      item.addOns.forEach(newAddon => {\n        const newAddonName = newAddon.ingredientName || newAddon.addOnName;\n        const existingAddon = groupedItems[key].addOns.find(addon => (addon.ingredientName || addon.addOnName) === newAddonName);\n        if (existingAddon) existingAddon.quantity += newAddon.quantity;\n        else groupedItems[key].addOns.push({...newAddon});\n      });\n    }\n  } else {\n    groupedItems[key] = {\n      productName: item.productName,\n      category: item.category,\n      size: item.size,\n      quantity: item.quantity || 1,\n      basePrice: item.basePrice,\n      totalPrice: item.totalPrice,\n      addOns: item.addOns ? [...item.addOns] : []\n    };\n  }\n});\n\nObject.values(groupedItems).forEach(item => {\n  const displaySize = (item.category === \"Pastries\" || !item.size) ? \"\" : ` (${item.size})`;\n  cartMessage += `${item.productName}${displaySize}\\n`;\n  const baseTotal = (item.basePrice * item.quantity);\n  const baseTotalStr = `₱${baseTotal.toFixed(2)}`.padStart(8, ' ');\n  cartMessage += `- ${item.quantity} X ₱${item.basePrice.toFixed(2)} = ${baseTotalStr}\\n`;\n  if (item.addOns && item.addOns.length > 0) {\n    item.addOns.forEach(addon => {\n      const addonName = addon.ingredientName || addon.addOnName;\n      const addonPrice = addon.ingredientPrice || addon.addOnPrice || 0;\n      const addonTotal = (addonPrice * addon.quantity);\n      const addonTotalStr = `₱${addonTotal.toFixed(2)}`.padStart(8, ' ');\n      cartMessage += `${addonName}\\n`;\n      cartMessage += `- ${addon.quantity} X ₱${addonPrice.toFixed(2)} = ${addonTotalStr}\\n`;\n    });\n  }\n  cartMessage += \"\\n\";\n});\n\n// Add applied promo line if exists\nif (cartData.appliedPromo) {\n  const promo = cartData.appliedPromo;\n  cartMessage += `Applied Promo 🎉: ${promo.discountPercentage}% off ${promo.event} (-₱${promo.discountAmount.toFixed(2)})\\n`;\n}\n\ncartMessage += `---------------\\n`;\nconst subtotalStr = `₱${subtotal.toFixed(2)}`.padStart(8, ' ');\ncartMessage += `Subtotal: ${subtotalStr}\\n\\n`;\n\nif (applicablePromos.length > 0 && !cartData.appliedPromo) {\n  cartMessage += \"🎉 Great news! You have redeemable promos available for your cart items! Swipe left to apply.\\n\\n\";\n}\ncartMessage += \"Delivery fee will be calculated at checkout\\n\\n\";\ncartMessage += \"What would you like to do next?\";\n\n// Build quick replies (existing + new promo ones)\nconst quickReplies = [\n  { content_type: \"text\", title: \"Proceed to Checkout\", payload: \"CHECKOUT\" },\n  { content_type: \"text\", title: \"Continue Shopping\", payload: \"REVIEW_MENU\" },\n  { content_type: \"text\", title: \"Clear Cart\", payload: \"CLEAR_CART\" }\n];\n\n// Add promo quick replies only if no promo is applied\nif (!cartData.appliedPromo) {\n  applicablePromos.forEach(promo => {\n    quickReplies.push({\n      content_type: \"text\",\n      title: `Apply ${promo.discountPercentage}% Promo`,\n      payload: `APPLY_PROMO_${promo._id}`\n    });\n  });\n} else {\n  // Add option to remove promo\n  quickReplies.push({\n    content_type: \"text\",\n    title: \"Remove Promo\",\n    payload: \"REMOVE_PROMO\"\n  });\n}\n\nconst messageObject = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    text: cartMessage,\n    quick_replies: quickReplies\n  }\n};\n\nreturn { json: messageObject };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2608,
+        2864
+      ],
+      "id": "1243b7d6-2c06-43f3-8420-40bcf70fcf9b",
+      "name": "Display with Promo Applied"
+    },
+    {
+      "parameters": {
+        "collection": "Chatbot-Cart",
+        "options": {},
+        "query": "={ \"userId\": \"{{ $json.userId }}\" }"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        2240,
+        2864
+      ],
+      "id": "9759c262-f004-4942-b77d-499ac3c189b6",
+      "name": "find userId Cart Promo",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "Db6W481X9UBvG6rD",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cartData = $input.first().json;\nconst cartItems = cartData.items || [];\nconst subtotal = cartData.subtotal || 0;\nconst senderId = cartData.userId;\nconst appliedPromo = cartData.appliedPromo;\n\n// Process cart items as before\nconst processedItems = [];\ncartItems.forEach(item => {\n  const key = `${item.productName}_${item.size || 'no-size'}`;\n  let groupedItem = processedItems.find(p => p.key === key);\n  if (groupedItem) {\n    groupedItem.quantity += item.quantity || 1;\n    groupedItem.totalPrice += item.totalPrice;\n    if (item.addOns && item.addOns.length > 0) {\n      item.addOns.forEach(newAddon => {\n        const newAddonName = newAddon.ingredientName || newAddon.addOnName;\n        const existingAddon = groupedItem.addOns.find(addon => (addon.ingredientName || addon.addOnName) === newAddonName);\n        if (existingAddon) existingAddon.quantity += newAddon.quantity;\n        else groupedItem.addOns.push({...newAddon});\n      });\n    }\n  } else {\n    processedItems.push({\n      key,\n      productName: item.productName,\n      category: item.category,\n      size: item.size,\n      quantity: item.quantity || 1,\n      basePrice: item.basePrice,\n      totalPrice: item.totalPrice,\n      addOns: item.addOns ? [...item.addOns] : []\n    });\n  }\n});\n\nreturn {\n  json: {\n    isEmpty: processedItems.length === 0,\n    cartItems: processedItems,\n    itemCount: processedItems.reduce((sum, item) => sum + item.quantity, 0),\n    subtotal,\n    senderId,\n    appliedPromo\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2416,
+        2864
+      ],
+      "id": "e7aef504-5702-4d6a-bd00-7e3c8729775a",
+      "name": "Display Items Promo"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2784,
+        2864
+      ],
+      "id": "a9209d1e-62f0-45ca-9d01-ef24b2317c25",
+      "name": "Display Cart Message [Promo Applied]"
+    },
+    {
+      "parameters": {
+        "collection": "Chatbot-Cart",
+        "options": {},
+        "query": "={ \"userId\": \"{{ $json.senderId }}\" } "
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        1280,
+        3040
+      ],
+      "id": "9d9c39c5-6803-4b65-8850-072e556c5572",
+      "name": "Fetch Cart for Removal",
+      "credentials": {
+        "mongoDb": {
+          "id": "Db6W481X9UBvG6rD",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cart = $('Fetch Cart for Removal').first().json;\nif (!cart.appliedPromo) {\n  return { json: { error: \"No promo applied\", senderId: cart.userId } };\n}\nconst newSubtotal = cart.subtotal + cart.appliedPromo.discountAmount;  // Revert discount\nconst updatedCart = {\n  ...cart,\n  appliedPromo: null,\n  subtotal: newSubtotal,\n  updatedAt: new Date().toISOString(),\n  userId: cart.userId\n};\nreturn { json: updatedCart };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1488,
+        3040
+      ],
+      "id": "52086ab5-78f9-4fda-8091-27187d6711de",
+      "name": "Remove Promo from Cart"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "collection": "Chatbot-Cart",
+        "updateKey": "userId",
+        "fields": "appliedPromo, subtotal, updatedAt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        1696,
+        3040
+      ],
+      "id": "2fce2024-31be-4443-bd4e-45850590fc4f",
+      "name": "Update Cart (Remove Promo)",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "Db6W481X9UBvG6rD",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cartData = $input.all().map(item => item.json);\nconst senderId = $input.first().json.userId;\n\n// Handle empty cart\nif (!cartData || cartData.length === 0) {\n  return {\n    json: {\n      isEmpty: true,\n      message: \"Your cart is currently empty.\",\n      senderId\n    }\n  };\n}\n\nlet subtotal = 0;\nlet totalItems = 0;\nlet processedItems = [];\n\n// Handle nested cart structure\ncartData.forEach(cart => {\n  if (cart.cartItems && Array.isArray(cart.cartItems)) {\n    cart.cartItems.forEach(cartItem => {\n      if (cartItem.items && Array.isArray(cartItem.items)) {\n        cartItem.items.forEach(nestedCart => {\n          if (nestedCart.items && Array.isArray(nestedCart.items)) {\n            // Access the actual product items\n            nestedCart.items.forEach(actualItem => {\n              processedItems.push(actualItem);\n              subtotal += actualItem.totalPrice;\n              totalItems += actualItem.quantity;\n            });\n          }\n        });\n      }\n    });\n  }\n});\n\n// If we didn't find any items in the nested structure, try a simpler approach\nif (processedItems.length === 0) {\n  // Try direct approach if nested structure doesn't work\n  cartData.forEach(cart => {\n    if (cart.items && Array.isArray(cart.items)) {\n      cart.items.forEach(item => {\n        processedItems.push(item);\n        subtotal += item.totalPrice || 0;\n        totalItems += item.quantity || 0;\n      });\n    }\n  });\n}\n\nreturn {\n  json: {\n    isEmpty: processedItems.length === 0,\n    cartItems: processedItems,\n    itemCount: totalItems,\n    subtotal,\n    senderId\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1488,
+        3216
+      ],
+      "id": "dd7448b3-f3f8-40c1-8b97-22ac45bb1eb0",
+      "name": "Retrieve Cart Items (Remove Promo)"
+    },
+    {
+      "parameters": {
+        "collection": "Promos",
+        "options": {},
+        "query": "{ \"isActive\": true }"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        1696,
+        3216
+      ],
+      "id": "83112c04-228c-4202-a293-5b72c746adf7",
+      "name": "Fetch Active Promos (Remove Promo)",
+      "credentials": {
+        "mongoDb": {
+          "id": "Db6W481X9UBvG6rD",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Fetch cart data from \"Retrieve Cart Items\" node\nconst cartData = $('Retrieve Cart Items (Remove Promo)').first().json;\nconst cartItems = cartData.cartItems || [];\nconst itemCount = cartData.itemCount || 0;\nconst subtotal = cartData.subtotal || 0;\nconst senderId = cartData.senderId;\n\n// Fetch promos from \"Fetch Active Promos\" node\nlet allPromos = [];\ntry {\n  allPromos = $('Fetch Active Promos (Remove Promo)').all().map(item => item.json);\n} catch (e) {\n  allPromos = [];\n}\n\n// Extract unique categories from cart items\nconst cartCategories = [...new Set(cartItems.map(item => item.category))];\n\n// Find applicable promos (match category and active)\nconst applicablePromos = allPromos.filter(promo =>\n  cartCategories.includes(promo.category) && promo.isActive\n);\n\nlet cartMessage = \"📋 *YOUR CART* 📋\\n\\n\";\n\n// Group and display items (existing logic)\nconst groupedItems = {};\ncartItems.forEach(item => {\n  const key = `${item.productName}_${item.size || 'no-size'}`;\n  if (groupedItems[key]) {\n    groupedItems[key].quantity += item.quantity || 1;\n    groupedItems[key].totalPrice += item.totalPrice;\n    if (item.addOns && item.addOns.length > 0) {\n      item.addOns.forEach(newAddon => {\n        const newAddonName = newAddon.ingredientName || newAddon.addOnName;\n        const existingAddon = groupedItems[key].addOns.find(addon => (addon.ingredientName || addon.addOnName) === newAddonName);\n        if (existingAddon) existingAddon.quantity += newAddon.quantity;\n        else groupedItems[key].addOns.push({...newAddon});\n      });\n    }\n  } else {\n    groupedItems[key] = {\n      productName: item.productName,\n      category: item.category,\n      size: item.size,\n      quantity: item.quantity || 1,\n      basePrice: item.basePrice,\n      totalPrice: item.totalPrice,\n      addOns: item.addOns ? [...item.addOns] : []\n    };\n  }\n});\n\nObject.values(groupedItems).forEach(item => {\n  const displaySize = (item.category === \"Pastries\" || !item.size) ? \"\" : ` (${item.size})`;\n  cartMessage += `${item.productName}${displaySize}\\n`;\n  const baseTotal = (item.basePrice * item.quantity);\n  const baseTotalStr = `₱${baseTotal.toFixed(2)}`.padStart(8, ' ');\n  cartMessage += `- ${item.quantity} X ₱${item.basePrice.toFixed(2)} = ${baseTotalStr}\\n`;\n  if (item.addOns && item.addOns.length > 0) {\n    item.addOns.forEach(addon => {\n      const addonName = addon.ingredientName || addon.addOnName;\n      const addonPrice = addon.ingredientPrice || addon.addOnPrice || 0;\n      const addonTotal = (addonPrice * addon.quantity);\n      const addonTotalStr = `₱${addonTotal.toFixed(2)}`.padStart(8, ' ');\n      cartMessage += `${addonName}\\n`;\n      cartMessage += `- ${addon.quantity} X ₱${addonPrice.toFixed(2)} = ${addonTotalStr}\\n`;\n    });\n  }\n  cartMessage += \"\\n\";\n});\n\nconst calculatedSubtotal = Object.values(groupedItems).reduce((sum, item) => sum + item.totalPrice, 0);\nconst subtotalStr = `₱${calculatedSubtotal.toFixed(2)}`.padStart(8, ' ');\ncartMessage += `---------------\\n`;\ncartMessage += `Subtotal: ${subtotalStr}\\n\\n`;\nif (applicablePromos.length > 0) {\n  cartMessage += \"🎉 Great news! You have redeemable promos available for your cart items! Swipe left to apply.\\n\\n\";\n}\ncartMessage += \"Delivery fee will be calculated at checkout\\n\\n\";\n\n// Build quick replies (existing + new promo ones)\nconst quickReplies = [\n  { content_type: \"text\", title: \"Proceed to Checkout\", payload: \"CHECKOUT\" },\n  { content_type: \"text\", title: \"Continue Shopping\", payload: \"REVIEW_MENU\" },\n  { content_type: \"text\", title: \"Clear Cart\", payload: \"CLEAR_CART\" }\n];\n\n// Add promo quick replies\napplicablePromos.forEach(promo => {\n  quickReplies.push({\n    content_type: \"text\",\n    title: `Apply ${promo.discountPercentage}% Promo`,\n    payload: `APPLY_PROMO_${promo._id}`\n  });\n});\n\nconst messageObject = {\n  messaging_type: \"RESPONSE\",\n  recipient: { id: senderId },\n  message: {\n    text: cartMessage,\n    quick_replies: quickReplies\n  }\n};\n\nreturn { json: messageObject };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1888,
+        3216
+      ],
+      "id": "8cf6b83e-1d59-4921-acda-258d51063961",
+      "name": "Display Items (Remove Promo)"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2096,
+        3216
+      ],
+      "id": "01b59afa-66f7-412a-a1f2-ae25a7f303a3",
+      "name": "Display Cart Message (Remove Promo)"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "collection": "Chatbot-Cart",
+        "updateKey": "userId",
+        "fields": "appliedPromo, subtotal, updatedAt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        2064,
+        2864
+      ],
+      "id": "41c7c169-9395-494f-b4a5-3c88f8c273fd",
+      "name": "Update Cart (Apply Promo)",
+      "alwaysOutputData": true,
       "credentials": {
         "mongoDb": {
           "id": "Db6W481X9UBvG6rD",
@@ -3329,7 +3658,20 @@
             "index": 0
           }
         ],
-        []
+        [
+          {
+            "node": "Extract Promo ID",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fetch Cart for Removal",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Select Add-ons Milktea Message": {
@@ -3832,7 +4174,7 @@
       "main": [
         [
           {
-            "node": "Display Items",
+            "node": "Fetch Active Promos",
             "type": "main",
             "index": 0
           }
@@ -4229,13 +4571,182 @@
           }
         ]
       ]
+    },
+    "Fetch Active Promos": {
+      "main": [
+        [
+          {
+            "node": "Display Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Promo ID": {
+      "main": [
+        [
+          {
+            "node": "Fetch Promo Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Promo Details": {
+      "main": [
+        [
+          {
+            "node": "Fetch User Cart for Promo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch User Cart for Promo": {
+      "main": [
+        [
+          {
+            "node": "Apply Promo to Cart",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply Promo to Cart": {
+      "main": [
+        [
+          {
+            "node": "Update Cart (Apply Promo)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "find userId Cart Promo": {
+      "main": [
+        [
+          {
+            "node": "Display Items Promo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Display Items Promo": {
+      "main": [
+        [
+          {
+            "node": "Display with Promo Applied",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Display with Promo Applied": {
+      "main": [
+        [
+          {
+            "node": "Display Cart Message [Promo Applied]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Cart for Removal": {
+      "main": [
+        [
+          {
+            "node": "Remove Promo from Cart",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Retrieve Cart Items (Remove Promo)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove Promo from Cart": {
+      "main": [
+        [
+          {
+            "node": "Update Cart (Remove Promo)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Cart (Remove Promo)": {
+      "main": [
+        []
+      ]
+    },
+    "Display Non-Existent Cart Message": {
+      "main": [
+        []
+      ]
+    },
+    "Retrieve Cart Items (Remove Promo)": {
+      "main": [
+        [
+          {
+            "node": "Fetch Active Promos (Remove Promo)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Active Promos (Remove Promo)": {
+      "main": [
+        [
+          {
+            "node": "Display Items (Remove Promo)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Display Items (Remove Promo)": {
+      "main": [
+        [
+          {
+            "node": "Display Cart Message (Remove Promo)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Cart (Apply Promo)": {
+      "main": [
+        [
+          {
+            "node": "find userId Cart Promo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "4d0730b7-8056-4e7a-b372-5cf4b0a02123",
+  "versionId": "839ff7d1-e979-4715-bf6d-f8b0cb6dd6fb",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "c9a539eddbbcc53188d09f0c160cdca467499addf0ec993ff0d9c5b9cab4ef78"
