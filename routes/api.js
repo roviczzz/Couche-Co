@@ -1421,27 +1421,97 @@ router.get('/products/:id', async (req, res) => {
 
 
 
-// Product search for navbar
+// Simple in-memory cache for search results
+const searchCache = new Map();
+const SEARCH_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+// Product search for navbar - optimized
 router.get('/search', async (req, res) => {
   try {
     const query = req.query.q || '';
+    const trimmedQuery = query.trim().toLowerCase();
 
-    if (!query || query.trim().length < 2) {
+    if (!trimmedQuery || trimmedQuery.length < 2) {
       return res.json([]);
+    }
+
+    // Check cache first
+    const cacheKey = trimmedQuery;
+    const now = Date.now();
+
+    if (searchCache.has(cacheKey)) {
+      const { data, timestamp } = searchCache.get(cacheKey);
+      if (now - timestamp < SEARCH_CACHE_DURATION) {
+        return res.json(data);
+      } else {
+        searchCache.delete(cacheKey);
+      }
     }
 
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
 
-    // Search for products that match the Name
-    const results = await db.collection('Menu')
-      .find({ Name: { $regex: query, $options: 'i' } })
+    // Optimized search with multiple strategies
+    let results = [];
+
+    // First try exact prefix match (fastest)
+    const exactResults = await db.collection('Menu')
+      .find({
+        Name: { $regex: `^${trimmedQuery}`, $options: 'i' },
+        isEnabled: { $ne: false } // Only enabled products
+      })
       .project({ Name: 1, Category: 1, imagelink: 1, _id: 1 })
-      .limit(10)
+      .limit(5)
       .toArray();
 
+    results = exactResults;
+
+    // If we don't have enough results, add fuzzy matches
+    if (results.length < 5) {
+      const fuzzyResults = await db.collection('Menu')
+        .find({
+          Name: { $regex: trimmedQuery, $options: 'i' },
+          isEnabled: { $ne: false },
+          _id: { $nin: results.map(r => r._id) } // Exclude already found results
+        })
+        .project({ Name: 1, Category: 1, imagelink: 1, _id: 1 })
+        .limit(10 - results.length)
+        .toArray();
+
+      results = results.concat(fuzzyResults);
+    }
+
     await client.close();
-    res.json(results);
+
+    // Sort results by relevance (exact matches first, then by name length)
+    results.sort((a, b) => {
+      const aStartsWith = a.Name.toLowerCase().startsWith(trimmedQuery);
+      const bStartsWith = b.Name.toLowerCase().startsWith(trimmedQuery);
+
+      if (aStartsWith && !bStartsWith) return -1;
+      if (!aStartsWith && bStartsWith) return 1;
+
+      // If both start with query or neither, sort by name length (shorter names first)
+      return a.Name.length - b.Name.length;
+    });
+
+    // Limit to 8 results for better UX
+    const finalResults = results.slice(0, 8);
+
+    // Cache the results
+    searchCache.set(cacheKey, { data: finalResults, timestamp: now });
+
+    // Clean old cache entries periodically
+    if (searchCache.size > 100) {
+      const cutoff = now - SEARCH_CACHE_DURATION;
+      for (const [key, value] of searchCache.entries()) {
+        if (value.timestamp < cutoff) {
+          searchCache.delete(key);
+        }
+      }
+    }
+
+    res.json(finalResults);
   } catch (err) {
     console.error('Error in product search:', err);
     res.status(500).json({ error: 'Server error' });
