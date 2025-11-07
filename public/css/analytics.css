@@ -13,11 +13,31 @@ body {
   line-height: 1.5;
 }
 
+/* Settings Header - Same as Settings Page */
+.settings-header {
+  margin-bottom: 32px;
+  margin-top: 24px;
+  text-align: center;
+}
+
+.settings-header h2 {
+  color: #333;
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+}
+
+.settings-header p {
+  color: #666;
+  font-size: 16px;
+  margin: 0;
+}
+
 /* Header */
 .header {
   background: #ffffff;
   border-bottom: 1px solid #e1e3e5;
-  padding: 1.5rem 0;
+  padding: 0.75rem 0 0.75rem 0;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -220,7 +240,7 @@ h1 {
 .main-content {
   background: transparent;
   min-height: calc(100vh - 120px);
-  padding: 1.5rem 0 3rem 0;
+  padding: 0 0 3rem 0;
 }
 
 /* Stats Cards - Top Row */
@@ -353,14 +373,20 @@ h1 {
 
 /* Special styling for payment methods doughnut chart */
 .analytics-grid > .section:nth-child(2) .chart-container {
-  max-width: 320px;
+  max-width: 280px;
   margin: 0 auto;
-  min-height: 380px;
+  min-height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .analytics-grid > .section:nth-child(2) canvas {
-  width: 320px !important;
-  height: 320px !important;
+  width: 280px !important;
+  height: 280px !important;
+  max-width: 280px !important;
+  max-height: 280px !important;
+  aspect-ratio: 1 / 1;
 }
 
 /* Order Sources - Left side, single column */

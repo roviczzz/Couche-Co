@@ -95,6 +95,14 @@ router.get('/contact', (req, res) => {
   });
 });
 
+// Privacy Policy page
+router.get('/privacy-policy', (req, res) => {
+  res.render('privacy', {
+    title: 'Privacy Policy | Blessings Cafe',
+    user: req.session?.user || null
+  });
+});
+
 // Legacy login route redirect
 router.get('/login', (req, res) => {
   res.redirect('/auth/login');
