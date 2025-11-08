@@ -7,8 +7,29 @@ let currentOrderId = null;
 let paymentStatusInterval = null;
 let selectedPaymentMethod = null;
 
+// Global promo variables
+let selectedPromo = null;
+let activePromos = [];
+
 // Initialize delivery type handling
 document.addEventListener('DOMContentLoaded', function() {
+    // Get active promos data
+    const activePromosData = document.getElementById('activePromos-data');
+    if (activePromosData) {
+        try {
+            activePromos = JSON.parse(activePromosData.textContent);
+        } catch (error) {
+            console.error('Error parsing activePromos data:', error);
+            activePromos = [];
+        }
+    }
+
+    // Initialize promo dropdown
+    const promoSelect = document.getElementById('promo-select');
+    if (promoSelect) {
+        promoSelect.addEventListener('change', handlePromoSelection);
+    }
+
     const deliveryTypeSelect = document.getElementById('delivery-type');
     if (deliveryTypeSelect) {
         deliveryTypeSelect.addEventListener('change', handleDeliveryTypeChange);
@@ -26,6 +47,120 @@ document.addEventListener('DOMContentLoaded', function() {
         window.cartItems = [];
     }
 });
+
+// Handle promo selection
+function handlePromoSelection() {
+    const promoSelect = document.getElementById('promo-select');
+    
+    if (promoSelect.value === '') {
+        selectedPromo = null;
+        
+        // Clear promo labels immediately and aggressively
+        const promoAppliedElement = document.getElementById('promo-applied');
+        const promoDetailsElement = document.getElementById('promo-details');
+        
+        // Clear all dropdown promo labels - only keep B1T1 and Buy3 if they exist
+        if (promoAppliedElement) {
+            const b1t1Applied = window.cartItems && window.cartItems.some(item => item.isB1T1);
+            const buy3Applied = window.cartItems && calculateBuy3For143Savings(window.cartItems) > 0;
+            
+            let promoLabels = [];
+            if (b1t1Applied) promoLabels.push('B1T1');
+            if (buy3Applied) promoLabels.push('Buy 3 for ₱143');
+            
+            promoAppliedElement.textContent = promoLabels.join(', ');
+        }
+        
+        // Clear promo details completely
+        if (promoDetailsElement) {
+            promoDetailsElement.textContent = '';
+            promoDetailsElement.style.display = 'none';
+        }
+        
+        updateCartDisplay();
+        return;
+    }
+
+    try {
+        const promoData = JSON.parse(promoSelect.options[promoSelect.selectedIndex].dataset.promo);
+        
+        // Check if cart has items matching promo category
+        if (!isPromoApplicableToCart(promoData)) {
+            showFeedbackMessage(`This promotion is only applicable to ${promoData.category} items. Please add ${promoData.category.toLowerCase()} items to your cart.`, 'info');
+            promoSelect.value = '';
+            selectedPromo = null;
+            updateCartDisplay();
+            return;
+        }
+
+        selectedPromo = promoData;
+        updateCartDisplay();
+        
+    } catch (error) {
+        console.error('Error parsing promo data:', error);
+        selectedPromo = null;
+    }
+}
+
+// Check if promo is applicable to current cart
+function isPromoApplicableToCart(promo) {
+    if (!window.cartItems || window.cartItems.length === 0) {
+        return false;
+    }
+
+    // Get menu data to check categories
+    const menuData = JSON.parse(document.getElementById('menu-data').textContent);
+    
+    return window.cartItems.some(cartItem => {
+        const menuItem = menuData.find(item => item.Name === cartItem.ProductName);
+        return menuItem && menuItem.Category === promo.category;
+    });
+}
+
+// Update promo dropdown options based on cart content
+function updatePromoAvailability() {
+    const promoSelect = document.getElementById('promo-select');
+    if (!promoSelect || !activePromos) return;
+
+    // Get current cart categories
+    const menuData = JSON.parse(document.getElementById('menu-data').textContent);
+    const cartCategories = new Set();
+    
+    if (window.cartItems && window.cartItems.length > 0) {
+        window.cartItems.forEach(cartItem => {
+            const menuItem = menuData.find(item => item.Name === cartItem.ProductName);
+            if (menuItem) {
+                cartCategories.add(menuItem.Category);
+            }
+        });
+    }
+
+    // Update promo options
+    Array.from(promoSelect.options).forEach((option, index) => {
+        if (index === 0) return; // Skip "No promotion selected" option
+        
+        try {
+            const promoData = JSON.parse(option.dataset.promo);
+            const isApplicable = cartCategories.has(promoData.category);
+            option.disabled = !isApplicable;
+            option.style.color = isApplicable ? '' : '#ccc';
+        } catch (error) {
+            console.error('Error checking promo applicability:', error);
+        }
+    });
+
+    // Reset promo selection if no longer applicable or cart is empty
+    if (selectedPromo && (!window.cartItems || window.cartItems.length === 0 || !cartCategories.has(selectedPromo.category))) {
+        promoSelect.value = '';
+        selectedPromo = null;
+        
+        // Immediately clear promo labels and description
+        const promoAppliedElement = document.getElementById('promo-applied');
+        const promoDetailsElement = document.getElementById('promo-details');
+        if (promoAppliedElement) promoAppliedElement.textContent = '';
+        if (promoDetailsElement) promoDetailsElement.style.display = 'none';
+    }
+}
 
 // Handle delivery type changes and update payment options
 function handleDeliveryTypeChange() {
@@ -373,10 +508,45 @@ function updateCartDisplay() {
     const totalElement = document.getElementById('total');
 
     if (!window.cartItems || window.cartItems.length === 0) {
+        // Clear promo immediately when cart is empty
+        if (selectedPromo) {
+            selectedPromo = null;
+            const promoSelect = document.getElementById('promo-select');
+            if (promoSelect) promoSelect.value = '';
+            
+            // Clear labels immediately
+            const promoAppliedElement = document.getElementById('promo-applied');
+            const promoDetailsElement = document.getElementById('promo-details');
+            const promoDiscountRow = document.getElementById('promo-discount-row');
+            
+            if (promoAppliedElement) promoAppliedElement.textContent = '';
+            if (promoDetailsElement) {
+                promoDetailsElement.textContent = '';
+                promoDetailsElement.style.display = 'none';
+            }
+            if (promoDiscountRow) promoDiscountRow.style.display = 'none';
+        }
+        
+        // Force clear all promo elements even if selectedPromo was null
+        const promoAppliedElement = document.getElementById('promo-applied');
+        const promoDetailsElement = document.getElementById('promo-details');
+        const promoDiscountRow = document.getElementById('promo-discount-row');
+        
+        if (promoAppliedElement) promoAppliedElement.textContent = '';
+        if (promoDetailsElement) {
+            promoDetailsElement.textContent = '';
+            promoDetailsElement.style.display = 'none';
+        }
+        if (promoDiscountRow) promoDiscountRow.style.display = 'none';
+        
         orderItemsContainer.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">No items in cart</div>';
         totalItemsElement.textContent = '0';
         subtotalElement.textContent = '₱ 0.00';
         totalElement.textContent = '₱ 0.00';
+        
+        // Reset promo when cart is empty
+        selectedPromo = null;
+        updatePromoAvailability();
         return;
     }
 
@@ -486,22 +656,83 @@ function updateCartDisplay() {
 
     orderItemsContainer.innerHTML = html;
     totalItemsElement.textContent = totalItems.toString();
-    subtotalElement.textContent = `₱ ${subtotal.toFixed(2)}`;
+
+    // Update promo availability based on cart content first (this will reset selectedPromo if invalid)
+    updatePromoAvailability();
 
     // Update promotional labels
     const promoAppliedElement = document.getElementById('promo-applied');
-    const b1t1Applied = window.cartItems.some(item => item.isB1T1);
-    const buy3Applied = calculateBuy3For143Savings(window.cartItems) > 0;
+    const promoDetailsElement = document.getElementById('promo-details');
+    
+    // Clear labels first to ensure fresh start
+    if (promoAppliedElement) promoAppliedElement.textContent = '';
+    if (promoDetailsElement) {
+        promoDetailsElement.textContent = '';
+        promoDetailsElement.style.display = 'none';
+    }
+    
+    const b1t1Applied = window.cartItems && window.cartItems.some(item => item.isB1T1);
+    const buy3Applied = window.cartItems && calculateBuy3For143Savings(window.cartItems) > 0;
 
     let promoLabels = [];
+    let promoDetails = '';
+    
+    // Only add dropdown promo if it exists, cart has items, and promo is still applicable
+    if (selectedPromo && window.cartItems && window.cartItems.length > 0 && isPromoApplicableToCart(selectedPromo)) {
+        promoLabels.push(`${selectedPromo.event} (-${selectedPromo.discountPercentage}%)`);
+        promoDetails = `${selectedPromo.description} • ${selectedPromo.discountPercentage}% discount on ${selectedPromo.category} items`;
+    } else if (selectedPromo) {
+        // If we reach here, selectedPromo exists but is not applicable - clear it
+        selectedPromo = null;
+        const promoSelect = document.getElementById('promo-select');
+        if (promoSelect) promoSelect.value = '';
+    }
+    
     if (b1t1Applied) promoLabels.push('B1T1');
     if (buy3Applied) promoLabels.push('Buy 3 for ₱143');
 
-    promoAppliedElement.textContent = promoLabels.length > 0 ? `${promoLabels.join(', ')}` : '';
-    promoAppliedElement.style.textAlign = 'right';
+    promoAppliedElement.textContent = promoLabels.length > 0 ? promoLabels.join(', ') : '';
+    promoAppliedElement.style.textAlign = 'left';
+    
+    if (promoDetails) {
+        promoDetailsElement.textContent = promoDetails;
+        promoDetailsElement.style.display = 'block';
+        promoDetailsElement.style.marginBottom = '20px';
+    } else {
+        promoDetailsElement.style.display = 'none';
+    }
 
-    // Calculate promotional total
-    const promotionalTotal = calculatePromotionalTotal(window.cartItems);
+    subtotalElement.textContent = `₱ ${subtotal.toFixed(2)}`;
+
+    // Calculate promotional total (including selected promo discount)
+    let promotionalTotal = calculatePromotionalTotal(window.cartItems);
+    let promoDiscountAmount = 0;
+    
+    // Apply selected promo discount (only if promo is still applicable)
+    if (selectedPromo && isPromoApplicableToCart(selectedPromo)) {
+        const menuData = JSON.parse(document.getElementById('menu-data').textContent);
+        
+        window.cartItems.forEach(cartItem => {
+            const menuItem = menuData.find(item => item.Name === cartItem.ProductName);
+            if (menuItem && menuItem.Category === selectedPromo.category) {
+                const itemTotal = cartItem.BasePrice * cartItem.Quantity;
+                promoDiscountAmount += itemTotal * (selectedPromo.discountPercentage / 100);
+            }
+        });
+        
+        promotionalTotal -= promoDiscountAmount;
+    }
+
+    // Update promo discount row display
+    const promoDiscountRow = document.getElementById('promo-discount-row');
+    const promoDiscountElement = document.getElementById('promo-discount');
+    if (promoDiscountAmount > 0) {
+        promoDiscountRow.style.display = 'flex';
+        promoDiscountElement.textContent = `-₱ ${promoDiscountAmount.toFixed(2)}`;
+    } else {
+        promoDiscountRow.style.display = 'none';
+    }
+    
     totalElement.textContent = `₱ ${promotionalTotal.toFixed(2)}`;
 
     // Handle delivery fee
@@ -538,6 +769,13 @@ function updateQuantity(index, change) {
 
         // Now remove the main item
         window.cartItems.splice(index, 1);
+        
+        // Check if promo is still valid after removal, reset if not
+        if (selectedPromo && !isPromoApplicableToCart(selectedPromo)) {
+            selectedPromo = null;
+            const promoSelect = document.getElementById('promo-select');
+            if (promoSelect) promoSelect.value = '';
+        }
     }
 
     updateCartDisplay();
@@ -560,6 +798,14 @@ function removeFromCart(index) {
 
     // Now remove the main item
     window.cartItems.splice(index, 1);
+    
+    // Check if promo is still valid after removal, reset if not
+    if (selectedPromo && !isPromoApplicableToCart(selectedPromo)) {
+        selectedPromo = null;
+        const promoSelect = document.getElementById('promo-select');
+        if (promoSelect) promoSelect.value = '';
+    }
+    
     updateCartDisplay();
 }
 
@@ -918,9 +1164,9 @@ function generateUniqueCustomerName() {
 }
 
 function showFeedbackMessage(message, type = 'success') {
-    const isSuccess = type === 'success';
-    const bgColor = isSuccess ? '#4caf50' : '#f44336';
-    const emoji = isSuccess ? '✅' : '❌';
+    // Neutral/minimalist design with white background and black text
+    const borderColor = type === 'success' ? '#4caf50' : type === 'error' ? '#f44336' : '#2196F3';
+    const icon = type === 'success' ? '✓' : type === 'error' ? '✕' : 'i';
 
     // Create a temporary message element
     const messageDiv = document.createElement('div');
@@ -928,17 +1174,21 @@ function showFeedbackMessage(message, type = 'success') {
         position: fixed;
         top: 20px;
         right: 20px;
-        background: ${bgColor};
-        color: white;
+        background: white;
+        color: black;
         padding: 16px 20px;
+        border: 2px solid ${borderColor};
         border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         z-index: 10000;
-        font-weight: 600;
+        font-weight: 500;
         max-width: 300px;
         animation: slideIn 0.3s ease-out;
+        font-family: 'Inter', sans-serif;
+        font-size: 14px;
+        line-height: 1.4;
     `;
-    messageDiv.innerHTML = `${emoji} ${message}`;
+    messageDiv.innerHTML = `<span style="color: ${borderColor}; font-weight: 600; margin-right: 8px;">${icon}</span>${message}`;
 
     // Add animation styles
     const style = document.createElement('style');
@@ -952,12 +1202,14 @@ function showFeedbackMessage(message, type = 'success') {
 
     document.body.appendChild(messageDiv);
 
-    // Remove after 5 seconds for errors, 4 for success
-    const duration = isSuccess ? 4000 : 5000;
+    // Remove after 4 seconds
+    const duration = 4000;
     setTimeout(() => {
         messageDiv.style.animation = 'slideIn 0.3s ease-in reverse';
         setTimeout(() => {
-            document.body.removeChild(messageDiv);
+            if (document.body.contains(messageDiv)) {
+                document.body.removeChild(messageDiv);
+            }
         }, 300);
     }, duration);
 }
@@ -1032,7 +1284,6 @@ function showOrderConfirmation() {
         customerName = generateUniqueCustomerName();
         // Update the form field to show the generated name
         document.getElementById('customer-name').value = customerName;
-        showFeedbackMessage(`Generated customer name: ${customerName}`, 'success');
     }
 
     let confirmMessage = `Customer: ${customerName}\n`;

@@ -239,10 +239,13 @@ router.get('/menu', async (req, res) => {
     const db = client.db('blessingscafe');
     const currentUser = await db.collection('users').findOne({ _id: new ObjectId(req.session.user._id) });
     
-    // Fetch menu items, addons, and ingredients
-    const menu = await getMenu();
-    const addons = await db.collection('Add-ons').find({ isEnabled: true }).toArray();
-    const ingredients = await db.collection('Ingredients').find({ isEnabled: true }).toArray();
+    // Fetch menu items, addons, ingredients, and active promos
+    const [menu, addons, ingredients, activePromos] = await Promise.all([
+      getMenu(),
+      db.collection('Add-ons').find({ isEnabled: true }).toArray(),
+      db.collection('Ingredients').find({ isEnabled: true }).toArray(),
+      getActiveDiscounts()
+    ]);
     
     await client.close();
 
@@ -258,7 +261,8 @@ router.get('/menu', async (req, res) => {
       user: userData,
       menuItems: menu,
       addons,
-      ingredients
+      ingredients,
+      activePromos
     });
   } catch (error) {
     console.error('Staff Menu error:', error);

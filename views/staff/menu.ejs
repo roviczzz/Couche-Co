@@ -70,16 +70,21 @@ menuItems.forEach(item => {
                 <span>Total Items</span>
                 <span id="total-items" style="text-align: right;">0</span>
             </div>
-            <div class="total-row">
-                <span>Subtotal</span>
-                <span id="subtotal" style="text-align: right;">₱ 0.00</span>
-            </div>
             <div id="delivery-fee-message" style="margin-top: 8px; font-weight: bold;"></div>
             <div class="total-row" id="delivery-fee-row" style="display: none;">
                 <span>Delivery Fee:</span>
                 <span id="delivery-fee" style="text-align: right;">₱ 20.00</span>
             </div>
             <div id="promo-applied" style="margin-top: 10px; font-weight: bold;"></div>
+            <div id="promo-details" style="margin-top: 5px; margin-bottom: 20px; font-size: 12px; color: #666; display: none;"></div>
+            <div class="total-row" id="promo-discount-row" style="display: none;">
+                <span>Promo Discount:</span>
+                <span id="promo-discount" style="text-align: right; color: #4caf50;">-₱ 0.00</span>
+            </div>
+            <div class="total-row">
+                <span>Subtotal</span>
+                <span id="subtotal" style="text-align: right;">₱ 0.00</span>
+            </div>
             <div class="total-row final" style="margin-top: 12px;">
                 <span>Total</span>
                 <span id="total" style="text-align: right;">₱ 0.00</span>
@@ -136,6 +141,21 @@ menuItems.forEach(item => {
                     <option value="Toclong, Kawit">Toclong, Kawit</option>
                 </select>
             </div>
+        </div>
+
+        <!-- Promo Availability Section -->
+        <div class="promo-availability-section" style="margin-bottom: 20px;">
+            <label style="font-weight: bold; display: block; margin-bottom: 6px; color: black;">Available Promotions</label>
+            <select id="promo-select" style="width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; margin-bottom: 8px; cursor: pointer;">
+                <option value="">No promotion selected</option>
+                <% if (activePromos && activePromos.length > 0) { %>
+                    <% activePromos.forEach(promo => { %>
+                        <option value="<%= promo._id %>" data-promo='<%= JSON.stringify(promo) %>'>
+                            <%= promo.event %> - <%= promo.discountPercentage %>% off
+                        </option>
+                    <% }); %>
+                <% } %>
+            </select>
         </div>
 
         <div class="payment-section">
@@ -339,6 +359,32 @@ menuItems.forEach(item => {
 
 <!-- Ingredients data for JavaScript -->
 <script id="ingredients-data" type="application/json"><%- JSON.stringify(ingredients || []) %></script>
+
+<!-- Active Promos data for JavaScript -->
+<script id="activePromos-data" type="application/json"><%- JSON.stringify(activePromos || []) %></script>
+
+<script>
+// Notes dropdown functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const notesToggleBtn = document.getElementById('toggle-notes-btn');
+    const notesTextarea = document.getElementById('notes-textarea');
+    const toggleIcon = notesToggleBtn.querySelector('svg path');
+    
+    if (notesToggleBtn && notesTextarea) {
+        notesToggleBtn.addEventListener('click', function() {
+            const isVisible = notesTextarea.style.display !== 'none';
+            
+            if (isVisible) {
+                notesTextarea.style.display = 'none';
+                toggleIcon.setAttribute('d', 'M7 10l5 5 5-5H7z'); // Down arrow
+            } else {
+                notesTextarea.style.display = 'block';
+                toggleIcon.setAttribute('d', 'M7 14l5-5 5 5H7z'); // Up arrow
+            }
+        });
+    }
+});
+</script>
 
 <!-- External JavaScript file -->
 <script src="/js/staff-menu.js"></script>
