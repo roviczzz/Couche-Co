@@ -373,19 +373,20 @@ h1 {
 
 /* Special styling for payment methods doughnut chart */
 .analytics-grid > .section:nth-child(2) .chart-container {
-  max-width: 280px;
+  width: 300px;
+  height: 300px;
   margin: 0 auto;
-  min-height: 280px;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .analytics-grid > .section:nth-child(2) canvas {
-  width: 280px !important;
-  height: 280px !important;
-  max-width: 280px !important;
-  max-height: 280px !important;
+  width: 300px !important;
+  height: 300px !important;
+  max-width: 300px !important;
+  max-height: 300px !important;
   aspect-ratio: 1 / 1;
 }
 
@@ -394,6 +395,25 @@ h1 {
   grid-column: span 1;
   animation: fadeInUp 0.6s ease-out backwards;
   animation-delay: 0.3s;
+}
+
+/* Special styling for order sources doughnut chart */
+.analytics-grid > .section:nth-child(3) .chart-container {
+  width: 300px;
+  height: 300px;
+  margin: 0 auto;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.analytics-grid > .section:nth-child(3) canvas {
+  width: 300px !important;
+  height: 300px !important;
+  max-width: 300px !important;
+  max-height: 300px !important;
+  aspect-ratio: 1 / 1;
 }
 
 /* Sales Trend - Spans 2 columns (right side) */
@@ -421,7 +441,7 @@ h1 {
 }
 
 .section-header {
-  padding: 1.5rem;
+  padding: 1.5rem 1.5rem 1rem 1.5rem;
   border-bottom: 1px solid #e1e3e5;
   background: linear-gradient(135deg, #fafbfc 0%, #ffffff 100%);
   position: relative;
@@ -448,6 +468,8 @@ h1 {
   font-weight: 700;
   color: #202223;
   margin-bottom: 0.375rem;
+  margin-top: 0;
+  line-height: 1;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -498,9 +520,12 @@ canvas {
   height: 400px !important;
 }
 
-.analytics-grid > .section:nth-child(2) canvas,
+.analytics-grid > .section:nth-child(2) canvas {
+  height: 300px !important; /* Keep payment methods chart square for perfect circle */
+}
+
 .analytics-grid > .section:nth-child(3) canvas {
-  height: 320px !important;
+  height: 300px !important; /* Keep order sources chart square for perfect circle */
 }
 
 .chart-container:hover canvas {
@@ -622,7 +647,7 @@ tr:hover td {
   background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
   border: 1px solid #e1e3e5;
   border-radius: 12px;
-  padding: 1.5rem;
+  padding: 1.5rem 1.5rem 1rem 1.5rem;
   box-shadow: 0 4px 16px rgba(0,0,0,0.06);
   transition: all 0.3s ease;
   animation: fadeInUp 0.7s ease-out backwards;
@@ -643,6 +668,8 @@ tr:hover td {
   font-weight: 700;
   color: #202223;
   margin-bottom: 0.375rem;
+  margin-top: 0;
+  line-height: 1;
   display: flex;
   align-items: center;
   gap: 0.5rem;
