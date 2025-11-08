@@ -1,31 +1,155 @@
-<div class="dashboard-container">
-  <div class="dashboard-header-greeting" style="margin-bottom:18px;font-size:35px;font-weight:600;color:black;">
-    Hello, <%= typeof user !== 'undefined' && (user.fullname || user.displayName) ? (user.fullname || user.displayName).split(' ')[0] : 'there' %>! <br>
-    <a style="font-size: 16px;color: #838384; font-weight: 400;">Here are today's stats!</a>
-  </div>
-  <h2>Staff Dashboard</h2>
-  <div class="dashboard-stats">
-    <div class="stat-card">
-      <div class="stat-title">Total Orders</div>
-      <div class="stat-value"><%= typeof ordersCount !== 'undefined' ? ordersCount : 0 %></div>
+<div id="dashboard-data" style="display:none;"
+data-analytics-stats="<%= (typeof analyticsStats !== 'undefined' && analyticsStats) ? JSON.stringify(analyticsStats) : 'null' %>"
+data-top-categories="<%= (typeof topCategories !== 'undefined' && Array.isArray(topCategories) && topCategories.length) ? JSON.stringify(topCategories) : 'null' %>"
+data-payment-types="<%= (typeof paymentTypes !== 'undefined' && Array.isArray(paymentTypes) && paymentTypes.length) ? JSON.stringify(paymentTypes) : 'null' %>"
+data-orders-by-source="<%= (typeof ordersBySource !== 'undefined' && Array.isArray(ordersBySource) && ordersBySource.length) ? JSON.stringify(ordersBySource) : 'null' %>"
+data-low-stock="<%= (typeof lowStockData !== 'undefined') ? JSON.stringify(lowStockData) : 'null' %>"
+data-low-stock-count="<%= (typeof lowStockData !== 'undefined' && lowStockData.quantity !== 'undefined') ? lowStockData.quantity : 0 %>"
+data-low-stock-name="<%= (typeof lowStockData !== 'undefined' && typeof lowStockData.name !== 'undefined' && lowStockData.name) ? lowStockData.name : 'All stocked' %>"
+data-low-stock-has-more="<%= (typeof lowStockData !== 'undefined' && lowStockData.hasMore) ? 'true' : 'false' %>"
+data-user-low-stock-threshold="<%= (typeof userLowStockThreshold !== 'undefined') ? userLowStockThreshold : '5' %>"
+></div>
+<div class="dashboard-cards-grid">
+<div class="dashboard-tooltip"></div>
+    <div class="dashboard-header-greeting" style="margin-bottom:18px;font-size:35px;font-weight:600;color:black;">
+        Hello, <%= typeof user !== 'undefined' && (user.fullname || user.displayName) ? (user.fullname || user.displayName).split(' ')[0] : 'there' %>! <br>
+        <a style="font-size: 16px;color: #838384; font-weight: 400;">Here are today's stats!</a>
     </div>
-    <div class="stat-card">
-      <div class="stat-title">Total Users</div>
-      <div class="stat-value"><%= typeof usersCount !== 'undefined' ? usersCount : 0 %></div>
+    <div class="main-summary-cards">
+        <div class="summary-card total-sales">
+            <div class="icon"><i class="fa-solid fa-bag-shopping"></i></div>
+            <div>
+                <div class="card-label">Total Sales</div>
+                <div class="card-sub"><%= typeof stats !== 'undefined' && typeof stats.totalOrders !== 'undefined' ? stats.totalOrders + ' Orders' : '0 Orders' %></div>                <div class="card-value" id="total-sales-value"><%= typeof stats !== 'undefined' && stats.totalSales ? '₱' + stats.totalSales.toLocaleString('en-PH', {minimumFractionDigits:2}) : '₱0.00' %></div>
+                <div class="card-trends" id="total-sales-trends">
+                    <span id="total-sales-trend" class="<%= typeof stats !== 'undefined' && stats.totalSalesPercent >= 0 ? 'trend-up' : 'trend-down' %>">
+                        <%= typeof stats !== 'undefined' && typeof stats.totalSalesPercent !== 'undefined'
+                                ? (stats.totalSalesPercent > 0 ? '+' : '') + stats.totalSalesPercent + '%'
+                                : '+0%' %>
+                    </span>
+                    <span id="total-sales-week"><%= typeof stats !== 'undefined' && typeof stats.totalSalesWeek !== 'undefined'
+                                ? stats.totalSalesWeek + ' this week'
+                                : '0 this week' %></span>
+                </div>
+            </div>
+        </div>
+        <div class="summary-card incoming-orders">
+            <div class="icon"><i class="fa-solid fa-cart-flatbed"></i></div>
+            <div>
+                <div class="card-label">Incoming Orders</div>
+                <div class="card-value" id="incoming-orders-value"><%= typeof stats !== 'undefined' && typeof stats.incomingOrders !== 'undefined'
+                            ? stats.incomingOrders : '0' %></div>
+                <div class="card-trends" id="incoming-orders-trends">
+                    <span id="incoming-orders-trend" class="<%= typeof stats !== 'undefined' && stats.incomingOrdersPercent >= 0 ? 'trend-up' : 'trend-down' %>">
+                        <%= typeof stats !== 'undefined' && typeof stats.incomingOrdersPercent !== 'undefined'
+                                ? (stats.incomingOrdersPercent > 0 ? '+' : '') + stats.incomingOrdersPercent + '%'
+                                : '+0%' %>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="summary-card orders-today">
+            <div class="icon"><i class="fa-solid fa-calendar-day"></i></div>
+            <div>
+                <div class="card-label">Orders Today</div>
+                <div class="card-value" id="orders-today-value"><%= typeof stats !== 'undefined' && typeof stats.ordersToday !== 'undefined'
+                            ? stats.ordersToday : '0' %></div>
+                <div class="card-trends" id="orders-today-trends">
+                    <span id="orders-today-trend" class="<%= typeof stats !== 'undefined' && stats.ordersTodayPercent >= 0 ? 'trend-up' : 'trend-down' %>">
+                        <%= typeof stats !== 'undefined' && typeof stats.ordersTodayPercent !== 'undefined'
+                                ? (stats.ordersTodayPercent > 0 ? '+' : '') + stats.ordersTodayPercent + '%'
+                                : '+0%' %>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="summary-card low-stock">
+            <div class="card-settings" title="Configure low stock threshold">
+                <i class="fa-solid fa-cog"></i>
+            </div>
+            <div class="icon"><i class="fa-solid fa-exclamation-triangle"></i></div>
+            <div>
+                <div class="card-label">Low Stock Alert</div>
+                <div class="card-value" id="low-stock-value"><%= typeof lowStockData !== 'undefined' && lowStockData.quantity !== 'undefined' ? lowStockData.quantity : 0 %></div>
+                <div class="card-trends">
+                    <span id="low-stock-name"><%= typeof lowStockData !== 'undefined' && typeof lowStockData.name !== 'undefined' && lowStockData.name ? lowStockData.name : 'All stocked' %></span>
+                  <span id="low-stock-more" class="low-stock-more<%= typeof lowStockData !== 'undefined' && lowStockData.hasMore ? '' : ' hidden' %>">
+                        more
+                    </span>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="stat-card">
-      <div class="stat-title">Menu Items</div>
-      <div class="stat-value"><%= typeof menuCount !== 'undefined' ? menuCount : 0 %></div>
+    <div class="performance-cards-row">
+        <div class="left-stack">
+            <div class="card top-categories" style="display:flex;flex-direction:column;">
+                <div class="card-label">Top Categories</div>
+                <div id="top-categories-container" style="flex:1;margin-top:15px;padding:20px;"></div>
+            </div>
+            <div class="card orders-by-source" style="display:flex;flex-direction:column;">
+                <div class="card-label">Orders by Platform</div>
+                <div id="orders-by-source-container" style="flex:1;margin-top:15px;padding:20px;"></div>
+            </div>
+        </div>
+        <div class="card sales-performance" style="min-height:490px;position:relative;">
+            <div class="card-header-row" style="margin-bottom:0;">
+                <span class="card-label">Sales Performance</span>
+                <div class="card-actions">
+                    <select id="performance-period" class="period-select" style="margin-right:8px;">
+                        <option value="7">Last 7 Days</option>
+                        <option value="14" selected>Last 14 Days</option>
+                        <option value="30">Last 30 Days</option>
+                    </select>
+                    <button id="export-performance" class="action-btn">Export data</button>
+                </div>
+            </div>
+            <div style="height:380px;width:100%;display:flex;align-items:center;">
+                <canvas id="salesPerformanceChart" height="380" style="width:100% !important; height:380px !important; max-height:380px !important;"></canvas>
+            </div>
+            <div id="sales-performance-info"></div>
+        </div>
     </div>
-  </div>
+    <div class="payment-types-row">
+        <div class="card payment-types" style="display:flex;flex-direction:column;">
+            <div class="card-label">Most Orders by Payment Type</div>
+            <div class="payment-types-chart-container" style="height:400px;width:100%;display:flex;align-items:center;justify-content:center;">
+                <canvas id="paymentTypesChart" width="400" height="400" style="max-width:none;max-height:none;"></canvas>
+                <div id="payment-types-loading-indicator" class="chart-loading">Loading payment types...</div>
+            </div>
+            <div id="payment-types-list" style="flex:1 1 0;margin-top:8px;max-height:280px;overflow-y:auto;width:100%;min-width:0;box-sizing:border-box;"></div>
+        </div>
+    </div>
 </div>
-<style>
-.main-content{
-    background-color: #f8f9fb;
-  }
-.dashboard-container { padding: 32px; }
-.dashboard-stats { display: flex; gap: 32px; margin-top: 32px; }
-.stat-card { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 32px 40px; min-width: 180px; text-align: center; }
-.stat-title { font-size: 18px; color: #a05c2f; margin-bottom: 12px; }
-.stat-value { font-size: 32px; font-weight: bold; color: #5a3e2b; }
-</style>
+
+<!-- Low Stock Settings Modal -->
+<div id="low-stock-settings-modal" class="settings-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+    <div class="settings-modal-content" style="background: white; border-radius: 12px; padding: 24px; min-width: 300px; max-width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+        <div class="settings-modal-header" style="margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 12px;">
+            <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #6b3e26;">Low Stock Alert Settings</h3>
+        </div>
+        <div class="settings-modal-body">
+            <div style="margin-bottom: 16px;">
+                <label for="low-stock-threshold" style="display: block; margin-bottom: 8px; font-weight: 500; color: #555;">
+                    Alert when quantity drops below:
+                </label>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <input type="range" id="low-stock-threshold" min="5" max="100" value="5" step="1" style="flex: 1;" />
+                    <span id="threshold-value" style="min-width: 60px; text-align: center; font-weight: 600; color: #7a3f1c; font-size: 16px;">5 items</span>
+                </div>
+            </div>
+            <div style="font-size: 13px; color: #666; line-height: 1.4;">
+                <i class="fa-solid fa-info-circle" style="margin-right: 5px;"></i>
+                The alert will show items (ingredients or add-ons) that have quantity at or below this threshold.
+            </div>
+        </div>
+        <div class="settings-modal-footer" style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px;">
+            <button id="cancel-stock-settings" class="modal-btn cancel-btn" style="padding: 8px 16px; border: 1px solid #d2a679; background: white; color: #7a3f1c; border-radius: 6px; cursor: pointer;">Cancel</button>
+            <button id="save-stock-settings" class="modal-btn save-btn" style="padding: 8px 16px; border: none; background: #6b3e26; color: white; border-radius: 6px; cursor: pointer;">Save</button>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="/css/dashboard.css"/>
+<script src="/js/dashboard.js"></script>

@@ -734,11 +734,17 @@ function getMenuItem(productID, productName) {
     return menuData.find(item => item._id === productID || item.id === productID || item.Name === productName);
 }
 
-// Promotion functions
+// Promotion functions - Buy 3 for ₱143 (EXCLUDES PASTRIES)
 function checkBuy3For143(cart) {
     let drinkCount = 0;
     cart.forEach(item => {
-        if (item.ProductName && item.ProductName.toLowerCase().indexOf('pastry') === -1) {
+        // Get menu item to check category
+        const menuItem = getMenuItem(item.ProductID, item.ProductName);
+
+        // Only count drinks (non-pastries) for the promotion
+        if (item.ProductName &&
+            item.ProductName.toLowerCase().indexOf('pastry') === -1 &&
+            (!menuItem || menuItem.Category !== 'Pastries')) {
             drinkCount += item.Quantity || 1;
         }
     });
@@ -753,7 +759,13 @@ function calculateBuy3For143Savings(cart) {
 
     let drinkItems = [];
     cart.forEach(item => {
-        if (item.ProductName && item.ProductName.toLowerCase().indexOf('pastry') === -1) {
+        // Get menu item to check category
+        const menuItem = getMenuItem(item.ProductID, item.ProductName);
+
+        // Only include drinks (non-pastries) for savings calculation
+        if (item.ProductName &&
+            item.ProductName.toLowerCase().indexOf('pastry') === -1 &&
+            (!menuItem || menuItem.Category !== 'Pastries')) {
             drinkItems.push(item);
         }
     });
@@ -890,8 +902,8 @@ function showBuy3For143Modal() {
         return;
     }
 
-    // Apply the promotion automatically
-    applyBuy3For143(window.cartItems || []);
+    // Promotion is applied automatically in calculatePromotionalTotal()
+    // Just refresh the display to show current promotional state
     updateCartDisplay();
 
     // Show success message with correct savings

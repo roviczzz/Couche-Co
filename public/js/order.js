@@ -783,6 +783,17 @@ function renderSortArrows() {
   header.appendChild(arrow);
 }
 
+function resetSort() {
+  // Reset sort state
+  currentSort = { column: null, direction: 'asc' };
+
+  // Clear sort arrows from all headers
+  clearSortArrows();
+
+  // Re-render the table in original order (no sorting)
+  renderOrdersTable();
+}
+
 orderHeaders.forEach(th => {
   const columnKey = th.dataset.column;
   if (columnKey) {
@@ -1377,6 +1388,12 @@ document.addEventListener('DOMContentLoaded', function() {
       closeCompletedOrders();
     }
   });
+
+  // Add reset sort button event listener
+  const resetSortBtn = document.getElementById('resetSortBtn');
+  if (resetSortBtn) {
+    resetSortBtn.addEventListener('click', resetSort);
+  }
 });
 
 renderOrdersTable();
