@@ -469,6 +469,20 @@ document.addEventListener('DOMContentLoaded', function() {
     console.error(`[2025-10-15 17:45:23] Add item button not found by MathDaenniel`);
   }
 
+  // Reset Sort Button Event Listener
+  const resetSortBtn = document.getElementById('resetSortBtn');
+  if (resetSortBtn) {
+    resetSortBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log(`[2025-10-15 17:45:23] Reset sort button clicked by MathDaenniel`);
+      resetSort();
+    });
+    console.log(`[2025-10-15 17:45:23] Reset sort button listener attached by MathDaenniel`);
+  } else {
+    console.error(`[2025-10-15 17:45:23] Reset sort button not found by MathDaenniel`);
+  }
+
   if (cancelTypeSelect) {
     cancelTypeSelect.addEventListener('click', function(e) {
       e.preventDefault();
@@ -1379,6 +1393,42 @@ document.addEventListener('DOMContentLoaded', function() {
 
     } catch (error) {
       console.error("Add-on counter error:", error);
+    }
+  }
+
+  // ===============================================
+  // RESET SORT FUNCTION
+  // ===============================================
+
+  function resetSort() {
+    console.log(`[2025-10-15 17:45:23] Resetting sort for both ingredient and add-on tables by MathDaenniel`);
+
+    try {
+      // Reset ingredient sort
+      ingredientSortMode = 'default';
+      const ingredientSortButtons = document.querySelectorAll(".sort-btn.ingredient-sort");
+      ingredientSortButtons.forEach(btn => btn.classList.remove("active"));
+      const ingredientDefaultBtn = document.querySelector('.sort-btn.ingredient-sort[data-sort="default"]');
+      if (ingredientDefaultBtn) {
+        ingredientDefaultBtn.classList.add("active");
+      }
+
+      // Reset add-on sort
+      addonSortMode = 'default';
+      const addonSortButtons = document.querySelectorAll(".sort-btn.addon-sort");
+      addonSortButtons.forEach(btn => btn.classList.remove("active"));
+      const addonDefaultBtn = document.querySelector('.sort-btn.addon-sort[data-sort="default"]');
+      if (addonDefaultBtn) {
+        addonDefaultBtn.classList.add("active");
+      }
+
+      // Re-process both tables
+      processIngredientTable();
+      processAddonTable();
+
+      console.log(`[2025-10-15 17:45:23] Sort reset completed successfully by MathDaenniel`);
+    } catch (error) {
+      console.error(`[2025-10-15 17:45:23] Error resetting sort:`, error, 'by MathDaenniel');
     }
   }
 

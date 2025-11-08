@@ -141,8 +141,8 @@ router.get('/analytics/low-stock', nocache, async (req, res) => {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
 
-    const ingredients = await db.collection('Ingredients').find({ Quantity: { $lte: threshold }, isEnabled: true }).sort({ Quantity: 1 }).toArray();
-    const addons = await db.collection('Add-ons').find({ Quantity: { $lte: threshold }, isEnabled: true }).sort({ Quantity: 1 }).toArray();
+    const ingredients = await db.collection('Ingredients').find({ Amount: { $lte: threshold }, isEnabled: true }).sort({ Amount: 1 }).toArray();
+    const addons = await db.collection('Add-ons').find({ Amount: { $lte: threshold }, isEnabled: true }).sort({ Amount: 1 }).toArray();
 
     await client.close();
 

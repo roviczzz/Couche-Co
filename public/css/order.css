@@ -1,4 +1,7 @@
 .header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 30px;
   position: relative;
   padding-bottom: 16px;
@@ -14,6 +17,44 @@
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: -0.5px;
+}
+
+/* Reset Sort FAB Button - positioned on the right side */
+.reset-sort-btn {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  left: auto;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #7a4e2b;
+  color: #ffffff;
+  font-size: 28px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  box-shadow: var(--shadow-lg), 0 4px 16px rgba(0,0,0,0.25);
+  transition: background 0.2s ease, transform 0.2s ease;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.reset-sort-btn:hover {
+  background-color: #5a6268;
+  transform: translateY(-2px) scale(1.05);
+}
+
+.reset-sort-btn:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: var(--shadow-md), 0 2px 8px rgba(40, 167, 69, 0.4);
+}
+
+.reset-sort-btn i {
+  font-size: 20px;
 }
 
 .header-section:after {

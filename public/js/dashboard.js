@@ -59,32 +59,37 @@ function hideDashboardTooltip() {
  * Handles automatic refreshing of all analytics data
  */
 function updateDashboardStats() {
-    return fetch('/admin/analytics/dashboard-stats')
+    const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
+    return fetch(`${basePath}/analytics/dashboard-stats`)
         .then(res => res.ok ? res.json() : null)
         .catch(err => { console.warn('Dashboard stats update failed:', err); return null; });
 }
 
 function updateLowStockData() {
+    const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
     const threshold = localStorage.getItem('lowStockThreshold') || '5';
-    return fetch(`/admin/analytics/low-stock?threshold=${threshold}`)
+    return fetch(`${basePath}/analytics/low-stock?threshold=${threshold}`)
         .then(res => res.ok ? res.json() : null)
         .catch(err => { console.warn('Low stock data update failed:', err); return null; });
 }
 
 function updateTopCategoriesData() {
-    return fetch('/admin/analytics/top-categories')
+    const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
+    return fetch(`${basePath}/analytics/top-categories`)
         .then(res => res.ok ? res.json() : null)
         .catch(err => { console.warn('Top categories update failed:', err); return null; });
 }
 
 function updatePaymentTypesData() {
-    return fetch('/admin/analytics/payment-types')
+    const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
+    return fetch(`${basePath}/analytics/payment-types`)
         .then(res => res.ok ? res.json() : null)
         .catch(err => { console.warn('Payment types update failed:', err); return null; });
 }
 
 function updateOrdersBySourceData() {
-    return fetch('/admin/analytics/orders-by-source')
+    const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
+    return fetch(`${basePath}/analytics/orders-by-source`)
         .then(res => res.ok ? res.json() : null)
         .catch(err => { console.warn('Orders by source update failed:', err); return null; });
 }
@@ -365,7 +370,8 @@ window.ordersBySource = (dataEl.dataset.ordersBySource && dataEl.dataset.ordersB
         } else {
             // Fallback to AJAX if server data not available
             try {
-                const res = await fetch('/admin/analytics/dashboard-stats');
+                const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
+                const res = await fetch(`${basePath}/analytics/dashboard-stats`);
                 stats = await res.json();
             } catch (err) {}
         }
@@ -442,7 +448,8 @@ window.ordersBySource = (dataEl.dataset.ordersBySource && dataEl.dataset.ordersB
 
                         try {
                             // Save to settings via API
-                            const response = await fetch('/admin/settings/preferences', {
+                            const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
+                            const response = await fetch(`${basePath}/settings/preferences`, {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -490,7 +497,8 @@ window.ordersBySource = (dataEl.dataset.ordersBySource && dataEl.dataset.ordersB
     async function drawSalesPerformanceChart(days=14) {
         let results = [];
         try {
-            const res = await fetch('/admin/analytics/sales-performance?days=' + days);
+            const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
+            const res = await fetch(`${basePath}/analytics/sales-performance?days=` + days);
             if (res.ok) {
                 results = await res.json();
             }
@@ -570,7 +578,8 @@ window.ordersBySource = (dataEl.dataset.ordersBySource && dataEl.dataset.ordersB
             categories = window.topCategories;
         } else {
             try {
-                const response = await fetch('/admin/analytics/top-categories');
+                const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
+                const response = await fetch(`${basePath}/analytics/top-categories`);
                 if (response.ok) {
                     categories = await response.json();
                     if (!Array.isArray(categories) || !categories.length || !categories[0].name) {
@@ -613,7 +622,8 @@ window.ordersBySource = (dataEl.dataset.ordersBySource && dataEl.dataset.ordersB
             paymentTypes = window.paymentTypes;
         } else {
             try {
-                const response = await fetch('/admin/analytics/payment-types');
+                const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
+                const response = await fetch(`${basePath}/analytics/payment-types`);
                 if (response.ok) {
                     paymentTypes = await response.json();
                     if (!Array.isArray(paymentTypes) || !paymentTypes.length || !paymentTypes[0].name) {
@@ -754,7 +764,8 @@ window.ordersBySource = (dataEl.dataset.ordersBySource && dataEl.dataset.ordersB
         } else {
             // Fallback to AJAX if server data not available
             try {
-                const response = await fetch('/admin/analytics/orders-by-source');
+                const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
+                const response = await fetch(`${basePath}/analytics/orders-by-source`);
                 if (response.ok) {
                     ordersBySource = await response.json();
                     if (!Array.isArray(ordersBySource) || !ordersBySource.length || !ordersBySource[0].name) {
@@ -791,7 +802,8 @@ window.ordersBySource = (dataEl.dataset.ordersBySource && dataEl.dataset.ordersB
     async function fetchLowStockData() {
         try {
             const threshold = localStorage.getItem('lowStockThreshold') || '5';
-            const response = await fetch('/admin/analytics/low-stock?threshold=' + threshold);
+            const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
+            const response = await fetch(`${basePath}/analytics/low-stock?threshold=` + threshold);
             if (response.ok) {
                 const lowStockData = await response.json();
                 document.getElementById('low-stock-value').innerText = lowStockData.quantity || 0;
