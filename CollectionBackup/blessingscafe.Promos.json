@@ -41,4 +41,48 @@
     "$date": "2025-11-05T16:12:38.172Z"
   },
   "isActive": true
+},
+{
+  "_id": {
+    "$oid": "690e0648ac339935973d4613"
+  },
+  "event": "legolego",
+  "category": "Milktea",
+  "description": "QWEASDASDASDAS",
+  "discountPercentage": 3,
+  "startDate": {
+    "$date": "2025-11-07T00:00:00.000Z"
+  },
+  "endDate": {
+    "$date": "2025-11-13T00:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2025-11-07T14:46:32.843Z"
+  },
+  "lastModified": {
+    "$date": "2025-11-07T15:21:30.749Z"
+  },
+  "isActive": true
+},
+{
+  "_id": {
+    "$oid": "690e1287ac339935973d4614"
+  },
+  "event": "fruiterism",
+  "category": "Fruit Tea",
+  "description": "Eatery all u can",
+  "discountPercentage": 2,
+  "startDate": {
+    "$date": "2025-11-07T00:00:00.000Z"
+  },
+  "endDate": {
+    "$date": "2025-11-25T00:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2025-11-07T15:38:47.518Z"
+  },
+  "lastModified": {
+    "$date": "2025-11-07T15:38:47.518Z"
+  },
+  "isActive": true
 }]

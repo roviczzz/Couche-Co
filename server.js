@@ -22,6 +22,9 @@ const staffRoutes = require('./routes/staff');
 const inventoryRoutes = require('./routes/inventory');
 const inventoryAdminRoutes = require('./routes/inventory-admin');
 
+// Import promo manager for automated deactivation
+const { initializePromoDeactivationCron } = require('./utils/promoManager');
+
 // Enable gzip compression for all responses
 app.use(compression({
   level: 6, // Good balance between speed and compression
@@ -159,6 +162,9 @@ app.use((req, res) => {
     status: 404
   });
 });
+
+// Initialize automated promo deactivation cron job
+initializePromoDeactivationCron();
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
