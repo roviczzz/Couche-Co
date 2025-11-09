@@ -436,6 +436,12 @@ async function updateIngredient(id, ingredientData) {
       }
     }
 
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
     const result = await db.collection(collection).updateOne(
       { _id: new ObjectId(id) },
