@@ -232,4 +232,144 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error fetching unread message count:', error);
         }
     }
+
+    // Initialize notification system
+    updateNotificationBadge();
+    updateNotifications();
+
+    // Update notifications every 30 seconds
+    setInterval(updateNotificationBadge, 30000);
+    setInterval(updateNotifications, 30000);
+
+    async function updateNotificationBadge() {
+        try {
+            const response = await fetch('/admin/notifications/unread-count');
+            if (response.ok) {
+                const data = await response.json();
+                const badge = document.getElementById('notifications-badge');
+                if (badge) {
+                    if (data.unreadCount > 0) {
+                        badge.textContent = data.unreadCount > 99 ? '99+' : data.unreadCount;
+                        badge.style.display = 'flex';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching unread notification count:', error);
+        }
+    }
+
+    async function updateNotifications() {
+        try {
+            const response = await fetch('/admin/notifications');
+            if (response.ok) {
+                const notifications = await response.json();
+                displayNotifications(notifications);
+            }
+        } catch (error) {
+            console.error('Error fetching notifications:', error);
+        }
+    }
+
+    function displayNotifications(notifications) {
+        const notificationList = document.getElementById('notification-list');
+        if (!notificationList) return;
+
+        if (notifications.length === 0) {
+            notificationList.innerHTML = '<div class="notification-item empty">No notifications</div>';
+            return;
+        }
+
+        notificationList.innerHTML = notifications.map(notification => {
+            const date = new Date(notification.createdAt).toLocaleDateString();
+            const time = new Date(notification.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const isRead = notification.read ? 'read' : 'unread';
+
+            return `
+                <div class="notification-item ${isRead}" data-id="${notification._id}" data-type="${notification.type}" data-reference="${notification.referenceId || ''}">
+                    <div class="notification-content">
+                        <div class="notification-title">${notification.title}</div>
+                        <div class="notification-message">${notification.message}</div>
+                        <div class="notification-time">${date} ${time}</div>
+                    </div>
+                    ${!notification.read ? '<div class="notification-unread-indicator"></div>' : ''}
+                </div>
+            `;
+        }).join('');
+
+        // Add click handlers for notifications
+        document.querySelectorAll('.notification-item').forEach(item => {
+            item.addEventListener('click', handleNotificationClick);
+        });
+    }
+
+    async function handleNotificationClick(event) {
+        const notificationItem = event.currentTarget;
+        const notificationId = notificationItem.dataset.id;
+        const notificationType = notificationItem.dataset.type;
+        const referenceId = notificationItem.dataset.reference;
+
+        // Mark as read
+        try {
+            await fetch(`/admin/notifications/${notificationId}/read`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+        } catch (error) {
+            console.error('Error marking notification as read:', error);
+        }
+
+        // Handle navigation based on notification type
+        let redirectUrl = null;
+
+        switch (notificationType) {
+            case 'order':
+                redirectUrl = '/admin/orders';
+                break;
+            case 'low_stock':
+                redirectUrl = '/admin/stocks';
+                break;
+            case 'promo_expiry':
+                redirectUrl = '/admin/discounts';
+                break;
+            case 'report':
+                redirectUrl = '/admin/analytics';
+                break;
+            case 'message':
+                redirectUrl = '/admin/messages';
+                break;
+            default:
+                redirectUrl = '/admin/dashboard';
+        }
+
+        if (redirectUrl) {
+            window.location.href = redirectUrl;
+        }
+    }
+
+    // Add mark all as read functionality
+    const markAllReadBtn = document.getElementById('mark-all-read-btn');
+    if (markAllReadBtn) {
+        markAllReadBtn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            try {
+                const response = await fetch('/admin/notifications/mark-all-read', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                if (response.ok) {
+                    updateNotificationBadge();
+                    updateNotifications();
+                }
+            } catch (error) {
+                console.error('Error marking all notifications as read:', error);
+            }
+        });
+    }
 });

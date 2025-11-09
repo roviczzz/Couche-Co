@@ -6,6 +6,7 @@ const flash = require('connect-flash');
 const favicon = require('serve-favicon');
 const compression = require('compression');
 const path = require('path');
+const cron = require('node-cron');
 
 const app = express();
 const port = 8080;
@@ -21,9 +22,11 @@ const apiRoutes = require('./routes/api');
 const staffRoutes = require('./routes/staff');
 const inventoryRoutes = require('./routes/inventory');
 const inventoryAdminRoutes = require('./routes/inventory-admin');
+const notificationRoutes = require('./routes/notifications');
 
 // Import promo manager for automated deactivation
 const { initializePromoDeactivationCron } = require('./utils/promoManager');
+const { generatePeriodicNotifications } = require('./admin-helpers');
 
 // Enable gzip compression for all responses
 app.use(compression({
@@ -135,6 +138,7 @@ app.use('/auth', authRoutes);
 app.use('/user', userRoutes);
 app.use('/admin', adminRoutes);
 app.use('/staff', staffRoutes);
+app.use('/', notificationRoutes);
 
 // Legacy route compatibility
 app.use('/account', authRoutes);
@@ -167,6 +171,44 @@ app.use((req, res) => {
 
 // Initialize automated promo deactivation cron job
 initializePromoDeactivationCron();
+
+// Initialize periodic notifications using node-cron
+function initializeNotificationsCron() {
+  try {
+    // Run immediately on startup
+    generatePeriodicNotifications().catch(error => {
+      console.error('Error generating initial notifications:', error);
+    });
+    
+    // Schedule periodic notifications - every 30 minutes
+    cron.schedule('*/30 * * * *', async () => {
+      try {
+        console.log('🔔 Running periodic notification check...');
+        const notifications = await generatePeriodicNotifications();
+        console.log(`✅ Generated ${notifications.length} new notifications`);
+      } catch (error) {
+        console.error('❌ Error in periodic notifications cron:', error);
+      }
+    });
+    
+    // Also run a comprehensive check every hour at minute 0
+    cron.schedule('0 * * * *', async () => {
+      try {
+        console.log('🔔 Running hourly comprehensive notification check...');
+        const notifications = await generatePeriodicNotifications();
+        console.log(`✅ Hourly check: Generated ${notifications.length} new notifications`);
+      } catch (error) {
+        console.error('❌ Error in hourly notifications cron:', error);
+      }
+    });
+    
+    console.log('📅 Notifications cron job initialized - running every 30 minutes with hourly comprehensive checks');
+  } catch (error) {
+    console.error('Failed to initialize notifications cron job:', error);
+  }
+}
+
+initializeNotificationsCron();
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);

@@ -15,7 +15,9 @@ const {
   getPaymentTypes,
   getOrdersBySource,
   getSalesPerformance,
-  getActiveDiscounts
+  getActiveDiscounts,
+  createNewOrderNotification,
+  createMessageNotification
 } = require('../admin-helpers');
 
 // Authentication middleware for staff routes
@@ -70,6 +72,14 @@ router.post('/orders/submit', isStaffLoggedIn, async (req, res) => {
     if (result.acknowledged && result.insertedId) {
       // Log successful order submission
       console.log(`✅ Staff POS Order submitted successfully: ${orderData.OrderID} by ${req.session.user?.fullname}`);
+
+      // Create notification for new order
+      try {
+        await createNewOrderNotification(orderToInsert);
+      } catch (notifError) {
+        console.error('Failed to create order notification:', notifError);
+        // Don't fail the order creation if notification fails
+      }
 
       res.json({
         success: true,
@@ -908,6 +918,18 @@ router.post('/messages/api/send', async (req, res) => {
     };
 
     const result = await db.collection('messages').insertOne(message);
+
+    // Create notification for new message
+    try {
+      await createMessageNotification({
+        _id: result.insertedId,
+        senderName: req.session.user?.fullname || 'Unknown',
+        subject: subject || 'New Message'
+      }, 'staff');
+    } catch (notifError) {
+      console.error('Failed to create message notification:', notifError);
+      // Don't fail the message sending if notification fails
+    }
 
     await client.close();
 

@@ -1234,6 +1234,455 @@ async function getSalesPerformance(days = 14) {
   }
 }
 
+// ===== NOTIFICATION FUNCTIONS =====
+
+async function createNotification(notificationData) {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    
+    const notification = {
+      ...notificationData,
+      createdAt: new Date(),
+      isRead: false,
+      type: notificationData.type || 'info', // 'order', 'message', 'stock', 'report', 'promo'
+      priority: notificationData.priority || 'normal', // 'urgent', 'high', 'normal', 'low'
+      targetRoles: notificationData.targetRoles || ['admin', 'staff'] // who can see this notification
+    };
+    
+    const result = await db.collection('Notifications').insertOne(notification);
+    await client.close();
+    
+    return result;
+  } catch (err) {
+    console.error('Error creating notification:', err);
+    throw err;
+  }
+}
+
+async function getNotifications(userRole, limit = 50) {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    
+    const notifications = await db.collection('Notifications').find({
+      targetRoles: { $in: [userRole] }
+    })
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .toArray();
+    
+    await client.close();
+    return notifications;
+  } catch (err) {
+    console.error('Error getting notifications:', err);
+    return [];
+  }
+}
+
+async function getUnreadNotificationCount(userRole) {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    
+    const count = await db.collection('Notifications').countDocuments({
+      targetRoles: { $in: [userRole] },
+      isRead: false
+    });
+    
+    await client.close();
+    return count;
+  } catch (err) {
+    console.error('Error getting unread notification count:', err);
+    return 0;
+  }
+}
+
+async function markNotificationAsRead(notificationId) {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    
+    const result = await db.collection('Notifications').updateOne(
+      { _id: new ObjectId(notificationId) },
+      { $set: { isRead: true, readAt: new Date() } }
+    );
+    
+    await client.close();
+    return result;
+  } catch (err) {
+    console.error('Error marking notification as read:', err);
+    throw err;
+  }
+}
+
+async function markAllNotificationsAsRead(userRole) {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    
+    const result = await db.collection('Notifications').updateMany(
+      { 
+        targetRoles: { $in: [userRole] },
+        isRead: false 
+      },
+      { $set: { isRead: true, readAt: new Date() } }
+    );
+    
+    await client.close();
+    return result;
+  } catch (err) {
+    console.error('Error marking all notifications as read:', err);
+    throw err;
+  }
+}
+
+async function deleteNotification(notificationId) {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    
+    const result = await db.collection('Notifications').deleteOne({
+      _id: new ObjectId(notificationId)
+    });
+    
+    await client.close();
+    return result;
+  } catch (err) {
+    console.error('Error deleting notification:', err);
+    throw err;
+  }
+}
+
+// Generate specific types of notifications
+
+async function createNewOrderNotification(orderData) {
+  try {
+    console.log('🔔 Creating new order notification for order:', orderData.OrderID);
+    
+    const notification = await createNotification({
+      type: 'order',
+      title: 'New Order Received',
+      message: `Order #${orderData.OrderID} received from ${orderData.Customer?.fullname || 'Customer'}`,
+      data: {
+        orderId: orderData.OrderID,
+        customerName: orderData.Customer?.fullname || 'Unknown',
+        total: orderData.Total,
+        items: orderData.Cart?.length || 0
+      },
+      actionUrl: '/admin/orders',
+      priority: 'high',
+      targetRoles: ['admin', 'staff']
+    });
+    
+    console.log('✅ New order notification created:', notification._id);
+    return notification;
+  } catch (error) {
+    console.error('❌ Error creating new order notification:', error);
+    throw error;
+  }
+}
+
+async function createMessageNotification(messageData, targetRole = 'admin') {
+  return await createNotification({
+    type: 'message',
+    title: 'New Message Received',
+    message: `New message from ${messageData.senderName || 'Unknown'}`,
+    data: {
+      messageId: messageData._id || messageData.id,
+      senderName: messageData.senderName || 'Unknown',
+      subject: messageData.subject
+    },
+    actionUrl: targetRole === 'admin' ? '/admin/messages' : '/staff/messages',
+    priority: 'normal',
+    targetRoles: [targetRole]
+  });
+}
+
+async function createLowStockNotification(stockData, userSettings = {}) {
+  const client = await MongoClient.connect(uri);
+  const db = client.db('blessingscafe');
+  
+  try {
+    // Get user settings from UserSettings collection if not provided
+    let effectiveThreshold = userSettings.lowStockAlertRange || userSettings.lowStockThreshold;
+    
+    if (!effectiveThreshold) {
+      // Get admin user settings from UserSettings collection
+      const adminUser = await db.collection('users').findOne({ role: 'admin' });
+      if (adminUser) {
+        const adminSettings = await db.collection('UserSettings').findOne({ userId: adminUser._id });
+        effectiveThreshold = adminSettings?.lowStockAlertRange || 10;
+      } else {
+        effectiveThreshold = 10; // Default fallback
+      }
+    }
+    
+    const urgentThreshold = Math.floor(effectiveThreshold / 2); // Half of normal threshold for urgent
+    const items = [];
+    
+    // Check ingredients against threshold
+    if (stockData.ingredients) {
+      stockData.ingredients.forEach(item => {
+        const amount = item.Amount || 0;
+        if (amount <= effectiveThreshold && item.isEnabled !== false) {
+          items.push({
+            name: `${item.Name} (${amount}g remaining)`,
+            amount: amount,
+            type: 'ingredient',
+            id: item.IngredientID
+          });
+        }
+      });
+    }
+    
+    // Check add-ons against threshold (both ingredients and add-ons use "Amount" field)
+    if (stockData.addons) {
+      console.log('🔍 Checking add-ons for low stock, threshold:', effectiveThreshold);
+      stockData.addons.forEach(item => {
+        const amount = item.Amount || 0; // Use "Amount" field same as ingredients
+        console.log(`  - ${item.Name}: ${amount} (enabled: ${item.isEnabled !== false})`);
+        
+        if (amount <= effectiveThreshold && item.isEnabled !== false) {
+          console.log(`    ⚠️ Low stock: ${item.Name} (${amount} <= ${effectiveThreshold})`);
+          items.push({
+            name: `${item.Name} (${amount} pieces remaining)`,
+            amount: amount,
+            type: 'addon',
+            id: item.AddOnID
+          });
+        }
+      });
+    }
+    
+    if (items.length === 0) return null;
+    
+    // Determine priority based on severity
+    const criticalItems = items.filter(item => {
+      if (item.type === 'ingredient') {
+        return item.amount <= urgentThreshold;
+      } else {
+        return item.amount <= 1;
+      }
+    });
+    
+    const priority = criticalItems.length > 0 ? 'urgent' : 'high';
+    const itemsText = items.slice(0, 3).map(item => item.name).join(', ');
+    const additionalText = items.length > 3 ? ` and ${items.length - 3} more` : '';
+    
+    // Check if we already sent a low stock notification in the last 2 hours
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
+    const existingNotification = await db.collection('Notifications').findOne({
+      type: 'stock',
+      createdAt: { $gte: twoHoursAgo },
+      isRead: false
+    });
+    
+    if (existingNotification) {
+      console.log('🔔 Low stock notification already exists within 2 hours, skipping duplicate');
+      return null;
+    }
+    
+    const notification = await createNotification({
+      type: 'stock',
+      title: `${priority === 'urgent' ? '🚨 Critical' : '⚠️'} Low Stock Alert`,
+      message: `${items.length} item(s) running low: ${itemsText}${additionalText}`,
+      data: {
+        lowStockItems: items,
+        threshold: effectiveThreshold,
+        totalItems: items.length,
+        criticalCount: criticalItems.length,
+        ingredients: items.filter(i => i.type === 'ingredient').length,
+        addons: items.filter(i => i.type === 'addon').length
+      },
+      actionUrl: '/admin/stocks',
+      priority: priority,
+      targetRoles: ['admin', 'staff']
+    });
+    
+    console.log(`🔔 Created low stock notification: ${items.length} items below threshold (${effectiveThreshold})`);
+    return notification;
+    
+  } catch (error) {
+    console.error('Error creating low stock notification:', error);
+    return null;
+  } finally {
+    await client.close();
+  }
+}
+
+async function createMonthlyReportNotification() {
+  const now = new Date();
+  const month = now.toLocaleString('default', { month: 'long' });
+  const year = now.getFullYear();
+  
+  return await createNotification({
+    type: 'report',
+    title: 'Monthly Report Available',
+    message: `Analytics report for ${month} ${year} is now available for download`,
+    data: {
+      reportMonth: month,
+      reportYear: year,
+      generatedAt: now
+    },
+    actionUrl: '/admin/analytics',
+    priority: 'normal',
+    targetRoles: ['admin']
+  });
+}
+
+async function createPromoExpiryNotification(promoData) {
+  const daysUntilExpiry = Math.ceil((new Date(promoData.endDate) - new Date()) / (1000 * 60 * 60 * 24));
+  
+  return await createNotification({
+    type: 'promo',
+    title: 'Promotion Expiring Soon',
+    message: `"${promoData.event}" expires in ${daysUntilExpiry} day(s)`,
+    data: {
+      promoId: promoData._id,
+      promoName: promoData.event,
+      expiryDate: promoData.endDate,
+      daysLeft: daysUntilExpiry
+    },
+    actionUrl: '/admin/discounts',
+    priority: daysUntilExpiry <= 1 ? 'urgent' : daysUntilExpiry <= 3 ? 'high' : 'normal',
+    targetRoles: ['admin']
+  });
+}
+
+// Check for notifications that need to be generated
+async function generatePeriodicNotifications(userSettings = {}) {
+  try {
+    const notifications = [];
+    const now = new Date();
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    
+    console.log('🔔 Starting periodic notification generation...');
+    
+    // Get user settings for all admin users if not provided
+    let allUserSettings = [];
+    if (!userSettings.lowStockAlertRange) {
+      const adminUsers = await db.collection('users').find({ role: 'admin' }).toArray();
+      for (const user of adminUsers) {
+        const settings = await db.collection('UserSettings').findOne({ userId: user._id });
+        allUserSettings.push({
+          userId: user._id,
+          fullname: user.fullname,
+          settings: settings || { lowStockAlertRange: 10 }
+        });
+      }
+    } else {
+      allUserSettings = [{ settings: userSettings }];
+    }
+    
+    // Check for low stock using the most restrictive threshold
+    const lowestThreshold = allUserSettings.reduce((min, userSet) => {
+      const threshold = userSet.settings.lowStockAlertRange || 10;
+      return Math.min(min, threshold);
+    }, 10);
+    
+    console.log(`🔍 Checking low stock with threshold: ${lowestThreshold}`);
+    const stockData = await getStockData();
+    const lowStockNotif = await createLowStockNotification(stockData, { lowStockAlertRange: lowestThreshold });
+    if (lowStockNotif) {
+      notifications.push(lowStockNotif);
+      console.log('✅ Low stock notification created');
+    }
+    
+    // Check for monthly report availability (check if it's the 1st day of the month)
+    if (now.getDate() === 1) {
+      console.log('📅 Checking for monthly report notification (1st of month)...');
+      
+      // Check if we haven't already sent monthly report notification today
+      const existingMonthlyNotif = await db.collection('Notifications').findOne({
+        type: 'report',
+        createdAt: { $gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) }
+      });
+      
+      if (!existingMonthlyNotif) {
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+          'July', 'August', 'September', 'October', 'November', 'December'];
+        const lastMonth = now.getMonth() === 0 ? 11 : now.getMonth() - 1;
+        const lastMonthName = monthNames[lastMonth];
+        const year = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+        
+        const monthlyNotif = await createMonthlyReportNotification({
+          month: lastMonthName,
+          year: year
+        });
+        notifications.push(monthlyNotif);
+        console.log('✅ Monthly report notification created');
+      } else {
+        console.log('ℹ️ Monthly report notification already exists for today');
+      }
+    }
+    
+    // Check for expiring promos
+    console.log('🎯 Checking for expiring promos...');
+    const promos = await getActiveDiscounts();
+    for (const promo of promos) {
+      const daysUntilExpiry = Math.ceil((new Date(promo.endDate) - now) / (1000 * 60 * 60 * 24));
+      if (daysUntilExpiry <= 7 && daysUntilExpiry >= 0) {
+        // Check if we haven't already notified about this promo today
+        const existingNotif = await db.collection('Notifications').findOne({
+          type: 'promo',
+          'data.promoId': promo._id.toString(),
+          createdAt: { $gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) }
+        });
+        
+        if (!existingNotif) {
+          const promoNotif = await createPromoExpiryNotification(promo);
+          notifications.push(promoNotif);
+          console.log(`✅ Promo expiry notification created for: ${promo.event}`);
+        }
+      }
+    }
+    
+    await client.close();
+    
+    console.log(`🔔 Periodic notification generation complete: ${notifications.length} notifications created`);
+    return notifications;
+    
+  } catch (err) {
+    console.error('❌ Error generating periodic notifications:', err);
+    return [];
+  }
+}
+
+// Utility function to trigger notifications based on business events
+async function triggerBusinessEventNotification(eventType, eventData = {}) {
+  try {
+    console.log(`🔔 Triggering ${eventType} notification...`);
+    
+    switch (eventType) {
+      case 'low-stock-check':
+        const stockData = await getStockData();
+        const lowStockNotif = await createLowStockNotification(stockData, eventData.userSettings);
+        return lowStockNotif;
+        
+      case 'new-order':
+        return await createNewOrderNotification(eventData);
+        
+      case 'new-message':
+        return await createMessageNotification(eventData.messageData, eventData.targetRole);
+        
+      case 'promo-expiry':
+        return await createPromoExpiryNotification(eventData);
+        
+      case 'monthly-report':
+        return await createMonthlyReportNotification(eventData);
+        
+      default:
+        console.log(`ℹ️ Unknown event type: ${eventType}`);
+        return null;
+    }
+  } catch (error) {
+    console.error(`❌ Error triggering ${eventType} notification:`, error);
+    return null;
+  }
+}
+
 module.exports = {
   getDashboardStats,
   getDashboardAnalyticsStats,
@@ -1271,5 +1720,19 @@ module.exports = {
   bulkUpdateDiscounts,
   getDiscountStats,
   getActiveDiscounts,
-  getDiscountById
+  getDiscountById,
+  // Notification functions
+  createNotification,
+  getNotifications,
+  getUnreadNotificationCount,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  deleteNotification,
+  createNewOrderNotification,
+  createMessageNotification,
+  createLowStockNotification,
+  createMonthlyReportNotification,
+  createPromoExpiryNotification,
+  generatePeriodicNotifications,
+  triggerBusinessEventNotification
 };

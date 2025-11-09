@@ -8,6 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const multer = require('multer');
+const { createNewOrderNotification, createMessageNotification, createLowStockNotification } = require('../admin-helpers');
 let productCollection;
 
 
@@ -1037,6 +1038,14 @@ router.post('/orders/submit', ensureAdmin, async (req, res) => {
       // Log successful order submission
       console.log(`✅ POS Order submitted successfully: ${orderData.OrderID} by ${req.session.user?.fullname}`);
 
+      // Create notification for new order
+      try {
+        await createNewOrderNotification(orderToInsert);
+      } catch (notifError) {
+        console.error('Failed to create order notification:', notifError);
+        // Don't fail the order creation if notification fails
+      }
+
       res.json({
         success: true,
         message: 'Order submitted successfully',
@@ -1589,6 +1598,18 @@ router.post('/messages/api/send', async (req, res) => {
 
     const result = await db.collection('messages').insertOne(message);
 
+    // Create notification for new message
+    try {
+      await createMessageNotification({
+        _id: result.insertedId,
+        senderName: req.session.user?.fullname || 'Unknown',
+        subject: subject || 'New Message'
+      }, 'admin');
+    } catch (notifError) {
+      console.error('Failed to create message notification:', notifError);
+      // Don't fail the message sending if notification fails
+    }
+
     await client.close();
 
     res.json({
@@ -1984,6 +2005,15 @@ router.post('/stocks', async (req, res) => {
 router.post('/stocks/edit/:id', async (req, res) => {
   try {
     await updateIngredient(req.params.id, req.body);
+    
+    // Check for low stock after update and trigger notification if needed
+    try {
+      const stockData = await getStockData();
+      await createLowStockNotification(stockData, req.session.user || {});
+    } catch (notifError) {
+      console.error('Failed to create stock notification after update:', notifError);
+    }
+    
     res.redirect('/admin/stocks?msg=update_success');
   } catch (err) {
     console.error('Update item error:', err);
@@ -2003,6 +2033,15 @@ router.post('/stocks/delete/:id', async (req, res) => {
 router.post('/stocks/bulk-update', async (req, res) => {
   try {
     const modified = await bulkUpdateIngredients(req.body.updates);
+    
+    // Check for low stock after bulk update and trigger notification if needed
+    try {
+      const stockData = await getStockData();
+      await createLowStockNotification(stockData, req.session.user || {});
+    } catch (notifError) {
+      console.error('Failed to create stock notification after bulk update:', notifError);
+    }
+    
     res.json({ success: true, modified });
   } catch (err) {
     res.status(500).json({ error: 'Failed to perform bulk update' });

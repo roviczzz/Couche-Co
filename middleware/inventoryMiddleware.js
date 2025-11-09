@@ -1,4 +1,5 @@
 const InventoryManager = require('../utils/inventoryManager');
+const { createLowStockNotification, getStockData } = require('../admin-helpers');
 
 const checkInventoryAvailability = async (req, res, next) => {
   try {
@@ -91,6 +92,23 @@ const deductInventoryAfterPayment = async (orderData) => {
     
     console.log('Successfully deducted inventory for order:', orderData.OrderID);
     console.log('Deduction details:', deductionResult.deductions);
+    
+    // After successful inventory deduction, check for low stock and trigger notification
+    try {
+      console.log('🔍 Checking for low stock after inventory deduction...');
+      const stockData = await getStockData();
+      const notification = await createLowStockNotification(stockData);
+      
+      if (notification) {
+        console.log('✅ Low stock notification created after inventory deduction');
+      } else {
+        console.log('ℹ️ No low stock notification needed');
+      }
+    } catch (notificationError) {
+      console.error('❌ Error checking low stock after deduction:', notificationError);
+      // Don't fail the order if notification fails
+    }
+    
     return deductionResult;
     
   } catch (error) {
