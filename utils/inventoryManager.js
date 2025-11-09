@@ -7,54 +7,61 @@ class InventoryManager {
   static async deductIngredients(orderItems) {
     let client;
     const deductionLog = [];
-    
+
     try {
       client = new MongoClient(uri);
       await client.connect();
       const db = client.db('blessingscafe');
-      
+
       const menuCollection = db.collection('Menu');
       const ingredientsCollection = db.collection('Ingredients');
       const addonsCollection = db.collection('Add-ons');
-      
+
+      console.log(`[INVENTORY DEBUG] Starting deduction for ${orderItems.length} order items`);
+
       for (const item of orderItems) {
-        if (item.isFree) continue;
-        
+        if (item.isFree) {
+          console.log(`[INVENTORY DEBUG] Skipping free item: ${item.ProductName}`);
+          continue;
+        }
+
+        console.log(`[INVENTORY DEBUG] Processing order item:`, JSON.stringify(item, null, 2));
+
         // Find menu item by ProductID or Name
-        const menuItem = await menuCollection.findOne({ 
+        const menuItem = await menuCollection.findOne({
           $or: [
             { ProductID: item.ProductID },
             { Name: item.ProductName }
           ]
         });
-        
+
         if (!menuItem) {
           console.warn(`[INVENTORY DEBUG] Menu item not found in database: ${item.ProductName} (ProductID: ${item.ProductID})`);
           continue;
         }
-        
-        console.log(`[INVENTORY DEBUG] Processing item: ${item.ProductName}, Quantity: ${item.Quantity}, Size: ${item.Size}`);
-        
+
+        console.log(`[INVENTORY DEBUG] Found menu item:`, JSON.stringify(menuItem, null, 2));
+
         // Process ingredients for this menu item
         await this.processMenuItemIngredients(
-          menuItem, 
-          item, 
-          ingredientsCollection, 
+          menuItem,
+          item,
+          ingredientsCollection,
           deductionLog
         );
-        
+
         // Process add-ons for this item
         await this.processAddons(
-          item.Addons || [], 
-          addonsCollection, 
+          item.Addons || [],
+          addonsCollection,
           deductionLog
         );
       }
-      
+
       console.log(`[INVENTORY SUCCESS] Completed deduction for ${orderItems.length} items. Total deductions: ${deductionLog.length}`);
       console.log('[INVENTORY DEBUG] Detailed deduction log:', JSON.stringify(deductionLog, null, 2));
       return { success: true, deductions: deductionLog };
-      
+
     } catch (error) {
       console.error('[INVENTORY ERROR] Failed to deduct ingredients:', error);
       return { success: false, error: error.message };

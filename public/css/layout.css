@@ -227,6 +227,7 @@
     align-items: center;
     margin-bottom: 24px;
     flex-shrink: 0;
+    gap: 10px;
 }
 
 .sidebar-logo img {
@@ -240,6 +241,7 @@
 .sidebar-collapsed .sidebar-logo img {
     max-width: 36px;
     max-height: 36px;
+    display: none;
 }
 
 .sidebar-toggle-btn-row {
@@ -275,7 +277,6 @@
     font-size: 18px;
     cursor: pointer;
     display: flex;
-    align-items: center;
     justify-content: center;
     margin-right: 12px;
     flex-shrink: 0;
@@ -311,23 +312,6 @@
 .sidebar-toggle-btn .fa-angles-left,
 .sidebar-toggle-btn .fa-angles-right {
     display: none;
-}
-
-.sidebar:not(.sidebar-collapsed) .sidebar-toggle-btn .fa-bars {
-    display: none;
-}
-
-.sidebar:not(.sidebar-collapsed) .sidebar-toggle-btn .fa-angles-left {
-    display: inline-block;
-}
-
-.sidebar-collapsed .sidebar-toggle-btn .fa-bars,
-.sidebar-collapsed .sidebar-toggle-btn .fa-angles-left {
-    display: none;
-}
-
-.sidebar-collapsed .sidebar-toggle-btn .fa-angles-right {
-    display: inline-block;
 }
 
 .sidebar-toggle-label {

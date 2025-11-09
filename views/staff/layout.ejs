@@ -16,14 +16,9 @@
         <div class="sidebar sidebar-no-transition">
             <div class="sidebar-logo">
                 <img src="/resources/logo.png" alt="Logo" />
-            </div>
-            <div class="sidebar-toggle-btn-row">
-                <button type="button" id="sidebar-toggle-btn" class="sidebar-toggle-btn" title="Toggle sidebar" style="margin-bottom: 11px">
+                <button type="button" id="sidebar-toggle-btn" class="sidebar-toggle-btn" title="Toggle sidebar">
                     <i class="fa-solid fa-bars"></i>
-                    <i class="fa-solid fa-angles-left"></i>
-                    <i class="fa-solid fa-angles-right"></i>
                 </button>
-                <span class="sidebar-toggle-label">Collapse Sidebar</span>
             </div>
             <div class="sidebar-menu">
                 <ul>
@@ -64,9 +59,6 @@
                       <% if (groupIdx > 0) { %>
                         <li class="sidebar-group-divider"></li>
                       <% } %>
-                      <li class="sidebar-group-label">
-                        <span class="sidebar-group-label-text"><%= group.label %></span>
-                      </li>
                        <% group.items.forEach(item => {
                            const isActive = (typeof currentPage !== 'undefined' && currentPage === item.path);
                       %>

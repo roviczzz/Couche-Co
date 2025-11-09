@@ -1355,19 +1355,31 @@ function showOrderConfirmation() {
     const confirmSubmitBtn = document.getElementById('confirm-submit-btn');
     const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
 
-    // Remove previous event listeners
-    const newConfirmSubmitBtn = confirmSubmitBtn.cloneNode(true);
-    const newConfirmCancelBtn = confirmCancelBtn.cloneNode(true);
+    // Ensure buttons are visible
+    if (confirmSubmitBtn) {
+        confirmSubmitBtn.style.display = '';
+        confirmSubmitBtn.disabled = false;
+    }
+    if (confirmCancelBtn) {
+        confirmCancelBtn.style.display = '';
+        confirmCancelBtn.disabled = false;
+    }
 
-    confirmSubmitBtn.parentNode.replaceChild(newConfirmSubmitBtn, confirmSubmitBtn);
-    confirmCancelBtn.parentNode.replaceChild(newConfirmCancelBtn, confirmCancelBtn);
+    // Remove previous event listeners by cloning and replacing
+    if (confirmSubmitBtn && confirmCancelBtn) {
+        const newConfirmSubmitBtn = confirmSubmitBtn.cloneNode(true);
+        const newConfirmCancelBtn = confirmCancelBtn.cloneNode(true);
 
-    // Add new event listeners
-    newConfirmSubmitBtn.addEventListener('click', () => {
-        finalizeOrder();
-    });
+        confirmSubmitBtn.parentNode.replaceChild(newConfirmSubmitBtn, confirmSubmitBtn);
+        confirmCancelBtn.parentNode.replaceChild(newConfirmCancelBtn, confirmCancelBtn);
 
-    newConfirmCancelBtn.addEventListener('click', closeOrderConfirmation);
+        // Add new event listeners
+        newConfirmSubmitBtn.addEventListener('click', () => {
+            finalizeOrder();
+        });
+
+        newConfirmCancelBtn.addEventListener('click', closeOrderConfirmation);
+    }
 
     // Show the modal
     document.getElementById('order-confirm-modal').classList.remove('hidden');
@@ -1392,10 +1404,16 @@ function showOrderConfirmationSuccess() {
     // Change title
     document.getElementById('confirm-title').textContent = 'Order Confirmed';
 
-    // Auto-close modal after 3 seconds
-    setTimeout(() => {
-        closeOrderConfirmation();
-    }, 3000);
+    // Add event listener to OK button
+    const successOkBtn = document.getElementById('success-ok-btn');
+    if (successOkBtn) {
+        // Remove any existing listeners first
+        const newSuccessOkBtn = successOkBtn.cloneNode(true);
+        successOkBtn.parentNode.replaceChild(newSuccessOkBtn, successOkBtn);
+        
+        // Add new event listener
+        newSuccessOkBtn.addEventListener('click', closeOrderConfirmation);
+    }
 }
 
 function resetOrderConfirmationModal() {
@@ -1406,6 +1424,19 @@ function resetOrderConfirmationModal() {
 
     // Reset title
     document.getElementById('confirm-title').textContent = 'Confirm Order';
+
+    // Ensure buttons are visible and properly reset
+    const confirmSubmitBtn = document.getElementById('confirm-submit-btn');
+    const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
+
+    if (confirmSubmitBtn) {
+        confirmSubmitBtn.style.display = '';
+        confirmSubmitBtn.disabled = false;
+    }
+    if (confirmCancelBtn) {
+        confirmCancelBtn.style.display = '';
+        confirmCancelBtn.disabled = false;
+    }
 }
 
 function closeOrderConfirmation() {
@@ -1413,7 +1444,7 @@ function closeOrderConfirmation() {
     resetOrderConfirmationModal();
 }
 
-function finalizeOrder() {
+async function finalizeOrder() {
     const paymentMethod = getSelectedPaymentMethod();
     const orderData = submitOrder();
 
@@ -1421,31 +1452,84 @@ function finalizeOrder() {
     document.getElementById('confirm-submit-btn').style.display = 'none';
     document.getElementById('confirm-cancel-btn').style.display = 'none';
 
-    if (paymentMethod === 'cash') {
-        // For cash payment, show processing message in confirm-message
-        const confirmMessage = document.getElementById('confirm-message');
-        confirmMessage.innerHTML = `
-            <div style="text-align: center; padding: 20px;">
-                <div class="loading-spinner" style="margin: 0 auto 15px auto; width: 40px; height: 40px;">
-                    <div style="border: 4px solid #f3f3f3; border-top: 4px solid #007bff; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite;"></div>
-                </div>
-                <p style="font-size: 16px; color: #333; margin: 0;">Processing order...</p>
-            </div>
-            <style>
-                @keyframes spin {
-                    0% { transform: rotate(0deg); }
-                    100% { transform: rotate(360deg); }
+    try {
+        // Check inventory availability before creating order (like checkout.js)
+        const cartItems = window.cartItems || [];
+        const inventoryCheck = await fetch('/api/inventory/check', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                Cart: cartItems.map(item => ({
+                    ProductName: item.ProductName,
+                    ProductID: item.ProductID,
+                    Size: item.Size,
+                    Addons: item.AddOns || [],
+                    Quantity: item.Quantity,
+                    Price: item.BasePrice,
+                    ImageLink: item.ImageLink || ""
+                }))
+            })
+        });
+
+        if (!inventoryCheck.ok) {
+            const inventoryError = await inventoryCheck.json();
+
+            if (inventoryCheck.status === 409) {
+                // Log detailed error information for debugging
+                console.log('Inventory check failed - detailed information:');
+                console.log('Full error response:', inventoryError);
+
+                // Log each unavailable item with details
+                inventoryError.unavailableItems.forEach(item => {
+                    console.log(`Unavailable item: ${item.item} - Reason: ${item.reason}`);
+                    if (item.missingIngredients && item.missingIngredients.length > 0) {
+                        item.missingIngredients.forEach(ing => {
+                            if (ing.type === 'addon') {
+                                console.log(`  Missing add-on: ${ing.name} - Need: ${ing.needed}, Available: ${ing.available}`);
+                            } else {
+                                console.log(`  Missing ingredient: ${ing.name} - Need: ${ing.needed}g, Available: ${ing.available}g`);
+                            }
+                        });
+                    }
+                });
+
+                // Customer-friendly message
+                const unavailableItemNames = inventoryError.unavailableItems.map(item => item.item);
+                let customerMessage;
+
+                if (unavailableItemNames.length === 1) {
+                    customerMessage = `Sorry, ${unavailableItemNames[0]} is currently unavailable due to insufficient ingredients.\n\nPlease choose a different item or modify your order.`;
+                } else {
+                    customerMessage = `Sorry, the following items are currently unavailable:\n\n${unavailableItemNames.map(name => `• ${name}`).join('\n')}\n\nPlease choose different items or modify your order.`;
                 }
-            </style>
-        `;
-        
-        // Submit order and handle success
-        submitToServer(orderData);
-    } else if (paymentMethod === 'epayment') {
-        // Immediately show processing state for e-payment
-        showOrderConfirmationProcessing();
-        // Show payment gateway
-        showXenditGateway(orderData);
+
+                alert(customerMessage);
+                resetOrderConfirmationModal();
+                return;
+            } else {
+                throw new Error(inventoryError.error || 'Inventory check failed');
+            }
+        }
+
+        // Continue with order processing if inventory is available
+        if (paymentMethod === 'cash') {
+            // Show processing state for cash payment
+            showOrderConfirmationProcessing();
+
+            // Submit order and handle success
+            submitToServer(orderData);
+        } else if (paymentMethod === 'epayment') {
+            // Immediately show processing state for e-payment
+            showOrderConfirmationProcessing();
+            // Show payment gateway
+            showXenditGateway(orderData);
+        }
+    } catch (error) {
+        console.error('Order processing error:', error);
+        alert('An error occurred during order processing. Please try again.');
+        resetOrderConfirmationModal();
     }
 }
 
@@ -1462,30 +1546,10 @@ async function submitToServer(orderData) {
         const result = await response.json();
 
         if (response.ok && result.success) {
-            // Show success message in confirm-message
-            const confirmMessage = document.getElementById('confirm-message');
-            confirmMessage.innerHTML = `
-                <div style="text-align: center; padding: 20px;">
-                    <div style="margin: 0 auto 15px auto; width: 50px; height: 50px; color: #28a745;">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width: 50px; height: 50px;">
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                        </svg>
-                    </div>
-                    <p style="font-size: 18px; color: #28a745; margin: 0; font-weight: bold;">Order Confirmed!</p>
-                    <p style="font-size: 14px; color: #666; margin: 5px 0 0 0;">Order has been successfully submitted</p>
-                </div>
-            `;
-
-            // Update modal title
-            document.getElementById('confirm-title').textContent = 'Order Confirmed';
-            
+            // Show success state with confirm button
+            showOrderConfirmationSuccess();
             showFeedbackMessage('Order submitted successfully!', 'success');
             clearOrderForm();
-            
-            // Auto-close modal after 3 seconds
-            setTimeout(() => {
-                closeOrderConfirmation();
-            }, 3000);
         } else {
             throw new Error(result.message || 'Failed to submit order');
         }
@@ -1672,6 +1736,9 @@ function closeXenditGateway() {
         paymentStatusInterval = null;
     }
     document.getElementById('xendit-gateway-modal').classList.add('hidden');
+
+    // Reset order confirmation modal to initial state when payment is cancelled
+    resetOrderConfirmationModal();
 }
 
 async function checkPaymentStatus(orderId, isAutomatic = false) {

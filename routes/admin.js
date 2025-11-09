@@ -1038,6 +1038,21 @@ router.post('/orders/submit', ensureAdmin, async (req, res) => {
       // Log successful order submission
       console.log(`✅ POS Order submitted successfully: ${orderData.OrderID} by ${req.session.user?.fullname}`);
 
+      // Deduct ingredients and add-ons from inventory
+      try {
+        const InventoryManager = require('../utils/inventoryManager');
+        const deductionResult = await InventoryManager.deductIngredients(orderData.Cart);
+        if (deductionResult.success) {
+          console.log(`✅ Stock deduction completed for order ${orderData.OrderID}:`, deductionResult.deductions);
+        } else {
+          console.error('❌ Stock deduction failed:', deductionResult.error);
+          // Don't fail the order if stock deduction fails, but log it
+        }
+      } catch (deductionError) {
+        console.error('❌ Error during stock deduction:', deductionError);
+        // Don't fail the order if stock deduction fails
+      }
+
       // Create notification for new order
       try {
         await createNewOrderNotification(orderToInsert);

@@ -75,44 +75,45 @@ const checkInventoryAvailability = async (req, res, next) => {
 const deductInventoryAfterPayment = async (orderData) => {
   try {
     const orderItems = orderData.Cart || [];
-    
+
     if (!orderItems || orderItems.length === 0) {
-      console.warn('No items to deduct from inventory');
+      console.warn('[INVENTORY] No items to deduct from inventory');
       return { success: true, message: 'No items to process' };
     }
-    
-    console.log(`Deducting inventory for order ${orderData.OrderID} with ${orderItems.length} items`);
-    
+
+    console.log(`[INVENTORY] Starting deduction for order ${orderData.OrderID} with ${orderItems.length} items`);
+    console.log('[INVENTORY] Order items:', JSON.stringify(orderItems, null, 2));
+
     const deductionResult = await InventoryManager.deductIngredients(orderItems);
-    
+
     if (!deductionResult.success) {
-      console.error('Failed to deduct inventory:', deductionResult.error);
+      console.error('[INVENTORY] Failed to deduct inventory:', deductionResult.error);
       return deductionResult;
     }
-    
-    console.log('Successfully deducted inventory for order:', orderData.OrderID);
-    console.log('Deduction details:', deductionResult.deductions);
-    
+
+    console.log('[INVENTORY] Successfully deducted inventory for order:', orderData.OrderID);
+    console.log('[INVENTORY] Deduction details:', deductionResult.deductions);
+
     // After successful inventory deduction, check for low stock and trigger notification
     try {
-      console.log('🔍 Checking for low stock after inventory deduction...');
+      console.log('[INVENTORY] Checking for low stock after inventory deduction...');
       const stockData = await getStockData();
       const notification = await createLowStockNotification(stockData);
-      
+
       if (notification) {
-        console.log('✅ Low stock notification created after inventory deduction');
+        console.log('[INVENTORY] Low stock notification created after inventory deduction');
       } else {
-        console.log('ℹ️ No low stock notification needed');
+        console.log('[INVENTORY] No low stock notification needed');
       }
     } catch (notificationError) {
-      console.error('❌ Error checking low stock after deduction:', notificationError);
+      console.error('[INVENTORY] Error checking low stock after deduction:', notificationError);
       // Don't fail the order if notification fails
     }
-    
+
     return deductionResult;
-    
+
   } catch (error) {
-    console.error('Error in inventory deduction:', error);
+    console.error('[INVENTORY] Error in inventory deduction:', error);
     return { success: false, error: error.message };
   }
 };
