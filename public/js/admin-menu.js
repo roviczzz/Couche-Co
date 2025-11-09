@@ -463,42 +463,91 @@ async function addModalItemToCart() {
     closeSizeModal();
 }
 
+async function checkItemAvailability(item, selectedSize, addons) {
+    try {
+        const response = await fetch('/api/inventory/check-single', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                ProductID: item._id || item.id,
+                Size: selectedSize ? (selectedSize.Size || selectedSize.SizeName) : null,
+                Addons: addons.map(addon => ({ AddOnID: addon.id, Name: addon.name })),
+                Quantity: 1
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error('Error checking item availability:', error);
+        // Return available=true on error to not block ordering
+        return { available: true, missingIngredients: [] };
+    }
+}
+
 function addToCart(item, selectedSize = null, addons = []) {
     if (!window.cartItems) {
         window.cartItems = [];
     }
 
-    // Calculate base price and total addon price
-    let basePrice;
-    let sizeName;
+    // Check availability before adding to cart
+    checkItemAvailability(item, selectedSize, addons).then(availability => {
+        if (!availability.available) {
+            let message = 'Item is not available due to insufficient stock:\n';
+            availability.missingIngredients.forEach(missing => {
+                if (missing.type === 'pastry') {
+                    message += `- ${missing.name}: Only ${missing.available} available, need ${missing.needed}\n`;
+                } else if (missing.type === 'ingredient') {
+                    message += `- ${missing.name}: Only ${missing.available}g available, need ${missing.needed}g\n`;
+                } else if (missing.type === 'addon') {
+                    message += `- ${missing.name}: Out of stock\n`;
+                }
+            });
+            showFeedbackMessage(message, 'error');
+            return;
+        }
 
-    if (selectedSize) {
-        basePrice = selectedSize.BasePrice || selectedSize.Price || 0;
-        sizeName = selectedSize.Size || selectedSize.SizeName || 'Regular';
-    } else if (item.Sizes && item.Sizes[0]) {
-        basePrice = item.Sizes[0].BasePrice || item.Sizes[0].Price || 0;
-        sizeName = item.Sizes[0].Size || item.Sizes[0].SizeName || 'Regular';
-    } else {
-        basePrice = item.BasePrice || item.Price || 0;
-        sizeName = 'Regular';
-    }
+        // Calculate base price and total addon price
+        let basePrice;
+        let sizeName;
 
-    const addonPrice = addons.reduce((sum, addon) => sum + addon.price, 0);
-    const totalPrice = basePrice + addonPrice;
+        if (selectedSize) {
+            basePrice = selectedSize.BasePrice || selectedSize.Price || 0;
+            sizeName = selectedSize.Size || selectedSize.SizeName || 'Regular';
+        } else if (item.Sizes && item.Sizes[0]) {
+            basePrice = item.Sizes[0].BasePrice || item.Sizes[0].Price || 0;
+            sizeName = item.Sizes[0].Size || item.Sizes[0].SizeName || 'Regular';
+        } else {
+            basePrice = item.BasePrice || item.Price || 0;
+            sizeName = 'Regular';
+        }
 
-    const cartItem = {
-        itemId: Date.now() + Math.random(),
-        ProductName: item.Name,
-        ProductID: item._id || item.id,
-        Size: sizeName,
-        AddOns: addons.map(addon => addon.name),
-        Quantity: 1,
-        BasePrice: totalPrice, // Include addon prices in base price for total calculation
-        ImageLink: item.imagelink || ""
-    };
+        const addonPrice = addons.reduce((sum, addon) => sum + addon.price, 0);
+        const totalPrice = basePrice + addonPrice;
 
-    window.cartItems.push(cartItem);
-    updateCartDisplay();
+        const cartItem = {
+            itemId: Date.now() + Math.random(),
+            ProductName: item.Name,
+            ProductID: item._id || item.id,
+            Size: sizeName,
+            AddOns: addons.map(addon => addon.name),
+            Quantity: 1,
+            BasePrice: totalPrice, // Include addon prices in base price for total calculation
+            ImageLink: item.imagelink || ""
+        };
+
+        window.cartItems.push(cartItem);
+        updateCartDisplay();
+    }).catch(error => {
+        console.error('Error checking availability:', error);
+        showFeedbackMessage('Error checking item availability. Please try again.', 'error');
+    });
 }
 
 function updateCartDisplay() {
@@ -1477,11 +1526,14 @@ async function finalizeOrder() {
 
         // Continue with order processing if inventory is available
         if (paymentMethod === 'cash') {
-            // Show processing state for cash payment
-            showOrderConfirmationProcessing();
-
-            // Submit order and handle success
-            submitToServer(orderData);
+            // Show POS calculator modal for cash payment and wait for confirmation
+            const cashConfirmed = await showPOSCalculator(orderData);
+            if (cashConfirmed) {
+                // Show processing state for cash payment
+                showOrderConfirmationProcessing();
+                // Submit order and handle success
+                submitToServer(orderData);
+            }
         } else if (paymentMethod === 'epayment') {
             // Immediately show processing state for e-payment
             showOrderConfirmationProcessing();
@@ -1493,6 +1545,174 @@ async function finalizeOrder() {
         alert('An error occurred during order processing. Please try again.');
         resetOrderConfirmationModal();
     }
+}
+
+function showPOSCalculator(orderData) {
+    return new Promise((resolve) => {
+    // Hide order confirmation modal
+    document.getElementById('order-confirm-modal').classList.add('hidden');
+    
+    // Create POS calculator modal
+    const posModal = document.createElement('div');
+    posModal.id = 'pos-calculator-modal';
+    posModal.className = 'pos-calculator-modal';
+    posModal.innerHTML = `
+        <div class="pos-calculator-container">
+            <div class="pos-calculator-header">
+                <h3>Cash Payment</h3>
+                <button class="pos-close-btn" id="pos-close-btn">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="pos-calculator-body">
+                <div class="pos-order-summary">
+                    <div class="pos-total-amount">
+                        <span class="pos-total-label">Total Amount:</span>
+                        <span class="pos-total-value">₱${orderData.Total.toFixed(2)}</span>
+                    </div>
+                </div>
+                <div class="pos-cash-input">
+                    <label for="cash-received">Cash Received:</label>
+                    <div class="cash-input-container">
+                        <span class="peso-sign">₱</span>
+                        <input type="text" id="cash-received" class="cash-input" placeholder="0.00" inputmode="decimal">
+                    </div>
+                </div>
+                <div class="pos-change-display">
+                    <span class="change-label">Change:</span>
+                    <span class="change-value" id="change-amount">₱0.00</span>
+                </div>
+                <div class="pos-calculator">
+                    <div class="calc-row">
+                        <button class="calc-btn number" data-value="7">7</button>
+                        <button class="calc-btn number" data-value="8">8</button>
+                        <button class="calc-btn number" data-value="9">9</button>
+                        <button class="calc-btn clear" id="pos-clear">C</button>
+                    </div>
+                    <div class="calc-row">
+                        <button class="calc-btn number" data-value="4">4</button>
+                        <button class="calc-btn number" data-value="5">5</button>
+                        <button class="calc-btn number" data-value="6">6</button>
+                        <button class="calc-btn backspace" id="pos-backspace">
+                            <i class="fa-solid fa-delete-left"></i>
+                        </button>
+                    </div>
+                    <div class="calc-row">
+                        <button class="calc-btn number" data-value="1">1</button>
+                        <button class="calc-btn number" data-value="2">2</button>
+                        <button class="calc-btn number" data-value="3">3</button>
+                        <button class="calc-btn exact" id="pos-exact">EXACT</button>
+                    </div>
+                    <div class="calc-row">
+                        <button class="calc-btn number zero" data-value="0">0</button>
+                        <button class="calc-btn decimal" data-value=".">.</button>
+                        <button class="calc-btn confirm" id="pos-confirm">CONFIRM</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(posModal);
+    
+    // Get elements
+    const cashInput = document.getElementById('cash-received');
+    const changeAmount = document.getElementById('change-amount');
+    const totalAmount = orderData.Total;
+    
+    // Calculator functionality
+    let currentInput = '';
+    
+    function updateChange() {
+        const cashReceived = parseFloat(currentInput) || 0;
+        const change = cashReceived - totalAmount;
+        changeAmount.textContent = change >= 0 ? `₱${change.toFixed(2)}` : '₱0.00';
+        
+        // Update confirm button state
+        const confirmBtn = document.getElementById('pos-confirm');
+        if (change >= 0) {
+            confirmBtn.disabled = false;
+            confirmBtn.classList.add('active');
+        } else {
+            confirmBtn.disabled = true;
+            confirmBtn.classList.remove('active');
+        }
+    }
+    
+    function updateDisplay() {
+        cashInput.value = currentInput;
+        updateChange();
+    }
+    
+    // Calculator button events
+    document.querySelectorAll('.calc-btn.number, .calc-btn.decimal').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const value = btn.dataset.value;
+            if (value === '.' && currentInput.includes('.')) return;
+            currentInput += value;
+            updateDisplay();
+        });
+    });
+    
+    document.getElementById('pos-clear').addEventListener('click', () => {
+        currentInput = '';
+        updateDisplay();
+    });
+    
+    document.getElementById('pos-backspace').addEventListener('click', () => {
+        currentInput = currentInput.slice(0, -1);
+        updateDisplay();
+    });
+    
+    document.getElementById('pos-exact').addEventListener('click', () => {
+        currentInput = totalAmount.toString();
+        updateDisplay();
+    });
+    
+    // Confirm payment
+    document.getElementById('pos-confirm').addEventListener('click', () => {
+        const cashReceived = parseFloat(currentInput) || 0;
+        if (cashReceived >= totalAmount) {
+            // Close POS calculator
+            document.body.removeChild(posModal);
+            resolve(true);
+        }
+    });
+    
+    // Close modal
+    document.getElementById('pos-close-btn').addEventListener('click', () => {
+        document.body.removeChild(posModal);
+        // Reset order confirmation modal
+        resetOrderConfirmationModal();
+        resolve(false);
+    });
+    
+    // Click outside to close
+    posModal.addEventListener('click', (e) => {
+        if (e.target === posModal) {
+            document.body.removeChild(posModal);
+            resetOrderConfirmationModal();
+            resolve(false);
+        }
+    });
+    
+    // Keyboard support
+    cashInput.addEventListener('input', (e) => {
+        currentInput = e.target.value.replace(/[^0-9.]/g, '');
+        updateDisplay();
+    });
+    
+    cashInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            document.getElementById('pos-confirm').click();
+        } else if (e.key === 'Escape') {
+            document.getElementById('pos-close-btn').click();
+        }
+    });
+    
+    // Focus on input
+    setTimeout(() => cashInput.focus(), 100);
+    });
 }
 
 async function submitToServer(orderData) {

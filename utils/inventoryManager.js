@@ -42,20 +42,27 @@ class InventoryManager {
 
         console.log(`[INVENTORY DEBUG] Found menu item:`, JSON.stringify(menuItem, null, 2));
 
-        // Process ingredients for this menu item
-        await this.processMenuItemIngredients(
-          menuItem,
-          item,
-          ingredientsCollection,
-          deductionLog
-        );
+        // Handle pastries (they use Quantity field instead of ingredients)
+        if (menuItem.Category === 'Pastries' || menuItem.Quantity !== undefined) {
+          await this.processPastryItem(menuItem, item, menuCollection, deductionLog);
+        } else {
+          // Process ingredients for drinks/food items
+          await this.processMenuItemIngredients(
+            menuItem,
+            item,
+            ingredientsCollection,
+            deductionLog
+          );
+        }
 
-        // Process add-ons for this item
-        await this.processAddons(
-          item.Addons || [],
-          addonsCollection,
-          deductionLog
-        );
+        // Process add-ons for this item (only for non-pastries)
+        if (menuItem.Category !== 'Pastries' && menuItem.Quantity === undefined) {
+          await this.processAddons(
+            item.Addons || [],
+            addonsCollection,
+            deductionLog
+          );
+        }
       }
 
       console.log(`[INVENTORY SUCCESS] Completed deduction for ${orderItems.length} items. Total deductions: ${deductionLog.length}`);
@@ -122,6 +129,45 @@ class InventoryManager {
       } catch (error) {
         console.error(`[INVENTORY DEBUG] Error processing ingredient ${ingredientID}:`, error);
       }
+    }
+  }
+  
+  static async processPastryItem(menuItem, orderItem, menuCollection, deductionLog) {
+    try {
+      const quantityToDeduct = orderItem.Quantity || 1;
+      const currentQuantity = menuItem.Quantity || 0;
+      
+      console.log(`[INVENTORY DEBUG] Processing pastry: ${menuItem.Name} (${menuItem.ProductID})`);
+      console.log(`[INVENTORY DEBUG] Current quantity: ${currentQuantity}, Deducting: ${quantityToDeduct}`);
+      
+      if (currentQuantity < quantityToDeduct) {
+        console.warn(`[INVENTORY DEBUG] Insufficient pastry quantity for ${menuItem.Name}: needed ${quantityToDeduct}, available ${currentQuantity}`);
+        return;
+      }
+      
+      const result = await menuCollection.updateOne(
+        { ProductID: menuItem.ProductID },
+        { 
+          $inc: { Quantity: -quantityToDeduct },
+          $set: { lastModified: new Date() }
+        }
+      );
+      
+      if (result.modifiedCount > 0) {
+        console.log(`[INVENTORY DEBUG] Successfully deducted ${quantityToDeduct} units of pastry: ${menuItem.Name}`);
+        deductionLog.push({
+          type: 'pastry',
+          id: menuItem.ProductID,
+          name: menuItem.Name,
+          quantityDeducted: quantityToDeduct,
+          orderItem: orderItem.ProductName,
+          quantity: orderItem.Quantity
+        });
+      } else {
+        console.warn(`[INVENTORY DEBUG] Failed to update pastry quantity for ${menuItem.ProductID}`);
+      }
+    } catch (error) {
+      console.error(`[INVENTORY DEBUG] Error processing pastry ${menuItem.ProductID}:`, error);
     }
   }
   
@@ -225,7 +271,29 @@ class InventoryManager {
     const missingIngredients = [];
     
     try {
-      // Check ingredients
+      // Handle pastries (check Quantity field)
+      if (menuItem.Category === 'Pastries' || menuItem.Quantity !== undefined) {
+        const quantityNeeded = orderItem.Quantity || 1;
+        const currentQuantity = menuItem.Quantity || 0;
+        
+        if (currentQuantity < quantityNeeded) {
+          missingIngredients.push({
+            id: menuItem.ProductID,
+            name: menuItem.Name,
+            needed: quantityNeeded,
+            available: currentQuantity,
+            type: 'pastry'
+          });
+        }
+        // Pastries don't have add-ons, so we can return early
+        return {
+          available: missingIngredients.length === 0,
+          missingIngredients,
+          reason: missingIngredients.length > 0 ? 'Insufficient pastry quantity' : null
+        };
+      }
+      
+      // Check ingredients for non-pastry items
       if (menuItem.Ingredients && Array.isArray(menuItem.Ingredients)) {
         for (const ingredient of menuItem.Ingredients) {
           const { ingredientID, usedGrams, name } = ingredient;
