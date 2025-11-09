@@ -1319,6 +1319,36 @@ router.get('/discounts', nocache, async (req, res) => {
   }
 });
 
+// Test endpoint for promo tracking (accessible via /admin/test-promo-tracking)
+router.get('/test-promo-tracking', async (req, res) => {
+  try {
+    const { generatePeriodicNotifications } = require('../admin-helpers');
+    console.log('🧪 Manual promo tracking test initiated...');
+    
+    const notifications = await generatePeriodicNotifications();
+    
+    res.json({
+      success: true,
+      message: 'Promo tracking test completed successfully',
+      notificationsGenerated: notifications.length,
+      notifications: notifications.map(notif => ({
+        type: notif.type || 'unknown',
+        title: notif.title || 'No title',
+        message: notif.message || 'No message',
+        priority: notif.priority || 'normal',
+        createdAt: notif.createdAt || new Date()
+      }))
+    });
+  } catch (error) {
+    console.error('Error in promo tracking test:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Promo tracking test failed',
+      details: error.message
+    });
+  }
+});
+
 // Messages page
 router.get('/messages', nocache, async (req, res) => {
   try {
@@ -2434,6 +2464,20 @@ router.post('/discounts/add', async (req, res) => {
 router.post('/discounts/edit/:id', async (req, res) => {
   try {
     await updateDiscount(req.params.id, req.body);
+    
+    // Trigger immediate promo tracking check for this specific promo
+    try {
+      const { triggerBusinessEventNotification } = require('../admin-helpers');
+      await triggerBusinessEventNotification('promo-update-check', {
+        promoId: req.params.id,
+        updatedData: req.body
+      });
+      console.log(`🔔 Triggered promo update check for discount ID: ${req.params.id}`);
+    } catch (notifError) {
+      console.error('Error triggering promo update notification:', notifError);
+      // Don't fail the main update if notification fails
+    }
+    
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to update discount' });

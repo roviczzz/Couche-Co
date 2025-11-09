@@ -53,6 +53,18 @@
     background: var(--sidebar-active-text);
 }
 
+.dark-theme .sidebar-menu ul li button.notification {
+    color: var(--sidebar-text);
+}
+
+.dark-theme .sidebar-menu ul li button.notification:hover {
+    background: var(--sidebar-hover-bg);
+}
+
+.dark-theme .sidebar-menu ul li button.notification .label-text {
+    color: var(--sidebar-text);
+}
+
 .dark-theme .wrapper {
     background: var(--main-bg);
 }
@@ -413,6 +425,79 @@
     line-height: 25px;
 }
 
+/* Notification button styling when inside sidebar menu */
+.sidebar-menu ul li button.notification {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    text-decoration: none;
+    color: #5a3e2b;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    height: 48px;
+    box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    justify-content: flex-start;
+    margin: 0;
+    transform: none;
+}
+
+.sidebar-menu ul li button.notification:hover {
+    background: #f4e6d9;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.sidebar-menu ul li button.notification i {
+    width: 24px;
+    height: 24px;
+    margin-right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.sidebar-menu ul li button.notification .label-text {
+    font-size: 15px;
+    color: #5a3e2b;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    overflow: hidden;
+    flex: 1;
+    text-align: left;
+    line-height: 25px;
+}
+
+.sidebar-menu ul li button.notification .notification-count {
+    position: absolute;
+    top: 8px;
+    left: 20px;
+    background: #dc3545;
+    color: white;
+    border-radius: 50%;
+    padding: 0;
+    font-size: 10px;
+    font-weight: 600;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #fff;
+    z-index: 10;
+    line-height: 1;
+}
+
 .sidebar-notification-wrapper {
     margin-top: auto;
     width: 100%;
@@ -447,59 +532,34 @@
 }
 
 .notification {
-    width: 100%;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 12px;
-    color: #5a3e2b;
-    cursor: pointer;
-    font-size: 16px;
-    user-select: none;
-    outline: none;
-    background: transparent;
-    border: none;
-    border-radius: 8px;
-    transition: background 0.2s ease;
-    text-decoration: none;
-    box-sizing: border-box;
-}
-
-.notification i {
     width: 24px;
     height: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-right: 12px;
+    color: #5e606e;
+    cursor: pointer;
     font-size: 18px;
+    user-select: none;
+    outline: none;
+    background: transparent;
+    position: relative;
+    margin-right: 12px;
     flex-shrink: 0;
-}
-
-.notification .label-text {
-    font-size: 15px;
-    font-weight: 500;
-    color: #5a3e2b;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    padding: 0;
+    border-radius: 4px;
+    transform: translateY(-1px);
 }
 
 .sidebar-collapsed .notification {
-    justify-content: center;
-    padding: 12px;
-}
-
-.sidebar-collapsed .notification i {
     margin-right: 0;
-}
-
-.sidebar-collapsed .notification .label-text {
-    display: none;
+    transform: none;
 }
 
 .notification:focus,
 .notification:hover {
-    background: #f4e6d9;
+    background: transparent;
 }
 
 .sidebar-notification-label {

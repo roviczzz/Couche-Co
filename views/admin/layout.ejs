@@ -56,6 +56,7 @@
                          { path: '/admin/discounts', label: 'Discounts', icon: 'percent' },
                          { path: '/admin/messages', label: 'Messages', icon: 'envelope' },
                          { path: '#calculator', label: 'Calculator', icon: 'calculator' },
+                         { path: '#notifications', label: 'Notifications', icon: 'bell', isButton: true },
                          { path: '/admin/settings', label: 'Settings', icon: 'cog' }
                        ]
                      },
@@ -78,26 +79,25 @@
                        const isActive = (currentPage === item.path);
                   %>
                     <li>
-                      <a href="<%= item.path %>" class="<%= isActive ? 'active' : '' %>">
-                        <i class="fa-solid fa-<%= item.icon %>"></i>
-                        <% if (item.path === '/admin/messages') { %>
-                          <span class="notification-badge" id="messages-badge" style="display: none;"></span>
-                        <% } %>
-                        <span class="label-text"><%= item.label %></span>
-                      </a>
+                      <% if (item.isButton) { %>
+                        <button class="notification" role="button" aria-haspopup="true" aria-expanded="false" aria-label="<%= item.label %>" id="notification-bell">
+                          <i class="fa-solid fa-<%= item.icon %>"></i>
+                          <span class="notification-count" id="notification-count" style="display: none;"></span>
+                          <span class="label-text"><%= item.label %></span>
+                        </button>
+                      <% } else { %>
+                        <a href="<%= item.path %>" class="<%= isActive ? 'active' : '' %>">
+                          <i class="fa-solid fa-<%= item.icon %>"></i>
+                          <% if (item.path === '/admin/messages') { %>
+                            <span class="notification-badge" id="messages-badge" style="display: none;"></span>
+                          <% } %>
+                          <span class="label-text"><%= item.label %></span>
+                        </a>
+                      <% } %>
                     </li>
                   <% }) %>
                 <% }) %>
             </ul>
-        </div>
-        <div class="sidebar-notification-wrapper">
-            <div class="sidebar-notification-row">
-                <button class="notification" role="button" aria-haspopup="true" aria-expanded="false" aria-label="Notifications" id="notification-bell">
-                    <i class="fa-regular fa-bell"></i>
-                    <span class="notification-count" id="notification-count" style="display: none;"></span>
-                    <span class="label-text">Notifications</span>
-                </button>
-            </div>
         </div>
     </div>
     <div id="notification-popup" class="notification-popup" tabindex="-1" aria-modal="true" role="dialog">

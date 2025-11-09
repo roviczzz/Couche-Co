@@ -180,7 +180,7 @@ function initializeNotificationsCron() {
       console.error('Error generating initial notifications:', error);
     });
     
-    // Schedule periodic notifications - every 30 minutes
+    // Schedule periodic notifications - every 30 minutes for general checks
     cron.schedule('*/30 * * * *', async () => {
       try {
         console.log('🔔 Running periodic notification check...');
@@ -191,18 +191,32 @@ function initializeNotificationsCron() {
       }
     });
     
-    // Also run a comprehensive check every hour at minute 0
+    // Enhanced hourly promo tracking - every hour at minute 0
     cron.schedule('0 * * * *', async () => {
       try {
-        console.log('🔔 Running hourly comprehensive notification check...');
+        console.log('🔔 Running hourly comprehensive promo tracking...');
         const notifications = await generatePeriodicNotifications();
-        console.log(`✅ Hourly check: Generated ${notifications.length} new notifications`);
+        console.log(`✅ Hourly promo tracking: Generated ${notifications.length} new notifications`);
       } catch (error) {
-        console.error('❌ Error in hourly notifications cron:', error);
+        console.error('❌ Error in hourly promo tracking cron:', error);
       }
     });
     
-    console.log('📅 Notifications cron job initialized - running every 30 minutes with hourly comprehensive checks');
+    // Critical promo monitoring - every 6 hours for urgent expiry checks
+    cron.schedule('0 */6 * * *', async () => {
+      try {
+        console.log('🚨 Running critical promo expiry check...');
+        const notifications = await generatePeriodicNotifications();
+        console.log(`✅ Critical check: Generated ${notifications.length} new notifications`);
+      } catch (error) {
+        console.error('❌ Error in critical promo check:', error);
+      }
+    });
+    
+    console.log('📅 Enhanced promo tracking cron jobs initialized:');
+    console.log('   • Every 30 minutes: General notifications');
+    console.log('   • Every hour: Comprehensive promo tracking');
+    console.log('   • Every 6 hours: Critical promo expiry checks');
   } catch (error) {
     console.error('Failed to initialize notifications cron job:', error);
   }

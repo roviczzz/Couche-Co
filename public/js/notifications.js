@@ -129,7 +129,6 @@ class NotificationManager {
     }
     
     toggleNotificationPopup() {
-        console.log('Toggle notification popup, current state:', this.isPopupOpen);
         if (this.isPopupOpen) {
             this.closeNotificationPopup();
         } else {
@@ -141,21 +140,10 @@ class NotificationManager {
         const popup = document.getElementById('notification-popup');
         const bell = document.getElementById('notification-bell');
         
-        console.log('Opening notification popup');
-        
-        if (popup && !this.isPopupOpen) {
-            // Force display first
+        if (popup) {
             popup.style.display = 'block';
-            
-            // Small delay to ensure display is applied
-            setTimeout(() => {
-                popup.classList.add('show');
-            }, 10);
-            
-            if (bell) {
-                bell.setAttribute('aria-expanded', 'true');
-            }
-            
+            popup.classList.add('show');
+            bell.setAttribute('aria-expanded', 'true');
             this.isPopupOpen = true;
             
             // Load notifications
@@ -167,21 +155,13 @@ class NotificationManager {
         const popup = document.getElementById('notification-popup');
         const bell = document.getElementById('notification-bell');
         
-        console.log('Closing notification popup');
-        
-        if (popup && this.isPopupOpen) {
+        if (popup) {
             popup.classList.remove('show');
-            
-            if (bell) {
-                bell.setAttribute('aria-expanded', 'false');
-            }
-            
-            // Wait for animation to complete
             setTimeout(() => {
                 popup.style.display = 'none';
-                this.isPopupOpen = false;
-                console.log('Popup closed, state reset');
             }, 200);
+            bell.setAttribute('aria-expanded', 'false');
+            this.isPopupOpen = false;
         }
     }
     

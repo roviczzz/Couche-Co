@@ -1357,30 +1357,20 @@ async function deleteNotification(notificationId) {
 // Generate specific types of notifications
 
 async function createNewOrderNotification(orderData) {
-  try {
-    console.log('🔔 Creating new order notification for order:', orderData.OrderID);
-    
-    const notification = await createNotification({
-      type: 'order',
-      title: 'New Order Received',
-      message: `Order #${orderData.OrderID} received from ${orderData.Customer?.fullname || 'Customer'}`,
-      data: {
-        orderId: orderData.OrderID,
-        customerName: orderData.Customer?.fullname || 'Unknown',
-        total: orderData.Total,
-        items: orderData.Cart?.length || 0
-      },
-      actionUrl: '/admin/orders',
-      priority: 'high',
-      targetRoles: ['admin', 'staff']
-    });
-    
-    console.log('✅ New order notification created:', notification._id);
-    return notification;
-  } catch (error) {
-    console.error('❌ Error creating new order notification:', error);
-    throw error;
-  }
+  return await createNotification({
+    type: 'order',
+    title: 'New Order Received',
+    message: `Order #${orderData.OrderID} received from ${orderData.Customer?.fullname || 'Customer'}`,
+    data: {
+      orderId: orderData.OrderID,
+      customerName: orderData.Customer?.fullname || 'Unknown',
+      total: orderData.Total,
+      items: orderData.Cart?.length || 0
+    },
+    actionUrl: '/admin/orders',
+    priority: 'high',
+    targetRoles: ['admin', 'staff']
+  });
 }
 
 async function createMessageNotification(messageData, targetRole = 'admin') {
@@ -1421,11 +1411,12 @@ async function createLowStockNotification(stockData, userSettings = {}) {
     const urgentThreshold = Math.floor(effectiveThreshold / 2); // Half of normal threshold for urgent
     const items = [];
     
-    // Check ingredients against threshold
+    // Check ingredients and add-ons against threshold with proper logic
     if (stockData.ingredients) {
       stockData.ingredients.forEach(item => {
         const amount = item.Amount || 0;
-        if (amount <= effectiveThreshold && item.isEnabled !== false) {
+        // Only include ingredients that are actually low stock
+        if (amount <= effectiveThreshold && amount >= 0 && item.isEnabled !== false) {
           items.push({
             name: `${item.Name} (${amount}g remaining)`,
             amount: amount,
@@ -1435,16 +1426,13 @@ async function createLowStockNotification(stockData, userSettings = {}) {
         }
       });
     }
-    
-    // Check add-ons against threshold (both ingredients and add-ons use "Amount" field)
+
     if (stockData.addons) {
-      console.log('🔍 Checking add-ons for low stock, threshold:', effectiveThreshold);
       stockData.addons.forEach(item => {
-        const amount = item.Amount || 0; // Use "Amount" field same as ingredients
-        console.log(`  - ${item.Name}: ${amount} (enabled: ${item.isEnabled !== false})`);
-        
-        if (amount <= effectiveThreshold && item.isEnabled !== false) {
-          console.log(`    ⚠️ Low stock: ${item.Name} (${amount} <= ${effectiveThreshold})`);
+        const amount = item.Amount || 0;
+        // Use a more appropriate threshold for add-ons (pieces vs grams)
+        const addonThreshold = Math.max(5, Math.floor(effectiveThreshold / 2));
+        if (amount <= addonThreshold && amount >= 0 && item.isEnabled !== false) {
           items.push({
             name: `${item.Name} (${amount} pieces remaining)`,
             amount: amount,
@@ -1550,6 +1538,24 @@ async function createPromoExpiryNotification(promoData) {
   });
 }
 
+async function createNewOrderNotification(orderData) {
+  return await createNotification({
+    type: 'order',
+    title: 'New Order Received',
+    message: `Order ${orderData.orderId} from ${orderData.customer} (₱${orderData.total || 0})`,
+    data: {
+      orderId: orderData.orderId,
+      customer: orderData.customer,
+      total: orderData.total,
+      source: orderData.source,
+      receivedAt: new Date()
+    },
+    actionUrl: '/admin/orders',
+    priority: 'high',
+    targetRoles: ['admin', 'staff']
+  });
+}
+
 // Check for notifications that need to be generated
 async function generatePeriodicNotifications(userSettings = {}) {
   try {
@@ -1576,6 +1582,45 @@ async function generatePeriodicNotifications(userSettings = {}) {
       allUserSettings = [{ settings: userSettings }];
     }
     
+    // Check for new orders from any source (Website, Chatbot, POS)
+    const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+    
+    // Create ObjectId for recent documents (last 5 minutes)
+    const recentObjectId = new ObjectId(Math.floor(fiveMinutesAgo.getTime() / 1000).toString(16) + "0000000000000000");
+    
+    // Query for recent orders using multiple approaches to catch all date formats
+    const recentOrders = await db.collection('Orders').find({
+      $or: [
+        // Check by ObjectId (most reliable for new documents)
+        { _id: { $gte: recentObjectId } },
+        // ISO date format check
+        { Date: { $gte: fiveMinutesAgo.toISOString() } }
+      ]
+    }).toArray();
+    
+    for (const order of recentOrders) {
+      // Check if we haven't already notified about this order
+      const existingOrderNotif = await db.collection('Notifications').findOne({
+        type: 'order',
+        'data.orderId': order.OrderID
+      });
+      
+      if (!existingOrderNotif) {
+        const customerName = order.Customer?.fullname || order.Customer || 'Unknown Customer';
+        const orderNotif = await createNewOrderNotification({
+          orderId: order.OrderID,
+          customer: customerName,
+          total: order.Total || 0,
+          source: order.Source || 'Unknown'
+        });
+        
+        if (orderNotif) {
+          notifications.push(orderNotif);
+          console.log(`✅ Order notification created for: ${order.OrderID}`);
+        }
+      }
+    }
+
     // Check for low stock using the most restrictive threshold
     const lowestThreshold = allUserSettings.reduce((min, userSet) => {
       const threshold = userSet.settings.lowStockAlertRange || 10;
@@ -1618,26 +1663,9 @@ async function generatePeriodicNotifications(userSettings = {}) {
       }
     }
     
-    // Check for expiring promos
-    console.log('🎯 Checking for expiring promos...');
-    const promos = await getActiveDiscounts();
-    for (const promo of promos) {
-      const daysUntilExpiry = Math.ceil((new Date(promo.endDate) - now) / (1000 * 60 * 60 * 24));
-      if (daysUntilExpiry <= 7 && daysUntilExpiry >= 0) {
-        // Check if we haven't already notified about this promo today
-        const existingNotif = await db.collection('Notifications').findOne({
-          type: 'promo',
-          'data.promoId': promo._id.toString(),
-          createdAt: { $gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) }
-        });
-        
-        if (!existingNotif) {
-          const promoNotif = await createPromoExpiryNotification(promo);
-          notifications.push(promoNotif);
-          console.log(`✅ Promo expiry notification created for: ${promo.event}`);
-        }
-      }
-    }
+    // Enhanced Promo Tracking - Real-time hourly checks
+    console.log('🎯 Checking for promo updates and expiration tracking...');
+    await performEnhancedPromoTracking(db, notifications, now);
     
     await client.close();
     
@@ -1647,6 +1675,368 @@ async function generatePeriodicNotifications(userSettings = {}) {
   } catch (err) {
     console.error('❌ Error generating periodic notifications:', err);
     return [];
+  }
+}
+
+// Enhanced Promo Tracking System - Real-time hourly monitoring
+async function performEnhancedPromoTracking(db, notifications, now) {
+  try {
+    console.log('📊 Starting enhanced promo tracking...');
+    
+    // Get all promos (active, upcoming, and recently modified)
+    const allPromos = await db.collection('Promos').find({}).toArray();
+    
+    if (allPromos.length === 0) {
+      console.log('ℹ️ No promos found in database');
+      return;
+    }
+    
+    // Track promo state changes in PromoTracker collection
+    await initializePromoTracker(db);
+    
+    for (const promo of allPromos) {
+      const promoId = promo._id.toString();
+      const promoTracker = await db.collection('PromoTracker').findOne({ promoId });
+      
+      // Check if promo has been modified since last check
+      const isNewOrModified = !promoTracker || 
+        (promo.lastModified && new Date(promo.lastModified) > new Date(promoTracker.lastChecked));
+      
+      if (isNewOrModified) {
+        console.log(`🔄 Promo "${promo.event}" detected as new/modified`);
+        
+        // Update tracker with current state
+        await updatePromoTracker(db, promo);
+        
+        // Check various promo conditions
+        await checkPromoConditions(db, promo, notifications, now);
+      }
+    }
+    
+    // Daily cleanup of old tracker records (older than 30 days)
+    if (now.getHours() === 3 && now.getMinutes() < 60) {
+      await cleanupOldPromoTrackers(db);
+    }
+    
+    console.log('✅ Enhanced promo tracking complete');
+    
+  } catch (error) {
+    console.error('❌ Error in enhanced promo tracking:', error);
+  }
+}
+
+async function initializePromoTracker(db) {
+  try {
+    // Create PromoTracker collection if it doesn't exist
+    const collections = await db.listCollections({ name: 'PromoTracker' }).toArray();
+    if (collections.length === 0) {
+      await db.createCollection('PromoTracker');
+      console.log('📊 PromoTracker collection created');
+    }
+  } catch (error) {
+    console.error('Error initializing PromoTracker:', error);
+  }
+}
+
+async function updatePromoTracker(db, promo) {
+  try {
+    const now = new Date();
+    const promoId = promo._id.toString();
+    
+    await db.collection('PromoTracker').updateOne(
+      { promoId },
+      {
+        $set: {
+          promoId,
+          promoName: promo.event,
+          startDate: promo.startDate,
+          endDate: promo.endDate,
+          isActive: promo.isActive,
+          lastModified: promo.lastModified || promo.createdAt,
+          lastChecked: now,
+          lastNotificationSent: null
+        }
+      },
+      { upsert: true }
+    );
+    
+    console.log(`📊 Updated tracker for promo: ${promo.event}`);
+  } catch (error) {
+    console.error('Error updating promo tracker:', error);
+  }
+}
+
+async function checkPromoConditions(db, promo, notifications, now) {
+  try {
+    const promoId = promo._id.toString();
+    const startDate = new Date(promo.startDate);
+    const endDate = new Date(promo.endDate);
+    
+    // Calculate time differences
+    const daysUntilStart = Math.ceil((startDate - now) / (1000 * 60 * 60 * 24));
+    const daysUntilExpiry = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
+    const hoursUntilExpiry = Math.ceil((endDate - now) / (1000 * 60 * 60));
+    
+    // Get tracker to check last notification times
+    const tracker = await db.collection('PromoTracker').findOne({ promoId });
+    const lastNotificationTime = tracker?.lastNotificationSent ? new Date(tracker.lastNotificationSent) : null;
+    
+    // Helper function to check if enough time has passed since last notification
+    const canSendNotification = (minHours) => {
+      if (!lastNotificationTime) return true;
+      const hoursSinceLastNotif = (now - lastNotificationTime) / (1000 * 60 * 60);
+      return hoursSinceLastNotif >= minHours;
+    };
+    
+    console.log(`🔍 Checking promo "${promo.event}": ${daysUntilExpiry} days until expiry`);
+    
+    // 1. Promo starting soon (active promos that will start tomorrow)
+    if (daysUntilStart === 1 && promo.isActive !== false && canSendNotification(24)) {
+      const startingNotif = await createPromoStartingNotification(promo);
+      if (startingNotif) {
+        notifications.push(startingNotif);
+        await markNotificationSent(db, promoId);
+        console.log(`✅ Promo starting notification for: ${promo.event}`);
+      }
+    }
+    
+    // 2. Critical expiry warnings (different thresholds)
+    if (promo.isActive !== false && daysUntilExpiry >= 0) {
+      let shouldNotify = false;
+      let urgency = 'normal';
+      let notificationTitle = '';
+      
+      // Critical: Less than 24 hours (every 6 hours)
+      if (hoursUntilExpiry <= 24 && hoursUntilExpiry > 0 && canSendNotification(6)) {
+        shouldNotify = true;
+        urgency = 'urgent';
+        notificationTitle = `🚨 URGENT: ${promo.event} expires in ${hoursUntilExpiry} hours!`;
+      }
+      // High: 1-2 days (once per day)
+      else if (daysUntilExpiry <= 2 && daysUntilExpiry > 0 && canSendNotification(24)) {
+        shouldNotify = true;
+        urgency = 'high';
+        notificationTitle = `⚠️ ${promo.event} expires in ${daysUntilExpiry} day(s)`;
+      }
+      // Medium: 3-7 days (once per day)
+      else if (daysUntilExpiry <= 7 && daysUntilExpiry > 2 && canSendNotification(24)) {
+        shouldNotify = true;
+        urgency = 'normal';
+        notificationTitle = `📅 ${promo.event} expires in ${daysUntilExpiry} days`;
+      }
+      // Low: 8-14 days (once per 3 days)
+      else if (daysUntilExpiry <= 14 && daysUntilExpiry > 7 && canSendNotification(72)) {
+        shouldNotify = true;
+        urgency = 'low';
+        notificationTitle = `📋 ${promo.event} expires in ${daysUntilExpiry} days`;
+      }
+      
+      if (shouldNotify) {
+        const expiryNotif = await createEnhancedPromoExpiryNotification(promo, {
+          daysLeft: daysUntilExpiry,
+          hoursLeft: hoursUntilExpiry,
+          urgency,
+          customTitle: notificationTitle
+        });
+        
+        if (expiryNotif) {
+          notifications.push(expiryNotif);
+          await markNotificationSent(db, promoId);
+          console.log(`✅ ${urgency.toUpperCase()} promo expiry notification: ${promo.event}`);
+        }
+      }
+    }
+    
+    // 3. Promo activation notification (when inactive promo becomes active)
+    if (promo.isActive === true && tracker && !tracker.wasActiveLastCheck && canSendNotification(1)) {
+      const activationNotif = await createPromoActivationNotification(promo);
+      if (activationNotif) {
+        notifications.push(activationNotif);
+        await markNotificationSent(db, promoId);
+        console.log(`✅ Promo activation notification: ${promo.event}`);
+      }
+    }
+    
+    // 4. Promo modification notification (when promo details change)
+    if (tracker && promo.lastModified && 
+        new Date(promo.lastModified) > new Date(tracker.lastChecked) && 
+        canSendNotification(2)) {
+      const modificationNotif = await createPromoModificationNotification(promo, tracker);
+      if (modificationNotif) {
+        notifications.push(modificationNotif);
+        await markNotificationSent(db, promoId);
+        console.log(`✅ Promo modification notification: ${promo.event}`);
+      }
+    }
+    
+    // Update tracker with current active state
+    await db.collection('PromoTracker').updateOne(
+      { promoId },
+      { $set: { wasActiveLastCheck: promo.isActive === true } }
+    );
+    
+  } catch (error) {
+    console.error(`Error checking conditions for promo ${promo.event}:`, error);
+  }
+}
+
+async function markNotificationSent(db, promoId) {
+  try {
+    await db.collection('PromoTracker').updateOne(
+      { promoId },
+      { $set: { lastNotificationSent: new Date() } }
+    );
+  } catch (error) {
+    console.error('Error marking notification sent:', error);
+  }
+}
+
+async function cleanupOldPromoTrackers(db) {
+  try {
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const result = await db.collection('PromoTracker').deleteMany({
+      lastChecked: { $lt: thirtyDaysAgo }
+    });
+    
+    if (result.deletedCount > 0) {
+      console.log(`🧹 Cleaned up ${result.deletedCount} old promo tracker records`);
+    }
+  } catch (error) {
+    console.error('Error cleaning up promo trackers:', error);
+  }
+}
+
+// Enhanced notification creation functions
+
+async function createPromoStartingNotification(promo) {
+  return await createNotification({
+    type: 'promo',
+    title: '🚀 Promotion Starting Tomorrow',
+    message: `"${promo.event}" will be active starting tomorrow`,
+    data: {
+      promoId: promo._id,
+      promoName: promo.event,
+      startDate: promo.startDate,
+      endDate: promo.endDate,
+      discountPercentage: promo.discountPercentage
+    },
+    actionUrl: '/admin/discounts',
+    priority: 'normal',
+    targetRoles: ['admin']
+  });
+}
+
+async function createEnhancedPromoExpiryNotification(promo, options = {}) {
+  const { daysLeft, hoursLeft, urgency = 'normal', customTitle } = options;
+  
+  let title = customTitle || 'Promotion Expiring Soon';
+  let message = '';
+  let priority = urgency;
+  
+  if (hoursLeft <= 24 && hoursLeft > 0) {
+    message = `"${promo.event}" expires in ${hoursLeft} hour(s)! Take immediate action.`;
+    priority = 'urgent';
+  } else if (daysLeft <= 2) {
+    message = `"${promo.event}" expires in ${daysLeft} day(s). Plan your next promotion.`;
+    priority = 'high';
+  } else {
+    message = `"${promo.event}" expires in ${daysLeft} day(s)`;
+  }
+  
+  return await createNotification({
+    type: 'promo',
+    title,
+    message,
+    data: {
+      promoId: promo._id,
+      promoName: promo.event,
+      expiryDate: promo.endDate,
+      daysLeft: daysLeft,
+      hoursLeft: hoursLeft,
+      urgency: urgency
+    },
+    actionUrl: '/admin/discounts',
+    priority: priority,
+    targetRoles: ['admin']
+  });
+}
+
+async function createPromoActivationNotification(promo) {
+  return await createNotification({
+    type: 'promo',
+    title: '✅ Promotion Activated',
+    message: `"${promo.event}" is now active and available to customers`,
+    data: {
+      promoId: promo._id,
+      promoName: promo.event,
+      startDate: promo.startDate,
+      endDate: promo.endDate
+    },
+    actionUrl: '/admin/discounts',
+    priority: 'normal',
+    targetRoles: ['admin']
+  });
+}
+
+async function createPromoModificationNotification(promo, tracker) {
+  return await createNotification({
+    type: 'promo',
+    title: '📝 Promotion Updated',
+    message: `"${promo.event}" has been modified and changes are now live`,
+    data: {
+      promoId: promo._id,
+      promoName: promo.event,
+      modifiedAt: promo.lastModified,
+      previousCheck: tracker.lastChecked
+    },
+    actionUrl: '/admin/discounts',
+    priority: 'normal',
+    targetRoles: ['admin']
+  });
+}
+
+// Immediate promo check when a promo is manually updated
+async function triggerImmediatePromoCheck(eventData) {
+  try {
+    const { promoId, updatedData } = eventData;
+    console.log(`🔔 Triggering immediate promo check for ID: ${promoId}`);
+    
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    
+    // Get the updated promo
+    const promo = await db.collection('Promos').findOne({ _id: new ObjectId(promoId) });
+    
+    if (!promo) {
+      console.log('❌ Promo not found for immediate check');
+      await client.close();
+      return null;
+    }
+    
+    // Ensure lastModified is set to current time to trigger tracking
+    await db.collection('Promos').updateOne(
+      { _id: new ObjectId(promoId) },
+      { $set: { lastModified: new Date() } }
+    );
+    
+    // Run enhanced tracking for this specific promo
+    const notifications = [];
+    await initializePromoTracker(db);
+    
+    // Force update the tracker to mark as modified
+    await updatePromoTracker(db, { ...promo, lastModified: new Date() });
+    
+    // Check conditions for this promo
+    await checkPromoConditions(db, promo, notifications, new Date());
+    
+    await client.close();
+    
+    console.log(`✅ Immediate promo check complete: ${notifications.length} notifications generated`);
+    return notifications.length > 0 ? notifications[0] : null;
+    
+  } catch (error) {
+    console.error('❌ Error in immediate promo check:', error);
+    return null;
   }
 }
 
@@ -1669,6 +2059,10 @@ async function triggerBusinessEventNotification(eventType, eventData = {}) {
         
       case 'promo-expiry':
         return await createPromoExpiryNotification(eventData);
+        
+      case 'promo-update-check':
+        // Immediate promo tracking check when a promo is updated
+        return await triggerImmediatePromoCheck(eventData);
         
       case 'monthly-report':
         return await createMonthlyReportNotification(eventData);
@@ -1729,6 +2123,7 @@ module.exports = {
   markAllNotificationsAsRead,
   deleteNotification,
   createNewOrderNotification,
+  createLowStockNotification,
   createMessageNotification,
   createLowStockNotification,
   createMonthlyReportNotification,

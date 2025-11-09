@@ -48,6 +48,20 @@ router.get('/orders/preparing-customers', async (req, res) => {
   }
 })
 
+// API endpoint for fetching all orders (for real-time polling)
+router.get('/orders', async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const orders = await db.collection('Orders').find().sort({ _id: -1 }).toArray();
+    await client.close();
+    res.json(orders);
+  } catch (err) {
+    console.error('❌ Error fetching orders:', err);
+    res.status(500).json([]);
+  }
+});
+
 router.post('/xendit/create-payment', async (req, res) => {
   try {
     const invoicePayload = req.body
@@ -267,6 +281,18 @@ router.post('/orders', checkInventoryAvailability, async (req, res) => {
     }
 
     await db.collection('Orders').insertOne(orderData);
+
+    // Trigger new order notification
+    try {
+      const { triggerBusinessEventNotification } = require('../admin-helpers');
+      await triggerBusinessEventNotification('new-order', {
+        orderId: orderData.OrderID,
+        customer: orderData.Customer,
+        total: orderData.Total || 0
+      });
+    } catch (notifError) {
+      console.error('Error creating new order notification:', notifError);
+    }
 
     await client.close();
 
