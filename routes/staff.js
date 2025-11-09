@@ -164,12 +164,12 @@ router.get('/dashboard', async (req, res) => {
 
       const allLowStockItems = [
         ...ingredients.map(item => ({
-          quantity: item.Quantity,
+          quantity: item.Amount,
           name: getItemName(item, 'ingredient'),
           type: 'ingredient'
         })),
         ...addons.map(item => ({
-          quantity: item.Quantity,
+          quantity: item.Amount,
           name: getItemName(item, 'addon'),
           type: 'addon'
         }))
@@ -369,22 +369,67 @@ router.post('/settings', async (req, res) => {
 // API route to save staff preferences
 router.post('/settings/preferences', async (req, res) => {
   try {
-    const { soundEnabled, printReceipts, darkMode, orderConfirmations } = req.body;
+    console.log('Received staff preferences update:', req.body);
+
+    const { soundEnabled, printReceipts, darkMode, orderConfirmations, lowStockAlertRange } = req.body;
+
+    // If only lowStockAlertRange is provided (from modal), we need to fetch existing settings and merge
+    let updateFields = {
+      updatedAt: new Date()
+    };
 
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
+
+    // Fetch existing settings to preserve other values
+    const existingSettings = await db.collection('UserSettings').findOne({ userId: req.session.user._id });
+
+    // Process boolean values or use existing values
+    if (typeof soundEnabled !== 'undefined') {
+      updateFields.soundEnabled = soundEnabled === 'true' || soundEnabled === true;
+    } else if (existingSettings) {
+      updateFields.soundEnabled = existingSettings.soundEnabled;
+    } else {
+      updateFields.soundEnabled = true;
+    }
+
+    if (typeof printReceipts !== 'undefined') {
+      updateFields.printReceipts = printReceipts === 'true' || printReceipts === true;
+    } else if (existingSettings) {
+      updateFields.printReceipts = existingSettings.printReceipts;
+    } else {
+      updateFields.printReceipts = false;
+    }
+
+    if (typeof darkMode !== 'undefined') {
+      updateFields.darkMode = darkMode === 'true' || darkMode === true;
+    } else if (existingSettings) {
+      updateFields.darkMode = existingSettings.darkMode;
+    } else {
+      updateFields.darkMode = false;
+    }
+
+    if (typeof orderConfirmations !== 'undefined') {
+      updateFields.orderConfirmations = orderConfirmations === 'true' || orderConfirmations === true;
+    } else if (existingSettings) {
+      updateFields.orderConfirmations = existingSettings.orderConfirmations;
+    } else {
+      updateFields.orderConfirmations = true;
+    }
+
+    if (typeof lowStockAlertRange !== 'undefined') {
+      updateFields.lowStockAlertRange = parseInt(lowStockAlertRange) || 5;
+    } else if (existingSettings) {
+      updateFields.lowStockAlertRange = existingSettings.lowStockAlertRange || 5;
+    } else {
+      updateFields.lowStockAlertRange = 5;
+    }
 
     // Upsert user settings
     await db.collection('UserSettings').updateOne(
       { userId: req.session.user._id },
       {
-        $set: {
-          soundEnabled: soundEnabled === 'true' || soundEnabled === true,
-          printReceipts: printReceipts === 'true' || printReceipts === true,
-          darkMode: darkMode === 'true' || darkMode === true,
-          orderConfirmations: orderConfirmations === 'true' || orderConfirmations === true,
-          updatedAt: new Date()
-        },
+        $set: updateFields,
         $setOnInsert: {
           userId: req.session.user._id,
           createdAt: new Date()
@@ -394,7 +439,8 @@ router.post('/settings/preferences', async (req, res) => {
     );
 
     await client.close();
-    res.json({ success: true, message: 'Preferences updated successfully' });
+    console.log('Updated staff lowStockAlertRange to:', updateFields.lowStockAlertRange);
+    res.json({ success: true, message: 'Preferences updated successfully', lowStockAlertRange: updateFields.lowStockAlertRange });
   } catch (error) {
     console.error('Staff preferences update error:', error);
     res.status(500).json({ success: false, message: 'Failed to update preferences' });
@@ -1232,12 +1278,12 @@ router.get('/analytics/low-stock', async (req, res) => {
     // Combine and sort all low stock items
     const allLowStockItems = [
       ...ingredients.map(item => ({
-        quantity: item.Quantity,
+        quantity: item.Amount,
         name: getItemName(item, 'ingredient'),
         type: 'ingredient'
       })),
       ...addons.map(item => ({
-        quantity: item.Quantity,
+        quantity: item.Amount,
         name: getItemName(item, 'addon'),
         type: 'addon'
       }))

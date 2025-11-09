@@ -158,12 +158,12 @@ router.get('/analytics/low-stock', nocache, async (req, res) => {
     // Combine and sort all low stock items
     const allLowStockItems = [
       ...ingredients.map(item => ({
-        quantity: item.Quantity,
+        quantity: item.Amount,
         name: getItemName(item, 'ingredient'),
         type: 'ingredient'
       })),
       ...addons.map(item => ({
-        quantity: item.Quantity,
+        quantity: item.Amount,
         name: getItemName(item, 'addon'),
         type: 'addon'
       }))
@@ -364,8 +364,8 @@ router.get('/dashboard', nocache, async (req, res) => {
       const userSettings = await db.collection('UserSettings').findOne({ userId: req.session.user._id });
       const threshold = userSettings?.lowStockAlertRange || 5;
 
-      const ingredients = await db.collection('Ingredients').find({ Quantity: { $lte: threshold }, isEnabled: true }).sort({ Quantity: 1 }).toArray();
-      const addons = await db.collection('Add-ons').find({ Quantity: { $lte: threshold }, isEnabled: true }).sort({ Quantity: 1 }).toArray();
+      const ingredients = await db.collection('Ingredients').find({ Amount: { $lte: threshold }, isEnabled: true }).sort({ Amount: 1 }).toArray();
+      const addons = await db.collection('Add-ons').find({ Amount: { $lte: threshold }, isEnabled: true }).sort({ Amount: 1 }).toArray();
 
       const getItemName = (item, type) => {
         if (type === 'ingredient') {
@@ -377,12 +377,12 @@ router.get('/dashboard', nocache, async (req, res) => {
 
       const allLowStockItems = [
         ...ingredients.map(item => ({
-          quantity: item.Quantity,
+          quantity: item.Amount,
           name: getItemName(item, 'ingredient'),
           type: 'ingredient'
         })),
         ...addons.map(item => ({
-          quantity: item.Quantity,
+          quantity: item.Amount,
           name: getItemName(item, 'addon'),
           type: 'addon'
         }))

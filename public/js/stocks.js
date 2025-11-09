@@ -7,6 +7,34 @@ document.addEventListener('DOMContentLoaded', function() {
   console.log(`[2025-10-15 17:45:23] Repository: roviczzz/Couche-Co by MathDaenniel`);
 
   // ===============================================
+  // DASHBOARD REFRESH INTEGRATION
+  // ===============================================
+  
+  function triggerDashboardRefresh() {
+    console.log(`[2025-10-15 17:45:23] Triggering dashboard refresh for low stock updates by MathDaenniel`);
+    
+    // Method 1: Dispatch custom event for same-page dashboard
+    const stockUpdateEvent = new CustomEvent('stockUpdated', {
+      detail: {
+        timestamp: new Date().toISOString(),
+        source: 'stocks-management',
+        action: 'stock-updated'
+      }
+    });
+    window.dispatchEvent(stockUpdateEvent);
+    
+    // Method 2: Update localStorage for cross-tab communication
+    localStorage.setItem('stockDataChanged', Date.now().toString());
+    
+    // Method 3: Direct call if dashboard functions are available
+    if (typeof window.forceDashboardRefresh === 'function') {
+      window.forceDashboardRefresh();
+    }
+    
+    console.log(`[2025-10-15 17:45:23] Dashboard refresh triggers sent by MathDaenniel`);
+  }
+
+  // ===============================================
   // ENHANCED FIXED NAVBAR - CONTENT ONLY SCROLLING
   // ===============================================
 
@@ -942,6 +970,9 @@ document.addEventListener('DOMContentLoaded', function() {
       }
 
       console.log(`[2025-10-15 17:45:23] Adding new ingredient with ID: ${fullId}, AmountPerPack: ${amountPerPack}, Amount: ${amount}, Unit: ${unit} by MathDaenniel`);
+      
+      // Trigger dashboard refresh for new ingredient addition
+      triggerDashboardRefresh();
     });
   }
 
@@ -1021,6 +1052,9 @@ document.addEventListener('DOMContentLoaded', function() {
       }
 
       console.log(`[2025-10-15 17:45:23] Adding new add-on with ID: ${fullId}, AmountPerPack: ${amountPerPack}, BasePrice: ${basePrice} by MathDaenniel`);
+      
+      // Trigger dashboard refresh for new add-on addition
+      triggerDashboardRefresh();
     });
   }
 
@@ -1485,6 +1519,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
       console.log(`[2025-10-15 17:45:23] Bulk update results: ${successful} success, ${failed} failed by MathDaenniel`);
 
+      if (successful > 0) {
+        // Trigger dashboard refresh for low stock updates
+        triggerDashboardRefresh();
+      }
+
       setTimeout(() => {
         if (successful > 0) {
           window.location.href = '/admin/stocks?msg=bulk_update_success';
@@ -1516,6 +1555,11 @@ document.addEventListener('DOMContentLoaded', function() {
       const failed = results.filter(result => result.status === 'rejected' || !result.value).length;
 
       console.log(`[2025-10-15 17:45:23] Bulk delete results: ${successful} success, ${failed} failed by MathDaenniel`);
+
+      if (successful > 0) {
+        // Trigger dashboard refresh for low stock updates after deletion
+        triggerDashboardRefresh();
+      }
 
       setTimeout(() => {
         if (successful > 0) {
@@ -1579,6 +1623,24 @@ document.addEventListener('DOMContentLoaded', function() {
     form.querySelector('input[name="isEnabled"]').value = enabled;
 
     console.log(`[2025-10-15 17:45:23] Submitting update form for ${itemType} ${itemId} with AmountPerPack: ${amountPerPack} by MathDaenniel`);
+
+    // Trigger dashboard refresh after successful update
+    form.addEventListener('submit', function() {
+      // Use a timeout to allow the form submission to complete
+      setTimeout(() => {
+        // Trigger dashboard refresh if the function exists
+        if (window.forceDashboardRefresh) {
+          window.forceDashboardRefresh();
+        }
+        // Also dispatch custom event for cross-tab communication
+        window.dispatchEvent(new CustomEvent('stockUpdated', {
+          detail: { itemId, itemType, action: 'update' }
+        }));
+        // Set localStorage flag for cross-tab communication
+        localStorage.setItem('stockDataChanged', Date.now().toString());
+      }, 100);
+    });
+
     form.submit();
   }
 
@@ -1641,10 +1703,19 @@ document.addEventListener('DOMContentLoaded', function() {
             method: 'POST',
             body: new FormData(form)
           })
-          .then(response => resolve(response.ok))
+          .then(response => {
+            const success = response.ok;
+            if (success) {
+              // Trigger dashboard refresh on successful update
+              triggerDashboardRefresh();
+            }
+            resolve(success);
+          })
           .catch(() => resolve(false));
         });
       } else {
+        // Trigger dashboard refresh before form submission for non-silent updates
+        triggerDashboardRefresh();
         form.submit();
         return true;
       }
@@ -1667,10 +1738,19 @@ document.addEventListener('DOMContentLoaded', function() {
             method: 'POST',
             body: new FormData(form)
           })
-          .then(response => resolve(response.ok))
+          .then(response => {
+            const success = response.ok;
+            if (success) {
+              // Trigger dashboard refresh on successful delete
+              triggerDashboardRefresh();
+            }
+            resolve(success);
+          })
           .catch(() => resolve(false));
         });
       } else {
+        // Trigger dashboard refresh before form submission for non-silent deletes
+        triggerDashboardRefresh();
         form.submit();
         return true;
       }

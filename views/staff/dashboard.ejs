@@ -70,7 +70,7 @@ data-user-low-stock-threshold="<%= (typeof userLowStockThreshold !== 'undefined'
             <div class="icon"><i class="fa-solid fa-exclamation-triangle"></i></div>
             <div>
                 <div class="card-label">Low Stock Alert</div>
-                <div class="card-value" id="low-stock-value"><%= typeof lowStockData !== 'undefined' && lowStockData.quantity !== 'undefined' ? lowStockData.quantity : 0 %></div>
+                <div class="card-value" id="low-stock-value"><%= typeof lowStockData !== 'undefined' && lowStockData.quantity !== 'undefined' ? (lowStockData.quantity > 0 ? lowStockData.quantity + 'g' : lowStockData.quantity) : '0' %></div>
                 <div class="card-trends">
                     <span id="low-stock-name"><%= typeof lowStockData !== 'undefined' && typeof lowStockData.name !== 'undefined' && lowStockData.name ? lowStockData.name : 'All stocked' %></span>
                   <span id="low-stock-more" class="low-stock-more<%= typeof lowStockData !== 'undefined' && lowStockData.hasMore ? '' : ' hidden' %>">

@@ -1,8 +1,8 @@
 // Real-time dashboard updates configuration
 const DASHBOARD_CONFIG = {
-    refreshInterval: 30000, // 30 seconds
+    refreshInterval: 5000, // 5 seconds for more responsive updates
     maxRetries: 3,
-    retryDelay: 5000, // 5 seconds
+    retryDelay: 2000, // 2 seconds
     enableRealTimeUpdates: true
 };
 
@@ -67,7 +67,9 @@ function updateDashboardStats() {
 
 function updateLowStockData() {
     const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
-    const threshold = localStorage.getItem('lowStockThreshold') || '5';
+    // Use server-provided threshold instead of localStorage to stay in sync
+    const dataEl = document.getElementById('dashboard-data');
+    const threshold = dataEl?.dataset?.userLowStockThreshold || '5';
     return fetch(`${basePath}/analytics/low-stock?threshold=${threshold}`)
         .then(res => res.ok ? res.json() : null)
         .catch(err => { console.warn('Low stock data update failed:', err); return null; });
@@ -185,7 +187,9 @@ function initializeRealTimeUpdates() {
     async function applyLowStockUpdate(lowStockData) {
         if (!lowStockData) return;
 
-        animateValueUpdate('low-stock-value', lowStockData.quantity || 0);
+        const quantity = lowStockData.quantity || 0;
+        const quantityDisplay = quantity > 0 ? quantity + 'g' : quantity;
+        animateValueUpdate('low-stock-value', quantityDisplay);
         const nameElement = document.getElementById('low-stock-name');
         nameElement.textContent = lowStockData.name || 'All stocked';
 
@@ -337,6 +341,56 @@ function manualDashboardRefresh() {
 }
 
 /**
+ * Immediate refresh function (called from other pages like stocks management)
+ * This provides instant updates when stock changes occur
+ */
+window.forceDashboardRefresh = function() {
+    console.log('⚡ Force dashboard refresh triggered from external source');
+
+    // Clear any existing update in progress
+    dashboardState.isUpdating = false;
+
+    // Immediately update low stock data (most relevant for stock changes)
+    updateLowStockData().then(data => {
+        if (data) {
+            applyLowStockUpdate(data);
+            console.log('✅ Low stock data updated immediately');
+        }
+    }).catch(err => {
+        console.error('❌ Failed to update low stock data:', err);
+    });
+
+    // Also update dashboard stats for completeness
+    updateDashboardStats().then(stats => {
+        if (stats) {
+            applyDashboardStatsUpdate(stats);
+            console.log('✅ Dashboard stats updated immediately');
+        }
+    }).catch(err => {
+        console.error('❌ Failed to update dashboard stats:', err);
+    });
+};
+
+/**
+ * Listen for custom events from other pages (like stock updates)
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    // Listen for custom stock update events
+    window.addEventListener('stockUpdated', function(event) {
+        console.log('📡 Received stock update event:', event.detail);
+        window.forceDashboardRefresh();
+    });
+
+    // Listen for storage changes (in case multiple tabs are open)
+    window.addEventListener('storage', function(event) {
+        if (event.key === 'stockDataChanged') {
+            console.log('💾 Stock data changed in another tab, refreshing dashboard');
+            window.forceDashboardRefresh();
+        }
+    });
+});
+
+/**
  * Toggle auto-update functionality
  */
 function toggleRealTimeUpdates() {
@@ -421,7 +475,7 @@ window.ordersBySource = (dataEl.dataset.ordersBySource && dataEl.dataset.ordersB
                 // Load current threshold from user settings
                 if (thresholdSlider && thresholdValue) {
                     thresholdSlider.value = userThreshold;
-                    thresholdValue.textContent = userThreshold + ' items';
+                    thresholdValue.textContent = userThreshold + ' grams';
                 }
                 modal.style.display = 'flex';
             });
@@ -429,7 +483,7 @@ window.ordersBySource = (dataEl.dataset.ordersBySource && dataEl.dataset.ordersB
             // Update display value as user drags the slider
             if (thresholdSlider && thresholdValue) {
                 thresholdSlider.addEventListener('input', function() {
-                    thresholdValue.textContent = this.value + ' items';
+                    thresholdValue.textContent = this.value + ' grams';
                 });
             }
 
@@ -801,12 +855,16 @@ window.ordersBySource = (dataEl.dataset.ordersBySource && dataEl.dataset.ordersB
     }
     async function fetchLowStockData() {
         try {
-            const threshold = localStorage.getItem('lowStockThreshold') || '5';
+            // Use server-provided threshold instead of localStorage to stay in sync
+            const dataEl = document.getElementById('dashboard-data');
+            const threshold = dataEl?.dataset?.userLowStockThreshold || '5';
             const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
             const response = await fetch(`${basePath}/analytics/low-stock?threshold=` + threshold);
             if (response.ok) {
                 const lowStockData = await response.json();
-                document.getElementById('low-stock-value').innerText = lowStockData.quantity || 0;
+                const quantity = lowStockData.quantity || 0;
+                const quantityDisplay = quantity > 0 ? quantity + 'g' : quantity;
+                document.getElementById('low-stock-value').innerText = quantityDisplay;
                 document.getElementById('low-stock-name').innerText = lowStockData.name || 'All stocked';
 
                 // Handle the "more" link
