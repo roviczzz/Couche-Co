@@ -1027,73 +1027,9 @@ router.get('/analytics/popular-products', async (req, res) => {
   }
 });
 
-router.get('/analytics/sales-per-day', async (req, res) => {
-  try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
 
-    // Get sales per day for the last 30 days
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const salesPerDay = await db.collection('Orders').aggregate([
-      {
-        $match: {
-          Date: { $gte: thirtyDaysAgo.toISOString() },
-          PaymentStatus: { $in: ['Paid', 'Payment pending'] }
-        }
-      },
-      {
-        $group: {
-          _id: {
-            $dateToString: {
-              format: '%Y-%m-%d',
-              date: { $dateFromString: { dateString: '$Date' } }
-            }
-          },
-          totalSales: { $sum: '$Total' },
-          orderCount: { $sum: 1 }
-        }
-      },
-      { $sort: { '_id': 1 } }
-    ]).toArray();
 
-    await client.close();
-    res.json(salesPerDay);
-  } catch (error) {
-    console.error('Sales per day error:', error);
-    res.status(500).json({ error: 'Failed to load sales per day' });
-  }
-});
-
-router.get('/analytics/payment-methods', async (req, res) => {
-  try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-
-    const paymentMethods = await db.collection('Orders').aggregate([
-      {
-        $match: {
-          PaymentStatus: { $in: ['Paid', 'Payment pending'] }
-        }
-      },
-      {
-        $group: {
-          _id: '$PaymentMethod',
-          revenue: { $sum: '$Total' },
-          count: { $sum: 1 }
-        }
-      },
-      { $sort: { revenue: -1 } }
-    ]).toArray();
-
-    await client.close();
-    res.json(paymentMethods);
-  } catch (error) {
-    console.error('Payment methods error:', error);
-    res.status(500).json({ error: 'Failed to load payment methods' });
-  }
-});
 
 router.get('/analytics/order-sources', async (req, res) => {
   try {

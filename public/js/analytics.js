@@ -282,10 +282,11 @@ async function loadOrderHistory(days = 7) {
 
 
     orders.forEach(o => {
+      const customerName = o.Customer && o.Customer.fullname ? o.Customer.fullname : 'Unknown Customer';
       const row = `
         <tr>
           <td>${o.OrderID}</td>
-          <td>${o.Customer}</td>
+          <td>${customerName}</td>
           <td>${o.Date}</td>
           <td>${o.Total}</td>
           <td>${o.PaymentMode}</td>
