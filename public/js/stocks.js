@@ -911,11 +911,11 @@ document.addEventListener('DOMContentLoaded', function() {
       const suffix = ingredientModalForm.querySelector('input[name="IngredientSuffix"]').value.trim();
       const fullId = `${prefix}-${suffix}`;
 
-      // Remove any existing hidden fields first (only remove hidden ones, keep visible form inputs)
-      ['IngredientID', 'IngredientPrefix', 'AmountPerPack', 'Category', 'isAvailable', 'isEnabled'].forEach(fieldName => {
-        const existing = ingredientModalForm.querySelector(`input[name="${fieldName}"][type="hidden"]`);
-        if (existing) existing.remove();
-      });
+    // Remove any existing hidden fields first (only remove hidden ones, keep visible form inputs)
+    ['IngredientID', 'IngredientPrefix', 'AmountPerPack', 'Category', 'isAvailable', 'isEnabled', 'DeductionQuantityGrams'].forEach(fieldName => {
+      const existing = ingredientModalForm.querySelector(`input[name="${fieldName}"][type="hidden"]`);
+      if (existing) existing.remove();
+    });
 
       // Add IngredientID (derived field)
       const hiddenIngredientID = document.createElement('input');
@@ -969,6 +969,13 @@ document.addEventListener('DOMContentLoaded', function() {
         enabledSwitch.removeAttribute('name');
       }
 
+      // Add DeductionQuantityGrams
+      const hiddenDeductionQuantityGrams = document.createElement('input');
+      hiddenDeductionQuantityGrams.type = 'hidden';
+      hiddenDeductionQuantityGrams.name = 'DeductionQuantityGrams';
+      hiddenDeductionQuantityGrams.value = '10';
+      ingredientModalForm.appendChild(hiddenDeductionQuantityGrams);
+
       console.log(`[2025-10-15 17:45:23] Adding new ingredient with ID: ${fullId}, AmountPerPack: ${amountPerPack}, Amount: ${amount}, Unit: ${unit} by MathDaenniel`);
       
       // Trigger dashboard refresh for new ingredient addition
@@ -993,7 +1000,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const fullId = `${prefix}-${suffix}`;
 
       // Remove any existing hidden fields first (only remove hidden ones, keep visible form inputs)
-      ['AddOnID', 'AddOnPrefix', 'AmountPerPack', 'Category', 'BasePrice', 'isEnabled'].forEach(fieldName => {
+      ['AddOnID', 'AddOnPrefix', 'AmountPerPack', 'Category', 'BasePrice', 'isEnabled', 'DeductionQuantityGrams'].forEach(fieldName => {
         const existing = addonModalForm.querySelector(`input[name="${fieldName}"][type="hidden"]`);
         if (existing) existing.remove();
       });
@@ -1050,6 +1057,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         enabledSwitch.removeAttribute('name');
       }
+
+      // Add DeductionQuantityGrams
+      const hiddenDeductionQuantityGrams = document.createElement('input');
+      hiddenDeductionQuantityGrams.type = 'hidden';
+      hiddenDeductionQuantityGrams.name = 'DeductionQuantityGrams';
+      hiddenDeductionQuantityGrams.value = '10';
+      addonModalForm.appendChild(hiddenDeductionQuantityGrams);
 
       console.log(`[2025-10-15 17:45:23] Adding new add-on with ID: ${fullId}, AmountPerPack: ${amountPerPack}, BasePrice: ${basePrice} by MathDaenniel`);
       
@@ -1591,8 +1605,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     name = row.querySelector('input[name="Name"]')?.value?.trim();
-    amount = row.querySelector('input[name="Amount"]')?.value;
-    unit = row.querySelector('select[name="Unit"]')?.value;
+    amount = row.querySelector('.amount-pack-group input[name="Amount"]')?.value?.trim();
+    unit = row.querySelector('.amount-pack-group select[name="Unit"]')?.value?.trim();
     category = itemType === 'ingredient' ? 'Ingredients' : 'Add-Ons';
     allergen = row.querySelector('input[name="Allergen"]')?.value?.trim() || 'None';
     enabled = row.querySelector('select[name="isEnabled"]')?.value;
@@ -1617,6 +1631,7 @@ document.addEventListener('DOMContentLoaded', function() {
       itemType === 'ingredient' ? 'ING' : 'AD';
     form.querySelector('input[name="' + (itemType === 'ingredient' ? 'IngredientSuffix' : 'AddOnSuffix') + '"]').value = suffix;
     form.querySelector('input[name="Name"]').value = name;
+    form.querySelector('input[name="Amount"]').value = amount;
     form.querySelector('input[name="AmountPerPack"]').value = amountPerPack;
     form.querySelector('input[name="Category"]').value = category;
     form.querySelector('input[name="Allergen"]').value = allergen;

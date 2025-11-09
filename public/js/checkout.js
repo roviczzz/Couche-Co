@@ -12,6 +12,12 @@ document.addEventListener('DOMContentLoaded', function() {
   const checkStatusBtn = document.getElementById('checkPaymentStatusBtn');
   const closeModalBtn = document.getElementById('closePaymentModalBtn');
 
+  // Promo variables
+  let currentDiscountPercentage = 0;
+  let selectedPromoId = null;
+  let selectedPromo = null;
+  let availablePromos = [];
+
   // Retrieve and populate saved user data
   async function loadUserData() {
     if (window.user) {
@@ -95,6 +101,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Load user data when page loads
   loadUserData();
+
+  // Load active promos
+  loadActivePromos();
 
   // Phone number formatting
   document.getElementById('phone').addEventListener('input', function() {
@@ -361,9 +370,13 @@ document.addEventListener('DOMContentLoaded', function() {
         return sum + ((item.price + addonsTotal) * item.quantity);
       }, 0);
 
+      // Apply discount if promo selected
+      const discountAmount = subtotalAmount * (currentDiscountPercentage / 100);
+      const discountedSubtotal = subtotalAmount - discountAmount;
+
       // Add delivery fee if delivery method is selected
       const deliveryFee = deliveryMethod === 'Delivery' ? 20 : 0;
-      const totalAmount = subtotalAmount + deliveryFee;
+      const totalAmount = discountedSubtotal + deliveryFee;
 
       // Create order data
       const orderData = {
@@ -386,7 +399,9 @@ document.addEventListener('DOMContentLoaded', function() {
         FulfillmentStatus: 'Preparing',
         FulfillmentMethod: deliveryMethod,
         PaymentMethod: paymentMethod,
-        PaymentMode: 'E-Payment'
+        PaymentMode: 'E-Payment',
+        PromoEventApplied: selectedPromo ? selectedPromo.event : null,
+        PromoDiscountAmount: selectedPromo ? selectedPromo.discountPercentage : null
       };
 
       // Store order ID for payment checking
@@ -510,6 +525,146 @@ document.addEventListener('DOMContentLoaded', function() {
       overlay.classList.add('hidden');
     }
   });
+
+  // Load active promos and set up promo selection
+  async function loadActivePromos() {
+    try {
+      const response = await fetch('/api/discounts/active');
+      if (response.ok) {
+        availablePromos = await response.json();
+        populatePromoSelect();
+      } else {
+        console.error('Failed to load active promos');
+      }
+    } catch (error) {
+      console.error('Error loading active promos:', error);
+    }
+  }
+
+  // Get unique categories from cart items
+  function getCartCategories() {
+    const cartItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+    const categories = new Set();
+
+    cartItems.forEach(item => {
+      if (item.category) {
+        categories.add(item.category);
+      }
+    });
+
+    return Array.from(categories);
+  }
+
+  function populatePromoSelect() {
+    const promoSelect = document.getElementById('promoCode');
+    // Clear existing options except the default
+    promoSelect.innerHTML = '<option value="">No promo selected</option>';
+
+    const cartCategories = getCartCategories();
+
+    // Filter promos based on cart categories
+    const filteredPromos = availablePromos.filter(promo => {
+      // If cart has categories, only show promos that match those categories
+      if (cartCategories.length > 0) {
+        return cartCategories.includes(promo.category);
+      }
+      // If no categories in cart, show all promos
+      return true;
+    });
+
+    filteredPromos.forEach(promo => {
+      const option = document.createElement('option');
+      option.value = promo._id;
+      option.textContent = `${promo.event} - ${promo.discountPercentage}% OFF`;
+      promoSelect.appendChild(option);
+    });
+
+    // If no applicable promos, show message
+    if (filteredPromos.length === 0 && availablePromos.length > 0) {
+      const option = document.createElement('option');
+      option.value = '';
+      option.textContent = 'No applicable promos for your order';
+      option.disabled = true;
+      promoSelect.appendChild(option);
+    }
+  }
+
+  // Promo selection handler
+  document.getElementById('promoCode').addEventListener('change', function() {
+    const selectedValue = this.value;
+    if (selectedValue) {
+      const promo = availablePromos.find(promo => promo._id === selectedValue);
+      if (promo) {
+        currentDiscountPercentage = promo.discountPercentage;
+        selectedPromoId = promo._id;
+        selectedPromo = promo;
+      }
+    } else {
+      currentDiscountPercentage = 0;
+      selectedPromoId = null;
+      selectedPromo = null;
+    }
+    updateTotalDisplay();
+  });
+
+  // Function to calculate subtotal from cart
+  function calculateSubtotal() {
+    const cartItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+    return cartItems.reduce((sum, item) => {
+      if (item.isFree) return sum;
+      const addonsTotal = item.addons ? item.addons.reduce((sum, ad) => sum + (ad.BasePrice || 0), 0) : 0;
+      return sum + ((item.price + addonsTotal) * item.quantity);
+    }, 0);
+  }
+
+  // Function to update total display
+  function updateTotalDisplay() {
+    const subtotal = calculateSubtotal();
+    const deliveryMethod = document.getElementById('deliveryMethod').value;
+    const deliveryFee = deliveryMethod === 'Delivery' ? 20 : 0;
+    const discountAmount = subtotal * (currentDiscountPercentage / 100);
+    const discountedSubtotal = subtotal - discountAmount;
+    const total = discountedSubtotal + deliveryFee;
+
+    document.getElementById('totalAmountDisplay').textContent = '₱' + total.toFixed(2);
+  }
+
+  // Delivery method toggle
+  const deliveryMethodSelect = document.getElementById('deliveryMethod');
+  deliveryMethodSelect.addEventListener('change', function() {
+    const method = this.value;
+    const pickupAgreement = document.getElementById('pickupAgreement');
+    const deliveryFields = document.getElementById('deliveryFields');
+    const pickupCheckbox = document.getElementById('pickupAgreed');
+    const cityInput = document.getElementById('city');
+    const addressInput = document.getElementById('address');
+
+    if (method === 'Pick-up') {
+      pickupAgreement.style.display = 'block';
+      deliveryFields.style.display = 'none';
+      pickupCheckbox.setAttribute('required', '');
+      cityInput.removeAttribute('required');
+      addressInput.removeAttribute('required');
+    } else if (method === 'Delivery') {
+      pickupAgreement.style.display = 'none';
+      deliveryFields.style.display = 'block';
+      pickupCheckbox.removeAttribute('required');
+      cityInput.setAttribute('required', '');
+      addressInput.setAttribute('required', '');
+    } else {
+      // Default/unselected state
+      pickupAgreement.style.display = 'none';
+      deliveryFields.style.display = 'none';
+      pickupCheckbox.removeAttribute('required');
+      cityInput.removeAttribute('required');
+      addressInput.removeAttribute('required');
+    }
+    // Update total display
+    updateTotalDisplay();
+  });
+
+  // Set active step to 1 on load
+  updateProgressStep(1);
 });
 
 // Clear user's cart from both localStorage and database upon successful payment
