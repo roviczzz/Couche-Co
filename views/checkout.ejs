@@ -193,8 +193,9 @@
         <div class="promo-code-section">
           <label for="promoCode">Promo Code</label>
           <div class="promo-input-row">
-            <input type="text" id="promoCode" placeholder="Enter promo code">
-            <button id="applyPromoBtn" class="redeem-btn">Redeem</button>
+            <select id="promoCode">
+              <option value="">No promo selected</option>
+            </select>
           </div>
         </div>
         <div class="total-row final-total">
@@ -275,52 +276,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Delivery method toggle
-  const deliveryMethodSelect = document.getElementById('deliveryMethod');
-  deliveryMethodSelect.addEventListener('change', function() {
-    const method = this.value;
-    const pickupAgreement = document.getElementById('pickupAgreement');
-    const deliveryFields = document.getElementById('deliveryFields');
-    const pickupCheckbox = document.getElementById('pickupAgreed');
-    const cityInput = document.getElementById('city');
-    const addressInput = document.getElementById('address');
-    const deliveryFeeRow = document.getElementById('deliveryFeeRow');
-    const totalAmountDisplay = document.getElementById('totalAmountDisplay');
 
-    // Calculate current subtotal (this matches the server-side calculation)
-    const subtotal = parseFloat('<%= orderItems.reduce((sum, item) => { if (item.isFree) return sum; const addonsTotal = item.addons ? item.addons.reduce((sum, ad) => sum + (ad.BasePrice || 0), 0) : 0; return sum + ((item.price + addonsTotal) * item.quantity); }, 0).toFixed(2) %>');
-
-    if (method === 'Pick-up') {
-      pickupAgreement.style.display = 'block';
-      deliveryFields.style.display = 'none';
-      deliveryFeeRow.style.display = 'none';
-      pickupCheckbox.setAttribute('required', '');
-      cityInput.removeAttribute('required');
-      addressInput.removeAttribute('required');
-      // Update total (subtotal only)
-      totalAmountDisplay.textContent = '₱' + subtotal.toFixed(2);
-    } else if (method === 'Delivery') {
-      pickupAgreement.style.display = 'none';
-      deliveryFields.style.display = 'block';
-      deliveryFeeRow.style.display = 'flex'; // Show delivery fee row
-      pickupCheckbox.removeAttribute('required');
-      cityInput.setAttribute('required', '');
-      addressInput.setAttribute('required', '');
-      // Update total (subtotal + delivery fee)
-      const totalWithDelivery = subtotal + 20;
-      totalAmountDisplay.textContent = '₱' + totalWithDelivery.toFixed(2);
-    } else {
-      // Default/unselected state
-      pickupAgreement.style.display = 'none';
-      deliveryFields.style.display = 'none';
-      deliveryFeeRow.style.display = 'none';
-      pickupCheckbox.removeAttribute('required');
-      cityInput.removeAttribute('required');
-      addressInput.removeAttribute('required');
-      // Update total (subtotal only)
-      totalAmountDisplay.textContent = '₱' + subtotal.toFixed(2);
-    }
-  });
 
   // Function to update progress step
   window.updateProgressStep = function(stepNumber) {
