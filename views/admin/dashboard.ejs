@@ -103,8 +103,14 @@ data-user-low-stock-threshold="<%= (typeof userLowStockThreshold !== 'undefined'
                     <button id="export-performance" class="action-btn">Export data</button>
                 </div>
             </div>
-            <div style="height:380px;width:100%;display:flex;align-items:center;">
+            <div style="height:380px;width:100%;display:flex;align-items:center;position:relative;">
                 <canvas id="salesPerformanceChart" height="380" style="width:100% !important; height:380px !important; max-height:380px !important;"></canvas>
+                <div id="sales-performance-loading" class="chart-loading" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(255,255,255,0.95);padding:12px 16px;border-radius:8px;display:none;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,0.1);width:180px;text-align:center;">
+                    <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+                        <div style="width:16px;height:16px;border:2px solid #6b3e26;border-top:2px solid transparent;border-radius:50%;animation:spin 1s linear infinite;"></div>
+                        <span style="color:#6b3e26;font-weight:500;font-size:14px;">Loading chart...</span>
+                    </div>
+                </div>
             </div>
             <div id="sales-performance-info"></div>
         </div>
@@ -148,6 +154,21 @@ data-user-low-stock-threshold="<%= (typeof userLowStockThreshold !== 'undefined'
         </div>
     </div>
 </div>
+
+<!-- Export Report Loading Modal -->
+<div id="export-loading-modal" class="export-modal" style="display: none; position: fixed; top: 20px; right: 20px; z-index: 2000; background: rgba(255,255,255,0.95); border-radius: 8px; padding: 12px 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); border: 1px solid #e0e0e0; min-width: 200px;">
+    <div class="export-modal-content" style="display: flex; align-items: center; gap: 10px;">
+        <div class="export-spinner" style="width: 16px; height: 16px; border: 2px solid #f3f3f3; border-top: 2px solid #6b3e26; border-radius: 50%; animation: spin 1s linear infinite; flex-shrink: 0;"></div>
+        <div style="font-size: 14px; color: #333; font-weight: 500;">Generating report...</div>
+    </div>
+</div>
+
+<style>
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

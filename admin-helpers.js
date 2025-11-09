@@ -915,6 +915,14 @@ async function getActiveDiscounts() {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
 
+    // Check if Promos collection exists
+    const collections = await db.listCollections({ name: 'Promos' }).toArray();
+    if (collections.length === 0) {
+      console.log('Promos collection does not exist, returning empty array');
+      await client.close();
+      return [];
+    }
+
     const now = new Date();
 
     const activeDiscounts = await db.collection('Promos').find({

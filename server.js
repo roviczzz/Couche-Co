@@ -150,7 +150,8 @@ app.use((err, req, res, next) => {
   res.status(500).render('error', {
     title: 'Server Error',
     message: err && err.message ? err.message : 'An unexpected error occurred. Please try again later.',
-    status: 500
+    status: 500,
+    user: req.session?.user || null
   });
 });
 
@@ -159,7 +160,8 @@ app.use((req, res) => {
   res.status(404).render('error', {
     title: 'Page Not Found',
     message: 'The page you are looking for does not exist.',
-    status: 404
+    status: 404,
+    user: req.session?.user || null
   });
 });
 

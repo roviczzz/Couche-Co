@@ -519,7 +519,10 @@ function updateCartDisplay() {
             const promoDetailsElement = document.getElementById('promo-details');
             const promoDiscountRow = document.getElementById('promo-discount-row');
             
-            if (promoAppliedElement) promoAppliedElement.textContent = '';
+            if (promoAppliedElement) {
+                promoAppliedElement.textContent = '';
+                promoAppliedElement.style.display = 'none';
+            }
             if (promoDetailsElement) {
                 promoDetailsElement.textContent = '';
                 promoDetailsElement.style.display = 'none';
@@ -532,7 +535,10 @@ function updateCartDisplay() {
         const promoDetailsElement = document.getElementById('promo-details');
         const promoDiscountRow = document.getElementById('promo-discount-row');
         
-        if (promoAppliedElement) promoAppliedElement.textContent = '';
+        if (promoAppliedElement) {
+            promoAppliedElement.textContent = '';
+            promoAppliedElement.style.display = 'none';
+        }
         if (promoDetailsElement) {
             promoDetailsElement.textContent = '';
             promoDetailsElement.style.display = 'none';
@@ -693,6 +699,12 @@ function updateCartDisplay() {
 
     promoAppliedElement.textContent = promoLabels.length > 0 ? promoLabels.join(', ') : '';
     promoAppliedElement.style.textAlign = 'left';
+    
+    if (promoLabels.length > 0) {
+        promoAppliedElement.style.display = 'block';
+    } else {
+        promoAppliedElement.style.display = 'none';
+    }
     
     if (promoDetails) {
         promoDetailsElement.textContent = promoDetails;

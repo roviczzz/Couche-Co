@@ -55,20 +55,13 @@ function handlePromoSelection() {
     if (promoSelect.value === '') {
         selectedPromo = null;
         
-        // Clear promo labels immediately and aggressively
+        // Hide promo applied section when no promotion is selected
         const promoAppliedElement = document.getElementById('promo-applied');
         const promoDetailsElement = document.getElementById('promo-details');
         
-        // Clear all dropdown promo labels - only keep B1T1 and Buy3 if they exist
         if (promoAppliedElement) {
-            const b1t1Applied = window.cartItems && window.cartItems.some(item => item.isB1T1);
-            const buy3Applied = window.cartItems && calculateBuy3For143Savings(window.cartItems) > 0;
-            
-            let promoLabels = [];
-            if (b1t1Applied) promoLabels.push('B1T1');
-            if (buy3Applied) promoLabels.push('Buy 3 for ₱143');
-            
-            promoAppliedElement.textContent = promoLabels.join(', ');
+            promoAppliedElement.style.display = 'none';
+            promoAppliedElement.textContent = '';
         }
         
         // Clear promo details completely
@@ -519,7 +512,10 @@ function updateCartDisplay() {
             const promoDetailsElement = document.getElementById('promo-details');
             const promoDiscountRow = document.getElementById('promo-discount-row');
             
-            if (promoAppliedElement) promoAppliedElement.textContent = '';
+            if (promoAppliedElement) {
+                promoAppliedElement.textContent = '';
+                promoAppliedElement.style.display = 'none';
+            }
             if (promoDetailsElement) {
                 promoDetailsElement.textContent = '';
                 promoDetailsElement.style.display = 'none';
@@ -692,35 +688,21 @@ function updateCartDisplay() {
         promoDetailsElement.style.display = 'none';
     }
     
-    const b1t1Applied = window.cartItems && window.cartItems.some(item => item.isB1T1);
-    const buy3Applied = window.cartItems && calculateBuy3For143Savings(window.cartItems) > 0;
-
-    let promoLabels = [];
-    let promoDetails = '';
-    
-    // Only add dropdown promo if it exists, cart has items, and promo is still applicable
+    // Only show promo-applied when a dropdown promo is selected
     if (selectedPromo && window.cartItems && window.cartItems.length > 0 && isPromoApplicableToCart(selectedPromo)) {
-        promoLabels.push(`${selectedPromo.event} (-${selectedPromo.discountPercentage}%)`);
-        promoDetails = `${selectedPromo.description} • ${selectedPromo.discountPercentage}% discount on ${selectedPromo.category} items`;
-    } else if (selectedPromo) {
-        // If we reach here, selectedPromo exists but is not applicable - clear it
-        selectedPromo = null;
-        const promoSelect = document.getElementById('promo-select');
-        if (promoSelect) promoSelect.value = '';
-    }
-    
-    if (b1t1Applied) promoLabels.push('B1T1');
-    if (buy3Applied) promoLabels.push('Buy 3 for ₱143');
-
-    promoAppliedElement.textContent = promoLabels.length > 0 ? promoLabels.join(', ') : '';
-    promoAppliedElement.style.textAlign = 'left';
-    
-    if (promoDetails) {
-        promoDetailsElement.textContent = promoDetails;
+        promoAppliedElement.style.display = 'block';
+        promoAppliedElement.textContent = `${selectedPromo.event} (-${selectedPromo.discountPercentage}%)`;
+        promoDetailsElement.textContent = `${selectedPromo.description} • ${selectedPromo.discountPercentage}% discount on ${selectedPromo.category} items`;
         promoDetailsElement.style.display = 'block';
         promoDetailsElement.style.marginBottom = '20px';
     } else {
-        promoDetailsElement.style.display = 'none';
+        promoAppliedElement.style.display = 'none';
+        if (selectedPromo) {
+            // If we reach here, selectedPromo exists but is not applicable - clear it
+            selectedPromo = null;
+            const promoSelect = document.getElementById('promo-select');
+            if (promoSelect) promoSelect.value = '';
+        }
     }
 
     // Calculate subtotal after promo discount
