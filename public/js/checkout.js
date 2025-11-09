@@ -188,17 +188,13 @@ document.addEventListener('DOMContentLoaded', function() {
           processingMessage.style.display = 'block';
           paymentInstructions.style.display = 'none';
 
-          // Replace spinner with checkmark
-          const loadingSpinner = document.querySelector('.loading-spinner');
-          loadingSpinner.innerHTML = '<div class="payment-checkmark"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M480 96C515.3 96 544 124.7 544 160L544 480C544 515.3 515.3 544 480 544L160 544C124.7 544 96 515.3 96 480L96 160C96 124.7 124.7 96 160 96L480 96zM438 209.7C427.3 201.9 412.3 204.3 404.5 215L285.1 379.2L233 327.1C223.6 317.7 208.4 317.7 199.1 327.1C189.8 336.5 189.7 351.7 199.1 361L271.1 433C276.1 438 283 440.5 289.9 440C296.8 439.5 303.3 435.9 307.4 430.2L443.3 243.2C451.1 232.5 448.7 217.5 438 209.7z"/></svg></div>';
-
           setTimeout(() => {
             window.location.href = `/order/success?orderId=${currentOrderId}`;
           }, 3000);
         } else if (!paymentStatusInterval) {
-          // This is from manual check, show alert
-          alert('Payment not yet confirmed. Please complete the payment in the new tab.');
-        } // If polling, just continue without alert
+          // This is from manual check, show notification
+          notificationSystem.warning('Payment not yet confirmed. Please complete the payment in the new tab.', 'Payment Status');
+        } // If polling, just continue without notification
       } else {
         const errorData = await response.json().catch(() => ({}));
         console.error('Payment check error:', errorData);
@@ -208,15 +204,15 @@ document.addEventListener('DOMContentLoaded', function() {
                             errorData.error ||
                             'Unable to check payment status. Please try again.';
         if (!paymentStatusInterval) {
-          // Only show alert if manual check
-          alert(errorMessage);
+          // Only show notification if manual check
+          notificationSystem.error(errorMessage, 'Payment Check Failed');
         }
       }
     } catch (error) {
       console.error('Error checking payment status:', error);
       if (!paymentStatusInterval) {
-        // Only show alert if manual check
-        alert('Error checking payment status. Please try again or contact support.');
+        // Only show notification if manual check
+        notificationSystem.error('Error checking payment status. Please try again or contact support.', 'Connection Error');
       }
     }
   }
@@ -228,9 +224,9 @@ document.addEventListener('DOMContentLoaded', function() {
       clearInterval(paymentStatusInterval);
       paymentStatusInterval = null;
     }
-    // Re-enable the button after closing modal
+    // Re-enable and show the button after closing modal
     placeOrderBtn.disabled = false;
-    placeOrderBtn.textContent = 'Place Order & Pay';
+    placeOrderBtn.textContent = 'Place Order';
   }
 
   form.addEventListener('submit', async function(e) {
@@ -242,7 +238,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Validate delivery method and agreement
     if (deliveryMethod === 'Pick-up' && !formData.get('pickupAgreed')) {
-      alert('Please agree to the pick-up terms.');
+      notificationSystem.warning('Please agree to the pick-up terms.', 'Validation Required');
       return;
     }
 
@@ -252,7 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // Refresh cart data if not ready
       const cartData = localStorage.getItem('orderItems');
       if (!cartData || !JSON.parse(cartData || '[]').length) {
-        alert('Your cart appears to be empty. Please add items and try again.');
+        notificationSystem.warning('Your cart appears to be empty. Please add items and try again.', 'Empty Cart');
         window.location.href = '/user/menu';
         return;
       }
@@ -260,7 +256,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Disable button to prevent double submission
     placeOrderBtn.disabled = true;
-    placeOrderBtn.textContent = 'Processing...';
+    placeOrderBtn.style.display = 'none';
 
     try {
       // Show overlay
@@ -328,10 +324,10 @@ document.addEventListener('DOMContentLoaded', function() {
             customerMessage = `Sorry, the following items are currently unavailable:\n\n${unavailableItemNames.map(name => `• ${name}`).join('\n')}\n\nPlease choose different items or modify your order.`;
           }
           
-          alert(customerMessage);
+          notificationSystem.error(customerMessage, 'Item Unavailable');
           overlay.classList.add('hidden');
           placeOrderBtn.disabled = false;
-          placeOrderBtn.textContent = 'Place Order & Pay';
+          placeOrderBtn.textContent = 'Place Order';
           return;
         } else {
           throw new Error(inventoryError.error || 'Inventory check failed');
@@ -401,7 +397,7 @@ document.addEventListener('DOMContentLoaded', function() {
         PaymentMethod: paymentMethod,
         PaymentMode: 'E-Payment',
         PromoEventApplied: selectedPromo ? selectedPromo.event : null,
-        PromoDiscountAmount: selectedPromo ? selectedPromo.discountPercentage : null
+        PromoDiscountAmount: selectedPromo ? selectedPromo.discountPercentage / 100 : null
       };
 
       // Store order ID for payment checking
@@ -515,14 +511,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 1000);
 
       } else {
-        alert('Invoice created successfully. Please check your email for payment instructions.');
+        notificationSystem.success('Invoice created successfully. Please check your email for payment instructions.', 'Payment Setup Complete');
         window.location.href = '/';
       }
 
     } catch (error) {
       console.error('Checkout error:', error);
-      alert('An error occurred during checkout. Please try again.');
+      notificationSystem.error('An error occurred during checkout. Please try again.', 'Checkout Failed');
       overlay.classList.add('hidden');
+      placeOrderBtn.disabled = false;
+      placeOrderBtn.textContent = 'Place Order';
     }
   });
 

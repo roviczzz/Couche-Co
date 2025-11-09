@@ -255,14 +255,8 @@ router.post('/orders', checkInventoryAvailability, async (req, res) => {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
 
-    // Add inventory check status to order
-    if (req.inventoryChecked) {
-      orderData.InventoryChecked = true;
-      orderData.InventoryCheckedAt = new Date();
-    } else if (req.inventoryCheckFailed) {
-      orderData.InventoryCheckFailed = true;
-      orderData.InventoryCheckError = req.inventoryError;
-      orderData.InventoryCheckAttemptedAt = new Date();
+    // Inventory check completed but status not saved to order data
+    if (req.inventoryCheckFailed) {
       console.warn(`Order ${orderData.OrderID} created without inventory validation due to: ${req.inventoryError}`);
     }
 
