@@ -491,55 +491,82 @@ async function checkItemAvailability(item, selectedSize, addons) {
     }
 }
 
+// Helper function to extract price from item or size
+function getItemPrice(item, selectedSize) {
+    if (selectedSize) {
+        return selectedSize.BasePrice ?? selectedSize.Price ?? 0;
+    }
+    if (item.Sizes?.[0]) {
+        return item.Sizes[0].BasePrice ?? item.Sizes[0].Price ?? 0;
+    }
+    return item.BasePrice ?? item.Price ?? 0;
+}
+
+// Helper function to extract size name
+function getSizeName(item, selectedSize) {
+    if (selectedSize) {
+        return selectedSize.Size ?? selectedSize.SizeName ?? 'Regular';
+    }
+    if (item.Sizes?.[0]) {
+        return item.Sizes[0].Size ?? item.Sizes[0].SizeName ?? 'Regular';
+    }
+    return 'Regular';
+}
+
+// Helper function to format unavailable items message
+function formatUnavailabilityMessage(missingIngredients) {
+    let message = 'Item is not available due to insufficient stock:\n';
+    missingIngredients.forEach(missing => {
+        if (missing.type === 'pastry') {
+            message += `- ${missing.name}: Only ${missing.available} available, need ${missing.needed}\n`;
+        } else if (missing.type === 'ingredient') {
+            message += `- ${missing.name}: Only ${missing.available}g available, need ${missing.needed}g\n`;
+        } else if (missing.type === 'addon') {
+            message += `- ${missing.name}: Out of stock\n`;
+        }
+    });
+    return message;
+}
+
 function addToCart(item, selectedSize = null, addons = []) {
+    // Initialize cart if needed
     if (!window.cartItems) {
         window.cartItems = [];
     }
 
+    // Validate item input
+    if (!item) {
+        console.error('Item is null or undefined in addToCart');
+        showFeedbackMessage('Error: Invalid item. Please try again.', 'error');
+        return;
+    }
+
+    // Pre-compute addon price (doesn't change based on availability)
+    const addonPrice = addons.reduce((sum, addon) => sum + (addon.price ?? 0), 0);
+
     // Check availability before adding to cart
     checkItemAvailability(item, selectedSize, addons).then(availability => {
         if (!availability.available) {
-            let message = 'Item is not available due to insufficient stock:\n';
-            availability.missingIngredients.forEach(missing => {
-                if (missing.type === 'pastry') {
-                    message += `- ${missing.name}: Only ${missing.available} available, need ${missing.needed}\n`;
-                } else if (missing.type === 'ingredient') {
-                    message += `- ${missing.name}: Only ${missing.available}g available, need ${missing.needed}g\n`;
-                } else if (missing.type === 'addon') {
-                    message += `- ${missing.name}: Out of stock\n`;
-                }
-            });
+            const message = formatUnavailabilityMessage(availability.missingIngredients);
             showFeedbackMessage(message, 'error');
             return;
         }
 
-        // Calculate base price and total addon price
-        let basePrice;
-        let sizeName;
-
-        if (selectedSize) {
-            basePrice = selectedSize.BasePrice || selectedSize.Price || 0;
-            sizeName = selectedSize.Size || selectedSize.SizeName || 'Regular';
-        } else if (item.Sizes && item.Sizes[0]) {
-            basePrice = item.Sizes[0].BasePrice || item.Sizes[0].Price || 0;
-            sizeName = item.Sizes[0].Size || item.Sizes[0].SizeName || 'Regular';
-        } else {
-            basePrice = item.BasePrice || item.Price || 0;
-            sizeName = 'Regular';
-        }
-
-        const addonPrice = addons.reduce((sum, addon) => sum + addon.price, 0);
+        // Calculate prices
+        const basePrice = getItemPrice(item, selectedSize);
         const totalPrice = basePrice + addonPrice;
+        const sizeName = getSizeName(item, selectedSize);
 
+        // Create cart item with all required properties
         const cartItem = {
             itemId: Date.now() + Math.random(),
             ProductName: item.Name,
-            ProductID: item._id || item.id,
+            ProductID: item._id ?? item.id,
             Size: sizeName,
             AddOns: addons.map(addon => addon.name),
             Quantity: 1,
-            BasePrice: totalPrice, // Include addon prices in base price for total calculation
-            ImageLink: item.imagelink || ""
+            BasePrice: totalPrice,
+            ImageLink: item.imagelink ?? ""
         };
 
         window.cartItems.push(cartItem);
@@ -859,6 +886,23 @@ function submitOrder() {
     const paymentMethod = getSelectedPaymentMethod();
     const itemTotal = cart.reduce((sum, item) => sum + item.Quantity, 0);
     let total = calculatePromotionalTotal(cart);
+
+    // Apply selected promo discount (only if promo is still applicable)
+    let promoDiscountAmount = 0;
+    if (selectedPromo && isPromoApplicableToCart(selectedPromo)) {
+        const menuData = JSON.parse(document.getElementById('menu-data').textContent);
+        
+        cart.forEach(cartItem => {
+            const menuItem = menuData.find(item => item.Name === cartItem.ProductName);
+            if (menuItem && menuItem.Category === selectedPromo.category) {
+                const itemTotal = cartItem.BasePrice * cartItem.Quantity;
+                promoDiscountAmount += itemTotal * (selectedPromo.discountPercentage / 100);
+            }
+        });
+    }
+
+    // Subtract promo discount from total
+    total -= promoDiscountAmount;
 
     // Add delivery fee for delivery orders
     if (deliveryType === 'Delivery') {
@@ -1293,6 +1337,9 @@ function proceedOrder() {
 }
 
 function showOrderConfirmation() {
+    // Reset modal state first
+    resetOrderConfirmationModal();
+    
     let customerName = document.getElementById('customer-name').value.trim();
     const contactNumber = document.getElementById('contact-number').value.trim();
     const deliveryType = document.getElementById('delivery-type').value;
@@ -1309,58 +1356,148 @@ function showOrderConfirmation() {
         document.getElementById('customer-name').value = customerName;
     }
 
-    let confirmMessage = `Customer: ${customerName}\n`;
-    if (contactNumber) confirmMessage += `Contact: ${contactNumber}\n\n`;
-    confirmMessage += `Delivery Type: ${deliveryType}\n`;
+    let confirmHTML = `
+<div style="border-bottom: 1px dashed #999; padding-bottom: 12px; margin-bottom: 12px;">
+  <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+    <span style="font-weight: 600;">CUSTOMER:</span>
+    <span style="font-weight: 600;">${customerName}</span>
+  </div>
+  ${contactNumber ? `
+  <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+    <span>CONTACT:</span>
+    <span>${contactNumber}</span>
+  </div>
+  ` : ''}
+  <div style="display: flex; justify-content: space-between;">
+    <span>TYPE:</span>
+    <span>${deliveryType}</span>
+  </div>
+  ${deliveryType === 'Delivery' ? `
+  <div style="display: flex; justify-content: space-between; margin-top: 4px;">
+    <span>ADDRESS:</span>
+    <span>${streetAddress}, ${areaSelect}</span>
+  </div>
+  ` : ''}
+</div>
 
-    if (deliveryType === 'Delivery') {
-        confirmMessage += `Address: ${streetAddress}, ${areaSelect}\n\n`;
-    } else {
-        confirmMessage += `\n`;
-    }
+<div style="border-bottom: 1px dashed #999; padding-bottom: 12px; margin-bottom: 12px;">
+  <div style="font-weight: 600; margin-bottom: 8px; text-align: center;">ITEMS</div>
+`;
 
-    confirmMessage += `Order Items:\n`;
     let itemCount = 0;
+    const buy3Savings = calculateBuy3For143Savings(cartItems);
+    
     cartItems.forEach(item => {
         itemCount += item.Quantity;
-        confirmMessage += `- ${item.ProductName} (x${item.Quantity}) - ₱${(item.BasePrice * item.Quantity).toFixed(2)}\n`;
+        const itemTotal = (item.BasePrice * item.Quantity).toFixed(2);
+        
+        confirmHTML += `
+  <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+    <span>${item.ProductName} x${item.Quantity}</span>
+    <span>₱${itemTotal}</span>
+  </div>
+`;
+        
         if (item.AddOns && item.AddOns.length > 0) {
-            confirmMessage += `  Add-ons: ${item.AddOns.join(', ')}\n`;
+            confirmHTML += `
+  <div style="display: flex; justify-content: space-between; margin-bottom: 4px; margin-left: 12px; font-size: 12px; color: #666;">
+    <span>+ ${item.AddOns.join(', ')}</span>
+  </div>
+`;
+        }
+        
+        if (item.isB1T1) {
+            confirmHTML += `
+  <div style="display: flex; justify-content: space-between; margin-bottom: 4px; margin-left: 12px; font-size: 12px; color: #4caf50; font-weight: 600;">
+    <span>🎁 B1T1 FREE</span>
+  </div>
+`;
         }
     });
 
-    confirmMessage += `\nTotal Items: ${itemCount}\n`;
+    confirmHTML += `</div>
+
+<div style="border-bottom: 1px dashed #999; padding-bottom: 12px; margin-bottom: 12px;">
+  <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+    <span>TOTAL ITEMS:</span>
+    <span style="font-weight: 600;">${itemCount}</span>
+  </div>
+`;
+
     const subtotal = cartItems.reduce((sum, item) => sum + (item.BasePrice * item.Quantity), 0);
-    confirmMessage += `Subtotal: ₱${subtotal.toFixed(2)}\n`;
-
     const promotionalTotal = calculatePromotionalTotal(cartItems);
-    let finalTotal = promotionalTotal;
-    let deliveryFee = 0;
+    let promoDiscountAmount = 0;
+    
+    // Apply selected promo discount (only if promo is still applicable)
+    if (selectedPromo && isPromoApplicableToCart(selectedPromo)) {
+        const menuData = JSON.parse(document.getElementById('menu-data').textContent);
+        
+        cartItems.forEach(cartItem => {
+            const menuItem = menuData.find(item => item.Name === cartItem.ProductName);
+            if (menuItem && menuItem.Category === selectedPromo.category) {
+                const itemTotal = cartItem.BasePrice * cartItem.Quantity;
+                promoDiscountAmount += itemTotal * (selectedPromo.discountPercentage / 100);
+            }
+        });
+    }
 
+    confirmHTML += `
+  <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+    <span>SUBTOTAL:</span>
+    <span>₱${subtotal.toFixed(2)}</span>
+  </div>
+`;
+
+    const totalDiscounts = promoDiscountAmount + buy3Savings;
+    if (totalDiscounts > 0) {
+        confirmHTML += `
+  <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: #4caf50; font-weight: 600;">
+    <span>DISCOUNT:</span>
+    <span>-₱${totalDiscounts.toFixed(2)}</span>
+  </div>
+`;
+    }
+
+    let deliveryFee = 0;
     if (deliveryType === 'Delivery') {
         deliveryFee = 20;
-        finalTotal += deliveryFee;
+        confirmHTML += `
+  <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+    <span>DELIVERY FEE:</span>
+    <span>₱${deliveryFee.toFixed(2)}</span>
+  </div>
+`;
     }
 
-    if (promotionalTotal < subtotal) {
-        const savings = subtotal - promotionalTotal;
-        confirmMessage += `Discount Applied: ₱${savings.toFixed(2)}\n`;
-    }
+    let finalTotal = promotionalTotal + deliveryFee - promoDiscountAmount;
 
-    if (deliveryFee > 0) {
-        confirmMessage += `Delivery Fee: ₱${deliveryFee.toFixed(2)}\n`;
-    }
+    confirmHTML += `</div>
 
-    confirmMessage += `Total: ₱${finalTotal.toFixed(2)}\n\n`;
-    confirmMessage += `Payment Method: ${paymentMethod === 'cash' ? 'Cash on Hand' : 'E-Payment'}`;
+<div style="border-bottom: 1px dashed #999; padding-bottom: 12px; margin-bottom: 12px; text-align: center;">
+  <div style="font-size: 11px; color: #666; margin-bottom: 4px;">TOTAL AMOUNT</div>
+  <div style="font-size: 20px; font-weight: 700; color: #000;">₱${finalTotal.toFixed(2)}</div>
+</div>
+
+<div style="border-bottom: 1px dashed #999; padding-bottom: 12px; margin-bottom: 12px;">
+  <div style="display: flex; justify-content: space-between;">
+    <span>PAYMENT:</span>
+    <span style="font-weight: 600;">${paymentMethod === 'cash' ? 'CASH' : 'E-PAYMENT'}</span>
+  </div>
+</div>
+`;
 
     if (notes) {
-        confirmMessage += `\n\nNotes: ${notes}`;
+        confirmHTML += `
+<div style="border-bottom: 1px dashed #999; padding-bottom: 12px; margin-bottom: 12px;">
+  <div style="font-weight: 600; margin-bottom: 4px;">NOTES:</div>
+  <div style="font-size: 12px; color: #333;">${notes}</div>
+</div>
+`;
     }
 
-    // Set the confirmation message
+    // Set the confirmation message as HTML
     const confirmMessageElement = document.getElementById('confirm-message');
-    confirmMessageElement.textContent = confirmMessage;
+    confirmMessageElement.innerHTML = confirmHTML;
 
     // Setup confirmation buttons
     const confirmSubmitBtn = document.getElementById('confirm-submit-btn');
@@ -1386,6 +1523,11 @@ function showOrderConfirmation() {
 
         // Add new event listeners
         newConfirmSubmitBtn.addEventListener('click', () => {
+            // Show loading state
+            newConfirmSubmitBtn.disabled = true;
+            const originalText = newConfirmSubmitBtn.textContent;
+            newConfirmSubmitBtn.innerHTML = '<span style="display: inline-flex; align-items: center; gap: 8px;"><span style="width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top: 2px solid white; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>Loading...</span>';
+            
             finalizeOrder();
         });
 
@@ -1443,6 +1585,7 @@ function resetOrderConfirmationModal() {
     if (confirmSubmitBtn) {
         confirmSubmitBtn.style.display = '';
         confirmSubmitBtn.disabled = false;
+        confirmSubmitBtn.innerHTML = 'Confirm Order';
     }
     if (confirmCancelBtn) {
         confirmCancelBtn.style.display = '';
@@ -1453,6 +1596,21 @@ function resetOrderConfirmationModal() {
 function closeOrderConfirmation() {
     document.getElementById('order-confirm-modal').classList.add('hidden');
     resetOrderConfirmationModal();
+}
+
+function cancelOrder() {
+    // Close the order confirmation modal
+    closeOrderConfirmation();
+    
+    // Clear the cart
+    window.cartItems = [];
+    updateCartDisplay();
+    
+    // Reset the order form
+    clearOrderForm();
+    
+    // Show feedback message
+    showFeedbackMessage('Order cancelled', 'info');
 }
 
 async function finalizeOrder() {
@@ -1518,6 +1676,7 @@ async function finalizeOrder() {
 
                 alert(customerMessage);
                 resetOrderConfirmationModal();
+                document.getElementById('order-confirm-modal').classList.remove('hidden');
                 return;
             } else {
                 throw new Error(inventoryError.error || 'Inventory check failed');
@@ -1531,12 +1690,20 @@ async function finalizeOrder() {
             if (cashConfirmed) {
                 // Show processing state for cash payment
                 showOrderConfirmationProcessing();
+                // Show processing order modal
+                showProcessingOrder('Processing your order...');
                 // Submit order and handle success
                 submitToServer(orderData);
+            } else {
+                // User cancelled POS calculator, reset modal and show it again
+                resetOrderConfirmationModal();
+                document.getElementById('order-confirm-modal').classList.remove('hidden');
             }
         } else if (paymentMethod === 'epayment') {
             // Immediately show processing state for e-payment
             showOrderConfirmationProcessing();
+            // Show processing order modal
+            showProcessingOrder('Processing payment gateway...');
             // Show payment gateway
             showXenditGateway(orderData);
         }
@@ -1544,6 +1711,7 @@ async function finalizeOrder() {
         console.error('Order processing error:', error);
         alert('An error occurred during order processing. Please try again.');
         resetOrderConfirmationModal();
+        document.getElementById('order-confirm-modal').classList.remove('hidden');
     }
 }
 
@@ -1731,6 +1899,8 @@ async function submitToServer(orderData) {
             // Show success state with confirm button
             showOrderConfirmationSuccess();
             showFeedbackMessage('Order submitted successfully!', 'success');
+            // Hide processing modal
+            hideProcessingOrder();
             clearOrderForm();
         } else {
             throw new Error(result.message || 'Failed to submit order');
@@ -1738,6 +1908,8 @@ async function submitToServer(orderData) {
     } catch (error) {
         console.error('Order submission error:', error);
         showFeedbackMessage('Failed to submit order. Please try again.', 'error');
+        // Hide processing modal on error
+        hideProcessingOrder();
         // Reset modal to default state on error
         resetOrderConfirmationModal();
     }
@@ -1982,6 +2154,7 @@ async function checkPaymentStatus(orderId, isAutomatic = false) {
 
                     showFeedbackMessage('Payment successful!', 'success');
                     showOrderConfirmationSuccess(); // Show success state in modal
+                    hideProcessingOrder(); // Close processing order modal
                     closeXenditGateway();
                     clearOrderForm();
                 }
@@ -2093,6 +2266,12 @@ function showPromotionMessage(message) {
 // Check item availability before adding to cart
 async function checkItemAvailability(item, selectedSize, addons) {
     try {
+        // Safety check: ensure item exists
+        if (!item) {
+            console.warn('Item is null or undefined in checkItemAvailability');
+            return { available: true };
+        }
+
         // Get menu data to find the item details
         const menuData = JSON.parse(document.getElementById('menu-data').textContent);
         const menuItem = menuData.find(m => m._id === item._id || m.id === item._id || m.Name === item.Name);
@@ -2257,3 +2436,29 @@ function calculatePromotionalTotal(cart) {
 
     return total;
 }
+
+// Processing Order Modal Functions
+function showProcessingOrder(status = 'Please wait...') {
+    const modal = document.getElementById('processing-order-modal');
+    const statusElement = document.getElementById('processing-status');
+    
+    if (modal) {
+        statusElement.textContent = status;
+        modal.classList.remove('hidden');
+    }
+}
+
+function hideProcessingOrder() {
+    const modal = document.getElementById('processing-order-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+function updateProcessingStatus(status) {
+    const statusElement = document.getElementById('processing-status');
+    if (statusElement) {
+        statusElement.textContent = status;
+    }
+}
+
