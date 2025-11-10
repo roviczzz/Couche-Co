@@ -412,28 +412,6 @@ async function updateIngredient(id, ingredientData) {
       updateData.isEnabled = updateData.isEnabled === 'true' || updateData.isEnabled === true;
     }
 
-    // Ensure Amount is converted to integer if present
-    if (updateData.Amount !== undefined) {
-      const amountValue = parseInt(updateData.Amount, 10);
-      if (!isNaN(amountValue)) {
-        updateData.Amount = amountValue;
-      } else {
-        // Remove invalid Amount values
-        delete updateData.Amount;
-      }
-    }
-
-    // Ensure DeductionQuantityGrams is converted to integer if present
-    if (updateData.DeductionQuantityGrams !== undefined) {
-      const dqValue = parseInt(updateData.DeductionQuantityGrams, 10);
-      if (!isNaN(dqValue)) {
-        updateData.DeductionQuantityGrams = dqValue;
-      } else {
-        // Remove invalid DeductionQuantityGrams values
-        delete updateData.DeductionQuantityGrams;
-      }
-    }
-
     const result = await db.collection(collection).updateOne(
       { _id: new ObjectId(id) },
       { $set: updateData }
@@ -481,40 +459,17 @@ async function bulkUpdateIngredients(updates) {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
 
-    const bulkOps = updates.map(update => {
-      const updateData = { ...update.data, lastModified: new Date() };
-
-      // Ensure Amount is converted to integer if present
-      if (updateData.Amount !== undefined) {
-        const amountValue = parseInt(updateData.Amount, 10);
-        if (!isNaN(amountValue)) {
-          updateData.Amount = amountValue;
-        } else {
-          // Remove invalid Amount values
-          delete updateData.Amount;
-        }
-      }
-
-      // Ensure DeductionQuantityGrams is converted to integer if present
-      if (updateData.DeductionQuantityGrams !== undefined) {
-        const dqValue = parseInt(updateData.DeductionQuantityGrams, 10);
-        if (!isNaN(dqValue)) {
-          updateData.DeductionQuantityGrams = dqValue;
-        } else {
-          // Remove invalid DeductionQuantityGrams values
-          delete updateData.DeductionQuantityGrams;
-        }
-      }
-
-      return {
-        updateOne: {
-          filter: { _id: new ObjectId(update.id) },
-          update: {
-            $set: updateData
+    const bulkOps = updates.map(update => ({
+      updateOne: {
+        filter: { _id: new ObjectId(update.id) },
+        update: {
+          $set: {
+            ...update.data,
+            lastModified: new Date()
           }
         }
       }
-    });
+    }));
 
     const result = await db.collection('Ingredients').bulkWrite(bulkOps);
 

@@ -1978,19 +1978,17 @@ router.post('/stocks', async (req, res) => {
 
       const addOnData = {
         AddOnID: req.body.AddOnID,
-        Name: req.body.Name,
-        Quantity: parseInt(req.body.Amount),
-        Category: req.body.Category || 'Add-Ons',
-        Allergen: req.body.Allergen || 'none',
-        BasePrice: 10,
-        isEnabled: true,
-        basePrice: 0,
-        lastModified: new Date(),
         AddOnPrefix: req.body.AddOnPrefix || 'AD',
         AddOnSuffix: req.body.AddOnSuffix,
+        Name: req.body.Name,
         AmountPerPack: req.body.AmountPerPack,
-        Amount: parseInt(req.body.Amount) - 10, // Remaining amount after deduction
-        DeductionQuantityGrams: 10
+        Amount: parseInt(req.body.Amount),
+        Unit: req.body.Unit,
+        Category: req.body.Category || 'Add-Ons',
+        Allergen: req.body.Allergen || 'None',
+        BasePrice: parseFloat(req.body.BasePrice) || 10,
+        isEnabled: req.body.isEnabled === 'true' || req.body.isEnabled === true || req.body.isEnabled === 'on',
+        lastModified: new Date()
       };
 
       await db.collection('Add-ons').insertOne(addOnData);
@@ -2008,11 +2006,10 @@ router.post('/stocks', async (req, res) => {
         Unit: req.body.Unit,
         Category: req.body.Category || 'Ingredients',
         Allergen: req.body.Allergen || 'None',
-        isEnabled: true,
-        isAvailable: true,
+        isEnabled: req.body.isEnabled === 'true' || req.body.isEnabled === true || req.body.isEnabled === 'on',
+        isAvailable: req.body.isAvailable === 'true' || req.body.isAvailable === true,
         createdAt: new Date(),
-        lastModified: new Date(),
-        DeductionQuantityGrams: 10
+        lastModified: new Date()
       };
 
       // Check for existing ingredient with same ID and Name combination
