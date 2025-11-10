@@ -1,664 +1,1104 @@
-.product-page {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 1rem;
-    box-sizing: border-box;
-}
-
-.product-container {
-    display: flex;
-    gap: 2rem;
-    align-items: flex-start;
-    width: 100%;
-}
-
-.product-image {
-    flex-shrink: 0;
-    width: 100%;
-    max-width: 750px;
-}
-
-.product-image img {
-    width: 100%;
-    height: 750px;
-    object-fit: cover;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.placeholder-div {
-    width: 100%;
-    height: 750px;
-    background: #ccc;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #666;
-    font-size: 1.5rem;
-    font-weight: bold;
-    font-family: 'Inter', sans-serif;
-    letter-spacing: -0.6px;
-}
-
-.product-details {
-    flex: 1;
-    min-width: 0;
-    width: 100%;
-}
-
-.product-details h1 {
-    margin: 0 0 1rem 0;
-    font-size: clamp(1.8rem, 4vw, 2.5rem);
-    color: #8B4513;
-    font-weight: bold;
-    line-height: 1.2;
-}
-
-.product-description {
-    margin: 0 0 1.5rem 0;
-    font-size: clamp(1rem, 2.5vw, 1.1rem);
-    line-height: 1.6;
-    color: #555;
-}
-
-.price-section .price {
-    font-size: clamp(1.2rem, 3vw, 1.5rem);
-    font-weight: bold;
-    color: #8B4513;
-    margin: 0 0 1.5rem 0;
-}
-
-.sizes-section {
-    margin-bottom: 1.5rem;
-}
-
-.sizes-section h3 {
-    margin: 0 0 1rem 0;
-    font-size: clamp(1.1rem, 2.5vw, 1.2rem);
-    color: #333;
-    font-weight: 600;
-}
-
-.size-options {
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-    margin-bottom: 1.5rem;
-}
-
-.size-option-btn {
-    display: inline-block;
-    cursor: pointer;
-    padding: 0.75rem 1rem;
-    border: 2px solid #ccc;
-    border-radius: 8px;
-    background: white;
-    color: black;
-    transition: all 0.3s ease;
-    font-size: clamp(0.9rem, 2vw, 1rem);
-    margin-right: 0;
-    flex: 1;
-    min-width: 120px;
-    text-align: center;
-}
-
-.size-option-btn:active {
-    transform: translateY(2px);
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.size-option-btn.selected {
-    background: #8B4513;
-    color: white;
-    border: 2px solid #8B4513;
-    box-shadow: 0 2px 8px rgba(139, 69, 19, 0.3);
-}
-
-
-.size-option-btn span {
-    font-size: 1rem;
-    transition: all 0.3s ease;
-}
-
-.addons-section h4 {
-    margin: 0 0 1rem 0;
-    font-size: clamp(1.1rem, 2.5vw, 1.2rem);
-    color: #333;
-    font-weight: 600;
-}
-
-.addon-options {
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-    margin-bottom: 1.5rem;
-}
-
-.addon-checkbox-label {
-    display: inline-block;
-    cursor: pointer;
-    padding: 0.75rem 1rem;
-    border: 2px solid #ccc;
-    border-radius: 8px;
-    background: white;
-    color: black;
-    transition: all 0.3s ease;
-    font-size: clamp(0.85rem, 2vw, 1rem);
-    position: relative;
-    user-select: none;
-    flex: 1;
-    min-width: 140px;
-    text-align: center;
-}
-
-.addon-checkbox-label:active {
-    transform: scale(0.98);
-    transition: transform 0.1s ease;
-}
-
-.addon-checkbox-label:hover {
-    border-color: #8B4513;
-    background: #f9f9f9;
-}
-
-.addon-checkbox {
-    display: none;
-}
-
-.addon-text {
-    display: block;
-}
-
-.addon-checkbox:checked + .addon-text {
-    color: #8B4513;
-}
-
-.addon-checkbox-label:has(.addon-checkbox:checked) {
-    border-color: #8B4513;
-    background: #fef7f2;
-}
-
-.addon-checkbox-label:has(.addon-checkbox:checked) .addon-text {
-    color: #8B4513;
-}
-
-.quantity-section {
-    margin-bottom: 1.5rem;
-}
-
-.quantity-section label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-    color: #333;
-    font-size: clamp(1rem, 2.5vw, 1.1rem);
-}
-
-.quantity-controls {
-    display: flex;
-    align-items: center;
-    width: fit-content;
-    border: 2px solid #ddd;
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.quantity-btn {
-    background: #f8f9fa;
-    border: none;
-    width: clamp(36px, 8vw, 40px);
-    height: clamp(44px, 10vw, 48px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: clamp(1rem, 2.5vw, 1.2rem);
-    font-weight: bold;
-    color: #333;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    user-select: none;
-}
-
-.quantity-section input {
-    width: clamp(50px, 12vw, 60px);
-    padding: 0.75rem 0.5rem;
-    font-size: clamp(0.9rem, 2vw, 1rem);
-    border: none;
-    text-align: center;
-    background: #f8f9fa;
-    outline: none;
-    appearance: textfield; /* Hide spinners - standard property */
-    -moz-appearance: textfield; /* Hide spinners in Firefox */
-}
-
-/* Hide spinners in WebKit browsers (Chrome, Safari, Edge) */
-.quantity-section input::-webkit-outer-spin-button,
-.quantity-section input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-
-.add-to-cart-btn {
-    background: #8B4513;
-    color: white;
-    border: none;
-    padding: clamp(0.875rem, 2.5vw, 1rem) clamp(1.5rem, 4vw, 2rem);
-    font-size: clamp(1rem, 2.5vw, 1.1rem);
-    font-weight: 600;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: block;
-    width: 100%;
-    max-width: 100%;
-}
-
-.add-to-cart-btn:hover {
-    background: #5a4b3a;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.more-options-btn {
-    background: #f0f0f0;
-    color: #333;
-    border: 2px solid #ddd;
-    padding: clamp(0.875rem, 2.5vw, 1rem) clamp(1.5rem, 4vw, 2rem);
-    font-size: clamp(0.9rem, 2.5vw, 1rem);
-    font-weight: 600;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: block;
-    width: 100%;
-    max-width: 100%;
-    margin-bottom: 1.5rem;
-    position: relative;
-}
-
-.more-options-btn:hover {
-    background: #e0e0e0;
-    border-color: #8B4513;
-    color: #8B4513;
-}
-
-.more-options-btn:focus {
-    outline: 2px solid #8B4513;
-    outline-offset: 2px;
-    background: #e0e0e0;
-    border-color: #8B4513;
-    color: #8B4513;
-}
-
-.ingredients-badge {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    background: #dc3545;
-    color: white;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    border: 2px solid white;
-    transition: all 0.3s ease;
-    animation: badgePulse 0.6s ease-out;
-    z-index: 9999;
-    opacity: 0;
-    visibility: hidden;
-    display: none;
-}
-
-@keyframes badgePulse {
-    0% { transform: scale(0); }
-    50% { transform: scale(1.2); }
-    100% { transform: scale(1); }
-}
-
-.ingredients-badge.hidden {
-    display: none !important;
-}
-
-/* Modal styles */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0, 0, 0, 0.5);
-}
-
-.modal-content {
-    background-color: #fefefe;
-    margin: 8% auto;
-    padding: 0;
-    border: 1px solid #888;
-    width: 90%;
-    max-width: 650px;
-    max-height: 75vh;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    animation: modalFadeIn 0.3s ease-out;
-    overflow: hidden;
-}
-
-@keyframes modalFadeIn {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
-}
-
-.modal-header {
-    background: rgba(139, 69, 19, 0.9);
-    color: white;
-    padding: 1rem 1.5rem;
-    border-radius: 12px 12px 0 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.modal-content h2 {
-    margin: 0;
-    font-size: 1.5rem;
-    flex: 1;
-}
-
-.close {
-    color: white;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-    border: none;
-    background: transparent;
-    padding: 0.5rem;
-    border-radius: 4px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-}
-
-.close:hover,
-.close:focus {
-    color: white;
-    text-decoration: none;
-    background: rgba(255, 255, 255, 0.2);
-    outline: 2px solid #fff;
-    outline-offset: 2px;
-}
-
-.ingredients-options {
-    padding: 2rem;
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 1rem;
-    max-height: calc(75vh - 120px);
-    overflow-y: auto;
-}
-
-.ingredient-checkbox-label {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    padding: 1rem 0.5rem;
-    border: 2px solid #ddd;
-    border-radius: 12px;
-    background: white;
-    color: black;
-    transition: all 0.3s ease;
-    font-size: 0.9rem;
-    position: relative;
-    user-select: none;
-    text-align: center;
-    min-height: 80px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.ingredient-checkbox-label:hover {
-    border-color: #8B4513;
-    background: #fef7f2;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(139, 69, 19, 0.15);
-}
-
-.ingredient-checkbox-label:active {
-    transform: translateY(0);
-    transition: transform 0.1s ease;
-}
-
-.ingredient-checkbox {
-    display: none;
-}
-
-.ingredient-text {
-    display: block;
-    line-height: 1.3;
-    font-weight: 500;
-}
-
-.ingredient-checkbox:checked + .ingredient-text {
-    color: white;
-    font-weight: 600;
-}
-
-.ingredient-checkbox-label:has(.ingredient-checkbox:checked) {
-    border-color: #8B4513;
-    background: #8B4513;
-    color: white;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 12px rgba(139, 69, 19, 0.3);
-}
-
-.ingredient-checkbox-label:has(.ingredient-checkbox:checked):hover {
-    background: #6d3510;
-    border-color: #6d3510;
-}
-
-/* Tablet and Mobile Responsive Design */
-@media (max-width: 1024px) {
     .product-page {
-        padding: 1rem 0.75rem;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1rem;
+        box-sizing: border-box;
     }
 
     .product-container {
-        gap: 1.5rem;
-    }
-
-    .product-image img,
-    .placeholder-div {
-        height: 600px;
-    }
-
-    .ingredients-options {
-        grid-template-columns: repeat(4, 1fr);
-        gap: 0.75rem;
-    }
-}
-
-@media (max-width: 768px) {
-    .product-page {
-        padding: 0.75rem 0.5rem;
-    }
-
-    .product-container {
-        flex-direction: column;
-        gap: 1.5rem;
+        display: flex;
+        gap: 2rem;
+        align-items: flex-start;
+        width: 100%;
     }
 
     .product-image {
-        max-width: 100%;
+        flex-shrink: 0;
+        width: 100%;
+        max-width: 750px;
     }
 
-    .product-image img,
+    .product-image img {
+        width: 100%;
+        height: 750px;
+        object-fit: cover;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
     .placeholder-div {
-        height: 450px;
+        width: 100%;
+        height: 750px;
+        background: #ccc;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #666;
+        font-size: 1.5rem;
+        font-weight: bold;
+        font-family: 'Inter', sans-serif;
+        letter-spacing: -0.6px;
+    }
+
+    .product-details {
+        flex: 1;
+        min-width: 0;
+        width: 100%;
+    }
+
+    .product-details h1 {
+        margin: 0 0 1rem 0;
+        font-size: clamp(1.8rem, 4vw, 2.5rem);
+        color: #8B4513;
+        font-weight: bold;
+        line-height: 1.2;
+    }
+
+    .product-description {
+        margin: 0 0 1.5rem 0;
+        font-size: clamp(1rem, 2.5vw, 1.1rem);
+        line-height: 1.6;
+        color: #555;
+    }
+
+    .price-section .price {
+        font-size: clamp(1.2rem, 3vw, 1.5rem);
+        font-weight: bold;
+        color: #8B4513;
+        margin: 0 0 1.5rem 0;
+    }
+
+    .sizes-section {
+        margin-bottom: 1.5rem;
+    }
+
+    .sizes-section h3 {
+        margin: 0 0 1rem 0;
+        font-size: clamp(1.1rem, 2.5vw, 1.2rem);
+        color: #333;
+        font-weight: 600;
     }
 
     .size-options {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
+        display: flex;
         gap: 0.75rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
     }
 
     .size-option-btn {
+        display: inline-block;
+        cursor: pointer;
+        padding: 0.75rem 1rem;
+        border: 2px solid #ccc;
+        border-radius: 8px;
+        background: white;
+        color: black;
+        transition: all 0.3s ease;
+        font-size: clamp(0.9rem, 2vw, 1rem);
         margin-right: 0;
-        min-width: auto;
-        padding: 0.875rem 0.75rem;
+        flex: 1;
+        min-width: 120px;
+        text-align: center;
+    }
+
+    .size-option-btn:active {
+        transform: translateY(2px);
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .size-option-btn.selected {
+        background: #8B4513;
+        color: white;
+        border: 2px solid #8B4513;
+        box-shadow: 0 2px 8px rgba(139, 69, 19, 0.3);
+    }
+
+
+    .size-option-btn span {
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .addons-section h4 {
+        margin: 0 0 1rem 0;
+        font-size: clamp(1.1rem, 2.5vw, 1.2rem);
+        color: #333;
+        font-weight: 600;
     }
 
     .addon-options {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
+        display: flex;
         gap: 0.75rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
     }
 
     .addon-checkbox-label {
-        min-width: auto;
-        padding: 0.875rem 0.75rem;
+        display: inline-block;
+        cursor: pointer;
+        padding: 0.75rem 1rem;
+        border: 2px solid #ccc;
+        border-radius: 8px;
+        background: white;
+        color: black;
+        transition: all 0.3s ease;
+        font-size: clamp(0.85rem, 2vw, 1rem);
+        position: relative;
+        user-select: none;
+        flex: 1;
+        min-width: 140px;
+        text-align: center;
+    }
+
+    .addon-checkbox-label:active {
+        transform: scale(0.98);
+        transition: transform 0.1s ease;
+    }
+
+    .addon-checkbox-label:hover {
+        border-color: #8B4513;
+        background: #f9f9f9;
+    }
+
+    .addon-checkbox {
+        display: none;
+    }
+
+    .addon-text {
+        display: block;
+    }
+
+    .addon-checkbox:checked + .addon-text {
+        color: #8B4513;
+    }
+
+    .addon-checkbox-label:has(.addon-checkbox:checked) {
+        border-color: #8B4513;
+        background: #fef7f2;
+    }
+
+    .addon-checkbox-label:has(.addon-checkbox:checked) .addon-text {
+        color: #8B4513;
+    }
+
+    .quantity-section {
+        margin-bottom: 1.5rem;
+    }
+
+    .quantity-section label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #333;
+        font-size: clamp(1rem, 2.5vw, 1.1rem);
     }
 
     .quantity-controls {
+        display: flex;
+        align-items: center;
+        width: fit-content;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .quantity-btn {
+        background: #f8f9fa;
+        border: none;
+        width: clamp(36px, 8vw, 40px);
+        height: clamp(44px, 10vw, 48px);
+        display: flex;
+        align-items: center;
         justify-content: center;
+        font-size: clamp(1rem, 2.5vw, 1.2rem);
+        font-weight: bold;
+        color: #333;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        user-select: none;
+    }
+
+    .quantity-section input {
+        width: clamp(50px, 12vw, 60px);
+        padding: 0.75rem 0.5rem;
+        font-size: clamp(0.9rem, 2vw, 1rem);
+        border: none;
+        text-align: center;
+        background: #f8f9fa;
+        outline: none;
+        appearance: textfield; /* Hide spinners - standard property */
+        -moz-appearance: textfield; /* Hide spinners in Firefox */
+    }
+
+    /* Hide spinners in WebKit browsers (Chrome, Safari, Edge) */
+    .quantity-section input::-webkit-outer-spin-button,
+    .quantity-section input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    .add-to-cart-btn {
+        background: #8B4513;
+        color: white;
+        border: none;
+        padding: clamp(0.875rem, 2.5vw, 1rem) clamp(1.5rem, 4vw, 2rem);
+        font-size: clamp(1rem, 2.5vw, 1.1rem);
+        font-weight: 600;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: block;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .add-to-cart-btn:hover {
+        background: #5a4b3a;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .more-options-btn {
+        background: #f0f0f0;
+        color: #333;
+        border: 2px solid #ddd;
+        padding: clamp(0.875rem, 2.5vw, 1rem) clamp(1.5rem, 4vw, 2rem);
+        font-size: clamp(0.9rem, 2.5vw, 1rem);
+        font-weight: 600;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+
+    .more-options-btn:hover {
+        background: #e0e0e0;
+        border-color: #8B4513;
+        color: #8B4513;
+    }
+
+    .more-options-btn:focus {
+        outline: 2px solid #8B4513;
+        outline-offset: 2px;
+        background: #e0e0e0;
+        border-color: #8B4513;
+        color: #8B4513;
     }
 
     .ingredients-badge {
-        width: 22px;
-        height: 22px;
-        font-size: 0.7rem;
-        top: -6px;
-        right: -6px;
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: #dc3545;
+        color: white;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        border: 2px solid white;
+        transition: all 0.3s ease;
+        animation: badgePulse 0.6s ease-out;
+        z-index: 9999;
+        opacity: 0;
+        visibility: hidden;
+        display: none;
+    }
+
+    @keyframes badgePulse {
+        0% { transform: scale(0); }
+        50% { transform: scale(1.2); }
+        100% { transform: scale(1); }
+    }
+
+    .ingredients-badge.hidden {
+        display: none !important;
+    }
+
+    /* Modal styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.5);
     }
 
     .modal-content {
-        margin: 5% auto;
-        width: 95%;
-        max-height: 85vh;
+        background-color: #fefefe;
+        margin: 8% auto;
+        padding: 0;
+        border: 1px solid #888;
+        width: 90%;
+        max-width: 650px;
+        max-height: 75vh;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        animation: modalFadeIn 0.3s ease-out;
+        overflow: hidden;
+    }
+
+    @keyframes modalFadeIn {
+        from { opacity: 0; transform: scale(0.9); }
+        to { opacity: 1; transform: scale(1); }
     }
 
     .modal-header {
-        padding: 0.8rem 1rem;
+        background: rgba(139, 69, 19, 0.9);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px 12px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
 
     .modal-content h2 {
-        font-size: 1.3rem;
+        margin: 0;
+        font-size: 1.5rem;
+        flex: 1;
     }
 
     .close {
+        color: white;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        padding: 0.5rem;
+        border-radius: 4px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: white;
+        text-decoration: none;
+        background: rgba(255, 255, 255, 0.2);
+        outline: 2px solid #fff;
+        outline-offset: 2px;
+    }
+
+    .ingredients-options {
+        padding: 2rem;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 1rem;
+        max-height: calc(75vh - 120px);
+        overflow-y: auto;
+    }
+
+    .ingredient-checkbox-label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        padding: 1rem 0.5rem;
+        border: 2px solid #ddd;
+        border-radius: 12px;
+        background: white;
+        color: black;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+        position: relative;
+        user-select: none;
+        text-align: center;
+        min-height: 80px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .ingredient-checkbox-label:hover {
+        border-color: #8B4513;
+        background: #fef7f2;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(139, 69, 19, 0.15);
+    }
+
+    .ingredient-checkbox-label:active {
+        transform: translateY(0);
+        transition: transform 0.1s ease;
+    }
+
+    .ingredient-checkbox {
+        display: none;
+    }
+
+    .ingredient-text {
+        display: block;
+        line-height: 1.3;
+        font-weight: 500;
+    }
+
+    .ingredient-checkbox:checked + .ingredient-text {
+        color: white;
+        font-weight: 600;
+    }
+
+    .ingredient-checkbox-label:has(.ingredient-checkbox:checked) {
+        border-color: #8B4513;
+        background: #8B4513;
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 12px rgba(139, 69, 19, 0.3);
+    }
+
+    .ingredient-checkbox-label:has(.ingredient-checkbox:checked):hover {
+        background: #6d3510;
+        border-color: #6d3510;
+    }
+
+    /* Tablet and Mobile Responsive Design */
+    @media (max-width: 1024px) {
+        .product-page {
+            padding: 1rem 0.75rem;
+        }
+
+        .product-container {
+            gap: 1.5rem;
+        }
+
+        .product-image img,
+        .placeholder-div {
+            height: 600px;
+        }
+
+        .ingredients-options {
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .product-page {
+            padding: 0.75rem 0.5rem;
+        }
+
+        .product-container {
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .product-image {
+            max-width: 100%;
+        }
+
+        .product-image img,
+        .placeholder-div {
+            height: 450px;
+        }
+
+        .size-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+
+        .size-option-btn {
+            margin-right: 0;
+            min-width: auto;
+            padding: 0.875rem 0.75rem;
+        }
+
+        .addon-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+
+        .addon-checkbox-label {
+            min-width: auto;
+            padding: 0.875rem 0.75rem;
+        }
+
+        .quantity-controls {
+            justify-content: center;
+        }
+
+        .ingredients-badge {
+            width: 22px;
+            height: 22px;
+            font-size: 0.7rem;
+            top: -6px;
+            right: -6px;
+        }
+
+        .modal-content {
+            margin: 5% auto;
+            width: 95%;
+            max-height: 85vh;
+        }
+
+        .modal-header {
+            padding: 0.8rem 1rem;
+        }
+
+        .modal-content h2 {
+            font-size: 1.3rem;
+        }
+
+        .close {
+            width: 35px;
+            height: 35px;
+            font-size: 24px;
+        }
+
+        .ingredients-options {
+            padding: 1.5rem;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+        }
+
+        .ingredient-checkbox-label {
+            min-height: 70px;
+            padding: 0.75rem 0.5rem;
+            font-size: 0.85rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .product-page {
+            padding: 0.5rem 0.25rem;
+        }
+
+        .product-container {
+            gap: 1rem;
+        }
+
+        .product-image img,
+        .placeholder-div {
+            height: 350px;
+        }
+
+        .size-options {
+            grid-template-columns: 1fr;
+        }
+
+        .addon-options {
+            grid-template-columns: 1fr;
+        }
+
+        .addon-checkbox-label,
+        .size-option-btn {
+            padding: 1rem 0.75rem;
+        }
+
+        .ingredients-options {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            padding: 1rem;
+        }
+
+        .ingredient-checkbox-label {
+            min-height: 60px;
+            padding: 0.5rem 0.25rem;
+            font-size: 0.8rem;
+        }
+
+        .modal-content {
+            margin: 2% auto;
+            width: 98%;
+            max-height: 90vh;
+        }
+
+        .modal-header {
+            padding: 0.75rem;
+        }
+
+        .modal-content h2 {
+            font-size: 1.2rem;
+        }
+    }
+
+    /* Cart Modal Styles - Simple Square */
+    .cart-modal-content {
+        background-color: #fefefe;
+        margin: 10% auto;
+        padding: 0;
+        border: 1px solid #888;
+        width: 90%;
+        max-width: 400px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        animation: modalFadeIn 0.3s ease-out;
+        overflow: hidden;
+    }
+
+    .cart-modal-header {
+        background: rgba(139, 69, 19, 0.9);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px 12px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .cart-modal-header h2 {
+        margin: 0;
+        font-size: 1.3rem;
+        flex: 1;
+    }
+
+    .cart-modal-close {
+        color: white;
+        font-size: 24px;
+        font-weight: bold;
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        padding: 0.5rem;
+        border-radius: 4px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         width: 35px;
         height: 35px;
-        font-size: 24px;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
     }
 
-    .ingredients-options {
+    .cart-modal-close:hover,
+    .cart-modal-close:focus {
+        color: white;
+        text-decoration: none;
+        background: rgba(255, 255, 255, 0.2);
+        outline: 2px solid #fff;
+        outline-offset: 2px;
+    }
+
+    .cart-modal-body {
         padding: 1.5rem;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 0.75rem;
     }
 
-    .ingredient-checkbox-label {
-        min-height: 70px;
-        padding: 0.75rem 0.5rem;
-        font-size: 0.85rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .product-page {
-        padding: 0.5rem 0.25rem;
-    }
-
-    .product-container {
+    /* Simple Cart Item */
+    .cart-item-simple {
+        display: flex;
+        align-items: center;
         gap: 1rem;
+        margin-bottom: 1.5rem;
     }
 
-    .product-image img,
-    .placeholder-div {
-        height: 350px;
+    .cart-item-image {
+        width: 60px;
+        height: 60px;
+        border-radius: 8px;
+        object-fit: cover;
+        flex-shrink: 0;
     }
 
-    .size-options {
-        grid-template-columns: 1fr;
+    .cart-placeholder-div {
+        width: 100%;
+        height: 100%;
+        background: #ccc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #666;
+        font-size: 0.7rem;
+        font-weight: bold;
     }
 
-    .addon-options {
-        grid-template-columns: 1fr;
+    .cart-item-info {
+        flex: 1;
+        min-width: 0;
     }
 
-    .addon-checkbox-label,
-    .size-option-btn {
-        padding: 1rem 0.75rem;
+    .cart-item-info h3 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.1rem;
+        color: #8B4513;
+        font-weight: bold;
     }
 
-    .ingredients-options {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.5rem;
-        padding: 1rem;
+    .cart-item-details-text {
+        margin: 0.25rem 0;
+        font-size: 0.9rem;
+        color: #666;
+        line-height: 1.4;
     }
 
-    .ingredient-checkbox-label {
-        min-height: 60px;
-        padding: 0.5rem 0.25rem;
-        font-size: 0.8rem;
+    .cart-item-price {
+        margin: 0.5rem 0 0 0;
+        font-size: 1rem;
+        font-weight: bold;
+        color: #8B4513;
     }
 
-    .modal-content {
-        margin: 2% auto;
-        width: 98%;
-        max-height: 90vh;
+    .cart-modal-actions {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: center;
     }
 
-    .modal-header {
-        padding: 0.75rem;
+    .continue-shopping-btn,
+    .view-cart-btn {
+        flex: 1;
+        padding: 0.75rem 1rem;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
     }
 
-    .modal-content h2 {
-        font-size: 1.2rem;
+    .continue-shopping-btn {
+        background: #f0f0f0;
+        color: #333;
+        border: 1px solid #ddd;
     }
+
+    .continue-shopping-btn:hover {
+        background: #e0e0e0;
+        border-color: #8B4513;
+        color: #8B4513;
+    }
+
+    .view-cart-btn {
+        background: #8B4513;
+        color: white;
+    }
+
+    .view-cart-btn:hover {
+        background: #6d3510;
+        transform: translateY(-1px);
+    }
+
+    /* Responsive Cart Modal */
+    @media (max-width: 768px) {
+        .cart-modal-content {
+            margin: 5% auto;
+            width: 95%;
+            max-height: 85vh;
+        }
+
+        .cart-modal-header {
+            padding: 0.8rem 1rem;
+        }
+
+        .cart-modal-header h2 {
+            font-size: 1.3rem;
+        }
+
+        .cart-modal-close {
+            width: 35px;
+            height: 35px;
+            font-size: 24px;
+        }
+
+        .cart-modal-body {
+            padding: 1.5rem;
+        }
+
+        .cart-item-details {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+            text-align: center;
+        }
+
+        .cart-item-image {
+            width: 100px;
+            height: 100px;
+        }
+
+        .cart-item-info h3 {
+            font-size: 1.2rem;
+        }
+
+        .cart-modal-actions {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .continue-shopping-btn,
+        .view-cart-btn {
+            max-width: none;
+            padding: 1rem 1.5rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .cart-modal-content {
+            margin: 2% auto;
+            width: 98%;
+            max-height: 90vh;
+        }
+
+        .cart-modal-header {
+            padding: 0.75rem;
+        }
+
+        .cart-modal-header h2 {
+            font-size: 1.2rem;
+        }
+
+        .cart-modal-body {
+            padding: 1rem;
+        }
+
+        .cart-item-image {
+            width: 80px;
+            height: 80px;
+        }
+
+        .cart-item-info h3 {
+            font-size: 1.1rem;
+        }
+    }
+
+    /* Very small mobile devices */
+    @media (max-width: 360px) {
+        .product-page {
+            padding: 0.5rem 0.125rem;
+        }
+
+        .product-image img,
+        .placeholder-div {
+            height: 200px;
+        }
+
+        .ingredient-checkbox-label {
+            min-height: 50px;
+            padding: 0.4rem 0.2rem;
+            font-size: 0.75rem;
+        }
+
+        .modal-header {
+            padding: 0.5rem;
+        }
+
+        .modal-content h2 {
+            font-size: 1.1rem;
+        }
+
+        .close {
+            width: 30px;
+            height: 30px;
+            font-size: 20px;
+        }
+
+        .cart-modal-header {
+            padding: 0.5rem;
+        }
+
+        .cart-modal-header h2 {
+            font-size: 1.1rem;
+        }
+
+        .cart-modal-close {
+            width: 30px;
+            height: 30px;
+            font-size: 20px;
+        }
+
+        .cart-modal-body {
+            padding: 0.75rem;
+        }
+
+        .cart-item-image {
+            width: 70px;
+            height: 70px;
+        }
+
+        .cart-item-info h3 {
+            font-size: 1rem;
+        }
+    }
+
+/* Slide-in Cart Notification (Cloudnine style) */
+.cart-side-popup {
+    position: fixed;
+    top: 70px; /* position under cart icon in navbar */
+    right: 440px; /* adjusted much more to the left */
+    width: 460px; /* bigger width */
+    height: 550px; /* bigger height */
+    background: #fff;
+    border: 2px solid #e9ecef;
+    border-radius: 0px; /* sharp corners */
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+    z-index: 2000;
+    opacity: 0;
+    transform: translateX(120%);
+    transition: all 0.4s ease;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
-/* Very small mobile devices */
-@media (max-width: 360px) {
-    .product-page {
-        padding: 0.5rem 0.125rem;
-    }
+.cart-side-popup.show {
+    opacity: 1;
+    transform: translateX(0);
+}
 
-    .product-image img,
-    .placeholder-div {
-        height: 200px;
-    }
+.cart-side-header {
+    background: #f8f9fa;
+    color: #333;
+    font-weight: bold;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e9ecef;
+}
 
-    .ingredient-checkbox-label {
-        min-height: 50px;
-        padding: 0.4rem 0.2rem;
-        font-size: 0.75rem;
-    }
+.cart-popup-close {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #666;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
 
-    .modal-header {
-        padding: 0.5rem;
-    }
+.cart-popup-close:hover {
+    background: #e9ecef;
+    color: #333;
+}
 
-    .modal-content h2 {
-        font-size: 1.1rem;
-    }
+.cart-side-body {
+    padding: 1.25rem;
+}
 
-    .close {
-        width: 30px;
-        height: 30px;
-        font-size: 20px;
-    }
+.cart-side-item {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.cart-side-image {
+    flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e9ecef;
+}
+
+.cart-side-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.cart-side-placeholder {
+    width: 100%;
+    height: 100%;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.cart-side-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.cart-side-info h4 {
+    font-size: 1.1rem;
+    color: #000;
+    margin: 0 0 0.25rem 0;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.cart-popup-details {
+    font-size: 0.9rem;
+    color: #333;
+    line-height: 1.4;
+}
+
+.cart-popup-details span {
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.cart-side-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0 1.25rem 1.25rem 1.25rem;
+    border-top: 1px solid #f8f9fa;
+    margin-top: 1rem;
+    padding-top: 1rem;
+}
+
+.cart-side-actions button {
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.cart-side-actions .view-cart-btn {
+    background: #fff;
+    color: #000;
+    border: 2px solid #000;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.cart-side-actions .view-cart-btn:hover {
+    background: #f8f9fa;
+    border-color: #000;
+    transform: translateY(-1px);
+}
+
+.cart-side-actions .checkout-btn {
+    background: none;
+    color: #000;
+    border: none;
+    border-radius: 0px;
+    font-weight: 600;
+}
+
+.cart-side-actions .checkout-btn:hover {
+    color: #333;
+    text-decoration: underline;
+}
+
+.cart-side-actions .continue-shopping-btn {
+    background: none;
+    color: #000;
+    border: none;
+    text-decoration: underline;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+}
+
+.cart-side-actions .continue-shopping-btn:hover {
+    color: #333;
+    text-decoration: underline;
 }
