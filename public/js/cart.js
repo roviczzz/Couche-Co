@@ -1,7 +1,30 @@
-// Load cart items from localStorage
-let orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+// Initialize cart items (will be loaded asynchronously)
+let orderItems = [];
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+  // Load cart data based on user type
+  if (window.user && window.user._id) {
+    // For logged-in users, load from server
+    try {
+      const response = await fetch('/api/cart');
+      if (response.ok) {
+        orderItems = await response.json();
+        console.log('Loaded cart from server:', orderItems);
+      } else {
+        console.error('Failed to load cart from server, status:', response.status);
+        // Fallback to localStorage
+        orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+      }
+    } catch (error) {
+      console.error('Error loading cart from server:', error);
+      // Fallback to localStorage
+      orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+    }
+  } else {
+    // For guests, use localStorage
+    orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+  }
+
   // Only run cart functions if cart elements exist
   const cartItemsContainer = document.getElementById('cart-items');
   if (cartItemsContainer) {
@@ -22,7 +45,6 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!window.user) {
         // For guests, POST cart data to server
         console.log('Posting guest cart data');
-        const orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
         try {
           await fetch('/checkout', {
             method: 'POST',
@@ -174,6 +196,9 @@ function removeItem(index) {
       if (typeof updateCartCount === 'function') {
         updateCartCount();
       }
+
+      // Show success message
+      notificationSystem.success('Item removed from cart', 'Success');
     }
   );
 }

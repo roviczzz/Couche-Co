@@ -84,6 +84,9 @@
 
   <%- body %>
 
+  <!-- Custom Notification System -->
+  <div id="notification-container" class="notification-container"></div>
+
   <!-- Profile Modal -->
   <% if (typeof user !== 'undefined' && user) { %>
     <div class="profile-modal-overlay" id="profileModal" style="display: none;">
@@ -192,6 +195,7 @@
     </div>
   <% } %>
 
+  <script src="/js/notifications.js" defer></script>
   <script src="/js/navbar.js" defer></script>
   <script src="/js/search.js" defer></script>
   <script src="/js/cart.js" defer></script>
