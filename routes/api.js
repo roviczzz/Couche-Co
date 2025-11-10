@@ -66,6 +66,32 @@ router.post('/check-availability', async (req, res) => {
   }
 });
 
+// Check single product availability
+router.get('/check-product-availability/:productId', async (req, res) => {
+  try {
+    const { productId } = req.params;
+
+    if (!productId) {
+      return res.status(400).json({
+        available: false,
+        reason: 'Product ID is required'
+      });
+    }
+
+    console.log('Checking availability for product:', productId);
+
+    const availabilityCheck = await InventoryManager.checkProductAvailability(productId);
+
+    res.json(availabilityCheck);
+  } catch (error) {
+    console.error('Error checking product availability:', error);
+    res.status(500).json({
+      available: false,
+      reason: 'System error checking availability'
+    });
+  }
+});
+
 router.get('/orders/preparing-customers', async (req, res) => {
   try {
     const client = await MongoClient.connect(uri)

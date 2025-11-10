@@ -25,22 +25,30 @@ router.get('/', async (req, res) => {
     const db = client.db('blessingscafe');
     const menuCollection = db.collection('Menu');
 
-    // Check cache for menu items
-    const now = Date.now();
-    let allItems;
-    if (!cachedMenuItems || (now - menuCacheTimestamp) > CACHE_DURATION) {
-      allItems = await menuCollection.find().toArray();
-      cachedMenuItems = allItems;
-      menuCacheTimestamp = now;
-    } else {
-      allItems = cachedMenuItems;
-    }
-
+    // Always fetch fresh menu items for real-time availability checking
+    const allItems = await menuCollection.find().toArray();
     await client.close();
 
-    // Categorize items
+    // Filter available items in real-time
+    const { InventoryManager } = require('../utils/inventoryManager');
+    const availableItems = [];
+
+    for (const item of allItems) {
+      try {
+        const availabilityCheck = await InventoryManager.checkProductAvailability(item.ProductID);
+        if (availabilityCheck.available) {
+          availableItems.push(item);
+        }
+      } catch (error) {
+        console.error(`Error checking availability for ${item.ProductID}:`, error);
+        // Include item if availability check fails (fail-safe)
+        availableItems.push(item);
+      }
+    }
+
+    // Categorize available items
     const categorizedItems = {};
-    allItems.forEach(item => {
+    availableItems.forEach(item => {
       const category = item.Category || 'Others';
       if (!categorizedItems[category]) {
         categorizedItems[category] = [];
