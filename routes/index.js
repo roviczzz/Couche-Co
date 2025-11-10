@@ -30,7 +30,7 @@ router.get('/', async (req, res) => {
     await client.close();
 
     // Filter available items in real-time
-    const { InventoryManager } = require('../utils/inventoryManager');
+    const InventoryManager = require('../utils/inventoryManager');
     const availableItems = [];
 
     for (const item of allItems) {
