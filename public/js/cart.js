@@ -61,7 +61,7 @@ function displayCartItems() {
       <div class="empty-cart">
         <h3>Your cart is empty</h3>
         <p>Let's add some delicious items to your cart!</p>
-        <button onclick="window.location.href='/menu'" class="checkout-btn">Browse Menu</button>
+        <button onclick="window.location.href='/'" class="checkout-btn">Browse Menu</button>
       </div>
     `;
     cartTotalContainer.innerHTML = '';
@@ -164,16 +164,18 @@ function updateQuantity(index, value) {
 
 // Remove item
 function removeItem(index) {
-  if (confirm('Are you sure you want to remove this item from your cart?')) {
-    orderItems.splice(index, 1);
-    saveCart();
-    displayCartItems();
-    updateCartTotal();
+  showConfirm('Are you sure you want to remove this item from your cart?', 'Remove Item',
+    () => {
+      orderItems.splice(index, 1);
+      saveCart();
+      displayCartItems();
+      updateCartTotal();
 
-    if (typeof updateCartCount === 'function') {
-      updateCartCount();
+      if (typeof updateCartCount === 'function') {
+        updateCartCount();
+      }
     }
-  }
+  );
 }
 
 // Update cart total display
