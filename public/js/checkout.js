@@ -625,6 +625,26 @@ document.addEventListener('DOMContentLoaded', function() {
     const total = discountedSubtotal + deliveryFee;
 
     document.getElementById('totalAmountDisplay').textContent = '₱' + total.toFixed(2);
+
+    // Update delivery fee display
+    const deliveryFeeRow = document.getElementById('deliveryFeeRow');
+    const deliveryFeeAmount = document.getElementById('deliveryFeeAmount');
+    if (deliveryFee > 0) {
+      deliveryFeeRow.style.display = 'flex';
+      deliveryFeeAmount.textContent = '+₱' + deliveryFee.toFixed(2);
+    } else {
+      deliveryFeeRow.style.display = 'none';
+    }
+
+    // Update promo discount display
+    const promoDiscountRow = document.getElementById('promoDiscountRow');
+    const promoDiscountAmount = document.getElementById('promoDiscountAmount');
+    if (discountAmount > 0) {
+      promoDiscountRow.style.display = 'flex';
+      promoDiscountAmount.textContent = '-₱' + discountAmount.toFixed(2);
+    } else {
+      promoDiscountRow.style.display = 'none';
+    }
   }
 
   // Delivery method toggle
