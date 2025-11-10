@@ -932,13 +932,15 @@
 .cart-side-popup {
     position: fixed;
     top: 70px; /* position under cart icon in navbar */
-    right: 440px; /* adjusted much more to the left */
-    width: 460px; /* bigger width */
-    height: 500px; /* bigger height */
-    background: #fff;
+    right: 260px; /* adjusted much more to the left */
+    width: 400px; /* bigger width */
+    height: 450px; /* bigger height */
+    background: rgba(255, 255, 255, 0.8);
     border: 2px solid #e9ecef;
     border-radius: 0px; /* sharp corners */
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     z-index: 2000;
     opacity: 0;
     transform: translateX(120%);

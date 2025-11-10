@@ -694,5 +694,20 @@ function setupCartSidePopup() {
     }
 }
 
+// Remove item from cart (copied from cart.js for non-logged-in users)
+function removeItem(index) {
+    showConfirm('Are you sure you want to remove this item from your cart?', 'Remove Item',
+        () => {
+            orderItems.splice(index, 1);
+            saveOrderItems();
+            hideCartSidePopup();
+
+            if (typeof window.updateCartCount === 'function') {
+                window.updateCartCount();
+            }
+        }
+    );
+}
+
 // Re-export setupModal for potential external access (if needed)
 window.setupProductModal = setupModal;
