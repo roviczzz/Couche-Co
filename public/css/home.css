@@ -347,3 +347,16 @@ body {
         max-width: 120px;
     }
 }
+
+.footer {
+    background: linear-gradient(135deg, #ab8162 0%, #6e5529 100%);
+    color: white;
+    text-align: center;
+    padding: 2rem;
+    margin-top: 2rem;
+}
+
+.footer p {
+    margin: 0;
+    font-size: 1rem;
+}
