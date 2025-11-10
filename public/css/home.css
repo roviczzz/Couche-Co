@@ -281,14 +281,21 @@ body {
         padding: 2rem 1rem;
     }
     .welcome-content h1 {
-        font-size: 7rem;
-        letter-spacing: -0.8vh;
+        font-size: 3rem;
+        letter-spacing: -0.1rem;
     }
     .welcome-content p {
         font-size: 0.9rem;
     }
+    .welcome-actions {
+        gap: 0.75rem;
+    }
+    .btn {
+        padding: 0.5rem 1rem;
+        font-size: 14px;
+    }
     .category-title {
-        font-size: 2.2rem;
+        font-size: 1.8rem;
         margin: 2rem 0 0.5rem 0;
         padding-left: 10px;
         padding-right: 10px;
@@ -302,15 +309,41 @@ body {
     .menu-gallery {
         padding: 2rem 10px;
     }
-    .gallery-content h4 {
-        font-size: 0.9rem;
+    .menu-gallery-container {
+        gap: 0.5rem;
     }
-    .price {
-        font-size: 0.85rem;
+    .gallery-item {
+        width: auto;
+        height: auto;
+        margin: 0 auto;
     }
     .gallery-image {
         height: 120px;
         max-width: 120px;
+    }
+    .gallery-content {
+        padding: 0.75rem;
+    }
+    .gallery-content h4 {
+        font-size: 0.9rem;
+        margin-bottom: 0.4rem;
+    }
+    .price {
+        font-size: 0.85rem;
+    }
+    .size {
+        font-size: 0.8rem;
+    }
+    .section-title {
+        font-size: 1.8rem;
+        margin-bottom: 2rem;
+    }
+    .footer {
+        padding: 1.5rem;
+        text-align: center;
+    }
+    .footer p {
+        font-size: 0.9rem;
     }
 }
 
