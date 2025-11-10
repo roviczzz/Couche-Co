@@ -1,162 +1,168 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= typeof title !== 'undefined' ? title : 'Admin Panel | Blessings Cafe' %></title>
-    <link rel="stylesheet" href="/css/site.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="icon" href="/favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="/css/layout.css">
-</head>
-<script src="/js/admin-layout.js"></script>
-<script src="/js/calculator.js"></script>
-<body class="sidebar-no-transition <%= typeof settings !== 'undefined' && settings.darkMode ? 'dark-theme' : '' %>">
-<div class="wrapper">
-    <div class="sidebar sidebar-no-transition">
-        <div class="sidebar-logo">
-            <img src="/resources/logo.png" alt="Logo" />
-        </div>
-        <div class="sidebar-toggle-btn-row">
-            <button type="button" id="sidebar-toggle-btn" class="sidebar-toggle-btn" title="Toggle sidebar" style="margin-bottom: 11px">
-                <i class="fa-solid fa-bars"></i>
-                <i class="fa-solid fa-angles-left"></i>
-                <i class="fa-solid fa-angles-right"></i>
-            </button>
-            <span class="sidebar-toggle-label">Collapse Sidebar</span>
-        </div>
-        <div class="sidebar-menu">
-            <ul>
-                <%
-                   const sidebarGroups = [
-                     {
-                       label: 'Main',
-                       items: [
-                         { path: '/admin/dashboard', label: 'Home', icon: 'house' },
-                         { path: '/admin/orders', label: 'Orders', icon: 'cart-flatbed' },
-                         { path: '/admin/menu', label: 'POS Menu', icon: 'cash-register' }
-                       ]
-                     },
-                     {
-                       label: 'Inventory',
-                       items: [
-                         { path: '/admin/stocks', label: 'Stocks', icon: 'boxes-stacked' },
-                         { path: '/admin/products', label: 'Products', icon: 'list-check' }
-                       ]
-                     },
-                     {
-                       label: 'Analytics',
-                       items: [
-                         { path: '/admin/analytics', label: 'Analytics', icon: 'chart-line' }
-                       ]
-                     },
-                     {
-                       label: 'Management',
-                       items: [
-                         { path: '/admin/discounts', label: 'Discounts', icon: 'percent' },
-                         { path: '/admin/messages', label: 'Messages', icon: 'envelope' },
-                         { path: '#calculator', label: 'Calculator', icon: 'calculator' },
-                         { path: '/admin/settings', label: 'Settings', icon: 'cog' }
-                       ]
-                     },
-                     {
-                       label: 'Account',
-                       items: [
-                         { path: '/auth/logout', label: 'Logout', icon: 'door-open' }
-                       ]
-                     }
-                   ];
-                %>
-                <% sidebarGroups.forEach((group, groupIdx) => { %>
-                  <% if (groupIdx > 0) { %>
-                    <li class="sidebar-group-divider"></li>
-                  <% } %>
-                  <li class="sidebar-group-label">
-                    <span class="sidebar-group-label-text"><%= group.label %></span>
-                  </li>
-                  <% group.items.forEach(item => {
-                       const isActive = (currentPage === item.path);
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title><%= typeof title !== 'undefined' ? title : 'Admin Panel | Blessings Cafe' %></title>
+      <link rel="stylesheet" href="/css/site.css">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+      <link rel="icon" href="/favicon.ico" type="image/x-icon">
+      <link rel="stylesheet" href="/css/layout.css">
+  </head>
+  <script src="/js/admin-layout.js"></script>
+  <script src="/js/calculator.js"></script>
+  <body class="sidebar-no-transition <%= typeof settings !== 'undefined' && settings.darkMode ? 'dark-theme' : '' %>">
+  <div class="wrapper">
+      <div class="sidebar sidebar-no-transition">
+          <div class="sidebar-logo">
+              <img src="/resources/logo.png" alt="Logo" />
+              <button type="button" id="sidebar-toggle-btn" class="sidebar-toggle-btn" title="Toggle sidebar">
+                  <i class="fa-solid fa-bars"></i>
+              </button>
+          </div>
+          <div class="sidebar-menu">
+              <ul>
+                  <%
+                    const sidebarGroups = [
+                      {
+                        label: 'Main',
+                        items: [
+                          { path: '/admin/dashboard', label: 'Home', icon: 'house' },
+                          { path: '/admin/orders', label: 'Orders', icon: 'cart-flatbed' },
+                          { path: '/admin/menu', label: 'POS Menu', icon: 'cash-register' }
+                        ]
+                      },
+                      {
+                        label: 'Inventory',
+                        items: [
+                          { path: '/admin/stocks', label: 'Stocks', icon: 'boxes-stacked' },
+                          { path: '/admin/products', label: 'Products', icon: 'list-check' }
+                        ]
+                      },
+                      {
+                        label: 'Analytics',
+                        items: [
+                          { path: '/admin/analytics', label: 'Analytics', icon: 'chart-line' }
+                        ]
+                      },
+                      {
+                        label: 'Management',
+                        items: [
+                          { path: '/admin/discounts', label: 'Discounts', icon: 'percent' },
+                          { path: '/admin/messages', label: 'Messages', icon: 'envelope' },
+                          { path: '#calculator', label: 'Calculator', icon: 'calculator' },
+                          { path: '#notifications', label: 'Notifications', icon: 'bell', isButton: true },
+                          { path: '/admin/settings', label: 'Settings', icon: 'cog' }
+                        ]
+                      },
+                      {
+                        label: 'Account',
+                        items: [
+                          { path: '/auth/logout', label: 'Logout', icon: 'door-open' }
+                        ]
+                      }
+                    ];
                   %>
-                    <li>
-                      <a href="<%= item.path %>" class="<%= isActive ? 'active' : '' %>">
-                        <i class="fa-solid fa-<%= item.icon %>"></i>
-                        <% if (item.path === '/admin/messages') { %>
-                          <span class="notification-badge" id="messages-badge" style="display: none;"></span>
+                  <% sidebarGroups.forEach((group, groupIdx) => { %>
+                    <% if (groupIdx > 0) { %>
+                      <li class="sidebar-group-divider"></li>
+                    <% } %>
+                    <% group.items.forEach(item => {
+                        const isActive = (currentPage === item.path);
+                    %>
+                      <li>
+                        <% if (item.isButton) { %>
+                          <button class="notification" role="button" aria-haspopup="true" aria-expanded="false" aria-label="<%= item.label %>" id="notification-bell">
+                            <i class="fa-solid fa-<%= item.icon %>"></i>
+                            <span class="notification-count" id="notification-count" style="display: none;"></span>
+                            <span class="label-text"><%= item.label %></span>
+                          </button>
+                        <% } else { %>
+                          <a href="<%= item.path %>" class="<%= isActive ? 'active' : '' %>">
+                            <i class="fa-solid fa-<%= item.icon %>"></i>
+                            <% if (item.path === '/admin/messages') { %>
+                              <span class="notification-badge" id="messages-badge" style="display: none;"></span>
+                            <% } %>
+                            <span class="label-text"><%= item.label %></span>
+                          </a>
                         <% } %>
-                        <span class="label-text"><%= item.label %></span>
-                      </a>
-                    </li>
+                      </li>
+                    <% }) %>
                   <% }) %>
-                <% }) %>
-            </ul>
-        </div>
-        <div class="sidebar-notification-wrapper">
-            <div class="sidebar-notification-row">
-                <button class="notification" role="button" aria-haspopup="true" aria-expanded="false" aria-label="Notifications" style="margin-bottom: 11px">
-                    <i class="fa-regular fa-bell"></i>
-                </button>
-                <span class="sidebar-notification-label">Notifications</span>
-            </div>
-        </div>
-    </div>
-    <div id="notification-popup" class="notification-popup" tabindex="-1" aria-modal="true" role="dialog">
-        <div class="notification-popup-header">
-            <span class="notification-popup-title">Notifications</span>
-            <button id="notification-popup-close" class="notification-popup-close" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <div class="notification-popup-list">
-            <div class="notification-popup-item">You have 1 new order.</div>
-            <div class="notification-popup-item">Stock level is low for 'Coffee Beans'.</div>
-            <div class="notification-popup-item">New product added to the menu.</div>
-        </div>
-    </div>
-    <div class="main-content">
-        <%- body %>
-    </div>
-    <div class="calculator-modal" id="calculator-modal" aria-hidden="true">
-        <div class="calculator" id="calculator">
-            <div class="calculator-header">
-                <div class="calculator-drag-handle" id="calculator-drag-handle">
-                    <svg viewBox="0 0 22 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="2" cy="2" r="1.5" />
-                        <circle cx="7" cy="2" r="1.5" />
-                        <circle cx="12" cy="2" r="1.5" />
-                        <circle cx="17" cy="2" r="1.5" />
-                        <circle cx="2" cy="8" r="1.5" />
-                        <circle cx="7" cy="8" r="1.5" />
-                        <circle cx="12" cy="8" r="1.5" />
-                        <circle cx="17" cy="8" r="1.5" />
-                    </svg>
-                </div>
-                <button class="calculator-close" id="calculator-close" aria-label="Close calculator">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <div class="calculator-display">
-                <div class="calculator-expression" id="calculator-expression"></div>
-                <div class="calculator-result" id="calculator-result">0</div>
-            </div>
-            <div class="calculator-buttons">
-                <button class="calc-btn clear" id="calculator-clear">C</button>
-                <button class="calc-btn operator" id="calculator-divide">÷</button>
-                <button class="calc-btn operator" id="calculator-multiply">×</button>
-                <button class="calc-btn operator" id="calculator-subtract">-</button>
-                <button class="calc-btn" id="calculator-seven">7</button>
-                <button class="calc-btn" id="calculator-eight">8</button>
-                <button class="calc-btn" id="calculator-nine">9</button>
-                <button class="calc-btn operator" id="calculator-add">+</button>
-                <button class="calc-btn" id="calculator-four">4</button>
-                <button class="calc-btn" id="calculator-five">5</button>
-                <button class="calc-btn" id="calculator-six">6</button>
-                <button class="calc-btn equals" id="calculator-equals" style="grid-row: span 2;">=</button>
-                <button class="calc-btn" id="calculator-one">1</button>
-                <button class="calc-btn" id="calculator-two">2</button>
-                <button class="calc-btn" id="calculator-three">3</button>
-                <button class="calc-btn zero" id="calculator-zero">0</button>
-                <button class="calc-btn operator" id="calculator-decimal">.</button>
-            </div>
-        </div>
-    </div>
-</div>
-</body>
-</html>
+              </ul>
+          </div>
+      </div>
+      <div id="notification-popup" class="notification-popup" tabindex="-1" aria-modal="true" role="dialog">
+          <div class="notification-popup-header">
+              <span class="notification-popup-title">Notifications</span>
+              <div class="notification-popup-actions">
+                  <button id="mark-all-read" class="notification-action-btn" title="Mark all as read">
+                      <i class="fa-solid fa-check-double"></i>
+                  </button>
+                  <button id="notification-popup-close" class="notification-popup-close" aria-label="Close">
+                      <i class="fa-solid fa-xmark"></i>
+                  </button>
+              </div>
+          </div>
+          <div class="notification-popup-list" id="notification-list">
+              <div class="notification-loading">
+                  <i class="fa-solid fa-spinner fa-spin"></i>
+                  <span>Loading notifications...</span>
+              </div>
+          </div>
+          <div class="notification-popup-footer">
+              <div class="notification-footer-text">Click on a notification to view details</div>
+          </div>
+      </div>
+      <div class="main-content">
+          <%- body %>
+      </div>
+      
+      <script src="/js/notifications.js"></script>
+      <div class="calculator-modal" id="calculator-modal" aria-hidden="true">
+          <div class="calculator" id="calculator">
+              <div class="calculator-header">
+                  <div class="calculator-drag-handle" id="calculator-drag-handle">
+                      <svg viewBox="0 0 22 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <circle cx="2" cy="2" r="1.5" />
+                          <circle cx="7" cy="2" r="1.5" />
+                          <circle cx="12" cy="2" r="1.5" />
+                          <circle cx="17" cy="2" r="1.5" />
+                          <circle cx="2" cy="8" r="1.5" />
+                          <circle cx="7" cy="8" r="1.5" />
+                          <circle cx="12" cy="8" r="1.5" />
+                          <circle cx="17" cy="8" r="1.5" />
+                      </svg>
+                  </div>
+                  <button class="calculator-close" id="calculator-close" aria-label="Close calculator">
+                      <i class="fa-solid fa-xmark"></i>
+                  </button>
+              </div>
+              <div class="calculator-display">
+                  <div class="calculator-expression" id="calculator-expression"></div>
+                  <div class="calculator-result" id="calculator-result">0</div>
+              </div>
+              <div class="calculator-buttons">
+                  <button class="calc-btn clear" id="calculator-clear">C</button>
+                  <button class="calc-btn operator" id="calculator-divide">÷</button>
+                  <button class="calc-btn operator" id="calculator-multiply">×</button>
+                  <button class="calc-btn operator" id="calculator-subtract">-</button>
+                  <button class="calc-btn" id="calculator-seven">7</button>
+                  <button class="calc-btn" id="calculator-eight">8</button>
+                  <button class="calc-btn" id="calculator-nine">9</button>
+                  <button class="calc-btn operator" id="calculator-add">+</button>
+                  <button class="calc-btn" id="calculator-four">4</button>
+                  <button class="calc-btn" id="calculator-five">5</button>
+                  <button class="calc-btn" id="calculator-six">6</button>
+                  <button class="calc-btn equals" id="calculator-equals" style="grid-row: span 2;">=</button>
+                  <button class="calc-btn" id="calculator-one">1</button>
+                  <button class="calc-btn" id="calculator-two">2</button>
+                  <button class="calc-btn" id="calculator-three">3</button>
+                  <button class="calc-btn zero" id="calculator-zero">0</button>
+                  <button class="calc-btn operator" id="calculator-decimal">.</button>
+              </div>
+          </div>
+      </div>
+  </div>
+  </body>
+  </html>

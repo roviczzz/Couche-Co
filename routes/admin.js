@@ -8,6 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const multer = require('multer');
+const { createNewOrderNotification, createMessageNotification, createLowStockNotification } = require('../admin-helpers');
 let productCollection;
 
 
@@ -1037,6 +1038,29 @@ router.post('/orders/submit', ensureAdmin, async (req, res) => {
       // Log successful order submission
       console.log(`✅ POS Order submitted successfully: ${orderData.OrderID} by ${req.session.user?.fullname}`);
 
+      // Deduct ingredients and add-ons from inventory
+      try {
+        const InventoryManager = require('../utils/inventoryManager');
+        const deductionResult = await InventoryManager.deductIngredients(orderData.Cart);
+        if (deductionResult.success) {
+          console.log(`✅ Stock deduction completed for order ${orderData.OrderID}:`, deductionResult.deductions);
+        } else {
+          console.error('❌ Stock deduction failed:', deductionResult.error);
+          // Don't fail the order if stock deduction fails, but log it
+        }
+      } catch (deductionError) {
+        console.error('❌ Error during stock deduction:', deductionError);
+        // Don't fail the order if stock deduction fails
+      }
+
+      // Create notification for new order
+      try {
+        await createNewOrderNotification(orderToInsert);
+      } catch (notifError) {
+        console.error('Failed to create order notification:', notifError);
+        // Don't fail the order creation if notification fails
+      }
+
       res.json({
         success: true,
         message: 'Order submitted successfully',
@@ -1306,6 +1330,36 @@ router.get('/discounts', nocache, async (req, res) => {
       title: 'Server Error',
       message: 'Failed to load discounts',
       status: 500
+    });
+  }
+});
+
+// Test endpoint for promo tracking (accessible via /admin/test-promo-tracking)
+router.get('/test-promo-tracking', async (req, res) => {
+  try {
+    const { generatePeriodicNotifications } = require('../admin-helpers');
+    console.log('🧪 Manual promo tracking test initiated...');
+    
+    const notifications = await generatePeriodicNotifications();
+    
+    res.json({
+      success: true,
+      message: 'Promo tracking test completed successfully',
+      notificationsGenerated: notifications.length,
+      notifications: notifications.map(notif => ({
+        type: notif.type || 'unknown',
+        title: notif.title || 'No title',
+        message: notif.message || 'No message',
+        priority: notif.priority || 'normal',
+        createdAt: notif.createdAt || new Date()
+      }))
+    });
+  } catch (error) {
+    console.error('Error in promo tracking test:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Promo tracking test failed',
+      details: error.message
     });
   }
 });
@@ -1588,6 +1642,18 @@ router.post('/messages/api/send', async (req, res) => {
     };
 
     const result = await db.collection('messages').insertOne(message);
+
+    // Create notification for new message
+    try {
+      await createMessageNotification({
+        _id: result.insertedId,
+        senderName: req.session.user?.fullname || 'Unknown',
+        subject: subject || 'New Message'
+      }, 'admin');
+    } catch (notifError) {
+      console.error('Failed to create message notification:', notifError);
+      // Don't fail the message sending if notification fails
+    }
 
     await client.close();
 
@@ -1987,6 +2053,15 @@ router.post('/stocks', async (req, res) => {
 router.post('/stocks/edit/:id', async (req, res) => {
   try {
     await updateIngredient(req.params.id, req.body);
+    
+    // Check for low stock after update and trigger notification if needed
+    try {
+      const stockData = await getStockData();
+      await createLowStockNotification(stockData, req.session.user || {});
+    } catch (notifError) {
+      console.error('Failed to create stock notification after update:', notifError);
+    }
+    
     res.redirect('/admin/stocks?msg=update_success');
   } catch (err) {
     console.error('Update item error:', err);
@@ -2006,6 +2081,15 @@ router.post('/stocks/delete/:id', async (req, res) => {
 router.post('/stocks/bulk-update', async (req, res) => {
   try {
     const modified = await bulkUpdateIngredients(req.body.updates);
+    
+    // Check for low stock after bulk update and trigger notification if needed
+    try {
+      const stockData = await getStockData();
+      await createLowStockNotification(stockData, req.session.user || {});
+    } catch (notifError) {
+      console.error('Failed to create stock notification after bulk update:', notifError);
+    }
+    
     res.json({ success: true, modified });
   } catch (err) {
     res.status(500).json({ error: 'Failed to perform bulk update' });
@@ -2120,6 +2204,272 @@ router.get('/analytics/sales-performance', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch sales performance data' });
   }
 });
+
+router.get('/analytics/export-performance', async (req, res) => {
+  try {
+    const userData = req.session.user;
+    const days = parseInt(req.query.days) || 14;
+
+    // Get performance data
+    const performanceData = await getSalesPerformance(days);
+
+    // Calculate summary statistics
+    const totalEarnings = performanceData.reduce((sum, day) => sum + (day.earnings || 0), 0);
+    const totalCosts = performanceData.reduce((sum, day) => sum + (day.costs || 0), 0);
+    const totalOrders = performanceData.reduce((sum, day) => sum + (day.orders || 0), 0);
+    const averageEarnings = performanceData.length > 0 ? totalEarnings / performanceData.length : 0;
+    const averageOrders = performanceData.length > 0 ? totalOrders / performanceData.length : 0;
+    const profitMargin = totalEarnings > 0 ? ((totalEarnings - totalCosts) / totalEarnings) * 100 : 0;
+
+    // Generate HTML for PDF
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Sales Performance Report - Last ${days} Days</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 30px;
+            background: white;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #8b5a2b;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #8b5a2b;
+            margin-bottom: 10px;
+        }
+        .report-title {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .report-meta {
+            text-align: center;
+            margin-top: 10px;
+        }
+        .report-date {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 2px;
+            display: block;
+        }
+        .report-user {
+            font-size: 12px;
+            color: #666;
+            font-weight: 500;
+            display: block;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .summary-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            background: #f9f9f9;
+        }
+        .summary-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #8b5a2b;
+            margin-bottom: 5px;
+        }
+        .summary-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            border-bottom: 2px solid #8b5a2b;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 11px;
+        }
+        th, td {
+            border: 1px solid #e0e0e0;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background: #f5f5f5;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 1px;
+        }
+        .page-break {
+            page-break-before: always;
+        }
+        .performance-chart {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">Blessings Cafe</div>
+        <div class="report-title">Sales Performance Report - Last ${days} Days</div>
+        <div class="report-meta">
+            <div class="report-date">Generated on ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+            <div class="report-user">Generated by: ${userData.fullname || userData.displayName || 'Unknown User'}</div>
+        </div>
+    </div>
+
+    <div class="summary-grid">
+        <div class="summary-card">
+            <div class="summary-value">₱${totalEarnings.toLocaleString()}</div>
+            <div class="summary-label">Total Earnings</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-value">₱${totalCosts.toLocaleString()}</div>
+            <div class="summary-label">Total Costs</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-value">₱${(totalEarnings - totalCosts).toLocaleString()}</div>
+            <div class="summary-label">Net Profit</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-value">${profitMargin.toFixed(1)}%</div>
+            <div class="summary-label">Profit Margin</div>
+        </div>
+    </div>
+
+    <div class="summary-grid">
+        <div class="summary-card">
+            <div class="summary-value">${totalOrders}</div>
+            <div class="summary-label">Total Orders</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-value">${averageOrders.toFixed(1)}</div>
+            <div class="summary-label">Avg Orders/Day</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-value">₱${averageEarnings.toFixed(2)}</div>
+            <div class="summary-label">Avg Earnings/Day</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-value">${days}</div>
+            <div class="summary-label">Days Analyzed</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Daily Performance Breakdown</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Earnings</th>
+                    <th>Costs</th>
+                    <th>Profit</th>
+                    <th>Orders</th>
+                    <th>Avg Order Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${performanceData.map(day => {
+                    const profit = day.earnings - day.costs;
+                    const avgOrderValue = day.orders > 0 ? day.earnings / day.orders : 0;
+                    return `
+                    <tr>
+                        <td>${new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+                        <td>₱${day.earnings.toLocaleString()}</td>
+                        <td>₱${day.costs.toLocaleString()}</td>
+                        <td>₱${profit.toLocaleString()}</td>
+                        <td>${day.orders}</td>
+                        <td>₱${avgOrderValue.toFixed(2)}</td>
+                    </tr>
+                    `;
+                }).join('')}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section" style="border-top: 3px solid #8b5a2b; margin-top: 40px; padding-top: 20px;">
+        <div style="background: #8b5a2b; color: white; padding: 20px; border-radius: 8px; text-align: center;">
+            <h3 style="margin: 0 0 10px 0; font-size: 18px;">Performance Summary</h3>
+            <div style="font-size: 32px; font-weight: bold; margin-bottom: 15px;">₱${(totalEarnings - totalCosts).toLocaleString()}</div>
+            <div style="font-size: 14px; opacity: 0.9;">
+                Net profit over the last ${days} days<br>
+                Based on ${totalOrders} orders with ${profitMargin.toFixed(1)}% profit margin
+            </div>
+        </div>
+    </div>
+</body>
+</html>`;
+
+    const puppeteer = require('puppeteer');
+
+    // Launch browser
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+
+    const page = await browser.newPage();
+
+    // Set content and wait for it to load
+    await page.setContent(html, {
+      waitUntil: 'networkidle0',
+      timeout: 30000
+    });
+
+    // Generate PDF
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      margin: {
+        top: '20mm',
+        right: '15mm',
+        bottom: '20mm',
+        left: '15mm'
+      }
+    });
+
+    await browser.close();
+
+    // Set headers and send PDF
+    const filename = `Sales_Performance_Last_${days}_Days.pdf`;
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+
+    res.send(pdfBuffer);
+
+  } catch (error) {
+    console.error('PDF generation error:', error);
+    res.status(500).json({ error: 'Failed to generate performance PDF', details: error.message });
+  }
+});
 // DISCOUNTS ROUTES
 router.post('/discounts/add', async (req, res) => {
   try {
@@ -2132,6 +2482,20 @@ router.post('/discounts/add', async (req, res) => {
 router.post('/discounts/edit/:id', async (req, res) => {
   try {
     await updateDiscount(req.params.id, req.body);
+    
+    // Trigger immediate promo tracking check for this specific promo
+    try {
+      const { triggerBusinessEventNotification } = require('../admin-helpers');
+      await triggerBusinessEventNotification('promo-update-check', {
+        promoId: req.params.id,
+        updatedData: req.body
+      });
+      console.log(`🔔 Triggered promo update check for discount ID: ${req.params.id}`);
+    } catch (notifError) {
+      console.error('Error triggering promo update notification:', notifError);
+      // Don't fail the main update if notification fails
+    }
+    
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to update discount' });
@@ -2298,19 +2662,35 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
 
     // Create date strings for comparison (same format as order-history route)
     const cutoffStart = startDate.toISOString().split('T')[0]; // YYYY-MM-DD format
-    const cutoffEnd = endDate.toISOString().split('T')[0];
+
+    // Set end date to end of day to include all orders from that day
+    const nextDay = new Date(endDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+    const cutoffEnd = nextDay.toISOString().split('T')[0];
 
     // Query orders within date range (like the working order-history route)
     const orders = await db.collection('Orders').find({
-      Date: { $gte: cutoffStart, $lte: cutoffEnd },
+      Date: { $gte: cutoffStart, $lt: cutoffEnd },
       PaymentStatus: { $ne: "Cancelled" }
     })
     .sort({ Date: -1 })
     .toArray();
 
-    // Calculate summary statistics with proper null handling
+    // Calculate summary statistics by recalculating from cart data for accuracy
     const totalRevenue = orders.reduce((sum, order) => {
-      const orderTotal = typeof order.Total === 'number' && !isNaN(order.Total) ? order.Total : 0;
+      // Recalculate total from cart items to ensure accuracy
+      let orderTotal = 0;
+      if (order.Cart && Array.isArray(order.Cart)) {
+        orderTotal = order.Cart.reduce((cartSum, item) => {
+          const price = typeof item.BasePrice === 'number' ? item.BasePrice :
+                       typeof item.Price === 'number' ? item.Price : 0;
+          const quantity = typeof item.Quantity === 'number' ? item.Quantity : 1;
+          return cartSum + (price * quantity);
+        }, 0);
+      } else {
+        // Fallback to stored total if cart data unavailable
+        orderTotal = typeof order.Total === 'number' && !isNaN(order.Total) ? order.Total : 0;
+      }
       return sum + orderTotal;
     }, 0);
     const totalOrders = orders.length;
@@ -2323,7 +2703,19 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
       if (method === 'E_Payment' || method === 'E-PAYMENT' || method === 'E-Payment') {
         method = 'E-Payment';
       }
-      acc[method] = (acc[method] || 0) + order.Total;
+      // Use recalculated total for accuracy
+      let orderTotal = 0;
+      if (order.Cart && Array.isArray(order.Cart)) {
+        orderTotal = order.Cart.reduce((cartSum, item) => {
+          const price = typeof item.BasePrice === 'number' ? item.BasePrice :
+                       typeof item.Price === 'number' ? item.Price : 0;
+          const quantity = typeof item.Quantity === 'number' ? item.Quantity : 1;
+          return cartSum + (price * quantity);
+        }, 0);
+      } else {
+        orderTotal = typeof order.Total === 'number' && !isNaN(order.Total) ? order.Total : 0;
+      }
+      acc[method] = (acc[method] || 0) + orderTotal;
       return acc;
     }, {});
 
@@ -2331,7 +2723,19 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
     const dailySales = orders.reduce((acc, order) => {
       if (order.Date) {
         const date = order.Date.substring(0, 10); // Extract YYYY-MM-DD part only
-        acc[date] = (acc[date] || 0) + (typeof order.Total === 'number' ? order.Total : 0);
+        // Use recalculated total for accuracy
+        let orderTotal = 0;
+        if (order.Cart && Array.isArray(order.Cart)) {
+          orderTotal = order.Cart.reduce((cartSum, item) => {
+            const price = typeof item.BasePrice === 'number' ? item.BasePrice :
+                         typeof item.Price === 'number' ? item.Price : 0;
+            const quantity = typeof item.Quantity === 'number' ? item.Quantity : 1;
+            return cartSum + (price * quantity);
+          }, 0);
+        } else {
+          orderTotal = typeof order.Total === 'number' && !isNaN(order.Total) ? order.Total : 0;
+        }
+        acc[date] = (acc[date] || 0) + orderTotal;
       }
       return acc;
     }, {});

@@ -4,12 +4,40 @@ body {
 }
 
 .welcome-section {
-    background: linear-gradient(135deg, #ab8162 0%, #6e5529 100%);
+    background: url('/resources/BannerBC.png') no-repeat center center;
+    background-size: cover;
     color: white;
     padding: 4rem 2rem;
     text-align: center;
     width: 100%;
     box-sizing: border-box;
+    position: relative;
+}
+
+.welcome-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1;
+}
+
+.welcome-content {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-image {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    margin-bottom: 1rem;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .welcome-content h1 {
@@ -22,11 +50,14 @@ body {
 }
 
 .welcome-content p {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     margin-bottom: 2rem;
     max-width: 600px;
     margin-left: auto;
     margin-right: auto;
+    font-family: 'Recoleta Regular', serif;
+    font-weight: 300;
+    line-height: 1.6;
 }
 
 .welcome-actions {
@@ -234,6 +265,9 @@ body {
 }
 
 @media (max-width: 768px) {
+    .hero-image {
+        max-width: 200px;
+    }
     .welcome-section {
         padding: 3rem 1rem;
     }

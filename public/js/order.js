@@ -1,7 +1,7 @@
 if (!window.apiPrefix) window.apiPrefix = '/admin';
 
 const ordersData = JSON.parse(document.getElementById('orders-data').textContent || '[]');
-const orders = ordersData;
+let orders = [...ordersData]; // Use let instead of const and create a copy
 const menu = JSON.parse(document.getElementById('menu-data').textContent || '[]');
 const orderDetailPanel = document.getElementById('orderDetailPanel');
 const orderSummaryContent = document.getElementById('orderSummaryContent');
@@ -1395,5 +1395,69 @@ document.addEventListener('DOMContentLoaded', function() {
     resetSortBtn.addEventListener('click', resetSort);
   }
 });
+
+async function pollOrders() {
+  try {
+    const response = await fetch('/api/orders');
+    if (!response.ok) {
+      throw new Error(`Failed to fetch orders: ${response.status}`);
+    }
+
+    const latestOrders = await response.json();
+
+    // Store the initial order IDs if this is the first run
+    if (!window.lastKnownOrderIds) {
+      window.lastKnownOrderIds = new Set(orders.map(order => order.OrderID));
+    }
+
+    // Compare with current orders to detect new additions from any source
+    const currentOrderIds = new Set(orders.map(order => order.OrderID));
+    const newOrders = latestOrders.filter(latestOrder => 
+      !currentOrderIds.has(latestOrder.OrderID)
+    );
+
+    if (newOrders.length > 0) {
+      // Sort new orders by date to show them in chronological order
+      newOrders.sort((a, b) => new Date(a.Date) - new Date(b.Date));
+      
+      console.log(`🔔 Detected ${newOrders.length} new order(s):`, newOrders.map(o => ({
+        id: o.OrderID,
+        customer: o.Customer?.fullname || o.Customer,
+        source: o.Source,
+        total: o.Total
+      })));
+      
+      // Add new orders to the current orders array
+      orders.push(...newOrders);
+      renderOrdersTable(); // Re-render the orders table with the updated list
+      
+      // Create detailed notification for each new order
+      newOrders.forEach(order => {
+        const customerName = order.Customer?.fullname || order.Customer || 'Unknown Customer';
+        const orderSource = order.Source || 'Unknown';
+        const orderTotal = order.Total || 0;
+        
+        // Show notification for new orders
+        if (typeof showMessage === 'function') {
+          showMessage(
+            `New ${orderSource} order: ${order.OrderID} from ${customerName} (₱${orderTotal})`,
+            false
+          );
+        }
+      });
+
+      // Update the known order IDs
+      window.lastKnownOrderIds = new Set(latestOrders.map(order => order.OrderID));
+    }
+  } catch (error) {
+    console.error('❌ Error polling orders:', error);
+  }
+}
+
+// Start polling every 5 seconds for more responsive detection of user/chatbot orders
+setInterval(pollOrders, 5000);
+
+// Also run immediately when the script loads
+pollOrders();
 
 renderOrdersTable();

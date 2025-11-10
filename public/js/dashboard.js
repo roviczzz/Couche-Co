@@ -454,8 +454,37 @@ window.ordersBySource = (dataEl.dataset.ordersBySource && dataEl.dataset.ordersB
         const exportBtn = document.getElementById('export-performance');
         if (exportBtn) {
             exportBtn.addEventListener('click', function() {
-                const period = document.getElementById('performance-period').value || '14';
-                window.open('/analytics/export-performance?days=' + period, '_blank');
+                const periodSelect = document.getElementById('performance-period');
+                const period = periodSelect ? periodSelect.value : '14';
+                const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
+                const exportUrl = `${basePath}/analytics/export-performance?days=${period}`;
+                console.log('Exporting performance data for', period, 'days from:', exportUrl);
+
+                // Show loading modal
+                const loadingModal = document.getElementById('export-loading-modal');
+                if (loadingModal) {
+                    loadingModal.style.display = 'block';
+                }
+
+                // Create a temporary link to trigger download
+                const link = document.createElement('a');
+                link.href = exportUrl;
+                link.download = `Sales_Performance_Last_${period}_Days.pdf`;
+
+                // Start download and hide modal after PDF generation/download begins
+                // Using a longer timeout to account for PDF generation time
+                setTimeout(() => {
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    // Hide loading modal after download starts
+                    setTimeout(() => {
+                        if (loadingModal) {
+                            loadingModal.style.display = 'none';
+                        }
+                    }, 2000); // Keep showing for 2 more seconds after download starts
+                }, 500); // Small delay to ensure modal is visible
             });
         }
 
@@ -540,15 +569,37 @@ window.ordersBySource = (dataEl.dataset.ordersBySource && dataEl.dataset.ordersB
         // Initialize all dashboard components
         fetchDashboardStats();
         fetchLowStockData();
-        drawSalesPerformanceChart();
-        drawTopCategoriesChart();
-        drawPaymentTypesChart();
-        drawOrdersBySourceChart();
+        
+        // Initialize charts with slight delay to ensure DOM is ready
+        setTimeout(() => {
+            if (typeof Chart !== 'undefined') {
+                drawSalesPerformanceChart();
+                drawTopCategoriesChart();
+                drawPaymentTypesChart();
+                drawOrdersBySourceChart();
+                console.log('✅ All dashboard charts initialized');
+            } else {
+                console.error('❌ Chart.js not loaded - charts will not display');
+            }
+        }, 100);
 
         // Initialize real-time updates
         initializeRealTimeUpdates();
     });
     async function drawSalesPerformanceChart(days=14) {
+        const chartElement = document.getElementById('salesPerformanceChart');
+        const loadingIndicator = document.getElementById('sales-performance-loading');
+        
+        if (!chartElement) return;
+        
+        // Show loading indicator
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'block';
+        }
+        
+        // Hide chart temporarily during loading
+        chartElement.style.opacity = '0.3';
+        
         let results = [];
         try {
             const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
@@ -556,16 +607,34 @@ window.ordersBySource = (dataEl.dataset.ordersBySource && dataEl.dataset.ordersB
             if (res.ok) {
                 results = await res.json();
             }
-        } catch (err) {}
+        } catch (err) {
+            console.error('Failed to fetch sales performance data:', err);
+        }
+        
         if (!Array.isArray(results) || !results.length) {
             results = [];
+            console.log('📊 No sales performance data available for', days, 'days');
+        } else {
+            console.log('📊 Loaded', results.length, 'days of sales performance data');
         }
-        const chartElement = document.getElementById('salesPerformanceChart');
-        if (!chartElement) return;
-        if (window.salesPerformanceChart && typeof window.salesPerformanceChart.destroy === 'function') window.salesPerformanceChart.destroy();
+        
+        // Destroy existing chart instance
+        if (window.salesPerformanceChart && typeof window.salesPerformanceChart.destroy === 'function') {
+            window.salesPerformanceChart.destroy();
+        }
+        
         const labels = results.map(r => r.date);
         const earnings = results.map(r => r.earnings);
         const costs = results.map(r => r.costs);
+        
+        // Hide loading indicator before creating chart
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'none';
+        }
+        
+        // Restore chart visibility
+        chartElement.style.opacity = '1';
+        
         window.salesPerformanceChart = new Chart(chartElement, {
             type: 'line',
             data: {
@@ -576,18 +645,28 @@ window.ordersBySource = (dataEl.dataset.ordersBySource && dataEl.dataset.ordersB
                         data: earnings,
                         backgroundColor: 'rgba(108,52,31,0.1)',
                         borderColor: 'rgba(108,52,31,1)',
-                        tension: 0.3,
-                        borderWidth: 2,
-                        pointRadius: 2
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: 'rgba(108,52,31,1)',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        fill: true
                     },
                     {
                         label: 'Costs',
                         data: costs,
                         backgroundColor: 'rgba(180,180,180,0.08)',
                         borderColor: '#999',
-                        tension: 0.3,
-                        borderWidth: 2,
-                        pointRadius: 2
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: '#999',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        fill: true
                     }
                 ]
             },
@@ -595,9 +674,26 @@ window.ordersBySource = (dataEl.dataset.ordersBySource && dataEl.dataset.ordersB
                 responsive: true,
                 maintainAspectRatio: false,
                 aspectRatio: 2.2,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
                 plugins: {
-                    legend: { display: true, labels: { font: { size: 14 } } },
+                    legend: { 
+                        display: true, 
+                        labels: { 
+                            font: { size: 14 },
+                            usePointStyle: true,
+                            padding: 20
+                        } 
+                    },
                     tooltip: {
+                        backgroundColor: 'rgba(107, 62, 38, 0.95)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: '#6b3e26',
+                        borderWidth: 1,
+                        cornerRadius: 8,
                         callbacks: {
                             label: function(context) {
                                 if (context.dataset.label === 'Earnings') {
@@ -610,8 +706,41 @@ window.ordersBySource = (dataEl.dataset.ordersBySource && dataEl.dataset.ordersB
                     }
                 },
                 scales: {
-                    x: { ticks: { font: { size: 11 } } },
-                    y: { beginAtZero: true, ticks: { font: { size: 11 } } }
+                    x: { 
+                        ticks: { 
+                            font: { size: 11 } 
+                        },
+                        grid: {
+                            color: 'rgba(160, 92, 47, 0.1)'
+                        }
+                    },
+                    y: { 
+                        beginAtZero: true, 
+                        ticks: { 
+                            font: { size: 11 },
+                            callback: function(value) {
+                                return '₱' + value.toLocaleString('en-PH');
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(160, 92, 47, 0.1)'
+                        }
+                    }
+                },
+                animation: {
+                    duration: 2000,
+                    easing: 'easeInOutQuart',
+                    onComplete: function() {
+                        console.log('Sales performance chart animation complete');
+                    }
+                },
+                elements: {
+                    line: {
+                        tension: 0.4
+                    },
+                    point: {
+                        hoverRadius: 8
+                    }
                 }
             }
         });

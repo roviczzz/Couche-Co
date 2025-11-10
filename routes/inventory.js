@@ -25,6 +25,65 @@ router.post('/check', validateInventoryData, checkInventoryAvailability, async (
   }
 });
 
+// Check inventory availability for single item
+router.post('/check-single', async (req, res) => {
+  try {
+    const { ProductID, Size, Addons, Quantity } = req.body;
+
+    if (!ProductID) {
+      return res.status(400).json({
+        error: 'ProductID is required'
+      });
+    }
+
+    const { MongoClient } = require('mongodb');
+    const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+    let client;
+
+    client = new MongoClient(uri);
+    await client.connect();
+    const db = client.db('blessingscafe');
+
+    // Get menu item
+    const menuItem = await db.collection('Menu').findOne({ _id: require('mongodb').ObjectId(ProductID) });
+    
+    if (!menuItem) {
+      await client.close();
+      return res.status(404).json({
+        error: 'Menu item not found'
+      });
+    }
+
+    // Prepare order item for checking
+    const orderItem = {
+      ProductID,
+      Size,
+      Addons: Addons || [],
+      Quantity: Quantity || 1
+    };
+
+    // Check availability
+    const availability = await InventoryManager.checkSingleItemAvailability(
+      menuItem,
+      orderItem,
+      db.collection('Ingredients'),
+      db.collection('Add-ons')
+    );
+
+    await client.close();
+
+    res.json(availability);
+
+  } catch (error) {
+    console.error('Error in single item inventory check:', error);
+    res.status(500).json({
+      error: 'Internal server error during inventory check',
+      available: false,
+      missingIngredients: []
+    });
+  }
+});
+
 // Get current inventory levels (for admin dashboard)
 router.get('/levels', async (req, res) => {
   try {
