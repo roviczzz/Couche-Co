@@ -644,11 +644,6 @@ function showCartSidePopup(orderItem) {
 
         // Setup popup event listeners
         setupCartSidePopup();
-
-        // Auto-hide after 5 seconds
-        setTimeout(() => {
-            hideCartSidePopup();
-        }, 5000);
     }
 }
 
