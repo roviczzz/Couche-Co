@@ -14,7 +14,10 @@ const {
   getTopCategories,
   getPaymentTypes,
   getOrdersBySource,
-  getSalesPerformance
+  getSalesPerformance,
+  getActiveDiscounts,
+  createNewOrderNotification,
+  createMessageNotification
 } = require('../admin-helpers');
 
 // Authentication middleware for staff routes
@@ -69,6 +72,29 @@ router.post('/orders/submit', isStaffLoggedIn, async (req, res) => {
     if (result.acknowledged && result.insertedId) {
       // Log successful order submission
       console.log(`✅ Staff POS Order submitted successfully: ${orderData.OrderID} by ${req.session.user?.fullname}`);
+
+      // Deduct ingredients and add-ons from inventory
+      try {
+        const InventoryManager = require('../utils/inventoryManager');
+        const deductionResult = await InventoryManager.deductIngredients(orderData.Cart);
+        if (deductionResult.success) {
+          console.log(`✅ Stock deduction completed for order ${orderData.OrderID}:`, deductionResult.deductions);
+        } else {
+          console.error('❌ Stock deduction failed:', deductionResult.error);
+          // Don't fail the order if stock deduction fails, but log it
+        }
+      } catch (deductionError) {
+        console.error('❌ Error during stock deduction:', deductionError);
+        // Don't fail the order if stock deduction fails
+      }
+
+      // Create notification for new order
+      try {
+        await createNewOrderNotification(orderToInsert);
+      } catch (notifError) {
+        console.error('Failed to create order notification:', notifError);
+        // Don't fail the order creation if notification fails
+      }
 
       res.json({
         success: true,
@@ -452,22 +478,24 @@ router.patch('/orders/:orderId/fulfillment', async (req, res) => {
   try {
     const { orderId } = req.params;
     const { FulfillmentStatus } = req.body;
-    
+
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
     const ordersCollection = db.collection('Orders');
-    
+
     const result = await ordersCollection.updateOne(
       { OrderID: orderId },
       { $set: { FulfillmentStatus, fulfillmentStatus: FulfillmentStatus } }
     );
-    
+
+
+
     await client.close();
-    
+
     if (result.matchedCount === 0) {
       return res.status(404).json({ error: 'Order not found' });
     }
-    
+
     res.json({ success: true, message: 'Fulfillment status updated successfully' });
   } catch (error) {
     console.error('Error updating fulfillment status:', error);
@@ -907,6 +935,18 @@ router.post('/messages/api/send', async (req, res) => {
     };
 
     const result = await db.collection('messages').insertOne(message);
+
+    // Create notification for new message
+    try {
+      await createMessageNotification({
+        _id: result.insertedId,
+        senderName: req.session.user?.fullname || 'Unknown',
+        subject: subject || 'New Message'
+      }, 'staff');
+    } catch (notifError) {
+      console.error('Failed to create message notification:', notifError);
+      // Don't fail the message sending if notification fails
+    }
 
     await client.close();
 
@@ -1689,6 +1729,272 @@ router.get('/analytics/sales-performance', async (req, res) => {
   } catch (error) {
     console.error('Sales performance error:', error);
     res.status(500).json({ error: 'Failed to load sales performance data' });
+  }
+});
+
+router.get('/analytics/export-performance', async (req, res) => {
+  try {
+    const userData = req.session.user;
+    const days = parseInt(req.query.days) || 14;
+
+    // Get performance data
+    const performanceData = await getSalesPerformance(days);
+
+    // Calculate summary statistics
+    const totalEarnings = performanceData.reduce((sum, day) => sum + (day.earnings || 0), 0);
+    const totalCosts = performanceData.reduce((sum, day) => sum + (day.costs || 0), 0);
+    const totalOrders = performanceData.reduce((sum, day) => sum + (day.orders || 0), 0);
+    const averageEarnings = performanceData.length > 0 ? totalEarnings / performanceData.length : 0;
+    const averageOrders = performanceData.length > 0 ? totalOrders / performanceData.length : 0;
+    const profitMargin = totalEarnings > 0 ? ((totalEarnings - totalCosts) / totalEarnings) * 100 : 0;
+
+    // Generate HTML for PDF
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Sales Performance Report - Last ${days} Days</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 30px;
+            background: white;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #8b5a2b;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #8b5a2b;
+            margin-bottom: 10px;
+        }
+        .report-title {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .report-meta {
+            text-align: center;
+            margin-top: 10px;
+        }
+        .report-date {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 2px;
+            display: block;
+        }
+        .report-user {
+            font-size: 12px;
+            color: #666;
+            font-weight: 500;
+            display: block;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .summary-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            background: #f9f9f9;
+        }
+        .summary-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #8b5a2b;
+            margin-bottom: 5px;
+        }
+        .summary-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            border-bottom: 2px solid #8b5a2b;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 11px;
+        }
+        th, td {
+            border: 1px solid #e0e0e0;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background: #f5f5f5;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 1px;
+        }
+        .page-break {
+            page-break-before: always;
+        }
+        .performance-chart {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">Blessings Cafe</div>
+        <div class="report-title">Sales Performance Report - Last ${days} Days</div>
+        <div class="report-meta">
+            <div class="report-date">Generated on ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+            <div class="report-user">Generated by: ${userData.fullname || userData.displayName || 'Unknown User'}</div>
+        </div>
+    </div>
+
+    <div class="summary-grid">
+        <div class="summary-card">
+            <div class="summary-value">₱${totalEarnings.toLocaleString()}</div>
+            <div class="summary-label">Total Earnings</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-value">₱${totalCosts.toLocaleString()}</div>
+            <div class="summary-label">Total Costs</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-value">₱${(totalEarnings - totalCosts).toLocaleString()}</div>
+            <div class="summary-label">Net Profit</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-value">${profitMargin.toFixed(1)}%</div>
+            <div class="summary-label">Profit Margin</div>
+        </div>
+    </div>
+
+    <div class="summary-grid">
+        <div class="summary-card">
+            <div class="summary-value">${totalOrders}</div>
+            <div class="summary-label">Total Orders</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-value">${averageOrders.toFixed(1)}</div>
+            <div class="summary-label">Avg Orders/Day</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-value">₱${averageEarnings.toFixed(2)}</div>
+            <div class="summary-label">Avg Earnings/Day</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-value">${days}</div>
+            <div class="summary-label">Days Analyzed</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Daily Performance Breakdown</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Earnings</th>
+                    <th>Costs</th>
+                    <th>Profit</th>
+                    <th>Orders</th>
+                    <th>Avg Order Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${performanceData.map(day => {
+                    const profit = day.earnings - day.costs;
+                    const avgOrderValue = day.orders > 0 ? day.earnings / day.orders : 0;
+                    return `
+                    <tr>
+                        <td>${new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+                        <td>₱${day.earnings.toLocaleString()}</td>
+                        <td>₱${day.costs.toLocaleString()}</td>
+                        <td>₱${profit.toLocaleString()}</td>
+                        <td>${day.orders}</td>
+                        <td>₱${avgOrderValue.toFixed(2)}</td>
+                    </tr>
+                    `;
+                }).join('')}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section" style="border-top: 3px solid #8b5a2b; margin-top: 40px; padding-top: 20px;">
+        <div style="background: #8b5a2b; color: white; padding: 20px; border-radius: 8px; text-align: center;">
+            <h3 style="margin: 0 0 10px 0; font-size: 18px;">Performance Summary</h3>
+            <div style="font-size: 32px; font-weight: bold; margin-bottom: 15px;">₱${(totalEarnings - totalCosts).toLocaleString()}</div>
+            <div style="font-size: 14px; opacity: 0.9;">
+                Net profit over the last ${days} days<br>
+                Based on ${totalOrders} orders with ${profitMargin.toFixed(1)}% profit margin
+            </div>
+        </div>
+    </div>
+</body>
+</html>`;
+
+    const puppeteer = require('puppeteer');
+
+    // Launch browser
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+
+    const page = await browser.newPage();
+
+    // Set content and wait for it to load
+    await page.setContent(html, {
+      waitUntil: 'networkidle0',
+      timeout: 30000
+    });
+
+    // Generate PDF
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      margin: {
+        top: '20mm',
+        right: '15mm',
+        bottom: '20mm',
+        left: '15mm'
+      }
+    });
+
+    await browser.close();
+
+    // Set headers and send PDF
+    const filename = `Sales_Performance_Last_${days}_Days.pdf`;
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+
+    res.send(pdfBuffer);
+
+  } catch (error) {
+    console.error('PDF generation error:', error);
+    res.status(500).json({ error: 'Failed to generate performance PDF', details: error.message });
   }
 });
 

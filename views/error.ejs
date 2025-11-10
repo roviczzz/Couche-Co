@@ -1,69 +1,88 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title || 'Error' %> | Blessings Cafe</title>
-    <link rel="stylesheet" href="/css/site.css">
-    <style>
-        .error-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            text-align: center;
-            padding: 2rem;
-        }
-        .error-code {
-            font-size: 6rem;
-            font-weight: bold;
-            color: #e74c3c;
-            margin-bottom: 1rem;
-        }
-        .error-message {
-            font-size: 1.5rem;
-            color: #666;
-            margin-bottom: 2rem;
-        }
-        .error-actions {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 5px;
-            text-decoration: none;
-            font-weight: 500;
-            cursor: pointer;
-        }
-        .btn-primary {
-            background-color: #3498db;
-            color: white;
-        }
-        .btn-secondary {
-            background-color: #95a5a6;
-            color: white;
-        }
-        .btn:hover {
-            opacity: 0.9;
-        }
-    </style>
-</head>
-<body>
-    <div class="error-container">
-        <div class="error-code"><%= status || 500 %></div>
-        <div class="error-message">
-            <%= message || 'An unexpected error occurred' %>
-        </div>
-        <div class="error-actions">
-            <a href="/" class="btn btn-primary">Go Home</a>
-            <a href="javascript:history.back()" class="btn btn-secondary">Go Back</a>
-        </div>
+<script>
+    function getHomeUrl() {
+        <% if (typeof user !== 'undefined' && user && user.role) { %>
+            const userRole = '<%= user.role %>';
+            
+            switch(userRole) {
+                case 'admin':
+                case 'owner':
+                    return '/admin/dashboard';
+                case 'staff':
+                    return '/staff/dashboard';
+                default:
+                    return '/';
+            }
+        <% } else { %>
+            return '/';
+        <% } %>
+    }
+    
+    function goHome() {
+        window.location.href = getHomeUrl();
+    }
+</script>
+
+<style>
+    .error-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: calc(100vh - 120px);
+        text-align: center;
+        padding: 2rem;
+        margin-top: 60px;
+    }
+    .error-code {
+        font-size: 6rem;
+        font-weight: bold;
+        color: #e74c3c;
+        margin-bottom: 1rem;
+    }
+    .error-message {
+        font-size: 1.5rem;
+        color: #666;
+        margin-bottom: 2rem;
+    }
+    .error-actions {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 5px;
+        text-decoration: none;
+        font-weight: 500;
+        font-family: inherit;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        letter-spacing: 0.6px;
+    }
+    .btn-primary {
+        background-color: #6b3e26;
+        color: white;
+    }
+    .btn-secondary {
+        background-color: #a05c2f;
+        color: white;
+    }
+    .btn:hover {
+        opacity: 0.9;
+        transform: translateY(-2px);
+    }
+</style>
+
+<div class="error-container">
+    <div class="error-code"><%= status || 500 %></div>
+    <div class="error-message">
+        <%= message || 'An unexpected error occurred' %>
     </div>
-</body>
-</html>
+    <div class="error-actions">
+        <a href="javascript:void(0)" onclick="goHome()" class="btn btn-primary">Go Home</a>
+        <a href="javascript:history.back()" class="btn btn-secondary">Go Back</a>
+    </div>
+</div>
 

@@ -75,7 +75,7 @@ menuItems.forEach(item => {
                 <span>Delivery Fee:</span>
                 <span id="delivery-fee" style="text-align: right;">₱ 20.00</span>
             </div>
-            <div id="promo-applied" style="margin-top: 10px; font-weight: bold;"></div>
+            <div id="promo-applied" style="margin-top: 10px; font-weight: bold; display: none;"></div>
             <div id="promo-details" style="margin-top: 5px; margin-bottom: 20px; font-size: 12px; color: #666; display: none;"></div>
             <div class="total-row" id="promo-discount-row" style="display: none;">
                 <span>Promo Discount:</span>
@@ -246,7 +246,7 @@ menuItems.forEach(item => {
 </div>
 
 <!-- Xendit Payment Modal -->
-<div id="xendit-payment-modal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+<div id="xendit-payment-modal" class="modal hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
     <div style="background: white; border-radius: 12px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; position: relative;">
         <div style="padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
             <h3 style="margin: 0;">Complete Your Payment</h3>
@@ -271,7 +271,7 @@ menuItems.forEach(item => {
 </div>
 
 <!-- Xendit Payment Gateway Modal -->
-<div id="xendit-gateway-modal" class="modal hidden" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 2001; display: flex; align-items: center; justify-content: center;">
+<div id="xendit-gateway-modal" class="modal hidden" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 2001; display: none; align-items: center; justify-content: center;">
     <div class="modal-content" style="background: white; border-radius: 12px; width: 90%; max-width: 400px; max-height: 80vh; overflow-y: auto; position: relative; text-align: center; padding: 30px 20px;">
         <h3 style="margin-top:0;">Complete Payment</h3>
         <div style="margin-bottom: 10px; color: #444;">Please complete your payment using the link below:</div>
@@ -295,16 +295,16 @@ menuItems.forEach(item => {
 </div>
 
 <!-- Order Confirmation Modal -->
-<div id="order-confirm-modal" class="modal hidden" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 2000; display: flex; align-items: center; justify-content: center;">
-    <div class="modal-content" style="background: white; border-radius: 12px; width: 90%; max-width: 400px; max-height: 80vh; overflow-y: auto; position: relative; text-align: center; padding: 30px 20px;">
-        <h3 style="margin-top:0;" id="confirm-title">Confirm Order</h3>
+<div id="order-confirm-modal" class="modal hidden" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 2000; display: none; align-items: center; justify-content: center;">
+    <div class="modal-content" style="background: white; border-radius: 12px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; position: relative; text-align: center; padding: 24px 0;">
+        <h3 style="margin: 0 0 24px 0; padding: 0 24px;" id="confirm-title">Confirm Order</h3>
 
         <!-- Confirmation State -->
         <div id="confirm-state" style="margin-bottom: 20px;">
-            <div id="confirm-message" style="color: #444; text-align: left; white-space: pre-line;"></div>
-            <div style="display: flex; justify-content: center; gap: 12px; margin-top: 20px;">
-                <button id="confirm-submit-btn" style="background: #4caf50; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;">Confirm</button>
-                <button id="confirm-cancel-btn" style="background: #ccc; color: #222; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;">Cancel</button>
+            <div id="confirm-message" style="padding: 0 24px; text-align: left; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6; color: #333;"></div>
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 24px; padding: 0 24px;">
+                <button id="confirm-submit-btn" style="background: #4caf50; color: white; padding: 12px 28px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%;">Confirm Order</button>
+                <button id="confirm-cancel-btn" onclick="cancelOrder()" style="background: #f44336; color: white; padding: 12px 28px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%;">Cancel Order</button>
             </div>
         </div>
 
@@ -323,7 +323,10 @@ menuItems.forEach(item => {
                     <path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM438 209.7C427.3 201.9 412.3 204.3 404.5 215L285.1 379.2L233 327.1C223.6 317.7 208.4 317.7 199.1 327.1C189.8 336.5 189.7 351.7 199.1 361L271.1 433C276.1 438 282.9 440.5 289.9 440C296.9 439.5 303.3 435.9 307.4 430.2L443.3 243.2C451.1 232.5 448.7 217.5 438 209.7z" fill="#28a745"/>
                 </svg>
             </div>
-            <div style="font-size: 18px; font-weight: 600; color: #28a745;">Order confirmed!</div>
+            <div style="font-size: 18px; font-weight: 600; color: #28a745; margin-bottom: 20px;">Order confirmed!</div>
+            <div style="display: flex; justify-content: center; gap: 12px;">
+                <button id="success-ok-btn" style="background: #28a745; color: white; padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">OK</button>
+            </div>
         </div>
     </div>
 </div>
@@ -348,6 +351,15 @@ menuItems.forEach(item => {
             <button id="xendit-confirm-yes-btn" style="background: #4caf50; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;">Yes</button>
             <button id="xendit-confirm-no-btn" style="background: #ccc; color: #222; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;">No</button>
         </div>
+    </div>
+</div>
+
+<!-- Processing Order Modal -->
+<div id="processing-order-modal" class="processing-order-modal hidden">
+    <div class="processing-order-container">
+        <div class="processing-spinner"></div>
+        <h2>Processing Order</h2>
+        <p id="processing-status">Please wait...</p>
     </div>
 </div>
 

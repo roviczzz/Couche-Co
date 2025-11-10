@@ -97,9 +97,18 @@ document.addEventListener('DOMContentLoaded', () => {
     function closeNotificationPopup() {
         if (notificationPopup) {
             notificationPopup.classList.remove('show');
+            notificationPopup.setAttribute('aria-hidden', 'true'); // Ensure accessibility state
         }
         if (notificationBtn) {
             notificationBtn.setAttribute('aria-expanded', 'false');
+        }
+    }
+
+    function toggleNotificationPopup() {
+        if (notificationPopup) {
+            const isVisible = notificationPopup.classList.toggle('show');
+            notificationPopup.setAttribute('aria-hidden', !isVisible);
+            notificationBtn.setAttribute('aria-expanded', isVisible);
         }
     }
 
@@ -107,23 +116,13 @@ document.addEventListener('DOMContentLoaded', () => {
         notificationRow.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            notificationPopup.classList.toggle('show');
-            if (notificationPopup.classList.contains('show')) {
-                notificationBtn.setAttribute('aria-expanded', 'true');
-            } else {
-                notificationBtn.setAttribute('aria-expanded', 'false');
-            }
+            toggleNotificationPopup();
         });
 
         notificationBtn.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                notificationPopup.classList.toggle('show');
-                if (notificationPopup.classList.contains('show')) {
-                    notificationBtn.setAttribute('aria-expanded', 'true');
-                } else {
-                    notificationBtn.setAttribute('aria-expanded', 'false');
-                }
+                toggleNotificationPopup();
             }
             if (e.key === 'Escape') {
                 closeNotificationPopup();

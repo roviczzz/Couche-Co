@@ -453,6 +453,44 @@ function selectPayment(method) {
 }
 
 // Cart functions
+
+// Helper function to extract price from item or size
+function getItemPrice(item, selectedSize) {
+    if (selectedSize) {
+        return selectedSize.BasePrice ?? selectedSize.Price ?? 0;
+    }
+    if (item.Sizes?.[0]) {
+        return item.Sizes[0].BasePrice ?? item.Sizes[0].Price ?? 0;
+    }
+    return item.BasePrice ?? item.Price ?? 0;
+}
+
+// Helper function to extract size name
+function getSizeName(item, selectedSize) {
+    if (selectedSize) {
+        return selectedSize.Size ?? selectedSize.SizeName ?? 'Regular';
+    }
+    if (item.Sizes?.[0]) {
+        return item.Sizes[0].Size ?? item.Sizes[0].SizeName ?? 'Regular';
+    }
+    return 'Regular';
+}
+
+// Helper function to format unavailable items message
+function formatUnavailabilityMessage(missingIngredients) {
+    let message = 'Item is not available due to insufficient stock:\n';
+    missingIngredients.forEach(missing => {
+        if (missing.type === 'pastry') {
+            message += `- ${missing.name}: Only ${missing.available} available, need ${missing.needed}\n`;
+        } else if (missing.type === 'ingredient') {
+            message += `- ${missing.name}: Only ${missing.available}g available, need ${missing.needed}g\n`;
+        } else if (missing.type === 'addon') {
+            message += `- ${missing.name}: Out of stock\n`;
+        }
+    });
+    return message;
+}
+
 function addModalItemToCart() {
     if (!window.currentModalItem) return;
 
@@ -463,42 +501,87 @@ function addModalItemToCart() {
     closeSizeModal();
 }
 
+async function checkItemAvailability(item, selectedSize, addons) {
+    try {
+        // Safety check: ensure item exists
+        if (!item) {
+            console.warn('Item is null or undefined in checkItemAvailability');
+            return { available: true, missingIngredients: [] };
+        }
+
+        const response = await fetch('/api/inventory/check-single', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                ProductID: item._id || item.id,
+                Size: selectedSize ? (selectedSize.Size || selectedSize.SizeName) : null,
+                Addons: addons.map(addon => ({ AddOnID: addon.id, Name: addon.name })),
+                Quantity: 1
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error('Error checking item availability:', error);
+        // Return available=true on error to not block ordering
+        return { available: true, missingIngredients: [] };
+    }
+}
+
 function addToCart(item, selectedSize = null, addons = []) {
+    // Initialize cart if needed
     if (!window.cartItems) {
         window.cartItems = [];
     }
 
-    // Calculate base price and total addon price
-    let basePrice;
-    let sizeName;
-
-    if (selectedSize) {
-        basePrice = selectedSize.BasePrice || selectedSize.Price || 0;
-        sizeName = selectedSize.Size || selectedSize.SizeName || 'Regular';
-    } else if (item.Sizes && item.Sizes[0]) {
-        basePrice = item.Sizes[0].BasePrice || item.Sizes[0].Price || 0;
-        sizeName = item.Sizes[0].Size || item.Sizes[0].SizeName || 'Regular';
-    } else {
-        basePrice = item.BasePrice || item.Price || 0;
-        sizeName = 'Regular';
+    // Validate item input
+    if (!item) {
+        console.error('Item is null or undefined in addToCart');
+        showFeedbackMessage('Error: Invalid item. Please try again.', 'error');
+        return;
     }
 
-    const addonPrice = addons.reduce((sum, addon) => sum + addon.price, 0);
-    const totalPrice = basePrice + addonPrice;
+    // Pre-compute addon price (doesn't change based on availability)
+    const addonPrice = addons.reduce((sum, addon) => sum + (addon.price ?? 0), 0);
 
-    const cartItem = {
-        itemId: Date.now() + Math.random(),
-        ProductName: item.Name,
-        ProductID: item._id || item.id,
-        Size: sizeName,
-        AddOns: addons.map(addon => addon.name),
-        Quantity: 1,
-        BasePrice: totalPrice, // Include addon prices in base price for total calculation
-        ImageLink: item.imagelink || ""
-    };
+    // Check availability before adding to cart
+    checkItemAvailability(item, selectedSize, addons).then(availability => {
+        if (!availability.available) {
+            const message = formatUnavailabilityMessage(availability.missingIngredients);
+            showFeedbackMessage(message, 'error');
+            return;
+        }
 
-    window.cartItems.push(cartItem);
-    updateCartDisplay();
+        // Calculate prices
+        const basePrice = getItemPrice(item, selectedSize);
+        const totalPrice = basePrice + addonPrice;
+        const sizeName = getSizeName(item, selectedSize);
+
+        // Create cart item with all required properties
+        const cartItem = {
+            itemId: Date.now() + Math.random(),
+            ProductName: item.Name,
+            ProductID: item._id ?? item.id,
+            Size: sizeName,
+            AddOns: addons.map(addon => addon.name),
+            Quantity: 1,
+            BasePrice: totalPrice,
+            ImageLink: item.imagelink ?? ""
+        };
+
+        window.cartItems.push(cartItem);
+        updateCartDisplay();
+    }).catch(error => {
+        console.error('Error checking availability:', error);
+        showFeedbackMessage('Error checking item availability. Please try again.', 'error');
+    });
 }
 
 function updateCartDisplay() {
@@ -519,7 +602,10 @@ function updateCartDisplay() {
             const promoDetailsElement = document.getElementById('promo-details');
             const promoDiscountRow = document.getElementById('promo-discount-row');
             
-            if (promoAppliedElement) promoAppliedElement.textContent = '';
+            if (promoAppliedElement) {
+                promoAppliedElement.textContent = '';
+                promoAppliedElement.style.display = 'none';
+            }
             if (promoDetailsElement) {
                 promoDetailsElement.textContent = '';
                 promoDetailsElement.style.display = 'none';
@@ -532,7 +618,10 @@ function updateCartDisplay() {
         const promoDetailsElement = document.getElementById('promo-details');
         const promoDiscountRow = document.getElementById('promo-discount-row');
         
-        if (promoAppliedElement) promoAppliedElement.textContent = '';
+        if (promoAppliedElement) {
+            promoAppliedElement.textContent = '';
+            promoAppliedElement.style.display = 'none';
+        }
         if (promoDetailsElement) {
             promoDetailsElement.textContent = '';
             promoDetailsElement.style.display = 'none';
@@ -694,6 +783,12 @@ function updateCartDisplay() {
     promoAppliedElement.textContent = promoLabels.length > 0 ? promoLabels.join(', ') : '';
     promoAppliedElement.style.textAlign = 'left';
     
+    if (promoLabels.length > 0) {
+        promoAppliedElement.style.display = 'block';
+    } else {
+        promoAppliedElement.style.display = 'none';
+    }
+    
     if (promoDetails) {
         promoDetailsElement.textContent = promoDetails;
         promoDetailsElement.style.display = 'block';
@@ -821,6 +916,23 @@ function submitOrder() {
     const paymentMethod = getSelectedPaymentMethod();
     const itemTotal = cart.reduce((sum, item) => sum + item.Quantity, 0);
     let total = calculatePromotionalTotal(cart);
+
+    // Apply selected promo discount (only if promo is still applicable)
+    let promoDiscountAmount = 0;
+    if (selectedPromo && isPromoApplicableToCart(selectedPromo)) {
+        const menuData = JSON.parse(document.getElementById('menu-data').textContent);
+        
+        cart.forEach(cartItem => {
+            const menuItem = menuData.find(item => item.Name === cartItem.ProductName);
+            if (menuItem && menuItem.Category === selectedPromo.category) {
+                const itemTotal = cartItem.BasePrice * cartItem.Quantity;
+                promoDiscountAmount += itemTotal * (selectedPromo.discountPercentage / 100);
+            }
+        });
+    }
+
+    // Subtract promo discount from total
+    total -= promoDiscountAmount;
 
     // Add delivery fee for delivery orders
     if (deliveryType === 'Delivery') {
@@ -1270,6 +1382,9 @@ function proceedOrder() {
 }
 
 function showOrderConfirmation() {
+    // Reset modal state first
+    resetOrderConfirmationModal();
+    
     let customerName = document.getElementById('customer-name').value.trim();
     const contactNumber = document.getElementById('contact-number').value.trim();
     const deliveryType = document.getElementById('delivery-type').value;
@@ -1286,76 +1401,183 @@ function showOrderConfirmation() {
         document.getElementById('customer-name').value = customerName;
     }
 
-    let confirmMessage = `Customer: ${customerName}\n`;
-    if (contactNumber) confirmMessage += `Contact: ${contactNumber}\n\n`;
-    confirmMessage += `Delivery Type: ${deliveryType}\n`;
+    let confirmHTML = `
+<div style="border-bottom: 1px dashed #999; padding-bottom: 12px; margin-bottom: 12px;">
+  <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+    <span style="font-weight: 600;">CUSTOMER:</span>
+    <span style="font-weight: 600;">${customerName}</span>
+  </div>
+  ${contactNumber ? `
+  <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+    <span>CONTACT:</span>
+    <span>${contactNumber}</span>
+  </div>
+  ` : ''}
+  <div style="display: flex; justify-content: space-between;">
+    <span>TYPE:</span>
+    <span>${deliveryType}</span>
+  </div>
+  ${deliveryType === 'Delivery' ? `
+  <div style="display: flex; justify-content: space-between; margin-top: 4px;">
+    <span>ADDRESS:</span>
+    <span>${streetAddress}, ${areaSelect}</span>
+  </div>
+  ` : ''}
+</div>
 
-    if (deliveryType === 'Delivery') {
-        confirmMessage += `Address: ${streetAddress}, ${areaSelect}\n\n`;
-    } else {
-        confirmMessage += `\n`;
-    }
+<div style="border-bottom: 1px dashed #999; padding-bottom: 12px; margin-bottom: 12px;">
+  <div style="font-weight: 600; margin-bottom: 8px; text-align: center;">ITEMS</div>
+`;
 
-    confirmMessage += `Order Items:\n`;
     let itemCount = 0;
+    const buy3Savings = calculateBuy3For143Savings(cartItems);
+    
     cartItems.forEach(item => {
         itemCount += item.Quantity;
-        confirmMessage += `- ${item.ProductName} (x${item.Quantity}) - ₱${(item.BasePrice * item.Quantity).toFixed(2)}\n`;
+        const itemTotal = (item.BasePrice * item.Quantity).toFixed(2);
+        
+        confirmHTML += `
+  <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+    <span>${item.ProductName} x${item.Quantity}</span>
+    <span>₱${itemTotal}</span>
+  </div>
+`;
+        
         if (item.AddOns && item.AddOns.length > 0) {
-            confirmMessage += `  Add-ons: ${item.AddOns.join(', ')}\n`;
+            confirmHTML += `
+  <div style="display: flex; justify-content: space-between; margin-bottom: 4px; margin-left: 12px; font-size: 12px; color: #666;">
+    <span>+ ${item.AddOns.join(', ')}</span>
+  </div>
+`;
+        }
+        
+        if (item.isB1T1) {
+            confirmHTML += `
+  <div style="display: flex; justify-content: space-between; margin-bottom: 4px; margin-left: 12px; font-size: 12px; color: #4caf50; font-weight: 600;">
+    <span>🎁 B1T1 FREE</span>
+  </div>
+`;
         }
     });
 
-    confirmMessage += `\nTotal Items: ${itemCount}\n`;
+    confirmHTML += `</div>
+
+<div style="border-bottom: 1px dashed #999; padding-bottom: 12px; margin-bottom: 12px;">
+  <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+    <span>TOTAL ITEMS:</span>
+    <span style="font-weight: 600;">${itemCount}</span>
+  </div>
+`;
+
     const subtotal = cartItems.reduce((sum, item) => sum + (item.BasePrice * item.Quantity), 0);
-    confirmMessage += `Subtotal: ₱${subtotal.toFixed(2)}\n`;
-
     const promotionalTotal = calculatePromotionalTotal(cartItems);
-    let finalTotal = promotionalTotal;
-    let deliveryFee = 0;
+    let promoDiscountAmount = 0;
+    
+    // Apply selected promo discount (only if promo is still applicable)
+    if (selectedPromo && isPromoApplicableToCart(selectedPromo)) {
+        const menuData = JSON.parse(document.getElementById('menu-data').textContent);
+        
+        cartItems.forEach(cartItem => {
+            const menuItem = menuData.find(item => item.Name === cartItem.ProductName);
+            if (menuItem && menuItem.Category === selectedPromo.category) {
+                const itemTotal = cartItem.BasePrice * cartItem.Quantity;
+                promoDiscountAmount += itemTotal * (selectedPromo.discountPercentage / 100);
+            }
+        });
+    }
 
+    confirmHTML += `
+  <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+    <span>SUBTOTAL:</span>
+    <span>₱${subtotal.toFixed(2)}</span>
+  </div>
+`;
+
+    const totalDiscounts = promoDiscountAmount + buy3Savings;
+    if (totalDiscounts > 0) {
+        confirmHTML += `
+  <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: #4caf50; font-weight: 600;">
+    <span>DISCOUNT:</span>
+    <span>-₱${totalDiscounts.toFixed(2)}</span>
+  </div>
+`;
+    }
+
+    let deliveryFee = 0;
     if (deliveryType === 'Delivery') {
         deliveryFee = 20;
-        finalTotal += deliveryFee;
+        confirmHTML += `
+  <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+    <span>DELIVERY FEE:</span>
+    <span>₱${deliveryFee.toFixed(2)}</span>
+  </div>
+`;
     }
 
-    if (promotionalTotal < subtotal) {
-        const savings = subtotal - promotionalTotal;
-        confirmMessage += `Discount Applied: ₱${savings.toFixed(2)}\n`;
-    }
+    let finalTotal = promotionalTotal + deliveryFee - promoDiscountAmount;
 
-    if (deliveryFee > 0) {
-        confirmMessage += `Delivery Fee: ₱${deliveryFee.toFixed(2)}\n`;
-    }
+    confirmHTML += `</div>
 
-    confirmMessage += `Total: ₱${finalTotal.toFixed(2)}\n\n`;
-    confirmMessage += `Payment Method: ${paymentMethod === 'cash' ? 'Cash on Hand' : 'E-Payment'}`;
+<div style="border-bottom: 1px dashed #999; padding-bottom: 12px; margin-bottom: 12px; text-align: center;">
+  <div style="font-size: 11px; color: #666; margin-bottom: 4px;">TOTAL AMOUNT</div>
+  <div style="font-size: 20px; font-weight: 700; color: #000;">₱${finalTotal.toFixed(2)}</div>
+</div>
+
+<div style="border-bottom: 1px dashed #999; padding-bottom: 12px; margin-bottom: 12px;">
+  <div style="display: flex; justify-content: space-between;">
+    <span>PAYMENT:</span>
+    <span style="font-weight: 600;">${paymentMethod === 'cash' ? 'CASH' : 'E-PAYMENT'}</span>
+  </div>
+</div>
+`;
 
     if (notes) {
-        confirmMessage += `\n\nNotes: ${notes}`;
+        confirmHTML += `
+<div style="border-bottom: 1px dashed #999; padding-bottom: 12px; margin-bottom: 12px;">
+  <div style="font-weight: 600; margin-bottom: 4px;">NOTES:</div>
+  <div style="font-size: 12px; color: #333;">${notes}</div>
+</div>
+`;
     }
 
-    // Set the confirmation message
+    // Set the confirmation message as HTML
     const confirmMessageElement = document.getElementById('confirm-message');
-    confirmMessageElement.textContent = confirmMessage;
+    confirmMessageElement.innerHTML = confirmHTML;
 
     // Setup confirmation buttons
     const confirmSubmitBtn = document.getElementById('confirm-submit-btn');
     const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
 
-    // Remove previous event listeners
-    const newConfirmSubmitBtn = confirmSubmitBtn.cloneNode(true);
-    const newConfirmCancelBtn = confirmCancelBtn.cloneNode(true);
+    // Ensure buttons are visible
+    if (confirmSubmitBtn) {
+        confirmSubmitBtn.style.display = '';
+        confirmSubmitBtn.disabled = false;
+    }
+    if (confirmCancelBtn) {
+        confirmCancelBtn.style.display = '';
+        confirmCancelBtn.disabled = false;
+    }
 
-    confirmSubmitBtn.parentNode.replaceChild(newConfirmSubmitBtn, confirmSubmitBtn);
-    confirmCancelBtn.parentNode.replaceChild(newConfirmCancelBtn, confirmCancelBtn);
+    // Remove previous event listeners by cloning and replacing
+    if (confirmSubmitBtn && confirmCancelBtn) {
+        const newConfirmSubmitBtn = confirmSubmitBtn.cloneNode(true);
+        const newConfirmCancelBtn = confirmCancelBtn.cloneNode(true);
 
-    // Add new event listeners
-    newConfirmSubmitBtn.addEventListener('click', () => {
-        finalizeOrder();
-    });
+        confirmSubmitBtn.parentNode.replaceChild(newConfirmSubmitBtn, confirmSubmitBtn);
+        confirmCancelBtn.parentNode.replaceChild(newConfirmCancelBtn, confirmCancelBtn);
 
-    newConfirmCancelBtn.addEventListener('click', closeOrderConfirmation);
+        // Add new event listeners
+        newConfirmSubmitBtn.addEventListener('click', () => {
+            // Show loading state
+            newConfirmSubmitBtn.disabled = true;
+            const originalText = newConfirmSubmitBtn.textContent;
+            newConfirmSubmitBtn.innerHTML = '<span style="display: inline-flex; align-items: center; gap: 8px;"><span style="width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top: 2px solid white; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>Loading...</span>';
+            
+            finalizeOrder();
+        });
+
+        newConfirmCancelBtn.addEventListener('click', closeOrderConfirmation);
+    }
 
     // Show the modal
     document.getElementById('order-confirm-modal').classList.remove('hidden');
@@ -1380,10 +1602,16 @@ function showOrderConfirmationSuccess() {
     // Change title
     document.getElementById('confirm-title').textContent = 'Order Confirmed';
 
-    // Auto-close modal after 3 seconds
-    setTimeout(() => {
-        closeOrderConfirmation();
-    }, 3000);
+    // Add event listener to OK button
+    const successOkBtn = document.getElementById('success-ok-btn');
+    if (successOkBtn) {
+        // Remove any existing listeners first
+        const newSuccessOkBtn = successOkBtn.cloneNode(true);
+        successOkBtn.parentNode.replaceChild(newSuccessOkBtn, successOkBtn);
+        
+        // Add new event listener
+        newSuccessOkBtn.addEventListener('click', closeOrderConfirmation);
+    }
 }
 
 function resetOrderConfirmationModal() {
@@ -1394,6 +1622,20 @@ function resetOrderConfirmationModal() {
 
     // Reset title
     document.getElementById('confirm-title').textContent = 'Confirm Order';
+
+    // Ensure buttons are visible and properly reset
+    const confirmSubmitBtn = document.getElementById('confirm-submit-btn');
+    const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
+
+    if (confirmSubmitBtn) {
+        confirmSubmitBtn.style.display = '';
+        confirmSubmitBtn.disabled = false;
+        confirmSubmitBtn.innerHTML = 'Confirm Order';
+    }
+    if (confirmCancelBtn) {
+        confirmCancelBtn.style.display = '';
+        confirmCancelBtn.disabled = false;
+    }
 }
 
 function closeOrderConfirmation() {
@@ -1401,7 +1643,22 @@ function closeOrderConfirmation() {
     resetOrderConfirmationModal();
 }
 
-function finalizeOrder() {
+function cancelOrder() {
+    // Close the order confirmation modal
+    closeOrderConfirmation();
+    
+    // Clear the cart
+    window.cartItems = [];
+    updateCartDisplay();
+    
+    // Reset the order form
+    clearOrderForm();
+    
+    // Show feedback message
+    showFeedbackMessage('Order cancelled', 'info');
+}
+
+async function finalizeOrder() {
     const paymentMethod = getSelectedPaymentMethod();
     const orderData = submitOrder();
 
@@ -1409,32 +1666,266 @@ function finalizeOrder() {
     document.getElementById('confirm-submit-btn').style.display = 'none';
     document.getElementById('confirm-cancel-btn').style.display = 'none';
 
-    if (paymentMethod === 'cash') {
-        // For cash payment, show processing message in confirm-message
-        const confirmMessage = document.getElementById('confirm-message');
-        confirmMessage.innerHTML = `
-            <div style="text-align: center; padding: 20px;">
-                <div class="loading-spinner" style="margin: 0 auto 15px auto; width: 40px; height: 40px;">
-                    <div style="border: 4px solid #f3f3f3; border-top: 4px solid #007bff; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite;"></div>
-                </div>
-                <p style="font-size: 16px; color: #333; margin: 0;">Processing order...</p>
-            </div>
-            <style>
-                @keyframes spin {
-                    0% { transform: rotate(0deg); }
-                    100% { transform: rotate(360deg); }
+    try {
+        // Check inventory availability before creating order (like checkout.js)
+        const cartItems = window.cartItems || [];
+        const inventoryCheck = await fetch('/api/inventory/check', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                Cart: cartItems.map(item => ({
+                    ProductName: item.ProductName,
+                    ProductID: item.ProductID,
+                    Size: item.Size,
+                    Addons: item.AddOns || [],
+                    Quantity: item.Quantity,
+                    Price: item.BasePrice,
+                    ImageLink: item.ImageLink || ""
+                }))
+            })
+        });
+
+        if (!inventoryCheck.ok) {
+            const inventoryError = await inventoryCheck.json();
+
+            if (inventoryCheck.status === 409) {
+                // Log detailed error information for debugging
+                console.log('Inventory check failed - detailed information:');
+                console.log('Full error response:', inventoryError);
+
+                // Log each unavailable item with details
+                inventoryError.unavailableItems.forEach(item => {
+                    console.log(`Unavailable item: ${item.item} - Reason: ${item.reason}`);
+                    if (item.missingIngredients && item.missingIngredients.length > 0) {
+                        item.missingIngredients.forEach(ing => {
+                            if (ing.type === 'addon') {
+                                console.log(`  Missing add-on: ${ing.name} - Need: ${ing.needed}, Available: ${ing.available}`);
+                            } else {
+                                console.log(`  Missing ingredient: ${ing.name} - Need: ${ing.needed}g, Available: ${ing.available}g`);
+                            }
+                        });
+                    }
+                });
+
+                // Customer-friendly message
+                const unavailableItemNames = inventoryError.unavailableItems.map(item => item.item);
+                let customerMessage;
+
+                if (unavailableItemNames.length === 1) {
+                    customerMessage = `Sorry, ${unavailableItemNames[0]} is currently unavailable due to insufficient ingredients.\n\nPlease choose a different item or modify your order.`;
+                } else {
+                    customerMessage = `Sorry, the following items are currently unavailable:\n\n${unavailableItemNames.map(name => `• ${name}`).join('\n')}\n\nPlease choose different items or modify your order.`;
                 }
-            </style>
-        `;
-        
-        // Submit order and handle success
-        submitToServer(orderData);
-    } else if (paymentMethod === 'epayment') {
-        // Immediately show processing state for e-payment
-        showOrderConfirmationProcessing();
-        // Show payment gateway
-        showXenditGateway(orderData);
+
+                alert(customerMessage);
+                resetOrderConfirmationModal();
+                document.getElementById('order-confirm-modal').classList.remove('hidden');
+                return;
+            } else {
+                throw new Error(inventoryError.error || 'Inventory check failed');
+            }
+        }
+
+        // Continue with order processing if inventory is available
+        if (paymentMethod === 'cash') {
+            // Show POS calculator modal for cash payment and wait for confirmation
+            const cashConfirmed = await showPOSCalculator(orderData);
+            if (cashConfirmed) {
+                // Show processing state for cash payment
+                showOrderConfirmationProcessing();
+                // Show processing order modal
+                showProcessingOrder('Processing your order...');
+                // Submit order and handle success
+                submitToServer(orderData);
+            } else {
+                // User cancelled POS calculator, reset modal and show it again
+                resetOrderConfirmationModal();
+                document.getElementById('order-confirm-modal').classList.remove('hidden');
+            }
+        } else if (paymentMethod === 'epayment') {
+            // Immediately show processing state for e-payment
+            showOrderConfirmationProcessing();
+            // Show processing order modal
+            showProcessingOrder('Processing payment gateway...');
+            // Show payment gateway
+            showXenditGateway(orderData);
+        }
+    } catch (error) {
+        console.error('Order processing error:', error);
+        alert('An error occurred during order processing. Please try again.');
+        resetOrderConfirmationModal();
+        document.getElementById('order-confirm-modal').classList.remove('hidden');
     }
+}
+
+function showPOSCalculator(orderData) {
+    return new Promise((resolve) => {
+    // Hide order confirmation modal
+    document.getElementById('order-confirm-modal').classList.add('hidden');
+    
+    // Create POS calculator modal
+    const posModal = document.createElement('div');
+    posModal.id = 'pos-calculator-modal';
+    posModal.className = 'pos-calculator-modal';
+    posModal.innerHTML = `
+        <div class="pos-calculator-container">
+            <div class="pos-calculator-header">
+                <h3>Cash Payment</h3>
+                <button class="pos-close-btn" id="pos-close-btn">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="pos-calculator-body">
+                <div class="pos-order-summary">
+                    <div class="pos-total-amount">
+                        <span class="pos-total-label">Total Amount:</span>
+                        <span class="pos-total-value">₱${orderData.Total.toFixed(2)}</span>
+                    </div>
+                </div>
+                <div class="pos-cash-input">
+                    <label for="cash-received">Cash Received:</label>
+                    <div class="cash-input-container">
+                        <span class="peso-sign">₱</span>
+                        <input type="text" id="cash-received" class="cash-input" placeholder="0.00" inputmode="decimal">
+                    </div>
+                </div>
+                <div class="pos-change-display">
+                    <span class="change-label">Change:</span>
+                    <span class="change-value" id="change-amount">₱0.00</span>
+                </div>
+                <div class="pos-calculator">
+                    <div class="calc-row">
+                        <button class="calc-btn number" data-value="7">7</button>
+                        <button class="calc-btn number" data-value="8">8</button>
+                        <button class="calc-btn number" data-value="9">9</button>
+                        <button class="calc-btn clear" id="pos-clear">C</button>
+                    </div>
+                    <div class="calc-row">
+                        <button class="calc-btn number" data-value="4">4</button>
+                        <button class="calc-btn number" data-value="5">5</button>
+                        <button class="calc-btn number" data-value="6">6</button>
+                        <button class="calc-btn backspace" id="pos-backspace">
+                            <i class="fa-solid fa-delete-left"></i>
+                        </button>
+                    </div>
+                    <div class="calc-row">
+                        <button class="calc-btn number" data-value="1">1</button>
+                        <button class="calc-btn number" data-value="2">2</button>
+                        <button class="calc-btn number" data-value="3">3</button>
+                        <button class="calc-btn exact" id="pos-exact">EXACT</button>
+                    </div>
+                    <div class="calc-row">
+                        <button class="calc-btn number zero" data-value="0">0</button>
+                        <button class="calc-btn decimal" data-value=".">.</button>
+                        <button class="calc-btn confirm" id="pos-confirm">CONFIRM</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(posModal);
+    
+    // Get elements
+    const cashInput = document.getElementById('cash-received');
+    const changeAmount = document.getElementById('change-amount');
+    const totalAmount = orderData.Total;
+    
+    // Calculator functionality
+    let currentInput = '';
+    
+    function updateChange() {
+        const cashReceived = parseFloat(currentInput) || 0;
+        const change = cashReceived - totalAmount;
+        changeAmount.textContent = change >= 0 ? `₱${change.toFixed(2)}` : '₱0.00';
+        
+        // Update confirm button state
+        const confirmBtn = document.getElementById('pos-confirm');
+        if (change >= 0) {
+            confirmBtn.disabled = false;
+            confirmBtn.classList.add('active');
+        } else {
+            confirmBtn.disabled = true;
+            confirmBtn.classList.remove('active');
+        }
+    }
+    
+    function updateDisplay() {
+        cashInput.value = currentInput;
+        updateChange();
+    }
+    
+    // Calculator button events
+    document.querySelectorAll('.calc-btn.number, .calc-btn.decimal').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const value = btn.dataset.value;
+            if (value === '.' && currentInput.includes('.')) return;
+            currentInput += value;
+            updateDisplay();
+        });
+    });
+    
+    document.getElementById('pos-clear').addEventListener('click', () => {
+        currentInput = '';
+        updateDisplay();
+    });
+    
+    document.getElementById('pos-backspace').addEventListener('click', () => {
+        currentInput = currentInput.slice(0, -1);
+        updateDisplay();
+    });
+    
+    document.getElementById('pos-exact').addEventListener('click', () => {
+        currentInput = totalAmount.toString();
+        updateDisplay();
+    });
+    
+    // Confirm payment
+    document.getElementById('pos-confirm').addEventListener('click', () => {
+        const cashReceived = parseFloat(currentInput) || 0;
+        if (cashReceived >= totalAmount) {
+            // Close POS calculator
+            document.body.removeChild(posModal);
+            resolve(true);
+        }
+    });
+    
+    // Close modal
+    document.getElementById('pos-close-btn').addEventListener('click', () => {
+        document.body.removeChild(posModal);
+        // Reset order confirmation modal
+        resetOrderConfirmationModal();
+        resolve(false);
+    });
+    
+    // Click outside to close
+    posModal.addEventListener('click', (e) => {
+        if (e.target === posModal) {
+            document.body.removeChild(posModal);
+            resetOrderConfirmationModal();
+            resolve(false);
+        }
+    });
+    
+    // Keyboard support
+    cashInput.addEventListener('input', (e) => {
+        currentInput = e.target.value.replace(/[^0-9.]/g, '');
+        updateDisplay();
+    });
+    
+    cashInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            document.getElementById('pos-confirm').click();
+        } else if (e.key === 'Escape') {
+            document.getElementById('pos-close-btn').click();
+        }
+    });
+    
+    // Focus on input
+    setTimeout(() => cashInput.focus(), 100);
+    });
 }
 
 async function submitToServer(orderData) {
@@ -1450,36 +1941,20 @@ async function submitToServer(orderData) {
         const result = await response.json();
 
         if (response.ok && result.success) {
-            // Show success message in confirm-message
-            const confirmMessage = document.getElementById('confirm-message');
-            confirmMessage.innerHTML = `
-                <div style="text-align: center; padding: 20px;">
-                    <div style="margin: 0 auto 15px auto; width: 50px; height: 50px; color: #28a745;">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width: 50px; height: 50px;">
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                        </svg>
-                    </div>
-                    <p style="font-size: 18px; color: #28a745; margin: 0; font-weight: bold;">Order Confirmed!</p>
-                    <p style="font-size: 14px; color: #666; margin: 5px 0 0 0;">Order has been successfully submitted</p>
-                </div>
-            `;
-
-            // Update modal title
-            document.getElementById('confirm-title').textContent = 'Order Confirmed';
-            
+            // Show success state with confirm button
+            showOrderConfirmationSuccess();
             showFeedbackMessage('Order submitted successfully!', 'success');
+            // Hide processing modal
+            hideProcessingOrder();
             clearOrderForm();
-            
-            // Auto-close modal after 3 seconds
-            setTimeout(() => {
-                closeOrderConfirmation();
-            }, 3000);
         } else {
             throw new Error(result.message || 'Failed to submit order');
         }
     } catch (error) {
         console.error('Order submission error:', error);
         showFeedbackMessage('Failed to submit order. Please try again.', 'error');
+        // Hide processing modal on error
+        hideProcessingOrder();
         // Reset modal to default state on error
         resetOrderConfirmationModal();
     }
@@ -1660,6 +2135,9 @@ function closeXenditGateway() {
         paymentStatusInterval = null;
     }
     document.getElementById('xendit-gateway-modal').classList.add('hidden');
+
+    // Reset order confirmation modal to initial state when payment is cancelled
+    resetOrderConfirmationModal();
 }
 
 async function checkPaymentStatus(orderId, isAutomatic = false) {
@@ -1720,6 +2198,7 @@ async function checkPaymentStatus(orderId, isAutomatic = false) {
 
                     showFeedbackMessage('Payment successful!', 'success');
                     showOrderConfirmationSuccess(); // Show success state in modal
+                    hideProcessingOrder(); // Close processing order modal
                     closeXenditGateway();
                     clearOrderForm();
                 }
@@ -1908,3 +2387,29 @@ function calculatePromotionalTotal(cart) {
 
     return total;
 }
+
+// Processing Order Modal Functions
+function showProcessingOrder(status = 'Please wait...') {
+    const modal = document.getElementById('processing-order-modal');
+    const statusElement = document.getElementById('processing-status');
+    
+    if (modal) {
+        statusElement.textContent = status;
+        modal.classList.remove('hidden');
+    }
+}
+
+function hideProcessingOrder() {
+    const modal = document.getElementById('processing-order-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+function updateProcessingStatus(status) {
+    const statusElement = document.getElementById('processing-status');
+    if (statusElement) {
+        statusElement.textContent = status;
+    }
+}
+

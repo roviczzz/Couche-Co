@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { MongoClient, ObjectId } = require('mongodb');
 const { checkInventoryAvailability, deductInventoryAfterPayment } = require('../middleware/inventoryMiddleware');
+const InventoryManager = require('../utils/inventoryManager');
 
 const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
 
@@ -36,6 +37,35 @@ router.get('/addons', async (req, res) => {
   }
 });
 
+// Check item availability for cart addition
+router.post('/check-availability', async (req, res) => {
+  try {
+    const { Cart } = req.body;
+
+    if (!Cart || !Array.isArray(Cart) || Cart.length === 0) {
+      return res.status(400).json({
+        available: false,
+        message: 'No items to check'
+      });
+    }
+
+    console.log('Checking availability for cart items:', Cart.length);
+
+    const availabilityCheck = await InventoryManager.checkIngredientAvailability(Cart);
+
+    // If there's a database error, allow the items to be added (fail-safe)
+    if (availabilityCheck.error) {
+      console.error('Availability check failed:', availabilityCheck.error);
+      return res.json({ available: true }); // Fail-safe
+    }
+
+    res.json(availabilityCheck);
+  } catch (error) {
+    console.error('Error in availability check:', error);
+    res.status(500).json({ available: true }); // Fail-safe on error
+  }
+});
+
 router.get('/orders/preparing-customers', async (req, res) => {
   try {
     const client = await MongoClient.connect(uri)
@@ -47,6 +77,20 @@ router.get('/orders/preparing-customers', async (req, res) => {
     res.status(500).json([])
   }
 })
+
+// API endpoint for fetching all orders (for real-time polling)
+router.get('/orders', async (req, res) => {
+  try {
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const orders = await db.collection('Orders').find().sort({ _id: -1 }).toArray();
+    await client.close();
+    res.json(orders);
+  } catch (err) {
+    console.error('❌ Error fetching orders:', err);
+    res.status(500).json([]);
+  }
+});
 
 router.post('/xendit/create-payment', async (req, res) => {
   try {
@@ -255,18 +299,57 @@ router.post('/orders', checkInventoryAvailability, async (req, res) => {
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
 
-    // Add inventory check status to order
-    if (req.inventoryChecked) {
-      orderData.InventoryChecked = true;
-      orderData.InventoryCheckedAt = new Date();
-    } else if (req.inventoryCheckFailed) {
-      orderData.InventoryCheckFailed = true;
-      orderData.InventoryCheckError = req.inventoryError;
-      orderData.InventoryCheckAttemptedAt = new Date();
+    // Inventory check completed but status not saved to order data
+    if (req.inventoryCheckFailed) {
       console.warn(`Order ${orderData.OrderID} created without inventory validation due to: ${req.inventoryError}`);
     }
 
     await db.collection('Orders').insertOne(orderData);
+
+    // For cash orders, deduct inventory immediately since payment is already received
+    if (orderData.PaymentMethod === 'cash') {
+      console.log(`[ORDER] Cash order ${orderData.OrderID} detected, deducting inventory immediately...`);
+      const inventoryResult = await deductInventoryAfterPayment(orderData);
+
+      if (!inventoryResult.success) {
+        console.error(`[ORDER ERROR] Failed to deduct inventory for cash order ${orderData.OrderID}:`, inventoryResult.error);
+        // Log the error but don't fail the order creation for cash orders
+        await db.collection('Orders').updateOne(
+          { OrderID: orderData.OrderID },
+          {
+            $set: {
+              InventoryDeductionError: inventoryResult.error,
+              InventoryDeductionAttemptedAt: new Date()
+            }
+          }
+        );
+      } else {
+        // Log successful inventory deduction
+        await db.collection('Orders').updateOne(
+          { OrderID: orderData.OrderID },
+          {
+            $set: {
+              InventoryDeducted: true,
+              InventoryDeductedAt: new Date(),
+              InventoryDeductions: inventoryResult.deductions
+            }
+          }
+        );
+        console.log(`[ORDER SUCCESS] Inventory successfully deducted for cash order ${orderData.OrderID}. Items processed: ${inventoryResult.deductions.length}`);
+      }
+    }
+
+    // Trigger new order notification
+    try {
+      const { triggerBusinessEventNotification } = require('../admin-helpers');
+      await triggerBusinessEventNotification('new-order', {
+        orderId: orderData.OrderID,
+        customer: orderData.Customer,
+        total: orderData.Total || 0
+      });
+    } catch (notifError) {
+      console.error('Error creating new order notification:', notifError);
+    }
 
     await client.close();
 

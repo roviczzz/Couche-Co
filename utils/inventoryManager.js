@@ -7,54 +7,68 @@ class InventoryManager {
   static async deductIngredients(orderItems) {
     let client;
     const deductionLog = [];
-    
+
     try {
       client = new MongoClient(uri);
       await client.connect();
       const db = client.db('blessingscafe');
-      
+
       const menuCollection = db.collection('Menu');
       const ingredientsCollection = db.collection('Ingredients');
       const addonsCollection = db.collection('Add-ons');
-      
+
+      console.log(`[INVENTORY DEBUG] Starting deduction for ${orderItems.length} order items`);
+
       for (const item of orderItems) {
-        if (item.isFree) continue;
-        
+        if (item.isFree) {
+          console.log(`[INVENTORY DEBUG] Skipping free item: ${item.ProductName}`);
+          continue;
+        }
+
+        console.log(`[INVENTORY DEBUG] Processing order item:`, JSON.stringify(item, null, 2));
+
         // Find menu item by ProductID or Name
-        const menuItem = await menuCollection.findOne({ 
+        const menuItem = await menuCollection.findOne({
           $or: [
             { ProductID: item.ProductID },
             { Name: item.ProductName }
           ]
         });
-        
+
         if (!menuItem) {
           console.warn(`[INVENTORY DEBUG] Menu item not found in database: ${item.ProductName} (ProductID: ${item.ProductID})`);
           continue;
         }
-        
-        console.log(`[INVENTORY DEBUG] Processing item: ${item.ProductName}, Quantity: ${item.Quantity}, Size: ${item.Size}`);
-        
-        // Process ingredients for this menu item
-        await this.processMenuItemIngredients(
-          menuItem, 
-          item, 
-          ingredientsCollection, 
-          deductionLog
-        );
-        
-        // Process add-ons for this item
-        await this.processAddons(
-          item.Addons || [], 
-          addonsCollection, 
-          deductionLog
-        );
+
+        console.log(`[INVENTORY DEBUG] Found menu item:`, JSON.stringify(menuItem, null, 2));
+
+        // Handle pastries (they use Quantity field instead of ingredients)
+        if (menuItem.Category === 'Pastries' || menuItem.Quantity !== undefined) {
+          await this.processPastryItem(menuItem, item, menuCollection, deductionLog);
+        } else {
+          // Process ingredients for drinks/food items
+          await this.processMenuItemIngredients(
+            menuItem,
+            item,
+            ingredientsCollection,
+            deductionLog
+          );
+        }
+
+        // Process add-ons for this item (only for non-pastries)
+        if (menuItem.Category !== 'Pastries' && menuItem.Quantity === undefined) {
+          await this.processAddons(
+            item.Addons || [],
+            addonsCollection,
+            deductionLog
+          );
+        }
       }
-      
+
       console.log(`[INVENTORY SUCCESS] Completed deduction for ${orderItems.length} items. Total deductions: ${deductionLog.length}`);
       console.log('[INVENTORY DEBUG] Detailed deduction log:', JSON.stringify(deductionLog, null, 2));
       return { success: true, deductions: deductionLog };
-      
+
     } catch (error) {
       console.error('[INVENTORY ERROR] Failed to deduct ingredients:', error);
       return { success: false, error: error.message };
@@ -115,6 +129,45 @@ class InventoryManager {
       } catch (error) {
         console.error(`[INVENTORY DEBUG] Error processing ingredient ${ingredientID}:`, error);
       }
+    }
+  }
+  
+  static async processPastryItem(menuItem, orderItem, menuCollection, deductionLog) {
+    try {
+      const quantityToDeduct = orderItem.Quantity || 1;
+      const currentQuantity = menuItem.Quantity || 0;
+      
+      console.log(`[INVENTORY DEBUG] Processing pastry: ${menuItem.Name} (${menuItem.ProductID})`);
+      console.log(`[INVENTORY DEBUG] Current quantity: ${currentQuantity}, Deducting: ${quantityToDeduct}`);
+      
+      if (currentQuantity < quantityToDeduct) {
+        console.warn(`[INVENTORY DEBUG] Insufficient pastry quantity for ${menuItem.Name}: needed ${quantityToDeduct}, available ${currentQuantity}`);
+        return;
+      }
+      
+      const result = await menuCollection.updateOne(
+        { ProductID: menuItem.ProductID },
+        { 
+          $inc: { Quantity: -quantityToDeduct },
+          $set: { lastModified: new Date() }
+        }
+      );
+      
+      if (result.modifiedCount > 0) {
+        console.log(`[INVENTORY DEBUG] Successfully deducted ${quantityToDeduct} units of pastry: ${menuItem.Name}`);
+        deductionLog.push({
+          type: 'pastry',
+          id: menuItem.ProductID,
+          name: menuItem.Name,
+          quantityDeducted: quantityToDeduct,
+          orderItem: orderItem.ProductName,
+          quantity: orderItem.Quantity
+        });
+      } else {
+        console.warn(`[INVENTORY DEBUG] Failed to update pastry quantity for ${menuItem.ProductID}`);
+      }
+    } catch (error) {
+      console.error(`[INVENTORY DEBUG] Error processing pastry ${menuItem.ProductID}:`, error);
     }
   }
   
@@ -218,7 +271,29 @@ class InventoryManager {
     const missingIngredients = [];
     
     try {
-      // Check ingredients
+      // Handle pastries (check Quantity field)
+      if (menuItem.Category === 'Pastries' || menuItem.Quantity !== undefined) {
+        const quantityNeeded = orderItem.Quantity || 1;
+        const currentQuantity = menuItem.Quantity || 0;
+        
+        if (currentQuantity < quantityNeeded) {
+          missingIngredients.push({
+            id: menuItem.ProductID,
+            name: menuItem.Name,
+            needed: quantityNeeded,
+            available: currentQuantity,
+            type: 'pastry'
+          });
+        }
+        // Pastries don't have add-ons, so we can return early
+        return {
+          available: missingIngredients.length === 0,
+          missingIngredients,
+          reason: missingIngredients.length > 0 ? 'Insufficient pastry quantity' : null
+        };
+      }
+      
+      // Check ingredients for non-pastry items
       if (menuItem.Ingredients && Array.isArray(menuItem.Ingredients)) {
         for (const ingredient of menuItem.Ingredients) {
           const { ingredientID, usedGrams, name } = ingredient;
