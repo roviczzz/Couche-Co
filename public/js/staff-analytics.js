@@ -140,7 +140,7 @@ async function drawAverageSalesChart() {
   const chartEl = document.getElementById('averageSalesChart');
 
   try {
-    const res = await fetch('/staff/analytics/sales-per-day');
+    const res = await fetch('/api/analytics/sales-per-day');
     if (!res.ok) {
       throw new Error(`Server returned ${res.status}: ${res.statusText}`);
     }
@@ -321,7 +321,7 @@ async function drawPaymentMethodsChart() {
   const chartEl = document.getElementById('paymentMethodsChart');
 
   try {
-    const res = await fetch('/staff/analytics/payment-methods');
+    const res = await fetch('/api/analytics/payment-methods');
     if (!res.ok) {
       throw new Error(`Server returned ${res.status}: ${res.statusText}`);
     }
