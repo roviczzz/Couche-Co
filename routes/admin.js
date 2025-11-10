@@ -2659,19 +2659,35 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
 
     // Create date strings for comparison (same format as order-history route)
     const cutoffStart = startDate.toISOString().split('T')[0]; // YYYY-MM-DD format
-    const cutoffEnd = endDate.toISOString().split('T')[0];
+
+    // Set end date to end of day to include all orders from that day
+    const nextDay = new Date(endDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+    const cutoffEnd = nextDay.toISOString().split('T')[0];
 
     // Query orders within date range (like the working order-history route)
     const orders = await db.collection('Orders').find({
-      Date: { $gte: cutoffStart, $lte: cutoffEnd },
+      Date: { $gte: cutoffStart, $lt: cutoffEnd },
       PaymentStatus: { $ne: "Cancelled" }
     })
     .sort({ Date: -1 })
     .toArray();
 
-    // Calculate summary statistics with proper null handling
+    // Calculate summary statistics by recalculating from cart data for accuracy
     const totalRevenue = orders.reduce((sum, order) => {
-      const orderTotal = typeof order.Total === 'number' && !isNaN(order.Total) ? order.Total : 0;
+      // Recalculate total from cart items to ensure accuracy
+      let orderTotal = 0;
+      if (order.Cart && Array.isArray(order.Cart)) {
+        orderTotal = order.Cart.reduce((cartSum, item) => {
+          const price = typeof item.BasePrice === 'number' ? item.BasePrice :
+                       typeof item.Price === 'number' ? item.Price : 0;
+          const quantity = typeof item.Quantity === 'number' ? item.Quantity : 1;
+          return cartSum + (price * quantity);
+        }, 0);
+      } else {
+        // Fallback to stored total if cart data unavailable
+        orderTotal = typeof order.Total === 'number' && !isNaN(order.Total) ? order.Total : 0;
+      }
       return sum + orderTotal;
     }, 0);
     const totalOrders = orders.length;
@@ -2684,7 +2700,19 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
       if (method === 'E_Payment' || method === 'E-PAYMENT' || method === 'E-Payment') {
         method = 'E-Payment';
       }
-      acc[method] = (acc[method] || 0) + order.Total;
+      // Use recalculated total for accuracy
+      let orderTotal = 0;
+      if (order.Cart && Array.isArray(order.Cart)) {
+        orderTotal = order.Cart.reduce((cartSum, item) => {
+          const price = typeof item.BasePrice === 'number' ? item.BasePrice :
+                       typeof item.Price === 'number' ? item.Price : 0;
+          const quantity = typeof item.Quantity === 'number' ? item.Quantity : 1;
+          return cartSum + (price * quantity);
+        }, 0);
+      } else {
+        orderTotal = typeof order.Total === 'number' && !isNaN(order.Total) ? order.Total : 0;
+      }
+      acc[method] = (acc[method] || 0) + orderTotal;
       return acc;
     }, {});
 
@@ -2692,7 +2720,19 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
     const dailySales = orders.reduce((acc, order) => {
       if (order.Date) {
         const date = order.Date.substring(0, 10); // Extract YYYY-MM-DD part only
-        acc[date] = (acc[date] || 0) + (typeof order.Total === 'number' ? order.Total : 0);
+        // Use recalculated total for accuracy
+        let orderTotal = 0;
+        if (order.Cart && Array.isArray(order.Cart)) {
+          orderTotal = order.Cart.reduce((cartSum, item) => {
+            const price = typeof item.BasePrice === 'number' ? item.BasePrice :
+                         typeof item.Price === 'number' ? item.Price : 0;
+            const quantity = typeof item.Quantity === 'number' ? item.Quantity : 1;
+            return cartSum + (price * quantity);
+          }, 0);
+        } else {
+          orderTotal = typeof order.Total === 'number' && !isNaN(order.Total) ? order.Total : 0;
+        }
+        acc[date] = (acc[date] || 0) + orderTotal;
       }
       return acc;
     }, {});
