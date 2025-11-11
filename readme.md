@@ -8,7 +8,7 @@ A capstone output for Blessings Cafe in Imus City, Cavite. Presented to the Info
 
 # Blessings Cafe Admin Webpage [EJS]
 
-[Blessings Cafe](blessingsateverysip.me)
+[Blessings Cafe]((https://blessingsateverysip.me/))
 
 #### Deploying:
 
