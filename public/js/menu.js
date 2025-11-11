@@ -336,7 +336,13 @@ async function populateAddonOptions() {
             addonsData.forEach(addon => {
                 const addonName = addon.Name || addon.name || 'Unknown Add-on';
                 const addonPrice = addon.BasePrice || addon.Price || addon.price || 0;
-                const addonId = addon.AddOnID || addon._id || addon.id || Math.random().toString(36);
+                const addonId = addon.AddOnID || addon._id || addon.id;
+
+                // Skip addon if no proper ID is available
+                if (!addonId) {
+                    console.warn(`Skipping add-on "${addonName}" - missing AddOnID, _id, or id`);
+                    return;
+                }
 
                 html += `
                     <label class="addon-option">
@@ -354,7 +360,13 @@ async function populateAddonOptions() {
             ingredientsData.forEach(ingredient => {
                 const ingredientName = ingredient.Name || ingredient.name || 'Unknown Ingredient';
                 const ingredientPrice = 20; // Fixed price for ingredients
-                const ingredientId = ingredient.IngredientID || ingredient._id || ingredient.id || Math.random().toString(36);
+                const ingredientId = ingredient.IngredientID || ingredient._id || ingredient.id;
+
+                // Skip ingredient if no proper ID is available
+                if (!ingredientId) {
+                    console.warn(`Skipping ingredient "${ingredientName}" - missing IngredientID, _id, or id`);
+                    return;
+                }
 
                 html += `
                     <label class="addon-option">
@@ -471,7 +483,7 @@ async function checkItemAvailability(item, selectedSize, addons) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                ProductID: item._id || item.id,
+                ProductID: item.ProductID || item._id || item.id,
                 Size: selectedSize ? (selectedSize.Size || selectedSize.SizeName) : null,
                 Addons: addons.map(addon => ({ AddOnID: addon.id, Name: addon.name })),
                 Quantity: 1
@@ -561,9 +573,9 @@ function addToCart(item, selectedSize = null, addons = []) {
         const cartItem = {
             itemId: Date.now() + Math.random(),
             ProductName: item.Name,
-            ProductID: item._id ?? item.id,
+            ProductID: item.ProductID || item._id || item.id,
             Size: sizeName,
-            AddOns: addons.map(addon => addon.name),
+            AddOns: addons, // Store full add-on objects instead of just names
             Quantity: 1,
             BasePrice: totalPrice,
             ImageLink: item.imagelink ?? ""
@@ -646,7 +658,7 @@ function updateCartDisplay() {
                     <div>
                         <div style="font-weight: 600; font-size: 14px;">${item.ProductName}</div>
                         <div style="font-size: 12px; color: #666;">${item.Size}</div>
-                        ${item.AddOns && item.AddOns.length > 0 ? `<div style="font-size: 12px; color: #999;">+ ${item.AddOns.join(', ')}</div>` : ''}
+                        ${item.AddOns && item.AddOns.length > 0 ? `<div style="font-size: 12px; color: #999;">+ ${item.AddOns.map(addon => addon.name).join(', ')}</div>` : ''}
                         ${item.isB1T1 ? `<div style="font-size: 11px; color: #4caf50; font-weight: 600;">🎁 B1T1 FREE</div>` : ''}
                     </div>
                 </div>
@@ -944,7 +956,7 @@ function submitOrder() {
         FulfillmentMethod: deliveryType,
         PaymentMethod: paymentMethod,
         PaymentMode: paymentMethod === "cash" ? "Cash on Hand" : "E-Payment",
-        cashierName: user ? user.fullname : "Admin"
+        cashierName: user ? (user.fullname || getRoleBasedName(user.role)) : "Staff"
     };
 
     // Add XenditPaymentID if e-payment is selected
@@ -966,6 +978,19 @@ function generateOrderID() {
 
 function generateCustomerId() {
     return `Customer#${Math.floor(Math.random() * 100000)}`;
+}
+
+function getRoleBasedName(role) {
+    switch (role) {
+        case 'staff':
+            return 'Staff';
+        case 'owner':
+            return 'Owner';
+        case 'admin':
+            return 'Admin';
+        default:
+            return 'Staff';
+    }
 }
 
 function generateXenditPaymentId() {
@@ -1401,7 +1426,7 @@ function showOrderConfirmation() {
         if (item.AddOns && item.AddOns.length > 0) {
             confirmHTML += `
   <div style="display: flex; justify-content: space-between; margin-bottom: 4px; margin-left: 12px; font-size: 12px; color: #666;">
-    <span>+ ${item.AddOns.join(', ')}</span>
+    <span>+ ${item.AddOns.map(addon => addon.name).join(', ')}</span>
   </div>
 `;
         }
@@ -1885,7 +1910,10 @@ function showPOSCalculator(orderData) {
 
 async function submitToServer(orderData) {
     try {
-        const response = await fetch('/admin/orders/submit', {
+        // Determine endpoint based on user role
+        const endpoint = user && user.role === 'staff' ? '/staff/orders/submit' : '/admin/orders/submit';
+        
+        const response = await fetch(endpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -2286,7 +2314,7 @@ async function checkItemAvailability(item, selectedSize, addons) {
         // Prepare order item data for availability check
         const orderItem = {
             ProductName: item.Name,
-            ProductID: item._id || item.id,
+            ProductID: item.ProductID || item._id || item.id,
             Size: selectedSize ? (selectedSize.Size || selectedSize.SizeName || 'Regular') : 'Regular',
             Addons: addons.map(addon => ({ Name: addon.name, AddOnID: addon.id })),
             Quantity: 1
@@ -2461,4 +2489,3 @@ function updateProcessingStatus(status) {
         statusElement.textContent = status;
     }
 }
-

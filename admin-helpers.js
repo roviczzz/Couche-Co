@@ -253,8 +253,26 @@ async function updateOrderFulfillment(orderId, fulfillmentStatus) {
     const filter = { OrderID: orderId };
     const updateDoc = { $set: { FulfillmentStatus: fulfillmentStatus } };
 
+    // Get the current order before updating
+    const currentOrder = await ordersCollection.findOne(filter);
+
     await ordersCollection.updateOne(filter, updateDoc);
     const updatedOrder = await ordersCollection.findOne(filter);
+
+    // If status is being set to 'Cancelled', rollback inventory
+    if (fulfillmentStatus === 'Cancelled' && currentOrder && currentOrder.Cart && Array.isArray(currentOrder.Cart) && currentOrder.Cart.length > 0) {
+      try {
+        const InventoryManager = require('./utils/inventoryManager');
+        const rollbackResult = await InventoryManager.rollbackIngredients(currentOrder.Cart);
+        if (rollbackResult.success) {
+          console.log(`✅ Stock rollback completed for cancelled order ${orderId}:`, rollbackResult.rollbacks);
+        } else {
+          console.error('❌ Stock rollback failed:', rollbackResult.error);
+        }
+      } catch (rollbackError) {
+        console.error('❌ Error during stock rollback:', rollbackError);
+      }
+    }
 
     await client.close();
     return updatedOrder;
@@ -291,6 +309,41 @@ async function cancelOrder(orderId) {
     const ordersCollection = db.collection('Orders');
 
     const filter = { OrderID: orderId };
+
+    // First, get the order data before deleting it (needed for stock rollback)
+    const order = await ordersCollection.findOne(filter);
+    if (!order) {
+      await client.close();
+      console.warn(`Order ${orderId} not found for cancellation`);
+      return false;
+    }
+
+    // Check if order was already cancelled to prevent double rollback
+    if (order.PaymentStatus === 'Cancelled' || order.FulfillmentStatus === 'Cancelled') {
+      console.warn(`Order ${orderId} already cancelled, skipping stock rollback`);
+      const result = await ordersCollection.deleteOne(filter);
+      await client.close();
+      return result.deletedCount === 1;
+    }
+
+    // Rollback inventory stock before deleting the order
+    if (order.Cart && Array.isArray(order.Cart) && order.Cart.length > 0) {
+      try {
+        const InventoryManager = require('./utils/inventoryManager');
+        const rollbackResult = await InventoryManager.rollbackIngredients(order.Cart);
+        if (rollbackResult.success) {
+          console.log(`✅ Stock rollback completed for cancelled order ${orderId}:`, rollbackResult.rollbacks);
+        } else {
+          console.error('❌ Stock rollback failed:', rollbackResult.error);
+          // Continue with order cancellation even if rollback fails
+        }
+      } catch (rollbackError) {
+        console.error('❌ Error during stock rollback:', rollbackError);
+        // Continue with order cancellation even if rollback fails
+      }
+    }
+
+    // Now delete the order
     const result = await ordersCollection.deleteOne(filter);
 
     await client.close();
@@ -308,6 +361,10 @@ async function restoreOrder(orderId) {
     const ordersCollection = db.collection('Orders');
 
     const filter = { OrderID: orderId };
+
+    // Get the current order before updating
+    const currentOrder = await ordersCollection.findOne(filter);
+
     const updateDoc = {
       $set: {
         PaymentStatus: 'Pending',
@@ -317,6 +374,21 @@ async function restoreOrder(orderId) {
 
     await ordersCollection.updateOne(filter, updateDoc);
     const updatedOrder = await ordersCollection.findOne(filter);
+
+    // If restoring from cancelled, deduct inventory again
+    if (currentOrder && currentOrder.FulfillmentStatus === 'Cancelled' && updatedOrder && updatedOrder.Cart && Array.isArray(updatedOrder.Cart) && updatedOrder.Cart.length > 0) {
+      try {
+        const InventoryManager = require('./utils/inventoryManager');
+        const deductResult = await InventoryManager.deductIngredients(updatedOrder.Cart);
+        if (deductResult.success) {
+          console.log(`✅ Stock deduction completed for restored order ${orderId}:`, deductResult.deductions);
+        } else {
+          console.error('❌ Stock deduction failed:', deductResult.error);
+        }
+      } catch (deductError) {
+        console.error('❌ Error during stock deduction:', deductError);
+      }
+    }
 
     await client.close();
     return updatedOrder;

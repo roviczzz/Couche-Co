@@ -112,54 +112,42 @@ function createProductList(order) {
       basePrice = Number(item.price);
     }
 
-    let addOnsTotal = 0;
     let addOnsHtml = '';
 
-    // Handle different add-ons structures
-    const addOns = item.AddOns || item.addOns;
+    // Handle different add-ons structures (AddOns, addOns, Addons)
+    const addOns = item.AddOns || item.addOns || item.Addons;
     if (addOns && addOns.length > 0) {
       addOnsHtml = '<div class="product-addons">';
       addOns.forEach(addon => {
-        let addonPrice = 0;
         let addonName = 'Unknown Add-on';
         
         if (typeof addon === 'object') {
-          addonPrice = Number(addon.BasePrice || addon.basePrice || addon.Price || addon.price) || 0;
-          addonName = addon.Name || addon.name || addon.ProductName || addon.productName || 'Unknown Add-on';
+          // Handle different property name variations
+          addonName = addon.name || addon.Name || addon.ProductName || addon.productName || 'Unknown Add-on';
         } else if (typeof addon === 'string') {
           addonName = addon;
         }
         
-        addOnsTotal += addonPrice;
         addOnsHtml += `
           <div class="addon-item">
             <span class="addon-name">+ ${addonName}</span>
-            <span class="addon-price">${formatCurrency(addonPrice)}</span>
           </div>
         `;
       });
       addOnsHtml += '</div>';
-    } else if (item.AddOnsPrice !== undefined || item.addOnsPrice !== undefined) {
-      // Handle cases where add-ons price is stored as a single value
-      addOnsTotal = Number(item.AddOnsPrice || item.addOnsPrice) || 0;
-      if (addOnsTotal > 0) {
-        addOnsHtml = `<div class="product-addons">
-          <div class="addon-item">
-            <span class="addon-name">+ Add-ons</span>
-            <span class="addon-price">${formatCurrency(addOnsTotal)}</span>
-          </div>
-        </div>`;
-      }
     }
 
-    const itemTotal = (basePrice + addOnsTotal) * quantity;
+    const itemTotal = basePrice * quantity;
     const productName = item.ProductName || item.productName || item.Name || item.name || 'N/A';
+    const itemIndex = cart.indexOf(item);
 
-    html += `<li>
+    html += `<li class="order-item-clickable" data-item-index="${itemIndex}">
       <span class="product-name">${productName}</span>
       <div class="product-quantity-price">
-        <span><strong>Size:</strong> ${sizeLabel || 'N/A'}</span>
-        <span><strong>Qty:</strong> ${quantity}</span>
+        <div class="quantity-info">
+          <span><strong>Size:</strong> ${sizeLabel || 'N/A'}</span>
+          <span><strong>Qty:</strong> ${quantity}</span>
+        </div>
         <span class="product-price">${formatCurrency(itemTotal)}</span>
       </div>
       ${addOnsHtml}
@@ -185,7 +173,7 @@ function calculateOrderTotals(order) {
   if (cart && cart.length) {
     cart.forEach(item => {
       const quantity = Number(item.Quantity || item.quantity) || 0;
-      
+
       // Handle different price field structures
       let basePrice = 0;
       if (item.BasePrice !== undefined) {
@@ -199,25 +187,126 @@ function calculateOrderTotals(order) {
       }
 
       let addOnsTotal = 0;
-      // Handle different add-ons structures
-      const addOns = item.AddOns || item.addOns;
+      // Handle different add-ons structures (AddOns, addOns, Addons)
+      const addOns = item.AddOns || item.addOns || item.Addons;
       if (addOns && addOns.length > 0) {
-        addOns.forEach(addon => {
-          if (typeof addon === 'object') {
-            addOnsTotal += Number(addon.BasePrice || addon.basePrice || addon.Price || addon.price) || 0;
-          }
-        });
-      } else if (item.AddOnsPrice !== undefined) {
-        addOnsTotal = Number(item.AddOnsPrice);
-      } else if (item.addOnsPrice !== undefined) {
-        addOnsTotal = Number(item.addOnsPrice);
+        // Note: Add-on prices are already included in the order total from the database
+        // No need to calculate separately
       }
 
-      productsSubtotal += (basePrice + addOnsTotal) * quantity;
+      productsSubtotal += basePrice * quantity;
     });
   }
 
   return productsSubtotal;
+}
+
+function calculateOrderIngredients(order) {
+  const ingredientMap = new Map(); // ingredientID -> { name, totalGrams }
+
+  // Handle different cart field names and structures
+  const cart = order.Cart || order.cart;
+  if (!cart || !cart.length) return [];
+
+  cart.forEach(item => {
+    const quantity = Number(item.Quantity || item.quantity) || 0;
+    const sizeLabel = item.Size || item.size || null;
+    const productName = item.ProductName || item.productName || item.Name || item.name || '';
+
+    // Find the menu item
+    const menuItem = menu.find(m => m.Name === productName || m.ProductID === (item.ProductID || item.productID));
+    if (!menuItem) return;
+
+    // Add base ingredients from menu item
+    if (menuItem.Ingredients && Array.isArray(menuItem.Ingredients)) {
+      menuItem.Ingredients.forEach(ing => {
+        const ingredientID = ing.ingredientID;
+        const ingredientName = ing.name;
+        let usedGrams = 0;
+
+        if (typeof ing.usedGrams === 'object' && ing.usedGrams !== null) {
+          // Size-specific amounts
+          usedGrams = ing.usedGrams[sizeLabel] || ing.usedGrams['16oz'] || ing.usedGrams['22oz'] || 0;
+        } else {
+          // Fixed amount
+          usedGrams = Number(ing.usedGrams) || 0;
+        }
+
+        const totalGrams = usedGrams * quantity;
+
+        if (ingredientMap.has(ingredientID)) {
+          const existing = ingredientMap.get(ingredientID);
+          existing.totalGrams += totalGrams;
+        } else {
+          ingredientMap.set(ingredientID, {
+            name: ingredientName,
+            totalGrams: totalGrams
+          });
+        }
+      });
+    }
+
+    // Add ingredients from add-ons (AddOns, addOns, Addons)
+    const addOns = item.AddOns || item.addOns || item.Addons || [];
+    if (addOns && addOns.length > 0) {
+      addOns.forEach(addon => {
+        let addonId = null;
+        let addonName = 'Unknown Add-on';
+        let usedGrams = 0;
+
+        if (typeof addon === 'object') {
+          addonId = addon.id || addon.AddOnID || addon.addOnID || addon.IngredientID || addon.ingredientID;
+          addonName = addon.name || addon.Name || addon.ProductName || addon.productName || 'Unknown Add-on';
+
+          // Check if this add-on has size-specific usage in menu item
+          if (menuItem.AddOns && Array.isArray(menuItem.AddOns)) {
+            const menuAddon = menuItem.AddOns.find(ma =>
+              (ma.addOnID === addonId) ||
+              (ma.name && ma.name.toLowerCase() === addonName.toLowerCase())
+            );
+
+            if (menuAddon) {
+              if (sizeLabel && menuAddon[`usedGrams${sizeLabel}`] !== undefined) {
+                usedGrams = Number(menuAddon[`usedGrams${sizeLabel}`]);
+              } else if (menuAddon.usedGrams16oz !== undefined || menuAddon.usedGrams22oz !== undefined) {
+                usedGrams = Number(menuAddon.usedGrams16oz || menuAddon.usedGrams22oz || 0);
+              }
+            }
+          }
+
+          // If no specific amount found, use default deduction quantity
+          if (usedGrams === 0) {
+            usedGrams = Number(addon.DeductionQuantityGrams || addon.deductionQuantityGrams || 10);
+          }
+        } else if (typeof addon === 'string') {
+          addonName = addon;
+          usedGrams = 10; // Default amount
+        }
+
+        const totalGrams = usedGrams * quantity;
+
+        if (addonId && ingredientMap.has(addonId)) {
+          const existing = ingredientMap.get(addonId);
+          existing.totalGrams += totalGrams;
+        } else if (addonId) {
+          ingredientMap.set(addonId, {
+            name: addonName,
+            totalGrams: totalGrams
+          });
+        }
+      });
+    }
+  });
+
+  // Convert map to array and sort by name
+  return Array.from(ingredientMap.entries())
+    .map(([id, data]) => ({
+      id,
+      name: data.name,
+      totalGrams: Math.round(data.totalGrams * 100) / 100 // Round to 2 decimal places
+    }))
+    .filter(ing => ing.totalGrams > 0)
+    .sort((a, b) => a.name.localeCompare(b.name));
 }
 
 function addToCancelledOrders(order) {
@@ -396,6 +485,208 @@ async function restoreOrder(orderID) {
 
 window.restoreOrder = restoreOrder;
 
+function calculateItemIngredients(item, order) {
+  const ingredientMap = new Map();
+  const quantity = Number(item.Quantity || item.quantity) || 0;
+  const sizeLabel = item.Size || item.size || null;
+  const productName = item.ProductName || item.productName || item.Name || item.name || '';
+
+  // Find the menu item
+  const menuItem = menu.find(m => m.Name === productName || m.ProductID === (item.ProductID || item.productID));
+  if (!menuItem) return [];
+
+  // Add base ingredients from menu item
+  if (menuItem.Ingredients && Array.isArray(menuItem.Ingredients)) {
+    menuItem.Ingredients.forEach(ing => {
+      const ingredientID = ing.ingredientID;
+      const ingredientName = ing.name;
+      let usedGrams = 0;
+
+      if (typeof ing.usedGrams === 'object' && ing.usedGrams !== null) {
+        // Size-specific amounts
+        usedGrams = ing.usedGrams[sizeLabel] || ing.usedGrams['16oz'] || ing.usedGrams['22oz'] || 0;
+      } else {
+        // Fixed amount
+        usedGrams = Number(ing.usedGrams) || 0;
+      }
+
+      const totalGrams = usedGrams * quantity;
+
+      if (ingredientMap.has(ingredientID)) {
+        const existing = ingredientMap.get(ingredientID);
+        existing.totalGrams += totalGrams;
+      } else {
+        ingredientMap.set(ingredientID, {
+          name: ingredientName,
+          totalGrams: totalGrams
+        });
+      }
+    });
+  }
+
+  // Add ingredients from add-ons (AddOns, addOns, Addons)
+  const addOns = item.AddOns || item.addOns || item.Addons || [];
+  if (addOns && addOns.length > 0) {
+    addOns.forEach(addon => {
+      let addonId = null;
+      let addonName = 'Unknown Add-on';
+      let usedGrams = 0;
+
+      if (typeof addon === 'object') {
+        addonId = addon.id || addon.AddOnID || addon.addOnID || addon.IngredientID || addon.ingredientID;
+        addonName = addon.name || addon.Name || addon.ProductName || addon.productName || 'Unknown Add-on';
+
+        // Check if this add-on has size-specific usage in menu item
+        if (menuItem.AddOns && Array.isArray(menuItem.AddOns)) {
+          const menuAddon = menuItem.AddOns.find(ma =>
+            (ma.addOnID === addonId) ||
+            (ma.name && ma.name.toLowerCase() === addonName.toLowerCase())
+          );
+
+          if (menuAddon) {
+            if (sizeLabel && menuAddon[`usedGrams${sizeLabel}`] !== undefined) {
+              usedGrams = Number(menuAddon[`usedGrams${sizeLabel}`]);
+            } else if (menuAddon.usedGrams16oz !== undefined || menuAddon.usedGrams22oz !== undefined) {
+              usedGrams = Number(menuAddon.usedGrams16oz || menuAddon.usedGrams22oz || 0);
+            }
+          }
+        }
+
+        // If no specific amount found, use default deduction quantity
+        if (usedGrams === 0) {
+          usedGrams = Number(addon.DeductionQuantityGrams || addon.deductionQuantityGrams || 10);
+        }
+      } else if (typeof addon === 'string') {
+        addonName = addon;
+        usedGrams = 10; // Default amount
+      }
+
+      const totalGrams = usedGrams * quantity;
+
+      if (addonId && ingredientMap.has(addonId)) {
+        const existing = ingredientMap.get(addonId);
+        existing.totalGrams += totalGrams;
+      } else if (addonId) {
+        ingredientMap.set(addonId, {
+          name: addonName,
+          totalGrams: totalGrams
+        });
+      }
+    });
+  }
+
+  // Convert map to array and sort by name
+  return Array.from(ingredientMap.entries())
+    .map(([id, data]) => ({
+      id,
+      name: data.name,
+      totalGrams: Math.round(data.totalGrams * 100) / 100 // Round to 2 decimal places
+    }))
+    .filter(ing => ing.totalGrams > 0)
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function showIngredientModal(item, order) {
+  const productName = item.ProductName || item.productName || item.Name || item.name || 'N/A';
+  const quantity = Number(item.Quantity || item.quantity) || 0;
+  const sizeLabel = item.Size || item.size || 'N/A';
+  const productImage = item.ImageLink || item.imageLink || item.image || null;
+  
+  // Get add-ons for display (AddOns, addOns, Addons)
+  const addOns = item.AddOns || item.addOns || item.Addons || [];
+  let addOnsHtml = '';
+  
+  if (addOns && addOns.length > 0) {
+    addOnsHtml = '<div class="modal-section"><h4>Add-ons / Ingredients as Add-ons:</h4><ul class="modal-addons-list">';
+    addOns.forEach(addon => {
+      let addonName = 'Unknown Add-on';
+      
+      if (typeof addon === 'object') {
+        addonName = addon.name || addon.Name || addon.ProductName || addon.productName || 'Unknown Add-on';
+      } else if (typeof addon === 'string') {
+        addonName = addon;
+      }
+      
+      addOnsHtml += `
+        <li class="modal-addon-item">
+          <span class="modal-addon-name">${addonName}</span>
+        </li>
+      `;
+    });
+    addOnsHtml += '</ul></div>';
+  }
+  
+  // Calculate ingredients
+  const ingredients = calculateItemIngredients(item, order);
+  let ingredientsHtml = '<div class="modal-section"><h4>Required Ingredients:</h4>';
+  
+  if (ingredients.length > 0) {
+    ingredientsHtml += '<ul class="modal-ingredients-list">';
+    ingredients.forEach(ing => {
+      ingredientsHtml += `
+        <li class="modal-ingredient-item">
+          <span class="modal-ingredient-name">${ing.name}</span>
+          <span class="modal-ingredient-amount">${ing.totalGrams}g</span>
+        </li>
+      `;
+    });
+    ingredientsHtml += '</ul>';
+  } else {
+    ingredientsHtml += '<p style="text-align: center; color: #999; padding: 20px;">No ingredients data available.</p>';
+  }
+  ingredientsHtml += '</div>';
+  
+  // Create modal HTML
+  const modalHtml = `
+    <div class="ingredient-modal-overlay" id="ingredientModalOverlay">
+      <div class="ingredient-modal-content">
+        <div class="ingredient-modal-header">
+          <h3>${productName}</h3>
+          <button class="ingredient-modal-close" id="closeIngredientModal">&times;</button>
+        </div>
+        ${productImage ? `<div class="ingredient-modal-image"><img src="${productImage}" alt="${productName}"></div>` : ''}
+        <div class="ingredient-modal-body">
+          <div class="modal-item-info">
+            <span><strong>Size:</strong> ${sizeLabel}</span>
+            <span><strong>Quantity:</strong> ${quantity}</span>
+          </div>
+          ${addOnsHtml}
+          ${ingredientsHtml}
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Remove existing modal if any
+  const existingModal = document.getElementById('ingredientModalOverlay');
+  if (existingModal) {
+    existingModal.remove();
+  }
+  
+  // Add modal to page
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  document.body.style.overflow = 'hidden';
+  
+  // Add event listeners
+  const modal = document.getElementById('ingredientModalOverlay');
+  const closeBtn = document.getElementById('closeIngredientModal');
+  
+  closeBtn.addEventListener('click', closeIngredientModal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      closeIngredientModal();
+    }
+  });
+}
+
+function closeIngredientModal() {
+  const modal = document.getElementById('ingredientModalOverlay');
+  if (modal) {
+    modal.remove();
+  }
+  document.body.style.overflow = 'auto';
+}
+
 function showOrderDetails(order, rowIndex) {
   if (isTransitioning) return;
 
@@ -556,6 +847,18 @@ function showOrderDetails(order, rowIndex) {
 `;
 
   orderSummaryContent.innerHTML = summaryHtml;
+  
+  // Add click handlers to order items to show ingredient modal
+  const orderItems = orderSummaryContent.querySelectorAll('.order-item-clickable');
+  orderItems.forEach(item => {
+    item.addEventListener('click', (e) => {
+      const itemIndex = parseInt(item.dataset.itemIndex, 10);
+      const cart = currentOrder.Cart || currentOrder.cart;
+      if (cart && cart[itemIndex]) {
+        showIngredientModal(cart[itemIndex], currentOrder);
+      }
+    });
+  });
   orderDetailButtons.style.display = 'flex';
   orderDetailPanel.classList.add('show');
 
@@ -969,6 +1272,35 @@ cancelOrderBtn.addEventListener('click', async () => {
     setLoading(true);
     try {
       const orderID = currentOrder.OrderID;
+
+      // First rollback inventory
+      if (currentOrder.Cart && currentOrder.Cart.length > 0) {
+        try {
+          const rollbackResponse = await fetch('/api/inventory/rollback', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              orderItems: currentOrder.Cart,
+              orderId: orderID
+            })
+          });
+
+          if (!rollbackResponse.ok) {
+            const rollbackData = await rollbackResponse.json();
+            console.warn('Inventory rollback failed:', rollbackData);
+            // Continue with order cancellation even if rollback fails
+          } else {
+            console.log('Inventory successfully rolled back for cancelled order');
+          }
+        } catch (rollbackError) {
+          console.error('Error during inventory rollback:', rollbackError);
+          // Continue with order cancellation
+        }
+      }
+
+      // Then cancel the order
       const response = await fetch(`${window.apiPrefix}/orders/${orderID}/cancel`, {
         method: 'PATCH',
         headers: {
