@@ -483,7 +483,7 @@ async function checkItemAvailability(item, selectedSize, addons) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                ProductID: item._id || item.id,
+                ProductID: item.ProductID || item._id || item.id,
                 Size: selectedSize ? (selectedSize.Size || selectedSize.SizeName) : null,
                 Addons: addons.map(addon => ({ AddOnID: addon.id, Name: addon.name })),
                 Quantity: 1
@@ -573,7 +573,7 @@ function addToCart(item, selectedSize = null, addons = []) {
         const cartItem = {
             itemId: Date.now() + Math.random(),
             ProductName: item.Name,
-            ProductID: item._id ?? item.id,
+            ProductID: item.ProductID || item._id || item.id,
             Size: sizeName,
             AddOns: addons, // Store full add-on objects instead of just names
             Quantity: 1,
@@ -2314,7 +2314,7 @@ async function checkItemAvailability(item, selectedSize, addons) {
         // Prepare order item data for availability check
         const orderItem = {
             ProductName: item.Name,
-            ProductID: item._id || item.id,
+            ProductID: item.ProductID || item._id || item.id,
             Size: selectedSize ? (selectedSize.Size || selectedSize.SizeName || 'Regular') : 'Regular',
             Addons: addons.map(addon => ({ Name: addon.name, AddOnID: addon.id })),
             Quantity: 1
