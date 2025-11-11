@@ -457,10 +457,29 @@ router.patch('/orders/:OrderID/fulfillment', async (req, res) => {
     const ordersCollection = db.collection('Orders');
 
     const filter = { OrderID: OrderID };
+
+    // Get current order before update
+    const currentOrder = await ordersCollection.findOne(filter);
+
     const updateDoc = { $set: { FulfillmentStatus } };
 
     const updateResult = await ordersCollection.updateOne(filter, updateDoc);
     const updatedOrder = await ordersCollection.findOne(filter);
+
+    // If status is being set to 'Cancelled', rollback inventory
+    if (FulfillmentStatus === 'Cancelled' && currentOrder && currentOrder.Cart && Array.isArray(currentOrder.Cart) && currentOrder.Cart.length > 0) {
+      try {
+        const InventoryManager = require('../utils/inventoryManager');
+        const rollbackResult = await InventoryManager.rollbackIngredients(currentOrder.Cart);
+        if (rollbackResult.success) {
+          console.log(`✅ Stock rollback completed for cancelled order ${OrderID}:`, rollbackResult.rollbacks);
+        } else {
+          console.error('❌ Stock rollback failed:', rollbackResult.error);
+        }
+      } catch (rollbackError) {
+        console.error('❌ Error during stock rollback:', rollbackError);
+      }
+    }
 
     await client.close();
 
@@ -527,33 +546,19 @@ router.patch('/orders/:OrderID/cancel', async (req, res) => {
   }
 
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const ordersCollection = db.collection('Orders');
+    // Use the cancelOrder function from admin-helpers which includes stock rollback
+    const { cancelOrder } = require('../admin-helpers');
+    const result = await cancelOrder(OrderID);
 
-    const filter = { OrderID: OrderID };
-
-    // First check if the order exists
-    const existingOrder = await ordersCollection.findOne(filter);
-    if (!existingOrder) {
-      await client.close();
+    if (result) {
+      return res.status(200).json({
+        success: true,
+        message: 'Order cancelled and deleted successfully',
+        deletedOrderID: OrderID
+      });
+    } else {
       return res.status(404).json({ error: `Order with ID ${OrderID} not found` });
     }
-
-    // Delete the order from the database
-    const deleteResult = await ordersCollection.deleteOne(filter);
-
-    await client.close();
-
-    if (deleteResult.deletedCount === 0) {
-      return res.status(404).json({ error: `Order with ID ${OrderID} not found` });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: 'Order cancelled and deleted successfully',
-      deletedOrderID: OrderID
-    });
   } catch (error) {
     console.error('Error cancelling order:', error);
     return res.status(500).json({ error: 'Server error while cancelling order' });

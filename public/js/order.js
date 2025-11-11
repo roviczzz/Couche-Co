@@ -969,6 +969,35 @@ cancelOrderBtn.addEventListener('click', async () => {
     setLoading(true);
     try {
       const orderID = currentOrder.OrderID;
+
+      // First rollback inventory
+      if (currentOrder.Cart && currentOrder.Cart.length > 0) {
+        try {
+          const rollbackResponse = await fetch('/api/inventory/rollback', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              orderItems: currentOrder.Cart,
+              orderId: orderID
+            })
+          });
+
+          if (!rollbackResponse.ok) {
+            const rollbackData = await rollbackResponse.json();
+            console.warn('Inventory rollback failed:', rollbackData);
+            // Continue with order cancellation even if rollback fails
+          } else {
+            console.log('Inventory successfully rolled back for cancelled order');
+          }
+        } catch (rollbackError) {
+          console.error('Error during inventory rollback:', rollbackError);
+          // Continue with order cancellation
+        }
+      }
+
+      // Then cancel the order
       const response = await fetch(`${window.apiPrefix}/orders/${orderID}/cancel`, {
         method: 'PATCH',
         headers: {

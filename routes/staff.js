@@ -483,12 +483,28 @@ router.patch('/orders/:orderId/fulfillment', async (req, res) => {
     const db = client.db('blessingscafe');
     const ordersCollection = db.collection('Orders');
 
+    // Get current order before update
+    const currentOrder = await ordersCollection.findOne({ OrderID: orderId });
+
     const result = await ordersCollection.updateOne(
       { OrderID: orderId },
       { $set: { FulfillmentStatus, fulfillmentStatus: FulfillmentStatus } }
     );
 
-
+    // If status is being set to 'Cancelled', rollback inventory
+    if (FulfillmentStatus === 'Cancelled' && currentOrder && currentOrder.Cart && Array.isArray(currentOrder.Cart) && currentOrder.Cart.length > 0) {
+      try {
+        const InventoryManager = require('../utils/inventoryManager');
+        const rollbackResult = await InventoryManager.rollbackIngredients(currentOrder.Cart);
+        if (rollbackResult.success) {
+          console.log(`✅ Stock rollback completed for cancelled order ${orderId}:`, rollbackResult.rollbacks);
+        } else {
+          console.error('❌ Stock rollback failed:', rollbackResult.error);
+        }
+      } catch (rollbackError) {
+        console.error('❌ Error during stock rollback:', rollbackError);
+      }
+    }
 
     await client.close();
 
@@ -533,29 +549,72 @@ router.patch('/orders/:orderId/payment-status', async (req, res) => {
 router.patch('/orders/:orderId/cancel', async (req, res) => {
   try {
     const { orderId } = req.params;
-    
+
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
     const ordersCollection = db.collection('Orders');
-    
+
+    // First, get the order data before updating (needed for stock rollback)
+    const order = await ordersCollection.findOne({ OrderID: orderId });
+    if (!order) {
+      await client.close();
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    // Check if order was already cancelled to prevent double rollback
+    if (order.PaymentStatus === 'Cancelled' || order.FulfillmentStatus === 'Cancelled') {
+      console.warn(`Order ${orderId} already cancelled, skipping stock rollback`);
+      const result = await ordersCollection.updateOne(
+        { OrderID: orderId },
+        {
+          $set: {
+            PaymentStatus: 'Cancelled',
+            paymentStatus: 'Cancelled',
+            FulfillmentStatus: 'Cancelled',
+            fulfillmentStatus: 'Cancelled'
+          }
+        }
+      );
+      await client.close();
+      return res.json({ success: true, message: 'Order cancelled successfully' });
+    }
+
+    // Rollback inventory stock before updating order status
+    if (order.Cart && Array.isArray(order.Cart) && order.Cart.length > 0) {
+      try {
+        const InventoryManager = require('../utils/inventoryManager');
+        const rollbackResult = await InventoryManager.rollbackIngredients(order.Cart);
+        if (rollbackResult.success) {
+          console.log(`✅ Stock rollback completed for cancelled order ${orderId}:`, rollbackResult.rollbacks);
+        } else {
+          console.error('❌ Stock rollback failed:', rollbackResult.error);
+          // Continue with order cancellation even if rollback fails
+        }
+      } catch (rollbackError) {
+        console.error('❌ Error during stock rollback:', rollbackError);
+        // Continue with order cancellation even if rollback fails
+      }
+    }
+
+    // Now update the order status
     const result = await ordersCollection.updateOne(
       { OrderID: orderId },
-      { 
-        $set: { 
+      {
+        $set: {
           PaymentStatus: 'Cancelled',
           paymentStatus: 'Cancelled',
           FulfillmentStatus: 'Cancelled',
           fulfillmentStatus: 'Cancelled'
-        } 
+        }
       }
     );
-    
+
     await client.close();
-    
+
     if (result.matchedCount === 0) {
       return res.status(404).json({ error: 'Order not found' });
     }
-    
+
     res.json({ success: true, message: 'Order cancelled successfully' });
   } catch (error) {
     console.error('Error cancelling order:', error);
