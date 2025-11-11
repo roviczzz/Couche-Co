@@ -1,4 +1,4 @@
-const { MongoClient } = require('mongodb');
+const { MongoClient, ObjectId } = require('mongodb');
 
 const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
 
@@ -367,15 +367,127 @@ class InventoryManager {
     }
   }
   
+  static async checkProductAvailability(productId) {
+    let client;
+
+    try {
+      client = new MongoClient(uri);
+      await client.connect();
+      const db = client.db('blessingscafe');
+
+      const menuCollection = db.collection('Menu');
+      const ingredientsCollection = db.collection('Ingredients');
+
+      // Find the menu item
+      const query = { ProductID: productId };
+
+      // If productId looks like a valid ObjectId (24 hex chars), also search by _id
+      if (/^[0-9a-fA-F]{24}$/.test(productId)) {
+        query.$or = [
+          { ProductID: productId },
+          { _id: new ObjectId(productId) }
+        ];
+      }
+
+      const menuItem = await menuCollection.findOne(query);
+
+      if (!menuItem) {
+        return {
+          available: false,
+          reason: 'Product not found'
+        };
+      }
+
+      // Check if menu item is enabled
+      if (!menuItem.isEnabled) {
+        return {
+          available: false,
+          reason: 'Product is currently disabled'
+        };
+      }
+
+      // Handle pastries (check Quantity field)
+      if (menuItem.Category === 'Pastries' || menuItem.Quantity !== undefined) {
+        const currentQuantity = menuItem.Quantity || 0;
+
+        if (currentQuantity < 1) {
+          return {
+            available: false,
+            reason: 'This pastry is currently out of stock'
+          };
+        }
+
+        return {
+          available: true,
+          reason: null
+        };
+      }
+
+      // Check ingredients for non-pastry items (minimum serving)
+      if (menuItem.Ingredients && Array.isArray(menuItem.Ingredients)) {
+        for (const ingredient of menuItem.Ingredients) {
+          const { ingredientID, usedGrams, name } = ingredient;
+          let gramsNeeded = 0;
+
+          // Handle size-based ingredient usage - use smallest size or default
+          if (typeof usedGrams === 'object' && usedGrams !== null) {
+            // Find the minimum grams needed across all sizes
+            const sizes = Object.values(usedGrams);
+            gramsNeeded = Math.min(...sizes.filter(g => g > 0));
+          } else if (typeof usedGrams === 'number') {
+            gramsNeeded = usedGrams;
+          }
+
+          if (gramsNeeded > 0) {
+            const ingredientDoc = await ingredientsCollection.findOne({
+              IngredientID: ingredientID
+            });
+
+            // Check if ingredient is enabled (if the field exists)
+            if (ingredientDoc && ingredientDoc.isEnabled === false) {
+              return {
+                available: false,
+                reason: 'Insufficient ingredients to prepare this item'
+              };
+            }
+
+            if (!ingredientDoc || (ingredientDoc.Amount || 0) < gramsNeeded) {
+              return {
+                available: false,
+                reason: 'Insufficient ingredients to prepare this item'
+              };
+            }
+          }
+        }
+      }
+
+      return {
+        available: true,
+        reason: null
+      };
+
+    } catch (error) {
+      console.error('Error checking product availability:', error);
+      return {
+        available: false,
+        reason: 'System error checking availability'
+      };
+    } finally {
+      if (client) {
+        await client.close();
+      }
+    }
+  }
+
   static async checkSingleItemAvailability(menuItem, orderItem, ingredientsCollection, addonsCollection) {
     const missingIngredients = [];
-    
+
     try {
       // Handle pastries (check Quantity field)
       if (menuItem.Category === 'Pastries' || menuItem.Quantity !== undefined) {
         const quantityNeeded = orderItem.Quantity || 1;
         const currentQuantity = menuItem.Quantity || 0;
-        
+
         if (currentQuantity < quantityNeeded) {
           missingIngredients.push({
             id: menuItem.ProductID,
@@ -387,25 +499,25 @@ class InventoryManager {
         }
         // Pastries can still have menu add-ons, so continue to check below
       }
-      
+
       // Check ingredients for non-pastry items
       if (menuItem.Ingredients && Array.isArray(menuItem.Ingredients)) {
         for (const ingredient of menuItem.Ingredients) {
           const { ingredientID, usedGrams, name } = ingredient;
           let gramsNeeded = 0;
-          
+
           // Handle size-based ingredient usage
           if (typeof usedGrams === 'object' && usedGrams !== null && orderItem.Size) {
             gramsNeeded = usedGrams[orderItem.Size] || usedGrams['16oz'] || 0;
           } else if (typeof usedGrams === 'number') {
             gramsNeeded = usedGrams;
           }
-          
+
           if (gramsNeeded > 0) {
             const totalNeeded = gramsNeeded * (orderItem.Quantity || 1);
-            
+
             const ingredientDoc = await ingredientsCollection.findOne({ IngredientID: ingredientID });
-            
+
             if (!ingredientDoc || (ingredientDoc.Amount || 0) < totalNeeded) {
               missingIngredients.push({
                 id: ingredientID,
@@ -418,12 +530,13 @@ class InventoryManager {
           }
         }
       }
-      
+
       // Check add-ons
       if (orderItem.Addons && Array.isArray(orderItem.Addons)) {
         for (const addon of orderItem.Addons) {
           const addonId = addon.AddOnID || addon.addOnID || addon.id;
           const addonName = addon.Name || addon.name || 'Unknown Add-on';
+
 
           if (!addonId) continue;
 
@@ -512,7 +625,7 @@ class InventoryManager {
         available: 0
       });
     }
-    
+
     return {
       available: missingIngredients.length === 0,
       missingIngredients,

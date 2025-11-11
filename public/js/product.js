@@ -52,6 +52,37 @@ function showToast(message, type = 'info', duration = 5000) {
     }, duration);
 }
 
+// Centered error message function
+function showCenteredError(message) {
+    // Remove any existing centered error
+    const existingError = document.querySelector('.centered-error-message');
+    if (existingError) {
+        existingError.remove();
+    }
+
+    // Create centered error message
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'centered-error-message';
+    errorDiv.innerHTML = `
+        <div class="centered-error-content">
+            <i class="fas fa-exclamation-triangle error-icon"></i>
+            <div class="error-text">${message}</div>
+            <button class="error-close-btn" onclick="this.parentElement.parentElement.remove()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
+
+    document.body.appendChild(errorDiv);
+
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (errorDiv.parentElement) {
+            errorDiv.remove();
+        }
+    }, 5000);
+}
+
 // Array to store selected add-ons
 var selectedAddons = [];
 
@@ -371,7 +402,7 @@ function initializePage() {
     // Add to cart button event listener
     const addToCartBtn = document.getElementById('add-to-cart-btn');
     if (addToCartBtn) {
-        addToCartBtn.addEventListener('click', function() {
+        addToCartBtn.addEventListener('click', async function() {
             const quantity = document.getElementById('quantity').value;
             const selectedRadio = document.querySelector('input[name="size-radio"]:checked');
 
@@ -379,6 +410,20 @@ function initializePage() {
             if (product.Sizes && product.Sizes.length > 0 && !selectedRadio) {
                 showToast('Please select a size before adding to cart.', 'error');
                 return;
+            }
+
+            // Check product availability first
+            try {
+                const availabilityResponse = await fetch(`/api/check-product-availability/${product.ProductID}`);
+                const availabilityData = await availabilityResponse.json();
+
+                if (!availabilityData.available) {
+                    showCenteredError(availabilityData.reason || 'This product is currently unavailable');
+                    return;
+                }
+            } catch (error) {
+                console.error('Error checking product availability:', error);
+                // Continue with adding to cart if availability check fails (fail-safe)
             }
 
             let size = selectedRadio ? selectedRadio.value : null;
