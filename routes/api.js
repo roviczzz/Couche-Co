@@ -12,7 +12,7 @@ router.get('/', (req, res) => {
 });
 
 // Xendit configuration
-const XENDIT_SECRET_KEY = process.env.XENDIT_SECRET_KEY || 'xnd_development_9YDHJULGUWulhmoYgQxildVQ3EWsAeviiJHwF3PSi9zmNcCKll8zEP3thAc5VvD9'
+const XENDIT_SECRET_KEY = process.env.XENDIT_SECRET_KEY
 const XENDIT_API_URL = 'https://api.xendit.co'
 
 function isLoggedIn(req, res, next) {
