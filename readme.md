@@ -11,10 +11,13 @@ A capstone output for Blessings Cafe located in Imus City, Cavite. Presented to 
 #### Deploying:
 
 1. Install prerequisite modules:
-   ```
-   npm install
-   ```
-3. Run website
+
+```
+npm install
+```
+
+
+2. Run website
 
 ```
 npm start
