@@ -87,6 +87,34 @@
     </div>
   </div>
 
+  <!-- Side Cart Notification Popup -->
+  <div id="cart-side-popup" class="cart-side-popup">
+    <div class="cart-side-header">
+      <span>✓ Item added to your cart</span>
+      <button id="cart-popup-close" class="cart-popup-close">&times;</button>
+    </div>
+    <div class="cart-side-body">
+      <div class="cart-side-item">
+        <div class="cart-side-image">
+          <% if (product.imagelink && product.imagelink !== 'null' && product.imagelink !== 'placeholder' && product.imagelink !== null && product.imagelink.trim() !== '') { %>
+            <img id="cart-popup-image" src="<%= product.imagelink %>" alt="<%= product.Name %>">
+          <% } else { %>
+            <div class="cart-side-placeholder">No Image</div>
+          <% } %>
+        </div>
+        <div class="cart-side-info">
+          <h4 id="cart-popup-name"><%= product.Name %></h4>
+          <div id="cart-popup-details" class="cart-popup-details"></div>
+        </div>
+      </div>
+    </div>
+    <div class="cart-side-actions">
+      <button id="cart-view-btn" class="view-cart-btn">View my Cart</button>
+      <button id="cart-checkout-btn" class="checkout-btn">Check out</button>
+      <button id="cart-continue-btn" class="continue-shopping-btn">Continue shopping</button>
+    </div>
+  </div>
+
   <script src="/js/product.js"></script>
 
   <script>
