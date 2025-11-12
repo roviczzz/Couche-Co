@@ -247,11 +247,32 @@ router.get('/order/success', async (req, res) => {
       });
     }
 
+    // Generate QR code for order completion
+    const QRCode = require('qrcode');
+    const qrUrl = `${process.env.BASE_URL || 'http://localhost:8080'}/staff/complete-order/${orderId}`;
+    let qrCodeDataUrl = '';
+
+    try {
+      qrCodeDataUrl = await QRCode.toDataURL(qrUrl, {
+        width: 150,
+        margin: 1,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      });
+    } catch (qrError) {
+      console.error('QR Code generation error:', qrError);
+      qrCodeDataUrl = '';
+    }
+
     res.render('order-success', {
       title: 'Order Success | Blessings Cafe',
       user: req.session?.user || null,
       order: order,
-      orderId: orderId || 'Unknown'
+      orderId: orderId || 'Unknown',
+      qrCodeDataUrl: qrCodeDataUrl,
+      qrUrl: qrUrl
     });
   } catch (err) {
     console.error('Order success page error:', err);

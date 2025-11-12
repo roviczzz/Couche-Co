@@ -28,6 +28,14 @@ function isStaffLoggedIn(req, res, next) {
   res.redirect('/admin/login');
 }
 
+// Authentication middleware for order completion (staff, admin, owner)
+function isAuthorizedForOrderCompletion(req, res, next) {
+  if (req.session.user && ['staff', 'admin', 'owner'].includes(req.session.user.role)) {
+    return next();
+  }
+  res.redirect('/admin/login');
+}
+
 // POS Order Submission Route (for staff POS)
 router.post('/orders/submit', isStaffLoggedIn, async (req, res) => {
   try {
@@ -113,6 +121,67 @@ router.post('/orders/submit', isStaffLoggedIn, async (req, res) => {
       success: false,
       message: 'Failed to submit order. Please try again.',
       error: error.message
+    });
+  }
+});
+
+// Order completion route (needs to be before general staff middleware)
+router.get('/complete-order/:orderId', isAuthorizedForOrderCompletion, async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const ordersCollection = db.collection('Orders');
+
+    // Get current order status
+    const order = await ordersCollection.findOne({ OrderID: orderId });
+    if (!order) {
+      await client.close();
+      return res.status(404).render('error', {
+        title: 'Order Not Found',
+        message: 'The order you\'re trying to complete was not found.',
+        status: 404
+      });
+    }
+
+    // Only allow completion if not already completed
+    if (order.FulfillmentStatus === 'Completed') {
+      await client.close();
+      return res.render('staff/order-complete', {
+        title: 'Order Already Completed',
+        layout: false,
+        orderId: orderId,
+        order: order,
+        message: 'This order has already been completed.',
+        currentUser: req.session.user
+      });
+    }
+
+    // Update order status to Completed
+    await ordersCollection.updateOne(
+      { OrderID: orderId },
+      { $set: { FulfillmentStatus: 'Completed', fulfillmentStatus: 'Completed' } }
+    );
+
+    await client.close();
+
+    // Render success page
+    res.render('staff/order-complete', {
+      title: 'Order Completed Successfully',
+      layout: false,
+      orderId: orderId,
+      order: { ...order, FulfillmentStatus: 'Completed' },
+      message: `Order ${orderId} has been marked as completed.`,
+      currentUser: req.session.user
+    });
+
+  } catch (error) {
+    console.error('Error completing order:', error);
+    res.status(500).render('error', {
+      title: 'Server Error',
+      message: 'Failed to complete the order.',
+      status: 500
     });
   }
 });
@@ -782,65 +851,7 @@ router.get('/messages', async (req, res) => {
   }
 });
 
-router.get('/complete-order/:orderId', async (req, res) => {
-  try {
-    const { orderId } = req.params;
 
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const ordersCollection = db.collection('Orders');
-
-    // Get current order status
-    const order = await ordersCollection.findOne({ OrderID: orderId });
-    if (!order) {
-      await client.close();
-      return res.status(404).render('error', {
-        title: 'Order Not Found',
-        message: 'The order you\'re trying to complete was not found.',
-        status: 404
-      });
-    }
-
-    // Only allow completion if not already completed
-    if (order.FulfillmentStatus === 'Completed') {
-      await client.close();
-      return res.render('staff/order-complete', {
-        title: 'Order Already Completed',
-        layout: 'staff/layout',
-        orderId: orderId,
-        order: order,
-        message: 'This order has already been completed.',
-        currentUser: req.session.user
-      });
-    }
-
-    // Update order status to Completed
-    await ordersCollection.updateOne(
-      { OrderID: orderId },
-      { $set: { FulfillmentStatus: 'Completed', fulfillmentStatus: 'Completed' } }
-    );
-
-    await client.close();
-
-    // Render success page
-    res.render('staff/order-complete', {
-      title: 'Order Completed Successfully',
-      layout: 'staff/layout',
-      orderId: orderId,
-      order: { ...order, FulfillmentStatus: 'Completed' },
-      message: `Order ${orderId} has been marked as completed.`,
-      currentUser: req.session.user
-    });
-
-  } catch (error) {
-    console.error('Error completing order:', error);
-    res.status(500).render('error', {
-      title: 'Server Error',
-      message: 'Failed to complete the order.',
-      status: 500
-    });
-  }
-});
 
 // API Routes for messaging
 // Get conversations for current user
