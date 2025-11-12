@@ -267,9 +267,11 @@ h1 {
   padding: 0 1.5rem;
 }
 
-/* Adjust container centering when sidebar is open */
-body:not(.sidebar-collapsed) .container {
-  margin-left: 1rem;
+/* Adjust main content centering when sidebar is open (not header) */
+body:not(.sidebar-collapsed) .dashboard-grid,
+body:not(.sidebar-collapsed) .analytics-grid,
+body:not(.sidebar-collapsed) .insights-section {
+  margin-left: 0.5rem;
 }
 
 .main-content {

@@ -2565,20 +2565,55 @@ router.get("/analytics/order-history", async (req, res) => {
       // Format as "YYYY-MM-DD" string to match DB format
       const cutoff = fromDate.toISOString().split('T')[0];
 
-      orders = await db.collection("Orders").find({
-        Date: { $gte: cutoff }
-      })
-      .sort({ Date: -1 })
-      .limit(50)
-      .toArray();
+      orders = await db.collection("Orders").aggregate([
+        {
+          $match: {
+            Date: { $gte: cutoff }
+          }
+        },
+        {
+          $project: {
+            OrderID: 1,
+            Customer: '$Customer.fullname',
+            Date: {
+              $dateToString: {
+                format: '%Y-%m-%d %H:%M',
+                date: { $dateFromString: { dateString: '$Date' } }
+              }
+            },
+            Total: 1,
+            PaymentMode: '$PaymentMode',
+            PaymentStatus: '$PaymentStatus'
+          }
+        },
+        { $sort: { Date: -1 } },
+        { $limit: 50 }
+      ]).toArray();
 
       console.log(`Orders fetched: ${orders.length} (filtered by ${days} days), cutoff=${cutoff}`);
     } else {
-      orders = await db.collection("Orders")
-        .find({})
-        .sort({ Date: -1 })
-        .limit(50)
-        .toArray();
+      orders = await db.collection("Orders").aggregate([
+        {
+          $match: {}
+        },
+        {
+          $project: {
+            OrderID: 1,
+            Customer: '$Customer.fullname',
+            Date: {
+              $dateToString: {
+                format: '%Y-%m-%d %H:%M',
+                date: { $dateFromString: { dateString: '$Date' } }
+              }
+            },
+            Total: 1,
+            PaymentMode: '$PaymentMode',
+            PaymentStatus: '$PaymentStatus'
+          }
+        },
+        { $sort: { Date: -1 } },
+        { $limit: 50 }
+      ]).toArray();
 
       console.log(`Orders fetched: ${orders.length} (no filter)`);
     }
