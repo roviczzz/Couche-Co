@@ -1,3 +1,4 @@
+
 // Shared Navbar JavaScript Functionality
 
 // Add active class to current page link
