@@ -28,6 +28,14 @@ function isStaffLoggedIn(req, res, next) {
   res.redirect('/admin/login');
 }
 
+// Authentication middleware for order completion (staff, admin, owner)
+function isAuthorizedForOrderCompletion(req, res, next) {
+  if (req.session.user && ['staff', 'admin', 'owner'].includes(req.session.user.role)) {
+    return next();
+  }
+  res.redirect('/admin/login');
+}
+
 // POS Order Submission Route (for staff POS)
 router.post('/orders/submit', isStaffLoggedIn, async (req, res) => {
   try {
@@ -113,6 +121,67 @@ router.post('/orders/submit', isStaffLoggedIn, async (req, res) => {
       success: false,
       message: 'Failed to submit order. Please try again.',
       error: error.message
+    });
+  }
+});
+
+// Order completion route (needs to be before general staff middleware)
+router.get('/complete-order/:orderId', isAuthorizedForOrderCompletion, async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const ordersCollection = db.collection('Orders');
+
+    // Get current order status
+    const order = await ordersCollection.findOne({ OrderID: orderId });
+    if (!order) {
+      await client.close();
+      return res.status(404).render('error', {
+        title: 'Order Not Found',
+        message: 'The order you\'re trying to complete was not found.',
+        status: 404
+      });
+    }
+
+    // Only allow completion if not already completed
+    if (order.FulfillmentStatus === 'Completed') {
+      await client.close();
+      return res.render('staff/order-complete', {
+        title: 'Order Already Completed',
+        layout: false,
+        orderId: orderId,
+        order: order,
+        message: 'This order has already been completed.',
+        currentUser: req.session.user
+      });
+    }
+
+    // Update order status to Completed
+    await ordersCollection.updateOne(
+      { OrderID: orderId },
+      { $set: { FulfillmentStatus: 'Completed', fulfillmentStatus: 'Completed' } }
+    );
+
+    await client.close();
+
+    // Render success page
+    res.render('staff/order-complete', {
+      title: 'Order Completed Successfully',
+      layout: false,
+      orderId: orderId,
+      order: { ...order, FulfillmentStatus: 'Completed' },
+      message: `Order ${orderId} has been marked as completed.`,
+      currentUser: req.session.user
+    });
+
+  } catch (error) {
+    console.error('Error completing order:', error);
+    res.status(500).render('error', {
+      title: 'Server Error',
+      message: 'Failed to complete the order.',
+      status: 500
     });
   }
 });
@@ -483,12 +552,28 @@ router.patch('/orders/:orderId/fulfillment', async (req, res) => {
     const db = client.db('blessingscafe');
     const ordersCollection = db.collection('Orders');
 
+    // Get current order before update
+    const currentOrder = await ordersCollection.findOne({ OrderID: orderId });
+
     const result = await ordersCollection.updateOne(
       { OrderID: orderId },
       { $set: { FulfillmentStatus, fulfillmentStatus: FulfillmentStatus } }
     );
 
-
+    // If status is being set to 'Cancelled', rollback inventory
+    if (FulfillmentStatus === 'Cancelled' && currentOrder && currentOrder.Cart && Array.isArray(currentOrder.Cart) && currentOrder.Cart.length > 0) {
+      try {
+        const InventoryManager = require('../utils/inventoryManager');
+        const rollbackResult = await InventoryManager.rollbackIngredients(currentOrder.Cart);
+        if (rollbackResult.success) {
+          console.log(`✅ Stock rollback completed for cancelled order ${orderId}:`, rollbackResult.rollbacks);
+        } else {
+          console.error('❌ Stock rollback failed:', rollbackResult.error);
+        }
+      } catch (rollbackError) {
+        console.error('❌ Error during stock rollback:', rollbackError);
+      }
+    }
 
     await client.close();
 
@@ -533,29 +618,72 @@ router.patch('/orders/:orderId/payment-status', async (req, res) => {
 router.patch('/orders/:orderId/cancel', async (req, res) => {
   try {
     const { orderId } = req.params;
-    
+
     const client = await MongoClient.connect(uri);
     const db = client.db('blessingscafe');
     const ordersCollection = db.collection('Orders');
-    
+
+    // First, get the order data before updating (needed for stock rollback)
+    const order = await ordersCollection.findOne({ OrderID: orderId });
+    if (!order) {
+      await client.close();
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    // Check if order was already cancelled to prevent double rollback
+    if (order.PaymentStatus === 'Cancelled' || order.FulfillmentStatus === 'Cancelled') {
+      console.warn(`Order ${orderId} already cancelled, skipping stock rollback`);
+      const result = await ordersCollection.updateOne(
+        { OrderID: orderId },
+        {
+          $set: {
+            PaymentStatus: 'Cancelled',
+            paymentStatus: 'Cancelled',
+            FulfillmentStatus: 'Cancelled',
+            fulfillmentStatus: 'Cancelled'
+          }
+        }
+      );
+      await client.close();
+      return res.json({ success: true, message: 'Order cancelled successfully' });
+    }
+
+    // Rollback inventory stock before updating order status
+    if (order.Cart && Array.isArray(order.Cart) && order.Cart.length > 0) {
+      try {
+        const InventoryManager = require('../utils/inventoryManager');
+        const rollbackResult = await InventoryManager.rollbackIngredients(order.Cart);
+        if (rollbackResult.success) {
+          console.log(`✅ Stock rollback completed for cancelled order ${orderId}:`, rollbackResult.rollbacks);
+        } else {
+          console.error('❌ Stock rollback failed:', rollbackResult.error);
+          // Continue with order cancellation even if rollback fails
+        }
+      } catch (rollbackError) {
+        console.error('❌ Error during stock rollback:', rollbackError);
+        // Continue with order cancellation even if rollback fails
+      }
+    }
+
+    // Now update the order status
     const result = await ordersCollection.updateOne(
       { OrderID: orderId },
-      { 
-        $set: { 
+      {
+        $set: {
           PaymentStatus: 'Cancelled',
           paymentStatus: 'Cancelled',
           FulfillmentStatus: 'Cancelled',
           fulfillmentStatus: 'Cancelled'
-        } 
+        }
       }
     );
-    
+
     await client.close();
-    
+
     if (result.matchedCount === 0) {
       return res.status(404).json({ error: 'Order not found' });
     }
-    
+
     res.json({ success: true, message: 'Order cancelled successfully' });
   } catch (error) {
     console.error('Error cancelling order:', error);
@@ -723,65 +851,7 @@ router.get('/messages', async (req, res) => {
   }
 });
 
-router.get('/complete-order/:orderId', async (req, res) => {
-  try {
-    const { orderId } = req.params;
 
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const ordersCollection = db.collection('Orders');
-
-    // Get current order status
-    const order = await ordersCollection.findOne({ OrderID: orderId });
-    if (!order) {
-      await client.close();
-      return res.status(404).render('error', {
-        title: 'Order Not Found',
-        message: 'The order you\'re trying to complete was not found.',
-        status: 404
-      });
-    }
-
-    // Only allow completion if not already completed
-    if (order.FulfillmentStatus === 'Completed') {
-      await client.close();
-      return res.render('staff/order-complete', {
-        title: 'Order Already Completed',
-        layout: 'staff/layout',
-        orderId: orderId,
-        order: order,
-        message: 'This order has already been completed.',
-        currentUser: req.session.user
-      });
-    }
-
-    // Update order status to Completed
-    await ordersCollection.updateOne(
-      { OrderID: orderId },
-      { $set: { FulfillmentStatus: 'Completed', fulfillmentStatus: 'Completed' } }
-    );
-
-    await client.close();
-
-    // Render success page
-    res.render('staff/order-complete', {
-      title: 'Order Completed Successfully',
-      layout: 'staff/layout',
-      orderId: orderId,
-      order: { ...order, FulfillmentStatus: 'Completed' },
-      message: `Order ${orderId} has been marked as completed.`,
-      currentUser: req.session.user
-    });
-
-  } catch (error) {
-    console.error('Error completing order:', error);
-    res.status(500).render('error', {
-      title: 'Server Error',
-      message: 'Failed to complete the order.',
-      status: 500
-    });
-  }
-});
 
 // API Routes for messaging
 // Get conversations for current user

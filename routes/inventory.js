@@ -174,6 +174,52 @@ router.post('/restock', async (req, res) => {
   }
 });
 
+// Rollback inventory for cancelled order
+router.post('/rollback', async (req, res) => {
+  try {
+    const { orderItems, orderId } = req.body;
+
+    if (!orderItems || !Array.isArray(orderItems)) {
+      return res.status(400).json({
+        error: 'orderItems array is required'
+      });
+    }
+
+    console.log(`[INVENTORY ROLLBACK] Starting rollback for order ${orderId || 'unknown'}`);
+
+    const result = await InventoryManager.rollbackIngredients(orderItems);
+
+    if (result.success) {
+      await logInventoryTransaction(
+        orderId || `rollback-${Date.now()}`,
+        'rollback',
+        {
+          success: true,
+          itemCount: orderItems.length,
+          rollbackCount: result.rollbacks.length
+        }
+      );
+
+      res.json({
+        success: true,
+        message: `Successfully rolled back inventory for ${orderItems.length} items`,
+        rollbacks: result.rollbacks
+      });
+    } else {
+      res.status(500).json({
+        error: 'Failed to rollback inventory',
+        details: result.error
+      });
+    }
+
+  } catch (error) {
+    console.error('Error in rollback endpoint:', error);
+    res.status(500).json({
+      error: 'Internal server error during rollback'
+    });
+  }
+});
+
 // Get low stock alerts (items below threshold)
 router.get('/alerts', async (req, res) => {
   try {
@@ -190,16 +236,16 @@ router.get('/alerts', async (req, res) => {
     const ADDON_THRESHOLD = 5; // pieces
 
     const lowIngredients = await db.collection('Ingredients')
-      .find({ 
+      .find({
         Amount: { $lt: INGREDIENT_THRESHOLD },
-        isEnabled: true 
+        isEnabled: true
       })
       .toArray();
 
     const lowAddons = await db.collection('Add-ons')
-      .find({ 
+      .find({
         Quantity: { $lt: ADDON_THRESHOLD },
-        isEnabled: true 
+        isEnabled: true
       })
       .toArray();
 

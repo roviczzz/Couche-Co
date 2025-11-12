@@ -36,6 +36,7 @@ function scrollToMenu() {
             <% } %>
             <div class="menu-gallery-container">
                 <% categorizedItems[cat].forEach(item => { %>
+                <% if (item.isEnabled !== false) { %>
                 <div class="gallery-item" onclick="window.location.href='/product/<%= item.ProductID %>'" style="cursor: pointer;">
                     <div class="gallery-image">
                         <% if (item.imagelink && item.imagelink.length > 0) { %>
@@ -57,6 +58,7 @@ function scrollToMenu() {
                         <% } %>
                     </div>
                 </div>
+                <% } %>
                 <% }); %>
             </div>
         <% } %>
