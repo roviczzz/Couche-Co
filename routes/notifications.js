@@ -31,8 +31,9 @@ router.get('/api/notifications', async (req, res) => {
     const limit = parseInt(req.query.limit) || 50;
     
     console.log('📢 Fetching notifications - Role:', userRole, 'Limit:', limit);
+    console.log('🔍 req.db type:', typeof req.db, 'value:', req.db);
     
-    const notifications = await getNotifications(userRole, limit);
+    const notifications = await getNotifications(req.db, userRole, limit);
     
     console.log('📢 Found', notifications.length, 'notifications for role:', userRole);
     
@@ -59,7 +60,7 @@ router.get('/api/notifications/unread-count', async (req, res) => {
     
     console.log('📊 Fetching unread count for role:', userRole);
     
-    const count = await getUnreadNotificationCount(userRole);
+    const count = await getUnreadNotificationCount(req.db, userRole);
     
     console.log('📊 Unread count:', count, 'for role:', userRole);
     
@@ -82,7 +83,7 @@ router.get('/api/notifications/unread-count', async (req, res) => {
 router.post('/api/notifications/:id/read', async (req, res) => {
   try {
     const notificationId = req.params.id;
-    await markNotificationAsRead(notificationId);
+    await markNotificationAsRead(req.db, notificationId);
     
     res.json({
       success: true,
@@ -101,7 +102,7 @@ router.post('/api/notifications/:id/read', async (req, res) => {
 router.post('/api/notifications/mark-all-read', async (req, res) => {
   try {
     const userRole = getUserRole(req);
-    const result = await markAllNotificationsAsRead(userRole);
+    const result = await markAllNotificationsAsRead(req.db, userRole);
     
     res.json({
       success: true,
@@ -121,7 +122,7 @@ router.post('/api/notifications/mark-all-read', async (req, res) => {
 router.delete('/api/notifications/:id', async (req, res) => {
   try {
     const notificationId = req.params.id;
-    await deleteNotification(notificationId);
+    await deleteNotification(req.db, notificationId);
     
     res.json({
       success: true,

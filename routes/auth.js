@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { MongoClient, ObjectId } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { check, validationResult } = require('express-validator');
 const bcrypt = require('bcrypt');
 
-const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+
 const SALT_ROUNDS = 12;
 
 // Generate staff ID based on role and user ID
@@ -72,13 +72,8 @@ router.post('/login',
       });
     }
 
-    let client;
     try {
-      client = new MongoClient(uri);
-      await client.connect();
-      const db = client.db('blessingscafe');
-
-      const user = await db.collection('users').findOne({ email: req.body.email });
+      const user = await req.db.collection('users').findOne({ email: req.body.email });
 
       if (!user) {
         return res.render('login', {
@@ -102,7 +97,7 @@ router.post('/login',
       }
 
       // Update last login time in database
-      await db.collection('users').updateOne(
+      await req.db.collection('users').updateOne(
         { _id: user._id },
         { $set: { lastLogin: new Date() } }
       );
@@ -131,10 +126,6 @@ router.post('/login',
         error: 'An error occurred during login',
         formData: req.body
       });
-    } finally {
-      if (client) {
-        await client.close();
-      }
     }
   }
 );
@@ -193,14 +184,9 @@ router.post('/register',
       });
     }
 
-    let client;
     try {
-      client = new MongoClient(uri);
-      await client.connect();
-      const db = client.db('blessingscafe');
-
       // Check if email already exists
-      const existingUser = await db.collection('users').findOne({ email: req.body.email });
+      const existingUser = await req.db.collection('users').findOne({ email: req.body.email });
       if (existingUser) {
         return res.render('register', {
           title: 'Sign Up | Blessings Cafe',
@@ -229,7 +215,7 @@ router.post('/register',
       };
 
       // Insert user
-      await db.collection('users').insertOne(newUser);
+      await req.db.collection('users').insertOne(newUser);
 
       // Show success message before redirecting
       res.render('register', {
@@ -248,10 +234,6 @@ router.post('/register',
         error: 'Registration failed. Please try again.',
         formData: req.body
       });
-    } finally {
-      if (client) {
-        await client.close();
-      }
     }
   }
 );
@@ -295,12 +277,8 @@ router.post('/account/login',
     const SALT_ROUNDS = 12;
     console.log(`📅 Login attempt at ${new Date().toISOString()} for user: ${req.body.Username}`);
 
-    let client;
     try {
-      client = new MongoClient(uri);
-      await client.connect();
-      const db = client.db('blessingscafe');
-      const users = db.collection('users');
+      const users = req.db.collection('users');
 
       const user = await users.findOne({
         username: req.body.Username
@@ -378,10 +356,6 @@ router.post('/account/login',
     } catch (err) {
       console.error('❌ Login error:', err);
       res.status(500).send('Internal Server Error');
-    } finally {
-      if (client) {
-        await client.close();
-      }
     }
   }
 );
@@ -417,13 +391,8 @@ router.post('/forgot-password',
       });
     }
 
-    let client;
     try {
-      client = new MongoClient(uri);
-      await client.connect();
-      const db = client.db('blessingscafe');
-
-      const user = await db.collection('users').findOne({ email: req.body.email });
+      const user = await req.db.collection('users').findOne({ email: req.body.email });
       if (!user) {
         return res.render('forgot-password', {
           layout: false,
@@ -449,10 +418,6 @@ router.post('/forgot-password',
         error: 'Server error. Please try again.',
         formData: req.body
       });
-    } finally {
-      if (client) {
-        await client.close();
-      }
     }
   }
 );
@@ -482,12 +447,8 @@ router.post('/unified/login',
     const { Username, Password } = req.body;
     console.log(`📅 Login attempt at ${new Date().toISOString()} for user: ${Username}`);
 
-    let client;
     try {
-      client = new MongoClient(uri);
-      await client.connect();
-      const db = client.db('blessingscafe');
-      const users = db.collection('users');
+      const users = req.db.collection('users');
 
       const user = await users.findOne({
         username: Username
@@ -580,10 +541,6 @@ router.post('/unified/login',
         error: 'An error occurred during login',
         formData: { Username }
       });
-    } finally {
-      if (client) {
-        await client.close();
-      }
     }
   }
 );

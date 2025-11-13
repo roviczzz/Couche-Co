@@ -4,7 +4,7 @@ const { MongoClient, ObjectId } = require('mongodb');
 const { check, validationResult } = require('express-validator');
 const bcrypt = require('bcrypt');
 
-const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+
 const SALT_ROUNDS = 12;
 
 // Generate staff ID based on role and user ID
@@ -78,11 +78,8 @@ router.post('/login',
         });
       }
 
-      let client;
       try {
-        client = await MongoClient.connect(uri);
-        const db = client.db('blessingscafe');
-        const users = db.collection('users');
+        const users = req.db.collection('users');
         const user = await users.findOne({ email: req.body.email });
 
         if (!user) {
@@ -134,7 +131,6 @@ router.post('/login',
         });
       } finally {
         if (client) {
-          await client.close();
         }
       }
     }
@@ -147,14 +143,11 @@ router.use(nocache);
 // User home route
 router.get('/home', async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const menuCollection = db.collection('Menu');
+    // Using shared DB connection from req.db
+    const menuCollection = req.db.collection('Menu');
 
     // Get all menu items for gallery display
     const allItems = await menuCollection.find().toArray();
-
-    await client.close();
 
     // Categorize items
     const categorizedItems = {};
@@ -188,10 +181,9 @@ router.get('/home', async (req, res) => {
 // User profile route
 router.get('/profile', async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const ordersCollection = db.collection('Orders');
-    const usersCollection = db.collection('users');
+    // Using shared DB connection from req.db
+    const ordersCollection = req.db.collection('Orders');
+    const usersCollection = req.db.collection('users');
 
     // Fetch user's full profile from database
     const userDoc = await usersCollection.findOne({ _id: new ObjectId(req.session.user._id) });
@@ -208,8 +200,6 @@ router.get('/profile', async (req, res) => {
       })
       .sort({ CreationTime: -1 })
       .toArray();
-
-    await client.close();
 
     // Check if request expects JSON (AJAX request)
     if (req.headers.accept && req.headers.accept.includes('application/json')) {
@@ -244,9 +234,8 @@ router.post('/profile', async (req, res) => {
   try {
     const { name, email, phone, city, address } = req.body;
 
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const users = db.collection('users');
+    // Using shared DB connection from req.db
+    const users = req.db.collection('users');
 
     const updateData = {
       fullname: name,
@@ -259,7 +248,6 @@ router.post('/profile', async (req, res) => {
     if (email && email !== req.session.user.email) {
       const existingUser = await users.findOne({ email: email });
       if (existingUser) {
-        await client.close();
         return res.status(400).json({
           success: false,
           message: 'Email address is already in use',
@@ -278,8 +266,6 @@ router.post('/profile', async (req, res) => {
         }
       }
     );
-
-    await client.close();
 
     if (updateResult.modifiedCount === 1) {
       // Update session data
@@ -311,11 +297,9 @@ router.post('/profile', async (req, res) => {
 // Menu route
 router.get('/menu', async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const menuCollection = db.collection('Menu');
+    // Using shared DB connection from req.db
+    const menuCollection = req.db.collection('Menu');
     const menuItems = await menuCollection.find().toArray();
-    await client.close();
     res.render('menu', { menuItems, title: 'Menu | Blessings Cafe', user: req.session.user });
   } catch (err) {
     res.status(500).send('Internal Server Error');
@@ -329,8 +313,8 @@ router.get('/products', async (req, res) => {
     await client.connect();
     const db = client.db('blessingscafe');
 
-    const productCollection = db.collection('Menu');
-    const ingredientCollection = db.collection('Ingredients');
+    const productCollection = req.db.collection('Menu');
+    const ingredientCollection = req.db.collection('Ingredients');
 
     const products = await productCollection.find().toArray();
 
@@ -351,8 +335,6 @@ router.get('/products', async (req, res) => {
       Ingredients: (p.Ingredients || []).map(id => ingredientMap[id] || id)
     }));
 
-    await client.close();
-
     res.render('products', {
       products: productsWithIngredientNames,
       title: 'Products | Blessings Cafe',
@@ -370,21 +352,17 @@ router.post('/toggle-availability/:id', async (req, res) => {
   const isEnabled = req.body.isEnabled === true || req.body.isEnabled === 'true';
 
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
-    const product = await db.collection('Menu').findOne({ _id: new ObjectId(productId) });
+    const product = await req.db.collection('Menu').findOne({ _id: new ObjectId(productId) });
     if (!product) {
-      await client.close();
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
 
-    const result = await db.collection('Menu').updateOne(
+    const result = await req.db.collection('Menu').updateOne(
         { _id: new ObjectId(productId) },
         { $set: { isEnabled: isEnabled } }
     );
-
-    await client.close();
 
     if (result.modifiedCount === 0) {
       return res.status(500).json({ success: false, message: 'No change made to product' });
@@ -453,10 +431,8 @@ router.post('/products/add', async (req, res) => {
   }
 
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    await db.collection('Menu').insertOne(productData);
-    await client.close();
+    // Using shared DB connection from req.db
+    await req.db.collection('Menu').insertOne(productData);
     req.flash('success_msg', `${Name} has been added to the menu`);
     res.redirect('/products');
   } catch (err) {
@@ -485,9 +461,8 @@ router.post('/products/edit/:id', async (req, res) => {
   } = req.body;
 
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const productCollection = db.collection('Menu');
+    // Using shared DB connection from req.db
+    const productCollection = req.db.collection('Menu');
 
     const updateFields = {
       Name,
@@ -512,8 +487,6 @@ router.post('/products/edit/:id', async (req, res) => {
         { _id: new ObjectId(id) },
         { $set: updateFields }
     );
-
-    await client.close();
     req.flash('success_msg', `${Name} has been updated`);
     res.redirect('/products');
   } catch (err) {
@@ -526,15 +499,13 @@ router.post('/products/edit/:id', async (req, res) => {
 router.get('/edit-product/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const productCollection = db.collection('Menu');
-    const ingredientsCollection = db.collection('Ingredients');
+    // Using shared DB connection from req.db
+    const productCollection = req.db.collection('Menu');
+    const ingredientsCollection = req.db.collection('Ingredients');
 
     const product = await productCollection.findOne({ _id: new ObjectId(id) });
 
     if (!product) {
-      await client.close();
       return res.status(404).send('Product not found');
     }
 
@@ -544,8 +515,6 @@ router.get('/edit-product/:id', async (req, res) => {
           .find({ IngredientID: { $in: product.Ingredients } })
           .toArray();
     }
-
-    await client.close();
 
     res.render('edit-product', {
       product,
@@ -561,10 +530,9 @@ router.get('/edit-product/:id', async (req, res) => {
 router.get('/api/products/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const productCollection = db.collection('Menu');
-    const ingredientsCollection = db.collection('Ingredients');
+    // Using shared DB connection from req.db
+    const productCollection = req.db.collection('Menu');
+    const ingredientsCollection = req.db.collection('Ingredients');
 
     const product = await productCollection.findOne({ _id: new ObjectId(id) });
     if (!product) return res.status(404).send('Not found');
@@ -580,8 +548,6 @@ router.get('/api/products/:id', async (req, res) => {
       ...product,
       IngredientsDetails: ingredientDetails
     });
-
-    client.close();
   } catch (err) {
     console.error(err);
     res.status(500).send('Error fetching product');
@@ -593,11 +559,8 @@ router.post('/delete-product/:id', async (req, res) => {
   const productId = req.params.id;
 
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const result = await db.collection('Menu').deleteOne({ _id: new ObjectId(productId) });
-
-    await client.close();
+    // Using shared DB connection from req.db
+    const result = await req.db.collection('Menu').deleteOne({ _id: new ObjectId(productId) });
 
     if (result.deletedCount === 1) {
       req.flash('success_msg', `Product has been deleted`);
@@ -666,14 +629,12 @@ router.post('/change-password', async (req, res) => {
       });
     }
 
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const users = db.collection('users');
+    // Using shared DB connection from req.db
+    const users = req.db.collection('users');
 
     const user = await users.findOne({ _id: new ObjectId(req.session.user._id) });
 
     if (!user) {
-      await client.close();
       console.log(`❌ Password change failed - User not found: ${req.session.user.username}`);
       return res.status(404).json({
         success: false,
@@ -692,7 +653,6 @@ router.post('/change-password', async (req, res) => {
     }
 
     if (!currentPasswordValid) {
-      await client.close();
       console.log(`❌ Password change failed - Invalid current password for user: ${req.session.user.username}`);
       return res.status(400).json({
         success: false,
@@ -716,8 +676,6 @@ router.post('/change-password', async (req, res) => {
           }
         }
     );
-
-    await client.close();
 
     if (updateResult.modifiedCount === 1) {
       console.log(`✅ Password changed successfully for user: ${req.session.user.username} at ${new Date().toISOString()}`);

@@ -1,17 +1,13 @@
-const { MongoClient } = require('mongodb');
+const dbConnection = require('./db');
 const InventoryManager = require('./inventoryManager');
 
-const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+
 
 class InventoryMonitor {
   
   static async generateDailyReport() {
-    let client;
-    
-    try {
-      client = new MongoClient(uri);
-      await client.connect();
-      const db = client.db('blessingscafe');
+        try {
+      const db = dbConnection.getDb();
       
       const today = new Date();
       const startOfDay = new Date(today.setHours(0, 0, 0, 0));
@@ -70,20 +66,12 @@ class InventoryMonitor {
     } catch (error) {
       console.error('Error generating daily report:', error);
       return null;
-    } finally {
-      if (client) {
-        await client.close();
-      }
     }
   }
   
   static async checkForCriticalStock() {
-    let client;
-    
-    try {
-      client = new MongoClient(uri);
-      await client.connect();
-      const db = client.db('blessingscafe');
+        try {
+      const db = dbConnection.getDb();
       
       const criticalIngredients = await db.collection('Ingredients').find({
         Amount: { $lt: 50 },
@@ -133,20 +121,12 @@ class InventoryMonitor {
     } catch (error) {
       console.error('Error checking critical stock:', error);
       return [];
-    } finally {
-      if (client) {
-        await client.close();
-      }
     }
   }
   
   static async simulateRestockRecommendations() {
-    let client;
-    
-    try {
-      client = new MongoClient(uri);
-      await client.connect();
-      const db = client.db('blessingscafe');
+        try {
+      const db = dbConnection.getDb();
       
       // Get usage patterns from recent orders
       const lastWeek = new Date();
@@ -207,10 +187,6 @@ class InventoryMonitor {
     } catch (error) {
       console.error('Error analyzing usage patterns:', error);
       return null;
-    } finally {
-      if (client) {
-        await client.close();
-      }
     }
   }
 }

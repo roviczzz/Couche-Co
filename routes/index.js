@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { MongoClient } = require('mongodb');
-const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+
 
 // Helper functions
 function isLoggedIn(req, res, next) {
@@ -21,13 +21,11 @@ function nocache(req, res, next) {
 // Home page
 router.get('/', async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const menuCollection = db.collection('Menu');
+    // Using shared DB connection from req.db
+    const menuCollection = req.db.collection('Menu');
 
     // Always fetch fresh menu items for real-time availability checking
     const allItems = await menuCollection.find().toArray();
-    await client.close();
 
     // Filter available items in real-time
     const InventoryManager = require('../utils/inventoryManager');
@@ -137,11 +135,9 @@ router.get('/dashboard', isLoggedIn, nocache, (req, res) => {
 // Menu route (public for guests)
 router.get('/menu', async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const menuCollection = db.collection('Menu');
+    // Using shared DB connection from req.db
+    const menuCollection = req.db.collection('Menu');
     let menuItems = await menuCollection.find().toArray();
-    await client.close();
 
     // Filter by search query if provided
     const searchQuery = req.query.search;
@@ -176,9 +172,8 @@ router.get('/product/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { ObjectId } = require('mongodb');
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const menuCollection = db.collection('Menu');
+    // Using shared DB connection from req.db
+    const menuCollection = req.db.collection('Menu');
 
     const product = await menuCollection.findOne({
       $or: [
@@ -188,7 +183,6 @@ router.get('/product/:id', async (req, res) => {
     });
 
     if (!product) {
-      await client.close();
       return res.status(404).send('Product not found');
     }
 
@@ -196,14 +190,12 @@ router.get('/product/:id', async (req, res) => {
     const now = Date.now();
     if (!cachedAddons || !cachedIngredients || (now - cacheTimestamp) > CACHE_DURATION) {
       [cachedAddons, cachedIngredients] = await Promise.all([
-        db.collection('Add-ons').find({ isEnabled: true }).toArray(),
-        db.collection('Ingredients').find({ isEnabled: true }).toArray()
+        req.db.collection('Add-ons').find({ isEnabled: true }).toArray(),
+        req.db.collection('Ingredients').find({ isEnabled: true }).toArray()
       ]);
       cacheTimestamp = now;
     } else {
     }
-
-    await client.close();
 
     res.render('product', {
       product,
@@ -231,13 +223,11 @@ router.get('/cart', (req, res) => {
 // Order success page
 router.get('/order/success', async (req, res) => {
   const { orderId } = req.query;
-  const client = await MongoClient.connect(uri);
-  const db = client.db('blessingscafe');
-  const ordersCollection = db.collection('Orders');
+  // Using shared DB connection from req.db
+  const ordersCollection = req.db.collection('Orders');
 
   try {
     const order = await ordersCollection.findOne({ OrderID: orderId });
-    await client.close();
 
     if (!order) {
       return res.status(404).render('error', {
@@ -276,7 +266,6 @@ router.get('/order/success', async (req, res) => {
     });
   } catch (err) {
     console.error('Order success page error:', err);
-    await client.close();
     res.status(500).render('error', {
       title: 'Server Error',
       message: 'Failed to load order details',
@@ -308,11 +297,9 @@ router.get('/checkout', nocache, async (req, res) => {
   if (req.session.user) {
     // Load from database for logged-in users
     try {
-      const client = await MongoClient.connect(uri);
-      const db = client.db('blessingscafe');
-      const cartDoc = await db.collection('UserCart').findOne({ userId: new ObjectId(req.session.user._id) });
+      // Using shared DB connection from req.db
+      const cartDoc = await req.db.collection('UserCart').findOne({ userId: new ObjectId(req.session.user._id) });
       orderItems = (cartDoc && cartDoc.cart) ? cartDoc.cart : [];
-      await client.close();
     } catch (err) {
       console.error('Error loading user cart:', err);
     }
@@ -333,15 +320,13 @@ router.get('/products', isLoggedIn, nocache, async (req, res) => {
     const client = new MongoClient(uri);
     await client.connect();
     const db = client.db('blessingscafe');
-    const products = await db.collection('Menu').find().toArray();
+    const products = await req.db.collection('Menu').find().toArray();
 
     res.render('products', {
       title: 'Products | Blessings Cafe',
       user: req.session.user,
       products
     });
-
-    await client.close();
   } catch (error) {
     console.error('Products error:', error);
     res.status(500).render('error', {

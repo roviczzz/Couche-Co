@@ -1,10 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { MongoClient, ObjectId } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { checkInventoryAvailability, deductInventoryAfterPayment } = require('../middleware/inventoryMiddleware');
 const InventoryManager = require('../utils/inventoryManager');
-
-const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
 
 console.log('API routes module loaded');
 router.get('/', (req, res) => {
@@ -24,12 +22,10 @@ function isLoggedIn(req, res, next) {
 
 router.get('/addons', async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-
-    const addOns = await db.collection('Add-ons').find({ isEnabled: true }).toArray();
-
-    await client.close();
+    const addOns = await req.db.collection('Add-ons')
+      .find({ isEnabled: true })
+      .toArray();
+    
     res.json(addOns);
   } catch (err) {
     console.error('Error fetching add-ons:', err);
@@ -94,23 +90,25 @@ router.get('/check-product-availability/:productId', async (req, res) => {
 
 router.get('/orders/preparing-customers', async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri)
-    const db = client.db('blessingscafe')
-    const docs = await db.collection('Orders').find({ FulfillmentStatus: "Preparing" }).project({ Customer: 1 }).toArray()
-    await client.close()
-    res.json(docs.map(d => d.Customer))
+    const docs = await req.db.collection('Orders')
+      .find({ FulfillmentStatus: "Preparing" })
+      .project({ Customer: 1 })
+      .toArray();
+    
+    res.json(docs.map(d => d.Customer));
   } catch (err) {
-    res.status(500).json([])
+    res.status(500).json([]);
   }
-})
+});
 
 // API endpoint for fetching all orders (for real-time polling)
 router.get('/orders', async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const orders = await db.collection('Orders').find().sort({ _id: -1 }).toArray();
-    await client.close();
+    const orders = await req.db.collection('Orders')
+      .find()
+      .sort({ _id: -1 })
+      .toArray();
+    
     res.json(orders);
   } catch (err) {
     console.error('❌ Error fetching orders:', err);
@@ -212,10 +210,8 @@ router.get('/xendit/check-payment-by-order/:OrderID', async (req, res) => {
     console.log('Checking payment status for OrderID:', OrderID)
 
     // Get the invoice ID from the order
-    const client = await MongoClient.connect(uri)
-    const db = client.db('blessingscafe')
-    const order = await db.collection('Orders').findOne({ OrderID: OrderID })
-    await client.close()
+    // Using shared DB connection from req.db
+    const order = await req.db.collection('Orders').findOne({ OrderID: OrderID })
 
     if (!order || !order.XenditPaymentID) {
       return res.status(400).json({
@@ -296,9 +292,8 @@ router.post('/xendit/webhook', express.raw({type: 'application/json'}), (req, re
 // Helper function to update order after payment
 async function updateOrderAfterPayment(externalId) {
   try {
-    const client = await MongoClient.connect(uri)
-    const db = client.db('blessingscafe')
-    const result = await db.collection('Orders').updateOne(
+    // Using shared DB connection from req.db
+    const result = await req.db.collection('Orders').updateOne(
       { OrderID: externalId },
       {
         $set: {
@@ -308,7 +303,6 @@ async function updateOrderAfterPayment(externalId) {
       }
     )
     console.log(`Updated order ${externalId} payment status: ${result.matchedCount} matched`)
-    await client.close()
   } catch (error) {
     console.error('Error updating order after payment:', error)
   }
@@ -322,15 +316,20 @@ router.post('/orders', checkInventoryAvailability, async (req, res) => {
       return res.status(400).json({ success: false, error: 'Missing required order fields' });
     }
 
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
-    // Inventory check completed but status not saved to order data
-    if (req.inventoryCheckFailed) {
+    // Add inventory check status to order
+    if (req.inventoryChecked) {
+      orderData.InventoryChecked = true;
+      orderData.InventoryCheckedAt = new Date();
+    } else if (req.inventoryCheckFailed) {
+      orderData.InventoryCheckFailed = true;
+      orderData.InventoryCheckError = req.inventoryError;
+      orderData.InventoryCheckAttemptedAt = new Date();
       console.warn(`Order ${orderData.OrderID} created without inventory validation due to: ${req.inventoryError}`);
     }
 
-    await db.collection('Orders').insertOne(orderData);
+    await req.db.collection('Orders').insertOne(orderData);
 
     // For cash orders, deduct inventory immediately since payment is already received
     if (orderData.PaymentMethod === 'cash') {
@@ -340,7 +339,7 @@ router.post('/orders', checkInventoryAvailability, async (req, res) => {
       if (!inventoryResult.success) {
         console.error(`[ORDER ERROR] Failed to deduct inventory for cash order ${orderData.OrderID}:`, inventoryResult.error);
         // Log the error but don't fail the order creation for cash orders
-        await db.collection('Orders').updateOne(
+        await req.db.collection('Orders').updateOne(
           { OrderID: orderData.OrderID },
           {
             $set: {
@@ -351,7 +350,7 @@ router.post('/orders', checkInventoryAvailability, async (req, res) => {
         );
       } else {
         // Log successful inventory deduction
-        await db.collection('Orders').updateOne(
+        await req.db.collection('Orders').updateOne(
           { OrderID: orderData.OrderID },
           {
             $set: {
@@ -377,8 +376,6 @@ router.post('/orders', checkInventoryAvailability, async (req, res) => {
       console.error('Error creating new order notification:', notifError);
     }
 
-    await client.close();
-
     console.log(`Order created: ${orderData.OrderID} (Inventory ${req.inventoryChecked ? 'validated' : 'check failed'})`);
     res.json({ success: true, orderId: orderData.OrderID });
   } catch (err) {
@@ -393,9 +390,8 @@ router.post('/orders/update-payment-status', async (req, res) => {
     return res.status(400).json({ success: false, error: 'Missing paymentId, invoiceId or status.' });
   }
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const orders = db.collection('Orders');
+    // Using shared DB connection from req.db
+    const orders = req.db.collection('Orders');
     
     // Build update object
     const updateFields = { 
@@ -415,7 +411,6 @@ router.post('/orders/update-payment-status', async (req, res) => {
     );
 
     if (result.matchedCount === 0) {
-      await client.close();
       return res.status(404).json({ success: false, error: 'Order not found.' });
     }
 
@@ -455,8 +450,6 @@ router.post('/orders/update-payment-status', async (req, res) => {
         }
       }
     }
-
-    await client.close();
     res.json({ success: true });
   } catch (err) {
     console.error('Error updating payment status:', err);
@@ -478,9 +471,8 @@ router.patch('/orders/:OrderID/fulfillment', async (req, res) => {
   }
 
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const ordersCollection = db.collection('Orders');
+    // Using shared DB connection from req.db
+    const ordersCollection = req.db.collection('Orders');
 
     const filter = { OrderID: OrderID };
 
@@ -507,7 +499,22 @@ router.patch('/orders/:OrderID/fulfillment', async (req, res) => {
       }
     }
 
-    await client.close();
+    // Notify chatbot if this is a chatbot order
+    if (updatedOrder && updatedOrder.Source === 'Chatbot') {
+      try {
+        const { notifyOrderStatusChange } = require('../utils/chatbotNotifier');
+        const notificationResult = await notifyOrderStatusChange(updatedOrder, FulfillmentStatus);
+        
+        if (notificationResult.success) {
+          console.log(`🔔 Chatbot notification sent for order ${OrderID}`);
+        } else if (!notificationResult.skipped) {
+          console.warn(`⚠️ Chatbot notification failed for order ${OrderID}:`, notificationResult.message);
+        }
+      } catch (notifyError) {
+        console.error('❌ Error sending chatbot notification:', notifyError);
+        // Don't fail the request if notification fails
+      }
+    }
 
     if (!updatedOrder) {
       return res.status(404).json({ error: `Order with ID ${OrderID} not found` });
@@ -537,17 +544,14 @@ router.patch('/orders/:OrderID/payment-status', async (req, res) => {
   }
 
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const ordersCollection = db.collection('Orders');
+    // Using shared DB connection from req.db
+    const ordersCollection = req.db.collection('Orders');
 
     const filter = { OrderID: OrderID };
     const updateDoc = { $set: { PaymentStatus } };
 
     const updateResult = await ordersCollection.updateOne(filter, updateDoc);
     const updatedOrder = await ordersCollection.findOne(filter);
-
-    await client.close();
 
     if (!updatedOrder) {
       return res.status(404).json({ error: `Order with ID ${OrderID} not found` });
@@ -599,9 +603,8 @@ router.patch('/orders/:OrderID/restore', async (req, res) => {
   }
 
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const ordersCollection = db.collection('Orders');
+    // Using shared DB connection from req.db
+    const ordersCollection = req.db.collection('Orders');
 
     const filter = { OrderID: OrderID };
     const updateDoc = {
@@ -613,8 +616,6 @@ router.patch('/orders/:OrderID/restore', async (req, res) => {
 
     const updateResult = await ordersCollection.updateOne(filter, updateDoc);
     const updatedOrder = await ordersCollection.findOne(filter);
-
-    await client.close();
 
     if (!updatedOrder) {
       return res.status(404).json({ error: `Order with ID ${OrderID} not found` });
@@ -634,14 +635,12 @@ router.patch('/orders/:OrderID/restore', async (req, res) => {
 router.get('/orders/:orderId/status', async (req, res) => {
   try {
     const { orderId } = req.params;
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const ordersCollection = db.collection('Orders');
+    // Using shared DB connection from req.db
+    const ordersCollection = req.db.collection('Orders');
 
     const order = await ordersCollection.findOne({ OrderID: orderId });
 
     if (!order) {
-      await client.close();
       return res.status(404).json({ error: 'Order not found' });
     }
 
@@ -670,8 +669,6 @@ router.get('/orders/:orderId/status', async (req, res) => {
         statusText = 'Preparing your order';
     }
 
-    await client.close();
-
     res.json({
       FulfillmentStatus: order.FulfillmentStatus,
       PaymentStatus: order.PaymentStatus,
@@ -688,10 +685,8 @@ router.get('/orders/:orderId/status', async (req, res) => {
 // Add Stock Management Routes
 router.get('/stocks/ingredients', async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const ingredients = await db.collection('Ingredients').find().toArray();
-    await client.close();
+    // Using shared DB connection from req.db
+    const ingredients = await req.db.collection('Ingredients').find().toArray();
 
     res.json(ingredients);
   } catch (err) {
@@ -702,10 +697,8 @@ router.get('/stocks/ingredients', async (req, res) => {
 
 router.get('/stocks/addons', async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const addons = await db.collection('Add-ons').find().toArray();
-    await client.close();
+    // Using shared DB connection from req.db
+    const addons = await req.db.collection('Add-ons').find().toArray();
 
     res.json(addons);
   } catch (err) {
@@ -716,13 +709,10 @@ router.get('/stocks/addons', async (req, res) => {
 
 router.get('/stocks/export', async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
-    const ingredients = await db.collection('Ingredients').find().toArray();
-    const addons = await db.collection('Add-ons').find().toArray();
-
-    await client.close();
+    const ingredients = await req.db.collection('Ingredients').find().toArray();
+    const addons = await req.db.collection('Add-ons').find().toArray();
 
     const exportData = {
       ingredients,
@@ -749,23 +739,20 @@ router.get('/stocks/alerts', async (req, res) => {
     const lowStockThreshold = parseInt(threshold);
     const urgentThreshold = parseInt(urgent);
 
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
-    const lowStockIngredients = await db.collection('Ingredients').find({
+    const lowStockIngredients = await req.db.collection('Ingredients').find({
       Quantity: { $lte: lowStockThreshold },
       isEnabled: true
     }).toArray();
 
-    const lowStockAddons = await db.collection('Add-ons').find({
+    const lowStockAddons = await req.db.collection('Add-ons').find({
       Quantity: { $lte: lowStockThreshold },
       isEnabled: true
     }).toArray();
 
     const urgentIngredients = lowStockIngredients.filter(item => item.Quantity <= urgentThreshold);
     const urgentAddons = lowStockAddons.filter(item => item.Quantity <= urgentThreshold);
-
-    await client.close();
 
     const alerts = {
       lowStockIngredients,
@@ -795,17 +782,14 @@ router.get('/ingredients/search', async (req, res) => {
   try {
     const query = req.query.q || '';
 
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
     // Search for ingredients that match the Name
-    const results = await db.collection('Ingredients')
+    const results = await req.db.collection('Ingredients')
       .find({ Name: { $regex: query, $options: 'i' }, isEnabled: true })
       .project({ IngredientID: 1, Name: 1, _id: 0 })
       .limit(50)
       .toArray();
-
-    await client.close();
     res.json(results);
   } catch (err) {
     console.error('Error in ingredient search:', err);
@@ -817,17 +801,14 @@ router.get('/addons/search', async (req, res) => {
   try {
     const query = req.query.q || '';
 
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
     // Search for add-ons that match the Name
-    const results = await db.collection('Add-ons')
+    const results = await req.db.collection('Add-ons')
       .find({ Name: { $regex: query, $options: 'i' }, isEnabled: true })
       .project({ AddOnID: 1, Name: 1, _id: 0 })
       .limit(50)
       .toArray();
-
-    await client.close();
     res.json(results);
   } catch (err) {
     console.error('Error in add-on search:', err);
@@ -838,17 +819,14 @@ router.get('/addons/search', async (req, res) => {
 router.get('/stocks/health', async (req, res) => {
   try {
     const startTime = Date.now();
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
     await db.admin().ping();
 
-    const ingredientCount = await db.collection('Ingredients').countDocuments();
-    const addonCount = await db.collection('Add-ons').countDocuments();
-    const enabledIngredients = await db.collection('Ingredients').countDocuments({ isEnabled: true });
-    const enabledAddons = await db.collection('Add-ons').countDocuments({ isEnabled: true });
-
-    await client.close();
+    const ingredientCount = await req.db.collection('Ingredients').countDocuments();
+    const addonCount = await req.db.collection('Add-ons').countDocuments();
+    const enabledIngredients = await req.db.collection('Ingredients').countDocuments({ isEnabled: true });
+    const enabledAddons = await req.db.collection('Add-ons').countDocuments({ isEnabled: true });
     const responseTime = Date.now() - startTime;
 
     const healthStatus = {
@@ -882,8 +860,7 @@ router.get('/stocks/health', async (req, res) => {
 router.get('/analytics/popular-products', async (req, res) => {
   try {
     const { days = 'all', startDate, endDate, category } = req.query;
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
     let pipeline = [
       { $unwind: "$Cart" }
@@ -949,17 +926,16 @@ router.get('/analytics/popular-products', async (req, res) => {
       { $sort: { totalQuantity: -1 } }
     );
 
-    const ordersFiltered = await db.collection('Orders').aggregate(pipeline.slice(0, days !== 'all' ? 3 : 1)).toArray();
+    const ordersFiltered = await req.db.collection('Orders').aggregate(pipeline.slice(0, days !== 'all' ? 3 : 1)).toArray();
     const monthCounts = {};
     ordersFiltered.forEach(order => {
       const dateStr = order.Date.substring(0, 7); // YYYY-MM
       monthCounts[dateStr] = (monthCounts[dateStr] || 0) + 1;
     });
 
-    const results = await db.collection('Orders').aggregate(pipeline).toArray();
+    const results = await req.db.collection('Orders').aggregate(pipeline).toArray();
     console.log(`Popular products for days=${days}:`, results.length, 'products, from', ordersFiltered.length, 'filtered orders');
     console.log('Orders by month:', monthCounts);
-    await client.close();
     res.json(results);
   } catch (err) {
     console.error('Error fetching popular products:', err);
@@ -970,8 +946,7 @@ router.get('/analytics/popular-products', async (req, res) => {
 router.get('/analytics/sales-per-day', async (req, res) => {
   try {
     const { days = 'all' } = req.query;
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
     let pipeline = [
       {
@@ -1010,8 +985,7 @@ router.get('/analytics/sales-per-day', async (req, res) => {
       { $sort: { _id: 1 } }
     );
 
-    const salesPerDay = await db.collection('Orders').aggregate(pipeline).toArray();
-    await client.close();
+    const salesPerDay = await req.db.collection('Orders').aggregate(pipeline).toArray();
     res.json(salesPerDay);
   } catch (err) {
     console.error('Error fetching sales per day:', err);
@@ -1023,8 +997,7 @@ router.get('/analytics/sales-per-day', async (req, res) => {
 router.get('/analytics/sales-performance', async (req, res) => {
   try {
     const days = parseInt(req.query.days) || 14;
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
     const endDate = new Date();
     const startDate = new Date();
@@ -1059,7 +1032,7 @@ router.get('/analytics/sales-performance', async (req, res) => {
       { $sort: { _id: 1 } }
     ];
 
-    let results = await db.collection('Orders').aggregate(pipeline).toArray();
+    let results = await req.db.collection('Orders').aggregate(pipeline).toArray();
 
     // Fill in missing dates
     const dateMap = {};
@@ -1090,8 +1063,6 @@ router.get('/analytics/sales-performance', async (req, res) => {
         };
       }
     });
-
-    await client.close();
     res.json(formattedResults);
   } catch (err) {
     console.error('Error fetching sales performance:', err);
@@ -1101,9 +1072,8 @@ router.get('/analytics/sales-performance', async (req, res) => {
 
 router.get('/analytics/dashboard-stats', async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const ordersCollection = db.collection('Orders');
+    // Using shared DB connection from req.db
+    const ordersCollection = req.db.collection('Orders');
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -1230,8 +1200,6 @@ router.get('/analytics/dashboard-stats', async (req, res) => {
     const yesterdayOrdersCount = yesterdayOrdersResult.length > 0 ? yesterdayOrdersResult[0].count : 0;
     const ordersTodayPercent = yesterdayOrdersCount === 0 ? 0 : Math.round(((ordersTodayCount - yesterdayOrdersCount) / yesterdayOrdersCount) * 100);
 
-    await client.close();
-
     res.json({
       totalSales,
       totalOrders,
@@ -1251,8 +1219,7 @@ router.get('/analytics/dashboard-stats', async (req, res) => {
 // New Analytics Endpoints - Payment Methods Distribution
 router.get('/analytics/payment-methods', async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
     const pipeline = [
       {
@@ -1288,8 +1255,7 @@ router.get('/analytics/payment-methods', async (req, res) => {
       { $sort: { revenue: -1 } }
     ];
 
-    const paymentMethods = await db.collection('Orders').aggregate(pipeline).toArray();
-    await client.close();
+    const paymentMethods = await req.db.collection('Orders').aggregate(pipeline).toArray();
     res.json(paymentMethods);
   } catch (err) {
     console.error('Error fetching payment methods:', err);
@@ -1300,8 +1266,7 @@ router.get('/analytics/payment-methods', async (req, res) => {
 // Order Sources Distribution
 router.get('/analytics/order-sources', async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
     const pipeline = [
       {
@@ -1320,8 +1285,7 @@ router.get('/analytics/order-sources', async (req, res) => {
       { $sort: { orderCount: -1 } }
     ];
 
-    const orderSources = await db.collection('Orders').aggregate(pipeline).toArray();
-    await client.close();
+    const orderSources = await req.db.collection('Orders').aggregate(pipeline).toArray();
     res.json(orderSources);
   } catch (err) {
     console.error('Error fetching order sources:', err);
@@ -1332,8 +1296,7 @@ router.get('/analytics/order-sources', async (req, res) => {
 // Peak Hours Analysis
 router.get('/analytics/peak-hours', async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
     const pipeline = [
       {
@@ -1362,8 +1325,7 @@ router.get('/analytics/peak-hours', async (req, res) => {
       { $sort: { _id: 1 } }
     ];
 
-    const peakHours = await db.collection('Orders').aggregate(pipeline).toArray();
-    await client.close();
+    const peakHours = await req.db.collection('Orders').aggregate(pipeline).toArray();
     res.json(peakHours);
   } catch (err) {
     console.error('Error fetching peak hours:', err);
@@ -1375,8 +1337,7 @@ router.get('/analytics/peak-hours', async (req, res) => {
 router.get('/analytics/avg-order-value', async (req, res) => {
   try {
     const days = parseInt(req.query.days) || 7;
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
     const endDate = new Date();
     const startDate = new Date();
@@ -1415,8 +1376,7 @@ router.get('/analytics/avg-order-value', async (req, res) => {
       { $sort: { _id: 1 } }
     ];
 
-    const aovData = await db.collection('Orders').aggregate(pipeline).toArray();
-    await client.close();
+    const aovData = await req.db.collection('Orders').aggregate(pipeline).toArray();
     res.json(aovData);
   } catch (err) {
     console.error('Error fetching AOV data:', err);
@@ -1427,8 +1387,7 @@ router.get('/analytics/avg-order-value', async (req, res) => {
 // Add-ons Popularity
 router.get('/analytics/addons-popularity', async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
     const pipeline = [
       { $unwind: '$Cart' },
@@ -1450,8 +1409,7 @@ router.get('/analytics/addons-popularity', async (req, res) => {
       { $limit: 10 }
     ];
 
-    const addonsData = await db.collection('Orders').aggregate(pipeline).toArray();
-    await client.close();
+    const addonsData = await req.db.collection('Orders').aggregate(pipeline).toArray();
     res.json(addonsData);
   } catch (err) {
     console.error('Error fetching addons popularity:', err);
@@ -1462,18 +1420,15 @@ router.get('/analytics/addons-popularity', async (req, res) => {
 // Add Discount/Promo Routes
 router.get('/discounts/active', async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
     const now = new Date();
 
-    const activeDiscounts = await db.collection('Promos').find({
+    const activeDiscounts = await req.db.collection('Promos').find({
       startDate: { $lte: now },
       endDate: { $gte: now },
       isActive: true
     }).toArray();
-
-    await client.close();
     res.json(activeDiscounts);
   } catch (err) {
     console.error('Error fetching active discounts:', err);
@@ -1484,12 +1439,9 @@ router.get('/discounts/active', async (req, res) => {
 router.get('/discounts/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
-    const discount = await db.collection('Promos').findOne({ _id: new ObjectId(id) });
-
-    await client.close();
+    const discount = await req.db.collection('Promos').findOne({ _id: new ObjectId(id) });
 
     if (!discount) {
       return res.status(404).json({ error: 'Discount not found' });
@@ -1505,10 +1457,9 @@ router.get('/discounts/:id', async (req, res) => {
 router.get('/products/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const productCollection = db.collection('Menu');
-    const ingredientsCollection = db.collection('Ingredients');
+    // Using shared DB connection from req.db
+    const productCollection = req.db.collection('Menu');
+    const ingredientsCollection = req.db.collection('Ingredients');
 
     const product = await productCollection.findOne({ _id: new ObjectId(id) });
     if (!product) return res.status(404).send('Not found');
@@ -1524,8 +1475,6 @@ router.get('/products/:id', async (req, res) => {
       ...product,
       IngredientsDetails: ingredientDetails
     });
-
-    client.close();
   } catch (err) {
     console.error(err);
     res.status(500).send('Error fetching product');
@@ -1562,14 +1511,13 @@ router.get('/search', async (req, res) => {
       }
     }
 
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
     // Optimized search with multiple strategies
     let results = [];
 
     // First try exact prefix match (fastest)
-    const exactResults = await db.collection('Menu')
+    const exactResults = await req.db.collection('Menu')
       .find({
         Name: { $regex: `^${trimmedQuery}`, $options: 'i' },
         isEnabled: { $ne: false } // Only enabled products
@@ -1582,7 +1530,7 @@ router.get('/search', async (req, res) => {
 
     // If we don't have enough results, add fuzzy matches
     if (results.length < 5) {
-      const fuzzyResults = await db.collection('Menu')
+      const fuzzyResults = await req.db.collection('Menu')
         .find({
           Name: { $regex: trimmedQuery, $options: 'i' },
           isEnabled: { $ne: false },
@@ -1594,8 +1542,6 @@ router.get('/search', async (req, res) => {
 
       results = results.concat(fuzzyResults);
     }
-
-    await client.close();
 
     // Sort results by relevance (exact matches first, then by name length)
     results.sort((a, b) => {
@@ -1652,12 +1598,10 @@ router.get('/cart', isLoggedIn, async (req, res) => {
       }
     }
 
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const cartDoc = await db.collection('UserCart').findOne({
+    // Using shared DB connection from req.db
+    const cartDoc = await req.db.collection('UserCart').findOne({
       userId: new ObjectId(userId)
     });
-    await client.close();
 
     const cartData = cartDoc ? cartDoc.cart : [];
     // Cache the result
@@ -1673,14 +1617,12 @@ router.get('/cart', isLoggedIn, async (req, res) => {
 router.post('/cart', isLoggedIn, async (req, res) => {
   try {
     const userId = req.session.user._id;
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    await db.collection('UserCart').updateOne(
+    // Using shared DB connection from req.db
+    await req.db.collection('UserCart').updateOne(
       { userId: new ObjectId(userId) },
       { $set: { cart: req.body || [] } },
       { upsert: true }
     );
-    await client.close();
     // Invalidate cache
     cartCache.delete(`cart_${userId}`);
     res.json({ success: true });
@@ -1693,12 +1635,10 @@ router.post('/cart', isLoggedIn, async (req, res) => {
 router.delete('/cart', isLoggedIn, async (req, res) => {
   try {
     const userId = req.session.user._id;
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const result = await db.collection('UserCart').deleteOne({
+    // Using shared DB connection from req.db
+    const result = await req.db.collection('UserCart').deleteOne({
       userId: new ObjectId(userId)
     });
-    await client.close();
     // Invalidate cache
     cartCache.delete(`cart_${userId}`);
     res.json({
@@ -1708,6 +1648,56 @@ router.delete('/cart', isLoggedIn, async (req, res) => {
   } catch (err) {
     console.error('Error deleting cart:', err);
     res.status(500).json({ success: false });
+  }
+});
+
+// Upload QR code from n8n chatbot workflow
+router.post('/upload-qr', async (req, res) => {
+  try {
+    const { orderId, qrCodeBase64 } = req.body;
+    
+    if (!orderId || !qrCodeBase64) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Missing orderId or qrCodeBase64' 
+      });
+    }
+    
+    const fs = require('fs');
+    const path = require('path');
+    
+    // Create QR codes directory if it doesn't exist
+    const qrDir = path.join(__dirname, '../public/uploads/qr-codes');
+    if (!fs.existsSync(qrDir)) {
+      fs.mkdirSync(qrDir, { recursive: true });
+    }
+    
+    // Save QR code as image
+    const fileName = `${orderId}.png`;
+    const filePath = path.join(qrDir, fileName);
+    const buffer = Buffer.from(qrCodeBase64, 'base64');
+    
+    fs.writeFileSync(filePath, buffer);
+    
+    // Return public URL
+    const publicUrl = `${process.env.BASE_URL || 'http://localhost:8080'}/uploads/qr-codes/${fileName}`;
+    
+    console.log(`✅ QR code saved for order ${orderId}: ${publicUrl}`);
+    
+    res.json({
+      success: true,
+      url: publicUrl,
+      orderId: orderId,
+      fileName: fileName
+    });
+    
+  } catch (error) {
+    console.error('❌ QR upload error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to save QR code',
+      details: error.message 
+    });
   }
 });
 
