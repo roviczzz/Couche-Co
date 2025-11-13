@@ -22,10 +22,11 @@ class OrderStatusPoller {
     this.progressFill = document.querySelector('.progress-fill');
     this.progressPercentage = document.querySelector('.progress-percentage');
     this.statusMessage = document.querySelector('.status-message');
-    this.currentStatusElement = document.querySelector('.current-status p strong');
+    this.currentStatusElement = document.querySelector('.current-status p');
 
     // Get initial values (from server-rendered data)
-    this.lastStatus = this.currentStatusElement ? this.currentStatusElement.textContent.replace('Current Status: ', '') : 'Preparing';
+    // Extract status from the <p>'s textContent (assuming it starts with "Current Status: ")
+    this.lastStatus = this.currentStatusElement ? this.currentStatusElement.textContent.replace('Current Status: ', '').trim() : 'Preparing';
 
     // Start polling if order is not completed
     if (this.lastStatus !== 'Completed') {
@@ -51,11 +52,11 @@ class OrderStatusPoller {
     }
 
     if (this.currentStatusElement) {
-      this.currentStatusElement.textContent = 'Current Status: ' + status;
+      // Update the entire <p> with innerHTML to include the <strong> wrapper
+      this.currentStatusElement.innerHTML = `<strong>Current Status: ${status}</strong>`;
     }
 
-    // Show notification
-    this.showStatusUpdate(message);
+    // Status update notification removed
   }
 
   showStatusUpdate(message) {
