@@ -267,11 +267,6 @@ h1 {
   padding: 0 1.5rem;
 }
 
-/* Adjust container centering when sidebar is open */
-body:not(.sidebar-collapsed) .container {
-  margin-left: 1rem;
-}
-
 .main-content {
   background: transparent;
   min-height: calc(100vh - 120px);
