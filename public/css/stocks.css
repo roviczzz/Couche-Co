@@ -867,7 +867,9 @@ main {
   box-shadow: 0 0 0 3px rgba(220,53,69,0.15);
 }
 
-
+.form-group input[type="text"]:valid,
+.form-group input[type="number"]:valid {
+}
 
 .form-group.error label {
   color: var(--red);
@@ -977,7 +979,7 @@ main {
 }
 
 .amount-pack-group select {
-  width: 70px;
+  width: 50px;
   font-size: 12px;
 }
 
@@ -1261,9 +1263,9 @@ main {
 /* Column widths for both tables (7 columns each) */
 .stocks-table th:nth-child(1), .stocks-table td:nth-child(1) { width: 18%; }
 .stocks-table th:nth-child(2), .stocks-table td:nth-child(2) { width: 16%; }
-.stocks-table th:nth-child(3), .stocks-table td:nth-child(3) { width: 16%; }
+.stocks-table th:nth-child(3), .stocks-table td:nth-child(3) { width: 12%; }
 .stocks-table th:nth-child(4), .stocks-table td:nth-child(4) { width: 14%; }
-.stocks-table th:nth-child(5), .stocks-table td:nth-child(5) { width: 8%; }
+.stocks-table th:nth-child(5), .stocks-table td:nth-child(5) { width: 12%; }
 .stocks-table th:nth-child(6), .stocks-table td:nth-child(6) { width: 10%; }
 .stocks-table th:nth-child(7), .stocks-table td:nth-child(7) { width: 18%; }
 

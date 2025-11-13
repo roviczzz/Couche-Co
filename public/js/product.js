@@ -52,37 +52,6 @@ function showToast(message, type = 'info', duration = 5000) {
     }, duration);
 }
 
-// Centered error message function
-function showCenteredError(message) {
-    // Remove any existing centered error
-    const existingError = document.querySelector('.centered-error-message');
-    if (existingError) {
-        existingError.remove();
-    }
-
-    // Create centered error message
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'centered-error-message';
-    errorDiv.innerHTML = `
-        <div class="centered-error-content">
-            <i class="fas fa-exclamation-triangle error-icon"></i>
-            <div class="error-text">${message}</div>
-            <button class="error-close-btn" onclick="this.parentElement.parentElement.remove()">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-    `;
-
-    document.body.appendChild(errorDiv);
-
-    // Auto-remove after 5 seconds
-    setTimeout(() => {
-        if (errorDiv.parentElement) {
-            errorDiv.remove();
-        }
-    }, 5000);
-}
-
 // Array to store selected add-ons
 var selectedAddons = [];
 
@@ -251,9 +220,7 @@ function addToOrder(name, price, size, category, productId, addons, imagelink, i
     };
     orderItems.push(orderItem);
     saveOrderItems();
-
-    // Show cart side popup instead of toast
-    showCartSidePopup(orderItem);
+    showToast(`${quantity} x ${name}${size ? ' (' + size + ')' : ''} added to cart!`, 'success');
 }
 
 // Fetch and display add-ons - try server-side data first, then API as fallback
@@ -402,7 +369,7 @@ function initializePage() {
     // Add to cart button event listener
     const addToCartBtn = document.getElementById('add-to-cart-btn');
     if (addToCartBtn) {
-        addToCartBtn.addEventListener('click', async function() {
+        addToCartBtn.addEventListener('click', function() {
             const quantity = document.getElementById('quantity').value;
             const selectedRadio = document.querySelector('input[name="size-radio"]:checked');
 
@@ -410,20 +377,6 @@ function initializePage() {
             if (product.Sizes && product.Sizes.length > 0 && !selectedRadio) {
                 showToast('Please select a size before adding to cart.', 'error');
                 return;
-            }
-
-            // Check product availability first
-            try {
-                const availabilityResponse = await fetch(`/api/check-product-availability/${product.ProductID}`);
-                const availabilityData = await availabilityResponse.json();
-
-                if (!availabilityData.available) {
-                    showCenteredError(availabilityData.reason || 'This product is currently unavailable');
-                    return;
-                }
-            } catch (error) {
-                console.error('Error checking product availability:', error);
-                // Continue with adding to cart if availability check fails (fail-safe)
             }
 
             let size = selectedRadio ? selectedRadio.value : null;
@@ -647,112 +600,6 @@ function handleIngredientCheckboxChange(event) {
 document.addEventListener('DOMContentLoaded', function() {
     initializePage();
 });
-
-// Show cart side popup with item details
-function showCartSidePopup(orderItem) {
-    // Update popup content
-    const itemNameElement = document.getElementById('cart-popup-name');
-    const itemPriceElement = document.getElementById('cart-popup-price');
-    const itemDetailsElement = document.getElementById('cart-popup-details');
-    const itemImageElement = document.getElementById('cart-popup-image');
-
-    if (itemNameElement) itemNameElement.textContent = orderItem.name;
-    if (itemPriceElement) itemPriceElement.textContent = `₱${(orderItem.price * orderItem.quantity).toFixed(2)}`;
-
-    // Update image if available
-    if (itemImageElement && orderItem.imagelink) {
-        itemImageElement.src = orderItem.imagelink;
-        itemImageElement.style.display = 'block';
-    }
-
-    // Build details string
-    if (itemDetailsElement) {
-        itemDetailsElement.innerHTML = '';
-        let details = [];
-
-        if (orderItem.size) details.push(`<span>Size: ${orderItem.size}</span>`);
-        if (orderItem.quantity > 1) details.push(`<span>Qty: ${orderItem.quantity}</span>`);
-        if (orderItem.addons && orderItem.addons.length > 0) {
-            const addonNames = orderItem.addons.map(addon => addon.Name || addon.name).join(', ');
-            details.push(`<span>Add-ons: ${addonNames}</span>`);
-        }
-
-        if (details.length > 0) {
-            itemDetailsElement.innerHTML = details.join('<br>');
-        }
-    }
-
-    // Show popup with animation
-    const popup = document.getElementById('cart-side-popup');
-    if (popup) {
-        popup.classList.add('show');
-
-        // Setup popup event listeners
-        setupCartSidePopup();
-    }
-}
-
-// Hide cart side popup
-function hideCartSidePopup() {
-    const popup = document.getElementById('cart-side-popup');
-    if (popup) {
-        popup.classList.remove('show');
-    }
-}
-
-// Setup cart side popup functionality
-function setupCartSidePopup() {
-    const popup = document.getElementById('cart-side-popup');
-    const closeBtn = document.getElementById('cart-popup-close');
-    const continueBtn = document.getElementById('cart-continue-btn');
-    const viewCartBtn = document.getElementById('cart-view-btn');
-    const checkoutBtn = document.getElementById('cart-checkout-btn');
-
-    if (!popup) return;
-
-    // Close button event listener
-    if (closeBtn) {
-        closeBtn.addEventListener('click', hideCartSidePopup);
-    }
-
-    // Continue shopping button
-    if (continueBtn) {
-        continueBtn.addEventListener('click', hideCartSidePopup);
-    }
-
-    // View cart button
-    if (viewCartBtn) {
-        viewCartBtn.addEventListener('click', function() {
-            hideCartSidePopup();
-            // Navigate to cart page
-            window.location.href = '/cart';
-        });
-    }
-
-    // Checkout button
-    if (checkoutBtn) {
-        checkoutBtn.addEventListener('click', function() {
-            hideCartSidePopup();
-            // Navigate to checkout page
-            window.location.href = '/checkout';
-        });
-    }
-}
-
-// Remove item from cart (copied from cart.js for non-logged-in users)
-function removeItem(index) {
-    showConfirm('Are you sure you want to remove this item from your cart?', 'Remove Item',
-        () => {
-            orderItems.splice(index, 1);
-            saveOrderItems();
-            hideCartSidePopup();
-
-            if (typeof window.updateCartCount === 'function') {
-                window.updateCartCount();
-            }
-        }
-    );
-}
 
 // Re-export setupModal for potential external access (if needed)
 window.setupProductModal = setupModal;

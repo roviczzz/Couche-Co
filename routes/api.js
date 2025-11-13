@@ -12,7 +12,7 @@ router.get('/', (req, res) => {
 });
 
 // Xendit configuration
-const XENDIT_SECRET_KEY = process.env.XENDIT_SECRET_KEY
+const XENDIT_SECRET_KEY = process.env.XENDIT_SECRET_KEY || 'xnd_development_9YDHJULGUWulhmoYgQxildVQ3EWsAeviiJHwF3PSi9zmNcCKll8zEP3thAc5VvD9'
 const XENDIT_API_URL = 'https://api.xendit.co'
 
 function isLoggedIn(req, res, next) {
@@ -63,32 +63,6 @@ router.post('/check-availability', async (req, res) => {
   } catch (error) {
     console.error('Error in availability check:', error);
     res.status(500).json({ available: true }); // Fail-safe on error
-  }
-});
-
-// Check single product availability
-router.get('/check-product-availability/:productId', async (req, res) => {
-  try {
-    const { productId } = req.params;
-
-    if (!productId) {
-      return res.status(400).json({
-        available: false,
-        reason: 'Product ID is required'
-      });
-    }
-
-    console.log('Checking availability for product:', productId);
-
-    const availabilityCheck = await InventoryManager.checkProductAvailability(productId);
-
-    res.json(availabilityCheck);
-  } catch (error) {
-    console.error('Error checking product availability:', error);
-    res.status(500).json({
-      available: false,
-      reason: 'System error checking availability'
-    });
   }
 });
 
@@ -489,29 +463,10 @@ router.patch('/orders/:OrderID/fulfillment', async (req, res) => {
     const ordersCollection = db.collection('Orders');
 
     const filter = { OrderID: OrderID };
-
-    // Get current order before update
-    const currentOrder = await ordersCollection.findOne(filter);
-
     const updateDoc = { $set: { FulfillmentStatus } };
 
     const updateResult = await ordersCollection.updateOne(filter, updateDoc);
     const updatedOrder = await ordersCollection.findOne(filter);
-
-    // If status is being set to 'Cancelled', rollback inventory
-    if (FulfillmentStatus === 'Cancelled' && currentOrder && currentOrder.Cart && Array.isArray(currentOrder.Cart) && currentOrder.Cart.length > 0) {
-      try {
-        const InventoryManager = require('../utils/inventoryManager');
-        const rollbackResult = await InventoryManager.rollbackIngredients(currentOrder.Cart);
-        if (rollbackResult.success) {
-          console.log(`✅ Stock rollback completed for cancelled order ${OrderID}:`, rollbackResult.rollbacks);
-        } else {
-          console.error('❌ Stock rollback failed:', rollbackResult.error);
-        }
-      } catch (rollbackError) {
-        console.error('❌ Error during stock rollback:', rollbackError);
-      }
-    }
 
     await client.close();
 
@@ -578,19 +533,33 @@ router.patch('/orders/:OrderID/cancel', async (req, res) => {
   }
 
   try {
-    // Use the cancelOrder function from admin-helpers which includes stock rollback
-    const { cancelOrder } = require('../admin-helpers');
-    const result = await cancelOrder(OrderID);
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+    const ordersCollection = db.collection('Orders');
 
-    if (result) {
-      return res.status(200).json({
-        success: true,
-        message: 'Order cancelled and deleted successfully',
-        deletedOrderID: OrderID
-      });
-    } else {
+    const filter = { OrderID: OrderID };
+
+    // First check if the order exists
+    const existingOrder = await ordersCollection.findOne(filter);
+    if (!existingOrder) {
+      await client.close();
       return res.status(404).json({ error: `Order with ID ${OrderID} not found` });
     }
+
+    // Delete the order from the database
+    const deleteResult = await ordersCollection.deleteOne(filter);
+
+    await client.close();
+
+    if (deleteResult.deletedCount === 0) {
+      return res.status(404).json({ error: `Order with ID ${OrderID} not found` });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Order cancelled and deleted successfully',
+      deletedOrderID: OrderID
+    });
   } catch (error) {
     console.error('Error cancelling order:', error);
     return res.status(500).json({ error: 'Server error while cancelling order' });

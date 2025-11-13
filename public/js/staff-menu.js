@@ -570,7 +570,7 @@ function addToCart(item, selectedSize = null, addons = []) {
             ProductName: item.Name,
             ProductID: item._id ?? item.id,
             Size: sizeName,
-            AddOns: addons, // Store full add-on objects instead of just names
+            AddOns: addons.map(addon => addon.name),
             Quantity: 1,
             BasePrice: totalPrice,
             ImageLink: item.imagelink ?? ""
@@ -660,7 +660,7 @@ function updateCartDisplay() {
                     <div>
                         <div style="font-weight: 600; font-size: 14px;">${item.ProductName}</div>
                         <div style="font-size: 12px; color: #666;">${item.Size}</div>
-                        ${item.AddOns && item.AddOns.length > 0 ? `<div style="font-size: 12px; color: #999;">+ ${item.AddOns.map(addon => addon.name).join(', ')}</div>` : ''}
+                        ${item.AddOns && item.AddOns.length > 0 ? `<div style="font-size: 12px; color: #999;">+ ${item.AddOns.join(', ')}</div>` : ''}
                         ${item.isB1T1 ? `<div style="font-size: 11px; color: #4caf50; font-weight: 600;">🎁 B1T1 FREE</div>` : ''}
                     </div>
                 </div>
@@ -1446,7 +1446,7 @@ function showOrderConfirmation() {
         if (item.AddOns && item.AddOns.length > 0) {
             confirmHTML += `
   <div style="display: flex; justify-content: space-between; margin-bottom: 4px; margin-left: 12px; font-size: 12px; color: #666;">
-    <span>+ ${item.AddOns.map(addon => addon.name).join(', ')}</span>
+    <span>+ ${item.AddOns.join(', ')}</span>
   </div>
 `;
         }
@@ -2412,3 +2412,4 @@ function updateProcessingStatus(status) {
         statusElement.textContent = status;
     }
 }
+

@@ -186,6 +186,10 @@
           <span>Subtotal:</span>
           <span>₱<%= subtotal.toFixed(2) %></span>
         </div>
+        <div class="total-row" id="deliveryFeeRow" style="display: none;">
+          <span>Delivery Fee:</span>
+          <span>₱20.00</span>
+        </div>
         <div class="promo-code-section">
           <label for="promoCode">Promo Code</label>
           <div class="promo-input-row">
@@ -196,14 +200,6 @@
         <div class="total-row final-total">
           <span>Total:</span>
           <span id="totalAmountDisplay">₱<%= subtotal.toFixed(2) %></span>
-        </div>
-        <div class="total-row" id="deliveryFeeRow" style="display: none;">
-          <span>Delivery Fee:</span>
-          <span id="deliveryFeeAmount">+₱20.00</span>
-        </div>
-        <div class="total-row" id="promoDiscountRow" style="display: none;">
-          <span>Promo Code Discount:</span>
-          <span id="promoDiscountAmount">-₱0.00</span>
         </div>
       </div>
     </div>

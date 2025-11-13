@@ -1264,8 +1264,3 @@
 .notification-popup-list::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
 }
-
-/* Override margin-top for mark-all-read button */
-#mark-all-read {
-    margin-top: 0 !important;
-}

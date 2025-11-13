@@ -28,66 +28,28 @@ const notificationRoutes = require('./routes/notifications');
 const { initializePromoDeactivationCron } = require('./utils/promoManager');
 const { generatePeriodicNotifications } = require('./admin-helpers');
 
-// ============================================
-// CRITICAL FIX: Create persistent MongoDB connection
-// ============================================
-let db;
-let mongoClient;
-
-async function connectToMongoDB() {
-  try {
-    mongoClient = new MongoClient(uri, {
-      maxPoolSize: 10,
-      minPoolSize: 2,
-      maxIdleTimeMS: 30000,
-      serverSelectionTimeoutMS: 5000
-    });
-    await mongoClient.connect();
-    db = mongoClient.db('blessingscafe');
-    
-    // Make db available to all routes via app.locals
-    app.locals.db = db;
-  } catch (error) {
-    console.error('MongoDB connection error:', error);
-    process.exit(1);
-  }
-}
-
-// Graceful shutdown
-process.on('SIGINT', async () => {
-  if (mongoClient) {
-    await mongoClient.close();
-    console.log('MongoDB connection closed');
-  }
-  process.exit(0);
-});
-
 // Enable gzip compression for all responses
 app.use(compression({
-  level: 6,
-  threshold: 1024,
+  level: 6, // Good balance between speed and compression
+  threshold: 1024, // Only compress responses larger than 1KB
   filter: (req, res) => {
+    // Don't compress responses with this request header
     if (req.headers['x-no-compression']) {
       return false;
     }
+    // Use compression filter function
     return compression.filter(req, res);
   }
 }));
 
-app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
-
-// Session configuration with better settings
+app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')))
 app.use(session({
   secret: '4eaf42844a1772cb12e90869666b3a929f785d5bbd6d0fc5402c95ebc8721c3bca4ac502cc2fa7ec8abcbec042202876',
   resave: false,
-  saveUninitialized: false, // Changed to false for better performance
-  cookie: { 
-    secure: false,
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
-  }
-}));
-
-app.use(flash());
+  saveUninitialized: true,
+  cookie: { secure: false }
+}))
+app.use(flash())
 app.use((req, res, next) => {
   res.locals.success_msg = req.flash('success_msg');
   res.locals.error_msg = req.flash('error_msg');
@@ -100,26 +62,19 @@ app.use((req, res, next) => {
   next();
 });
 
-// ============================================
-// OPTIMIZED: User settings middleware with caching
-// ============================================
+// Middleware to load user settings for all authenticated users
 app.use(async (req, res, next) => {
   if (req.session.user) {
     try {
-      // Use the persistent connection
-      const userSettings = await db.collection('UserSettings').findOne(
-        { userId: req.session.user._id },
-        { 
-          projection: { // Only fetch needed fields
-            darkMode: 1,
-            soundEnabled: 1,
-            printReceipts: 1,
-            orderConfirmations: 1,
-            lowStockAlertRange: 1
-          }
-        }
-      );
+      const client = await MongoClient.connect(uri);
+      const db = client.db('blessingscafe');
 
+      // Load user settings from UserSettings collection
+      const userSettings = await db.collection('UserSettings').findOne({
+        userId: req.session.user._id
+      });
+
+      // Set default settings if none exist
       res.locals.settings = userSettings || {
         darkMode: false,
         soundEnabled: true,
@@ -127,6 +82,8 @@ app.use(async (req, res, next) => {
         orderConfirmations: true,
         lowStockAlertRange: 5
       };
+
+      await client.close();
     } catch (error) {
       console.error('Error loading user settings:', error);
       res.locals.settings = {
@@ -141,18 +98,15 @@ app.use(async (req, res, next) => {
   next();
 });
 
-// Static sidebar items (no need to recreate on every request)
-const SIDEBAR_ITEMS = [
-  { path: '/dashboard', label: 'Home', icon: 'house' },
-  { path: '/order', label: 'Orders', icon: 'box' },
-  { path: '/menu', label: 'POS Menu', icon: 'list' },
-  { path: '/stocks', label: 'Stocks', icon: 'warehouse' },
-  { path: '/products', label: 'Products', icon: 'cart-shopping' },
-  { path: '/logout', label: 'Logout', icon: 'door-open' }
-];
-
 app.use((req, res, next) => {
-  res.locals.sidebarItems = SIDEBAR_ITEMS;
+  res.locals.sidebarItems = [
+    { path: '/dashboard', label: 'Home', icon: 'house' },
+    { path: '/order', label: 'Orders', icon: 'box' },
+    { path: '/menu', label: 'POS Menu', icon: 'list' },
+    { path: '/stocks', label: 'Stocks', icon: 'warehouse' },
+    { path: '/products', label: 'Products', icon: 'cart-shopping' },
+    { path: '/logout', label: 'Logout', icon: 'door-open' }
+  ];
   res.locals.currentPage = req.path;
   next();
 });
@@ -165,21 +119,13 @@ app.use((req, res, next) => {
   next();
 });
 
-// View engine setup
 app.set('view engine', 'ejs');
-app.set('view cache', true); // Good - already enabled
 app.set('views', __dirname + '/views');
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Static files with caching
-app.use(express.static(__dirname + '/public', {
-  maxAge: '1d',
-  etag: true,
-  lastModified: true
-}));
-
+app.use(express.static(__dirname + '/public'));
 app.use(expressLayouts);
 app.set('layout', 'layout');
 
@@ -197,10 +143,7 @@ app.use('/', notificationRoutes);
 // Legacy route compatibility
 app.use('/account', authRoutes);
 
-app.use('/uploads', express.static('uploads', {
-  maxAge: '7d', // Images can be cached longer
-  etag: true
-}));
+app.use('/uploads', express.static('uploads'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -237,49 +180,52 @@ function initializeNotificationsCron() {
       console.error('Error generating initial notifications:', error);
     });
     
-    // Schedule periodic notifications - every 30 minutes
+    // Schedule periodic notifications - every 30 minutes for general checks
     cron.schedule('*/30 * * * *', async () => {
       try {
-        await generatePeriodicNotifications();
+        console.log('🔔 Running periodic notification check...');
+        const notifications = await generatePeriodicNotifications();
+        console.log(`✅ Generated ${notifications.length} new notifications`);
       } catch (error) {
-        console.error('Error in periodic notifications cron:', error);
+        console.error('❌ Error in periodic notifications cron:', error);
       }
     });
     
-    // Hourly promo tracking
+    // Enhanced hourly promo tracking - every hour at minute 0
     cron.schedule('0 * * * *', async () => {
       try {
-        await generatePeriodicNotifications();
+        console.log('🔔 Running hourly comprehensive promo tracking...');
+        const notifications = await generatePeriodicNotifications();
+        console.log(`✅ Hourly promo tracking: Generated ${notifications.length} new notifications`);
       } catch (error) {
-        console.error('Error in hourly promo tracking cron:', error);
+        console.error('❌ Error in hourly promo tracking cron:', error);
       }
     });
     
-    // Critical promo monitoring - every 6 hours
+    // Critical promo monitoring - every 6 hours for urgent expiry checks
     cron.schedule('0 */6 * * *', async () => {
       try {
-        await generatePeriodicNotifications();
+        console.log('🚨 Running critical promo expiry check...');
+        const notifications = await generatePeriodicNotifications();
+        console.log(`✅ Critical check: Generated ${notifications.length} new notifications`);
       } catch (error) {
-        console.error('Error in critical promo check:', error);
+        console.error('❌ Error in critical promo check:', error);
       }
     });
+    
+    console.log('📅 Enhanced promo tracking cron jobs initialized:');
+    console.log('   • Every 30 minutes: General notifications');
+    console.log('   • Every hour: Comprehensive promo tracking');
+    console.log('   • Every 6 hours: Critical promo expiry checks');
   } catch (error) {
     console.error('Failed to initialize notifications cron job:', error);
   }
 }
 
-// ============================================
-// START SERVER AFTER MONGODB CONNECTION
-// ============================================
-async function startServer() {
-  await connectToMongoDB();
-  initializeNotificationsCron();
-  
-  app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
-  });
-}
+initializeNotificationsCron();
 
-startServer().catch(console.error);
+app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
+});
 
 module.exports = app;
