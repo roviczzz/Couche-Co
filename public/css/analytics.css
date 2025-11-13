@@ -41,6 +41,12 @@ body {
   border-bottom: 2px solid #e0e0e0;
   margin-left: 30px;
   margin-top: 40px;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Adjust header section when sidebar is collapsed */
+.sidebar-collapsed .header-section {
+  margin-left: 15px;
 }
 
 .header-section h1 {
@@ -265,6 +271,12 @@ h1 {
   max-width: 1400px;
   margin: 0 auto;
   padding: 0 1.5rem;
+  transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Adjust container padding when sidebar is collapsed */
+.sidebar-collapsed .container {
+  padding: 0 1rem;
 }
 
 .main-content {
