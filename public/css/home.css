@@ -2,7 +2,7 @@ body {
     font-family: 'Inter', sans-serif;
     background-color: #f3f3f3;
 }
-
+/* Home Page Styles */
 .welcome-section {
     background: url('/resources/BannerBC.png') no-repeat center center;
     background-size: cover;
