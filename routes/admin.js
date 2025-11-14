@@ -5,7 +5,6 @@ const bcrypt = require('bcrypt');
 
 const fs = require('fs');
 const path = require('path');
-const axios = require('axios');
 const multer = require('multer');
 const { createNewOrderNotification, createMessageNotification, createLowStockNotification } = require('../admin-helpers');
 
@@ -511,8 +510,24 @@ router.get('/products', nocache, async (req, res) => {
   }
 });
 
-// --- Multer setup (memory storage for direct ImgBB upload) ---
-const storage = multer.memoryStorage();
+// --- Multer setup (disk storage for local image uploads) ---
+
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, '..', 'public', 'uploads', 'products');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadsDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
 const upload = multer({ storage });
 
 // Add Product route
@@ -604,24 +619,16 @@ router.post('/products/add', upload.single('imagelink'), async (req, res) => {
     }
   }
 
-  // Image handling - upload directly to ImgBB
+  // Image handling - save locally
   let imagelink = 'placeholder';
 
   if (req.file) {
-    try {
-      const fileData = req.file.buffer.toString('base64');
-      const imgbbKey = process.env.IMGBB_API_KEY;
-
-      if (imgbbKey) {
-        const response = await axios.post(
-          `https://api.imgbb.com/1/upload?key=${imgbbKey}`,
-          new URLSearchParams({ image: fileData })
-        );
-        imagelink = response.data.data.url; // Set imagelink to the imgbb URL
-      }
-    } catch (err) {
-      console.error("ImgBB upload failed:", err.message);
-    }
+    const tempPath = req.file.path;
+    const sanitizedName = finalName.replace(/[^a-zA-Z0-9]/g, '-');
+    const newFilename = `${sanitizedName}-${Date.now()}${path.extname(req.file.originalname)}`;
+    const newPath = path.join(uploadsDir, newFilename);
+    fs.renameSync(tempPath, newPath);
+    imagelink = `/uploads/products/${newFilename}`;
   }
 
   // ✅ Build the product document to insert
@@ -742,7 +749,7 @@ router.get('/api/products/:id', async (req, res) => {
 
 
 
-// ✅ Edit Product route (with FormData upload to ImgBB)
+// ✅ Edit Product route (with local image upload)
 router.post('/products/edit/:id', upload.single('imagelink'), async (req, res) => {
   const { id } = req.params;
   const { description, Allergen, size16, size22, BasePrice, Quantity } = req.body;
@@ -816,39 +823,30 @@ router.post('/products/edit/:id', upload.single('imagelink'), async (req, res) =
       }
     }
 
-    console.log("DEBUG: API Key value ->", process.env.IMGBB_API_KEY);
-
     // ✅ If new image uploaded
     if (req.file) {
-      console.log("🖼 New image uploaded to memory");
+      console.log("🖼 New image uploaded to disk");
 
-      // Delete old ImgBB image if exists (no local files to clean up anymore)
-      if (existingProduct.deleteUrl) {
+      // Delete old local image if exists
+      if (existingProduct.imagelink && existingProduct.imagelink !== 'placeholder' && existingProduct.imagelink.startsWith('/uploads/products/')) {
         try {
-          await axios.get(existingProduct.deleteUrl);
-          console.log("🗑 Old ImgBB image deleted");
+          const oldImagePath = path.join(__dirname, '..', 'public', existingProduct.imagelink);
+          if (fs.existsSync(oldImagePath)) {
+            fs.unlinkSync(oldImagePath);
+            console.log("🗑 Old local image deleted");
+          }
         } catch (err) {
-          console.error("ImgBB delete error:", err.message);
+          console.error("Local image delete error:", err.message);
         }
       }
 
-      // Upload new image directly to ImgBB from memory buffer
-      try {
-        const imageData = req.file.buffer.toString('base64');
-
-        const response = await axios.post(
-          `https://api.imgbb.com/1/upload?key=${process.env.IMGBB_API_KEY}`,
-          new URLSearchParams({ image: imageData })
-        );
-
-        console.log("✅ ImgBB Upload Success:", response.data);
-        updateFields.imagelink = response.data.data.url;
-
-        // No longer saving localImagePath - only ImgBB URL
-        // updateFields.localImagePath is removed
-      } catch (err) {
-        console.error("❌ ImgBB upload failed:", err.response?.data || err.message);
-      }
+      // Rename new image with product name
+      const tempPath = req.file.path;
+      const sanitizedName = existingProduct.Name.replace(/[^a-zA-Z0-9]/g, '-');
+      const newFilename = `${sanitizedName}-${Date.now()}${path.extname(req.file.originalname)}`;
+      const newPath = path.join(uploadsDir, newFilename);
+      fs.renameSync(tempPath, newPath);
+      updateFields.imagelink = `/uploads/products/${newFilename}`;
     }
 
     // Only update if there are actual changes
@@ -928,13 +926,16 @@ router.post('/delete-product/:id', async (req, res) => {
     const product = await productCollection.findOne({ _id: new ObjectId(productId) });
     if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
 
-    // Delete ImgBB image if exists (no local files to delete anymore)
-    if (product.deleteUrl) {
+    // Delete local image if exists
+    if (product.imagelink && product.imagelink !== 'placeholder' && product.imagelink.startsWith('/uploads/products/')) {
       try {
-        await axios.get(product.deleteUrl);
-        console.log("🗑 ImgBB image deleted for product:", productId);
+        const imagePath = path.join(__dirname, '..', 'public', product.imagelink);
+        if (fs.existsSync(imagePath)) {
+          fs.unlinkSync(imagePath);
+          console.log("🗑 Local image deleted for product:", productId);
+        }
       } catch (err) {
-        console.error("ImgBB delete error:", err.message);
+        console.error("Local image delete error:", err.message);
       }
     }
 

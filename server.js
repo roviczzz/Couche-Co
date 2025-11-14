@@ -212,7 +212,7 @@ app.use('/', notificationRoutes);
 // Legacy route compatibility
 app.use('/account', authRoutes);
 
-app.use('/uploads', express.static('uploads', {
+app.use('/uploads', express.static('public/uploads', {
   maxAge: '7d', // Images can be cached longer
   etag: true
 }));
