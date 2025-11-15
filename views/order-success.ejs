@@ -22,18 +22,46 @@
         <h2>Order Progress</h2>
         <div class="progress-bar-container">
           <%
-// Define progress levels based on status
-let progressPercentage = 25; // Default preparing
-let statusText = 'Preparing your order';
-if (order.FulfillmentStatus === 'In Progress') {
-  progressPercentage = 50;
-  statusText = 'Your order is being prepared';
-} else if (order.FulfillmentStatus === 'Ready') {
-  progressPercentage = 90;
-  statusText = 'Your order is ready for pickup';
-} else if (order.FulfillmentStatus === 'Completed') {
-  progressPercentage = 100;
-  statusText = 'Order completed successfully';
+// Define progress levels based on fulfillment method and status
+let progressPercentage = 10; // Default minimum progress
+let statusText = 'Order received';
+
+const fulfillmentMethod = order.FulfillmentMethod || order.fulfillmentMethod || '';
+const isDelivery = fulfillmentMethod.toLowerCase() === 'delivery';
+
+if (isDelivery) {
+  // Delivery flow: Preparing -> In Progress -> Ready -> In Delivery -> Completed
+  if (order.FulfillmentStatus === 'Preparing') {
+    progressPercentage = 20;
+    statusText = 'Preparing your order';
+  } else if (order.FulfillmentStatus === 'In Progress') {
+    progressPercentage = 40;
+    statusText = 'Your order is being prepared';
+  } else if (order.FulfillmentStatus === 'Ready') {
+    progressPercentage = 70;
+    statusText = 'Your order is ready for delivery';
+  } else if (order.FulfillmentStatus === 'In Delivery') {
+    progressPercentage = 90;
+    statusText = 'Your order is out for delivery';
+  } else if (order.FulfillmentStatus === 'Completed') {
+    progressPercentage = 100;
+    statusText = 'Order delivered successfully';
+  }
+} else {
+  // Pick-up flow: Preparing -> In Progress -> Ready -> Completed
+  if (order.FulfillmentStatus === 'Preparing') {
+    progressPercentage = 25;
+    statusText = 'Preparing your order';
+  } else if (order.FulfillmentStatus === 'In Progress') {
+    progressPercentage = 50;
+    statusText = 'Your order is being prepared';
+  } else if (order.FulfillmentStatus === 'Ready') {
+    progressPercentage = 90;
+    statusText = 'Your order is ready for pickup';
+  } else if (order.FulfillmentStatus === 'Completed') {
+    progressPercentage = 100;
+    statusText = 'Order completed successfully';
+  }
 }
 %>
           <div class="progress-bar">

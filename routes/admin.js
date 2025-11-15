@@ -2053,7 +2053,25 @@ router.get('/stocks/health', async (req, res) => {
 // ORDERS ROUTES
 router.patch('/orders/:OrderID/fulfillment', async (req, res) => {
   try {
-    const updatedOrder = await updateOrderFulfillment(req.params.OrderID, req.body.FulfillmentStatus);
+    const updatedOrder = await updateOrderFulfillment(req.db, req.params.OrderID, req.body.FulfillmentStatus);
+    
+    // Notify chatbot if this is a chatbot order
+    if (updatedOrder && updatedOrder.Source === 'Chatbot') {
+      try {
+        const { notifyOrderStatusChange } = require('../utils/chatbotNotifier');
+        const notificationResult = await notifyOrderStatusChange(updatedOrder, req.body.FulfillmentStatus);
+        
+        if (notificationResult.success) {
+          console.log(`🔔 Chatbot notification sent for order ${req.params.OrderID} - Status: ${req.body.FulfillmentStatus}`);
+        } else if (!notificationResult.skipped) {
+          console.warn(`⚠️ Chatbot notification failed for order ${req.params.OrderID}:`, notificationResult.message);
+        }
+      } catch (notifyError) {
+        console.error('❌ Error sending chatbot notification:', notifyError);
+        // Don't fail the request if notification fails
+      }
+    }
+    
     res.json({ success: true, order: updatedOrder });
   } catch (err) {
     res.status(500).json({ error: 'Failed to update fulfillment status' });
@@ -2102,7 +2120,7 @@ router.patch('/orders/:OrderID/fulfillment-method', async (req, res) => {
     if (updatedOrder && updatedOrder.Source === 'Chatbot') {
       try {
         const { notifyOrderStatusChange } = require('../utils/chatbotNotifier');
-        const notificationResult = await notifyOrderStatusChange(updatedOrder, updatedOrder.FulfillmentStatus || 'Pending');
+        const notificationResult = await notifyOrderStatusChange(updatedOrder, 'Method Changed');
         
         if (notificationResult.success) {
           console.log(`🔔 Chatbot notification sent for order ${OrderID} - FulfillmentMethod changed to ${FulfillmentMethod}`);
@@ -2124,7 +2142,7 @@ router.patch('/orders/:OrderID/fulfillment-method', async (req, res) => {
 
 router.patch('/orders/:OrderID/cancel', async (req, res) => {
   try {
-    const success = await cancelOrder(req.params.OrderID);
+    const success = await cancelOrder(req.db, req.params.OrderID);
     res.json({ success });
   } catch (err) {
     res.status(500).json({ error: 'Failed to cancel order' });
@@ -2433,7 +2451,7 @@ router.get('/analytics/export-performance', async (req, res) => {
 // DISCOUNTS ROUTES
 router.post('/discounts/add', async (req, res) => {
   try {
-    await addDiscount(req.body);
+    await addDiscount(req.db, req.body);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to add discount' });
@@ -2463,7 +2481,7 @@ router.post('/discounts/edit/:id', async (req, res) => {
 });
 router.post('/discounts/delete/:id', async (req, res) => {
   try {
-    await deleteDiscount(req.params.id);
+    await deleteDiscount(req.db, req.params.id);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete discount' });
@@ -2471,7 +2489,7 @@ router.post('/discounts/delete/:id', async (req, res) => {
 });
 router.post('/discounts/bulk-update', async (req, res) => {
   try {
-    const modified = await bulkUpdateDiscounts(req.body.updates);
+    const modified = await bulkUpdateDiscounts(req.db, req.body.updates);
     res.json({ success: true, modified });
   } catch (err) {
     res.status(500).json({ error: 'Failed to perform bulk update' });

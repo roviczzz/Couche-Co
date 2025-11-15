@@ -1701,4 +1701,76 @@ router.post('/upload-qr', async (req, res) => {
   }
 });
 
+// Webhook endpoints for n8n chatbot status updates
+router.post('/webhooks/delivery', async (req, res) => {
+  try {
+    const { orderId, status } = req.body;
+
+    if (!orderId) {
+      return res.status(400).json({ success: false, error: 'Missing orderId' });
+    }
+
+    console.log(`🔔 Delivery webhook received for order ${orderId}, status: ${status}`);
+
+    // Map n8n status to FulfillmentStatus
+    let fulfillmentStatus = 'In Delivery'; // Default for delivery
+    if (status && status.toLowerCase() === 'ready') {
+      fulfillmentStatus = 'Ready';
+    }
+
+    // Update order status
+    const ordersCollection = req.db.collection('Orders');
+    const updateResult = await ordersCollection.updateOne(
+      { OrderID: orderId },
+      { $set: { FulfillmentStatus: fulfillmentStatus } }
+    );
+
+    if (updateResult.matchedCount === 0) {
+      return res.status(404).json({ success: false, error: 'Order not found' });
+    }
+
+    console.log(`✅ Updated order ${orderId} fulfillment status to "${fulfillmentStatus}"`);
+
+    res.json({ success: true, message: `Order ${orderId} updated to ${fulfillmentStatus}` });
+
+  } catch (error) {
+    console.error('❌ Delivery webhook error:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
+router.post('/webhooks/pickup', async (req, res) => {
+  try {
+    const { orderId, status } = req.body;
+
+    if (!orderId) {
+      return res.status(400).json({ success: false, error: 'Missing orderId' });
+    }
+
+    console.log(`🔔 Pickup webhook received for order ${orderId}, status: ${status}`);
+
+    // For pickup, set to Ready when notified
+    const fulfillmentStatus = 'Ready';
+
+    // Update order status
+    const ordersCollection = req.db.collection('Orders');
+    const updateResult = await ordersCollection.updateOne(
+      { OrderID: orderId },
+      { $set: { FulfillmentStatus: fulfillmentStatus } }
+    );
+
+    if (updateResult.matchedCount === 0) {
+      return res.status(404).json({ success: false, error: 'Order not found' });
+    }
+
+    console.log(`✅ Updated order ${orderId} fulfillment status to "${fulfillmentStatus}"`);
+
+    res.json({ success: true, message: `Order ${orderId} updated to ${fulfillmentStatus}` });
+
+  } catch (error) {
+    console.error('❌ Pickup webhook error:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
 module.exports = router;
