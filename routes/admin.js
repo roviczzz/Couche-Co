@@ -113,6 +113,108 @@ function ensureAdmin(req, res, next) {
   res.status(403).send('Access denied. Admins only.');
 }
 
+function ensureOwner(req, res, next) {
+  if (req.session.user?.role === 'owner') {
+    return next();
+  }
+  res.status(403).send('Access denied. Owner only.');
+}
+
+// Generate staff ID based on role and user ID (copied from auth.js)
+function generateStaffId(role, userId) {
+  const rolePrefix = {
+    'admin': 'ADM',
+    'owner': 'OWN',
+    'staff': 'BC',
+    'user': 'USR'
+  };
+
+  const prefix = rolePrefix[role] || 'USR';
+
+  // Generate a 5-digit number based on ObjectId hash for all roles
+  const hash = userId.toString().split('').reduce((a, b) => {
+    a = ((a << 5) - a) + b.charCodeAt(0);
+    return a & a;
+  }, 0);
+  const idNumber = Math.abs(hash % 100000).toString().padStart(5, '0');
+  return `${prefix}${idNumber}`;
+}
+
+// POST route for account creation (owner only)
+router.post('/settings/create-account', ensureOwner, async (req, res) => {
+  try {
+    const { username, password, fullname, role, email, phone } = req.body;
+
+    // Basic validation
+    if (!username || !password || !role) {
+      return res.status(400).json({ success: false, message: 'Username, password, and role are required.' });
+    }
+
+    if (!['admin', 'staff'].includes(role)) {
+      return res.status(400).json({ success: false, message: 'Invalid role. Must be admin or staff.' });
+    }
+
+    const client = await MongoClient.connect(uri);
+    const db = client.db('blessingscafe');
+
+    // Check if username already exists
+    const existingUser = await db.collection('users').findOne({ username: username.trim() });
+    if (existingUser) {
+      await client.close();
+      return res.status(400).json({ success: false, message: 'Username already exists.' });
+    }
+
+    // Hash password
+    const saltRounds = 12;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Create new user (simplified with only required fields)
+    const newUser = {
+      username: username.trim(),
+      password: hashedPassword,
+      fullname: username.trim(), // Use username as default fullname initially
+      role: role,
+      passwordUpgraded: new Date(),
+      lastModified: new Date(),
+      passwordChangedAt: new Date(),
+      passwordChangedBy: username.trim(),
+      upgradedBy: req.session.user.username,
+      createdAt: new Date()
+    };
+
+    // Insert user
+    const result = await db.collection('users').insertOne(newUser);
+
+    // Generate staff ID and update the user
+    const staffId = generateStaffId(role, result.insertedId);
+    await db.collection('users').updateOne(
+      { _id: result.insertedId },
+      { $set: { staffId } }
+    );
+
+    await client.close();
+
+    console.log(`✅ Created new ${role} account: ${username} (${staffId}) by owner: ${req.session.user.username}`);
+
+    res.json({
+      success: true,
+      message: `${role.charAt(0).toUpperCase() + role.slice(1)} account created successfully.`,
+      user: {
+        username: newUser.username,
+        fullname: newUser.fullname,
+        role: newUser.role,
+        staffId,
+        email: newUser.email,
+        phone: newUser.phone
+      }
+    });
+
+  } catch (error) {
+    console.error('Account creation error:', error);
+    res.status(500).json({ success: false, message: 'Failed to create account. Please try again.' });
+  }
+});
+
 // Forgot Password (also before auth middleware)
 router.get('/forgot-password', (req, res) => {
   if (req.session.user) {

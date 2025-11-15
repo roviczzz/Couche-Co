@@ -35,7 +35,6 @@ class NotificationManager {
         // Mark all as read
         const markAllReadBtn = document.getElementById('mark-all-read');
         if (markAllReadBtn) {
-            markAllReadBtn.style.setProperty('margin-top', '0px', 'important');
             markAllReadBtn.addEventListener('click', () => {
                 this.markAllAsRead();
             });

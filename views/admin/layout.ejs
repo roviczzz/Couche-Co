@@ -27,9 +27,9 @@
                       {
                         label: 'Main',
                         items: [
-                          { path: '/admin/dashboard', label: 'Dashboard', icon: 'house' },
+                          { path: '/admin/dashboard', label: 'Home', icon: 'house' },
                           { path: '/admin/orders', label: 'Orders', icon: 'cart-flatbed' },
-                          { path: '/admin/menu', label: 'POS', icon: 'cash-register' }
+                          { path: '/admin/menu', label: 'POS Menu', icon: 'cash-register' }
                         ]
                       },
                       {
@@ -96,6 +96,9 @@
           <div class="notification-popup-header">
               <span class="notification-popup-title">Notifications</span>
               <div class="notification-popup-actions">
+                  <button id="mark-all-read" class="notification-action-btn" title="Mark all as read">
+                      <i class="fa-solid fa-check-double"></i>
+                  </button>
                   <button id="notification-popup-close" class="notification-popup-close" aria-label="Close">
                       <i class="fa-solid fa-xmark"></i>
                   </button>
@@ -108,9 +111,7 @@
               </div>
           </div>
           <div class="notification-popup-footer">
-              <button id="mark-all-read" class="notification-action-btn" title="Mark all as read">
-                      Mark all as read
-                  </button>
+              <div class="notification-footer-text">Click on a notification to view details</div>
           </div>
       </div>
       <div class="main-content">

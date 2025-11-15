@@ -638,7 +638,7 @@ document.addEventListener('DOMContentLoaded', function() {
     return true;
   }
 
-  function validateForm() {
+  async function validateForm() {
     console.log(`[2025-10-06 13:11:03] V9 Validating form by MathDaenniel`);
 
     const event = eventInput ? eventInput.value.trim() : '';
@@ -712,21 +712,26 @@ document.addEventListener('DOMContentLoaded', function() {
     const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
 
     if (endDateObj < oneYearAgo) {
-      const confirmOldDate = confirm('The end date is more than a year ago. Are you sure you want to create this promo?');
-      if (!confirmOldDate) {
-        if (endDateInput) endDateInput.focus();
-        return false;
-      }
+      return new Promise((resolve) => {
+        showConfirm('The end date is more than a year ago. Are you sure you want to create this promo?', 'Confirm Old Date',
+          () => resolve(true),
+          () => {
+            if (endDateInput) endDateInput.focus();
+            resolve(false);
+          }
+        );
+      });
     }
 
     console.log(`[2025-10-06 13:11:03] V9 Form validation passed by MathDaenniel`);
     return true;
   }
 
-  function handleSavePromo() {
+  async function handleSavePromo() {
     console.log(`[2025-10-06 13:11:03] V9 Handling save promo by MathDaenniel`);
 
-    if (!validateForm()) {
+    const isValid = await validateForm();
+    if (!isValid) {
       console.log(`[2025-10-06 13:11:03] V9 Form validation failed by MathDaenniel`);
       return;
     }

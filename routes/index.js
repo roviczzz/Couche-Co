@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { MongoClient } = require('mongodb');
+const { MongoClient, ObjectId } = require('mongodb');
 const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
 
 // Helper functions
@@ -247,32 +247,11 @@ router.get('/order/success', async (req, res) => {
       });
     }
 
-    // Generate QR code for order completion
-    const QRCode = require('qrcode');
-    const qrUrl = `${process.env.BASE_URL || 'http://localhost:8080'}/staff/complete-order/${orderId}`;
-    let qrCodeDataUrl = '';
-
-    try {
-      qrCodeDataUrl = await QRCode.toDataURL(qrUrl, {
-        width: 150,
-        margin: 1,
-        color: {
-          dark: '#000000',
-          light: '#FFFFFF'
-        }
-      });
-    } catch (qrError) {
-      console.error('QR Code generation error:', qrError);
-      qrCodeDataUrl = '';
-    }
-
     res.render('order-success', {
       title: 'Order Success | Blessings Cafe',
       user: req.session?.user || null,
       order: order,
-      orderId: orderId || 'Unknown',
-      qrCodeDataUrl: qrCodeDataUrl,
-      qrUrl: qrUrl
+      orderId: orderId || 'Unknown'
     });
   } catch (err) {
     console.error('Order success page error:', err);
@@ -308,11 +287,16 @@ router.get('/checkout', nocache, async (req, res) => {
   if (req.session.user) {
     // Load from database for logged-in users
     try {
-      const client = await MongoClient.connect(uri);
-      const db = client.db('blessingscafe');
-      const cartDoc = await db.collection('UserCart').findOne({ userId: new ObjectId(req.session.user._id) });
-      orderItems = (cartDoc && cartDoc.cart) ? cartDoc.cart : [];
-      await client.close();
+      const userId = req.session.user._id;
+      if (!ObjectId.isValid(userId)) {
+        console.error('Invalid user ID for cart loading:', userId);
+      } else {
+        const client = await MongoClient.connect(uri);
+        const db = client.db('blessingscafe');
+        const cartDoc = await db.collection('UserCart').findOne({ userId: new ObjectId(userId) });
+        orderItems = (cartDoc && cartDoc.cart) ? cartDoc.cart : [];
+        await client.close();
+      }
     } catch (err) {
       console.error('Error loading user cart:', err);
     }

@@ -42,25 +42,33 @@ document.addEventListener('DOMContentLoaded', async function() {
   if (checkoutBtn) {
     checkoutBtn.addEventListener('click', async function() {
       console.log('Checkout button clicked, window.user:', window.user);
-      if (!window.user) {
-        // For guests, POST cart data to server
-        console.log('Posting guest cart data');
-        try {
-          await fetch('/checkout', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ orderItems })
-          });
-          console.log('Posted guest cart, redirecting to /checkout');
-          window.location.href = '/checkout';
-        } catch (err) {
-          console.error('Error submitting guest cart:', err);
+
+      // Show confirmation modal before proceeding
+      showConfirmationModal(
+        'Proceed to Checkout',
+        'Are you ready to proceed to checkout and complete your order?',
+        async () => {
+          if (!window.user) {
+            // For guests, POST cart data to server
+            console.log('Posting guest cart data');
+            try {
+              await fetch('/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderItems })
+              });
+              console.log('Posted guest cart, redirecting to /checkout');
+              window.location.href = '/checkout';
+            } catch (err) {
+              console.error('Error submitting guest cart:', err);
+            }
+          } else {
+            // Redirect to checkout if logged in
+            console.log('Redirecting to /checkout');
+            window.location.href = '/checkout';
+          }
         }
-      } else {
-        // Redirect to checkout if logged in
-        console.log('Redirecting to /checkout');
-        window.location.href = '/checkout';
-      }
+      );
     });
   }
 });
@@ -186,7 +194,7 @@ function updateQuantity(index, value) {
 
 // Remove item
 function removeItem(index) {
-  showConfirm('Are you sure you want to remove this item from your cart?', 'Remove Item',
+  showConfirmationModal('Remove Item', 'Are you sure you want to remove this item from your cart?',
     () => {
       orderItems.splice(index, 1);
       saveCart();
@@ -257,5 +265,90 @@ function clearCart() {
 
   if (typeof updateCartCount === 'function') {
     updateCartCount();
+  }
+}
+
+// Modal confirmation functions
+function showConfirmationModal(title, message, onConfirm = null, onCancel = null) {
+  const modal = document.getElementById('confirmationModal');
+  const modalTitle = document.getElementById('confirmationTitle');
+  const modalMessage = document.getElementById('confirmationMessage');
+  const confirmBtn = document.getElementById('confirmProceed');
+  const cancelBtn = document.getElementById('confirmCancel');
+
+  if (!modal || !modalTitle || !modalMessage || !confirmBtn || !cancelBtn) {
+    console.error('Confirmation modal elements not found');
+    return;
+  }
+
+  // Set content
+  modalTitle.textContent = title;
+  modalMessage.textContent = message;
+
+  // Set up event handlers
+  const handleConfirm = () => {
+    hideConfirmationModal();
+    if (onConfirm) onConfirm();
+  };
+
+  const handleCancel = () => {
+    hideConfirmationModal();
+    if (onCancel) onCancel();
+  };
+
+  // Remove previous event listeners
+  confirmBtn.replaceWith(confirmBtn.cloneNode(true));
+  cancelBtn.replaceWith(cancelBtn.cloneNode(true));
+
+  // Get fresh references
+  const newConfirmBtn = document.getElementById('confirmProceed');
+  const newCancelBtn = document.getElementById('confirmCancel');
+
+  // Add new event listeners
+  newConfirmBtn.addEventListener('click', handleConfirm);
+  newCancelBtn.addEventListener('click', handleCancel);
+
+  // Add click outside to close
+  const handleOutsideClick = (e) => {
+    if (e.target === modal) {
+      hideConfirmationModal();
+      if (onCancel) onCancel();
+    }
+  };
+
+  modal.addEventListener('click', handleOutsideClick);
+
+  // Add escape key to close
+  const handleEscape = (e) => {
+    if (e.key === 'Escape') {
+      hideConfirmationModal();
+      if (onCancel) onCancel();
+    }
+  };
+
+  document.addEventListener('keydown', handleEscape);
+
+  // Store handlers for cleanup
+  modal._outsideClickHandler = handleOutsideClick;
+  modal._escapeHandler = handleEscape;
+
+  // Show modal
+  modal.classList.add('show');
+}
+
+function hideConfirmationModal() {
+  const modal = document.getElementById('confirmationModal');
+  if (modal) {
+    modal.classList.remove('show');
+
+    // Clean up event listeners
+    if (modal._outsideClickHandler) {
+      modal.removeEventListener('click', modal._outsideClickHandler);
+      delete modal._outsideClickHandler;
+    }
+    if (modal._escapeHandler) {
+      document.removeEventListener('keydown', modal._escapeHandler);
+      delete modal._escapeHandler;
+    }
   }
 }

@@ -74,13 +74,14 @@ if (order.FulfillmentStatus === 'In Progress') {
       </div>
 
       <% if (order && order.OrderID) { %>
+      <%
+// Generate QR code URL for order completion
+const qrUrl = `${process.env.BASE_URL || 'http://localhost:3000'}/staff/complete-order/${order.OrderID}`;
+%>
       <div class="qr-section">
         <h3>Completion QR Code</h3>
         <p>Show this QR code to staff when receiving your order</p>
         <div class="qr-code-container" data-url="<%= qrUrl %>">
-          <% if (qrCodeDataUrl) { %>
-          <img src="<%= qrCodeDataUrl %>" alt="Order Completion QR Code" style="width: 150px; height: 150px; border: 3px solid #856404; border-radius: 8px; background: white; padding: 5px;" />
-          <% } else { %>
           <div id="qr-placeholder" style="width: 150px; height: 150px; background: #f0f0f0; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; margin: 0 auto; padding: 10px;">
             <div style="text-align: center;">
               <div style="font-size: 2em; margin-bottom: 5px;">📱</div>
@@ -88,7 +89,6 @@ if (order.FulfillmentStatus === 'In Progress') {
               <div style="font-size: 10px; color: #007bff; word-break: break-all; margin-top: 5px;"><%= qrUrl %></div>
             </div>
           </div>
-          <% } %>
         </div>
         <p><small>This QR code links to order completion and can only be scanned by authorized staff</small></p>
       </div>

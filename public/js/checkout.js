@@ -254,12 +254,17 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
 
-    // Disable button to prevent double submission
-    placeOrderBtn.disabled = true;
-    placeOrderBtn.style.display = 'none';
+    // Show confirmation modal before placing order
+    showConfirmationModal(
+      'Confirm Order',
+      'Are you sure you want to place this order? Please review your details before proceeding.',
+      async () => {
+        // Disable button to prevent double submission
+        placeOrderBtn.disabled = true;
+        placeOrderBtn.style.display = 'none';
 
-    try {
-      // Show overlay
+        try {
+          // Show overlay
       overlay.classList.remove('hidden');
       processingMessage.textContent = 'Checking inventory availability...';
       paymentInstructions.style.display = 'none';
@@ -522,6 +527,8 @@ document.addEventListener('DOMContentLoaded', function() {
       placeOrderBtn.disabled = false;
       placeOrderBtn.textContent = 'Place Order';
     }
+      }
+    );
   });
 
   // Load active promos and set up promo selection
@@ -684,6 +691,91 @@ document.addEventListener('DOMContentLoaded', function() {
   // Set active step to 1 on load
   updateProgressStep(1);
 });
+
+// Modal confirmation functions
+function showConfirmationModal(title, message, onConfirm = null, onCancel = null) {
+  const modal = document.getElementById('confirmationModal');
+  const modalTitle = document.getElementById('confirmationTitle');
+  const modalMessage = document.getElementById('confirmationMessage');
+  const confirmBtn = document.getElementById('confirmProceed');
+  const cancelBtn = document.getElementById('confirmCancel');
+
+  if (!modal || !modalTitle || !modalMessage || !confirmBtn || !cancelBtn) {
+    console.error('Confirmation modal elements not found');
+    return;
+  }
+
+  // Set content
+  modalTitle.textContent = title;
+  modalMessage.textContent = message;
+
+  // Set up event handlers
+  const handleConfirm = () => {
+    hideConfirmationModal();
+    if (onConfirm) onConfirm();
+  };
+
+  const handleCancel = () => {
+    hideConfirmationModal();
+    if (onCancel) onCancel();
+  };
+
+  // Remove previous event listeners
+  confirmBtn.replaceWith(confirmBtn.cloneNode(true));
+  cancelBtn.replaceWith(cancelBtn.cloneNode(true));
+
+  // Get fresh references
+  const newConfirmBtn = document.getElementById('confirmProceed');
+  const newCancelBtn = document.getElementById('confirmCancel');
+
+  // Add new event listeners
+  newConfirmBtn.addEventListener('click', handleConfirm);
+  newCancelBtn.addEventListener('click', handleCancel);
+
+  // Add click outside to close
+  const handleOutsideClick = (e) => {
+    if (e.target === modal) {
+      hideConfirmationModal();
+      if (onCancel) onCancel();
+    }
+  };
+
+  modal.addEventListener('click', handleOutsideClick);
+
+  // Add escape key to close
+  const handleEscape = (e) => {
+    if (e.key === 'Escape') {
+      hideConfirmationModal();
+      if (onCancel) onCancel();
+    }
+  };
+
+  document.addEventListener('keydown', handleEscape);
+
+  // Store handlers for cleanup
+  modal._outsideClickHandler = handleOutsideClick;
+  modal._escapeHandler = handleEscape;
+
+  // Show modal
+  modal.classList.add('show');
+}
+
+function hideConfirmationModal() {
+  const modal = document.getElementById('confirmationModal');
+  if (modal) {
+    modal.classList.remove('show');
+
+    // Clean up event listeners
+    if (modal._outsideClickHandler) {
+      modal.removeEventListener('click', modal._outsideClickHandler);
+      delete modal._outsideClickHandler;
+    }
+    if (modal._escapeHandler) {
+      document.removeEventListener('keydown', modal._escapeHandler);
+      delete modal._escapeHandler;
+    }
+  }
+}
 
 // Clear user's cart from both localStorage and database upon successful payment
 async function clearUserCart() {

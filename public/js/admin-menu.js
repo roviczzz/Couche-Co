@@ -1,4 +1,4 @@
-// Staff Menu JavaScript
+// Admin Menu JavaScript
 // Get user data
 const user = JSON.parse(document.getElementById('user-data').textContent);
 
@@ -55,20 +55,13 @@ function handlePromoSelection() {
     if (promoSelect.value === '') {
         selectedPromo = null;
         
-        // Clear promo labels immediately and aggressively
+        // Hide promo applied section when no promotion is selected
         const promoAppliedElement = document.getElementById('promo-applied');
         const promoDetailsElement = document.getElementById('promo-details');
         
-        // Clear all dropdown promo labels - only keep B1T1 and Buy3 if they exist
         if (promoAppliedElement) {
-            const b1t1Applied = window.cartItems && window.cartItems.some(item => item.isB1T1);
-            const buy3Applied = window.cartItems && calculateBuy3For143Savings(window.cartItems) > 0;
-            
-            let promoLabels = [];
-            if (b1t1Applied) promoLabels.push('B1T1');
-            if (buy3Applied) promoLabels.push('Buy 3 for ₱143');
-            
-            promoAppliedElement.textContent = promoLabels.join(', ');
+            promoAppliedElement.style.display = 'none';
+            promoAppliedElement.textContent = '';
         }
         
         // Clear promo details completely
@@ -453,6 +446,50 @@ function selectPayment(method) {
 }
 
 // Cart functions
+async function addModalItemToCart() {
+    if (!window.currentModalItem) return;
+
+    const selectedAddons = getSelectedAddons();
+    const selectedSize = window.selectedSize;
+
+    // Check inventory availability before adding to cart
+    const availabilityCheck = await checkItemAvailability(window.currentModalItem, selectedSize, selectedAddons);
+    if (!availabilityCheck.available) {
+        showFeedbackMessage(availabilityCheck.message, 'error');
+        return;
+    }
+
+    addToCart(window.currentModalItem, selectedSize, selectedAddons);
+    closeSizeModal();
+}
+
+async function checkItemAvailability(item, selectedSize, addons) {
+    try {
+        const response = await fetch('/api/inventory/check-single', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                ProductID: item._id || item.id,
+                Size: selectedSize ? (selectedSize.Size || selectedSize.SizeName) : null,
+                Addons: addons.map(addon => ({ AddOnID: addon.id, Name: addon.name })),
+                Quantity: 1
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error('Error checking item availability:', error);
+        // Return available=true on error to not block ordering
+        return { available: true, missingIngredients: [] };
+    }
+}
 
 // Helper function to extract price from item or size
 function getItemPrice(item, selectedSize) {
@@ -489,50 +526,6 @@ function formatUnavailabilityMessage(missingIngredients) {
         }
     });
     return message;
-}
-
-function addModalItemToCart() {
-    if (!window.currentModalItem) return;
-
-    const selectedAddons = getSelectedAddons();
-    const selectedSize = window.selectedSize;
-
-    addToCart(window.currentModalItem, selectedSize, selectedAddons);
-    closeSizeModal();
-}
-
-async function checkItemAvailability(item, selectedSize, addons) {
-    try {
-        // Safety check: ensure item exists
-        if (!item) {
-            console.warn('Item is null or undefined in checkItemAvailability');
-            return { available: true, missingIngredients: [] };
-        }
-
-        const response = await fetch('/api/inventory/check-single', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                ProductID: item._id || item.id,
-                Size: selectedSize ? (selectedSize.Size || selectedSize.SizeName) : null,
-                Addons: addons.map(addon => ({ AddOnID: addon.id, Name: addon.name })),
-                Quantity: 1
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        return result;
-    } catch (error) {
-        console.error('Error checking item availability:', error);
-        // Return available=true on error to not block ordering
-        return { available: true, missingIngredients: [] };
-    }
 }
 
 function addToCart(item, selectedSize = null, addons = []) {
@@ -618,10 +611,7 @@ function updateCartDisplay() {
         const promoDetailsElement = document.getElementById('promo-details');
         const promoDiscountRow = document.getElementById('promo-discount-row');
         
-        if (promoAppliedElement) {
-            promoAppliedElement.textContent = '';
-            promoAppliedElement.style.display = 'none';
-        }
+        if (promoAppliedElement) promoAppliedElement.textContent = '';
         if (promoDetailsElement) {
             promoDetailsElement.textContent = '';
             promoDetailsElement.style.display = 'none';
@@ -632,10 +622,6 @@ function updateCartDisplay() {
         totalItemsElement.textContent = '0';
         subtotalElement.textContent = '₱ 0.00';
         totalElement.textContent = '₱ 0.00';
-        
-        // Reset promo when cart is empty
-        selectedPromo = null;
-        updatePromoAvailability();
         return;
     }
 
@@ -745,11 +731,36 @@ function updateCartDisplay() {
 
     orderItemsContainer.innerHTML = html;
     totalItemsElement.textContent = totalItems.toString();
-
-    // Update promo availability based on cart content first (this will reset selectedPromo if invalid)
+    
+    // Update promo availability FIRST (this will reset selectedPromo if invalid)
     updatePromoAvailability();
+    
+    // Calculate promo discount
+    let promoDiscount = 0;
+    if (selectedPromo && isPromoApplicableToCart(selectedPromo)) {
+        const menuData = JSON.parse(document.getElementById('menu-data').textContent);
+        
+        window.cartItems.forEach(cartItem => {
+            const menuItem = menuData.find(item => item.Name === cartItem.ProductName);
+            if (menuItem && menuItem.Category === selectedPromo.category) {
+                const itemTotal = cartItem.BasePrice * cartItem.Quantity;
+                promoDiscount += itemTotal * (selectedPromo.discountPercentage / 100);
+            }
+        });
+    }
 
-    // Update promotional labels
+    // Show/hide promo discount row
+    const promoDiscountRow = document.getElementById('promo-discount-row');
+    const promoDiscountElement = document.getElementById('promo-discount');
+    
+    if (promoDiscount > 0) {
+        promoDiscountRow.style.display = 'flex';
+        promoDiscountElement.textContent = `-₱ ${promoDiscount.toFixed(2)}`;
+    } else {
+        promoDiscountRow.style.display = 'none';
+    }
+
+    // Update promotional labels (after promo availability check)
     const promoAppliedElement = document.getElementById('promo-applied');
     const promoDetailsElement = document.getElementById('promo-details');
     
@@ -760,73 +771,32 @@ function updateCartDisplay() {
         promoDetailsElement.style.display = 'none';
     }
     
-    const b1t1Applied = window.cartItems && window.cartItems.some(item => item.isB1T1);
-    const buy3Applied = window.cartItems && calculateBuy3For143Savings(window.cartItems) > 0;
-
-    let promoLabels = [];
-    let promoDetails = '';
-    
-    // Only add dropdown promo if it exists, cart has items, and promo is still applicable
+    // Only show promo-applied when a dropdown promo is selected
     if (selectedPromo && window.cartItems && window.cartItems.length > 0 && isPromoApplicableToCart(selectedPromo)) {
-        promoLabels.push(`${selectedPromo.event} (-${selectedPromo.discountPercentage}%)`);
-        promoDetails = `${selectedPromo.description} • ${selectedPromo.discountPercentage}% discount on ${selectedPromo.category} items`;
-    } else if (selectedPromo) {
-        // If we reach here, selectedPromo exists but is not applicable - clear it
-        selectedPromo = null;
-        const promoSelect = document.getElementById('promo-select');
-        if (promoSelect) promoSelect.value = '';
-    }
-    
-    if (b1t1Applied) promoLabels.push('B1T1');
-    if (buy3Applied) promoLabels.push('Buy 3 for ₱143');
-
-    promoAppliedElement.textContent = promoLabels.length > 0 ? promoLabels.join(', ') : '';
-    promoAppliedElement.style.textAlign = 'left';
-    
-    if (promoLabels.length > 0) {
         promoAppliedElement.style.display = 'block';
-    } else {
-        promoAppliedElement.style.display = 'none';
-    }
-    
-    if (promoDetails) {
-        promoDetailsElement.textContent = promoDetails;
+        promoAppliedElement.textContent = `${selectedPromo.event} (-${selectedPromo.discountPercentage}%)`;
+        promoDetailsElement.textContent = `${selectedPromo.description} • ${selectedPromo.discountPercentage}% discount on ${selectedPromo.category} items`;
         promoDetailsElement.style.display = 'block';
         promoDetailsElement.style.marginBottom = '20px';
     } else {
-        promoDetailsElement.style.display = 'none';
+        promoAppliedElement.style.display = 'none';
+        if (selectedPromo) {
+            // If we reach here, selectedPromo exists but is not applicable - clear it
+            selectedPromo = null;
+            const promoSelect = document.getElementById('promo-select');
+            if (promoSelect) promoSelect.value = '';
+        }
     }
 
-    subtotalElement.textContent = `₱ ${subtotal.toFixed(2)}`;
+    // Calculate subtotal after promo discount
+    const subtotalAfterPromo = subtotal - promoDiscount;
+    subtotalElement.textContent = `₱ ${subtotalAfterPromo.toFixed(2)}`;
 
     // Calculate promotional total (including selected promo discount)
     let promotionalTotal = calculatePromotionalTotal(window.cartItems);
-    let promoDiscountAmount = 0;
     
-    // Apply selected promo discount (only if promo is still applicable)
-    if (selectedPromo && isPromoApplicableToCart(selectedPromo)) {
-        const menuData = JSON.parse(document.getElementById('menu-data').textContent);
-        
-        window.cartItems.forEach(cartItem => {
-            const menuItem = menuData.find(item => item.Name === cartItem.ProductName);
-            if (menuItem && menuItem.Category === selectedPromo.category) {
-                const itemTotal = cartItem.BasePrice * cartItem.Quantity;
-                promoDiscountAmount += itemTotal * (selectedPromo.discountPercentage / 100);
-            }
-        });
-        
-        promotionalTotal -= promoDiscountAmount;
-    }
-
-    // Update promo discount row display
-    const promoDiscountRow = document.getElementById('promo-discount-row');
-    const promoDiscountElement = document.getElementById('promo-discount');
-    if (promoDiscountAmount > 0) {
-        promoDiscountRow.style.display = 'flex';
-        promoDiscountElement.textContent = `-₱ ${promoDiscountAmount.toFixed(2)}`;
-    } else {
-        promoDiscountRow.style.display = 'none';
-    }
+    // Apply selected promo discount to promotional total
+    promotionalTotal -= promoDiscount;
     
     totalElement.textContent = `₱ ${promotionalTotal.toFixed(2)}`;
 
@@ -974,7 +944,7 @@ function submitOrder() {
         FulfillmentMethod: deliveryType,
         PaymentMethod: paymentMethod,
         PaymentMode: paymentMethod === "cash" ? "Cash on Hand" : "E-Payment",
-        cashierName: user ? user.fullname : "Staff"
+        cashierName: user ? user.fullname : "Admin"
     };
 
     // Add XenditPaymentID if e-payment is selected
@@ -1055,35 +1025,6 @@ function getOrderItems() {
     // You'll need to implement this based on how your cart is structured
     // For now, returning empty array - you should replace this with actual cart logic
     return window.cartItems || [];
-}
-
-function checkB1T1Eligibility(cart, category = null) {
-    // Check if cart has eligible drinks for B1T1
-    let eligibleDrinks = [];
-    cart.forEach((item, index) => {
-        if (item.ProductName && item.ProductName.toLowerCase().indexOf('pastry') === -1 && !item.isB1T1) {
-            const menuItem = getMenuItem(item.ProductID, item.ProductName);
-            if (!category || (menuItem && menuItem.Category === category)) {
-                eligibleDrinks.push({ ...item, cartIndex: index });
-            }
-        }
-    });
-
-    return eligibleDrinks.length > 0 ? eligibleDrinks : null;
-}
-
-function getMenuDrinksWithSize(category, basisSize) {
-    const menuData = JSON.parse(document.getElementById('menu-data').textContent);
-    let availableDrinks = [];
-    menuData.forEach(menuItem => {
-        if (menuItem.Category === category && menuItem.Category !== 'Pastries') {
-            const sizeObj = menuItem.Sizes ? menuItem.Sizes.find(s => (s.SizeName || s.Size) === basisSize) : null;
-            if (sizeObj) {
-                availableDrinks.push({ menuItem, sizeObj });
-            }
-        }
-    });
-    return availableDrinks;
 }
 
 // Helper function to get menu item by ProductID or Name
@@ -1186,6 +1127,20 @@ function checkB1T1Eligibility(cart, category = null) {
     return eligibleDrinks.length > 0 ? eligibleDrinks : null;
 }
 
+function getMenuDrinksWithSize(category, basisSize) {
+    const menuData = JSON.parse(document.getElementById('menu-data').textContent);
+    let availableDrinks = [];
+    menuData.forEach(menuItem => {
+        if (menuItem.Category === category && menuItem.Category !== 'Pastries') {
+            const sizeObj = menuItem.Sizes ? menuItem.Sizes.find(s => (s.SizeName || s.Size) === basisSize) : null;
+            if (sizeObj) {
+                availableDrinks.push({ menuItem, sizeObj });
+            }
+        }
+    });
+    return availableDrinks;
+}
+
 function showB1T1Modal(category, basisSize, basisIndex) {
     const availableDrinks = getMenuDrinksWithSize(category, basisSize);
     if (!availableDrinks || availableDrinks.length === 0) {
@@ -1243,7 +1198,7 @@ function selectB1T1DrinkFromIndex(index) {
 
     updateCartDisplay();
     closeB1T1Modal();
-    showPromotionMessage('Buy 1 Take 1 promotion applied! You get one free drink.');
+    showPromotionMessage('Buy 1 Take 1 promotion applied!');
 }
 
 function showBuy3For143Modal() {
@@ -1266,13 +1221,6 @@ function showBuy3For143Modal() {
 
     // Show success message with correct savings
     showPromotionMessage(`Buy 3 for ₱143 promotion applied! You save ₱${savings.toFixed(2)} on ${promoSets} set${promoSets > 1 ? 's' : ''} of drinks.`);
-}
-
-// Generate a unique customer name with format "Customer#XXXXX" (range 10000-99999, 90,000 possible unique names)
-function generateUniqueCustomerName() {
-    // Generate random number between 10000 and 99999
-    const customerNumber = Math.floor(Math.random() * 90000) + 10000;
-    return `Customer#${customerNumber}`;
 }
 
 function showFeedbackMessage(message, type = 'success') {
@@ -1324,6 +1272,13 @@ function showFeedbackMessage(message, type = 'success') {
             }
         }, 300);
     }, duration);
+}
+
+// Generate a unique customer name with format "Customer#XXXXX" (range 10000-99999, 90,000 possible unique names)
+function generateUniqueCustomerName() {
+    // Generate random number between 10000 and 99999
+    const customerNumber = Math.floor(Math.random() * 90000) + 10000;
+    return `Customer#${customerNumber}`;
 }
 
 function validateOrderInputs() {
@@ -1930,7 +1885,7 @@ function showPOSCalculator(orderData) {
 
 async function submitToServer(orderData) {
     try {
-        const response = await fetch('/staff/orders/submit', {
+        const response = await fetch('/admin/orders/submit', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -2020,6 +1975,7 @@ async function showXenditGateway(orderData) {
             },
             // Fix expiry format - use invoice_duration to match checkout.js working implementation
             invoice_duration: 600 // 10 minutes in seconds
+
         };
 
         const paymentResponse = await fetch('/api/xendit/create-payment', {
@@ -2259,6 +2215,9 @@ function clearOrderForm() {
     window.cartItems = [];
     updateCartDisplay();
 
+    // Re-initialize payment options based on current delivery type (Take-Out)
+    handleDeliveryTypeChange();
+
     // Close all modals
     closeOrderConfirmation();
     closeXenditGateway();
@@ -2302,6 +2261,96 @@ function showPromotionMessage(message) {
             document.body.removeChild(messageDiv);
         }, 300);
     }, 4000);
+}
+
+// Check item availability before adding to cart
+async function checkItemAvailability(item, selectedSize, addons) {
+    try {
+        // Safety check: ensure item exists
+        if (!item) {
+            console.warn('Item is null or undefined in checkItemAvailability');
+            return { available: true };
+        }
+
+        // Get menu data to find the item details
+        const menuData = JSON.parse(document.getElementById('menu-data').textContent);
+        const menuItem = menuData.find(m => m._id === item._id || m.id === item._id || m.Name === item.Name);
+
+        if (!menuItem) {
+            return {
+                available: false,
+                message: 'Item not found in menu'
+            };
+        }
+
+        // Prepare order item data for availability check
+        const orderItem = {
+            ProductName: item.Name,
+            ProductID: item._id || item.id,
+            Size: selectedSize ? (selectedSize.Size || selectedSize.SizeName || 'Regular') : 'Regular',
+            Addons: addons.map(addon => ({ Name: addon.name, AddOnID: addon.id })),
+            Quantity: 1
+        };
+
+        // Check availability via API
+        const response = await fetch('/api/check-availability', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                Cart: [orderItem]
+            })
+        });
+
+        if (!response.ok) {
+            // If API fails, allow the item to be added (fail-safe)
+            console.warn('Availability check failed, allowing item to be added');
+            return { available: true };
+        }
+
+        const result = await response.json();
+
+        if (result.available) {
+            return { available: true };
+        } else {
+            // Create user-friendly error message
+            const unavailableItems = result.unavailableItems || [];
+            if (unavailableItems.length > 0) {
+                const itemInfo = unavailableItems[0];
+                const missingIngredients = itemInfo.missingIngredients || [];
+
+                let message = `${item.Name} is currently unavailable. `;
+
+                const ingredientIssues = missingIngredients.filter(ing => ing.type !== 'addon');
+                const addonIssues = missingIngredients.filter(ing => ing.type === 'addon');
+
+                if (ingredientIssues.length > 0 && addonIssues.length > 0) {
+                    message += 'Some ingredients and add-ons are out of stock.';
+                } else if (ingredientIssues.length > 0) {
+                    message += 'Some ingredients are out of stock.';
+                } else if (addonIssues.length > 0) {
+                    message += 'Some add-ons are out of stock.';
+                } else {
+                    message += 'Please try again later.';
+                }
+
+                return {
+                    available: false,
+                    message: message
+                };
+            }
+
+            return {
+                available: false,
+                message: `${item.Name} is currently unavailable. Please try again later.`
+            };
+        }
+    } catch (error) {
+        console.error('Error checking item availability:', error);
+        // Fail-safe: allow item to be added if check fails
+        return { available: true };
+    }
 }
 
 // Calculate promotional pricing for order submission
