@@ -186,21 +186,18 @@ function updateQuantity(index, value) {
 
 // Remove item
 function removeItem(index) {
-  showConfirm('Are you sure you want to remove this item from your cart?', 'Remove Item',
-    () => {
-      orderItems.splice(index, 1);
-      saveCart();
-      displayCartItems();
-      updateCartTotal();
+  const itemToRemove = orderItems[index];
+  orderItems.splice(index, 1);
+  saveCart();
+  displayCartItems();
+  updateCartTotal();
 
-      if (typeof updateCartCount === 'function') {
-        updateCartCount();
-      }
+  if (typeof updateCartCount === 'function') {
+    updateCartCount();
+  }
 
-      // Show success message
-      notificationSystem.success('Item removed from cart', 'Success');
-    }
-  );
+  // Show cart removal notification with item details
+  showCartRemoveNotification(itemToRemove);
 }
 
 // Update cart total display
@@ -245,6 +242,87 @@ function saveCart() {
       },
       body: JSON.stringify(orderItems)
     }).catch(err => console.error('Error saving cart to server:', err));
+  }
+}
+
+// Show cart removal notification (matches add-to-cart popup style)
+function showCartRemoveNotification(removedItem) {
+  // Create the popup element if it doesn't exist
+  let popup = document.getElementById('cart-remove-popup');
+  if (popup) {
+    // Remove existing popup to recreate with new item details
+    popup.remove();
+  }
+
+  popup = document.createElement('div');
+  popup.id = 'cart-remove-popup';
+  popup.className = 'cart-remove-popup';
+
+  // Build item details HTML similar to add-to-cart popup
+  let detailsHtml = '';
+
+  if (removedItem.size) {
+    detailsHtml += `<span>Size: ${removedItem.size}</span><br>`;
+  }
+  if (removedItem.quantity && removedItem.quantity > 1) {
+    detailsHtml += `<span>Qty: ${removedItem.quantity}</span>`;
+  }
+  if (removedItem.addons && removedItem.addons.length > 0) {
+    const addonNames = removedItem.addons.map(addon => addon.Name || addon.name).join(', ');
+    detailsHtml += `<span>Add-ons: ${addonNames}</span>`;
+  }
+
+  popup.innerHTML = `
+    <div class="cart-remove-header">
+      <span>✓ Item removed from your cart</span>
+      <button id="cart-remove-close" class="cart-remove-close">&times;</button>
+    </div>
+    <div class="cart-remove-body">
+      <div class="cart-remove-item">
+        <div class="cart-remove-image">
+          ${removedItem.imagelink ?
+            `<img src="${removedItem.imagelink}" alt="${removedItem.name}">` :
+            `<div class="cart-remove-placeholder">No Image</div>`
+          }
+        </div>
+        <div class="cart-remove-info">
+          <h4>${removedItem.name}</h4>
+          <div class="cart-remove-details">
+            ${detailsHtml}
+          </div>
+        </div>
+      </div>
+      <p class="cart-remove-message">Your cart has been updated successfully.</p>
+    </div>
+  `;
+
+  document.body.appendChild(popup);
+
+  // Add close functionality
+  const closeBtn = popup.querySelector('#cart-remove-close');
+  closeBtn.addEventListener('click', () => {
+    hideCartRemoveNotification();
+  });
+
+  // Auto-hide after 3 seconds
+  setTimeout(() => {
+    hideCartRemoveNotification();
+  }, 3000);
+
+  // Show the popup
+  popup.classList.add('show');
+}
+
+// Hide cart removal notification
+function hideCartRemoveNotification() {
+  const popup = document.getElementById('cart-remove-popup');
+  if (popup) {
+    popup.classList.remove('show');
+    setTimeout(() => {
+      if (popup.parentElement) {
+        popup.parentElement.removeChild(popup);
+      }
+    }, 400);
   }
 }
 
