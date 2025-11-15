@@ -39,14 +39,14 @@ body {
   position: relative;
   padding-bottom: 16px;
   border-bottom: 2px solid #e0e0e0;
-  margin-left: 30px;
+  margin-left: 15px;
   margin-top: 40px;
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Adjust header section when sidebar is collapsed */
 .sidebar-collapsed .header-section {
-  margin-left: 15px;
+  margin-left: 20px;
 }
 
 .header-section h1 {
@@ -267,16 +267,20 @@ h1 {
   box-shadow: 0 4px 12px rgba(139, 90, 43, 0.3);
 }
 
+body:not(.sidebar-collapsed) .container {
+  margin-left: 1rem;
+}
+
 .container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 1.5rem;
+  padding: 0 1.0rem;
   transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Adjust container padding when sidebar is collapsed */
 .sidebar-collapsed .container {
-  padding: 0 1rem;
+  padding: 0 1.5rem;
 }
 
 .main-content {
