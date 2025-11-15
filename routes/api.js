@@ -1264,31 +1264,30 @@ router.get('/analytics/payment-methods', async (req, res) => {
         $project: {
           PaymentMode: {
             $cond: {
-              if: { $in: ['$PaymentMode', ['E-PAYMENT', 'E-Payment']] },
+              if: { $in: ['$PaymentMode', ['E-PAYMENT', 'E-Payment', 'e-payment']] },
               then: 'E-Payment',
               else: {
                 $cond: {
-                  if: { $in: ['$PaymentMode', ['Cash on Hand', 'Cash']] },
+                  if: { $in: ['$PaymentMode', ['Cash on Hand', 'Cash', 'cash']] },
                   then: 'Cash',
                   else: '$PaymentMode'
                 }
               }
             }
-          },
-          Total: 1
+          }
         }
       },
       {
         $group: {
           _id: '$PaymentMode',
-          count: { $sum: 1 },
-          revenue: { $sum: '$Total' }
+          count: { $sum: 1 }
         }
       },
-      { $sort: { revenue: -1 } }
+      { $sort: { count: -1 } } // Sort by count to prioritize visibility
     ];
 
     const paymentMethods = await db.collection('Orders').aggregate(pipeline).toArray();
+    console.log('Payment methods data:', JSON.stringify(paymentMethods, null, 2));
     await client.close();
     res.json(paymentMethods);
   } catch (err) {

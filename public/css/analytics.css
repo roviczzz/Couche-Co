@@ -268,14 +268,15 @@ h1 {
 }
 
 body:not(.sidebar-collapsed) .container {
-  margin-left: 1rem;
+  margin-right: 10rem;
+  padding: 0 0.25rem;
 }
 
 .container {
   max-width: 1400px;
   margin: 0 auto;
   padding: 0 1.0rem;
-  transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Adjust container padding when sidebar is collapsed */
@@ -999,7 +1000,10 @@ tr:hover td {
   }
   
   .container {
-    padding: 0 1rem;
+    max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  transition: margin-left 0.3s ease, padding 0.3s ease;
   }
   
   h1 {
