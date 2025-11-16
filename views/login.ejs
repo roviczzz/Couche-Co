@@ -13,7 +13,7 @@
 
             <div class="error login-flash-error" <%= error ? '' : 'style="display: none;"' %>><%= error || '' %></div>
 
-        <form action="/user/login" method="post" onsubmit="return validateForm()">
+        <form action="/login" method="post" onsubmit="return validateForm()">
             <div class="form-group">
                 <label for="email">Email</label>
                 <input
@@ -52,10 +52,6 @@
             <a href="/register" class="btn-text">Sign up</a>
         </div>
 
-        <div class="admin-section">
-            <p class="admin-text">Are you an administrator?</p>
-            <a href="/auth/admin/login" class="btn btn-admin">Admin Login</a>
-        </div>
     </div>
 
     <script>
@@ -107,3 +103,4 @@
     </script>
 </body>
 </html>
+

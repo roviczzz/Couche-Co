@@ -1,28 +1,35 @@
 const express = require('express');
 const router = express.Router();
-const { MongoClient, ObjectId } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const bcrypt = require('bcrypt');
-const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
-const client = new MongoClient(uri);
+const { check, validationResult } = require('express-validator');
+
+const SALT_ROUNDS = 12;
+
+// Generate staff ID based on role and user ID
+function generateStaffId(role, userId) {
+  const rolePrefix = {
+    'admin': 'ADM',
+    'owner': 'OWN',
+    'staff': 'BC',
+    'user': 'USR'
+  };
+
+  const prefix = rolePrefix[role] || 'USR';
+
+  // Generate a 5-digit number based on ObjectId hash for all roles
+  const hash = userId.toString().split('').reduce((a, b) => {
+    a = ((a << 5) - a) + b.charCodeAt(0);
+    return a & a;
+  }, 0);
+  const idNumber = Math.abs(hash % 100000).toString().padStart(5, '0');
+  return `${prefix}${idNumber}`;
+}
+
 const fs = require('fs');
 const path = require('path');
-const axios = require('axios');
 const multer = require('multer');
 const { createNewOrderNotification, createMessageNotification, createLowStockNotification } = require('../admin-helpers');
-let productCollection;
-
-
-// Connect once and reuse
-(async () => {
-  try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db("blessingscafe");
-    productCollection = db.collection("Menu");
-    console.log("✅ Connected to MongoDB (Menu collection ready)");
-  } catch (err) {
-    console.error("MongoDB connection error:", err);
-  }
-})();
 
 
 router.post("/toggle-availability/:id", async (req, res) => {
@@ -34,7 +41,7 @@ router.post("/toggle-availability/:id", async (req, res) => {
 
     const enabledValue = isEnabled === true || isEnabled === "true";
 
-    const result = await productCollection.updateOne(
+    const result = await req.db.collection('Menu').updateOne(
       { _id: new ObjectId(id) },
       { $set: { isEnabled: enabledValue } }
     );
@@ -103,7 +110,7 @@ function isLoggedIn(req, res, next) {
   if (req.session.user) {
     return next();
   }
-  res.redirect('/auth/login');
+  res.redirect('/admin');
 }
 
 function ensureAdmin(req, res, next) {
@@ -111,6 +118,14 @@ function ensureAdmin(req, res, next) {
     return next();
   }
   res.status(403).send('Access denied. Admins only.');
+}
+
+// Authentication middleware for order completion (staff, admin, owner)
+function isAuthorizedForOrderCompletion(req, res, next) {
+  if (req.session.user && ['staff', 'admin', 'owner'].includes(req.session.user.role)) {
+    return next();
+  }
+  res.redirect('/admin/login');
 }
 
 // Forgot Password (also before auth middleware)
@@ -127,7 +142,7 @@ router.get('/forgot-password', (req, res) => {
 // Analytics Endpoints (before auth middleware)
 router.get('/analytics/dashboard-stats', nocache, async (req, res) => {
   try {
-    const stats = await getDashboardAnalyticsStats();
+    const stats = await getDashboardAnalyticsStats(req.db);
     res.json(stats);
   } catch (error) {
     console.error('Dashboard stats error:', error);
@@ -139,13 +154,10 @@ router.get('/analytics/low-stock', nocache, async (req, res) => {
   try {
     const threshold = parseInt(req.query.threshold) || 5; // Default to 5, can be 5-100
 
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
-    const ingredients = await db.collection('Ingredients').find({ Amount: { $lte: threshold }, isEnabled: true }).sort({ Amount: 1 }).toArray();
-    const addons = await db.collection('Add-ons').find({ Amount: { $lte: threshold }, isEnabled: true }).sort({ Amount: 1 }).toArray();
-
-    await client.close();
+    const ingredients = await req.db.collection('Ingredients').find({ Amount: { $lte: threshold }, isEnabled: true }).sort({ Amount: 1 }).toArray();
+    const addons = await req.db.collection('Add-ons').find({ Amount: { $lte: threshold }, isEnabled: true }).sort({ Amount: 1 }).toArray();
 
     // Helper function to get item name
     const getItemName = (item, type) => {
@@ -200,8 +212,7 @@ router.get('/analytics/low-stock', nocache, async (req, res) => {
 
 router.get('/analytics/top-categories', nocache, async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
     const pipeline = [
       { $unwind: '$Cart' },
@@ -223,8 +234,7 @@ router.get('/analytics/top-categories', nocache, async (req, res) => {
       { $limit: 8 }
     ];
 
-    const categories = await db.collection('Orders').aggregate(pipeline).toArray();
-    await client.close();
+    const categories = await req.db.collection('Orders').aggregate(pipeline).toArray();
 
     res.json(categories.map(cat => ({
       name: cat._id,
@@ -240,8 +250,7 @@ router.get('/analytics/top-categories', nocache, async (req, res) => {
 
 router.get('/analytics/payment-types', nocache, async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
     const pipeline = [
       {
@@ -271,8 +280,7 @@ router.get('/analytics/payment-types', nocache, async (req, res) => {
       { $sort: { orderCount: -1 } }
     ];
 
-    const paymentTypes = await db.collection('Orders').aggregate(pipeline).toArray();
-    await client.close();
+    const paymentTypes = await req.db.collection('Orders').aggregate(pipeline).toArray();
 
     res.json(paymentTypes.map(pt => ({
       name: pt._id,
@@ -286,8 +294,7 @@ router.get('/analytics/payment-types', nocache, async (req, res) => {
 
 router.get('/analytics/orders-by-source', nocache, async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
     const pipeline = [
       {
@@ -306,8 +313,7 @@ router.get('/analytics/orders-by-source', nocache, async (req, res) => {
       { $sort: { orderCount: -1 } }
     ];
 
-    const ordersBySource = await db.collection('Orders').aggregate(pipeline).toArray();
-    await client.close();
+    const ordersBySource = await req.db.collection('Orders').aggregate(pipeline).toArray();
 
     res.json(ordersBySource.map(source => ({
       name: source._id,
@@ -328,17 +334,169 @@ router.use(['/dashboard', '/products', '/orders', '/stocks', '/discounts', '/men
 
 // Admin redirect route
 router.get('/', (req, res) => {
-  res.redirect('/admin/dashboard');
+  if (req.session.user) {
+    return res.redirect('/admin/dashboard');
+  }
+  res.render('admin/login', {
+    title: 'Staff & Admin Login',
+    layout: false,
+    errors: {},
+    error: null,
+    formData: {}
+  });
 });
+
+// Admin login route
+router.get('/login', (req, res) => {
+  if (req.session.user) {
+    let redirectPath;
+    if (req.session.user.role === 'staff') {
+      redirectPath = '/staff/dashboard';
+    } else if (req.session.user.role === 'admin' || req.session.user.role === 'owner') {
+      redirectPath = '/admin/dashboard';
+    } else {
+      redirectPath = '/admin/dashboard'; // Default
+    }
+    return res.redirect(redirectPath);
+  }
+  res.render('admin/login', {
+    title: 'Staff & Admin Login',
+    layout: false,
+    errors: {},
+    error: null,
+    formData: {}
+  });
+});
+
+// Unified login route for both admin and staff
+router.post('/login',
+  [
+    check('Username').notEmpty().withMessage('Username is required'),
+    check('Password').notEmpty().withMessage('Password is required'),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const errorsObj = {};
+      errors.array().forEach(err => {
+        errorsObj[err.param] = err;
+      });
+      return res.render('admin/login', {
+        title: 'Staff & Admin Login',
+        layout: false,
+        errors: errorsObj,
+        error: 'Please fix the errors below',
+        formData: req.body
+      });
+    }
+
+    const { Username, Password } = req.body;
+    console.log(`📅 Login attempt at ${new Date().toISOString()} for user: ${Username}`);
+
+    try {
+      const users = req.db.collection('users');
+
+      const user = await users.findOne({
+        username: Username
+      });
+
+      if (!user) {
+        console.log(`❌ Login failed for user: ${Username} - User not found`);
+        return res.render('admin/login', {
+          title: 'Staff & Admin Login',
+          layout: false,
+          errors: {},
+          error: 'Invalid username or password',
+          formData: { Username }
+        });
+      }
+
+      let passwordMatch = false;
+
+      if (user.password.startsWith('$2b$') || user.password.startsWith('$2a$')) {
+        passwordMatch = await bcrypt.compare(Password, user.password);
+        console.log('🔐 Using bcrypt verification for hashed password');
+      } else {
+        if (Password === user.password) {
+          passwordMatch = true;
+          console.log('⚠️ Plain text password detected - upgrading to bcrypt');
+
+          const hashedPassword = await bcrypt.hash(Password, SALT_ROUNDS);
+          await users.updateOne(
+            { _id: user._id },
+            {
+              $set: {
+                password: hashedPassword,
+                passwordUpgraded: new Date(),
+                upgradedBy: 'auto-login'
+              }
+            }
+          );
+          console.log('✅ Password upgraded to bcrypt hash');
+        }
+      }
+
+      if (!passwordMatch) {
+        console.log(`❌ Login failed for user: ${Username} - Invalid password`);
+        return res.render('admin/login', {
+          title: 'Staff & Admin Login',
+          layout: false,
+          errors: {},
+          error: 'Invalid username or password',
+          formData: { Username }
+        });
+      }
+
+      // Update last login time in database
+      await users.updateOne(
+        { _id: user._id },
+        { $set: { lastLogin: new Date() } }
+      );
+
+      req.session.user = {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        name: user.fullname || user.name,
+        fullname: user.fullname,
+        role: user.role || 'admin',
+        staffId: user.staffId || generateStaffId(user.role, user._id),
+        loginTime: new Date().toISOString()
+      };
+
+      console.log(`✅ Login successful for user: ${user.username} (ID: ${user._id}) at ${new Date().toISOString()}`);
+
+      // Redirect based on role - staff goes to staff dashboard, admin and owner go to admin dashboard
+      let redirectPath;
+      if (user.role === 'staff') {
+        redirectPath = '/staff/dashboard';
+      } else if (user.role === 'admin' || user.role === 'owner') {
+        redirectPath = '/admin/dashboard';
+      } else {
+        redirectPath = '/admin/dashboard'; // Default
+      }
+
+      res.redirect(redirectPath);
+
+    } catch (err) {
+      console.error('❌ Login error:', err);
+      res.status(500).render('admin/login', {
+        title: 'Staff & Admin Login',
+        layout: false,
+        errors: {},
+        error: 'An error occurred during login',
+        formData: { Username }
+      });
+    }
+  }
+);
 
 // Admin Dashboard
 router.get('/dashboard', nocache, async (req, res) => {
   try {
     // Fetch current user data from database to ensure fullname is up to date
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const currentUser = await db.collection('users').findOne({ _id: new ObjectId(req.session.user._id) });
-    await client.close();
+    // Using shared DB connection from req.db
+    const currentUser = await req.db.collection('users').findOne({ _id: new ObjectId(req.session.user._id) });
 
     // Merge session data with fresh database data
     const userData = {
@@ -348,25 +506,24 @@ router.get('/dashboard', nocache, async (req, res) => {
 
     // Fetch all dashboard data server-side for better loading performance
     const [basicStats, analyticsStats, topCategories, paymentTypes, ordersBySource, salesPerformance] = await Promise.all([
-      getDashboardStats(),
-      getDashboardAnalyticsStats(),
-      getTopCategories(),
-      getPaymentTypes(),
-      getOrdersBySource(),
-      getSalesPerformance(14)
+      getDashboardStats(req.db),
+      getDashboardAnalyticsStats(req.db),
+      getTopCategories(req.db),
+      getPaymentTypes(req.db),
+      getOrdersBySource(req.db),
+      getSalesPerformance(req.db, 14)
     ]);
 
     // Fetch low stock data for dashboard
     let lowStockData = { quantity: 0, name: 'All stocked', type: 'none', hasMore: false };
     try {
       // Get user's low stock threshold from settings
-      const client = await MongoClient.connect(uri);
-      const db = client.db('blessingscafe');
-      const userSettings = await db.collection('UserSettings').findOne({ userId: req.session.user._id });
+      // Using shared DB connection from req.db
+      const userSettings = await req.db.collection('UserSettings').findOne({ userId: req.session.user._id });
       const threshold = userSettings?.lowStockAlertRange || 5;
 
-      const ingredients = await db.collection('Ingredients').find({ Amount: { $lte: threshold }, isEnabled: true }).sort({ Amount: 1 }).toArray();
-      const addons = await db.collection('Add-ons').find({ Amount: { $lte: threshold }, isEnabled: true }).sort({ Amount: 1 }).toArray();
+      const ingredients = await req.db.collection('Ingredients').find({ Amount: { $lte: threshold }, isEnabled: true }).sort({ Amount: 1 }).toArray();
+      const addons = await req.db.collection('Add-ons').find({ Amount: { $lte: threshold }, isEnabled: true }).sort({ Amount: 1 }).toArray();
 
       const getItemName = (item, type) => {
         if (type === 'ingredient') {
@@ -400,8 +557,6 @@ router.get('/dashboard', nocache, async (req, res) => {
           allItems: allLowStockItems.length > 1 ? allLowStockItems.slice(1).map(item => `${item.name} (${item.quantity})`) : []
         };
       }
-
-      await client.close();
     } catch (error) {
       console.error('Low stock data fetch error:', error);
     }
@@ -412,12 +567,8 @@ router.get('/dashboard', nocache, async (req, res) => {
       ...analyticsStats
     };
 
-    // Get user settings for threshold
-    const clientThreshold = await MongoClient.connect(uri);
-    const dbThreshold = clientThreshold.db('blessingscafe');
-    const userSettingsThreshold = await dbThreshold.collection('UserSettings').findOne({ userId: req.session.user._id });
+    const userSettingsThreshold = await req.db.collection('UserSettings').findOne({ userId: req.session.user._id });
     const userLowStockThreshold = userSettingsThreshold?.lowStockAlertRange || 5;
-    await clientThreshold.close();
 
     res.render('admin/dashboard', {
       title: 'Admin Dashboard',
@@ -446,7 +597,7 @@ router.get('/dashboard', nocache, async (req, res) => {
 // Analytics Endpoints
 router.get('/analytics/dashboard-stats', nocache, async (req, res) => {
   try {
-    const stats = await getDashboardAnalyticsStats();
+    const stats = await getDashboardAnalyticsStats(req.db);
     res.json(stats);
   } catch (error) {
     console.error('Dashboard stats error:', error);
@@ -456,8 +607,7 @@ router.get('/analytics/dashboard-stats', nocache, async (req, res) => {
 
 router.get('/analytics/top-categories', nocache, async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
     const pipeline = [
       { $unwind: '$Cart' },
@@ -479,8 +629,7 @@ router.get('/analytics/top-categories', nocache, async (req, res) => {
       { $limit: 8 }
     ];
 
-    const categories = await db.collection('Orders').aggregate(pipeline).toArray();
-    await client.close();
+    const categories = await req.db.collection('Orders').aggregate(pipeline).toArray();
 
     res.json(categories.map(cat => ({
       name: cat._id,
@@ -496,7 +645,7 @@ router.get('/analytics/top-categories', nocache, async (req, res) => {
 
 router.get('/analytics/payment-types', nocache, async (req, res) => {
   try {
-    const categories = await getPaymentTypes();
+    const categories = await getPaymentTypes(req.db);
     res.json(categories);
   } catch (error) {
     console.error('Payment types error:', error);
@@ -507,7 +656,7 @@ router.get('/analytics/payment-types', nocache, async (req, res) => {
 // Analytics Page
 router.get('/analytics', nocache, async (req, res) => {
   try {
-    const analyticsData = await getAnalyticsData();
+    const analyticsData = await getAnalyticsData(req.db);
     res.render('admin/analytics', {
       title: 'Analytics | Blessings Cafe',
       user: req.session.user,
@@ -528,7 +677,7 @@ router.get('/analytics', nocache, async (req, res) => {
 // Products Management
 router.get('/products', nocache, async (req, res) => {
   try {
-    const products = await getProducts();
+    const products = await getProducts(req.db);
     res.render('admin/products', {
       title: 'Products | Blessings Cafe',
       user: req.session.user,
@@ -546,8 +695,24 @@ router.get('/products', nocache, async (req, res) => {
   }
 });
 
-// --- Multer setup (memory storage for direct ImgBB upload) ---
-const storage = multer.memoryStorage();
+// --- Multer setup (disk storage for local image uploads) ---
+
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, '..', 'public', 'uploads', 'products');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadsDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
 const upload = multer({ storage });
 
 // Add Product route
@@ -639,24 +804,16 @@ router.post('/products/add', upload.single('imagelink'), async (req, res) => {
     }
   }
 
-  // Image handling - upload directly to ImgBB
+  // Image handling - save locally
   let imagelink = 'placeholder';
 
   if (req.file) {
-    try {
-      const fileData = req.file.buffer.toString('base64');
-      const imgbbKey = process.env.IMGBB_API_KEY;
-
-      if (imgbbKey) {
-        const response = await axios.post(
-          `https://api.imgbb.com/1/upload?key=${imgbbKey}`,
-          new URLSearchParams({ image: fileData })
-        );
-        imagelink = response.data.data.url; // Set imagelink to the imgbb URL
-      }
-    } catch (err) {
-      console.error("ImgBB upload failed:", err.message);
-    }
+    const tempPath = req.file.path;
+    const sanitizedName = finalName.replace(/[^a-zA-Z0-9]/g, '-');
+    const newFilename = `${sanitizedName}-${Date.now()}${path.extname(req.file.originalname)}`;
+    const newPath = path.join(uploadsDir, newFilename);
+    fs.renameSync(tempPath, newPath);
+    imagelink = `/uploads/products/${newFilename}`;
   }
 
   // ✅ Build the product document to insert
@@ -692,10 +849,8 @@ router.post('/products/add', upload.single('imagelink'), async (req, res) => {
   }
 
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    await db.collection('Menu').insertOne(productData);
-    await client.close();
+    // Using shared DB connection from req.db
+    await req.db.collection('Menu').insertOne(productData);
 
     req.flash('success_msg', `${Name} has been added to the menu`);
     res.redirect('/admin/products');
@@ -738,8 +893,8 @@ router.get('/api/products/:id', async (req, res) => {
   });
 
   try {
-    // Use pre-connected collection for maximum speed (no connection overhead)
-    const product = await productCollection.findOne(
+    // Use shared DB connection for maximum speed
+    const product = await req.db.collection('Menu').findOne(
       { _id: new ObjectId(id) },
       {
         // Projection: only fetch fields needed for edit modal
@@ -779,7 +934,7 @@ router.get('/api/products/:id', async (req, res) => {
 
 
 
-// ✅ Edit Product route (with FormData upload to ImgBB)
+// ✅ Edit Product route (with local image upload)
 router.post('/products/edit/:id', upload.single('imagelink'), async (req, res) => {
   const { id } = req.params;
   const { description, Allergen, size16, size22, BasePrice, Quantity } = req.body;
@@ -787,14 +942,12 @@ router.post('/products/edit/:id', upload.single('imagelink'), async (req, res) =
 
 
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const collection = db.collection('Menu');
+    // Using shared DB connection from req.db
+    const collection = req.db.collection('Menu');
 
     // Fetch current product
     const existingProduct = await collection.findOne({ _id: new ObjectId(id) });
     if (!existingProduct) {
-      await client.close();
       req.flash('error_msg', 'Product not found');
       return res.redirect('/admin/products');
     }
@@ -855,39 +1008,30 @@ router.post('/products/edit/:id', upload.single('imagelink'), async (req, res) =
       }
     }
 
-    console.log("DEBUG: API Key value ->", process.env.IMGBB_API_KEY);
-
     // ✅ If new image uploaded
     if (req.file) {
-      console.log("🖼 New image uploaded to memory");
+      console.log("🖼 New image uploaded to disk");
 
-      // Delete old ImgBB image if exists (no local files to clean up anymore)
-      if (existingProduct.deleteUrl) {
+      // Delete old local image if exists
+      if (existingProduct.imagelink && existingProduct.imagelink !== 'placeholder' && existingProduct.imagelink.startsWith('/uploads/products/')) {
         try {
-          await axios.get(existingProduct.deleteUrl);
-          console.log("🗑 Old ImgBB image deleted");
+          const oldImagePath = path.join(__dirname, '..', 'public', existingProduct.imagelink);
+          if (fs.existsSync(oldImagePath)) {
+            fs.unlinkSync(oldImagePath);
+            console.log("🗑 Old local image deleted");
+          }
         } catch (err) {
-          console.error("ImgBB delete error:", err.message);
+          console.error("Local image delete error:", err.message);
         }
       }
 
-      // Upload new image directly to ImgBB from memory buffer
-      try {
-        const imageData = req.file.buffer.toString('base64');
-
-        const response = await axios.post(
-          `https://api.imgbb.com/1/upload?key=${process.env.IMGBB_API_KEY}`,
-          new URLSearchParams({ image: imageData })
-        );
-
-        console.log("✅ ImgBB Upload Success:", response.data);
-        updateFields.imagelink = response.data.data.url;
-
-        // No longer saving localImagePath - only ImgBB URL
-        // updateFields.localImagePath is removed
-      } catch (err) {
-        console.error("❌ ImgBB upload failed:", err.response?.data || err.message);
-      }
+      // Rename new image with product name
+      const tempPath = req.file.path;
+      const sanitizedName = existingProduct.Name.replace(/[^a-zA-Z0-9]/g, '-');
+      const newFilename = `${sanitizedName}-${Date.now()}${path.extname(req.file.originalname)}`;
+      const newPath = path.join(uploadsDir, newFilename);
+      fs.renameSync(tempPath, newPath);
+      updateFields.imagelink = `/uploads/products/${newFilename}`;
     }
 
     // Only update if there are actual changes
@@ -900,8 +1044,6 @@ router.post('/products/edit/:id', upload.single('imagelink'), async (req, res) =
     } else {
       req.flash('info_msg', 'No changes were made to the product');
     }
-
-    await client.close();
     res.redirect('/admin/products');
   } catch (err) {
     console.error('Error editing product:', err);
@@ -927,7 +1069,7 @@ router.get('/products/edit/:id', nocache, async (req, res) => {
       });
     }
 
-    const product = await getProductById(id);
+    const product = await getProductById(req.db, id);
     if (!product) {
       return res.status(404).render('error', {
         title: 'Not Found',
@@ -963,25 +1105,26 @@ router.post('/delete-product/:id', async (req, res) => {
   const productId = req.params.id;
 
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const productCollection = db.collection('Menu');
+    // Using shared DB connection from req.db
+    const productCollection = req.db.collection('Menu');
 
     const product = await productCollection.findOne({ _id: new ObjectId(productId) });
     if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
 
-    // Delete ImgBB image if exists (no local files to delete anymore)
-    if (product.deleteUrl) {
+    // Delete local image if exists
+    if (product.imagelink && product.imagelink !== 'placeholder' && product.imagelink.startsWith('/uploads/products/')) {
       try {
-        await axios.get(product.deleteUrl);
-        console.log("🗑 ImgBB image deleted for product:", productId);
+        const imagePath = path.join(__dirname, '..', 'public', product.imagelink);
+        if (fs.existsSync(imagePath)) {
+          fs.unlinkSync(imagePath);
+          console.log("🗑 Local image deleted for product:", productId);
+        }
       } catch (err) {
-        console.error("ImgBB delete error:", err.message);
+        console.error("Local image delete error:", err.message);
       }
     }
 
     await productCollection.deleteOne({ _id: new ObjectId(productId) });
-    await client.close();
 
     res.json({ success: true, message: 'Product deleted successfully' });
   } catch (err) {
@@ -1020,9 +1163,8 @@ router.post('/orders/submit', ensureAdmin, async (req, res) => {
       });
     }
 
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const ordersCollection = db.collection('Orders');
+    // Using shared DB connection from req.db
+    const ordersCollection = req.db.collection('Orders');
 
     // Ensure order is from POS with proper Source
     const orderToInsert = {
@@ -1055,7 +1197,7 @@ router.post('/orders/submit', ensureAdmin, async (req, res) => {
 
       // Create notification for new order
       try {
-        await createNewOrderNotification(orderToInsert);
+        await createNewOrderNotification(req.db, orderToInsert);
       } catch (notifError) {
         console.error('Failed to create order notification:', notifError);
         // Don't fail the order creation if notification fails
@@ -1070,8 +1212,6 @@ router.post('/orders/submit', ensureAdmin, async (req, res) => {
     } else {
       throw new Error('Order insertion failed');
     }
-
-    await client.close();
   } catch (error) {
     console.error('POS Order submission error:', error);
     res.status(500).json({
@@ -1085,8 +1225,8 @@ router.post('/orders/submit', ensureAdmin, async (req, res) => {
 router.get('/orders', nocache, async (req, res) => {
   try {
     const [orders, menu] = await Promise.all([
-      getOrders(),
-      getMenu()
+      getOrders(req.db),
+      getMenu(req.db)
     ]);
     res.render('admin/order', {
       title: 'Orders | Blessings Cafe',
@@ -1109,13 +1249,11 @@ router.get('/orders', nocache, async (req, res) => {
 // POS Orders Management
 router.get('/order', nocache, async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const ordersCollection = db.collection('Orders');
-    const menuCollection = db.collection('Menu');
+    // Using shared DB connection from req.db
+    const ordersCollection = req.db.collection('Orders');
+    const menuCollection = req.db.collection('Menu');
     const orders = await ordersCollection.find().toArray();
     const menu = await menuCollection.find().toArray();
-    await client.close();
 
     res.render('admin/order', {
       orders,
@@ -1134,7 +1272,7 @@ router.get('/order', nocache, async (req, res) => {
 // Edit Order
 router.get('/orders/edit/:id', nocache, async (req, res) => {
   try {
-    const order = await getOrderById(req.params.id);
+    const order = await getOrderById(req.db, req.params.id);
     if (!order) {
       return res.status(404).render('error', {
         title: 'Not Found',
@@ -1163,19 +1301,16 @@ router.get('/orders/edit/:id', nocache, async (req, res) => {
 router.get('/menu', nocache, async (req, res) => {
   try {
     // Fetch current user data from database to ensure fullname is up to date
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const currentUser = await db.collection('users').findOne({ _id: new ObjectId(req.session.user._id) });
+    // Using shared DB connection from req.db
+    const currentUser = await req.db.collection('users').findOne({ _id: new ObjectId(req.session.user._id) });
     
     // Fetch menu items, addons, ingredients, and active promos
     const [menuItems, addons, ingredients, activePromos] = await Promise.all([
-      getMenu(),
-      db.collection('Add-ons').find({ isEnabled: true }).toArray(),
-      db.collection('Ingredients').find({ isEnabled: true }).toArray(),
-      getActiveDiscounts()
+      getMenu(req.db),
+      req.db.collection('Add-ons').find({ isEnabled: true }).toArray(),
+      req.db.collection('Ingredients').find({ isEnabled: true }).toArray(),
+      getActiveDiscounts(req.db)
     ]);
-    
-    await client.close();
 
     // Merge session data with fresh database data
     const userData = {
@@ -1206,10 +1341,9 @@ router.get('/menu', nocache, async (req, res) => {
 // Stocks Management
 router.get('/stocks', nocache, async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const ingredients = await db.collection('Ingredients').find().toArray();
-    const addons = await db.collection('Add-ons').find().toArray();
+    // Using shared DB connection from req.db
+    const ingredients = await req.db.collection('Ingredients').find().toArray();
+    const addons = await req.db.collection('Add-ons').find().toArray();
     const message = req.query.msg || null;
 
     res.render('admin/stocks', {
@@ -1233,8 +1367,6 @@ router.get('/stocks', nocache, async (req, res) => {
       },
       layout: 'admin/layout'
     });
-
-    await client.close();
   } catch (error) {
     console.error('Stocks error:', error);
     res.status(500).render('error', {
@@ -1248,7 +1380,7 @@ router.get('/stocks', nocache, async (req, res) => {
 // Discounts Management
 router.get('/discounts', nocache, async (req, res) => {
   try {
-    const discounts = await getDiscounts();
+    const discounts = await getDiscounts(req.db);
     const message = req.query.msg || null;
     const success_msg = req.query.success_msg || null;
     const error_msg = req.query.error_msg || null;
@@ -1340,7 +1472,7 @@ router.get('/test-promo-tracking', async (req, res) => {
     const { generatePeriodicNotifications } = require('../admin-helpers');
     console.log('🧪 Manual promo tracking test initiated...');
     
-    const notifications = await generatePeriodicNotifications();
+    const notifications = await generatePeriodicNotifications(req.db);
     
     res.json({
       success: true,
@@ -1367,12 +1499,11 @@ router.get('/test-promo-tracking', async (req, res) => {
 // Messages page
 router.get('/messages', nocache, async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
     const currentUserId = req.session.user._id;
 
     // Get all users for messaging (admins and staff only) - include current user for sender display
-    const users = await db.collection('users').find({
+    const users = await req.db.collection('users').find({
       role: { $in: ['admin', 'owner', 'staff'] }
     }).project({
       _id: 1,
@@ -1382,7 +1513,7 @@ router.get('/messages', nocache, async (req, res) => {
     }).toArray();
 
     // Get conversations for current user (server-side)
-    const messages = await db.collection('messages')
+    const messages = await req.db.collection('messages')
       .find({
         $or: [
           { senderId: currentUserId },
@@ -1426,7 +1557,7 @@ router.get('/messages', nocache, async (req, res) => {
     // Get participant details
     if (conversations.length > 0) {
       const participantIds = conversations.map(c => c.participantId);
-      const participants = await db.collection('users')
+      const participants = await req.db.collection('users')
         .find({ _id: { $in: participantIds.map(id => new ObjectId(id)) } })
         .toArray();
 
@@ -1439,8 +1570,6 @@ router.get('/messages', nocache, async (req, res) => {
         }
       });
     }
-
-    await client.close();
 
     res.render('admin/messages', {
       title: 'Messages | Blessings Cafe',
@@ -1494,12 +1623,11 @@ const messageUpload = multer({
 // Get conversations for current user
 router.get('/messages/api/conversations', async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
     const currentUserId = req.session.user._id;
 
     // Find all unique conversation partners
-    const messages = await db.collection('messages')
+    const messages = await req.db.collection('messages')
       .find({
         $or: [
           { senderId: currentUserId },
@@ -1543,7 +1671,7 @@ router.get('/messages/api/conversations', async (req, res) => {
     // Get participant details
     if (conversations.length > 0) {
       const participantIds = conversations.map(c => c.participantId);
-      const participants = await db.collection('users')
+      const participants = await req.db.collection('users')
         .find({ _id: { $in: participantIds.map(id => new ObjectId(id)) } })
         .toArray();
 
@@ -1557,8 +1685,6 @@ router.get('/messages/api/conversations', async (req, res) => {
       });
     }
 
-    await client.close();
-
     res.json(conversations);
   } catch (error) {
     console.error('Error fetching conversations:', error);
@@ -1569,8 +1695,7 @@ router.get('/messages/api/conversations', async (req, res) => {
 // Get messages for a conversation
 router.get('/messages/api/messages/:conversationId', async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
     const currentUserId = req.session.user._id;
     const conversationId = req.params.conversationId;
 
@@ -1579,7 +1704,7 @@ router.get('/messages/api/messages/:conversationId', async (req, res) => {
     const participantId = user1 === currentUserId ? user2 : user1;
 
     // Get messages between current user and participant
-    const messages = await db.collection('messages')
+    const messages = await req.db.collection('messages')
       .find({
         $or: [
           { senderId: currentUserId, recipientId: participantId },
@@ -1590,7 +1715,7 @@ router.get('/messages/api/messages/:conversationId', async (req, res) => {
       .toArray();
 
     // Mark messages as read
-    await db.collection('messages').updateMany(
+    await req.db.collection('messages').updateMany(
       {
         senderId: participantId,
         recipientId: currentUserId,
@@ -1598,8 +1723,6 @@ router.get('/messages/api/messages/:conversationId', async (req, res) => {
       },
       { $set: { read: true, readAt: new Date() } }
     );
-
-    await client.close();
     res.json(messages);
   } catch (error) {
     console.error('Error fetching messages:', error);
@@ -1617,17 +1740,15 @@ router.post('/messages/api/send', async (req, res) => {
       return res.status(400).json({ error: 'Recipient and content or attachments required' });
     }
 
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
     // Verify recipient exists and is admin/staff
-    const recipient = await db.collection('users').findOne({
+    const recipient = await req.db.collection('users').findOne({
       _id: new ObjectId(recipientId),
       role: { $in: ['admin', 'owner', 'staff'] }
     });
 
     if (!recipient) {
-      await client.close();
       return res.status(404).json({ error: 'Recipient not found' });
     }
 
@@ -1641,11 +1762,11 @@ router.post('/messages/api/send', async (req, res) => {
       read: false
     };
 
-    const result = await db.collection('messages').insertOne(message);
+    const result = await req.db.collection('messages').insertOne(message);
 
     // Create notification for new message
     try {
-      await createMessageNotification({
+      await createMessageNotification(req.db, {
         _id: result.insertedId,
         senderName: req.session.user?.fullname || 'Unknown',
         subject: subject || 'New Message'
@@ -1654,8 +1775,6 @@ router.post('/messages/api/send', async (req, res) => {
       console.error('Failed to create message notification:', notifError);
       // Don't fail the message sending if notification fails
     }
-
-    await client.close();
 
     res.json({
       success: true,
@@ -1670,15 +1789,12 @@ router.post('/messages/api/send', async (req, res) => {
 // Get users for messaging
 router.get('/messages/api/users', async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
-    const users = await db.collection('users').find({
+    const users = await req.db.collection('users').find({
       role: { $in: ['admin', 'owner', 'staff'] },
       _id: { $ne: new ObjectId(req.session.user._id) } // Exclude current user
     }).toArray();
-
-    await client.close();
     res.json(users);
   } catch (error) {
     console.error('Error fetching users:', error);
@@ -1689,16 +1805,13 @@ router.get('/messages/api/users', async (req, res) => {
 // Get unread message count for current user
 router.get('/messages/api/unread-count', async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
     const currentUserId = req.session.user._id;
 
-    const unreadCount = await db.collection('messages').countDocuments({
+    const unreadCount = await req.db.collection('messages').countDocuments({
       recipientId: currentUserId,
       read: false
     });
-
-    await client.close();
     res.json({ unreadCount });
   } catch (error) {
     console.error('Error fetching unread count:', error);
@@ -1727,12 +1840,11 @@ router.post('/messages/api/upload', messageUpload.array('files', 5), (req, res) 
 // Admin settings page
 router.get('/settings', nocache, async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const user = await db.collection('users').findOne({ _id: new ObjectId(req.session.user._id) });
+    // Using shared DB connection from req.db
+    const user = await req.db.collection('users').findOne({ _id: new ObjectId(req.session.user._id) });
 
     // Load user settings from UserSettings collection
-    let userSettings = await db.collection('UserSettings').findOne({ userId: req.session.user._id });
+    let userSettings = await req.db.collection('UserSettings').findOne({ userId: req.session.user._id });
     if (!userSettings) {
       userSettings = {
         soundEnabled: true,
@@ -1742,8 +1854,6 @@ router.get('/settings', nocache, async (req, res) => {
         lowStockAlertRange: 5
       };
     }
-
-    await client.close();
 
     res.render('admin/settings', {
       title: 'Settings | Blessings Cafe',
@@ -1766,15 +1876,12 @@ router.post('/settings', async (req, res) => {
   try {
     const { displayName, email, phone } = req.body;
 
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
-    await db.collection('users').updateOne(
+    await req.db.collection('users').updateOne(
       { _id: new ObjectId(req.session.user._id) },
       { $set: { fullname: displayName, email, phone } }
     );
-
-    await client.close();
 
     res.redirect('/admin/settings');
   } catch (error) {
@@ -1799,11 +1906,10 @@ router.post('/settings/preferences', async (req, res) => {
       updatedAt: new Date()
     };
 
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
     // Fetch existing settings to preserve other values
-    const existingSettings = await db.collection('UserSettings').findOne({ userId: req.session.user._id });
+    const existingSettings = await req.db.collection('UserSettings').findOne({ userId: req.session.user._id });
 
     // Process boolean values or use existing values
     if (typeof soundEnabled !== 'undefined') {
@@ -1847,7 +1953,7 @@ router.post('/settings/preferences', async (req, res) => {
     }
 
     // Upsert user settings
-    await db.collection('UserSettings').updateOne(
+    await req.db.collection('UserSettings').updateOne(
       { userId: req.session.user._id },
       {
         $set: updateFields,
@@ -1858,8 +1964,6 @@ router.post('/settings/preferences', async (req, res) => {
       },
       { upsert: true }
     );
-
-    await client.close();
     console.log('Updated lowStockAlertRange to:', updateFields.lowStockAlertRange);
     res.json({ success: true, message: 'Preferences updated successfully', lowStockAlertRange: updateFields.lowStockAlertRange });
   } catch (error) {
@@ -1886,28 +1990,24 @@ router.post('/change-password', async (req, res) => {
     await client.connect();
     const db = client.db('blessingscafe');
 
-    const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
+    const user = await req.db.collection('users').findOne({ _id: new ObjectId(userId) });
 
     if (!user) {
-      await client.close();
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) {
-      await client.close();
       return res.status(400).json({ success: false, message: 'Current password is incorrect' });
     }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(newPassword, salt);
 
-    await db.collection('users').updateOne(
+    await req.db.collection('users').updateOne(
         { _id: new ObjectId(userId) },
         { $set: { password: hashedPassword } }
     );
-
-    await client.close();
     res.json({ success: true, message: 'Password updated successfully' });
   } catch (error) {
     console.error('Change password error:', error);
@@ -1922,7 +2022,7 @@ router.post('/migrate-passwords', async (req, res) => {
     await client.connect();
     const db = client.db('blessingscafe');
 
-    const users = await db.collection('users').find({}).toArray();
+    const users = await req.db.collection('users').find({}).toArray();
     let updatedCount = 0;
 
     for (const user of users) {
@@ -1931,15 +2031,13 @@ router.post('/migrate-passwords', async (req, res) => {
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(user.password, salt);
 
-      await db.collection('users').updateOne(
+      await req.db.collection('users').updateOne(
           { _id: user._id },
           { $set: { password: hashedPassword } }
       );
 
       updatedCount++;
     }
-
-    await client.close();
     res.json({
       success: true,
       message: `Successfully migrated ${updatedCount} user passwords`
@@ -1959,42 +2057,37 @@ router.post('/stocks', async (req, res) => {
     // Check if this is an add-on by looking for addon-specific fields
     const isAddon = req.body.AddOnID || req.body.AddOnPrefix || req.body.AddOnSuffix || req.body.BasePrice;
 
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
     if (isAddon) {
       // Handle Add-On with correct field formatting
 
       // Check for existing add-on with same ID and Name combination
-      const existingAddon = await db.collection('Add-ons').findOne({
+      const existingAddon = await req.db.collection('Add-ons').findOne({
         AddOnID: req.body.AddOnID,
         Name: req.body.Name.trim()
       });
 
       if (existingAddon) {
-        await client.close();
         return res.redirect('/admin/stocks?msg=duplicate_id_name');
       }
 
       const addOnData = {
         AddOnID: req.body.AddOnID,
-        Name: req.body.Name,
-        Quantity: parseInt(req.body.Amount),
-        Category: req.body.Category || 'Add-Ons',
-        Allergen: req.body.Allergen || 'none',
-        BasePrice: 10,
-        isEnabled: true,
-        basePrice: 0,
-        lastModified: new Date(),
         AddOnPrefix: req.body.AddOnPrefix || 'AD',
         AddOnSuffix: req.body.AddOnSuffix,
+        Name: req.body.Name,
         AmountPerPack: req.body.AmountPerPack,
-        Amount: parseInt(req.body.Amount) - 10, // Remaining amount after deduction
-        DeductionQuantityGrams: 10
+        Amount: parseInt(req.body.Amount),
+        Unit: req.body.Unit,
+        Category: req.body.Category || 'Add-Ons',
+        Allergen: req.body.Allergen || 'None',
+        BasePrice: parseFloat(req.body.BasePrice) || 10,
+        isEnabled: req.body.isEnabled === 'true' || req.body.isEnabled === true || req.body.isEnabled === 'on',
+        lastModified: new Date()
       };
 
-      await db.collection('Add-ons').insertOne(addOnData);
-      await client.close();
+      await req.db.collection('Add-ons').insertOne(addOnData);
       console.log('✅ Added new add-on:', addOnData.AddOnID, 'with AmountPerPack:', addOnData.AmountPerPack, 'BasePrice:', addOnData.BasePrice);
     } else {
       // Handle Ingredient with correct field formatting
@@ -2008,28 +2101,25 @@ router.post('/stocks', async (req, res) => {
         Unit: req.body.Unit,
         Category: req.body.Category || 'Ingredients',
         Allergen: req.body.Allergen || 'None',
-        isEnabled: true,
-        isAvailable: true,
+        isEnabled: req.body.isEnabled === 'true' || req.body.isEnabled === true || req.body.isEnabled === 'on',
+        isAvailable: req.body.isAvailable === 'true' || req.body.isAvailable === true,
         createdAt: new Date(),
-        lastModified: new Date(),
-        DeductionQuantityGrams: 10
+        lastModified: new Date()
       };
 
       // Check for existing ingredient with same ID and Name combination
       if (ingredientData.IngredientID && ingredientData.Name) {
-        const existingIngredient = await db.collection('Ingredients').findOne({
+        const existingIngredient = await req.db.collection('Ingredients').findOne({
           IngredientID: ingredientData.IngredientID,
           Name: ingredientData.Name.trim()
         });
 
         if (existingIngredient) {
-          await client.close();
           throw new Error('DUPLICATE_ID_NAME');
         }
       }
 
-      await db.collection('Ingredients').insertOne(ingredientData);
-      await client.close();
+      await req.db.collection('Ingredients').insertOne(ingredientData);
       console.log('✅ Added new ingredient:', ingredientData.IngredientID, 'with AmountPerPack:', ingredientData.AmountPerPack);
     }
 
@@ -2052,12 +2142,12 @@ router.post('/stocks', async (req, res) => {
 
 router.post('/stocks/edit/:id', async (req, res) => {
   try {
-    await updateIngredient(req.params.id, req.body);
+    await updateIngredient(req.db, req.params.id, req.body);
     
     // Check for low stock after update and trigger notification if needed
     try {
-      const stockData = await getStockData();
-      await createLowStockNotification(stockData, req.session.user || {});
+      const stockData = await getStockData(req.db);
+      await createLowStockNotification(req.db, stockData, req.session.user || {});
     } catch (notifError) {
       console.error('Failed to create stock notification after update:', notifError);
     }
@@ -2071,7 +2161,7 @@ router.post('/stocks/edit/:id', async (req, res) => {
 
 router.post('/stocks/delete/:id', async (req, res) => {
   try {
-    await deleteIngredient(req.params.id);
+    await deleteIngredient(req.db, req.params.id);
     res.redirect('/admin/stocks?msg=delete_success');
   } catch (err) {
     console.error('Delete item error:', err);
@@ -2080,12 +2170,12 @@ router.post('/stocks/delete/:id', async (req, res) => {
 });
 router.post('/stocks/bulk-update', async (req, res) => {
   try {
-    const modified = await bulkUpdateIngredients(req.body.updates);
+    const modified = await bulkUpdateIngredients(req.db, req.body.updates);
     
     // Check for low stock after bulk update and trigger notification if needed
     try {
-      const stockData = await getStockData();
-      await createLowStockNotification(stockData, req.session.user || {});
+      const stockData = await getStockData(req.db);
+      await createLowStockNotification(req.db, stockData, req.session.user || {});
     } catch (notifError) {
       console.error('Failed to create stock notification after bulk update:', notifError);
     }
@@ -2097,7 +2187,7 @@ router.post('/stocks/bulk-update', async (req, res) => {
 });
 router.get('/stocks/export', async (req, res) => {
   try {
-    const data = await exportIngredientsAndAddons();
+    const data = await exportIngredientsAndAddons(req.db);
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: 'Failed to export inventory data' });
@@ -2106,7 +2196,7 @@ router.get('/stocks/export', async (req, res) => {
 router.get('/stocks/search', async (req, res) => {
   try {
     const { query, category, enabled } = req.query;
-    const data = await searchIngredientsAddons(query, category, enabled);
+    const data = await searchIngredientsAddons(req.db, query, category, enabled);
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: 'Failed to search inventory' });
@@ -2114,7 +2204,7 @@ router.get('/stocks/search', async (req, res) => {
 });
 router.get('/stocks/stats', async (req, res) => {
   try {
-    const stats = await getIngredientStats();
+    const stats = await getIngredientStats(req.db);
     res.json(stats);
   } catch (err) {
     res.status(500).json({ error: 'Failed to generate inventory statistics' });
@@ -2123,7 +2213,7 @@ router.get('/stocks/stats', async (req, res) => {
 router.get('/stocks/alerts', async (req, res) => {
   try {
     const { threshold, urgent } = req.query;
-    const alerts = await getLowStockAlerts(Number(threshold) || 10, Number(urgent) || 5);
+    const alerts = await getLowStockAlerts(req.db, Number(threshold) || 10, Number(urgent) || 5);
     res.json(alerts);
   } catch (err) {
     res.status(500).json({ error: 'Failed to generate low stock alerts' });
@@ -2131,7 +2221,7 @@ router.get('/stocks/alerts', async (req, res) => {
 });
 router.get('/stocks/categories', async (req, res) => {
   try {
-    const categories = await getIngredientCategories();
+    const categories = await getIngredientCategories(req.db);
     res.json(categories);
   } catch (err) {
     res.status(500).json({ error: 'Failed to retrieve categories' });
@@ -2139,7 +2229,7 @@ router.get('/stocks/categories', async (req, res) => {
 });
 router.get('/stocks/health', async (req, res) => {
   try {
-    const health = await getStockHealth();
+    const health = await getStockHealth(req.db);
     res.json(health);
   } catch (err) {
     res.status(500).json({ error: 'Failed to check stock health' });
@@ -2148,7 +2238,25 @@ router.get('/stocks/health', async (req, res) => {
 // ORDERS ROUTES
 router.patch('/orders/:OrderID/fulfillment', async (req, res) => {
   try {
-    const updatedOrder = await updateOrderFulfillment(req.params.OrderID, req.body.FulfillmentStatus);
+    const updatedOrder = await updateOrderFulfillment(req.db, req.params.OrderID, req.body.FulfillmentStatus);
+    
+    // Notify chatbot if this is a chatbot order
+    if (updatedOrder && updatedOrder.Source === 'Chatbot') {
+      try {
+        const { notifyOrderStatusChange } = require('../utils/chatbotNotifier');
+        const notificationResult = await notifyOrderStatusChange(updatedOrder, req.body.FulfillmentStatus);
+        
+        if (notificationResult.success) {
+          console.log(`🔔 Chatbot notification sent for order ${req.params.OrderID} - Status: ${req.body.FulfillmentStatus}`);
+        } else if (!notificationResult.skipped) {
+          console.warn(`⚠️ Chatbot notification failed for order ${req.params.OrderID}:`, notificationResult.message);
+        }
+      } catch (notifyError) {
+        console.error('❌ Error sending chatbot notification:', notifyError);
+        // Don't fail the request if notification fails
+      }
+    }
+    
     res.json({ success: true, order: updatedOrder });
   } catch (err) {
     res.status(500).json({ error: 'Failed to update fulfillment status' });
@@ -2156,15 +2264,70 @@ router.patch('/orders/:OrderID/fulfillment', async (req, res) => {
 });
 router.patch('/orders/:OrderID/payment-status', async (req, res) => {
   try {
-    const updatedOrder = await updateOrderPaymentStatus(req.params.OrderID, req.body.PaymentStatus);
+    const updatedOrder = await updateOrderPaymentStatus(req.db, req.params.OrderID, req.body.PaymentStatus);
     res.json({ success: true, order: updatedOrder });
   } catch (err) {
     res.status(500).json({ error: 'Failed to update payment status' });
   }
 });
+
+// Update FulfillmentMethod (Delivery/Pick-Up)
+router.patch('/orders/:OrderID/fulfillment-method', async (req, res) => {
+  try {
+    const { OrderID } = req.params;
+    const { FulfillmentMethod } = req.body;
+    
+    // Validate FulfillmentMethod
+    if (!['Delivery', 'Pick-Up'].includes(FulfillmentMethod)) {
+      return res.status(400).json({ error: 'Invalid FulfillmentMethod. Must be "Delivery" or "Pick-Up"' });
+    }
+    
+    // Using shared DB connection from req.db
+    const ordersCollection = req.db.collection('Orders');
+    
+    const result = await ordersCollection.updateOne(
+      { OrderID },
+      { $set: { 
+        FulfillmentMethod,
+        DeliveryStatus: FulfillmentMethod,
+        deliveryStatus: FulfillmentMethod
+      } }
+    );
+    
+    // Get updated order for notification
+    const updatedOrder = await ordersCollection.findOne({ OrderID });
+    
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    
+    // Notify chatbot if this is a chatbot order
+    if (updatedOrder && updatedOrder.Source === 'Chatbot') {
+      try {
+        const { notifyOrderStatusChange } = require('../utils/chatbotNotifier');
+        const notificationResult = await notifyOrderStatusChange(updatedOrder, 'Method Changed');
+        
+        if (notificationResult.success) {
+          console.log(`🔔 Chatbot notification sent for order ${OrderID} - FulfillmentMethod changed to ${FulfillmentMethod}`);
+        } else if (!notificationResult.skipped) {
+          console.warn(`⚠️ Chatbot notification failed for order ${OrderID}:`, notificationResult.message);
+        }
+      } catch (notifyError) {
+        console.error('❌ Error sending chatbot notification:', notifyError);
+        // Don't fail the request if notification fails
+      }
+    }
+    
+    res.json({ success: true, order: updatedOrder });
+  } catch (err) {
+    console.error('Error updating fulfillment method:', err);
+    res.status(500).json({ error: 'Failed to update fulfillment method' });
+  }
+});
+
 router.patch('/orders/:OrderID/cancel', async (req, res) => {
   try {
-    const success = await cancelOrder(req.params.OrderID);
+    const success = await cancelOrder(req.db, req.params.OrderID);
     res.json({ success });
   } catch (err) {
     res.status(500).json({ error: 'Failed to cancel order' });
@@ -2172,7 +2335,7 @@ router.patch('/orders/:OrderID/cancel', async (req, res) => {
 });
 router.patch('/orders/:OrderID/restore', async (req, res) => {
   try {
-    const updatedOrder = await restoreOrder(req.params.OrderID);
+    const updatedOrder = await restoreOrder(req.db, req.params.OrderID);
     res.json({ success: true, order: updatedOrder });
   } catch (err) {
     res.status(500).json({ error: 'Failed to restore order' });
@@ -2181,7 +2344,7 @@ router.patch('/orders/:OrderID/restore', async (req, res) => {
 // ANALYTICS ROUTES
 router.get('/analytics/popular-products', async (req, res) => {
   try {
-    const results = await getPopularProducts();
+    const results = await getPopularProducts(req.db);
     res.json(results);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch popular products' });
@@ -2189,7 +2352,7 @@ router.get('/analytics/popular-products', async (req, res) => {
 });
 router.get('/analytics/average-sales-per-day', async (req, res) => {
   try {
-    const results = await getAverageSalesPerDay();
+    const results = await getAverageSalesPerDay(req.db);
     res.json(results);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch average sales per day' });
@@ -2198,7 +2361,7 @@ router.get('/analytics/average-sales-per-day', async (req, res) => {
 router.get('/analytics/sales-performance', async (req, res) => {
   try {
     const days = parseInt(req.query.days) || 14;
-    const results = await getSalesPerformance(days);
+    const results = await getSalesPerformance(req.db, days);
     res.json(results);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch sales performance data' });
@@ -2211,7 +2374,7 @@ router.get('/analytics/export-performance', async (req, res) => {
     const days = parseInt(req.query.days) || 14;
 
     // Get performance data
-    const performanceData = await getSalesPerformance(days);
+    const performanceData = await getSalesPerformance(req.db, days);
 
     // Calculate summary statistics
     const totalEarnings = performanceData.reduce((sum, day) => sum + (day.earnings || 0), 0);
@@ -2473,7 +2636,7 @@ router.get('/analytics/export-performance', async (req, res) => {
 // DISCOUNTS ROUTES
 router.post('/discounts/add', async (req, res) => {
   try {
-    await addDiscount(req.body);
+    await addDiscount(req.db, req.body);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to add discount' });
@@ -2481,12 +2644,12 @@ router.post('/discounts/add', async (req, res) => {
 });
 router.post('/discounts/edit/:id', async (req, res) => {
   try {
-    await updateDiscount(req.params.id, req.body);
+    await updateDiscount(req.db, req.params.id, req.body);
     
     // Trigger immediate promo tracking check for this specific promo
     try {
       const { triggerBusinessEventNotification } = require('../admin-helpers');
-      await triggerBusinessEventNotification('promo-update-check', {
+      await triggerBusinessEventNotification(req.db, 'promo-update-check', {
         promoId: req.params.id,
         updatedData: req.body
       });
@@ -2503,7 +2666,7 @@ router.post('/discounts/edit/:id', async (req, res) => {
 });
 router.post('/discounts/delete/:id', async (req, res) => {
   try {
-    await deleteDiscount(req.params.id);
+    await deleteDiscount(req.db, req.params.id);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete discount' });
@@ -2511,7 +2674,7 @@ router.post('/discounts/delete/:id', async (req, res) => {
 });
 router.post('/discounts/bulk-update', async (req, res) => {
   try {
-    const modified = await bulkUpdateDiscounts(req.body.updates);
+    const modified = await bulkUpdateDiscounts(req.db, req.body.updates);
     res.json({ success: true, modified });
   } catch (err) {
     res.status(500).json({ error: 'Failed to perform bulk update' });
@@ -2519,7 +2682,7 @@ router.post('/discounts/bulk-update', async (req, res) => {
 });
 router.get('/discounts/stats', async (req, res) => {
   try {
-    const stats = await getDiscountStats();
+    const stats = await getDiscountStats(req.db);
     res.json(stats);
   } catch (err) {
     res.status(500).json({ error: 'Failed to get discount stats' });
@@ -2527,7 +2690,7 @@ router.get('/discounts/stats', async (req, res) => {
 });
 router.get('/discounts/active', async (req, res) => {
   try {
-    const discounts = await getActiveDiscounts();
+    const discounts = await getActiveDiscounts(req.db);
     res.json(discounts);
   } catch (err) {
     res.status(500).json({ error: 'Failed to get active discounts' });
@@ -2535,7 +2698,7 @@ router.get('/discounts/active', async (req, res) => {
 });
 router.get('/discounts/:id', async (req, res) => {
   try {
-    const discount = await getDiscountById(req.params.id);
+    const discount = await getDiscountById(req.db, req.params.id);
     res.json(discount);
   } catch (err) {
     res.status(500).json({ error: 'Failed to get discount' });
@@ -2568,20 +2731,55 @@ router.get("/analytics/order-history", async (req, res) => {
       // Format as "YYYY-MM-DD" string to match DB format
       const cutoff = fromDate.toISOString().split('T')[0];
 
-      orders = await db.collection("Orders").find({
-        Date: { $gte: cutoff }
-      })
-      .sort({ Date: -1 })
-      .limit(50)
-      .toArray();
+      orders = await req.db.collection("Orders").aggregate([
+        {
+          $match: {
+            Date: { $gte: cutoff }
+          }
+        },
+        {
+          $project: {
+            OrderID: 1,
+            Customer: '$Customer.fullname',
+            Date: {
+              $dateToString: {
+                format: '%Y-%m-%d %H:%M',
+                date: { $dateFromString: { dateString: '$Date' } }
+              }
+            },
+            Total: 1,
+            PaymentMode: '$PaymentMode',
+            PaymentStatus: '$PaymentStatus'
+          }
+        },
+        { $sort: { Date: -1 } },
+        { $limit: 50 }
+      ]).toArray();
 
       console.log(`Orders fetched: ${orders.length} (filtered by ${days} days), cutoff=${cutoff}`);
     } else {
-      orders = await db.collection("Orders")
-        .find({})
-        .sort({ Date: -1 })
-        .limit(50)
-        .toArray();
+      orders = await req.db.collection("Orders").aggregate([
+        {
+          $match: {}
+        },
+        {
+          $project: {
+            OrderID: 1,
+            Customer: '$Customer.fullname',
+            Date: {
+              $dateToString: {
+                format: '%Y-%m-%d %H:%M',
+                date: { $dateFromString: { dateString: '$Date' } }
+              }
+            },
+            Total: 1,
+            PaymentMode: '$PaymentMode',
+            PaymentStatus: '$PaymentStatus'
+          }
+        },
+        { $sort: { Date: -1 } },
+        { $limit: 50 }
+      ]).toArray();
 
       console.log(`Orders fetched: ${orders.length} (no filter)`);
     }
@@ -2657,40 +2855,23 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
     }
 
     // Get sales data from database (simplified like the working order-history route)
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
     // Create date strings for comparison (same format as order-history route)
     const cutoffStart = startDate.toISOString().split('T')[0]; // YYYY-MM-DD format
-
-    // Set end date to end of day to include all orders from that day
-    const nextDay = new Date(endDate);
-    nextDay.setDate(nextDay.getDate() + 1);
-    const cutoffEnd = nextDay.toISOString().split('T')[0];
+    const cutoffEnd = endDate.toISOString().split('T')[0];
 
     // Query orders within date range (like the working order-history route)
-    const orders = await db.collection('Orders').find({
-      Date: { $gte: cutoffStart, $lt: cutoffEnd },
+    const orders = await req.db.collection('Orders').find({
+      Date: { $gte: cutoffStart, $lte: cutoffEnd },
       PaymentStatus: { $ne: "Cancelled" }
     })
     .sort({ Date: -1 })
     .toArray();
 
-    // Calculate summary statistics by recalculating from cart data for accuracy
+    // Calculate summary statistics with proper null handling
     const totalRevenue = orders.reduce((sum, order) => {
-      // Recalculate total from cart items to ensure accuracy
-      let orderTotal = 0;
-      if (order.Cart && Array.isArray(order.Cart)) {
-        orderTotal = order.Cart.reduce((cartSum, item) => {
-          const price = typeof item.BasePrice === 'number' ? item.BasePrice :
-                       typeof item.Price === 'number' ? item.Price : 0;
-          const quantity = typeof item.Quantity === 'number' ? item.Quantity : 1;
-          return cartSum + (price * quantity);
-        }, 0);
-      } else {
-        // Fallback to stored total if cart data unavailable
-        orderTotal = typeof order.Total === 'number' && !isNaN(order.Total) ? order.Total : 0;
-      }
+      const orderTotal = typeof order.Total === 'number' && !isNaN(order.Total) ? order.Total : 0;
       return sum + orderTotal;
     }, 0);
     const totalOrders = orders.length;
@@ -2703,19 +2884,7 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
       if (method === 'E_Payment' || method === 'E-PAYMENT' || method === 'E-Payment') {
         method = 'E-Payment';
       }
-      // Use recalculated total for accuracy
-      let orderTotal = 0;
-      if (order.Cart && Array.isArray(order.Cart)) {
-        orderTotal = order.Cart.reduce((cartSum, item) => {
-          const price = typeof item.BasePrice === 'number' ? item.BasePrice :
-                       typeof item.Price === 'number' ? item.Price : 0;
-          const quantity = typeof item.Quantity === 'number' ? item.Quantity : 1;
-          return cartSum + (price * quantity);
-        }, 0);
-      } else {
-        orderTotal = typeof order.Total === 'number' && !isNaN(order.Total) ? order.Total : 0;
-      }
-      acc[method] = (acc[method] || 0) + orderTotal;
+      acc[method] = (acc[method] || 0) + order.Total;
       return acc;
     }, {});
 
@@ -2723,19 +2892,7 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
     const dailySales = orders.reduce((acc, order) => {
       if (order.Date) {
         const date = order.Date.substring(0, 10); // Extract YYYY-MM-DD part only
-        // Use recalculated total for accuracy
-        let orderTotal = 0;
-        if (order.Cart && Array.isArray(order.Cart)) {
-          orderTotal = order.Cart.reduce((cartSum, item) => {
-            const price = typeof item.BasePrice === 'number' ? item.BasePrice :
-                         typeof item.Price === 'number' ? item.Price : 0;
-            const quantity = typeof item.Quantity === 'number' ? item.Quantity : 1;
-            return cartSum + (price * quantity);
-          }, 0);
-        } else {
-          orderTotal = typeof order.Total === 'number' && !isNaN(order.Total) ? order.Total : 0;
-        }
-        acc[date] = (acc[date] || 0) + orderTotal;
+        acc[date] = (acc[date] || 0) + (typeof order.Total === 'number' ? order.Total : 0);
       }
       return acc;
     }, {});
@@ -2758,7 +2915,7 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
       }));
 
     // Fetch current menu items for price lookups (keep connection open)
-    const currentMenu = await db.collection('Menu').find({ isEnabled: true }).toArray();
+    const currentMenu = await req.db.collection('Menu').find({ isEnabled: true }).toArray();
     const menuLookup = {};
     currentMenu.forEach(menuItem => {
       menuLookup[menuItem.Name] = menuItem;
@@ -2814,8 +2971,6 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
         revenue: Math.round(stats.revenue),
         quantity: stats.quantity
       }));
-
-    await client.close();
 
     // Generate HTML for PDF
     const html = `
@@ -3090,6 +3245,88 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
   } catch (error) {
     console.error('PDF generation error:', error);
     res.status(500).json({ error: 'Failed to generate PDF report', details: error.message });
+  }
+});
+
+// Admin endpoint to complete order (for QR code)
+router.get('/complete-order', isAuthorizedForOrderCompletion, async (req, res) => {
+  try {
+    const { orderId, secret } = req.query;
+    if (!orderId || !secret) {
+      return res.status(400).render('error', {
+        title: 'Invalid Request',
+        message: 'Missing order ID or secret.',
+        status: 400
+      });
+    }
+
+    // Verify secret
+    const expectedSecret = process.env.ORDER_COMPLETION_SECRET;
+    if (secret !== expectedSecret) {
+      return res.status(403).render('error', {
+        title: 'Access Denied',
+        message: 'Invalid secret.',
+        status: 403
+      });
+    }
+
+    // Fetch order details
+    const order = await req.db.collection('Orders').findOne({ OrderID: orderId });
+    if (!order) {
+      return res.status(404).render('error', {
+        title: 'Order Not Found',
+        message: 'Order not found.',
+        status: 404
+      });
+    }
+
+    res.render('admin/complete-order', {
+      title: 'Complete Order | Blessings Cafe',
+      user: req.session.user,
+      order: order,
+      orderId: orderId,
+      secret: secret
+    });
+  } catch (error) {
+    console.error('Complete order page error:', error);
+    res.status(500).render('error', {
+      title: 'Server Error',
+      message: 'Failed to load order completion page',
+      status: 500
+    });
+  }
+});
+
+router.post('/complete-order', isAuthorizedForOrderCompletion, async (req, res) => {
+  try {
+    const { orderId, secret } = req.body; // From QR URL params
+    if (!orderId || !secret) {
+      return res.status(400).json({ success: false, error: 'Missing orderId or secret' });
+    }
+
+    // Verify secret (e.g., compare to a hash or stored value)
+    const expectedSecret = process.env.ORDER_COMPLETION_SECRET; // Set in .env
+    if (secret !== expectedSecret) {
+      return res.status(403).json({ success: false, error: 'Invalid secret' });
+    }
+
+    // Update to Completed
+    const order = await req.db.collection('Orders').findOneAndUpdate(
+      { OrderID: orderId },
+      { $set: { FulfillmentStatus: 'Completed' } },
+      { returnDocument: 'after' }
+    );
+    if (!order) {
+      return res.status(404).json({ success: false, error: 'Order not found' });
+    }
+
+    // Optional: Send webhook to N8N for notification (if needed)
+    // await axios.post('https://your-n8n-instance.com/webhook/order-completed', { orderId });
+
+    res.json({ success: true, message: 'Order marked as completed', data: { orderId } });
+  } catch (error) {
+    console.error('Complete order error:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
   }
 });
 

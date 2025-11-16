@@ -1,17 +1,18 @@
 const express = require('express');
 const session = require('express-session');
-const { MongoClient } = require('mongodb');
 const expressLayouts = require('express-ejs-layouts');
 const flash = require('connect-flash');
 const favicon = require('serve-favicon');
 const compression = require('compression');
+const rateLimit = require('express-rate-limit');
 const path = require('path');
 const cron = require('node-cron');
 
 const app = express();
 const port = 8080;
 require('dotenv').config();
-const uri = process.env.MONGODB_URI;
+
+const dbConnection = require('./utils/db');
 
 // Import route modules
 const indexRoutes = require('./routes/index');
@@ -23,42 +24,21 @@ const staffRoutes = require('./routes/staff');
 const inventoryRoutes = require('./routes/inventory');
 const inventoryAdminRoutes = require('./routes/inventory-admin');
 const notificationRoutes = require('./routes/notifications');
+const webhooksRoutes = require('./routes/webhooks');
 
 // Import promo manager for automated deactivation
 const { initializePromoDeactivationCron } = require('./utils/promoManager');
 const { generatePeriodicNotifications } = require('./admin-helpers');
 
-// ============================================
-// CRITICAL FIX: Create persistent MongoDB connection
-// ============================================
-let db;
-let mongoClient;
-
-async function connectToMongoDB() {
-  try {
-    mongoClient = new MongoClient(uri, {
-      maxPoolSize: 10,
-      minPoolSize: 2,
-      maxIdleTimeMS: 30000,
-      serverSelectionTimeoutMS: 5000
-    });
-    await mongoClient.connect();
-    db = mongoClient.db('blessingscafe');
-    
-    // Make db available to all routes via app.locals
-    app.locals.db = db;
-  } catch (error) {
-    console.error('MongoDB connection error:', error);
-    process.exit(1);
-  }
-}
+// Middleware to provide db to all routes
+app.use((req, res, next) => {
+  req.db = dbConnection.getDb();
+  next();
+});
 
 // Graceful shutdown
 process.on('SIGINT', async () => {
-  if (mongoClient) {
-    await mongoClient.close();
-    console.log('MongoDB connection closed');
-  }
+  await dbConnection.close();
   process.exit(0);
 });
 
@@ -75,6 +55,45 @@ app.use(compression({
 }));
 
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
+
+// Performance monitoring middleware
+app.use((req, res, next) => {
+  req.startTime = Date.now();
+  
+  res.on('finish', () => {
+    const duration = Date.now() - req.startTime;
+    if (duration > 1000) {
+      console.warn(`Slow request: ${req.method} ${req.path} took ${duration}ms`);
+    }
+  });
+  
+  next();
+});
+
+// Rate limiting for API endpoints
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => {
+    return req.session?.user?.role === 'admin';
+  }
+});
+
+app.use('/api', apiLimiter);
+
+// Auth rate limiting (prevent brute force)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: 'Too many login attempts, please try again later.',
+  skipSuccessfulRequests: true
+});
+
+app.use('/login', authLimiter);
+app.use('/auth/register', authLimiter);
 
 // Session configuration with better settings
 app.use(session({
@@ -100,17 +119,14 @@ app.use((req, res, next) => {
   next();
 });
 
-// ============================================
-// OPTIMIZED: User settings middleware with caching
-// ============================================
+// User settings middleware with caching
 app.use(async (req, res, next) => {
   if (req.session.user) {
     try {
-      // Use the persistent connection
-      const userSettings = await db.collection('UserSettings').findOne(
+      const userSettings = await req.db.collection('UserSettings').findOne(
         { userId: req.session.user._id },
         { 
-          projection: { // Only fetch needed fields
+          projection: {
             darkMode: 1,
             soundEnabled: 1,
             printReceipts: 1,
@@ -187,6 +203,7 @@ app.set('layout', 'layout');
 app.use('/api', apiRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/admin/inventory', inventoryAdminRoutes);
+app.use('/api/webhooks', webhooksRoutes);
 app.use('/', indexRoutes);
 app.use('/auth', authRoutes);
 app.use('/user', userRoutes);
@@ -197,7 +214,7 @@ app.use('/', notificationRoutes);
 // Legacy route compatibility
 app.use('/account', authRoutes);
 
-app.use('/uploads', express.static('uploads', {
+app.use('/uploads', express.static('public/uploads', {
   maxAge: '7d', // Images can be cached longer
   etag: true
 }));
@@ -230,35 +247,34 @@ app.use((req, res) => {
 initializePromoDeactivationCron();
 
 // Initialize periodic notifications using node-cron
-function initializeNotificationsCron() {
+async function initializeNotificationsCron() {
   try {
-    // Run immediately on startup
-    generatePeriodicNotifications().catch(error => {
+    const db = dbConnection.getDb();
+
+    // Generate initial notifications
+    await generatePeriodicNotifications(db).catch(error => {
       console.error('Error generating initial notifications:', error);
     });
-    
-    // Schedule periodic notifications - every 30 minutes
+
     cron.schedule('*/30 * * * *', async () => {
       try {
-        await generatePeriodicNotifications();
+        await generatePeriodicNotifications(db);
       } catch (error) {
         console.error('Error in periodic notifications cron:', error);
       }
     });
-    
-    // Hourly promo tracking
+
     cron.schedule('0 * * * *', async () => {
       try {
-        await generatePeriodicNotifications();
+        await generatePeriodicNotifications(db);
       } catch (error) {
         console.error('Error in hourly promo tracking cron:', error);
       }
     });
-    
-    // Critical promo monitoring - every 6 hours
+
     cron.schedule('0 */6 * * *', async () => {
       try {
-        await generatePeriodicNotifications();
+        await generatePeriodicNotifications(db);
       } catch (error) {
         console.error('Error in critical promo check:', error);
       }
@@ -268,18 +284,21 @@ function initializeNotificationsCron() {
   }
 }
 
-// ============================================
-// START SERVER AFTER MONGODB CONNECTION
-// ============================================
 async function startServer() {
-  await connectToMongoDB();
-  initializeNotificationsCron();
-  
-  app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
-  });
+  try {
+    await dbConnection.connect();
+    app.locals.db = dbConnection.getDb();
+    await initializeNotificationsCron();
+    
+    app.listen(port, () => {
+      console.log(`Server running on http://localhost:${port}`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
 }
 
-startServer().catch(console.error);
+startServer();
 
 module.exports = app;

@@ -10,7 +10,7 @@
 <div class="login-box">
     <img src="/resources/Blessings-Logo.png" alt="Blessings Cafe Logo" />
     <h2>Administrator Login</h2>
-    <form action="/auth/unified/login" method="post">
+    <form action="/admin/login" method="post">
         <label for="Username">Username</label>
         <input id="Username" name="Username" type="text" placeholder="Enter username"
                value="<%= typeof formData !== 'undefined' ? formData.Username : '' %>"

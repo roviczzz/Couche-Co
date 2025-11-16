@@ -1,17 +1,15 @@
-const { MongoClient, ObjectId } = require('mongodb');
+const { ObjectId } = require('mongodb');
+const dbConnection = require('./db');
 
-const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+
 
 class InventoryManager {
   
   static async deductIngredients(orderItems) {
-    let client;
-    const deductionLog = [];
+        const deductionLog = [];
 
     try {
-      client = new MongoClient(uri);
-      await client.connect();
-      const db = client.db('blessingscafe');
+      const db = dbConnection.getDb();
 
       const menuCollection = db.collection('Menu');
       const ingredientsCollection = db.collection('Ingredients');
@@ -82,10 +80,6 @@ class InventoryManager {
     } catch (error) {
       console.error('[INVENTORY ERROR] Failed to deduct ingredients:', error);
       return { success: false, error: error.message };
-    } finally {
-      if (client) {
-        await client.close();
-      }
     }
   }
   
@@ -311,12 +305,8 @@ class InventoryManager {
   }
   
   static async checkIngredientAvailability(orderItems) {
-    let client;
-    
-    try {
-      client = new MongoClient(uri);
-      await client.connect();
-      const db = client.db('blessingscafe');
+        try {
+      const db = dbConnection.getDb();
       
       const menuCollection = db.collection('Menu');
       const ingredientsCollection = db.collection('Ingredients');
@@ -360,20 +350,12 @@ class InventoryManager {
     } catch (error) {
       console.error('Error checking availability:', error);
       return { available: false, error: error.message };
-    } finally {
-      if (client) {
-        await client.close();
-      }
     }
   }
   
   static async checkProductAvailability(productId) {
-    let client;
-
-    try {
-      client = new MongoClient(uri);
-      await client.connect();
-      const db = client.db('blessingscafe');
+        try {
+      const db = dbConnection.getDb();
 
       const menuCollection = db.collection('Menu');
       const ingredientsCollection = db.collection('Ingredients');
@@ -472,10 +454,6 @@ class InventoryManager {
         available: false,
         reason: 'System error checking availability'
       };
-    } finally {
-      if (client) {
-        await client.close();
-      }
     }
   }
 
@@ -634,13 +612,10 @@ class InventoryManager {
   }
   
   static async rollbackIngredients(orderItems) {
-    let client;
-    const rollbackLog = [];
+        const rollbackLog = [];
 
     try {
-      client = new MongoClient(uri);
-      await client.connect();
-      const db = client.db('blessingscafe');
+      const db = dbConnection.getDb();
 
       const menuCollection = db.collection('Menu');
       const ingredientsCollection = db.collection('Ingredients');
@@ -706,10 +681,6 @@ class InventoryManager {
     } catch (error) {
       console.error('[INVENTORY ROLLBACK] Failed to rollback ingredients:', error);
       return { success: false, error: error.message };
-    } finally {
-      if (client) {
-        await client.close();
-      }
     }
   }
 
@@ -930,12 +901,8 @@ class InventoryManager {
   }
 
   static async restockIngredient(ingredientId, amount) {
-    let client;
-
-    try {
-      client = new MongoClient(uri);
-      await client.connect();
-      const db = client.db('blessingscafe');
+        try {
+      const db = dbConnection.getDb();
 
       const result = await db.collection('Ingredients').updateOne(
         { IngredientID: ingredientId },
@@ -950,10 +917,6 @@ class InventoryManager {
     } catch (error) {
       console.error('Error restocking ingredient:', error);
       return { success: false, error: error.message };
-    } finally {
-      if (client) {
-        await client.close();
-      }
     }
   }
 }
