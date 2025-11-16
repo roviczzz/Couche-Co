@@ -76,13 +76,19 @@
         <h2>Additional Add-ons</h2>
         <span class="close">&times;</span>
       </div>
-      <div class="ingredients-options">
-        <% (ingredients || []).forEach((ingredient) => { %>
-          <label class="ingredient-checkbox-label">
-            <input type="checkbox" class="ingredient-checkbox" data-ingredient-id="<%= ingredient.IngredientID %>" data-ingredient-name="<%= ingredient.Name %>" data-ingredient-price="15">
-            <span class="ingredient-text"><%= ingredient.Name %> - ₱15.00</span>
-          </label>
-        <% }); %>
+      <div class="modal-body">
+        <div class="ingredients-options">
+          <% (ingredients || []).forEach((ingredient) => { %>
+            <label class="ingredient-checkbox-label">
+              <input type="checkbox" class="ingredient-checkbox" data-ingredient-id="<%= ingredient.IngredientID %>" data-ingredient-name="<%= ingredient.Name %>" data-ingredient-price="15">
+              <span class="ingredient-text"><%= ingredient.Name %> - ₱15.00</span>
+            </label>
+          <% }); %>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="modal-cancel-btn" class="modal-btn modal-cancel">Cancel</button>
+        <button type="button" id="modal-add-btn" class="modal-btn modal-add">Add Selected</button>
       </div>
     </div>
   </div>
