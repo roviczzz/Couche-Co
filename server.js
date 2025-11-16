@@ -247,14 +247,15 @@ app.use((req, res) => {
 initializePromoDeactivationCron();
 
 // Initialize periodic notifications using node-cron
-function initializeNotificationsCron() {
+async function initializeNotificationsCron() {
   try {
     const db = dbConnection.getDb();
-    
-    generatePeriodicNotifications(db).catch(error => {
+
+    // Generate initial notifications
+    await generatePeriodicNotifications(db).catch(error => {
       console.error('Error generating initial notifications:', error);
     });
-    
+
     cron.schedule('*/30 * * * *', async () => {
       try {
         await generatePeriodicNotifications(db);
@@ -262,7 +263,7 @@ function initializeNotificationsCron() {
         console.error('Error in periodic notifications cron:', error);
       }
     });
-    
+
     cron.schedule('0 * * * *', async () => {
       try {
         await generatePeriodicNotifications(db);
@@ -270,7 +271,7 @@ function initializeNotificationsCron() {
         console.error('Error in hourly promo tracking cron:', error);
       }
     });
-    
+
     cron.schedule('0 */6 * * *', async () => {
       try {
         await generatePeriodicNotifications(db);
@@ -287,7 +288,7 @@ async function startServer() {
   try {
     await dbConnection.connect();
     app.locals.db = dbConnection.getDb();
-    initializeNotificationsCron();
+    await initializeNotificationsCron();
     
     app.listen(port, () => {
       console.log(`Server running on http://localhost:${port}`);

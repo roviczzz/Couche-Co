@@ -1197,7 +1197,7 @@ router.post('/orders/submit', ensureAdmin, async (req, res) => {
 
       // Create notification for new order
       try {
-        await createNewOrderNotification(orderToInsert);
+        await createNewOrderNotification(req.db, orderToInsert);
       } catch (notifError) {
         console.error('Failed to create order notification:', notifError);
         // Don't fail the order creation if notification fails
@@ -1472,7 +1472,7 @@ router.get('/test-promo-tracking', async (req, res) => {
     const { generatePeriodicNotifications } = require('../admin-helpers');
     console.log('🧪 Manual promo tracking test initiated...');
     
-    const notifications = await generatePeriodicNotifications();
+    const notifications = await generatePeriodicNotifications(req.db);
     
     res.json({
       success: true,
@@ -1766,7 +1766,7 @@ router.post('/messages/api/send', async (req, res) => {
 
     // Create notification for new message
     try {
-      await createMessageNotification({
+      await createMessageNotification(req.db, {
         _id: result.insertedId,
         senderName: req.session.user?.fullname || 'Unknown',
         subject: subject || 'New Message'
@@ -2142,12 +2142,12 @@ router.post('/stocks', async (req, res) => {
 
 router.post('/stocks/edit/:id', async (req, res) => {
   try {
-    await updateIngredient(req.params.id, req.body);
+    await updateIngredient(req.db, req.params.id, req.body);
     
     // Check for low stock after update and trigger notification if needed
     try {
       const stockData = await getStockData(req.db);
-      await createLowStockNotification(stockData, req.session.user || {});
+      await createLowStockNotification(req.db, stockData, req.session.user || {});
     } catch (notifError) {
       console.error('Failed to create stock notification after update:', notifError);
     }
@@ -2161,7 +2161,7 @@ router.post('/stocks/edit/:id', async (req, res) => {
 
 router.post('/stocks/delete/:id', async (req, res) => {
   try {
-    await deleteIngredient(req.params.id);
+    await deleteIngredient(req.db, req.params.id);
     res.redirect('/admin/stocks?msg=delete_success');
   } catch (err) {
     console.error('Delete item error:', err);
@@ -2170,12 +2170,12 @@ router.post('/stocks/delete/:id', async (req, res) => {
 });
 router.post('/stocks/bulk-update', async (req, res) => {
   try {
-    const modified = await bulkUpdateIngredients(req.body.updates);
+    const modified = await bulkUpdateIngredients(req.db, req.body.updates);
     
     // Check for low stock after bulk update and trigger notification if needed
     try {
       const stockData = await getStockData(req.db);
-      await createLowStockNotification(stockData, req.session.user || {});
+      await createLowStockNotification(req.db, stockData, req.session.user || {});
     } catch (notifError) {
       console.error('Failed to create stock notification after bulk update:', notifError);
     }
@@ -2187,7 +2187,7 @@ router.post('/stocks/bulk-update', async (req, res) => {
 });
 router.get('/stocks/export', async (req, res) => {
   try {
-    const data = await exportIngredientsAndAddons();
+    const data = await exportIngredientsAndAddons(req.db);
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: 'Failed to export inventory data' });
@@ -2196,7 +2196,7 @@ router.get('/stocks/export', async (req, res) => {
 router.get('/stocks/search', async (req, res) => {
   try {
     const { query, category, enabled } = req.query;
-    const data = await searchIngredientsAddons(query, category, enabled);
+    const data = await searchIngredientsAddons(req.db, query, category, enabled);
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: 'Failed to search inventory' });
@@ -2204,7 +2204,7 @@ router.get('/stocks/search', async (req, res) => {
 });
 router.get('/stocks/stats', async (req, res) => {
   try {
-    const stats = await getIngredientStats();
+    const stats = await getIngredientStats(req.db);
     res.json(stats);
   } catch (err) {
     res.status(500).json({ error: 'Failed to generate inventory statistics' });
@@ -2213,7 +2213,7 @@ router.get('/stocks/stats', async (req, res) => {
 router.get('/stocks/alerts', async (req, res) => {
   try {
     const { threshold, urgent } = req.query;
-    const alerts = await getLowStockAlerts(Number(threshold) || 10, Number(urgent) || 5);
+    const alerts = await getLowStockAlerts(req.db, Number(threshold) || 10, Number(urgent) || 5);
     res.json(alerts);
   } catch (err) {
     res.status(500).json({ error: 'Failed to generate low stock alerts' });
@@ -2221,7 +2221,7 @@ router.get('/stocks/alerts', async (req, res) => {
 });
 router.get('/stocks/categories', async (req, res) => {
   try {
-    const categories = await getIngredientCategories();
+    const categories = await getIngredientCategories(req.db);
     res.json(categories);
   } catch (err) {
     res.status(500).json({ error: 'Failed to retrieve categories' });
@@ -2229,7 +2229,7 @@ router.get('/stocks/categories', async (req, res) => {
 });
 router.get('/stocks/health', async (req, res) => {
   try {
-    const health = await getStockHealth();
+    const health = await getStockHealth(req.db);
     res.json(health);
   } catch (err) {
     res.status(500).json({ error: 'Failed to check stock health' });
@@ -2264,7 +2264,7 @@ router.patch('/orders/:OrderID/fulfillment', async (req, res) => {
 });
 router.patch('/orders/:OrderID/payment-status', async (req, res) => {
   try {
-    const updatedOrder = await updateOrderPaymentStatus(req.params.OrderID, req.body.PaymentStatus);
+    const updatedOrder = await updateOrderPaymentStatus(req.db, req.params.OrderID, req.body.PaymentStatus);
     res.json({ success: true, order: updatedOrder });
   } catch (err) {
     res.status(500).json({ error: 'Failed to update payment status' });
@@ -2335,7 +2335,7 @@ router.patch('/orders/:OrderID/cancel', async (req, res) => {
 });
 router.patch('/orders/:OrderID/restore', async (req, res) => {
   try {
-    const updatedOrder = await restoreOrder(req.params.OrderID);
+    const updatedOrder = await restoreOrder(req.db, req.params.OrderID);
     res.json({ success: true, order: updatedOrder });
   } catch (err) {
     res.status(500).json({ error: 'Failed to restore order' });
@@ -2352,7 +2352,7 @@ router.get('/analytics/popular-products', async (req, res) => {
 });
 router.get('/analytics/average-sales-per-day', async (req, res) => {
   try {
-    const results = await getAverageSalesPerDay();
+    const results = await getAverageSalesPerDay(req.db);
     res.json(results);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch average sales per day' });
@@ -2644,12 +2644,12 @@ router.post('/discounts/add', async (req, res) => {
 });
 router.post('/discounts/edit/:id', async (req, res) => {
   try {
-    await updateDiscount(req.params.id, req.body);
+    await updateDiscount(req.db, req.params.id, req.body);
     
     // Trigger immediate promo tracking check for this specific promo
     try {
       const { triggerBusinessEventNotification } = require('../admin-helpers');
-      await triggerBusinessEventNotification('promo-update-check', {
+      await triggerBusinessEventNotification(req.db, 'promo-update-check', {
         promoId: req.params.id,
         updatedData: req.body
       });

@@ -293,48 +293,6 @@
     },
     {
       "parameters": {
-        "content": "add webhook after payment to notify user that their order is now preparing then ready for pickup.\nquick replies:\n(Order Received) (Contact)",
-        "height": 128
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        3776,
-        1712
-      ],
-      "typeVersion": 1,
-      "id": "947e8e04-3990-41f0-ba55-7d0b83180308",
-      "name": "Sticky Note2"
-    },
-    {
-      "parameters": {
-        "content": "add webhook to notify user that their order is ready for pickup.\nquick replies:\n(Order Received) (Contact)",
-        "height": 128
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        4080,
-        1520
-      ],
-      "typeVersion": 1,
-      "id": "ae4f2e7a-9cf9-47d5-8a8e-03833b3b7075",
-      "name": "Sticky Note14"
-    },
-    {
-      "parameters": {
-        "content": "add webhook after payment to notify user that their order is now preparing for delivery.\nquick replies:\n(Order Received) (Contact)",
-        "height": 128
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        4096,
-        1712
-      ],
-      "typeVersion": 1,
-      "id": "af71e464-5d51-4cbd-adca-631a3fff5140",
-      "name": "Sticky Note15"
-    },
-    {
-      "parameters": {
         "collection": "Chatbot-Cart",
         "options": {},
         "query": "={ \"transactionId\": \"{{$json.body.external_id}}\" }"
@@ -357,7 +315,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const input = $input.first().json;\n\nfunction formatDatePH(dateStr) {\n  const date = new Date(dateStr);\n  const offset = 8 * 60; // Philippines is UTC+8\n  const localDate = new Date(date.getTime() + offset * 60000);\n  const y = localDate.getFullYear();\n  const m = String(localDate.getMonth() + 1).padStart(2, '0');\n  const d = String(localDate.getDate()).padStart(2, '0');\n  const h = String(localDate.getHours()).padStart(2, '0');\n  const min = String(localDate.getMinutes()).padStart(2, '0');\n  const s = String(localDate.getSeconds()).padStart(2, '0');\n  return `${y}-${m}-${d} ${h}:${min}:${s}`;\n}\n\nconst orderCart = input.items.map(item => ({\n  ProductName: item.productName,\n  ProductID: item.productId,\n  Size: item.size,\n  Addons: item.addOns ? item.addOns.map(addon => ({\n    AddOnID: addon.ingredientId || addon.addOnId,\n    Name: addon.ingredientName || addon.addOnName,\n    BasePrice: addon.ingredientPrice || addon.addOnPrice,\n    Quantity: addon.quantity // Include quantity if needed\n  })) : [],\n  Quantity: item.quantity,\n  Price: item.totalPrice, // Assuming totalPrice includes base + addons\n  ImageLink: item.imageLink || \"\"\n}));\n\nconst isDelivery = input.deliveryMethod && input.deliveryMethod.toLowerCase().includes(\"delivery\");\n\nconst subtotal = input.items.reduce((sum, item) => sum + item.totalPrice, 0);\n\nconst customer = {\n  userId: input.userId,\n  fullname: $input.first().json.deliveryAddress.recipientName || \"Unknown\",\n  email: input.deliveryAddress?.email || \"\",\n  contactnumber: input.deliveryAddress?.phone || \"\",\n  deliveryMethod: isDelivery ? \"Delivery\" : \"Pick-Up\",\n  city: input.deliveryAddress?.city || \"\",\n  address: `${input.deliveryAddress?.street || \"\"}, ${input.deliveryAddress?.barangay || \"\"}`.trim()\n};\n\nconst order = {\n  OrderID: input.transactionId || \"\",\n  Date: formatDatePH(input.updatedAt || input.createdAt),\n  Source: \"Chatbot\", // Or \"Website\" if applicable\n  Cart: orderCart,\n  Customer: customer,\n  Total: subtotal + (isDelivery ? 20 : 0),\n  Notes: input.deliveryAddress?.notes || \"\",\n  PaymentStatus: \"Paid\",\n  FulfillmentStatus: \"Preparing\",\n  FulfillmentMethod: isDelivery ? \"Delivery\" : \"Pick-Up\",\n  PaymentMethod: \"EWALLET\", // Or dynamic based on Xendit data\n  PaymentMode: input.paymentMethod || \"E-Payment\",\n  XenditPaymentID: $('Order Confirmation For Delivery & Pickup [E-Pay]').first().json.body.payment_id || \"\", // Add if available from payment webhook\n  PromoEventApplied: input.appliedPromo?.event || \"\",\n  PromoDiscountAmount: input.appliedPromo?.discountAmount || 0\n};\n\nreturn [{ json: order }];"
+        "jsCode": "const input = $input.first().json;\n\nfunction formatDatePH(dateStr) {\n  const date = new Date(dateStr);\n  const offset = 8 * 60; // Philippines is UTC+8\n  const localDate = new Date(date.getTime() + offset * 60000);\n  const y = localDate.getFullYear();\n  const m = String(localDate.getMonth() + 1).padStart(2, '0');\n  const d = String(localDate.getDate()).padStart(2, '0');\n  const h = String(localDate.getHours()).padStart(2, '0');\n  const min = String(localDate.getMinutes()).padStart(2, '0');\n  const s = String(localDate.getSeconds()).padStart(2, '0');\n  return `${y}-${m}-${d} ${h}:${min}:${s}`;\n}\n\nconst orderCart = input.items.map(item => ({\n  ProductName: item.productName,\n  ProductID: item.productId,\n  Size: item.size,\n  Addons: item.addOns ? item.addOns.map(addon => ({\n    AddOnID: addon.ingredientId || addon.addOnId,\n    Name: addon.ingredientName || addon.addOnName,\n    BasePrice: addon.ingredientPrice || addon.addOnPrice,\n    Quantity: addon.quantity // Include quantity if needed\n  })) : [],\n  Quantity: item.quantity,\n  Price: item.totalPrice, // Assuming totalPrice includes base + addons\n  ImageLink: item.imageLink || \"\"\n}));\n\nconst isDelivery = input.deliveryMethod && input.deliveryMethod.toLowerCase().includes(\"delivery\");\n\nconst subtotal = input.items.reduce((sum, item) => sum + item.totalPrice, 0);\n\nconst discountAmount = input.appliedPromo?.discountAmount || 0;\n\nconst customer = {\n  userId: input.userId,\n  fullname: $input.first().json.deliveryAddress.recipientName || \"Unknown\",\n  email: input.deliveryAddress?.email || \"\",\n  contactnumber: input.deliveryAddress?.phone || \"\",\n  deliveryMethod: isDelivery ? \"Delivery\" : \"Pick-Up\",\n  city: input.deliveryAddress?.city || \"\",\n  address: `${input.deliveryAddress?.street || \"\"}, ${input.deliveryAddress?.barangay || \"\"}`.trim()\n};\n\nconst order = {\n  OrderID: input.transactionId || \"\",\n  Date: formatDatePH(input.updatedAt || input.createdAt),\n  Source: \"Chatbot\", // Or \"Website\" if applicable\n  Cart: orderCart,\n  Customer: customer,\n  Total: subtotal + (isDelivery ? 20 : 0) - discountAmount, // Subtract discount here\n  Notes: input.deliveryAddress?.notes || \"\",\n  PaymentStatus: \"Paid\",\n  FulfillmentStatus: \"Preparing\",\n  FulfillmentMethod: isDelivery ? \"Delivery\" : \"Pick-Up\",\n  PaymentMethod: \"EWALLET\", // Or dynamic based on Xendit data\n  PaymentMode: input.paymentMethod || \"E-Payment\",\n  XenditPaymentID: $('Order Confirmation For Delivery & Pickup [E-Pay]').first().json.body.payment_id || \"\", // Add if available from payment webhook\n  PromoEventApplied: input.appliedPromo?.event || \"\",\n  PromoDiscountAmount: discountAmount\n};\n\nreturn [{ json: order }];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -522,33 +480,6 @@
       "id": "5b444129-8bb1-48b6-8e92-a01044370fee",
       "name": "Notify Pickup Webhook",
       "webhookId": "949aa252-9ae4-4395-8747-924202f2aa42"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $('find userId Cart [Order Confirmation]').first().json.userId }}\"\n  },\n  \"message\": {\n    \"text\": \"✅ Payment Successful!\\n\\nThank you for your order! We're now preparing your items.\\n\\nYou'll receive updates here as your order progresses. Thank you for choosing Blessings Cafe!\\n\\n\"\n  }\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        4128,
-        608
-      ],
-      "id": "6f8d10c1-43e2-4906-beb2-34ac5686425e",
-      "name": "Display Order Success [Order Confirmation]"
     },
     {
       "parameters": {
@@ -1171,7 +1102,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const input = $input.first().json;\n   \n   const orderId = input.orderId;\n   const userId = input.userId;\n   const fulfillmentStatus = input.fulfillmentStatus;\n   const deliveryMethod = input.deliveryMethod;\n   const total = input.total;\n   const items = input.items;\n   \n   let statusMessage = '';\n   let statusEmoji = '';\n   \n   switch (fulfillmentStatus) {\n     case 'Preparing':\n       statusEmoji = '👨‍🍳';\n       statusMessage = 'Your order is now being prepared! We\\'ll notify you when it\\'s ready for delivery.';\n       break;\n     case 'In Progress':\n       statusEmoji = '🍰';\n       statusMessage = 'Your order is currently being prepared by our team.';\n       break;\n     case 'Ready':\n       statusEmoji = '✅';\n       statusMessage = 'Your order is ready and will be out for delivery soon!';\n       break;\n     case 'In Delivery':\n       statusEmoji = '🚚';\n       statusMessage = 'Your order is out for delivery! It should arrive shortly.';\n       break;\n     case 'Completed':\n       statusEmoji = '🎉';\n       statusMessage = 'Your order has been delivered! Thank you for choosing Blessings Cafe!';\n       break;\n     case 'Cancelled':\n       statusEmoji = '❌';\n       statusMessage = 'Your order has been cancelled. If you have questions, please contact us.';\n       break;\n     default:\n       statusEmoji = 'ℹ️';\n       statusMessage = `Your order status has been updated to: ${fulfillmentStatus}`;\n   }\n   \n   const itemSummary = items && items.length > 0 \n     ? items.map(item => `${item.Quantity}x ${item.ProductName}`).join('\\n')\n     : 'View your order details';\n   \n   return {\n     json: {\n       userId: userId,\n       orderId: orderId,\n       fulfillmentStatus: fulfillmentStatus,\n       statusMessage: statusMessage,\n       statusEmoji: statusEmoji,\n       itemSummary: itemSummary,\n       total: total,\n       deliveryMethod: deliveryMethod\n     }\n   };"
+        "jsCode": "const input = $input.first().json;\nconst body = input.body;  // Access the body of the webhook\n   \nconst orderId = body.orderId;\nconst userId = body.userId.userId;  // Access the userId string from the object\nconst fulfillmentStatus = body.fulfillmentStatus;\nconst deliveryMethod = body.deliveryMethod;\nconst total = body.total;\nconst items = body.items;\n   \nlet statusMessage = '';\nlet statusPercentage = 0;\n   \nswitch (fulfillmentStatus) {\n  case 'Preparing':\n    statusPercentage = 25;\n    statusMessage = 'Your order is now being prepared! (25%) We\\'ll notify you when it\\'s ready for delivery.';\n    break;\n  case 'In Progress':\n    statusPercentage = 50;\n    statusMessage = 'Your order is currently being prepared by our team. (50%)';\n    break;\n  case 'Ready':\n    statusPercentage = 75;\n    statusMessage = 'Your order is ready and will be out for delivery soon! (75%)';\n    break;\n  case 'In Delivery':\n    statusPercentage = 90;\n    statusMessage = 'Your order is out for delivery! It should arrive shortly. (90%)';\n    break;\n  case 'Completed':\n    statusPercentage = 100;\n    statusMessage = 'Your order has been delivered! Thank you for choosing Blessings Cafe! (100%)';\n    break;\n  case 'Cancelled':\n    statusPercentage = 0;\n    statusMessage = 'Your order has been cancelled. If you have questions, please contact us. (0%)';\n    break;\n  default:\n    statusPercentage = 0;\n    statusMessage = `Your order status has been updated to: ${fulfillmentStatus} (0%)`;\n}\n   \nconst itemSummary = items && items.length > 0 \n  ? items.map(item => `${item.Quantity}x ${item.ProductName}`).join('\\n')\n  : 'View your order details';\n   \nreturn {\n  json: {\n    userId: userId,\n    orderId: orderId,\n    fulfillmentStatus: fulfillmentStatus,\n    statusMessage: statusMessage,\n    statusPercentage: statusPercentage,\n    itemSummary: itemSummary,\n    total: total,\n    deliveryMethod: deliveryMethod\n  }\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1197,7 +1128,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n     \"messaging_type\": \"UPDATE\",\n     \"recipient\": {\n       \"id\": \"{{ $json.userId }}\"\n     },\n     \"message\": {\n       \"text\": \"{{ $json.statusEmoji }} Order Status Update\\n\\nOrder ID: {{ $json.orderId }}\\n\\n{{ $json.statusMessage }}\\n\\n📦 Your Items:\\n{{ $json.itemSummary }}\\n\\n💰 Total: ₱{{ $json.total }}\\n\\nThank you for choosing Blessings Cafe! 🙏\"\n     }\n   }",
+        "jsonBody": "={\n  \"messaging_type\": \"UPDATE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.userId }}\"\n  },\n  \"message\": {\n    \"text\": \"*Order Status Update*\\n\\nOrder ID: {{ $json.orderId }}\\n{{ $json.statusMessage }}\\n\\n{{ $json.itemSummary }}\\n\\nTotal: ₱{{ $json.total }}\\n\\nThank you for choosing Blessings Cafe! 🙏\"\n  }\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -1208,19 +1139,6 @@
       ],
       "id": "8b38dd70-6306-4bfe-96ca-aa7921f3819d",
       "name": "Send Message to Customer [Delivery]"
-    },
-    {
-      "parameters": {
-        "jsCode": "const input = $input.first().json;\n   \n   const orderId = input.orderId;\n   const userId = input.userId;\n   const fulfillmentStatus = input.fulfillmentStatus;\n   const deliveryMethod = input.deliveryMethod;\n   const total = input.total;\n   const items = input.items;\n   \n   let statusMessage = '';\n   let statusEmoji = '';\n   \n   switch (fulfillmentStatus) {\n     case 'Preparing':\n       statusEmoji = '👨‍🍳';\n       statusMessage = 'Your order is now being prepared! We\\'ll notify you when it\\'s ready for delivery.';\n       break;\n     case 'In Progress':\n       statusEmoji = '🍰';\n       statusMessage = 'Your order is currently being prepared by our team.';\n       break;\n    case 'Ready':\n      statusEmoji = '✅';\n      statusMessage = 'Your order is ready for pickup! Please come to our store at your convenience.\\n\\n📍 Blessings Cafe\\nImus, Cavite';\n      break;\n    case 'Completed':\n      statusEmoji = '🎉';\n      statusMessage = 'Your order has been completed! Thank you for choosing Blessings Cafe!';\n      break;\n     case 'Cancelled':\n       statusEmoji = '❌';\n       statusMessage = 'Your order has been cancelled. If you have questions, please contact us.';\n       break;\n     default:\n       statusEmoji = 'ℹ️';\n       statusMessage = `Your order status has been updated to: ${fulfillmentStatus}`;\n   }\n   \n   const itemSummary = items && items.length > 0 \n     ? items.map(item => `${item.Quantity}x ${item.ProductName}`).join('\\n')\n     : 'View your order details';\n   \n   return {\n     json: {\n       userId: userId,\n       orderId: orderId,\n       fulfillmentStatus: fulfillmentStatus,\n       statusMessage: statusMessage,\n       statusEmoji: statusEmoji,\n       itemSummary: itemSummary,\n       total: total,\n       deliveryMethod: deliveryMethod\n     }\n   };"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        4336,
-        1088
-      ],
-      "id": "933c794f-a125-4328-8552-49fbdd246e30",
-      "name": "Process Webhook Data [Delivery]1"
     },
     {
       "parameters": {
@@ -1237,7 +1155,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n     \"messaging_type\": \"UPDATE\",\n     \"recipient\": {\n       \"id\": \"{{ $json.userId }}\"\n     },\n     \"message\": {\n       \"text\": \"{{ $json.statusEmoji }} Order Status Update\\n\\nOrder ID: {{ $json.orderId }}\\n\\n{{ $json.statusMessage }}\\n\\n📦 Your Items:\\n{{ $json.itemSummary }}\\n\\n💰 Total: ₱{{ $json.total }}\\n\\nThank you for choosing Blessings Cafe! 🙏\"\n     }\n   }",
+        "jsonBody": "={\n  \"messaging_type\": \"UPDATE\",\n  \"recipient\": {\n    \"id\": \"{{ $json.userId }}\"\n  },\n  \"message\": {\n    \"text\": \"Order Status Update\\n\\nOrder ID: {{ $json.orderId }}\\n{{ $json.statusMessage }}\\n\\n{{ $json.itemSummary }}\\n\\nTotal: ₱{{ $json.total }}\\n\\nThank you for choosing Blessings Cafe! 🙏\"\n  }\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -1248,23 +1166,6 @@
       ],
       "id": "d416a5b7-7bb3-4f22-af17-1a3d2b1bcabe",
       "name": "Send Message to Customer [Pick-up]"
-    },
-    {
-      "parameters": {
-        "respondWith": "text",
-        "responseBody": "{\"success\": true, \"message\": \"Notification sent\"}",
-        "options": {
-          "responseCode": 200
-        }
-      },
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.4,
-      "position": [
-        4800,
-        1088
-      ],
-      "id": "1cd76f88-5d7e-435e-a719-404a0e2ad384",
-      "name": "Respond to Webhook [Pickup]"
     },
     {
       "parameters": {
@@ -1284,20 +1185,169 @@
     },
     {
       "parameters": {
-        "respondWith": "text",
-        "responseBody": "{\"success\": true, \"message\": \"Notification sent\"}",
+        "jsCode": "const orderId = $('insert to Orders [Order Confirmation]').first().json.OrderID;\nconst secret = 'ed8b0a5bc48d710ccfac857933447187934e347dd6bc1fd9a7c11b70b86d77bb'; // Match website's ORDER_COMPLETION_SECRET\nconst baseUrl = 'https://blessingsateverysip.me'; // Your website URL\nconst completionUrl = `${baseUrl}/admin/complete-order?orderId=${orderId}&secret=${secret}`;\nreturn { json: { completionUrl, orderId } };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4128,
+        608
+      ],
+      "id": "1d06e14d-dbcc-4676-9eba-71cd94fb6088",
+      "name": "Generate Completion URL"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ $json.completionUrl }}",
         "options": {
-          "responseCode": 200
+          "response": {
+            "response": {}
+          }
         }
       },
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.4,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
       "position": [
-        4800,
-        896
+        4336,
+        608
       ],
-      "id": "8ce1b2cb-3d9c-4bdd-800c-9de40e707118",
-      "name": "Respond to Webhook"
+      "id": "2b1571dc-31bc-47ab-b498-9091da934393",
+      "name": "Generate QR Code"
+    },
+    {
+      "parameters": {
+        "jsCode": "const qrItem = $('Generate QR Code').first();\nconst userItem = $('find userId Cart [Order Confirmation]').first();\nconst userId = userItem.json.userId;\n\n// Extract base64 from binary\nconst binaryKey = Object.keys(qrItem.binary)[0];\nconst binaryBuffer = qrItem.binary[binaryKey].data;\nconst base64 = Buffer.isBuffer(binaryBuffer) \n  ? binaryBuffer.toString('base64') \n  : binaryBuffer;\n\n// Output for next node\nreturn { json: { base64: base64, userId: userId } };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4560,
+        608
+      ],
+      "id": "0d0e7e96-7dd8-489b-9a6e-3715fba6414e",
+      "name": "Success Message with QR"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.imgbb.com/1/upload",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Form-Data",
+              "value": "Multipart"
+            },
+            {
+              "name": "key",
+              "value": "052f10afa5442a3b89fafbf3635291ac"
+            },
+            {
+              "name": "image",
+              "value": "={{ $json.base64 }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        4768,
+        608
+      ],
+      "id": "2e726f92-a038-4bab-997c-7b5f45c0bebc",
+      "name": "Upload QR ImgBB"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $('Success Message with QR').item.json.userId }}\"\n  },\n  \"message\": {\n    \"text\": \"Order Confirmed ✅\\n\\n🆔 Order ID: {{ $('Generate Completion URL').item.json.orderId }}\\n\\nThank you for your order. Your order is currently being prepared and will be ready shortly. Our staff will notify you when your order is complete.\\n\\n📍 For Pick-up Orders:\\nPlease visit us at the cafe to collect your order.\\n\\nBLOCK 3, LOT 1, PHASE 1, DREAMVILLE 4, 1C Alapan St, Imus, 4103 Cavite\\n+639550095191\\nhttps://maps.app.goo.gl/staPkcWNff69BZhGA\\n\\n📦 For Delivery Orders:\\nOur staff will deliver your order to your provided address.\\n\\nPlease present the QR code below to our staff upon arrival to confirm and complete your order.\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4960,
+        608
+      ],
+      "id": "15bf6e60-ebb4-4b7e-a780-36dd22093b46",
+      "name": "Order Success Message [Order Confirmation]"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $('Success Message with QR').item.json.userId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"image\",\n      \"payload\": {\n        \"url\": \"{{ $('Upload QR ImgBB').item.json.data.display_url }}\"\n      }\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        5344,
+        608
+      ],
+      "id": "44e5bcb1-3455-438d-88de-a3cfa91f6857",
+      "name": "QR Message [Order Confirmation]"
+    },
+    {
+      "parameters": {
+        "amount": 1
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        5152,
+        608
+      ],
+      "id": "75593238-9ee1-48fb-a60f-c46551cb86a5",
+      "name": "Wait",
+      "webhookId": "4b83ca1a-63e6-4b8f-b32e-3a0b52e19ada"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst body = input.body;  // Access the body of the webhook\n   \nconst orderId = body.orderId;\nconst userId = body.userId.userId;  // Access the userId string from the object\nconst fulfillmentStatus = body.fulfillmentStatus;\nconst deliveryMethod = body.deliveryMethod;\nconst total = body.total;\nconst items = body.items;\n   \nlet statusMessage = '';\nlet statusPercentage = 0;\n   \nswitch (fulfillmentStatus) {\n  case 'Preparing':\n    statusPercentage = 25;\n    statusMessage = 'Your order is now being prepared! (25%) We\\'ll notify you when it\\'s ready for pickup.';\n    break;\n  case 'In Progress':\n    statusPercentage = 50;\n    statusMessage = 'Your order is currently being prepared by our team. (50%)';\n    break;\n  case 'Ready':\n    statusPercentage = 75;\n    statusMessage = 'Your order is ready for pickup! Please come to our store at your convenience. Blessings Cafe, Imus, Cavite (75%)';\n    break;\n  case 'Completed':\n    statusPercentage = 100;\n    statusMessage = 'Your order has been completed! Thank you for choosing Blessings Cafe! (100%)';\n    break;\n  case 'Cancelled':\n    statusPercentage = 0;\n    statusMessage = 'Your order has been cancelled. If you have questions, please contact us. (0%)';\n    break;\n  default:\n    statusPercentage = 0;\n    statusMessage = `Your order status has been updated to: ${fulfillmentStatus} (0%)`;\n}\n   \nconst itemSummary = items && items.length > 0 \n  ? items.map(item => `${item.Quantity}x ${item.ProductName}`).join('\\n')\n  : 'View your order details';\n   \nreturn {\n  json: {\n    userId: userId,\n    orderId: orderId,\n    fulfillmentStatus: fulfillmentStatus,\n    statusMessage: statusMessage,\n    statusPercentage: statusPercentage,\n    itemSummary: itemSummary,\n    total: total,\n    deliveryMethod: deliveryMethod\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4336,
+        1088
+      ],
+      "id": "933c794f-a125-4328-8552-49fbdd246e30",
+      "name": "Process Webhook Data [Pick-up]"
     }
   ],
   "pinData": {},
@@ -1478,7 +1528,7 @@
       "main": [
         [
           {
-            "node": "Display Order Success [Order Confirmation]",
+            "node": "Generate Completion URL",
             "type": "main",
             "index": 0
           }
@@ -1899,21 +1949,108 @@
     },
     "Send Message to Customer [Delivery]": {
       "main": [
+        []
+      ]
+    },
+    "Notify Pickup Webhook": {
+      "main": [
         [
           {
-            "node": "Respond to Webhook",
+            "node": "Process Webhook Data [Pick-up]",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Notify Pickup Webhook": {
+    "Send Message to Customer [Pick-up]": {
       "main": [
         []
       ]
     },
-    "Process Webhook Data [Delivery]1": {
+    "Notify Delivery Webhook": {
+      "main": [
+        [
+          {
+            "node": "Process Webhook Data [Delivery]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Completion URL": {
+      "main": [
+        [
+          {
+            "node": "Generate QR Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate QR Code": {
+      "main": [
+        [
+          {
+            "node": "Success Message with QR",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Success Message with QR": {
+      "main": [
+        [
+          {
+            "node": "Upload QR ImgBB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload QR ImgBB": {
+      "main": [
+        [
+          {
+            "node": "Order Success Message [Order Confirmation]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Order Success Message [Order Confirmation]": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "QR Message [Order Confirmation]": {
+      "main": [
+        []
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "QR Message [Order Confirmation]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Webhook Data [Pick-up]": {
       "main": [
         [
           {
@@ -1923,29 +2060,13 @@
           }
         ]
       ]
-    },
-    "Send Message to Customer [Pick-up]": {
-      "main": [
-        [
-          {
-            "node": "Respond to Webhook [Pickup]",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Notify Delivery Webhook": {
-      "main": [
-        []
-      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "8a637b1a-92a7-4afd-a91d-4d57147f8e10",
+  "versionId": "6a420748-2112-4675-bf53-18d174a1e0e5",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "c9a539eddbbcc53188d09f0c160cdca467499addf0ec993ff0d9c5b9cab4ef78"

@@ -828,6 +828,13 @@ function showOrderDetails(order, rowIndex) {
     <h3>Products Ordered</h3>
     ${createProductList(order)}
 
+    ${order.PromoEventApplied || order.PromoDiscountAmount ? `
+    <div class="promo-section">
+      <h4>🎉 Promo Applied</h4>
+      ${order.PromoEventApplied ? `<div class="promo-name">${order.PromoEventApplied}</div>` : ''}
+      ${order.PromoDiscountAmount ? `<div class="promo-discount">Discount: ₱${Number(order.PromoDiscountAmount).toFixed(2)}</div>` : ''}
+    </div>` : ''}
+
     <div class="summary-totals">
       <div class="total-line">
         <span>Subtotal:</span>

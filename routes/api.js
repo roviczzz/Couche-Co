@@ -367,7 +367,7 @@ router.post('/orders', checkInventoryAvailability, async (req, res) => {
     // Trigger new order notification
     try {
       const { triggerBusinessEventNotification } = require('../admin-helpers');
-      await triggerBusinessEventNotification('new-order', {
+      await triggerBusinessEventNotification(req.db, 'new-order', {
         orderId: orderData.OrderID,
         customer: orderData.Customer,
         total: orderData.Total || 0
@@ -578,7 +578,7 @@ router.patch('/orders/:OrderID/cancel', async (req, res) => {
   try {
     // Use the cancelOrder function from admin-helpers which includes stock rollback
     const { cancelOrder } = require('../admin-helpers');
-    const result = await cancelOrder(OrderID);
+    const result = await cancelOrder(req.db, OrderID);
 
     if (result) {
       return res.status(200).json({

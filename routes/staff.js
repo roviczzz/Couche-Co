@@ -97,7 +97,7 @@ router.post('/orders/submit', isStaffLoggedIn, async (req, res) => {
 
       // Create notification for new order
       try {
-        await createNewOrderNotification(orderToInsert);
+        await createNewOrderNotification(req.db, orderToInsert);
       } catch (notifError) {
         console.error('Failed to create order notification:', notifError);
         // Don't fail the order creation if notification fails
@@ -1024,7 +1024,7 @@ router.post('/messages/api/send', async (req, res) => {
 
     // Create notification for new message
     try {
-      await createMessageNotification({
+      await createMessageNotification(req.db, {
         _id: result.insertedId,
         senderName: req.session.user?.fullname || 'Unknown',
         subject: subject || 'New Message'

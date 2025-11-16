@@ -141,7 +141,7 @@ router.delete('/api/notifications/:id', async (req, res) => {
 router.post('/api/notifications/generate-periodic', async (req, res) => {
   try {
     const userSettings = req.body.settings || {};
-    const notifications = await generatePeriodicNotifications(userSettings);
+    const notifications = await generatePeriodicNotifications(req.db, userSettings);
     
     res.json({
       success: true,

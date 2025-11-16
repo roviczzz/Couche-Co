@@ -251,7 +251,7 @@ async function updateOrderFulfillment(db, orderId, fulfillmentStatus) {
   }
 }
 
-async function updateOrderPaymentStatus(orderId, paymentStatus) {
+async function updateOrderPaymentStatus(db, orderId, paymentStatus) {
   try {
     const ordersCollection = db.collection('Orders');
 
@@ -313,7 +313,7 @@ async function cancelOrder(db, orderId) {
   }
 }
 
-async function restoreOrder(orderId) {
+async function restoreOrder(db, orderId) {
   try {
     const ordersCollection = db.collection('Orders');
 
@@ -458,7 +458,7 @@ async function updateIngredient(db, id, ingredientData) {
   }
 }
 
-async function deleteIngredient(id) {
+async function deleteIngredient(db, id) {
   try {
     // First, check if the item is an ingredient or add-on
     let item = await db.collection('Ingredients').findOne({ _id: new ObjectId(id) });
@@ -526,7 +526,7 @@ async function bulkUpdateIngredients(db, updates) {
   }
 }
 
-async function exportIngredientsAndAddons() {
+async function exportIngredientsAndAddons(db) {
   try {
     const ingredients = await db.collection('Ingredients').find().toArray();
     const addons = await db.collection('Add-ons').find().toArray();
@@ -639,7 +639,7 @@ async function getIngredientStats(db) {
   }
 }
 
-async function getLowStockAlerts(threshold = 10, urgentThreshold = 5) {
+async function getLowStockAlerts(db, threshold = 10, urgentThreshold = 5) {
   try {
     const lowStockIngredients = await db.collection('Ingredients').find({
       Amount: { $lte: threshold },
@@ -742,7 +742,7 @@ async function getDiscounts(db) {
   }
 }
 
-async function getDiscountById(id) {
+async function getDiscountById(db, id) {
   try {
     const discount = await db.collection('Promos').findOne({ _id: new ObjectId(id) });
     return discount;
@@ -779,7 +779,7 @@ async function addDiscount(db, discountData) {
   }
 }
 
-async function updateDiscount(id, discountData) {
+async function updateDiscount(db, id, discountData) {
   try {
     // Parse dates if they're strings
     if (discountData.startDate && typeof discountData.startDate === 'string') {
@@ -937,7 +937,7 @@ async function getPopularProducts(db) {
   }
 }
 
-async function getAverageSalesPerDay() {
+async function getAverageSalesPerDay(db) {
   try {
     const salesPerDay = await db.collection('Orders').aggregate([
       {
@@ -1029,7 +1029,7 @@ async function getTopCategories(db) {
   }
 }
 
-async function getPaymentTypes() {
+async function getPaymentTypes(db) {
   try {
     const pipeline = [
       {
@@ -1178,7 +1178,7 @@ async function getSalesPerformance(db, days = 14) {
 
 // ===== NOTIFICATION FUNCTIONS =====
 
-async function createNotification(notificationData) {
+async function createNotification(db, notificationData) {
   try {
     const notification = {
       ...notificationData,
@@ -1270,11 +1270,11 @@ async function deleteNotification(db, notificationId) {
 
 // Generate specific types of notifications
 
-async function createNewOrderNotification(orderData) {
+async function createNewOrderNotification(db, orderData) {
   try {
     console.log('🔔 Creating new order notification for order:', orderData.OrderID);
     
-    const notification = await createNotification({
+    const notification = await createNotification(db, {
       type: 'order',
       title: 'New Order Received',
       message: `Order #${orderData.OrderID} received from ${orderData.Customer?.fullname || 'Customer'}`,
@@ -1297,8 +1297,8 @@ async function createNewOrderNotification(orderData) {
   }
 }
 
-async function createMessageNotification(messageData, targetRole = 'admin') {
-  return await createNotification({
+async function createMessageNotification(db, messageData, targetRole = 'admin') {
+  return await createNotification(db, {
     type: 'message',
     title: 'New Message Received',
     message: `New message from ${messageData.senderName || 'Unknown'}`,
@@ -1394,7 +1394,7 @@ async function createLowStockNotification(db, stockData, userSettings = {}) {
       return null;
     }
     
-    const notification = await createNotification({
+    const notification = await createNotification(db, {
       type: 'stock',
       title: `${priority === 'urgent' ? '🚨 Critical' : '⚠️'} Low Stock Alert`,
       message: `${items.length} item(s) running low: ${itemsText}${additionalText}`,
@@ -1421,12 +1421,12 @@ async function createLowStockNotification(db, stockData, userSettings = {}) {
   }
 }
 
-async function createMonthlyReportNotification() {
+async function createMonthlyReportNotification(db) {
   const now = new Date();
   const month = now.toLocaleString('default', { month: 'long' });
   const year = now.getFullYear();
   
-  return await createNotification({
+  return await createNotification(db, {
     type: 'report',
     title: 'Monthly Report Available',
     message: `Analytics report for ${month} ${year} is now available for download`,
@@ -1441,10 +1441,10 @@ async function createMonthlyReportNotification() {
   });
 }
 
-async function createPromoExpiryNotification(promoData) {
+async function createPromoExpiryNotification(db, promoData) {
   const daysUntilExpiry = Math.ceil((new Date(promoData.endDate) - new Date()) / (1000 * 60 * 60 * 24));
   
-  return await createNotification({
+  return await createNotification(db, {
     type: 'promo',
     title: 'Promotion Expiring Soon',
     message: `"${promoData.event}" expires in ${daysUntilExpiry} day(s)`,
@@ -1514,10 +1514,7 @@ async function generatePeriodicNotifications(db, userSettings = {}) {
         const lastMonthName = monthNames[lastMonth];
         const year = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
         
-        const monthlyNotif = await createMonthlyReportNotification({
-          month: lastMonthName,
-          year: year
-        });
+        const monthlyNotif = await createMonthlyReportNotification(db);
         notifications.push(monthlyNotif);
         console.log('✅ Monthly report notification created');
       } else {
@@ -1539,7 +1536,7 @@ async function generatePeriodicNotifications(db, userSettings = {}) {
         });
         
         if (!existingNotif) {
-          const promoNotif = await createPromoExpiryNotification(promo);
+          const promoNotif = await createPromoExpiryNotification(db, promo);
           notifications.push(promoNotif);
           console.log(`✅ Promo expiry notification created for: ${promo.event}`);
         }
@@ -1556,7 +1553,7 @@ async function generatePeriodicNotifications(db, userSettings = {}) {
 }
 
 // Utility function to trigger notifications based on business events
-async function triggerBusinessEventNotification(eventType, eventData = {}) {
+async function triggerBusinessEventNotification(db, eventType, eventData = {}) {
   try {
     console.log(`🔔 Triggering ${eventType} notification...`);
     
@@ -1567,16 +1564,16 @@ async function triggerBusinessEventNotification(eventType, eventData = {}) {
         return lowStockNotif;
         
       case 'new-order':
-        return await createNewOrderNotification(eventData);
+        return await createNewOrderNotification(db, eventData);
         
       case 'new-message':
-        return await createMessageNotification(eventData.messageData, eventData.targetRole);
+        return await createMessageNotification(db, eventData.messageData, eventData.targetRole);
         
       case 'promo-expiry':
-        return await createPromoExpiryNotification(eventData);
+        return await createPromoExpiryNotification(db, eventData);
         
       case 'monthly-report':
-        return await createMonthlyReportNotification(eventData);
+        return await createMonthlyReportNotification(db);
         
       default:
         console.log(`ℹ️ Unknown event type: ${eventType}`);
