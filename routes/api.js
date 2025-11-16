@@ -1773,4 +1773,22 @@ router.post('/webhooks/pickup', async (req, res) => {
   }
 });
 
+// API endpoint for status polling (enhances order-status-poller.js)
+router.get('/orders/:orderId/status', async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const order = await req.db.collection('Orders').findOne(
+      { OrderID: orderId },
+      { projection: { FulfillmentStatus: 1 } }
+    );
+    if (!order) {
+      return res.status(404).json({ success: false, error: 'Order not found' });
+    }
+    res.json({ success: true, data: { fulfillmentStatus: order.FulfillmentStatus } });
+  } catch (error) {
+    console.error('Status polling error:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
 module.exports = router;

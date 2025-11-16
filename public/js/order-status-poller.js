@@ -118,15 +118,44 @@ class OrderStatusPoller {
         return response.json();
       })
       .then(data => {
-        if (data.FulfillmentStatus !== this.lastStatus || data.progressPercentage !== this.lastProgress) {
-          // Status changed!
-          this.lastStatus = data.FulfillmentStatus;
-          this.lastProgress = data.progressPercentage;
+        if (!data.success) {
+          throw new Error('API returned error');
+        }
 
-          this.updateProgress(data.FulfillmentStatus, data.progressPercentage, data.statusText);
+        const fulfillmentStatus = data.data.fulfillmentStatus;
+
+        // Calculate progress and status text based on fulfillment method and status
+        let progressPercentage = 10; // Default minimum progress
+        let statusText = 'Order received';
+
+        // Note: We don't have fulfillment method in this response, so we'll use a simplified logic
+        // In a real implementation, you might want to fetch the full order details initially
+        if (fulfillmentStatus === 'Preparing') {
+          progressPercentage = 25;
+          statusText = 'Preparing your order';
+        } else if (fulfillmentStatus === 'In Progress') {
+          progressPercentage = 50;
+          statusText = 'Your order is being prepared';
+        } else if (fulfillmentStatus === 'Ready') {
+          progressPercentage = 90;
+          statusText = 'Your order is ready for pickup/delivery';
+        } else if (fulfillmentStatus === 'In Delivery') {
+          progressPercentage = 90;
+          statusText = 'Your order is out for delivery';
+        } else if (fulfillmentStatus === 'Completed') {
+          progressPercentage = 100;
+          statusText = 'Order completed successfully';
+        }
+
+        if (fulfillmentStatus !== this.lastStatus || progressPercentage !== this.lastProgress) {
+          // Status changed!
+          this.lastStatus = fulfillmentStatus;
+          this.lastProgress = progressPercentage;
+
+          this.updateProgress(fulfillmentStatus, progressPercentage, statusText);
 
           // Stop polling if completed
-          if (data.FulfillmentStatus === 'Completed') {
+          if (fulfillmentStatus === 'Completed') {
             this.isActive = false;
             if (this.pollInterval) {
               clearInterval(this.pollInterval);

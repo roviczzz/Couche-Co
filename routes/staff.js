@@ -2095,4 +2095,86 @@ router.post('/messages/api/upload', upload.array('files', 5), (req, res) => {
   }
 });
 
+// Staff endpoint to complete order (for QR code)
+router.get('/complete-order', isAuthorizedForOrderCompletion, async (req, res) => {
+  try {
+    const { orderId, secret } = req.query;
+    if (!orderId || !secret) {
+      return res.status(400).render('error', {
+        title: 'Invalid Request',
+        message: 'Missing order ID or secret.',
+        status: 400
+      });
+    }
+
+    // Verify secret
+    const expectedSecret = process.env.ORDER_COMPLETION_SECRET;
+    if (secret !== expectedSecret) {
+      return res.status(403).render('error', {
+        title: 'Access Denied',
+        message: 'Invalid secret.',
+        status: 403
+      });
+    }
+
+    // Fetch order details
+    const order = await req.db.collection('Orders').findOne({ OrderID: orderId });
+    if (!order) {
+      return res.status(404).render('error', {
+        title: 'Order Not Found',
+        message: 'Order not found.',
+        status: 404
+      });
+    }
+
+    res.render('staff/complete-order', {
+      title: 'Complete Order | Blessings Cafe',
+      user: req.session.user,
+      order: order,
+      orderId: orderId,
+      secret: secret
+    });
+  } catch (error) {
+    console.error('Staff complete order page error:', error);
+    res.status(500).render('error', {
+      title: 'Server Error',
+      message: 'Failed to load order completion page',
+      status: 500
+    });
+  }
+});
+
+router.post('/complete-order', isAuthorizedForOrderCompletion, async (req, res) => {
+  try {
+    const { orderId, secret } = req.body; // From QR URL params
+    if (!orderId || !secret) {
+      return res.status(400).json({ success: false, error: 'Missing orderId or secret' });
+    }
+
+    // Verify secret (e.g., compare to a hash or stored value)
+    const expectedSecret = process.env.ORDER_COMPLETION_SECRET; // Set in .env
+    if (secret !== expectedSecret) {
+      return res.status(403).json({ success: false, error: 'Invalid secret' });
+    }
+
+    // Update to Completed
+    const order = await req.db.collection('Orders').findOneAndUpdate(
+      { OrderID: orderId },
+      { $set: { FulfillmentStatus: 'Completed' } },
+      { returnDocument: 'after' }
+    );
+    if (!order) {
+      return res.status(404).json({ success: false, error: 'Order not found' });
+    }
+
+    // Optional: Send webhook to N8N for notification (if needed)
+    // await axios.post('https://your-n8n-instance.com/webhook/order-completed', { orderId });
+
+    res.json({ success: true, message: 'Order marked as completed', data: { orderId } });
+  } catch (error) {
+    console.error('Staff complete order error:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
 module.exports = router;

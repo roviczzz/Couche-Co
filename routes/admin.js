@@ -2,6 +2,29 @@ const express = require('express');
 const router = express.Router();
 const { ObjectId } = require('mongodb');
 const bcrypt = require('bcrypt');
+const { check, validationResult } = require('express-validator');
+
+const SALT_ROUNDS = 12;
+
+// Generate staff ID based on role and user ID
+function generateStaffId(role, userId) {
+  const rolePrefix = {
+    'admin': 'ADM',
+    'owner': 'OWN',
+    'staff': 'BC',
+    'user': 'USR'
+  };
+
+  const prefix = rolePrefix[role] || 'USR';
+
+  // Generate a 5-digit number based on ObjectId hash for all roles
+  const hash = userId.toString().split('').reduce((a, b) => {
+    a = ((a << 5) - a) + b.charCodeAt(0);
+    return a & a;
+  }, 0);
+  const idNumber = Math.abs(hash % 100000).toString().padStart(5, '0');
+  return `${prefix}${idNumber}`;
+}
 
 const fs = require('fs');
 const path = require('path');
@@ -87,7 +110,7 @@ function isLoggedIn(req, res, next) {
   if (req.session.user) {
     return next();
   }
-  res.redirect('/auth/login');
+  res.redirect('/admin');
 }
 
 function ensureAdmin(req, res, next) {
@@ -95,6 +118,14 @@ function ensureAdmin(req, res, next) {
     return next();
   }
   res.status(403).send('Access denied. Admins only.');
+}
+
+// Authentication middleware for order completion (staff, admin, owner)
+function isAuthorizedForOrderCompletion(req, res, next) {
+  if (req.session.user && ['staff', 'admin', 'owner'].includes(req.session.user.role)) {
+    return next();
+  }
+  res.redirect('/admin/login');
 }
 
 // Forgot Password (also before auth middleware)
@@ -303,8 +334,162 @@ router.use(['/dashboard', '/products', '/orders', '/stocks', '/discounts', '/men
 
 // Admin redirect route
 router.get('/', (req, res) => {
-  res.redirect('/admin/dashboard');
+  if (req.session.user) {
+    return res.redirect('/admin/dashboard');
+  }
+  res.render('admin/login', {
+    title: 'Staff & Admin Login',
+    layout: false,
+    errors: {},
+    error: null,
+    formData: {}
+  });
 });
+
+// Admin login route
+router.get('/login', (req, res) => {
+  if (req.session.user) {
+    let redirectPath;
+    if (req.session.user.role === 'staff') {
+      redirectPath = '/staff/dashboard';
+    } else if (req.session.user.role === 'admin' || req.session.user.role === 'owner') {
+      redirectPath = '/admin/dashboard';
+    } else {
+      redirectPath = '/admin/dashboard'; // Default
+    }
+    return res.redirect(redirectPath);
+  }
+  res.render('admin/login', {
+    title: 'Staff & Admin Login',
+    layout: false,
+    errors: {},
+    error: null,
+    formData: {}
+  });
+});
+
+// Unified login route for both admin and staff
+router.post('/login',
+  [
+    check('Username').notEmpty().withMessage('Username is required'),
+    check('Password').notEmpty().withMessage('Password is required'),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const errorsObj = {};
+      errors.array().forEach(err => {
+        errorsObj[err.param] = err;
+      });
+      return res.render('admin/login', {
+        title: 'Staff & Admin Login',
+        layout: false,
+        errors: errorsObj,
+        error: 'Please fix the errors below',
+        formData: req.body
+      });
+    }
+
+    const { Username, Password } = req.body;
+    console.log(`📅 Login attempt at ${new Date().toISOString()} for user: ${Username}`);
+
+    try {
+      const users = req.db.collection('users');
+
+      const user = await users.findOne({
+        username: Username
+      });
+
+      if (!user) {
+        console.log(`❌ Login failed for user: ${Username} - User not found`);
+        return res.render('admin/login', {
+          title: 'Staff & Admin Login',
+          layout: false,
+          errors: {},
+          error: 'Invalid username or password',
+          formData: { Username }
+        });
+      }
+
+      let passwordMatch = false;
+
+      if (user.password.startsWith('$2b$') || user.password.startsWith('$2a$')) {
+        passwordMatch = await bcrypt.compare(Password, user.password);
+        console.log('🔐 Using bcrypt verification for hashed password');
+      } else {
+        if (Password === user.password) {
+          passwordMatch = true;
+          console.log('⚠️ Plain text password detected - upgrading to bcrypt');
+
+          const hashedPassword = await bcrypt.hash(Password, SALT_ROUNDS);
+          await users.updateOne(
+            { _id: user._id },
+            {
+              $set: {
+                password: hashedPassword,
+                passwordUpgraded: new Date(),
+                upgradedBy: 'auto-login'
+              }
+            }
+          );
+          console.log('✅ Password upgraded to bcrypt hash');
+        }
+      }
+
+      if (!passwordMatch) {
+        console.log(`❌ Login failed for user: ${Username} - Invalid password`);
+        return res.render('admin/login', {
+          title: 'Staff & Admin Login',
+          layout: false,
+          errors: {},
+          error: 'Invalid username or password',
+          formData: { Username }
+        });
+      }
+
+      // Update last login time in database
+      await users.updateOne(
+        { _id: user._id },
+        { $set: { lastLogin: new Date() } }
+      );
+
+      req.session.user = {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        name: user.fullname || user.name,
+        fullname: user.fullname,
+        role: user.role || 'admin',
+        staffId: user.staffId || generateStaffId(user.role, user._id),
+        loginTime: new Date().toISOString()
+      };
+
+      console.log(`✅ Login successful for user: ${user.username} (ID: ${user._id}) at ${new Date().toISOString()}`);
+
+      // Redirect based on role - staff goes to staff dashboard, admin and owner go to admin dashboard
+      let redirectPath;
+      if (user.role === 'staff') {
+        redirectPath = '/staff/dashboard';
+      } else if (user.role === 'admin' || user.role === 'owner') {
+        redirectPath = '/admin/dashboard';
+      } else {
+        redirectPath = '/admin/dashboard'; // Default
+      }
+
+      res.redirect(redirectPath);
+
+    } catch (err) {
+      console.error('❌ Login error:', err);
+      res.status(500).render('admin/login', {
+        title: 'Staff & Admin Login',
+        layout: false,
+        errors: {},
+        error: 'An error occurred during login',
+        formData: { Username }
+      });
+    }
+  }
+);
 
 // Admin Dashboard
 router.get('/dashboard', nocache, async (req, res) => {
@@ -3060,6 +3245,88 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
   } catch (error) {
     console.error('PDF generation error:', error);
     res.status(500).json({ error: 'Failed to generate PDF report', details: error.message });
+  }
+});
+
+// Admin endpoint to complete order (for QR code)
+router.get('/complete-order', isAuthorizedForOrderCompletion, async (req, res) => {
+  try {
+    const { orderId, secret } = req.query;
+    if (!orderId || !secret) {
+      return res.status(400).render('error', {
+        title: 'Invalid Request',
+        message: 'Missing order ID or secret.',
+        status: 400
+      });
+    }
+
+    // Verify secret
+    const expectedSecret = process.env.ORDER_COMPLETION_SECRET;
+    if (secret !== expectedSecret) {
+      return res.status(403).render('error', {
+        title: 'Access Denied',
+        message: 'Invalid secret.',
+        status: 403
+      });
+    }
+
+    // Fetch order details
+    const order = await req.db.collection('Orders').findOne({ OrderID: orderId });
+    if (!order) {
+      return res.status(404).render('error', {
+        title: 'Order Not Found',
+        message: 'Order not found.',
+        status: 404
+      });
+    }
+
+    res.render('admin/complete-order', {
+      title: 'Complete Order | Blessings Cafe',
+      user: req.session.user,
+      order: order,
+      orderId: orderId,
+      secret: secret
+    });
+  } catch (error) {
+    console.error('Complete order page error:', error);
+    res.status(500).render('error', {
+      title: 'Server Error',
+      message: 'Failed to load order completion page',
+      status: 500
+    });
+  }
+});
+
+router.post('/complete-order', isAuthorizedForOrderCompletion, async (req, res) => {
+  try {
+    const { orderId, secret } = req.body; // From QR URL params
+    if (!orderId || !secret) {
+      return res.status(400).json({ success: false, error: 'Missing orderId or secret' });
+    }
+
+    // Verify secret (e.g., compare to a hash or stored value)
+    const expectedSecret = process.env.ORDER_COMPLETION_SECRET; // Set in .env
+    if (secret !== expectedSecret) {
+      return res.status(403).json({ success: false, error: 'Invalid secret' });
+    }
+
+    // Update to Completed
+    const order = await req.db.collection('Orders').findOneAndUpdate(
+      { OrderID: orderId },
+      { $set: { FulfillmentStatus: 'Completed' } },
+      { returnDocument: 'after' }
+    );
+    if (!order) {
+      return res.status(404).json({ success: false, error: 'Order not found' });
+    }
+
+    // Optional: Send webhook to N8N for notification (if needed)
+    // await axios.post('https://your-n8n-instance.com/webhook/order-completed', { orderId });
+
+    res.json({ success: true, message: 'Order marked as completed', data: { orderId } });
+  } catch (error) {
+    console.error('Complete order error:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
   }
 });
 

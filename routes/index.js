@@ -1,6 +1,30 @@
 const express = require('express');
 const router = express.Router();
 const { MongoClient } = require('mongodb');
+const { check, validationResult } = require('express-validator');
+const bcrypt = require('bcrypt');
+
+const SALT_ROUNDS = 12;
+
+// Generate staff ID based on role and user ID
+function generateStaffId(role, userId) {
+  const rolePrefix = {
+    'admin': 'ADM',
+    'owner': 'OWN',
+    'staff': 'BC',
+    'user': 'USR'
+  };
+
+  const prefix = rolePrefix[role] || 'USR';
+
+  // Generate a 5-digit number based on ObjectId hash for all roles
+  const hash = userId.toString().split('').reduce((a, b) => {
+    a = ((a << 5) - a) + b.charCodeAt(0);
+    return a & a;
+  }, 0);
+  const idNumber = Math.abs(hash % 100000).toString().padStart(5, '0');
+  return `${prefix}${idNumber}`;
+}
 
 
 // Helper functions
@@ -111,8 +135,99 @@ router.get('/privacy-policy', (req, res) => {
 
 // Legacy login route redirect
 router.get('/login', (req, res) => {
-  res.redirect('/auth/login');
+  if (req.session.user) {
+    return res.redirect(req.session.user.role === 'admin' ? '/admin/dashboard' : '/');
+  }
+
+  try {
+    res.render('login', {
+      title: 'Login | Blessings Cafe',
+      layout: false,
+      errors: {},
+      error: null,
+      formData: {}
+    });
+  } catch (error) {
+    console.error('Error rendering login page:', error);
+    res.status(500).send('Error loading login page');
+  }
 });
+
+// Login form submission
+router.post('/login',
+  [
+    check('email').isEmail().withMessage('Please enter a valid email address'),
+    check('password').notEmpty().withMessage('Password is required')
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.render('login', {
+        title: 'Login | Blessings Cafe',
+        layout: false,
+        errors: errors.mapped(),
+        error: 'Please fix the errors below',
+        formData: req.body
+      });
+    }
+
+    try {
+      const user = await req.db.collection('users').findOne({ email: req.body.email });
+
+      if (!user) {
+        return res.render('login', {
+          title: 'Login | Blessings Cafe',
+          layout: false,
+          errors: {},
+          error: 'Invalid email or password',
+          formData: req.body
+        });
+      }
+
+      const validPassword = await bcrypt.compare(req.body.password, user.password);
+      if (!validPassword) {
+        return res.render('login', {
+          title: 'Login | Blessings Cafe',
+          layout: false,
+          errors: {},
+          error: 'Invalid email or password',
+          formData: req.body
+        });
+      }
+
+      // Update last login time in database
+      await req.db.collection('users').updateOne(
+        { _id: user._id },
+        { $set: { lastLogin: new Date() } }
+      );
+
+      // Set user session
+      req.session.user = {
+        _id: user._id,
+        email: user.email,
+        name: user.fullname || user.name,
+        fullname: user.fullname,
+        role: user.role || 'user',
+        staffId: user.staffId || generateStaffId(user.role, user._id),
+        username: user.username
+      };
+
+      // Redirect based on role
+      const redirectPath = user.role === 'admin' ? '/admin/dashboard' : '/';
+      res.redirect(redirectPath);
+
+    } catch (error) {
+      console.error('Login error:', error);
+      res.status(500).render('login', {
+        title: 'Login | Blessings Cafe',
+        layout: false,
+        errors: {},
+        error: 'An error occurred during login',
+        formData: req.body
+      });
+    }
+  }
+);
 
 // Register route redirect
 router.get('/register', (req, res) => {
@@ -239,7 +354,9 @@ router.get('/order/success', async (req, res) => {
 
     // Generate QR code for order completion
     const QRCode = require('qrcode');
-    const qrUrl = `${process.env.BASE_URL || 'http://localhost:8080'}/staff/complete-order/${orderId}`;
+    const baseUrl = process.env.BASE_URL || 'http://localhost:8080';
+    const secret = process.env.ORDER_COMPLETION_SECRET || 'default-secret-change-in-env';
+    const qrUrl = `${baseUrl}/admin/complete-order?orderId=${orderId}&secret=${secret}`;
     let qrCodeDataUrl = '';
 
     try {

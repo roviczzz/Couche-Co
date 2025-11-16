@@ -65,7 +65,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const data = $input.first().json;\n\nconst items = data.items.flatMap(item => {\n  let baseItems = [{\n    name: item.productName,\n    quantity: item.quantity,\n    price: item.basePrice,\n    category: item.category\n  }];\n  \n  if (item.addOns && item.addOns.length > 0) {\n    item.addOns.forEach(addon => {\n      baseItems.push({\n        name: `Add-on: ${addon.ingredientName || addon.addOnName}`,\n        quantity: addon.quantity,\n        price: addon.ingredientPrice || addon.addOnPrice,\n        category: \"Add-ons\"\n      });\n    });\n  }\n  \n  return baseItems;\n});\n\nconst deliveryFee = 20;\nitems.push({\n  name: \"Delivery Fee\",\n  quantity: 1,\n  price: deliveryFee,\n  category: \"Service\"\n});\n\n// Add discount if promo is applied\nif (data.appliedPromo) {\n  items.push({\n    name: `Discount: ${data.appliedPromo.discountPercentage}% off ${data.appliedPromo.event}`,\n    quantity: 1,\n    price: -data.appliedPromo.discountAmount,\n    category: \"Discount\"\n  });\n}\n\nconst email = data.deliveryAddress?.email || \"\";\nconst payerEmail = email.trim() !== \"\" ? email : undefined;\n\nconst transactionId = data.transactionId;\n\n// Use the discounted subtotal from input\nconst amount = data.subtotal + deliveryFee;\n\nconst invoicePayload = {\n  external_id: transactionId,\n  description: \"Blessings Cafe Payment\",\n  merchant_profile_picture_url: \"https://i.ibb.co/KcNnHLxH/Blessings-Logo.png\",\n  items: items,\n  amount: amount,\n  customer_name: data.userId,\n  customer_phone: data.deliveryAddress?.phone || \"\",\n  should_send_email: Boolean(payerEmail),\n  payment_methods: [\"GCASH\", \"PAYMAYA\", \"SHOPEEPAY\", \"QRPH\"],\n  invoice_duration: 600\n};\n\nif (payerEmail) {\n  invoicePayload.payer_email = payerEmail;\n}\n\nreturn { json: invoicePayload };"
+        "jsCode": "const data = $input.first().json;\n\nconst items = data.items.flatMap(item => {\n  let baseItems = [{\n    name: item.productName,\n    quantity: item.quantity,\n    price: item.basePrice,\n    category: item.category\n  }];\n  \n  if (item.addOns && item.addOns.length > 0) {\n    item.addOns.forEach(addon => {\n      baseItems.push({\n        name: `Add-on: ${addon.ingredientName || addon.addOnName}`,\n        quantity: addon.quantity,\n        price: addon.ingredientPrice || addon.addOnPrice,\n        category: \"Add-ons\"\n      });\n    });\n  }\n  \n  return baseItems;\n});\n\nconst deliveryFee = data.deliveryMethod === \"Delivery\" ? 20 : 0;\nif (deliveryFee > 0) {\n  items.push({\n    name: \"Delivery Fee\",\n    quantity: 1,\n    price: deliveryFee,\n    category: \"Service\"\n  });\n}\n\n// Add discount if promo is applied\nif (data.appliedPromo) {\n  items.push({\n    name: `Discount: ${data.appliedPromo.discountPercentage}% off ${data.appliedPromo.event}`,\n    quantity: 1,\n    price: -data.appliedPromo.discountAmount,\n    category: \"Discount\"\n  });\n}\n\nconst email = data.deliveryAddress?.email || \"\";\nconst payerEmail = email.trim() !== \"\" ? email : undefined;\n\nconst transactionId = data.transactionId;\n\n// Calculate the amount as the sum of all item prices (including delivery and discount)\nconst amount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);\n\nconst invoicePayload = {\n  external_id: transactionId,\n  description: \"Blessings Cafe Payment\",\n  merchant_profile_picture_url: \"https://i.ibb.co/KcNnHLxH/Blessings-Logo.png\",\n  items: items,\n  amount: amount,\n  customer_name: data.userId,\n  customer_phone: data.deliveryAddress?.phone || \"\",\n  should_send_email: Boolean(payerEmail),\n  payment_methods: [\"GCASH\", \"PAYMAYA\", \"SHOPEEPAY\", \"QRPH\"],\n  invoice_duration: 600\n};\n\nif (payerEmail) {\n  invoicePayload.payer_email = payerEmail;\n}\n\nreturn { json: invoicePayload };"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -232,7 +232,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Get current date and time in Philippines timezone (UTC+8)\nconst now = new Date();\nconst philippinesTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);\nconst formattedDate = philippinesTime.toISOString();\n\nfunction pad(num, size = 2) {\n  return num.toString().padStart(size, '0');\n}\nconst idDate =\n  pad(philippinesTime.getMonth() + 1) +\n  pad(philippinesTime.getDate()) +\n  pad(philippinesTime.getHours()) +\n  pad(philippinesTime.getMinutes()) +\n  pad(philippinesTime.getSeconds());\nconst transactionId = `${idDate}-BLESSINGSCAFE`;\n\nlet deliveryMethod = \"Delivery\";\nlet deliveryAddress = null;\nlet isDeliverable = false;\nlet nextAction = \"PAYMENT\";\nlet psid = \"unknown\";\nconst paymentMethod = \"E-Payment\";\n\nconst rawInput = $input.item.json;\n\nif ((rawInput && rawInput[0] && rawInput[0].postback === \"STORE_PICKUP\") ||\n    (rawInput && rawInput.postback === \"STORE_PICKUP\")) {\n\n  deliveryMethod = \"Pick-Up\";\n  deliveryAddress = null;\n  isDeliverable = true;\n  nextAction = \"PAYMENT\";\n\n  if (rawInput[0] && rawInput[0].senderId) {\n    psid = rawInput[0].senderId;\n  } else if (rawInput.senderId) {\n    psid = rawInput.senderId;\n  }\n\n} else {\n  let formData;\n  try {\n    if (rawInput.body && typeof rawInput.body === 'object') {\n      formData = rawInput.body;\n    } else if (rawInput.body && typeof rawInput.body === 'string') {\n      formData = JSON.parse(rawInput.body);\n    } else {\n      formData = rawInput;\n    }\n    psid = formData.psid || rawInput.psid || (rawInput.senderId || \"unknown\");\n  } catch (e) {\n    formData = rawInput;\n    psid = formData.psid || \"unknown\";\n  }\n\n  const email = formData.email || '';\n  const phone = formData.phone || '';\n  const street = formData.street || '';\n  const barangay = formData.barangay || '';\n  const city = formData.city || '';\n  const landmarks = formData.landmarks || '';\n  const notes = formData.notes || '';\n  const fullAddress = `${street}, ${barangay}, ${city}`;\n\n  const supportedBarangays = [\n    \"Alapan I-A\", \"Alapan I-B\", \"Alapan I-C\",\n    \"Bayan Luma 2\", \"Bayan Luma 3\", \"Bayan Luma 4\", \"Bayan Luma 5\", \"Bayan Luma 6\", \"Bayan Luma 7\", \"Bayan Luma 8\", \"Bayan Luma 9\",\n    \"Buhay na Tubig\", \"Carsadang Bago 1\", \"Carsadang Bago 2\", \"Malagasang\", \"Toclong\"\n  ];\n\n  isDeliverable = supportedBarangays.some(brgy =>\n    barangay.toLowerCase().includes(brgy.toLowerCase())\n  );\n\n  deliveryAddress = {\n    email,\n    phone,\n    street,\n    barangay,\n    city,\n    landmarks,\n    notes,\n    fullAddress,\n    isDeliverable\n  };\n\n  nextAction = isDeliverable ? \"PAYMENT\" : \"NOT_SERVICEABLE\";\n}\n\nreturn {\n  json: {\n    userId: psid,\n    deliveryMethod,\n    deliveryAddress,\n    updatedAt: formattedDate,\n    nextAction,\n    transactionId,\n    paymentMethod\n  }\n};"
+        "jsCode": "// Get current date and time in Philippines timezone (UTC+8)\nconst now = new Date();\nconst philippinesTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);\nconst formattedDate = philippinesTime.toISOString();\n\nfunction pad(num, size = 2) {\n  return num.toString().padStart(size, '0');\n}\nconst idDate =\n  pad(philippinesTime.getMonth() + 1) +\n  pad(philippinesTime.getDate()) +\n  pad(philippinesTime.getHours()) +\n  pad(philippinesTime.getMinutes()) +\n  pad(philippinesTime.getSeconds());\nconst transactionId = `${idDate}-BLESSINGSCAFE`;\n\nlet deliveryMethod = \"Delivery\";\nlet deliveryAddress = null;\nlet isDeliverable = false;\nlet nextAction = \"PAYMENT\";\nlet psid = \"unknown\";\nconst paymentMethod = \"E-Payment\";\n\nconst rawInput = $input.item.json;\n\nif ((rawInput && rawInput[0] && rawInput[0].postback === \"STORE_PICKUP\") ||\n    (rawInput && rawInput.postback === \"STORE_PICKUP\")) {\n\n  deliveryMethod = \"Pick-Up\";\n  deliveryAddress = null;\n  isDeliverable = true;\n  nextAction = \"PAYMENT\";\n\n  if (rawInput[0] && rawInput[0].senderId) {\n    psid = rawInput[0].senderId;\n  } else if (rawInput.senderId) {\n    psid = rawInput.senderId;\n  }\n\n} else {\n  let formData;\n  try {\n    if (rawInput.body && typeof rawInput.body === 'object') {\n      formData = rawInput.body;\n    } else if (rawInput.body && typeof rawInput.body === 'string') {\n      formData = JSON.parse(rawInput.body);\n    } else {\n      formData = rawInput;\n    }\n    psid = formData.psid || rawInput.psid || (rawInput.senderId || \"unknown\");\n  } catch (e) {\n    formData = rawInput;\n    psid = formData.psid || \"unknown\";\n  }\n\n  const email = formData.email || '';\n  const phone = formData.phone || '';\n  const street = formData.street || '';\n  const barangay = formData.barangay || '';\n  const city = formData.city || '';\n  const landmarks = formData.landmarks || '';\n  const notes = formData.notes || '';\n  const recipientName = formData.recipientName || '';\n  const fullAddress = `${street}, ${barangay}, ${city}`;\n\n  const supportedBarangays = [\n    \"Alapan I-A\", \"Alapan I-B\", \"Alapan I-C\",\n    \"Bayan Luma 2\", \"Bayan Luma 3\", \"Bayan Luma 4\", \"Bayan Luma 5\", \"Bayan Luma 6\", \"Bayan Luma 7\", \"Bayan Luma 8\", \"Bayan Luma 9\",\n    \"Buhay na Tubig\", \"Carsadang Bago 1\", \"Carsadang Bago 2\", \"Malagasang\", \"Toclong\"\n  ];\n\n  isDeliverable = supportedBarangays.some(brgy =>\n    barangay.toLowerCase().includes(brgy.toLowerCase())\n  );\n\n  deliveryAddress = {\n    recipientName,\n    email,\n    phone,\n    street,\n    barangay,\n    city,\n    landmarks,\n    notes,\n    fullAddress,\n    isDeliverable\n  };\n\n  nextAction = isDeliverable ? \"PAYMENT\" : \"NOT_SERVICEABLE\";\n}\n\nreturn {\n  json: {\n    userId: psid,\n    deliveryMethod,\n    deliveryAddress,\n    updatedAt: formattedDate,\n    nextAction,\n    transactionId,\n    paymentMethod\n  }\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -299,7 +299,7 @@
       "type": "n8n-nodes-base.stickyNote",
       "position": [
         3776,
-        1472
+        1712
       ],
       "typeVersion": 1,
       "id": "947e8e04-3990-41f0-ba55-7d0b83180308",
@@ -313,7 +313,7 @@
       "type": "n8n-nodes-base.stickyNote",
       "position": [
         4080,
-        1280
+        1520
       ],
       "typeVersion": 1,
       "id": "ae4f2e7a-9cf9-47d5-8a8e-03833b3b7075",
@@ -327,7 +327,7 @@
       "type": "n8n-nodes-base.stickyNote",
       "position": [
         4096,
-        1472
+        1712
       ],
       "typeVersion": 1,
       "id": "af71e464-5d51-4cbd-adca-631a3fff5140",
@@ -357,7 +357,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const input = $input.first().json;\n\nfunction formatDatePH(dateStr) {\n  const date = new Date(dateStr);\n  const offset = 8 * 60; // Philippines is UTC+8\n  const localDate = new Date(date.getTime() + offset * 60000);\n  const y = localDate.getFullYear();\n  const m = String(localDate.getMonth() + 1).padStart(2, '0');\n  const d = String(localDate.getDate()).padStart(2, '0');\n  const h = String(localDate.getHours()).padStart(2, '0');\n  const min = String(localDate.getMinutes()).padStart(2, '0');\n  const s = String(localDate.getSeconds()).padStart(2, '0');\n  return `${y}-${m}-${d} ${h}:${min}:${s}`;\n}\n\nconst orderCart = input.items.map(item => ({\n  ProductName: item.productName,\n  ProductID: item.productId,\n  Size: item.size,\n  Addons: item.addOns ? item.addOns.map(addon => ({\n    AddOnID: addon.ingredientId || addon.addOnId,\n    Name: addon.ingredientName || addon.addOnName,\n    BasePrice: addon.ingredientPrice || addon.addOnPrice,\n    Quantity: addon.quantity // Include quantity if needed\n  })) : [],\n  Quantity: item.quantity,\n  Price: item.totalPrice, // Assuming totalPrice includes base + addons\n  ImageLink: item.imageLink || \"\"\n}));\n\nconst isDelivery = input.deliveryMethod && input.deliveryMethod.toLowerCase().includes(\"delivery\");\n\nconst customer = {\n  fullname: input.deliveryAddress?.recipientName || input.userId || \"Unknown\",\n  email: input.deliveryAddress?.email || \"\",\n  contactnumber: input.deliveryAddress?.phone || \"\",\n  deliveryMethod: isDelivery ? \"Delivery\" : \"Pick-Up\",\n  city: input.deliveryAddress?.city || \"\",\n  address: `${input.deliveryAddress?.street || \"\"}, ${input.deliveryAddress?.barangay || \"\"}`.trim()\n};\n\nconst order = {\n  OrderID: input.transactionId || \"\",\n  Date: formatDatePH(input.updatedAt || input.createdAt),\n  Source: \"Chatbot\", // Or \"Website\" if applicable\n  Cart: orderCart,\n  Customer: customer,\n  Total: input.subtotal + (isDelivery ? 20 : 0), // Use discounted subtotal from input\n  Notes: input.deliveryAddress?.notes || \"\",\n  PaymentStatus: \"Paid\",\n  FulfillmentStatus: \"Preparing\",\n  FulfillmentMethod: isDelivery ? \"Delivery\" : \"Pick-Up\",\n  PaymentMethod: \"EWALLET\", // Or dynamic based on Xendit data\n  PaymentMode: input.paymentMethod || \"E-Payment\",\n  XenditPaymentID: input.xenditPaymentId || \"\", // Add if available from payment webhook\n  PromoEventApplied: input.appliedPromo?.event || \"\",\n  PromoDiscountAmount: input.appliedPromo?.discountAmount || 0\n};\n\nreturn [{ json: order }];"
+        "jsCode": "const input = $input.first().json;\n\nfunction formatDatePH(dateStr) {\n  const date = new Date(dateStr);\n  const offset = 8 * 60; // Philippines is UTC+8\n  const localDate = new Date(date.getTime() + offset * 60000);\n  const y = localDate.getFullYear();\n  const m = String(localDate.getMonth() + 1).padStart(2, '0');\n  const d = String(localDate.getDate()).padStart(2, '0');\n  const h = String(localDate.getHours()).padStart(2, '0');\n  const min = String(localDate.getMinutes()).padStart(2, '0');\n  const s = String(localDate.getSeconds()).padStart(2, '0');\n  return `${y}-${m}-${d} ${h}:${min}:${s}`;\n}\n\nconst orderCart = input.items.map(item => ({\n  ProductName: item.productName,\n  ProductID: item.productId,\n  Size: item.size,\n  Addons: item.addOns ? item.addOns.map(addon => ({\n    AddOnID: addon.ingredientId || addon.addOnId,\n    Name: addon.ingredientName || addon.addOnName,\n    BasePrice: addon.ingredientPrice || addon.addOnPrice,\n    Quantity: addon.quantity // Include quantity if needed\n  })) : [],\n  Quantity: item.quantity,\n  Price: item.totalPrice, // Assuming totalPrice includes base + addons\n  ImageLink: item.imageLink || \"\"\n}));\n\nconst isDelivery = input.deliveryMethod && input.deliveryMethod.toLowerCase().includes(\"delivery\");\n\nconst subtotal = input.items.reduce((sum, item) => sum + item.totalPrice, 0);\n\nconst customer = {\n  userId: input.userId,\n  fullname: $input.first().json.deliveryAddress.recipientName || \"Unknown\",\n  email: input.deliveryAddress?.email || \"\",\n  contactnumber: input.deliveryAddress?.phone || \"\",\n  deliveryMethod: isDelivery ? \"Delivery\" : \"Pick-Up\",\n  city: input.deliveryAddress?.city || \"\",\n  address: `${input.deliveryAddress?.street || \"\"}, ${input.deliveryAddress?.barangay || \"\"}`.trim()\n};\n\nconst order = {\n  OrderID: input.transactionId || \"\",\n  Date: formatDatePH(input.updatedAt || input.createdAt),\n  Source: \"Chatbot\", // Or \"Website\" if applicable\n  Cart: orderCart,\n  Customer: customer,\n  Total: subtotal + (isDelivery ? 20 : 0),\n  Notes: input.deliveryAddress?.notes || \"\",\n  PaymentStatus: \"Paid\",\n  FulfillmentStatus: \"Preparing\",\n  FulfillmentMethod: isDelivery ? \"Delivery\" : \"Pick-Up\",\n  PaymentMethod: \"EWALLET\", // Or dynamic based on Xendit data\n  PaymentMode: input.paymentMethod || \"E-Payment\",\n  XenditPaymentID: $('Order Confirmation For Delivery & Pickup [E-Pay]').first().json.body.payment_id || \"\", // Add if available from payment webhook\n  PromoEventApplied: input.appliedPromo?.event || \"\",\n  PromoDiscountAmount: input.appliedPromo?.discountAmount || 0\n};\n\nreturn [{ json: order }];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -510,23 +510,7 @@
     {
       "parameters": {
         "httpMethod": "POST",
-        "path": "949aa252-9ae4-4395-8747-924202f2aa42",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2.1,
-      "position": [
-        4128,
-        896
-      ],
-      "id": "59e2801b-7c26-4893-88d6-8db03fb6ced5",
-      "name": "Notify Delivery Webhook",
-      "webhookId": "949aa252-9ae4-4395-8747-924202f2aa42"
-    },
-    {
-      "parameters": {
-        "httpMethod": "POST",
-        "path": "949aa252-9ae4-4395-8747-924202f2aa42",
+        "path": "pickup-status",
         "options": {}
       },
       "type": "n8n-nodes-base.webhook",
@@ -1184,6 +1168,136 @@
           "name": "MongoDB account"
         }
       }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\n   \n   const orderId = input.orderId;\n   const userId = input.userId;\n   const fulfillmentStatus = input.fulfillmentStatus;\n   const deliveryMethod = input.deliveryMethod;\n   const total = input.total;\n   const items = input.items;\n   \n   let statusMessage = '';\n   let statusEmoji = '';\n   \n   switch (fulfillmentStatus) {\n     case 'Preparing':\n       statusEmoji = '👨‍🍳';\n       statusMessage = 'Your order is now being prepared! We\\'ll notify you when it\\'s ready for delivery.';\n       break;\n     case 'In Progress':\n       statusEmoji = '🍰';\n       statusMessage = 'Your order is currently being prepared by our team.';\n       break;\n     case 'Ready':\n       statusEmoji = '✅';\n       statusMessage = 'Your order is ready and will be out for delivery soon!';\n       break;\n     case 'In Delivery':\n       statusEmoji = '🚚';\n       statusMessage = 'Your order is out for delivery! It should arrive shortly.';\n       break;\n     case 'Completed':\n       statusEmoji = '🎉';\n       statusMessage = 'Your order has been delivered! Thank you for choosing Blessings Cafe!';\n       break;\n     case 'Cancelled':\n       statusEmoji = '❌';\n       statusMessage = 'Your order has been cancelled. If you have questions, please contact us.';\n       break;\n     default:\n       statusEmoji = 'ℹ️';\n       statusMessage = `Your order status has been updated to: ${fulfillmentStatus}`;\n   }\n   \n   const itemSummary = items && items.length > 0 \n     ? items.map(item => `${item.Quantity}x ${item.ProductName}`).join('\\n')\n     : 'View your order details';\n   \n   return {\n     json: {\n       userId: userId,\n       orderId: orderId,\n       fulfillmentStatus: fulfillmentStatus,\n       statusMessage: statusMessage,\n       statusEmoji: statusEmoji,\n       itemSummary: itemSummary,\n       total: total,\n       deliveryMethod: deliveryMethod\n     }\n   };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4336,
+        896
+      ],
+      "id": "0ab10585-d9e2-4f7d-9ab6-7bfd341383a7",
+      "name": "Process Webhook Data [Delivery]"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n     \"messaging_type\": \"UPDATE\",\n     \"recipient\": {\n       \"id\": \"{{ $json.userId }}\"\n     },\n     \"message\": {\n       \"text\": \"{{ $json.statusEmoji }} Order Status Update\\n\\nOrder ID: {{ $json.orderId }}\\n\\n{{ $json.statusMessage }}\\n\\n📦 Your Items:\\n{{ $json.itemSummary }}\\n\\n💰 Total: ₱{{ $json.total }}\\n\\nThank you for choosing Blessings Cafe! 🙏\"\n     }\n   }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4560,
+        896
+      ],
+      "id": "8b38dd70-6306-4bfe-96ca-aa7921f3819d",
+      "name": "Send Message to Customer [Delivery]"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\n   \n   const orderId = input.orderId;\n   const userId = input.userId;\n   const fulfillmentStatus = input.fulfillmentStatus;\n   const deliveryMethod = input.deliveryMethod;\n   const total = input.total;\n   const items = input.items;\n   \n   let statusMessage = '';\n   let statusEmoji = '';\n   \n   switch (fulfillmentStatus) {\n     case 'Preparing':\n       statusEmoji = '👨‍🍳';\n       statusMessage = 'Your order is now being prepared! We\\'ll notify you when it\\'s ready for delivery.';\n       break;\n     case 'In Progress':\n       statusEmoji = '🍰';\n       statusMessage = 'Your order is currently being prepared by our team.';\n       break;\n    case 'Ready':\n      statusEmoji = '✅';\n      statusMessage = 'Your order is ready for pickup! Please come to our store at your convenience.\\n\\n📍 Blessings Cafe\\nImus, Cavite';\n      break;\n    case 'Completed':\n      statusEmoji = '🎉';\n      statusMessage = 'Your order has been completed! Thank you for choosing Blessings Cafe!';\n      break;\n     case 'Cancelled':\n       statusEmoji = '❌';\n       statusMessage = 'Your order has been cancelled. If you have questions, please contact us.';\n       break;\n     default:\n       statusEmoji = 'ℹ️';\n       statusMessage = `Your order status has been updated to: ${fulfillmentStatus}`;\n   }\n   \n   const itemSummary = items && items.length > 0 \n     ? items.map(item => `${item.Quantity}x ${item.ProductName}`).join('\\n')\n     : 'View your order details';\n   \n   return {\n     json: {\n       userId: userId,\n       orderId: orderId,\n       fulfillmentStatus: fulfillmentStatus,\n       statusMessage: statusMessage,\n       statusEmoji: statusEmoji,\n       itemSummary: itemSummary,\n       total: total,\n       deliveryMethod: deliveryMethod\n     }\n   };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4336,
+        1088
+      ],
+      "id": "933c794f-a125-4328-8552-49fbdd246e30",
+      "name": "Process Webhook Data [Delivery]1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/messages?access_token=EACMnzyfFu4ABOZCSddhZCeHylpMCmal9oW3hjTVsk03PfW7GwvH0ROcmIwJhRdxWHwYb6hWxiDbmVPIyLcDfKrlwYZCD3qXa1qsccoo43RuTQZBjsXAvGK3MF2prjmw1sIDrLXrdCkVzkhpH7fcrflAC2bwGJ8h60O9JOI6RMu1nLO5GZBcisZBGZCWYTKt7Ep3NPVSsdwo1i9ZCePq1ShJNuzEw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n     \"messaging_type\": \"UPDATE\",\n     \"recipient\": {\n       \"id\": \"{{ $json.userId }}\"\n     },\n     \"message\": {\n       \"text\": \"{{ $json.statusEmoji }} Order Status Update\\n\\nOrder ID: {{ $json.orderId }}\\n\\n{{ $json.statusMessage }}\\n\\n📦 Your Items:\\n{{ $json.itemSummary }}\\n\\n💰 Total: ₱{{ $json.total }}\\n\\nThank you for choosing Blessings Cafe! 🙏\"\n     }\n   }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4560,
+        1088
+      ],
+      "id": "d416a5b7-7bb3-4f22-af17-1a3d2b1bcabe",
+      "name": "Send Message to Customer [Pick-up]"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "{\"success\": true, \"message\": \"Notification sent\"}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        4800,
+        1088
+      ],
+      "id": "1cd76f88-5d7e-435e-a719-404a0e2ad384",
+      "name": "Respond to Webhook [Pickup]"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "delivery-status",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        4128,
+        896
+      ],
+      "id": "70b22775-5ae3-42fa-9254-c3552923be36",
+      "name": "Notify Delivery Webhook",
+      "webhookId": "949aa252-9ae4-4395-8747-924202f2aa42"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "{\"success\": true, \"message\": \"Notification sent\"}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        4800,
+        896
+      ],
+      "id": "8ce1b2cb-3d9c-4bdd-800c-9de40e707118",
+      "name": "Respond to Webhook"
     }
   ],
   "pinData": {},
@@ -1771,13 +1885,67 @@
           }
         ]
       ]
+    },
+    "Process Webhook Data [Delivery]": {
+      "main": [
+        [
+          {
+            "node": "Send Message to Customer [Delivery]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Message to Customer [Delivery]": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Pickup Webhook": {
+      "main": [
+        []
+      ]
+    },
+    "Process Webhook Data [Delivery]1": {
+      "main": [
+        [
+          {
+            "node": "Send Message to Customer [Pick-up]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Message to Customer [Pick-up]": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook [Pickup]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Delivery Webhook": {
+      "main": [
+        []
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "4cd1fbb3-c416-41c5-8ac4-7fc15593aa08",
+  "versionId": "8a637b1a-92a7-4afd-a91d-4d57147f8e10",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "c9a539eddbbcc53188d09f0c160cdca467499addf0ec993ff0d9c5b9cab4ef78"

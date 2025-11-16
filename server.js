@@ -24,6 +24,7 @@ const staffRoutes = require('./routes/staff');
 const inventoryRoutes = require('./routes/inventory');
 const inventoryAdminRoutes = require('./routes/inventory-admin');
 const notificationRoutes = require('./routes/notifications');
+const webhooksRoutes = require('./routes/webhooks');
 
 // Import promo manager for automated deactivation
 const { initializePromoDeactivationCron } = require('./utils/promoManager');
@@ -91,7 +92,7 @@ const authLimiter = rateLimit({
   skipSuccessfulRequests: true
 });
 
-app.use('/auth/login', authLimiter);
+app.use('/login', authLimiter);
 app.use('/auth/register', authLimiter);
 
 // Session configuration with better settings
@@ -202,6 +203,7 @@ app.set('layout', 'layout');
 app.use('/api', apiRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/admin/inventory', inventoryAdminRoutes);
+app.use('/api/webhooks', webhooksRoutes);
 app.use('/', indexRoutes);
 app.use('/auth', authRoutes);
 app.use('/user', userRoutes);

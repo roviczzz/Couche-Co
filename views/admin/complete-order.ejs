@@ -1,0 +1,229 @@
+<link rel="stylesheet" href="/css/site-public.css">
+<link rel="stylesheet" href="/css/admin-menu.css">
+
+<div class="complete-order-container">
+  <div class="complete-order-header">
+    <h1>Complete Order</h1>
+    <p>Mark this order as completed after verifying delivery/pickup.</p>
+  </div>
+
+  <div class="order-details-card">
+    <h2>Order Details</h2>
+    <div class="order-info">
+      <p><strong>Order ID:</strong> <%= orderId %></p>
+      <p><strong>Customer:</strong> <%= order.Customer?.fullname || order.Customer?.name || 'N/A' %></p>
+      <p><strong>Total:</strong> ₱<%= order.Total ? order.Total.toFixed(2) : 'N/A' %></p>
+      <p><strong>Current Status:</strong> <%= order.FulfillmentStatus || 'Unknown' %></p>
+      <p><strong>Fulfillment Method:</strong> <%= order.FulfillmentMethod || 'N/A' %></p>
+      <% if (order.FulfillmentMethod === 'delivery' && order.DeliveryDetails) { %>
+        <p><strong>Delivery Address:</strong> <%= order.DeliveryDetails.address || 'N/A' %></p>
+      <% } %>
+    </div>
+
+    <div class="order-items">
+      <h3>Items Ordered</h3>
+      <ul>
+        <% if (order.Cart && Array.isArray(order.Cart)) { %>
+          <% order.Cart.forEach(item => { %>
+            <li><%= item.Quantity %>x <%= item.Name %> - ₱<%= item.Price ? item.Price.toFixed(2) : 'N/A' %></li>
+          <% }); %>
+        <% } else { %>
+          <li>No items found</li>
+        <% } %>
+      </ul>
+    </div>
+  </div>
+
+  <div class="completion-actions">
+    <form action="/admin/complete-order" method="POST" id="complete-form">
+      <input type="hidden" name="orderId" value="<%= orderId %>">
+      <input type="hidden" name="secret" value="<%= secret %>">
+
+      <div class="confirmation-section">
+        <label>
+          <input type="checkbox" id="confirm-completion" required>
+          I confirm that this order has been successfully <%= order.FulfillmentMethod === 'delivery' ? 'delivered' : 'picked up' %> and all items are correct.
+        </label>
+      </div>
+
+      <div class="button-group">
+        <button type="submit" class="btn btn-success" id="complete-btn" disabled>
+          Mark as Completed
+        </button>
+        <a href="/admin/orders" class="btn btn-secondary">Back to Orders</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+document.getElementById('confirm-completion').addEventListener('change', function() {
+  document.getElementById('complete-btn').disabled = !this.checked;
+});
+
+document.getElementById('complete-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  const btn = document.getElementById('complete-btn');
+  const originalText = btn.textContent;
+  btn.textContent = 'Completing...';
+  btn.disabled = true;
+
+  try {
+    const formData = new FormData(this);
+    const response = await fetch('/admin/complete-order', {
+      method: 'POST',
+      body: formData
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      alert('Order marked as completed successfully!');
+      window.location.href = '/admin/orders';
+    } else {
+      alert('Error: ' + (result.error || 'Failed to complete order'));
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }
+  } catch (error) {
+    console.error('Completion error:', error);
+    alert('An error occurred. Please try again.');
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
+});
+</script>
+
+<style>
+.complete-order-container {
+  max-width: 800px;
+  margin: 50px auto;
+  padding: 40px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.complete-order-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.complete-order-header h1 {
+  color: #28a745;
+  margin-bottom: 10px;
+}
+
+.order-details-card {
+  background-color: #f8f9fa;
+  padding: 30px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+}
+
+.order-details-card h2 {
+  margin-top: 0;
+  color: #333;
+  border-bottom: 2px solid #28a745;
+  padding-bottom: 10px;
+}
+
+.order-info p {
+  margin: 10px 0;
+  font-size: 16px;
+}
+
+.order-items h3 {
+  color: #555;
+  margin-top: 20px;
+}
+
+.order-items ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.order-items li {
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.completion-actions {
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.confirmation-section {
+  margin-bottom: 20px;
+}
+
+.confirmation-section label {
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.confirmation-section input[type="checkbox"] {
+  margin-right: 10px;
+  transform: scale(1.2);
+}
+
+.button-group {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+.btn {
+  padding: 12px 30px;
+  border: none;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn-success {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn-success:hover:not(:disabled) {
+  background-color: #218838;
+}
+
+.btn-success:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #545b62;
+}
+
+@media (max-width: 768px) {
+  .complete-order-container {
+    margin: 20px;
+    padding: 20px;
+  }
+
+  .button-group {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+</style>
