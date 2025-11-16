@@ -157,18 +157,115 @@ function exportSettings() {
 }
 
 function resetSettings() {
-    if (confirm('Are you sure you want to reset all settings to default?')) {
-        document.querySelectorAll('.toggle-switch input').forEach(toggle => {
-            toggle.checked = toggle.id === 'soundEnabled' || toggle.id === 'orderConfirmations';
-            localStorage.removeItem(toggle.id);
-        });
-        alert('Settings reset to default!');
-    }
+    showConfirm('Are you sure you want to reset all settings to default?', 'Reset Settings',
+        () => {
+            document.querySelectorAll('.toggle-switch input').forEach(toggle => {
+                toggle.checked = toggle.id === 'soundEnabled' || toggle.id === 'orderConfirmations';
+                localStorage.removeItem(toggle.id);
+            });
+            alert('Settings reset to default!');
+        }
+    );
 }
 
 function logoutAllDevices() {
-    if (confirm('Are you sure you want to logout from all devices? You will need to login again.')) {
-        // Add logout logic here
-        alert('Logged out from all devices!');
-    }
+    showConfirm('Are you sure you want to logout from all devices? You will need to login again.', 'Logout All Devices',
+        () => {
+            // Add logout logic here
+            alert('Logged out from all devices!');
+        }
+    );
+}
+
+// Password visibility toggle for account creation form
+const passwordToggle = document.getElementById('passwordToggle');
+const accountPassword = document.getElementById('accountPassword');
+const passwordIcon = document.getElementById('passwordIcon');
+
+if (passwordToggle && accountPassword && passwordIcon) {
+    passwordToggle.addEventListener('click', function() {
+        const isPassword = accountPassword.type === 'password';
+        accountPassword.type = isPassword ? 'text' : 'password';
+
+        // Add visual feedback class for smooth transitions
+        passwordToggle.classList.add('toggle-visible');
+
+        // Toggle active state for icon animation
+        setTimeout(() => {
+            if (isPassword) {
+                passwordToggle.classList.add('active');
+            } else {
+                passwordToggle.classList.remove('active');
+            }
+            passwordToggle.classList.remove('toggle-visible');
+        }, 0);
+    });
+}
+
+// Account creation form handling
+const createAccountForm = document.getElementById('createAccountForm');
+if (createAccountForm) {
+    createAccountForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const createAccountBtn = document.getElementById('createAccountBtn');
+        const btnText = createAccountBtn.querySelector('.btn-text');
+        const btnLoader = createAccountBtn.querySelector('.btn-loader');
+
+        // Show loading state
+        btnText.style.display = 'none';
+        btnLoader.style.display = 'inline';
+
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData.entries());
+
+        // Remove any empty optional fields
+        Object.keys(data).forEach(key => {
+            if (data[key] === '') {
+                delete data[key];
+            }
+        });
+
+        try {
+            const response = await fetch('/admin/settings/create-account', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Display all entered credentials in confirmation
+                const confirmationMessage = `${result.message}\n\n═══ ACCOUNT CREDENTIALS ═══\n` +
+                    `Username: ${data.username}\n` +
+                    `Password: ${data.password}\n` +
+                    `Role: ${data.role}\n` +
+                    `Staff ID: ${result.user.staffId}\n\n` +
+                    `⚠️  IMPORTANT: Please securely store these credentials!\n` +
+                    `The new user can log in immediately.`;
+
+                alert(confirmationMessage);
+                createAccountForm.reset();
+                // Reset password visibility after form reset
+                if (passwordToggle) {
+                    passwordToggle.classList.remove('active');
+                }
+                if (accountPassword) {
+                    accountPassword.type = 'password';
+                }
+            } else {
+                alert('Error creating account: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Account creation error:', error);
+            alert('Failed to create account. Please try again.');
+        } finally {
+            // Hide loading state
+            btnText.style.display = 'inline';
+            btnLoader.style.display = 'none';
+        }
+    });
 }
