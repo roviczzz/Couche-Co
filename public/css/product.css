@@ -784,8 +784,8 @@
 .cart-side-popup {
     position: fixed;
     top: 70px; /* position under cart icon in navbar */
-    right: 20px; /* more right-aligned positioning */
-    width: 300px; /* smaller width for add-to-cart popup */
+    right: 4px; /* more right-aligned positioning */
+    width: 425px; /* smaller width for add-to-cart popup */
     height: auto; /* adjust height based on content */
     min-height: 300px; /* minimum height */
     max-height: 80vh; /* maximum height to prevent overflow */
@@ -807,6 +807,30 @@
 .cart-side-popup.show {
     opacity: 1;
     transform: translateX(0);
+}
+
+/* Responsive positioning for mobile devices */
+@media (max-width: 768px) {
+    .cart-side-popup {
+        top: 70px; /* position under cart icon in navbar like desktop */
+        right: 50%; /* center horizontally */
+        transform: translate(50%, 0) translateX(120%); /* center horizontally and initial offset */
+        width: 90vw; /* responsive width */
+        max-width: 400px; /* max width on mobile */
+        left: auto; /* remove left positioning for centering */
+        margin: 0 auto; /* ensure centering */
+    }
+
+    .cart-side-popup.show {
+        transform: translate(50%, 0) translateX(0); /* show centered horizontally */
+    }
+}
+
+@media (max-width: 480px) {
+    .cart-side-popup {
+        width: 95vw; /* slightly larger on very small devices */
+        max-height: 90vh; /* allow more height on small screens */
+    }
 }
 
 .cart-side-header {
