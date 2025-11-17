@@ -437,6 +437,8 @@ function setupModal() {
     const modal = document.getElementById('more-options-modal');
     const btn = document.getElementById('more-options-btn');
     const span = document.getElementsByClassName('close')[0];
+    const cancelBtn = document.getElementById('modal-cancel-btn');
+    const addBtn = document.getElementById('modal-add-btn');
 
     if (!modal || !btn) {
         return;
@@ -510,6 +512,22 @@ function setupModal() {
     // Close modal when close button is clicked
     if (span) {
         span.addEventListener('click', function(event) {
+            event.preventDefault();
+            closeModal();
+        });
+    }
+
+    // Close modal when cancel button is clicked
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', function(event) {
+            event.preventDefault();
+            closeModal();
+        });
+    }
+
+    // Close modal when add button is clicked
+    if (addBtn) {
+        addBtn.addEventListener('click', function(event) {
             event.preventDefault();
             closeModal();
         });

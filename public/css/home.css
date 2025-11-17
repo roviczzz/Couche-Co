@@ -2,7 +2,7 @@ body {
     font-family: 'Inter', sans-serif;
     background-color: #f3f3f3;
 }
-
+/* Home Page Styles */
 .welcome-section {
     background: url('/resources/BannerBC.png') no-repeat center center;
     background-size: cover;
@@ -155,8 +155,43 @@ body {
     transition: none;
     position: relative;
     width: 296px;
-    height: 340px;
+    height: 350px;
     margin: 0 auto;
+}
+
+.gallery-item.unavailable {
+    opacity: 0.6;
+}
+
+.gallery-item.unavailable .gallery-content h4,
+.gallery-item.unavailable .gallery-content p,
+.gallery-item.unavailable .price {
+    color: #999;
+}
+
+.unavailable-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 2;
+    pointer-events: none;
+}
+
+.unavailable-badge {
+    background: rgba(255, 255, 255, 0.95);
+    color: #666;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .gallery-item:hover {

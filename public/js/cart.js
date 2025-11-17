@@ -1,25 +1,49 @@
 // Initialize cart items (will be loaded asynchronously)
 let orderItems = [];
+let cartLastLoaded = 0;
+const CART_LOAD_COOLDOWN = 5000; // 5 seconds cooldown between cart loads
+let cartLoadInProgress = false; // Prevent simultaneous cart loads
 
 document.addEventListener('DOMContentLoaded', async function() {
   // Load cart data based on user type
   if (window.user && window.user._id) {
-    // For logged-in users, load from server
-    try {
-      const response = await fetch('/api/cart');
-      if (response.ok) {
-        orderItems = await response.json();
-        console.log('Loaded cart from server:', orderItems);
-      } else {
-        console.error('Failed to load cart from server, status:', response.status);
+    // For logged-in users, load from server with rate limiting
+    const now = Date.now();
+    if (now - cartLastLoaded > CART_LOAD_COOLDOWN && !cartLoadInProgress) {
+      cartLoadInProgress = true;
+      try {
+        const response = await fetch('/api/cart');
+        if (response.status === 200 && response.headers.get('content-type')?.includes('application/json')) {
+          orderItems = await response.json();
+          cartLastLoaded = now;
+          console.log('Loaded cart from server:', orderItems);
+        } else if (response.status === 429) {
+          console.warn('Rate limited, using localStorage fallback');
+          // Fallback to localStorage for rate limiting
+          orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+        } else {
+          console.error('Failed to load cart from server, status:', response.status);
+          // Fallback to localStorage
+          orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+        }
+      } catch (error) {
+        console.error('Error loading cart from server:', error);
         // Fallback to localStorage
         orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+      } finally {
+        cartLoadInProgress = false;
       }
-    } catch (error) {
-      console.error('Error loading cart from server:', error);
-      // Fallback to localStorage
+    } else {
+      console.log('Cart loaded recently or in progress, using cached data');
       orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
     }
+
+    // Strip domain from imagelinks for local display
+    orderItems.forEach(item => {
+      if (item.imagelink && item.imagelink.startsWith('https://blessingsateverysip.me')) {
+        item.imagelink = item.imagelink.replace('https://blessingsateverysip.me', '');
+      }
+    });
   } else {
     // For guests, use localStorage
     orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
@@ -42,33 +66,25 @@ document.addEventListener('DOMContentLoaded', async function() {
   if (checkoutBtn) {
     checkoutBtn.addEventListener('click', async function() {
       console.log('Checkout button clicked, window.user:', window.user);
-
-      // Show confirmation modal before proceeding
-      showConfirmationModal(
-        'Proceed to Checkout',
-        'Are you ready to proceed to checkout and complete your order?',
-        async () => {
-          if (!window.user) {
-            // For guests, POST cart data to server
-            console.log('Posting guest cart data');
-            try {
-              await fetch('/checkout', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ orderItems })
-              });
-              console.log('Posted guest cart, redirecting to /checkout');
-              window.location.href = '/checkout';
-            } catch (err) {
-              console.error('Error submitting guest cart:', err);
-            }
-          } else {
-            // Redirect to checkout if logged in
-            console.log('Redirecting to /checkout');
-            window.location.href = '/checkout';
-          }
+      if (!window.user) {
+        // For guests, POST cart data to server
+        console.log('Posting guest cart data');
+        try {
+          await fetch('/checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderItems })
+          });
+          console.log('Posted guest cart, redirecting to /checkout');
+          window.location.href = '/checkout';
+        } catch (err) {
+          console.error('Error submitting guest cart:', err);
         }
-      );
+      } else {
+        // Redirect to checkout if logged in
+        console.log('Redirecting to /checkout');
+        window.location.href = '/checkout';
+      }
     });
   }
 });
@@ -157,15 +173,20 @@ function changeQuantity(index, delta) {
   const item = orderItems[index];
   if (!item) return;
 
-  const newQuantity = Math.max(1, item.quantity + delta);
-  if (newQuantity !== item.quantity) {
-    item.quantity = newQuantity;
-    saveCart();
-    displayCartItems();
-    updateCartTotal();
+  if (delta === -1 && item.quantity === 1) {
+    // Remove item if decreasing from 1
+    removeItem(index);
+  } else {
+    const newQuantity = Math.max(1, item.quantity + delta);
+    if (newQuantity !== item.quantity) {
+      item.quantity = newQuantity;
+      saveCart();
+      displayCartItems();
+      updateCartTotal();
 
-    if (typeof updateCartCount === 'function') {
-      updateCartCount();
+      if (typeof updateCartCount === 'function') {
+        updateCartCount();
+      }
     }
   }
 }
@@ -194,21 +215,18 @@ function updateQuantity(index, value) {
 
 // Remove item
 function removeItem(index) {
-  showConfirmationModal('Remove Item', 'Are you sure you want to remove this item from your cart?',
-    () => {
-      orderItems.splice(index, 1);
-      saveCart();
-      displayCartItems();
-      updateCartTotal();
+  const itemToRemove = orderItems[index];
+  orderItems.splice(index, 1);
+  saveCart();
+  displayCartItems();
+  updateCartTotal();
 
-      if (typeof updateCartCount === 'function') {
-        updateCartCount();
-      }
+  if (typeof updateCartCount === 'function') {
+    updateCartCount();
+  }
 
-      // Show success message
-      notificationSystem.success('Item removed from cart', 'Success');
-    }
-  );
+  // Show cart removal notification with item details
+  showCartRemoveNotification(itemToRemove);
 }
 
 // Update cart total display
@@ -233,7 +251,7 @@ function updateCartTotal() {
   }, 0);
 
   cartTotalContainer.innerHTML = `
-    <div">
+    <div>
       <p>Subtotal: ₱${totalPrice.toFixed(2)} PHP</p>
       <p style="font-size: 1rem;">Shipping calculated at checkout</p>
     </div>
@@ -244,15 +262,115 @@ function updateCartTotal() {
 function saveCart() {
   localStorage.setItem('orderItems', JSON.stringify(orderItems));
 
-  // Sync with server for logged-in users
+  // Sync with server for logged-in users (with rate limiting)
   if (window.user && window.user._id) {
-    fetch('/api/cart', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(orderItems)
-    }).catch(err => console.error('Error saving cart to server:', err));
+    // Debounce server saves to prevent excessive API calls
+    if (!saveCart.timeoutId) {
+      saveCart.timeoutId = setTimeout(async () => {
+        try {
+          const response = await fetch('/api/cart', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(orderItems)
+          });
+          
+          if (response.status === 429) {
+            console.warn('Cart save rate limited, will retry later');
+            // Don't clear timeout, let it retry
+            return;
+          } else if (!response.ok) {
+            console.error('Error saving cart to server:', response.status);
+          }
+        } catch (err) {
+          console.error('Error saving cart to server:', err);
+        } finally {
+          saveCart.timeoutId = null;
+        }
+      }, 2000); // Wait 2 seconds before saving to server
+    }
+  }
+}
+
+// Show cart removal notification (matches add-to-cart popup style)
+function showCartRemoveNotification(removedItem) {
+  // Create the popup element if it doesn't exist
+  let popup = document.getElementById('cart-remove-popup');
+  if (popup) {
+    // Remove existing popup to recreate with new item details
+    popup.remove();
+  }
+
+  popup = document.createElement('div');
+  popup.id = 'cart-remove-popup';
+  popup.className = 'cart-remove-popup';
+
+  // Build item details HTML similar to add-to-cart popup
+  let detailsHtml = '';
+
+  if (removedItem.size) {
+    detailsHtml += `<span>Size: ${removedItem.size}</span><br>`;
+  }
+  if (removedItem.quantity && removedItem.quantity > 1) {
+    detailsHtml += `<span>Qty: ${removedItem.quantity}</span>`;
+  }
+  if (removedItem.addons && removedItem.addons.length > 0) {
+    const addonNames = removedItem.addons.map(addon => addon.Name || addon.name).join(', ');
+    detailsHtml += `<span>Add-ons: ${addonNames}</span>`;
+  }
+
+  popup.innerHTML = `
+    <div class="cart-remove-header">
+      <span>✓ Item removed from your cart</span>
+      <button id="cart-remove-close" class="cart-remove-close">&times;</button>
+    </div>
+    <div class="cart-remove-body">
+      <div class="cart-remove-item">
+        <div class="cart-remove-image">
+          ${removedItem.imagelink ?
+            `<img src="${removedItem.imagelink}" alt="${removedItem.name}">` :
+            `<div class="cart-remove-placeholder">No Image</div>`
+          }
+        </div>
+        <div class="cart-remove-info">
+          <h4>${removedItem.name}</h4>
+          <div class="cart-remove-details">
+            ${detailsHtml}
+          </div>
+        </div>
+      </div>
+      <p class="cart-remove-message">Your cart has been updated successfully.</p>
+    </div>
+  `;
+
+  document.body.appendChild(popup);
+
+  // Add close functionality
+  const closeBtn = popup.querySelector('#cart-remove-close');
+  closeBtn.addEventListener('click', () => {
+    hideCartRemoveNotification();
+  });
+
+  // Auto-hide after 3 seconds
+  setTimeout(() => {
+    hideCartRemoveNotification();
+  }, 3000);
+
+  // Show the popup
+  popup.classList.add('show');
+}
+
+// Hide cart removal notification
+function hideCartRemoveNotification() {
+  const popup = document.getElementById('cart-remove-popup');
+  if (popup) {
+    popup.classList.remove('show');
+    setTimeout(() => {
+      if (popup.parentElement) {
+        popup.parentElement.removeChild(popup);
+      }
+    }, 400);
   }
 }
 
@@ -265,90 +383,5 @@ function clearCart() {
 
   if (typeof updateCartCount === 'function') {
     updateCartCount();
-  }
-}
-
-// Modal confirmation functions
-function showConfirmationModal(title, message, onConfirm = null, onCancel = null) {
-  const modal = document.getElementById('confirmationModal');
-  const modalTitle = document.getElementById('confirmationTitle');
-  const modalMessage = document.getElementById('confirmationMessage');
-  const confirmBtn = document.getElementById('confirmProceed');
-  const cancelBtn = document.getElementById('confirmCancel');
-
-  if (!modal || !modalTitle || !modalMessage || !confirmBtn || !cancelBtn) {
-    console.error('Confirmation modal elements not found');
-    return;
-  }
-
-  // Set content
-  modalTitle.textContent = title;
-  modalMessage.textContent = message;
-
-  // Set up event handlers
-  const handleConfirm = () => {
-    hideConfirmationModal();
-    if (onConfirm) onConfirm();
-  };
-
-  const handleCancel = () => {
-    hideConfirmationModal();
-    if (onCancel) onCancel();
-  };
-
-  // Remove previous event listeners
-  confirmBtn.replaceWith(confirmBtn.cloneNode(true));
-  cancelBtn.replaceWith(cancelBtn.cloneNode(true));
-
-  // Get fresh references
-  const newConfirmBtn = document.getElementById('confirmProceed');
-  const newCancelBtn = document.getElementById('confirmCancel');
-
-  // Add new event listeners
-  newConfirmBtn.addEventListener('click', handleConfirm);
-  newCancelBtn.addEventListener('click', handleCancel);
-
-  // Add click outside to close
-  const handleOutsideClick = (e) => {
-    if (e.target === modal) {
-      hideConfirmationModal();
-      if (onCancel) onCancel();
-    }
-  };
-
-  modal.addEventListener('click', handleOutsideClick);
-
-  // Add escape key to close
-  const handleEscape = (e) => {
-    if (e.key === 'Escape') {
-      hideConfirmationModal();
-      if (onCancel) onCancel();
-    }
-  };
-
-  document.addEventListener('keydown', handleEscape);
-
-  // Store handlers for cleanup
-  modal._outsideClickHandler = handleOutsideClick;
-  modal._escapeHandler = handleEscape;
-
-  // Show modal
-  modal.classList.add('show');
-}
-
-function hideConfirmationModal() {
-  const modal = document.getElementById('confirmationModal');
-  if (modal) {
-    modal.classList.remove('show');
-
-    // Clean up event listeners
-    if (modal._outsideClickHandler) {
-      modal.removeEventListener('click', modal._outsideClickHandler);
-      delete modal._outsideClickHandler;
-    }
-    if (modal._escapeHandler) {
-      document.removeEventListener('keydown', modal._escapeHandler);
-      delete modal._escapeHandler;
-    }
   }
 }

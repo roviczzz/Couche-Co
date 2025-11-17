@@ -163,44 +163,21 @@
     <!-- Order Summary -->
     <div class="order-summary">
       <h2>Order Summary</h2>
-      <div class="order-items">
-        <% orderItems.forEach(item => { %>
-          <div class="order-item">
-            <div class="item-info">
-              <h3><%= item.name %></h3>
-              <% if (item.size) { %>
-                <p>Size: <%= item.size %></p>
-              <% } %>
-              <% if (item.addons && item.addons.length > 0) { %>
-                <div class="item-addons">
-                  <% item.addons.forEach(addon => { %>
-                    <span class="addon">+ <%= addon.Name || addon.IngredientID %> (₱<%= addon.BasePrice || 0 %>)</span>
-                  <% }) %>
-                </div>
-              <% } %>
-              <p class="quantity">Qty: <%= item.quantity %></p>
-            </div>
-            <div class="item-price">
-              ₱<%= ((item.price || 0) + (item.addons ? item.addons.reduce((sum, ad) => sum + (ad.BasePrice || 0), 0) : 0)) * item.quantity %>.00
-            </div>
-          </div>
-        <% }) %>
+      <div class="order-items" id="order-items">
+        <!-- Cart items will be loaded dynamically -->
+        <div class="empty-cart-message" id="empty-cart-message" style="display: none;">
+          <p>No items in cart. <a href="/menu">Browse menu</a></p>
+        </div>
       </div>
 
-      <div class="order-total">
+      <div class="order-total" id="order-total" style="display: none;">
         <div class="total-row">
           <span>Total Items:</span>
-          <span><%= orderItems.reduce((sum, item) => sum + item.quantity, 0) %></span>
+          <span id="total-items-count">0</span>
         </div>
-        <% const subtotal = orderItems.reduce((sum, item) => {
-            if (item.isFree) return sum;
-            const addonsTotal = item.addons ? item.addons.reduce((sum, ad) => sum + (ad.BasePrice || 0), 0) : 0;
-            return sum + ((item.price + addonsTotal) * item.quantity);
-          }, 0);
-        %>
         <div class="total-row">
           <span>Subtotal:</span>
-          <span>₱<%= subtotal.toFixed(2) %></span>
+          <span id="subtotal-amount">₱0.00</span>
         </div>
         <div class="promo-code-section">
           <label for="promoCode">Promo Code</label>
@@ -212,7 +189,7 @@
         </div>
         <div class="total-row final-total">
           <span>Total:</span>
-          <span id="totalAmountDisplay">₱<%= subtotal.toFixed(2) %></span>
+          <span id="totalAmountDisplay">₱0.00</span>
         </div>
         <div class="total-row" id="deliveryFeeRow" style="display: none;">
           <span>Delivery Fee:</span>
@@ -271,28 +248,131 @@
 <script>
 // Ensure cart data is available before checkout.js loads
 window.checkoutCartReady = false;
-document.addEventListener('DOMContentLoaded', function() {
+
+// Load and display cart items dynamically
+async function loadCheckoutCart() {
+  let orderItems = [];
+  
+  if (window.user && window.user._id) {
+    // For logged-in users, load from server first
+    try {
+      const response = await fetch('/api/cart');
+      if (response.ok) {
+        orderItems = await response.json();
+        console.log('Loaded cart from server:', orderItems);
+        // Sync to localStorage for consistency
+        localStorage.setItem('orderItems', JSON.stringify(orderItems));
+      } else {
+        console.error('Failed to load cart from server, status:', response.status);
+        // Fallback to localStorage
+        const cartData = localStorage.getItem('orderItems');
+        if (cartData) {
+          orderItems = JSON.parse(cartData);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading cart from server:', error);
+      // Fallback to localStorage
+      const cartData = localStorage.getItem('orderItems');
+      if (cartData) {
+        orderItems = JSON.parse(cartData);
+      }
+    }
+  } else {
+    // For guests, use localStorage
+    const cartData = localStorage.getItem('orderItems');
+    if (cartData) {
+      orderItems = JSON.parse(cartData);
+    }
+  }
+  
+  displayCheckoutItems(orderItems);
+  updateCheckoutTotal(orderItems);
+  
+  window.checkoutCartReady = orderItems.length > 0;
+  return orderItems;
+}
+
+function displayCheckoutItems(orderItems) {
+  const orderItemsContainer = document.getElementById('order-items');
+  const emptyMessage = document.getElementById('empty-cart-message');
+  
+  if (orderItems.length === 0) {
+    orderItemsContainer.innerHTML = '<div class="empty-cart-message"><p>No items in cart. <a href="/menu">Browse menu</a></p></div>';
+    document.getElementById('order-total').style.display = 'none';
+    return;
+  }
+  
+  document.getElementById('order-total').style.display = 'block';
+  
+  let itemsHTML = '';
+  orderItems.forEach((item, index) => {
+    // Calculate addons total
+    let addonsTotal = 0;
+    let addonsList = [];
+    
+    if (item.addons && item.addons.length > 0) {
+      item.addons.forEach(addon => {
+        addonsTotal += addon.BasePrice || 0;
+        addonsList.push(`${addon.Name || addon.IngredientID} (+₱${addon.BasePrice || 0})`);
+      });
+    }
+    
+    const itemTotal = (item.price + addonsTotal) * item.quantity;
+    
+    itemsHTML += `
+      <div class="order-item" data-index="${index}">
+        <div class="item-info">
+          <h3>${item.name}</h3>
+          <p>Category: ${item.category || 'N/A'}</p>
+          ${item.size ? `<p>Size: ${item.size}</p>` : ''}
+          ${addonsList.length > 0 ? `
+            <div class="item-addons">
+              ${addonsList.map(addon => `<span class="addon">${addon}</span>`).join('')}
+            </div>
+          ` : ''}
+          <p class="quantity">Qty: ${item.quantity}</p>
+        </div>
+        <div class="item-price">
+          ₱${itemTotal.toFixed(2)}
+        </div>
+      </div>
+    `;
+  });
+  
+  orderItemsContainer.innerHTML = itemsHTML;
+}
+
+function updateCheckoutTotal(orderItems) {
+  const totalItemsCount = document.getElementById('total-items-count');
+  const subtotalAmount = document.getElementById('subtotal-amount');
+  
+  if (orderItems.length === 0) {
+    totalItemsCount.textContent = '0';
+    subtotalAmount.textContent = '₱0.00';
+    return;
+  }
+  
+  const totalItems = orderItems.reduce((sum, item) => sum + item.quantity, 0);
+  const subtotal = orderItems.reduce((sum, item) => {
+    if (item.isFree) return sum;
+    const addonsTotal = item.addons ? item.addons.reduce((sum, ad) => sum + (ad.BasePrice || 0), 0) : 0;
+    return sum + ((item.price + addonsTotal) * item.quantity);
+  }, 0);
+  
+  totalItemsCount.textContent = totalItems;
+  subtotalAmount.textContent = `₱${subtotal.toFixed(2)}`;
+}
+
+document.addEventListener('DOMContentLoaded', async function() {
   // Clear full name input on load
   document.getElementById('name').value = '';
 
   // Clear invalid styling on load
   document.querySelectorAll('.form-group').forEach(group => group.classList.add('no-invalid'));
 
-  // Double-check cart is ready
-  const cartData = localStorage.getItem('orderItems');
-  if (cartData) {
-    try {
-      const items = JSON.parse(cartData);
-      if (items && items.length > 0) {
-        window.checkoutCartReady = true;
-        console.log('Checkout cart ready with', items.length, 'items');
-      }
-    } catch (e) {
-      console.log('Could not parse cart data');
-    }
-  }
-
-
+  // Load cart items dynamically
+  await loadCheckoutCart();
 
   // Function to update progress step
   window.updateProgressStep = function(stepNumber) {

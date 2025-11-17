@@ -429,7 +429,7 @@ function showOrderDetails(order, rowIndex) {
         customer = order.Customer.name || order.Customer.Name || (order.Customer.firstName ? (order.Customer.firstName + ' ' + (order.Customer.lastName || '')).trim() : '') || 'Unknown Customer';
       }
       address = order.Customer.address || address;
-      contact = order.Customer.contactNumber || order.Customer.phone || contact;
+      contact = order.Customer.contactnumber || order.Customer.phone || contact;
     }
   } else if (order.customer) {
     if (typeof order.customer === 'string') {
@@ -455,10 +455,10 @@ function showOrderDetails(order, rowIndex) {
     contact = order.ContactNumber || order.contactNumber || 'N/A';
   }
   
-  const deliveryFee = 15;
+  const deliveryFee = 20;
 
   const productsSubtotal = calculateOrderTotals(order);
-  const hasDelivery = (order.DeliveryStatus === 'Delivery' || order.DeliveryStatus === 'delivery');
+  const hasDelivery = (order.FulfillmentMethod || order.fulfillmentMethod || '').toLowerCase() === 'delivery';
   const totalPriceValue = order.Total ? Number(order.Total) : productsSubtotal + (hasDelivery ? deliveryFee : 0);
 
   const paymentStatusBadge = getPaymentStatusBadge(order.PaymentStatus || order.paymentStatus);
@@ -494,7 +494,7 @@ function showOrderDetails(order, rowIndex) {
       </div>
       <div class="info-item">
         <span class="info-label">Source:</span>
-        <span class="info-value">${source}</span>
+        ${getSourceBadge(source)}
       </div>
       <div class="info-item">
         <span class="info-label">Cashier Name:</span>
@@ -528,7 +528,7 @@ function showOrderDetails(order, rowIndex) {
       </div>
       <div class="info-item">
         <span class="info-label">Fulfillment Method:</span>
-        <span class="info-value">${order.FulfillmentMethod || order.fulfillmentMethod || order.DeliveryStatus || order.deliveryStatus || 'N/A'}</span>
+        <span class="info-value">${order.FulfillmentMethod || order.fulfillmentMethod || 'N/A'}</span>
       </div>
     </div>
   </div>
@@ -536,6 +536,13 @@ function showOrderDetails(order, rowIndex) {
   <div class="order-detail-section">
     <h3>Products Ordered</h3>
     ${createProductList(order)}
+
+    ${order.PromoEventApplied || order.PromoDiscountAmount ? `
+    <div class="promo-section">
+      <h4>🎉 Promo Applied</h4>
+      ${order.PromoEventApplied ? `<div class="promo-name">${order.PromoEventApplied}</div>` : ''}
+      ${order.PromoDiscountAmount ? `<div class="promo-discount">Discount: ₱${Number(order.PromoDiscountAmount).toFixed(2)}</div>` : ''}
+    </div>` : ''}
 
     <div class="summary-totals">
       <div class="total-line">
@@ -560,7 +567,7 @@ function showOrderDetails(order, rowIndex) {
   orderDetailPanel.classList.add('show');
 
   const fulfillmentDropdown = document.getElementById('fulfillmentDropdown');
-  const fulfillmentMethod = order.FulfillmentMethod || order.fulfillmentMethod || order.DeliveryStatus || order.deliveryStatus || '';
+  const fulfillmentMethod = order.FulfillmentMethod || order.fulfillmentMethod || '';
   if (fulfillmentMethod.toLowerCase() === 'delivery') {
     fulfillmentDropdown.style.display = 'block';
     // Add "In Delivery" option
@@ -692,7 +699,7 @@ function sortOrders(columnKey) {
   renderSortArrows();
 }
 
-function renderOrdersTable() {
+function renderOrdersTable(showAllOrders = false) {
   ordersTableBody.innerHTML = '';
 
   if (orders.length === 0) {
@@ -702,16 +709,21 @@ function renderOrdersTable() {
     return;
   }
 
-  const activeOrders = orders.filter(order => {
-    const isCancelled = (order.FulfillmentStatus === 'Cancelled' || order.fulfillmentStatus === 'Cancelled');
-    const paymentCompleted = (order.PaymentStatus || order.paymentStatus || '').toLowerCase() === 'completed';
-    const fulfillmentCompleted = (order.FulfillmentStatus || order.fulfillmentStatus || '').toLowerCase() === 'completed';
-    const bothCompleted = paymentCompleted && fulfillmentCompleted;
+  let ordersToDisplay = orders;
 
-    return !isCancelled && !bothCompleted;
-  });
+  if (!showAllOrders) {
+    // Filter to show only active orders (not cancelled and not completed)
+    ordersToDisplay = orders.filter(order => {
+      const isCancelled = (order.FulfillmentStatus === 'Cancelled' || order.fulfillmentStatus === 'Cancelled');
+      const paymentCompleted = (order.PaymentStatus || order.paymentStatus || '').toLowerCase() === 'completed';
+      const fulfillmentCompleted = (order.FulfillmentStatus || order.fulfillmentStatus || '').toLowerCase() === 'completed';
+      const bothCompleted = paymentCompleted && fulfillmentCompleted;
 
-  activeOrders.forEach((order, index) => {
+      return !isCancelled && !bothCompleted;
+    });
+  }
+
+  ordersToDisplay.forEach((order, index) => {
     const paymentBadge = getPaymentStatusBadge(order.PaymentStatus || order.paymentStatus);
     const fulfillmentBadge = getFulfillmentStatusBadge(order.FulfillmentStatus || order.fulfillmentStatus);
 
@@ -748,7 +760,7 @@ function renderOrdersTable() {
         })()
       }</td>
       <td>${paymentBadge}</td>
-      <td>${order.FulfillmentMethod || order.fulfillmentMethod || order.DeliveryStatus || order.deliveryStatus || 'N/A'}</td>
+      <td>${order.FulfillmentMethod || order.fulfillmentMethod || 'N/A'}</td>
       <td>${order.Total !== undefined && order.Total !== null ? '₱ ' + Number(order.Total).toFixed(2) : 'N/A'}</td>
       <td>${fulfillmentBadge}</td>
     </tr>
@@ -784,17 +796,24 @@ function renderSortArrows() {
 }
 
 function resetSort() {
+  // Restore the original order
+  orders = [...ordersData];
+
   // Reset sort state
   currentSort = { column: null, direction: 'asc' };
 
   // Clear sort arrows from all headers
   clearSortArrows();
 
-  // Re-render the table in original order (no sorting)
-  renderOrdersTable();
-}
+  // Clear any filter inputs in table headers
+  const filterInputs = document.querySelectorAll('thead input[type="text"], thead select');
+  filterInputs.forEach(input => {
+    input.value = '';
+  });
 
-orderHeaders.forEach(th => {
+  // Force re-render with all orders (including cancelled/completed) in original order
+  renderOrdersTable(true); // Pass true to show all orders
+}orderHeaders.forEach(th => {
   const columnKey = th.dataset.column;
   if (columnKey) {
     th.style.cursor = 'pointer';
@@ -826,6 +845,8 @@ function getFulfillmentStatusBadge(status) {
     return `<span class="status-fulfillment status-ful-cancelled" title="Order Cancelled">Cancelled</span>`;
   } else if (normalized.includes('preparing')) {
     return `<span class="status-fulfillment status-preparing" title="Being Prepared">Preparing</span>`;
+  } else if (normalized.includes('in progress')) {
+    return `<span class="status-fulfillment status-in-progress" title="Order In Progress">In Progress</span>`;
   } else if (normalized.includes('ready')) {
     return `<span class="status-fulfillment status-ready" title="Order Ready">Ready</span>`;
   } else if (normalized.includes('in delivery') || normalized.includes('delivering')) {
@@ -834,6 +855,20 @@ function getFulfillmentStatusBadge(status) {
     return `<span class="status-fulfillment status-completed" title="Order Completed">Completed</span>`;
   }
   return `<span class="status-fulfillment">${status}</span>`;
+}
+
+function getSourceBadge(source) {
+  if (!source) return '<span class="status-source">Unknown</span>';
+
+  const normalized = source.toLowerCase();
+  if (normalized === 'chatbot') {
+    return `<span class="status-source status-chatbot" title="Chatbot">🤖 Chatbot</span>`;
+  } else if (normalized === 'website') {
+    return `<span class="status-source status-website" title="Website">🌐 Website</span>`;
+  } else if (normalized === 'pos') {
+    return `<span class="status-source status-pos" title="POS">💻 POS</span>`;
+  }
+  return `<span class="status-source">${source}</span>`;
 }
 
 const fulfillOrderBtn = document.getElementById('fulfillOrderBtn');
@@ -856,9 +891,10 @@ document.addEventListener('click', (e) => {
   }
 });
 
-fulfillmentDropdown.querySelectorAll('.fulfill-option').forEach(option => {
-  option.addEventListener('click', async () => {
-    const selectedStatus = option.getAttribute('data-status');
+// Use event delegation for fulfillment options to handle dynamically added elements
+fulfillmentDropdown.addEventListener('click', async (e) => {
+  if (e.target.classList.contains('fulfill-option')) {
+    const selectedStatus = e.target.getAttribute('data-status');
     if (!currentOrder) {
       showMessage('No order selected', true);
       return;
@@ -909,7 +945,7 @@ fulfillmentDropdown.querySelectorAll('.fulfill-option').forEach(option => {
     }
 
     fulfillmentDropdown.style.display = 'none';
-  });
+  }
 });
 
 confirmPaymentBtn.addEventListener('click', async () => {
@@ -1010,7 +1046,7 @@ printInvoiceBtn.addEventListener('click', () => {
     return;
   }
 
-  const invoiceWindow = window.open('', 'Print Invoice', 'width=700,height=900');
+  const invoiceWindow = window.open('', 'Print Receipt', 'width=400,height=800');
   if (!invoiceWindow) {
     showMessage('Popup blocked. Please allow popups for this website.', true);
     return;
@@ -1019,210 +1055,383 @@ printInvoiceBtn.addEventListener('click', () => {
   const orderDate = currentOrder.Date ? new Date(currentOrder.Date).toLocaleString() :
         (currentOrder.date ? new Date(currentOrder.date).toLocaleString() : 'N/A');
 
-  let productsHtml = '<table style="width:100%; border-collapse: collapse; margin: 20px 0;">' +
-        `<thead>
-     <tr style="background-color: #f8f9fa;">
-       <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Product</th>
-       <th style="border: 1px solid #ddd; padding: 12px; text-align: center;">Size</th>
-       <th style="border: 1px solid #ddd; padding: 12px; text-align: center;">Quantity</th>
-       <th style="border: 1px solid #ddd; padding: 12px; text-align: right;">Unit Price</th>
-       <th style="border: 1px solid #ddd; padding: 12px; text-align: right;">Add-ons</th>
-       <th style="border: 1px solid #ddd; padding: 12px; text-align: right;">Total</th>
-     </tr>
-   </thead><tbody>`;
+  // Get customer info
+  let customerName = 'N/A';
+  let customerContact = 'N/A';
+  let customerAddress = 'N/A';
 
+  if (currentOrder.Customer) {
+    if (typeof currentOrder.Customer === 'string') {
+      customerName = currentOrder.Customer;
+    } else if (typeof currentOrder.Customer === 'object') {
+      customerName = currentOrder.Customer.fullname ||
+                    (currentOrder.Customer.firstName + ' ' + (currentOrder.Customer.lastName || '')).trim() ||
+                    currentOrder.Customer.name || 'N/A';
+      customerContact = currentOrder.Customer.contactnumber || currentOrder.Customer.contactNumber || 'N/A';
+      customerAddress = currentOrder.Customer.address || 'N/A';
+    }
+  }
+
+  // Build receipt items
+  let receiptItems = '';
   let subtotal = 0;
 
   if (currentOrder.Cart && currentOrder.Cart.length) {
     currentOrder.Cart.forEach(item => {
-      const quantity = Number(item.Quantity) || 0;
-      const basePrice = Number(item.BasePrice) || 0;
+      const quantity = Number(item.Quantity || item.quantity) || 0;
+      const productName = item.ProductName || item.productName || item.Name || item.name || '';
+
+      // Use same price calculation logic as calculateOrderTotals
+      let basePrice = 0;
+      if (item.BasePrice !== undefined) {
+        basePrice = Number(item.BasePrice);
+      } else if (item.basePrice !== undefined) {
+        basePrice = Number(item.basePrice);
+      } else if (item.Price !== undefined) {
+        basePrice = Number(item.Price);
+      } else if (item.price !== undefined) {
+        basePrice = Number(item.price);
+      } else {
+        // Try to get price from menu
+        const menuItem = menu.find(m => m.Name === productName);
+        if (menuItem) {
+          if (menuItem.Sizes && menuItem.Sizes.length > 0) {
+            const sizeObj = menuItem.Sizes.find(s => s.Size === (item.Size || item.size));
+            if (sizeObj) {
+              basePrice = Number(sizeObj.BasePrice);
+            }
+          } else if (menuItem.BasePrice) {
+            basePrice = Number(menuItem.BasePrice);
+          }
+        }
+      }
+
+      const productNameDisplay = item.ProductName || item.productName || item.Name || item.name || 'N/A';
+      const sizeLabel = item.Size || item.size || '';
 
       let addOnsTotal = 0;
-      let addOnsText = 'None';
+      let addOnsHtml = '';
 
-      if (item.AddOns && item.AddOns.length > 0) {
-        addOnsText = item.AddOns.map(addon => {
-          const addonPrice = Number(addon.BasePrice) || 0;
+      // Handle different add-ons structures (AddOns, addOns, Addons)
+      const addOns = item.AddOns || item.addOns || item.Addons;
+      if (addOns && addOns.length > 0) {
+        addOns.forEach(addon => {
+          const addonPrice = Number(addon.BasePrice || addon.basePrice) || 0;
+          const addonName = addon.Name || addon.name || 'Unknown Add-on';
           addOnsTotal += addonPrice;
-          return `${addon.Name} (${formatCurrency(addonPrice)})`;
-        }).join(', ');
+
+          // Add each add-on as a separate line
+          addOnsHtml += `
+            <div class="receipt-addon">
+              <div class="item-name">└ ${addonName}</div>
+              <div class="item-qty-price">1 x ${formatCurrency(addonPrice)}</div>
+              <div class="item-total">${formatCurrency(addonPrice)}</div>
+            </div>`;
+        });
       }
 
       const itemTotal = (basePrice + addOnsTotal) * quantity;
       subtotal += itemTotal;
 
-      productsHtml += `<tr>
-      <td style="border: 1px solid #ddd; padding: 10px;">${item.ProductName || 'N/A'}</td>
-      <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">${item.Size || 'N/A'}</td>
-      <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">${quantity}</td>
-      <td style="border: 1px solid #ddd; padding: 10px; text-align: right;">${formatCurrency(basePrice)}</td>
-      <td style="border: 1px solid #ddd; padding: 10px; text-align: right;">${addOnsText}</td>
-      <td style="border: 1px solid #ddd; padding: 10px; text-align: right;">${formatCurrency(itemTotal)}</td>
-    </tr>`;
+      // Main item line
+      const displayName = sizeLabel ? `${productNameDisplay} (${sizeLabel})` : productNameDisplay;
+      receiptItems += `
+        <div class="receipt-item">
+          <div class="item-name">${displayName}</div>
+          <div class="item-qty-price">${quantity} x ${formatCurrency(basePrice)}</div>
+          <div class="item-total">${formatCurrency(basePrice * quantity)}</div>
+        </div>`;
+
+      // Add add-ons HTML
+      receiptItems += addOnsHtml;
     });
-  } else {
-    productsHtml += `<tr><td colspan="6" style="text-align:center; padding: 20px; border: 1px solid #ddd;">No products in the order.</td></tr>`;
   }
-  productsHtml += '</tbody></table>';
 
   const { promoSets, promoSavings } = calculatePromoInfo(currentOrder);
-  if (promoSets > 0) {
-    productsHtml += `<div style="margin: 20px 0; padding: 10px; background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 5px; color: #155724;">
-      <strong>🎉 Promo Applied: ${promoSets} set${promoSets > 1 ? 's' : ''} of 3 drinks - ₱143 each (Total Savings: ₱${promoSavings})</strong>
-    </div>`;
-  }
+  const hasDelivery = (currentOrder.FulfillmentMethod || currentOrder.fulfillmentMethod || '').toLowerCase() === 'delivery';
+  const deliveryCharge = hasDelivery ? 20 : 0;
+  const total = currentOrder.Total ? Number(currentOrder.Total) : subtotal + deliveryCharge;
 
-  const hasDelivery = (currentOrder.DeliveryStatus && currentOrder.DeliveryStatus.toLowerCase() === 'delivery');
-  const deliveryCharge = hasDelivery ? 15 : 0;
-  const total = subtotal + deliveryCharge;
-
-  const invoiceHtml = `
+  const receiptHtml = `
+  <!DOCTYPE html>
   <html>
   <head>
-    <title>Invoice for Order ${currentOrder.OrderID || 'N/A'}</title>
+    <title>Receipt - Order ${currentOrder.OrderID || 'N/A'}</title>
     <style>
+      @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+
       body {
-        font-family: 'Arial', sans-serif;
-        margin: 30px;
-        color: #333;
-        line-height: 1.6;
+        font-family: 'JetBrains Mono', 'Courier New', monospace;
+        font-size: 12px;
+        line-height: 1.4;
+        color: #000;
+        margin: 0;
+        padding: 10px;
+        background: #fff;
+        max-width: 320px;
+        margin: 0 auto;
       }
-      .header {
+
+      .receipt-container {
+        border: 1px dashed #000;
+        padding: 15px;
+        background: #fff;
+        position: relative;
+      }
+
+      .receipt-header {
         text-align: center;
-        margin-bottom: 40px;
-        border-bottom: 3px solid #a05c2f;
-        padding-bottom: 20px;
+        border-bottom: 1px dashed #000;
+        padding-bottom: 10px;
+        margin-bottom: 15px;
       }
-      .header h1 {
-        color: #a05c2f;
-        font-size: 32px;
-        margin: 0;
-      }
-      .header h2 {
-        color: #666;
-        font-size: 18px;
-        margin: 5px 0 0 0;
-        font-weight: normal;
-      }
-      .info-section {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 30px;
-        margin-bottom: 30px;
-      }
-      .info-block h3 {
-        color: #a05c2f;
-        margin-bottom: 10px;
+
+      .store-name {
         font-size: 16px;
-      }
-      .info-block p {
-        margin: 5px 0;
-        font-size: 14px;
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin: 20px 0;
-        font-size: 14px;
-      }
-      th, td {
-        padding: 12px;
-        border: 1px solid #ddd;
-      }
-      th {
-        background-color: #f8f9fa;
-        font-weight: 600;
-      }
-      .totals {
-        margin-top: 30px;
-        float: right;
-        width: 300px;
-      }
-      .totals table {
-        margin: 0;
-      }
-      .totals .total-row {
-        background-color: #a05c2f;
-        color: white;
         font-weight: bold;
-        font-size: 16px;
+        margin: 0;
+        color: #a05c2f;
       }
-      .footer {
-        clear: both;
-        text-align: center;
-        margin-top: 60px;
-        padding-top: 20px;
-        border-top: 1px solid #ddd;
+
+      .store-tagline {
+        font-size: 10px;
+        margin: 5px 0 0 0;
         color: #666;
       }
+
+      .receipt-title {
+        font-size: 14px;
+        font-weight: bold;
+        margin: 10px 0;
+        text-decoration: underline;
+      }
+
+      .receipt-info {
+        margin-bottom: 15px;
+        font-size: 11px;
+      }
+
+      .info-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 3px;
+      }
+
+      .info-label {
+        font-weight: bold;
+      }
+
+      .receipt-items {
+        border-top: 1px dashed #000;
+        border-bottom: 1px dashed #000;
+        padding: 10px 0;
+        margin: 10px 0;
+      }
+
+      .receipt-item, .receipt-addon {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 5px;
+        min-height: 16px;
+      }
+
+      .receipt-addon {
+        padding-left: 15px;
+        font-size: 10px;
+        color: #666;
+      }
+
+      .item-name {
+        flex: 1;
+        word-wrap: break-word;
+        margin-right: 10px;
+      }
+
+      .item-qty-price {
+        font-size: 10px;
+        color: #666;
+        margin-right: 10px;
+        white-space: nowrap;
+      }
+
+      .item-total {
+        font-weight: bold;
+        text-align: right;
+        min-width: 50px;
+      }
+
+      .promo-section {
+        background: #f0f8f0;
+        border: 1px solid #c3e6cb;
+        padding: 8px;
+        margin: 10px 0;
+        font-size: 11px;
+        text-align: center;
+        border-radius: 3px;
+      }
+
+      .promo-section strong {
+        color: #155724;
+      }
+
+      .receipt-totals {
+        border-top: 1px dashed #000;
+        padding-top: 10px;
+        margin-top: 10px;
+      }
+
+      .total-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+        font-size: 12px;
+      }
+
+      .total-row.final {
+        border-top: 2px solid #000;
+        padding-top: 8px;
+        font-size: 14px;
+        font-weight: bold;
+        margin-top: 8px;
+      }
+
+      .receipt-footer {
+        text-align: center;
+        border-top: 1px dashed #000;
+        padding-top: 15px;
+        margin-top: 15px;
+        font-size: 10px;
+        color: #666;
+      }
+
+      .thank-you {
+        font-size: 12px;
+        font-weight: bold;
+        margin-bottom: 8px;
+        color: #a05c2f;
+      }
+
+      .receipt-number {
+        font-size: 10px;
+        margin-top: 8px;
+        font-weight: bold;
+      }
+
+      .cut-line {
+        border-top: 1px dashed #000;
+        margin: 10px 0;
+        height: 1px;
+      }
+
       @media print {
-        body { margin: 15px; }
-        .header h1 { font-size: 28px; }
+        body {
+          margin: 0;
+          padding: 5px;
+          -webkit-print-color-adjust: exact;
+          color-adjust: exact;
+        }
+
+        .receipt-container {
+          border: none;
+          padding: 10px;
+        }
+
+        .cut-line {
+          page-break-after: always;
+          border-top: 1px dashed #000;
+          margin: 20px 0;
+        }
       }
     </style>
   </head>
   <body>
-    <div class="header">
-      <h1>Blessings Cafe</h1>
-      <h2>Invoice ${currentOrder.OrderID || 'N/A'}</h2>
-    </div>
-
-    <div class="info-section">
-      <div class="info-block">
-        <h3>Order Information</h3>
-        <p><strong>Order ID:</strong> ${currentOrder.OrderID || 'N/A'}</p>
-        <p><strong>Xendit Payment ID:</strong> ${currentOrder.XenditPaymentID || 'N/A'}</p>
-        <p><strong>Date:</strong> ${orderDate}</p>
-        <p><strong>Source:</strong> ${currentOrder.Source || currentOrder.source || 'N/A'}</p>
-        <p><strong>Payment Status:</strong> ${currentOrder.PaymentStatus || currentOrder.paymentStatus || 'N/A'}</p>
-        <p><strong>Fulfillment Status:</strong> ${currentOrder.FulfillmentStatus || currentOrder.fulfillmentStatus || 'N/A'}</p>
+    <div class="receipt-container">
+      <div class="receipt-header">
+        <h1 class="store-name">BLESSINGS CAFE</h1>
+        <p class="store-tagline">Serving with love and gratitude</p>
+        <h2 class="receipt-title">OFFICIAL RECEIPT</h2>
       </div>
 
-      <div class="info-block">
-        <h3>Customer Information</h3>
-        <p><strong>Name:</strong> ${currentOrder.Customer || currentOrder.customer || 'N/A'}</p>
-        <p><strong>Contact:</strong> ${currentOrder.ContactNumber || 'N/A'}</p>
-        <p><strong>Address:</strong> ${currentOrder.Address || currentOrder.address || 'N/A'}</p>
-        <p><strong>Delivery Type:</strong> ${currentOrder.DeliveryStatus || 'N/A'}</p>
+      <div class="receipt-info">
+        <div class="info-row">
+          <span class="info-label">Order ID:</span>
+          <span>${currentOrder.OrderID || 'N/A'}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Date:</span>
+          <span>${orderDate}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Customer:</span>
+          <span>${customerName}</span>
+        </div>
+        ${customerContact !== 'N/A' ? `
+        <div class="info-row">
+          <span class="info-label">Contact:</span>
+          <span>${customerContact}</span>
+        </div>` : ''}
+        ${hasDelivery && customerAddress !== 'N/A' ? `
+        <div class="info-row">
+          <span class="info-label">Address:</span>
+          <span style="max-width: 150px; word-wrap: break-word;">${customerAddress}</span>
+        </div>` : ''}
+        <div class="info-row">
+          <span class="info-label">Type:</span>
+          <span>${hasDelivery ? 'Delivery' : 'Pickup'}</span>
+        </div>
       </div>
-    </div>
 
-    ${productsHtml}
+      <div class="receipt-items">
+        ${receiptItems}
+      </div>
 
-    <div class="totals">
-      <table>
-        <tr>
-          <td style="text-align: right; padding: 8px;"><strong>Subtotal:</strong></td>
-          <td style="text-align: right; padding: 8px;">${formatCurrency(subtotal)}</td>
-        </tr>
+      ${promoSets > 0 ? `
+      <div class="promo-section">
+        <strong>🎉 PROMO APPLIED</strong><br>
+        ${promoSets} set${promoSets > 1 ? 's' : ''} of 3 drinks - ₱143 each<br>
+        Total Savings: ₱${promoSavings}
+      </div>` : ''}
+
+      <div class="receipt-totals">
+        <div class="total-row">
+          <span>Subtotal:</span>
+          <span>${formatCurrency(subtotal)}</span>
+        </div>
         ${hasDelivery ? `
-        <tr>
-          <td style="text-align: right; padding: 8px;"><strong>Delivery Fee:</strong></td>
-          <td style="text-align: right; padding: 8px;">${formatCurrency(deliveryCharge)}</td>
-        </tr>` : ''}
-        <tr class="total-row">
-          <td style="text-align: right; padding: 12px;"><strong>Total:</strong></td>
-          <td style="text-align: right; padding: 12px;"><strong>${formatCurrency(total)}</strong></td>
-        </tr>
-      </table>
+        <div class="total-row">
+          <span>Delivery Fee:</span>
+          <span>${formatCurrency(deliveryCharge)}</span>
+        </div>` : ''}
+        <div class="total-row final">
+          <span>TOTAL:</span>
+          <span>${formatCurrency(total)}</span>
+        </div>
+      </div>
+
+      <div class="receipt-footer">
+        <div class="thank-you">Thank you for your order!</div>
+        <p>We hope to serve you again soon.</p>
+        <div class="receipt-number">Receipt #${currentOrder.OrderID || 'N/A'}</div>
+      </div>
     </div>
 
-    <div class="footer">
-      <p>Thank you for your order!</p>
-      <p style="font-size: 12px;">Blessings Cafe - Serving with love and gratitude</p>
-    </div>
+    <div class="cut-line"></div>
+
+    <script>
+      window.onload = function() {
+        setTimeout(function() {
+          window.print();
+        }, 500);
+      };
+    </script>
   </body>
   </html>
 `;
 
-  invoiceWindow.document.write(invoiceHtml);
+  invoiceWindow.document.write(receiptHtml);
   invoiceWindow.document.close();
   invoiceWindow.focus();
-
-  setTimeout(() => {
-    invoiceWindow.print();
-  }, 500);
 });
 
 document.addEventListener('keydown', (e) => {

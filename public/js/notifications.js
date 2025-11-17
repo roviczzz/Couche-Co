@@ -85,6 +85,13 @@ class NotificationManager {
     async updateUnreadCount() {
         try {
             const response = await fetch('/api/notifications/unread-count');
+            
+            // Check if response is successful and contains JSON
+            if (response.status !== 200 || !response.headers.get('content-type')?.includes('application/json')) {
+                console.warn('Failed to fetch unread count, status:', response.status, 'content-type:', response.headers.get('content-type'));
+                return;
+            }
+            
             const data = await response.json();
             
             if (data.success) {
@@ -180,6 +187,14 @@ class NotificationManager {
         
         try {
             const response = await fetch('/api/notifications?limit=20');
+            
+            // Check if response is successful and contains JSON
+            if (response.status !== 200 || !response.headers.get('content-type')?.includes('application/json')) {
+                console.warn('Failed to load notifications, status:', response.status, 'content-type:', response.headers.get('content-type'));
+                this.showNotificationError('Failed to load notifications');
+                return;
+            }
+            
             const data = await response.json();
             
             if (data.success) {

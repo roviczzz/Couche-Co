@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
   const form = document.getElementById('checkoutForm');
   const placeOrderBtn = document.getElementById('placeOrderBtn');
 
@@ -17,6 +17,16 @@ document.addEventListener('DOMContentLoaded', function() {
   let selectedPromoId = null;
   let selectedPromo = null;
   let availablePromos = [];
+
+  // Rate limiting for cart API calls
+  let lastCartApiCall = 0;
+  const CART_API_COOLDOWN = 2000; // 2 seconds between cart API calls
+  let cartApiInProgress = false; // Prevent simultaneous cart API calls
+  
+  // Rate limiting for promo API calls
+  let lastPromoApiCall = 0;
+  const PROMO_API_COOLDOWN = 5000; // 5 seconds between promo API calls
+  let promoApiInProgress = false; // Prevent simultaneous promo API calls
 
   // Retrieve and populate saved user data
   async function loadUserData() {
@@ -99,11 +109,26 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  // Load active promos
+  loadActivePromos();
+
   // Load user data when page loads
   loadUserData();
 
-  // Load active promos
-  loadActivePromos();
+  // Load cart data and update totals
+  await loadCheckoutData();
+
+  async function loadCheckoutData() {
+    // Wait for cart data to be ready, then update totals
+    const checkCartReady = () => {
+      if (window.checkoutCartReady) {
+        updateTotalDisplay();
+      } else {
+        setTimeout(checkCartReady, 50);
+      }
+    };
+    checkCartReady();
+  }
 
   // Phone number formatting
   document.getElementById('phone').addEventListener('input', function() {
@@ -533,30 +558,73 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Load active promos and set up promo selection
   async function loadActivePromos() {
+    const now = Date.now();
+    if (now - lastPromoApiCall < PROMO_API_COOLDOWN || promoApiInProgress) {
+      console.log('Promo API rate limited or in progress, skipping load');
+      return;
+    }
+    
+    promoApiInProgress = true;
     try {
       const response = await fetch('/api/discounts/active');
-      if (response.ok) {
+      if (response.status === 200 && response.headers.get('content-type')?.includes('application/json')) {
         availablePromos = await response.json();
+        lastPromoApiCall = now;
         populatePromoSelect();
       } else {
-        console.error('Failed to load active promos');
+        console.error('Failed to load active promos, status:', response.status, 'content-type:', response.headers.get('content-type'));
       }
     } catch (error) {
       console.error('Error loading active promos:', error);
+    } finally {
+      promoApiInProgress = false;
     }
   }
 
   // Get unique categories from cart items
-  function getCartCategories() {
-    const cartItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+  async function getCartCategories() {
+    let cartItems = [];
+    
+    if (window.user && window.user._id) {
+      // For logged-in users, load from server first (with rate limiting)
+      const now = Date.now();
+      if (now - lastCartApiCall > CART_API_COOLDOWN && !cartApiInProgress) {
+        cartApiInProgress = true;
+        try {
+          const response = await fetch('/api/cart');
+          if (response.status === 200 && response.headers.get('content-type')?.includes('application/json')) {
+            cartItems = await response.json();
+            lastCartApiCall = now;
+          } else if (response.status === 429) {
+            console.warn('Rate limited, using localStorage fallback for categories');
+            cartItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+          } else {
+            console.error('Failed to load cart from server, status:', response.status);
+            // Fallback to localStorage
+            cartItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+          }
+        } catch (error) {
+          console.error('Error loading cart from server:', error);
+          // Fallback to localStorage
+          cartItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+        } finally {
+          cartApiInProgress = false;
+        }
+      } else {
+        console.log('Cart API rate limited or in progress, using cached data for categories');
+        cartItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+      }
+    } else {
+      // For guests, use localStorage
+      cartItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+    }
+    
     const categories = new Set();
-
     cartItems.forEach(item => {
       if (item.category) {
         categories.add(item.category);
       }
     });
-
     return Array.from(categories);
   }
 
@@ -565,37 +633,39 @@ document.addEventListener('DOMContentLoaded', function() {
     // Clear existing options except the default
     promoSelect.innerHTML = '<option value="">No promo selected</option>';
 
-    const cartCategories = getCartCategories();
+    getCartCategories().then(cartCategories => {
+      // Filter promos based on cart categories
+      const filteredPromos = availablePromos.filter(promo => {
+        // If cart has categories, only show promos that match those categories
+        if (cartCategories.length > 0) {
+          return cartCategories.includes(promo.category);
+        }
+        // If no categories in cart, show all promos
+        return true;
+      });
 
-    // Filter promos based on cart categories
-    const filteredPromos = availablePromos.filter(promo => {
-      // If cart has categories, only show promos that match those categories
-      if (cartCategories.length > 0) {
-        return cartCategories.includes(promo.category);
+      filteredPromos.forEach(promo => {
+        const option = document.createElement('option');
+        option.value = promo._id;
+        option.textContent = `${promo.event} - ${promo.discountPercentage}% OFF`;
+        promoSelect.appendChild(option);
+      });
+
+      // If no applicable promos, show message
+      if (filteredPromos.length === 0 && availablePromos.length > 0) {
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = 'No applicable promos for your order';
+        option.disabled = true;
+        promoSelect.appendChild(option);
       }
-      // If no categories in cart, show all promos
-      return true;
+    }).catch(error => {
+      console.error('Error loading cart categories for promos:', error);
     });
-
-    filteredPromos.forEach(promo => {
-      const option = document.createElement('option');
-      option.value = promo._id;
-      option.textContent = `${promo.event} - ${promo.discountPercentage}% OFF`;
-      promoSelect.appendChild(option);
-    });
-
-    // If no applicable promos, show message
-    if (filteredPromos.length === 0 && availablePromos.length > 0) {
-      const option = document.createElement('option');
-      option.value = '';
-      option.textContent = 'No applicable promos for your order';
-      option.disabled = true;
-      promoSelect.appendChild(option);
-    }
   }
 
   // Promo selection handler
-  document.getElementById('promoCode').addEventListener('change', function() {
+  document.getElementById('promoCode').addEventListener('change', async function() {
     const selectedValue = this.value;
     if (selectedValue) {
       const promo = availablePromos.find(promo => promo._id === selectedValue);
@@ -609,12 +679,47 @@ document.addEventListener('DOMContentLoaded', function() {
       selectedPromoId = null;
       selectedPromo = null;
     }
-    updateTotalDisplay();
+    await updateTotalDisplay();
   });
 
   // Function to calculate subtotal from cart
-  function calculateSubtotal() {
-    const cartItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+  async function calculateSubtotal() {
+    let cartItems = [];
+    
+    if (window.user && window.user._id) {
+      // For logged-in users, load from server first (with rate limiting)
+      const now = Date.now();
+      if (now - lastCartApiCall > CART_API_COOLDOWN && !cartApiInProgress) {
+        cartApiInProgress = true;
+        try {
+          const response = await fetch('/api/cart');
+          if (response.status === 200 && response.headers.get('content-type')?.includes('application/json')) {
+            cartItems = await response.json();
+            lastCartApiCall = now;
+          } else if (response.status === 429) {
+            console.warn('Rate limited, using localStorage fallback for subtotal');
+            cartItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+          } else {
+            console.error('Failed to load cart from server, status:', response.status);
+            // Fallback to localStorage
+            cartItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+          }
+        } catch (error) {
+          console.error('Error loading cart from server:', error);
+          // Fallback to localStorage
+          cartItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+        } finally {
+          cartApiInProgress = false;
+        }
+      } else {
+        console.log('Cart API rate limited or in progress, using cached data for subtotal');
+        cartItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+      }
+    } else {
+      // For guests, use localStorage
+      cartItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+    }
+    
     return cartItems.reduce((sum, item) => {
       if (item.isFree) return sum;
       const addonsTotal = item.addons ? item.addons.reduce((sum, ad) => sum + (ad.BasePrice || 0), 0) : 0;
@@ -623,8 +728,8 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Function to update total display
-  function updateTotalDisplay() {
-    const subtotal = calculateSubtotal();
+  async function updateTotalDisplay() {
+    const subtotal = await calculateSubtotal();
     const deliveryMethod = document.getElementById('deliveryMethod').value;
     const deliveryFee = deliveryMethod === 'Delivery' ? 20 : 0;
     const discountAmount = subtotal * (currentDiscountPercentage / 100);
@@ -656,7 +761,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Delivery method toggle
   const deliveryMethodSelect = document.getElementById('deliveryMethod');
-  deliveryMethodSelect.addEventListener('change', function() {
+  deliveryMethodSelect.addEventListener('change', async function() {
     const method = this.value;
     const pickupAgreement = document.getElementById('pickupAgreement');
     const deliveryFields = document.getElementById('deliveryFields');
@@ -685,11 +790,9 @@ document.addEventListener('DOMContentLoaded', function() {
       addressInput.removeAttribute('required');
     }
     // Update total display
-    updateTotalDisplay();
+    await updateTotalDisplay();
   });
 
-  // Set active step to 1 on load
-  updateProgressStep(1);
 });
 
 // Modal confirmation functions

@@ -37,7 +37,7 @@ router.post('/check-single', async (req, res) => {
     }
 
     const { MongoClient } = require('mongodb');
-    const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+    
     let client;
 
     client = new MongoClient(uri);
@@ -45,10 +45,9 @@ router.post('/check-single', async (req, res) => {
     const db = client.db('blessingscafe');
 
     // Get menu item
-    const menuItem = await db.collection('Menu').findOne({ _id: require('mongodb').ObjectId(ProductID) });
+    const menuItem = await req.db.collection('Menu').findOne({ _id: require('mongodb').ObjectId(ProductID) });
     
     if (!menuItem) {
-      await client.close();
       return res.status(404).json({
         error: 'Menu item not found'
       });
@@ -66,11 +65,9 @@ router.post('/check-single', async (req, res) => {
     const availability = await InventoryManager.checkSingleItemAvailability(
       menuItem,
       orderItem,
-      db.collection('Ingredients'),
-      db.collection('Add-ons')
+      req.db.collection('Ingredients'),
+      req.db.collection('Add-ons')
     );
-
-    await client.close();
 
     res.json(availability);
 
@@ -88,17 +85,15 @@ router.post('/check-single', async (req, res) => {
 router.get('/levels', async (req, res) => {
   try {
     const { MongoClient } = require('mongodb');
-    const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+    
     let client;
 
     client = new MongoClient(uri);
     await client.connect();
     const db = client.db('blessingscafe');
 
-    const ingredients = await db.collection('Ingredients').find({}).toArray();
-    const addons = await db.collection('Add-ons').find({}).toArray();
-
-    await client.close();
+    const ingredients = await req.db.collection('Ingredients').find({}).toArray();
+    const addons = await req.db.collection('Add-ons').find({}).toArray();
 
     res.json({
       success: true,
@@ -174,11 +169,57 @@ router.post('/restock', async (req, res) => {
   }
 });
 
+// Rollback inventory for cancelled order
+router.post('/rollback', async (req, res) => {
+  try {
+    const { orderItems, orderId } = req.body;
+
+    if (!orderItems || !Array.isArray(orderItems)) {
+      return res.status(400).json({
+        error: 'orderItems array is required'
+      });
+    }
+
+    console.log(`[INVENTORY ROLLBACK] Starting rollback for order ${orderId || 'unknown'}`);
+
+    const result = await InventoryManager.rollbackIngredients(orderItems);
+
+    if (result.success) {
+      await logInventoryTransaction(
+        orderId || `rollback-${Date.now()}`,
+        'rollback',
+        {
+          success: true,
+          itemCount: orderItems.length,
+          rollbackCount: result.rollbacks.length
+        }
+      );
+
+      res.json({
+        success: true,
+        message: `Successfully rolled back inventory for ${orderItems.length} items`,
+        rollbacks: result.rollbacks
+      });
+    } else {
+      res.status(500).json({
+        error: 'Failed to rollback inventory',
+        details: result.error
+      });
+    }
+
+  } catch (error) {
+    console.error('Error in rollback endpoint:', error);
+    res.status(500).json({
+      error: 'Internal server error during rollback'
+    });
+  }
+});
+
 // Get low stock alerts (items below threshold)
 router.get('/alerts', async (req, res) => {
   try {
     const { MongoClient } = require('mongodb');
-    const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+    
     let client;
 
     client = new MongoClient(uri);
@@ -189,21 +230,19 @@ router.get('/alerts', async (req, res) => {
     const INGREDIENT_THRESHOLD = 100; // grams
     const ADDON_THRESHOLD = 5; // pieces
 
-    const lowIngredients = await db.collection('Ingredients')
-      .find({ 
+    const lowIngredients = await req.db.collection('Ingredients')
+      .find({
         Amount: { $lt: INGREDIENT_THRESHOLD },
-        isEnabled: true 
+        isEnabled: true
       })
       .toArray();
 
-    const lowAddons = await db.collection('Add-ons')
-      .find({ 
+    const lowAddons = await req.db.collection('Add-ons')
+      .find({
         Quantity: { $lt: ADDON_THRESHOLD },
-        isEnabled: true 
+        isEnabled: true
       })
       .toArray();
-
-    await client.close();
 
     const alerts = [
       ...lowIngredients.map(ing => ({
