@@ -986,8 +986,8 @@
 .cart-side-popup {
     position: fixed;
     top: 70px; /* position under cart icon in navbar */
-    right: 260px; /* adjusted much more to the left */
-    width: 400px; /* bigger width */
+    right: 20px; /* more right-aligned positioning */
+    width: 300px; /* smaller width for add-to-cart popup */
     height: auto; /* adjust height based on content */
     min-height: 300px; /* minimum height */
     max-height: 80vh; /* maximum height to prevent overflow */
