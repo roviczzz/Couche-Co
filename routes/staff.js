@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { MongoClient, ObjectId } = require('mongodb');
-const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+const { ObjectId } = require('mongodb');
+
 
 // Import multer for file uploads (messages)
 const multer = require('multer');
@@ -63,9 +63,8 @@ router.post('/orders/submit', isStaffLoggedIn, async (req, res) => {
       });
     }
 
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const ordersCollection = db.collection('Orders');
+    // Using shared DB connection from req.db
+    const ordersCollection = req.db.collection('Orders');
 
     // Ensure order is from POS with proper Source
     const orderToInsert = {
@@ -98,7 +97,7 @@ router.post('/orders/submit', isStaffLoggedIn, async (req, res) => {
 
       // Create notification for new order
       try {
-        await createNewOrderNotification(orderToInsert);
+        await createNewOrderNotification(req.db, orderToInsert);
       } catch (notifError) {
         console.error('Failed to create order notification:', notifError);
         // Don't fail the order creation if notification fails
@@ -113,8 +112,6 @@ router.post('/orders/submit', isStaffLoggedIn, async (req, res) => {
     } else {
       throw new Error('Order insertion failed');
     }
-
-    await client.close();
   } catch (error) {
     console.error('Staff POS Order submission error:', error);
     res.status(500).json({
@@ -130,14 +127,12 @@ router.get('/complete-order/:orderId', isAuthorizedForOrderCompletion, async (re
   try {
     const { orderId } = req.params;
 
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const ordersCollection = db.collection('Orders');
+    // Using shared DB connection from req.db
+    const ordersCollection = req.db.collection('Orders');
 
     // Get current order status
     const order = await ordersCollection.findOne({ OrderID: orderId });
     if (!order) {
-      await client.close();
       return res.status(404).render('error', {
         title: 'Order Not Found',
         message: 'The order you\'re trying to complete was not found.',
@@ -147,7 +142,6 @@ router.get('/complete-order/:orderId', isAuthorizedForOrderCompletion, async (re
 
     // Only allow completion if not already completed
     if (order.FulfillmentStatus === 'Completed') {
-      await client.close();
       return res.render('staff/order-complete', {
         title: 'Order Already Completed',
         layout: false,
@@ -163,8 +157,6 @@ router.get('/complete-order/:orderId', isAuthorizedForOrderCompletion, async (re
       { OrderID: orderId },
       { $set: { FulfillmentStatus: 'Completed', fulfillmentStatus: 'Completed' } }
     );
-
-    await client.close();
 
     // Render success page
     res.render('staff/order-complete', {
@@ -203,11 +195,9 @@ router.use((req, res, next) => {
   next();
 });
 
-async function getMenu() {
-  const client = await MongoClient.connect(uri);
-  const db = client.db('blessingscafe');
+async function getMenu(db) {
+  // Using shared DB connection
   const menu = await db.collection('Menu').find().toArray();
-  await client.close();
   return menu;
 }
 
@@ -216,10 +206,8 @@ async function getMenu() {
 router.get('/dashboard', async (req, res) => {
   try {
     // Fetch current user data from database to ensure fullname is up to date
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const currentUser = await db.collection('users').findOne({ _id: new ObjectId(req.session.user._id) });
-    await client.close();
+    // Using shared DB connection from req.db
+    const currentUser = await req.db.collection('users').findOne({ _id: new ObjectId(req.session.user._id) });
 
     // Merge session data with fresh database data
     const userData = {
@@ -229,25 +217,24 @@ router.get('/dashboard', async (req, res) => {
 
     // Fetch all dashboard data server-side for better loading performance
     const [basicStats, analyticsStats, topCategories, paymentTypes, ordersBySource, salesPerformance] = await Promise.all([
-      getDashboardStats(),
-      getDashboardAnalyticsStats(),
-      getTopCategories(),
-      getPaymentTypes(),
-      getOrdersBySource(),
-      getSalesPerformance(14)
+      getDashboardStats(req.db),
+      getDashboardAnalyticsStats(req.db),
+      getTopCategories(req.db),
+      getPaymentTypes(req.db),
+      getOrdersBySource(req.db),
+      getSalesPerformance(req.db, 14)
     ]);
 
     // Fetch low stock data for dashboard
     let lowStockData = { quantity: 0, name: 'All stocked', type: 'none', hasMore: false };
     try {
       // Get user's low stock threshold from settings
-      const client = await MongoClient.connect(uri);
-      const db = client.db('blessingscafe');
-      const userSettings = await db.collection('UserSettings').findOne({ userId: req.session.user._id });
+      // Using shared DB connection from req.db
+      const userSettings = await req.db.collection('UserSettings').findOne({ userId: req.session.user._id });
       const threshold = userSettings?.lowStockAlertRange || 5;
 
-    const ingredients = await db.collection('Ingredients').find({ Amount: { $lte: threshold }, isEnabled: true }).sort({ Amount: 1 }).toArray();
-    const addons = await db.collection('Add-ons').find({ Amount: { $lte: threshold }, isEnabled: true }).sort({ Amount: 1 }).toArray();
+    const ingredients = await req.db.collection('Ingredients').find({ Amount: { $lte: threshold }, isEnabled: true }).sort({ Amount: 1 }).toArray();
+    const addons = await req.db.collection('Add-ons').find({ Amount: { $lte: threshold }, isEnabled: true }).sort({ Amount: 1 }).toArray();
 
       const getItemName = (item, type) => {
         if (type === 'ingredient') {
@@ -281,8 +268,6 @@ router.get('/dashboard', async (req, res) => {
           allItems: allLowStockItems.length > 1 ? allLowStockItems.slice(1).map(item => `${item.name} (${item.quantity})`) : []
         };
       }
-
-      await client.close();
     } catch (error) {
       console.error('Low stock data fetch error:', error);
     }
@@ -293,12 +278,8 @@ router.get('/dashboard', async (req, res) => {
       ...analyticsStats
     };
 
-    // Get user settings for threshold
-    const clientThreshold = await MongoClient.connect(uri);
-    const dbThreshold = clientThreshold.db('blessingscafe');
-    const userSettingsThreshold = await dbThreshold.collection('UserSettings').findOne({ userId: req.session.user._id });
+    const userSettingsThreshold = await req.db.collection('UserSettings').findOne({ userId: req.session.user._id });
     const userLowStockThreshold = userSettingsThreshold?.lowStockAlertRange || 5;
-    await clientThreshold.close();
 
     res.render('staff/dashboard', {
       title: 'Staff Dashboard',
@@ -330,19 +311,16 @@ router.get('/pos', async (req, res) => {
 router.get('/menu', async (req, res) => {
   try {
     // Fetch current user data from database to ensure fullname is up to date
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const currentUser = await db.collection('users').findOne({ _id: new ObjectId(req.session.user._id) });
+    // Using shared DB connection from req.db
+    const currentUser = await req.db.collection('users').findOne({ _id: new ObjectId(req.session.user._id) });
     
     // Fetch menu items, addons, ingredients, and active promos
     const [menu, addons, ingredients, activePromos] = await Promise.all([
-      getMenu(),
-      db.collection('Add-ons').find({ isEnabled: true }).toArray(),
-      db.collection('Ingredients').find({ isEnabled: true }).toArray(),
-      getActiveDiscounts()
+      getMenu(req.db),
+      req.db.collection('Add-ons').find({ isEnabled: true }).toArray(),
+      req.db.collection('Ingredients').find({ isEnabled: true }).toArray(),
+      getActiveDiscounts(req.db)
     ]);
-    
-    await client.close();
 
     // Merge session data with fresh database data
     const userData = {
@@ -371,13 +349,11 @@ router.get('/menu', async (req, res) => {
 
 router.get('/order', async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const ordersCollection = db.collection('Orders');
-    const menuCollection = db.collection('Menu');
+    // Using shared DB connection from req.db
+    const ordersCollection = req.db.collection('Orders');
+    const menuCollection = req.db.collection('Menu');
     const orders = await ordersCollection.find().toArray();
     const menu = await menuCollection.find().toArray();
-    await client.close();
     res.render('staff/order', {
       title: 'Orders',
       layout: 'staff/layout',
@@ -403,12 +379,11 @@ router.get('/calculator', (req, res) => {
 
 router.get('/settings', async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const user = await db.collection('users').findOne({ _id: new ObjectId(req.session.user._id) });
+    // Using shared DB connection from req.db
+    const user = await req.db.collection('users').findOne({ _id: new ObjectId(req.session.user._id) });
 
     // Load user settings from UserSettings collection
-    let userSettings = await db.collection('UserSettings').findOne({ userId: req.session.user._id });
+    let userSettings = await req.db.collection('UserSettings').findOne({ userId: req.session.user._id });
     if (!userSettings) {
       userSettings = {
         soundEnabled: true,
@@ -417,8 +392,6 @@ router.get('/settings', async (req, res) => {
         orderConfirmations: true
       };
     }
-
-    await client.close();
 
     res.render('staff/settings', {
       title: 'Settings',
@@ -440,15 +413,12 @@ router.post('/settings', async (req, res) => {
   try {
     const { displayName, email, phone } = req.body;
 
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
-    await db.collection('users').updateOne(
+    await req.db.collection('users').updateOne(
       { _id: new ObjectId(req.session.user._id) },
       { $set: { displayName, email, phone } }
     );
-
-    await client.close();
 
     res.redirect('/staff/settings');
   } catch (error) {
@@ -473,11 +443,10 @@ router.post('/settings/preferences', async (req, res) => {
       updatedAt: new Date()
     };
 
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
     // Fetch existing settings to preserve other values
-    const existingSettings = await db.collection('UserSettings').findOne({ userId: req.session.user._id });
+    const existingSettings = await req.db.collection('UserSettings').findOne({ userId: req.session.user._id });
 
     // Process boolean values or use existing values
     if (typeof soundEnabled !== 'undefined') {
@@ -521,7 +490,7 @@ router.post('/settings/preferences', async (req, res) => {
     }
 
     // Upsert user settings
-    await db.collection('UserSettings').updateOne(
+    await req.db.collection('UserSettings').updateOne(
       { userId: req.session.user._id },
       {
         $set: updateFields,
@@ -532,8 +501,6 @@ router.post('/settings/preferences', async (req, res) => {
       },
       { upsert: true }
     );
-
-    await client.close();
     console.log('Updated staff lowStockAlertRange to:', updateFields.lowStockAlertRange);
     res.json({ success: true, message: 'Preferences updated successfully', lowStockAlertRange: updateFields.lowStockAlertRange });
   } catch (error) {
@@ -548,9 +515,8 @@ router.patch('/orders/:orderId/fulfillment', async (req, res) => {
     const { orderId } = req.params;
     const { FulfillmentStatus } = req.body;
 
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const ordersCollection = db.collection('Orders');
+    // Using shared DB connection from req.db
+    const ordersCollection = req.db.collection('Orders');
 
     // Get current order before update
     const currentOrder = await ordersCollection.findOne({ OrderID: orderId });
@@ -559,6 +525,9 @@ router.patch('/orders/:orderId/fulfillment', async (req, res) => {
       { OrderID: orderId },
       { $set: { FulfillmentStatus, fulfillmentStatus: FulfillmentStatus } }
     );
+
+    // Get updated order for notification
+    const updatedOrder = await ordersCollection.findOne({ OrderID: orderId });
 
     // If status is being set to 'Cancelled', rollback inventory
     if (FulfillmentStatus === 'Cancelled' && currentOrder && currentOrder.Cart && Array.isArray(currentOrder.Cart) && currentOrder.Cart.length > 0) {
@@ -575,7 +544,22 @@ router.patch('/orders/:orderId/fulfillment', async (req, res) => {
       }
     }
 
-    await client.close();
+    // Notify chatbot if this is a chatbot order
+    if (updatedOrder && updatedOrder.Source === 'Chatbot') {
+      try {
+        const { notifyOrderStatusChange } = require('../utils/chatbotNotifier');
+        const notificationResult = await notifyOrderStatusChange(updatedOrder, FulfillmentStatus);
+        
+        if (notificationResult.success) {
+          console.log(`🔔 Chatbot notification sent for order ${orderId}`);
+        } else if (!notificationResult.skipped) {
+          console.warn(`⚠️ Chatbot notification failed for order ${orderId}:`, notificationResult.message);
+        }
+      } catch (notifyError) {
+        console.error('❌ Error sending chatbot notification:', notifyError);
+        // Don't fail the request if notification fails
+      }
+    }
 
     if (result.matchedCount === 0) {
       return res.status(404).json({ error: 'Order not found' });
@@ -593,16 +577,13 @@ router.patch('/orders/:orderId/payment-status', async (req, res) => {
     const { orderId } = req.params;
     const { PaymentStatus } = req.body;
     
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const ordersCollection = db.collection('Orders');
+    // Using shared DB connection from req.db
+    const ordersCollection = req.db.collection('Orders');
     
     const result = await ordersCollection.updateOne(
       { OrderID: orderId },
       { $set: { PaymentStatus, paymentStatus: PaymentStatus } }
     );
-    
-    await client.close();
     
     if (result.matchedCount === 0) {
       return res.status(404).json({ error: 'Order not found' });
@@ -615,18 +596,70 @@ router.patch('/orders/:orderId/payment-status', async (req, res) => {
   }
 });
 
+// Update FulfillmentMethod (Delivery/Pick-Up)
+router.patch('/orders/:orderId/fulfillment-method', async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { FulfillmentMethod } = req.body;
+    
+    // Validate FulfillmentMethod
+    if (!['Delivery', 'Pick-Up'].includes(FulfillmentMethod)) {
+      return res.status(400).json({ error: 'Invalid FulfillmentMethod. Must be "Delivery" or "Pick-Up"' });
+    }
+    
+    // Using shared DB connection from req.db
+    const ordersCollection = req.db.collection('Orders');
+    
+    const result = await ordersCollection.updateOne(
+      { OrderID: orderId },
+      { $set: { 
+        FulfillmentMethod,
+        DeliveryStatus: FulfillmentMethod,
+        deliveryStatus: FulfillmentMethod
+      } }
+    );
+    
+    // Get updated order for notification
+    const updatedOrder = await ordersCollection.findOne({ OrderID: orderId });
+    
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    
+    // Notify chatbot if this is a chatbot order
+    if (updatedOrder && updatedOrder.Source === 'Chatbot') {
+      try {
+        const { notifyOrderStatusChange } = require('../utils/chatbotNotifier');
+        const notificationResult = await notifyOrderStatusChange(updatedOrder, updatedOrder.FulfillmentStatus || 'Pending');
+        
+        if (notificationResult.success) {
+          console.log(`🔔 Chatbot notification sent for order ${orderId} - FulfillmentMethod changed to ${FulfillmentMethod}`);
+        } else if (!notificationResult.skipped) {
+          console.warn(`⚠️ Chatbot notification failed for order ${orderId}:`, notificationResult.message);
+        }
+      } catch (notifyError) {
+        console.error('❌ Error sending chatbot notification:', notifyError);
+        // Don't fail the request if notification fails
+      }
+    }
+    
+    res.json({ success: true, message: 'Fulfillment method updated successfully' });
+  } catch (error) {
+    console.error('Error updating fulfillment method:', error);
+    res.status(500).json({ error: 'Failed to update fulfillment method' });
+  }
+});
+
 router.patch('/orders/:orderId/cancel', async (req, res) => {
   try {
     const { orderId } = req.params;
 
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const ordersCollection = db.collection('Orders');
+    // Using shared DB connection from req.db
+    const ordersCollection = req.db.collection('Orders');
 
     // First, get the order data before updating (needed for stock rollback)
     const order = await ordersCollection.findOne({ OrderID: orderId });
     if (!order) {
-      await client.close();
       return res.status(404).json({ error: 'Order not found' });
     }
 
@@ -644,7 +677,6 @@ router.patch('/orders/:orderId/cancel', async (req, res) => {
           }
         }
       );
-      await client.close();
       return res.json({ success: true, message: 'Order cancelled successfully' });
     }
 
@@ -678,8 +710,6 @@ router.patch('/orders/:orderId/cancel', async (req, res) => {
       }
     );
 
-    await client.close();
-
     if (result.matchedCount === 0) {
       return res.status(404).json({ error: 'Order not found' });
     }
@@ -696,9 +726,8 @@ router.patch('/orders/:orderId/restore', async (req, res) => {
     const { orderId } = req.params;
     const { PaymentStatus, FulfillmentStatus } = req.body;
     
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const ordersCollection = db.collection('Orders');
+    // Using shared DB connection from req.db
+    const ordersCollection = req.db.collection('Orders');
     
     const result = await ordersCollection.updateOne(
       { OrderID: orderId },
@@ -711,8 +740,6 @@ router.patch('/orders/:orderId/restore', async (req, res) => {
         } 
       }
     );
-    
-    await client.close();
     
     if (result.matchedCount === 0) {
       return res.status(404).json({ error: 'Order not found' });
@@ -758,12 +785,11 @@ const upload = multer({
 // Messages page
 router.get('/messages', async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
     const currentUserId = req.session.user._id;
 
     // Get all users for messaging (admins, owners and staff only) - include current user for sender display
-    const users = await db.collection('users').find({
+    const users = await req.db.collection('users').find({
       role: { $in: ['admin', 'owner', 'staff'] }
     }).project({
       _id: 1,
@@ -773,7 +799,7 @@ router.get('/messages', async (req, res) => {
     }).toArray();
 
     // Get conversations for current user (server-side)
-    const messages = await db.collection('messages')
+    const messages = await req.db.collection('messages')
       .find({
         $or: [
           { senderId: currentUserId },
@@ -817,7 +843,7 @@ router.get('/messages', async (req, res) => {
     // Get participant details
     if (conversations.length > 0) {
       const participantIds = conversations.map(c => c.participantId);
-      const participants = await db.collection('users')
+      const participants = await req.db.collection('users')
         .find({ _id: { $in: participantIds.map(id => new ObjectId(id)) } })
         .toArray();
 
@@ -830,8 +856,6 @@ router.get('/messages', async (req, res) => {
         }
       });
     }
-
-    await client.close();
 
     res.render('staff/messages', {
       title: 'Messages | Blessings Cafe',
@@ -857,12 +881,11 @@ router.get('/messages', async (req, res) => {
 // Get conversations for current user
 router.get('/messages/api/conversations', async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
     const currentUserId = req.session.user._id;
 
     // Find all unique conversation partners
-    const messages = await db.collection('messages')
+    const messages = await req.db.collection('messages')
       .find({
         $or: [
           { senderId: currentUserId },
@@ -906,7 +929,7 @@ router.get('/messages/api/conversations', async (req, res) => {
     // Get participant details
     if (conversations.length > 0) {
       const participantIds = conversations.map(c => c.participantId);
-      const participants = await db.collection('users')
+      const participants = await req.db.collection('users')
         .find({ _id: { $in: participantIds.map(id => new ObjectId(id)) } })
         .toArray();
 
@@ -920,8 +943,6 @@ router.get('/messages/api/conversations', async (req, res) => {
       });
     }
 
-    await client.close();
-
     res.json(conversations);
   } catch (error) {
     console.error('Error fetching conversations:', error);
@@ -932,8 +953,7 @@ router.get('/messages/api/conversations', async (req, res) => {
 // Get messages for a conversation
 router.get('/messages/api/messages/:conversationId', async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
     const currentUserId = req.session.user._id;
     const conversationId = req.params.conversationId;
 
@@ -942,7 +962,7 @@ router.get('/messages/api/messages/:conversationId', async (req, res) => {
     const participantId = user1 === currentUserId ? user2 : user1;
 
     // Get messages between current user and participant
-    const messages = await db.collection('messages')
+    const messages = await req.db.collection('messages')
       .find({
         $or: [
           { senderId: currentUserId, recipientId: participantId },
@@ -953,7 +973,7 @@ router.get('/messages/api/messages/:conversationId', async (req, res) => {
       .toArray();
 
     // Mark messages as read
-    await db.collection('messages').updateMany(
+    await req.db.collection('messages').updateMany(
       {
         senderId: participantId,
         recipientId: currentUserId,
@@ -961,8 +981,6 @@ router.get('/messages/api/messages/:conversationId', async (req, res) => {
       },
       { $set: { read: true, readAt: new Date() } }
     );
-
-    await client.close();
     res.json(messages);
   } catch (error) {
     console.error('Error fetching messages:', error);
@@ -980,17 +998,15 @@ router.post('/messages/api/send', async (req, res) => {
       return res.status(400).json({ error: 'Recipient and content or attachments required' });
     }
 
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
     // Verify recipient exists and is admin/staff/owner
-    const recipient = await db.collection('users').findOne({
+    const recipient = await req.db.collection('users').findOne({
       _id: new ObjectId(recipientId),
       role: { $in: ['admin', 'owner', 'staff'] }
     });
 
     if (!recipient) {
-      await client.close();
       return res.status(404).json({ error: 'Recipient not found' });
     }
 
@@ -1004,11 +1020,11 @@ router.post('/messages/api/send', async (req, res) => {
       read: false
     };
 
-    const result = await db.collection('messages').insertOne(message);
+    const result = await req.db.collection('messages').insertOne(message);
 
     // Create notification for new message
     try {
-      await createMessageNotification({
+      await createMessageNotification(req.db, {
         _id: result.insertedId,
         senderName: req.session.user?.fullname || 'Unknown',
         subject: subject || 'New Message'
@@ -1017,8 +1033,6 @@ router.post('/messages/api/send', async (req, res) => {
       console.error('Failed to create message notification:', notifError);
       // Don't fail the message sending if notification fails
     }
-
-    await client.close();
 
     res.json({
       success: true,
@@ -1033,15 +1047,12 @@ router.post('/messages/api/send', async (req, res) => {
 // Get users for messaging
 router.get('/messages/api/users', async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
-    const users = await db.collection('users').find({
+    const users = await req.db.collection('users').find({
       role: { $in: ['admin', 'owner', 'staff'] },
       _id: { $ne: new ObjectId(req.session.user._id) } // Exclude current user
     }).toArray();
-
-    await client.close();
     res.json(users);
   } catch (error) {
     console.error('Error fetching users:', error);
@@ -1052,16 +1063,13 @@ router.get('/messages/api/users', async (req, res) => {
 // Get unread message count for current user
 router.get('/messages/api/unread-count', async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
     const currentUserId = req.session.user._id;
 
-    const unreadCount = await db.collection('messages').countDocuments({
+    const unreadCount = await req.db.collection('messages').countDocuments({
       recipientId: currentUserId,
       read: false
     });
-
-    await client.close();
     res.json({ unreadCount });
   } catch (error) {
     console.error('Error fetching unread count:', error);
@@ -1073,10 +1081,8 @@ router.get('/messages/api/unread-count', async (req, res) => {
 router.get('/analytics', async (req, res) => {
   try {
     // Fetch current user data from database to ensure fullname is up to date
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    const currentUser = await db.collection('users').findOne({ _id: new ObjectId(req.session.user._id) });
-    await client.close();
+    // Using shared DB connection from req.db
+    const currentUser = await req.db.collection('users').findOne({ _id: new ObjectId(req.session.user._id) });
 
     // Merge session data with fresh database data
     const userData = {
@@ -1103,7 +1109,7 @@ router.get('/analytics', async (req, res) => {
 // Analytics Endpoints
 router.get('/analytics/dashboard-stats', async (req, res) => {
   try {
-    const stats = await getDashboardAnalyticsStats();
+    const stats = await getDashboardAnalyticsStats(req.db);
     res.json(stats);
   } catch (error) {
     console.error('Dashboard stats error:', error);
@@ -1113,11 +1119,10 @@ router.get('/analytics/dashboard-stats', async (req, res) => {
 
 router.get('/analytics/popular-products', async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
     // Get popular products from orders
-    const popularProducts = await db.collection('Orders').aggregate([
+    const popularProducts = await req.db.collection('Orders').aggregate([
       { $unwind: '$Cart' },
       {
         $group: {
@@ -1128,8 +1133,6 @@ router.get('/analytics/popular-products', async (req, res) => {
       { $sort: { totalQuantity: -1 } },
       { $limit: 20 }
     ]).toArray();
-
-    await client.close();
     res.json(popularProducts);
   } catch (error) {
     console.error('Popular products error:', error);
@@ -1139,14 +1142,13 @@ router.get('/analytics/popular-products', async (req, res) => {
 
 router.get('/analytics/sales-per-day', async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
     // Get sales per day for the last 30 days
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const salesPerDay = await db.collection('Orders').aggregate([
+    const salesPerDay = await req.db.collection('Orders').aggregate([
       {
         $match: {
           Date: { $gte: thirtyDaysAgo.toISOString() },
@@ -1167,8 +1169,6 @@ router.get('/analytics/sales-per-day', async (req, res) => {
       },
       { $sort: { '_id': 1 } }
     ]).toArray();
-
-    await client.close();
     res.json(salesPerDay);
   } catch (error) {
     console.error('Sales per day error:', error);
@@ -1178,10 +1178,9 @@ router.get('/analytics/sales-per-day', async (req, res) => {
 
 router.get('/analytics/payment-methods', async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
-    const paymentMethods = await db.collection('Orders').aggregate([
+    const paymentMethods = await req.db.collection('Orders').aggregate([
       {
         $match: {
           PaymentStatus: { $in: ['Paid', 'Payment pending'] }
@@ -1196,8 +1195,6 @@ router.get('/analytics/payment-methods', async (req, res) => {
       },
       { $sort: { revenue: -1 } }
     ]).toArray();
-
-    await client.close();
     res.json(paymentMethods);
   } catch (error) {
     console.error('Payment methods error:', error);
@@ -1207,10 +1204,9 @@ router.get('/analytics/payment-methods', async (req, res) => {
 
 router.get('/analytics/order-sources', async (req, res) => {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
-    const orderSources = await db.collection('Orders').aggregate([
+    const orderSources = await req.db.collection('Orders').aggregate([
       {
         $group: {
           _id: '$Source',
@@ -1220,8 +1216,6 @@ router.get('/analytics/order-sources', async (req, res) => {
       },
       { $sort: { orderCount: -1 } }
     ]).toArray();
-
-    await client.close();
     res.json(orderSources);
   } catch (error) {
     console.error('Order sources error:', error);
@@ -1232,8 +1226,7 @@ router.get('/analytics/order-sources', async (req, res) => {
 router.get('/analytics/order-history', async (req, res) => {
   try {
     const days = req.query.days === 'all' ? null : parseInt(req.query.days) || 7;
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
     let matchCondition = {};
     if (days) {
@@ -1242,7 +1235,7 @@ router.get('/analytics/order-history', async (req, res) => {
       matchCondition.Date = { $gte: dateLimit.toISOString() };
     }
 
-    const orders = await db.collection('Orders').aggregate([
+    const orders = await req.db.collection('Orders').aggregate([
       { $match: matchCondition },
       {
         $project: {
@@ -1262,8 +1255,6 @@ router.get('/analytics/order-history', async (req, res) => {
       { $sort: { Date: -1 } },
       { $limit: 100 }
     ]).toArray();
-
-    await client.close();
     res.json(orders);
   } catch (error) {
     console.error('Order history error:', error);
@@ -1326,15 +1317,14 @@ router.get('/analytics/sales-report-pdf', async (req, res) => {
     }
 
     // Get sales data from database (simplified like the working order-history route)
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
     // Create date strings for comparison (same format as order-history route)
     const cutoffStart = startDate.toISOString().split('T')[0]; // YYYY-MM-DD format
     const cutoffEnd = endDate.toISOString().split('T')[0];
 
     // Query orders within date range (like the working order-history route)
-    const orders = await db.collection('Orders').find({
+    const orders = await req.db.collection('Orders').find({
       Date: { $gte: cutoffStart, $lte: cutoffEnd },
       PaymentStatus: { $ne: "Cancelled" }
     })
@@ -1387,7 +1377,7 @@ router.get('/analytics/sales-report-pdf', async (req, res) => {
       }));
 
     // Fetch current menu items for price lookups (keep connection open)
-    const currentMenu = await db.collection('Menu').find({ isEnabled: true }).toArray();
+    const currentMenu = await req.db.collection('Menu').find({ isEnabled: true }).toArray();
     const menuLookup = {};
     currentMenu.forEach(menuItem => {
       menuLookup[menuItem.Name] = menuItem;
@@ -1443,8 +1433,6 @@ router.get('/analytics/sales-report-pdf', async (req, res) => {
         revenue: Math.round(stats.revenue),
         quantity: stats.quantity
       }));
-
-    await client.close();
 
     // Generate HTML for PDF
     const html = `
@@ -1726,13 +1714,10 @@ router.get('/analytics/low-stock', async (req, res) => {
   try {
     const threshold = parseInt(req.query.threshold) || 5; // Default to 5, can be 5-100
 
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    // Using shared DB connection from req.db
 
-    const ingredients = await db.collection('Ingredients').find({ Amount: { $lte: threshold }, isEnabled: true }).sort({ Amount: 1 }).toArray();
-    const addons = await db.collection('Add-ons').find({ Amount: { $lte: threshold }, isEnabled: true }).sort({ Amount: 1 }).toArray();
-
-    await client.close();
+    const ingredients = await req.db.collection('Ingredients').find({ Amount: { $lte: threshold }, isEnabled: true }).sort({ Amount: 1 }).toArray();
+    const addons = await req.db.collection('Add-ons').find({ Amount: { $lte: threshold }, isEnabled: true }).sort({ Amount: 1 }).toArray();
 
     // Helper function to get item name
     const getItemName = (item, type) => {
@@ -1787,7 +1772,7 @@ router.get('/analytics/low-stock', async (req, res) => {
 
 router.get('/analytics/top-categories', async (req, res) => {
   try {
-    const categories = await getTopCategories();
+    const categories = await getTopCategories(req.db);
     res.json(categories);
   } catch (error) {
     console.error('Top categories error:', error);
@@ -1797,7 +1782,7 @@ router.get('/analytics/top-categories', async (req, res) => {
 
 router.get('/analytics/payment-types', async (req, res) => {
   try {
-    const paymentTypes = await getPaymentTypes();
+    const paymentTypes = await getPaymentTypes(req.db);
     res.json(paymentTypes);
   } catch (error) {
     console.error('Payment types error:', error);
@@ -1807,7 +1792,7 @@ router.get('/analytics/payment-types', async (req, res) => {
 
 router.get('/analytics/orders-by-source', async (req, res) => {
   try {
-    const ordersBySource = await getOrdersBySource();
+    const ordersBySource = await getOrdersBySource(req.db);
     res.json(ordersBySource);
   } catch (error) {
     console.error('Orders by source error:', error);
@@ -1818,7 +1803,7 @@ router.get('/analytics/orders-by-source', async (req, res) => {
 router.get('/analytics/sales-performance', async (req, res) => {
   try {
     const days = parseInt(req.query.days) || 14;
-    const results = await getSalesPerformance(days);
+    const results = await getSalesPerformance(req.db, days);
     res.json(results);
   } catch (error) {
     console.error('Sales performance error:', error);
@@ -1832,7 +1817,7 @@ router.get('/analytics/export-performance', async (req, res) => {
     const days = parseInt(req.query.days) || 14;
 
     // Get performance data
-    const performanceData = await getSalesPerformance(days);
+    const performanceData = await getSalesPerformance(req.db, days);
 
     // Calculate summary statistics
     const totalEarnings = performanceData.reduce((sum, day) => sum + (day.earnings || 0), 0);
@@ -2107,6 +2092,88 @@ router.post('/messages/api/upload', upload.array('files', 5), (req, res) => {
   } catch (error) {
     console.error('Error uploading files:', error);
     res.status(500).json({ error: 'Failed to upload files' });
+  }
+});
+
+// Staff endpoint to complete order (for QR code)
+router.get('/complete-order', isAuthorizedForOrderCompletion, async (req, res) => {
+  try {
+    const { orderId, secret } = req.query;
+    if (!orderId || !secret) {
+      return res.status(400).render('error', {
+        title: 'Invalid Request',
+        message: 'Missing order ID or secret.',
+        status: 400
+      });
+    }
+
+    // Verify secret
+    const expectedSecret = process.env.ORDER_COMPLETION_SECRET;
+    if (secret !== expectedSecret) {
+      return res.status(403).render('error', {
+        title: 'Access Denied',
+        message: 'Invalid secret.',
+        status: 403
+      });
+    }
+
+    // Fetch order details
+    const order = await req.db.collection('Orders').findOne({ OrderID: orderId });
+    if (!order) {
+      return res.status(404).render('error', {
+        title: 'Order Not Found',
+        message: 'Order not found.',
+        status: 404
+      });
+    }
+
+    res.render('staff/complete-order', {
+      title: 'Complete Order | Blessings Cafe',
+      user: req.session.user,
+      order: order,
+      orderId: orderId,
+      secret: secret
+    });
+  } catch (error) {
+    console.error('Staff complete order page error:', error);
+    res.status(500).render('error', {
+      title: 'Server Error',
+      message: 'Failed to load order completion page',
+      status: 500
+    });
+  }
+});
+
+router.post('/complete-order', isAuthorizedForOrderCompletion, async (req, res) => {
+  try {
+    const { orderId, secret } = req.body; // From QR URL params
+    if (!orderId || !secret) {
+      return res.status(400).json({ success: false, error: 'Missing orderId or secret' });
+    }
+
+    // Verify secret (e.g., compare to a hash or stored value)
+    const expectedSecret = process.env.ORDER_COMPLETION_SECRET; // Set in .env
+    if (secret !== expectedSecret) {
+      return res.status(403).json({ success: false, error: 'Invalid secret' });
+    }
+
+    // Update to Completed
+    const order = await req.db.collection('Orders').findOneAndUpdate(
+      { OrderID: orderId },
+      { $set: { FulfillmentStatus: 'Completed' } },
+      { returnDocument: 'after' }
+    );
+    if (!order) {
+      return res.status(404).json({ success: false, error: 'Order not found' });
+    }
+
+    // Optional: Send webhook to N8N for notification (if needed)
+    // await axios.post('https://your-n8n-instance.com/webhook/order-completed', { orderId });
+
+    res.json({ success: true, message: 'Order marked as completed', data: { orderId } });
+  } catch (error) {
+    console.error('Staff complete order error:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
   }
 });
 

@@ -1,7 +1,54 @@
-// Load cart items from localStorage
-let orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+// Initialize cart items (will be loaded asynchronously)
+let orderItems = [];
+let cartLastLoaded = 0;
+const CART_LOAD_COOLDOWN = 5000; // 5 seconds cooldown between cart loads
+let cartLoadInProgress = false; // Prevent simultaneous cart loads
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+  // Load cart data based on user type
+  if (window.user && window.user._id) {
+    // For logged-in users, load from server with rate limiting
+    const now = Date.now();
+    if (now - cartLastLoaded > CART_LOAD_COOLDOWN && !cartLoadInProgress) {
+      cartLoadInProgress = true;
+      try {
+        const response = await fetch('/api/cart');
+        if (response.status === 200 && response.headers.get('content-type')?.includes('application/json')) {
+          orderItems = await response.json();
+          cartLastLoaded = now;
+          console.log('Loaded cart from server:', orderItems);
+        } else if (response.status === 429) {
+          console.warn('Rate limited, using localStorage fallback');
+          // Fallback to localStorage for rate limiting
+          orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+        } else {
+          console.error('Failed to load cart from server, status:', response.status);
+          // Fallback to localStorage
+          orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+        }
+      } catch (error) {
+        console.error('Error loading cart from server:', error);
+        // Fallback to localStorage
+        orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+      } finally {
+        cartLoadInProgress = false;
+      }
+    } else {
+      console.log('Cart loaded recently or in progress, using cached data');
+      orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+    }
+
+    // Strip domain from imagelinks for local display
+    orderItems.forEach(item => {
+      if (item.imagelink && item.imagelink.startsWith('https://blessingsateverysip.me')) {
+        item.imagelink = item.imagelink.replace('https://blessingsateverysip.me', '');
+      }
+    });
+  } else {
+    // For guests, use localStorage
+    orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+  }
+
   // Only run cart functions if cart elements exist
   const cartItemsContainer = document.getElementById('cart-items');
   if (cartItemsContainer) {
@@ -22,7 +69,6 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!window.user) {
         // For guests, POST cart data to server
         console.log('Posting guest cart data');
-        const orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
         try {
           await fetch('/checkout', {
             method: 'POST',
@@ -61,7 +107,7 @@ function displayCartItems() {
       <div class="empty-cart">
         <h3>Your cart is empty</h3>
         <p>Let's add some delicious items to your cart!</p>
-        <button onclick="window.location.href='/menu'" class="checkout-btn">Browse Menu</button>
+        <button onclick="window.location.href='/'" class="checkout-btn">Browse Menu</button>
       </div>
     `;
     cartTotalContainer.innerHTML = '';
@@ -127,15 +173,20 @@ function changeQuantity(index, delta) {
   const item = orderItems[index];
   if (!item) return;
 
-  const newQuantity = Math.max(1, item.quantity + delta);
-  if (newQuantity !== item.quantity) {
-    item.quantity = newQuantity;
-    saveCart();
-    displayCartItems();
-    updateCartTotal();
+  if (delta === -1 && item.quantity === 1) {
+    // Remove item if decreasing from 1
+    removeItem(index);
+  } else {
+    const newQuantity = Math.max(1, item.quantity + delta);
+    if (newQuantity !== item.quantity) {
+      item.quantity = newQuantity;
+      saveCart();
+      displayCartItems();
+      updateCartTotal();
 
-    if (typeof updateCartCount === 'function') {
-      updateCartCount();
+      if (typeof updateCartCount === 'function') {
+        updateCartCount();
+      }
     }
   }
 }
@@ -164,16 +215,18 @@ function updateQuantity(index, value) {
 
 // Remove item
 function removeItem(index) {
-  if (confirm('Are you sure you want to remove this item from your cart?')) {
-    orderItems.splice(index, 1);
-    saveCart();
-    displayCartItems();
-    updateCartTotal();
+  const itemToRemove = orderItems[index];
+  orderItems.splice(index, 1);
+  saveCart();
+  displayCartItems();
+  updateCartTotal();
 
-    if (typeof updateCartCount === 'function') {
-      updateCartCount();
-    }
+  if (typeof updateCartCount === 'function') {
+    updateCartCount();
   }
+
+  // Show cart removal notification with item details
+  showCartRemoveNotification(itemToRemove);
 }
 
 // Update cart total display
@@ -198,7 +251,7 @@ function updateCartTotal() {
   }, 0);
 
   cartTotalContainer.innerHTML = `
-    <div">
+    <div>
       <p>Subtotal: ₱${totalPrice.toFixed(2)} PHP</p>
       <p style="font-size: 1rem;">Shipping calculated at checkout</p>
     </div>
@@ -209,15 +262,115 @@ function updateCartTotal() {
 function saveCart() {
   localStorage.setItem('orderItems', JSON.stringify(orderItems));
 
-  // Sync with server for logged-in users
+  // Sync with server for logged-in users (with rate limiting)
   if (window.user && window.user._id) {
-    fetch('/api/cart', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(orderItems)
-    }).catch(err => console.error('Error saving cart to server:', err));
+    // Debounce server saves to prevent excessive API calls
+    if (!saveCart.timeoutId) {
+      saveCart.timeoutId = setTimeout(async () => {
+        try {
+          const response = await fetch('/api/cart', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(orderItems)
+          });
+          
+          if (response.status === 429) {
+            console.warn('Cart save rate limited, will retry later');
+            // Don't clear timeout, let it retry
+            return;
+          } else if (!response.ok) {
+            console.error('Error saving cart to server:', response.status);
+          }
+        } catch (err) {
+          console.error('Error saving cart to server:', err);
+        } finally {
+          saveCart.timeoutId = null;
+        }
+      }, 2000); // Wait 2 seconds before saving to server
+    }
+  }
+}
+
+// Show cart removal notification (matches add-to-cart popup style)
+function showCartRemoveNotification(removedItem) {
+  // Create the popup element if it doesn't exist
+  let popup = document.getElementById('cart-remove-popup');
+  if (popup) {
+    // Remove existing popup to recreate with new item details
+    popup.remove();
+  }
+
+  popup = document.createElement('div');
+  popup.id = 'cart-remove-popup';
+  popup.className = 'cart-remove-popup';
+
+  // Build item details HTML similar to add-to-cart popup
+  let detailsHtml = '';
+
+  if (removedItem.size) {
+    detailsHtml += `<span>Size: ${removedItem.size}</span><br>`;
+  }
+  if (removedItem.quantity && removedItem.quantity > 1) {
+    detailsHtml += `<span>Qty: ${removedItem.quantity}</span>`;
+  }
+  if (removedItem.addons && removedItem.addons.length > 0) {
+    const addonNames = removedItem.addons.map(addon => addon.Name || addon.name).join(', ');
+    detailsHtml += `<span>Add-ons: ${addonNames}</span>`;
+  }
+
+  popup.innerHTML = `
+    <div class="cart-remove-header">
+      <span>✓ Item removed from your cart</span>
+      <button id="cart-remove-close" class="cart-remove-close">&times;</button>
+    </div>
+    <div class="cart-remove-body">
+      <div class="cart-remove-item">
+        <div class="cart-remove-image">
+          ${removedItem.imagelink ?
+            `<img src="${removedItem.imagelink}" alt="${removedItem.name}">` :
+            `<div class="cart-remove-placeholder">No Image</div>`
+          }
+        </div>
+        <div class="cart-remove-info">
+          <h4>${removedItem.name}</h4>
+          <div class="cart-remove-details">
+            ${detailsHtml}
+          </div>
+        </div>
+      </div>
+      <p class="cart-remove-message">Your cart has been updated successfully.</p>
+    </div>
+  `;
+
+  document.body.appendChild(popup);
+
+  // Add close functionality
+  const closeBtn = popup.querySelector('#cart-remove-close');
+  closeBtn.addEventListener('click', () => {
+    hideCartRemoveNotification();
+  });
+
+  // Auto-hide after 3 seconds
+  setTimeout(() => {
+    hideCartRemoveNotification();
+  }, 3000);
+
+  // Show the popup
+  popup.classList.add('show');
+}
+
+// Hide cart removal notification
+function hideCartRemoveNotification() {
+  const popup = document.getElementById('cart-remove-popup');
+  if (popup) {
+    popup.classList.remove('show');
+    setTimeout(() => {
+      if (popup.parentElement) {
+        popup.parentElement.removeChild(popup);
+      }
+    }, 400);
   }
 }
 

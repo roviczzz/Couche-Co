@@ -12,7 +12,12 @@ let dashboardState = {
     isUpdating: false,
     autoUpdateEnabled: true,
     retryCount: 0,
-    connectionStatus: 'online' // online, offline, reconnecting
+    connectionStatus: 'online', // online, offline, reconnecting
+    chartsInitialized: {
+        paymentTypes: false,
+        ordersBySource: false,
+        salesPerformance: false
+    }
 };
 
 // Real-time update intervals
@@ -586,7 +591,8 @@ window.ordersBySource = (dataEl.dataset.ordersBySource && dataEl.dataset.ordersB
         // Initialize real-time updates
         initializeRealTimeUpdates();
     });
-    async function drawSalesPerformanceChart(days=14) {
+    async function drawSalesPerformanceChart(days = 14, animate = null) {
+        const shouldAnimate = animate !== null ? animate : !dashboardState.chartsInitialized.salesPerformance;
         const chartElement = document.getElementById('salesPerformanceChart');
         const loadingIndicator = document.getElementById('sales-performance-loading');
         
@@ -728,10 +734,10 @@ window.ordersBySource = (dataEl.dataset.ordersBySource && dataEl.dataset.ordersB
                     }
                 },
                 animation: {
-                    duration: 2000,
+                    duration: shouldAnimate ? 2000 : 0,
                     easing: 'easeInOutQuart',
                     onComplete: function() {
-                        console.log('Sales performance chart animation complete');
+                        if (shouldAnimate) console.log('Sales performance chart animation complete');
                     }
                 },
                 elements: {
@@ -744,6 +750,7 @@ window.ordersBySource = (dataEl.dataset.ordersBySource && dataEl.dataset.ordersB
                 }
             }
         });
+        dashboardState.chartsInitialized.salesPerformance = true;
         let totalEarnings = earnings.reduce((a, b) => a + b, 0);
         let totalOrders = results.reduce((a, b) => a + (b.orders || 0), 0);
         let avgEarnings = earnings.length ? (totalEarnings / earnings.length) : 0;
@@ -796,7 +803,8 @@ window.ordersBySource = (dataEl.dataset.ordersBySource && dataEl.dataset.ordersB
             container.innerHTML = html;
         }
     }
-    async function drawPaymentTypesChart() {
+    async function drawPaymentTypesChart(animate = null) {
+        const shouldAnimate = animate !== null ? animate : !dashboardState.chartsInitialized.paymentTypes;
         const loadingIndicator = document.getElementById('payment-types-loading-indicator');
         if (loadingIndicator) loadingIndicator.style.display = 'flex';
         let paymentTypes = [];
@@ -853,9 +861,10 @@ window.ordersBySource = (dataEl.dataset.ordersBySource && dataEl.dataset.ordersB
                         callbacks: {
                             label: function(context) {
                                 const total = orderCounts.reduce((a, b) => a + b, 0);
-                                const percentage = total > 0 ? ((context.parsed.y / total) * 100).toFixed(1) : '0.0';
+                                const value = context.parsed.x;
+                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
                                 return [
-                                    `Orders: ${context.parsed.y}`,
+                                    `Orders: ${value}`,
                                     `Share: ${percentage}%`
                                 ];
                             }
@@ -887,11 +896,12 @@ window.ordersBySource = (dataEl.dataset.ordersBySource && dataEl.dataset.ordersB
                 barThickness: 16,
                 maxBarThickness: 20,
                 animation: {
-                    duration: 1500,
+                    duration: shouldAnimate ? 1500 : 0,
                     easing: 'easeInOutCubic'
                 }
             }
         });
+        dashboardState.chartsInitialized.paymentTypes = true;
         const totalOrders = orderCounts.reduce((sum, val) => sum + val, 0) || 1;
         let listHtml = '';
         for(let i = 0; i < labels.length; i++) {
@@ -939,7 +949,8 @@ window.ordersBySource = (dataEl.dataset.ordersBySource && dataEl.dataset.ordersB
             }, 100);
         }
     }
-    async function drawOrdersBySourceChart() {
+    async function drawOrdersBySourceChart(animate = null) {
+        const shouldAnimate = animate !== null ? animate : !dashboardState.chartsInitialized.ordersBySource;
         let ordersBySource = [];
         // Use server-rendered data if available
         if (typeof window.ordersBySource !== 'undefined') {
@@ -981,6 +992,7 @@ window.ordersBySource = (dataEl.dataset.ordersBySource && dataEl.dataset.ordersB
         if (container) {
             container.innerHTML = html;
         }
+        dashboardState.chartsInitialized.ordersBySource = true;
     }
     async function fetchLowStockData() {
         try {

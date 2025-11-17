@@ -333,11 +333,13 @@
       <input type="hidden" name="IngredientPrefix" value="ING">
       <input type="hidden" name="IngredientSuffix" value="">
       <input type="hidden" name="Name" value="">
+      <input type="hidden" name="Amount" value="">
       <input type="hidden" name="AmountPerPack" value="">
       <input type="hidden" name="Category" value="Ingredients">
       <input type="hidden" name="Allergen" value="">
       <input type="hidden" name="isAvailable" value="true">
       <input type="hidden" name="isEnabled" value="">
+      <input type="hidden" name="DeductionQuantityGrams" value="10">
     </form>
     <form id="delete-ingredient-form-<%= i._id %>" action="/admin/stocks/delete/<%= i._id %>" method="POST" style="display: none;">
     </form>
@@ -350,10 +352,12 @@
       <input type="hidden" name="AddOnPrefix" value="AD">
       <input type="hidden" name="AddOnSuffix" value="">
       <input type="hidden" name="Name" value="">
+      <input type="hidden" name="Amount" value="">
       <input type="hidden" name="AmountPerPack" value="">
       <input type="hidden" name="Category" value="Add-Ons">
       <input type="hidden" name="Allergen" value="">
       <input type="hidden" name="isEnabled" value="">
+      <input type="hidden" name="DeductionQuantityGrams" value="10">
     </form>
     <form id="delete-addon-form-<%= a._id %>" action="/admin/stocks/delete/<%= a._id %>" method="POST" style="display: none;">
     </form>

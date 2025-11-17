@@ -41,7 +41,7 @@ menuItems.forEach(item => {
                         <div tabindex="0" role="button" class="product-card" data-item='<%= JSON.stringify(item) %>' onclick="handleProductClick(JSON.parse(this.dataset.item))">
                             <div class="product-image">
                                 <% if (item.imagelink && item.imagelink.length > 0) { %>
-                                    <img src="<%= item.imagelink %>" alt="placeholder image" style="width: 120px; height: 120px; object-fit: cover; border-radius: 12px;">
+                                    <img src="<%= getImageUrl(item.imagelink) %>" alt="placeholder image" style="width: 120px; height: 120px; object-fit: cover; border-radius: 12px;">
                                 <% } else { %>
                                     <span style="display:inline-block;width:100px;height:100px;border-radius:12px;background:#999;line-height:100px;color:#fff;">No image</span>
                                 <% } %>

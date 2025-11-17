@@ -37,7 +37,7 @@ router.post('/check-single', async (req, res) => {
     }
 
     const { MongoClient } = require('mongodb');
-    const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+    
     let client;
 
     client = new MongoClient(uri);
@@ -45,10 +45,9 @@ router.post('/check-single', async (req, res) => {
     const db = client.db('blessingscafe');
 
     // Get menu item
-    const menuItem = await db.collection('Menu').findOne({ _id: require('mongodb').ObjectId(ProductID) });
+    const menuItem = await req.db.collection('Menu').findOne({ _id: require('mongodb').ObjectId(ProductID) });
     
     if (!menuItem) {
-      await client.close();
       return res.status(404).json({
         error: 'Menu item not found'
       });
@@ -66,11 +65,9 @@ router.post('/check-single', async (req, res) => {
     const availability = await InventoryManager.checkSingleItemAvailability(
       menuItem,
       orderItem,
-      db.collection('Ingredients'),
-      db.collection('Add-ons')
+      req.db.collection('Ingredients'),
+      req.db.collection('Add-ons')
     );
-
-    await client.close();
 
     res.json(availability);
 
@@ -88,17 +85,15 @@ router.post('/check-single', async (req, res) => {
 router.get('/levels', async (req, res) => {
   try {
     const { MongoClient } = require('mongodb');
-    const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+    
     let client;
 
     client = new MongoClient(uri);
     await client.connect();
     const db = client.db('blessingscafe');
 
-    const ingredients = await db.collection('Ingredients').find({}).toArray();
-    const addons = await db.collection('Add-ons').find({}).toArray();
-
-    await client.close();
+    const ingredients = await req.db.collection('Ingredients').find({}).toArray();
+    const addons = await req.db.collection('Add-ons').find({}).toArray();
 
     res.json({
       success: true,
@@ -224,7 +219,7 @@ router.post('/rollback', async (req, res) => {
 router.get('/alerts', async (req, res) => {
   try {
     const { MongoClient } = require('mongodb');
-    const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+    
     let client;
 
     client = new MongoClient(uri);
@@ -235,21 +230,19 @@ router.get('/alerts', async (req, res) => {
     const INGREDIENT_THRESHOLD = 100; // grams
     const ADDON_THRESHOLD = 5; // pieces
 
-    const lowIngredients = await db.collection('Ingredients')
+    const lowIngredients = await req.db.collection('Ingredients')
       .find({
         Amount: { $lt: INGREDIENT_THRESHOLD },
         isEnabled: true
       })
       .toArray();
 
-    const lowAddons = await db.collection('Add-ons')
+    const lowAddons = await req.db.collection('Add-ons')
       .find({
         Quantity: { $lt: ADDON_THRESHOLD },
         isEnabled: true
       })
       .toArray();
-
-    await client.close();
 
     const alerts = [
       ...lowIngredients.map(ing => ({

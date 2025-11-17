@@ -332,6 +332,39 @@ async function drawPaymentMethodsChart() {
       return;
     }
 
+    // Generate distinct brown color variations for pie charts
+    const generateColors = (count) => {
+      const brownColors = [
+        '#8b5a2b', // Saddle Brown - primary brown
+        '#a0522d', // Sienna - reddish brown
+        '#cd853f', // Peru - warm brown
+        '#daa520', // Goldenrod - golden brown
+        '#b8860b', // Dark Goldenrod - darker golden
+        '#d2b48c', // Tan - light brown
+        '#f4a460', // Sandy Brown - sandy brown
+        '#deb887', // Burlywood - burlywood brown
+        '#d2691e', // Chocolate - chocolate brown
+        '#bc8f8f'  // Rosy Brown - rosy brown
+      ];
+
+      // Use distinct brown variations to ensure visibility
+      const colors = [];
+      for (let i = 0; i < Math.min(count, brownColors.length); i++) {
+        colors.push(brownColors[i]);
+      }
+
+      // If more than available browns, cycle through with slight variations
+      if (count > brownColors.length) {
+        const additionalColors = [];
+        for (let i = 0; i < count - brownColors.length; i++) {
+          additionalColors.push(brownColors[i % brownColors.length]);
+        }
+        colors.push(...additionalColors);
+      }
+
+      return colors;
+    };
+
     // Hide loading, show chart
     loadingEl.style.display = 'none';
     chartEl.style.display = 'block';
@@ -341,8 +374,8 @@ async function drawPaymentMethodsChart() {
       data: {
         labels: data.map(d => d._id),
         datasets: [{
-          data: data.map(d => d.revenue),
-          backgroundColor: ['#8b5a2b', '#d2691e', '#cd853f', '#a0522d', '#daa520'],
+          data: data.map(d => d.count), // Use count instead of revenue for better visibility
+          backgroundColor: generateColors(data.length),
           borderWidth: 2,
           borderColor: '#ffffff'
         }]
@@ -362,8 +395,9 @@ async function drawPaymentMethodsChart() {
             callbacks: {
               label: function(context) {
                 const label = context.label || '';
-                const value = context.parsed || 0;
-                return `${label}: ₱${value.toLocaleString()}`;
+                const dataIndex = context.dataIndex;
+                const count = data[dataIndex]?.count || 0;
+                return `${label}: ${count} orders`;
               }
             }
           }

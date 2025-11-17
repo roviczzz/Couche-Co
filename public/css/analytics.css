@@ -39,13 +39,19 @@ body {
   position: relative;
   padding-bottom: 16px;
   border-bottom: 2px solid #e0e0e0;
-  margin-left: 30px;
+  margin-left: 15px;
   margin-top: 40px;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Adjust header section when sidebar is collapsed */
+.sidebar-collapsed .header-section {
+  margin-left: 20px;
 }
 
 .header-section h1 {
   margin: 0;
-  color: #432814;
+  color: #5a3921;
   font-size: 32px;
   font-weight: 700;
   line-height: 1.2;
@@ -261,17 +267,21 @@ h1 {
   box-shadow: 0 4px 12px rgba(139, 90, 43, 0.3);
 }
 
+body:not(.sidebar-collapsed) .container {
+  margin-right: 10rem;
+  padding: 0 0.25rem;
+}
+
 .container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 1.5rem;
+  padding: 0 1.0rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Adjust main content centering when sidebar is open (not header) */
-body:not(.sidebar-collapsed) .dashboard-grid,
-body:not(.sidebar-collapsed) .analytics-grid,
-body:not(.sidebar-collapsed) .insights-section {
-  margin-left: 0.5rem;
+/* Adjust container padding when sidebar is collapsed */
+.sidebar-collapsed .container {
+  padding: 0 1.5rem;
 }
 
 .main-content {
@@ -990,7 +1000,10 @@ tr:hover td {
   }
   
   .container {
-    padding: 0 1rem;
+    max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  transition: margin-left 0.3s ease, padding 0.3s ease;
   }
   
   h1 {

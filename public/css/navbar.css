@@ -198,6 +198,16 @@ nav {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    position: relative;
+}
+
+.search-result-item.unavailable {
+    opacity: 0.6;
+}
+
+.search-result-item.unavailable .search-result-name,
+.search-result-item.unavailable .search-result-category {
+    color: #999;
 }
 
 .search-result-item:hover {
@@ -247,6 +257,13 @@ nav {
 .search-result-info {
     flex: 1;
     min-width: 0;
+}
+
+.search-result-unavailable {
+    font-size: 0.7rem;
+    color: #dc3545;
+    margin-top: 0.2rem;
+    font-weight: 500;
 }
 
 .search-result-name {

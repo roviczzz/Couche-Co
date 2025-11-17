@@ -7,12 +7,11 @@ const { logInventoryTransaction } = require('../middleware/inventoryMiddleware')
 router.get('/health', async (req, res) => {
   try {
     const { MongoClient } = require('mongodb');
-    const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+    
     
     const client = new MongoClient(uri);
     await client.connect();
     await client.db('blessingscafe').collection('Ingredients').findOne({});
-    await client.close();
     
     res.json({
       status: 'healthy',
@@ -77,25 +76,23 @@ router.post('/manual-deduct', async (req, res) => {
 router.get('/analytics', async (req, res) => {
   try {
     const { MongoClient } = require('mongodb');
-    const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+    
     
     const client = new MongoClient(uri);
     await client.connect();
     const db = client.db('blessingscafe');
     
     // Get all ingredients with low stock
-    const ingredients = await db.collection('Ingredients')
+    const ingredients = await req.db.collection('Ingredients')
       .find({ isEnabled: true })
       .sort({ Amount: 1 })
       .toArray();
     
     // Get all add-ons with low stock  
-    const addons = await db.collection('Add-ons')
+    const addons = await req.db.collection('Add-ons')
       .find({ isEnabled: true })
       .sort({ Quantity: 1 })
       .toArray();
-    
-    await client.close();
     
     const analytics = {
       totalIngredients: ingredients.length,

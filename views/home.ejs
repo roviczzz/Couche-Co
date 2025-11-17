@@ -4,7 +4,7 @@
 <section class="welcome-section">
     <div class="welcome-content">
         <h1>Blessings Cafe</h1>
-        <p>placeholder intro</p>
+        <p>Welcome to Blessings Cafe — your happy spot for good drinks and good vibes. Here, every cup is made with care and a little touch of joy. Because at Blessings Cafe, we believe there are “Blessings at Every Sip.”</p>
         <div class="welcome-actions">
             <a onclick="scrollToMenu()" class="btn btn-primary">View Menu</a>
         </div>
@@ -25,10 +25,12 @@ function scrollToMenu() {
                 <p class="category-caption">Freshly brewed premium coffee drinks crafted with love</p>
             <% } else if (cat === 'Non-Coffee') { %>
                 <p class="category-caption">Delicious non-coffee beverages perfect for any taste preference</p>
-            <% } else if (cat === 'Milk Tea') { %>
+            <% } else if (cat === 'Milktea') { %>
                 <p class="category-caption">Creamy and flavorful milk tea blends with a variety of toppings</p>
             <% } else if (cat === 'Frappe') { %>
                 <p class="category-caption">Cool and refreshing blended ice drinks to beat the heat</p>
+            <% } else if (cat === 'Fruit Tea') { %>
+                <p class="category-caption">Refreshing fruit-infused teas bursting with natural flavors</p>
             <% } else if (cat === 'Pastries') { %>
                 <p class="category-caption">Freshly baked pastries and treats to complement your drinks</p>
             <% } else { %>
@@ -37,10 +39,15 @@ function scrollToMenu() {
             <div class="menu-gallery-container">
                 <% categorizedItems[cat].forEach(item => { %>
                 <% if (item.isEnabled !== false) { %>
-                <div class="gallery-item" onclick="window.location.href='/product/<%= item.ProductID %>'" style="cursor: pointer;">
+                <div class="gallery-item <%= !item.isAvailable ? 'unavailable' : '' %>" onclick="window.location.href='/product/<%= item.ProductID %>'" style="cursor: pointer;">
+                    <% if (!item.isAvailable) { %>
+                    <div class="unavailable-overlay">
+                        <span class="unavailable-badge">Currently Unavailable</span>
+                    </div>
+                    <% } %>
                     <div class="gallery-image">
                         <% if (item.imagelink && item.imagelink.length > 0) { %>
-                            <img src="<%= item.imagelink %>" alt="<%= item.Name %>" loading="lazy" onerror="this.alt='Image not available'; this.style.display='none';">
+                            <img src="<%= getImageUrl(item.imagelink) %>" alt="<%= item.Name %>" loading="lazy" onerror="this.alt='Image not available'; this.style.display='none';">
                         <% } else { %>
                             <div class="no-image">No Image</div>
                         <% } %>
@@ -64,3 +71,7 @@ function scrollToMenu() {
         <% } %>
     <% }); %>
 </section>
+
+<footer class="footer">
+    <p>Blessings Cafe 2025 All Right Reserved.</p>
+</footer>

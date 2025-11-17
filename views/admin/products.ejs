@@ -24,7 +24,7 @@
               data-enabled="<%= product.isEnabled %>">
             <div class="product-image">
              <% if (product.imagelink && product.imagelink !== "placeholder") { %>
-               <img src="<%= product.imagelink %>" alt="<%= product.Name %>" />
+               <img src="<%= getImageUrl(product.imagelink) %>" alt="<%= product.Name %>" />
              <% } else { %>
                <img src="https://via.placeholder.com/200x200" alt="Placeholder" />
              <% } %>

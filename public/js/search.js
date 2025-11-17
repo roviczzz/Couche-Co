@@ -69,19 +69,27 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const html = results.map(result => `
-            <div class="search-result-item" data-product-id="${result._id || result.id}">
+        const html = results.map(result => {
+            const unavailableClass = result.isAvailable === false ? 'unavailable' : '';
+            const imageUrl = result.imagelink && result.imagelink.startsWith('https://blessingsateverysip.me') 
+                ? result.imagelink.replace('https://blessingsateverysip.me', '') 
+                : result.imagelink;
+            
+            return `
+            <div class="search-result-item ${unavailableClass}" data-product-id="${result._id || result.id}">
                 <div class="search-result-image">
-                    ${result.imagelink && result.imagelink.length > 0 ?
-                        `<img src="${result.imagelink}" alt="${result.Name}" loading="lazy" onerror="this.style.display='none'; this.parentElement.querySelector('.no-image').style.display='flex';">` : ''}
-                    <div class="no-image" style="display: ${result.imagelink && result.imagelink.length > 0 ? 'none' : 'flex'};">No Image</div>
+                    ${imageUrl && imageUrl.length > 0 ?
+                        `<img src="${imageUrl}" alt="${result.Name}" loading="lazy" onerror="this.style.display='none'; this.parentElement.querySelector('.no-image').style.display='flex';">` : ''}
+                    <div class="no-image" style="display: ${imageUrl && imageUrl.length > 0 ? 'none' : 'flex'};">No Image</div>
                 </div>
                 <div class="search-result-info">
                     <div class="search-result-name">${result.Name}</div>
                     <div class="search-result-category">${result.Category}</div>
+                    ${result.isAvailable === false ? '<div class="search-result-unavailable">Currently Unavailable</div>' : ''}
                 </div>
             </div>
-        `).join('');
+        `;
+        }).join('');
 
         searchResults.innerHTML = html;
         searchResults.style.display = 'block';

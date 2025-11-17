@@ -3,8 +3,8 @@
     "$oid": "690470186f1ac0bed717e731"
   },
   "ProductID": "MT-TARO",
-  "Name": "Taro",
-  "description": "",
+  "Name": "Taro Milktea",
+  "description": "A creamy, purple delight with the sweet and nutty flavor of taro — smooth, refreshing, and irresistibly unique.",
   "Sizes": [
     {
       "Size": "16oz",
@@ -17,8 +17,8 @@
   ],
   "Category": "Milktea",
   "Allergen": "",
-  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
-  "isEnabled": true,
+  "imagelink": "/uploads/products/Taro-Milktea-1763133930786.png",
+  "isEnabled": false,
   "AddOns": [
     {
       "addOnID": "AD-BOB",
@@ -59,8 +59,8 @@
     "$oid": "690482d46eedb9ce7a339d82"
   },
   "ProductID": "MT-MAT",
-  "Name": "Matcha",
-  "description": "",
+  "Name": "Matcha Milktea",
+  "description": "Smooth and refreshing, our Matcha Milk Tea blends premium green tea with creamy milk for a balanced, energizing sip.",
   "Sizes": [
     {
       "Size": "16oz",
@@ -72,8 +72,8 @@
     }
   ],
   "Category": "Milktea",
-  "Allergen": null,
-  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "Allergen": "",
+  "imagelink": "https://i.ibb.co/SD7CMgbv/781f64717216.png",
   "isEnabled": true,
   "AddOns": [
     {
@@ -115,8 +115,8 @@
     "$oid": "690483c36eedb9ce7a339d83"
   },
   "ProductID": "MT-OKI",
-  "Name": "Okinawa",
-  "description": "",
+  "Name": "Okinawa Milktea",
+  "description": "A rich and creamy milk tea sweetened with Okinawa brown sugar, offering a deep, caramel-like flavor in every sip.",
   "Sizes": [
     {
       "Size": "16oz",
@@ -129,7 +129,7 @@
   ],
   "Category": "Milktea",
   "Allergen": "",
-  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "imagelink": "https://i.ibb.co/ynG74QKt/2d5ba5c48447.png",
   "isEnabled": true,
   "AddOns": [
     {
@@ -171,8 +171,8 @@
     "$oid": "6904a35770e82d14c4569d93"
   },
   "ProductID": "MT-DAL",
-  "Name": "Dalgona",
-  "description": "",
+  "Name": "Dalgona Milktea",
+  "description": "A delightful fusion of rich milk tea topped with creamy whipped coffee — smooth, sweet, and irresistibly bold.",
   "Sizes": [
     {
       "Size": "16oz",
@@ -184,8 +184,8 @@
     }
   ],
   "Category": "Milktea",
-  "Allergen": null,
-  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "Allergen": "",
+  "imagelink": "https://i.ibb.co/C4xb6ZH/a2281154065e.png",
   "isEnabled": true,
   "AddOns": [
     {
@@ -227,8 +227,8 @@
     "$oid": "6904a3e770e82d14c4569d94"
   },
   "ProductID": "MT-HER",
-  "Name": "Hershey's",
-  "description": "",
+  "Name": "Hershey's Milktea",
+  "description": "A chocolate lover’s dream — rich milk tea infused with the classic, indulgent taste of Hershey’s chocolate.",
   "Sizes": [
     {
       "Size": "16oz",
@@ -240,8 +240,8 @@
     }
   ],
   "Category": "Milktea",
-  "Allergen": null,
-  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "Allergen": "",
+  "imagelink": "https://i.ibb.co/pvN9fT0x/e7bac153da3d.png",
   "isEnabled": true,
   "AddOns": [
     {
@@ -283,7 +283,7 @@
     "$oid": "6904a51170e82d14c4569d95"
   },
   "ProductID": "MT-WIN",
-  "Name": "Wintermelon",
+  "Name": "Wintermelon Milktea",
   "description": "",
   "Sizes": [
     {
@@ -296,8 +296,8 @@
     }
   ],
   "Category": "Milktea",
-  "Allergen": null,
-  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "Allergen": "",
+  "imagelink": "https://i.ibb.co/3yhggj3X/01feda850fc9.png",
   "isEnabled": true,
   "AddOns": [
     {
@@ -339,8 +339,8 @@
     "$oid": "6904a58e70e82d14c4569d96"
   },
   "ProductID": "MT-SCA",
-  "Name": "Salted Caramel",
-  "description": "",
+  "Name": "Salted Caramel Milktea",
+  "description": "A creamy milk tea infused with the perfect blend of sweet caramel and a hint of salt — indulgent and perfectly balanced.",
   "Sizes": [
     {
       "Size": "16oz",
@@ -352,8 +352,8 @@
     }
   ],
   "Category": "Milktea",
-  "Allergen": null,
-  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "Allergen": "",
+  "imagelink": "https://i.ibb.co/rKJ72GM5/e5d8ffca3ff9.png",
   "isEnabled": true,
   "AddOns": [
     {
@@ -395,8 +395,8 @@
     "$oid": "6904a60370e82d14c4569d97"
   },
   "ProductID": "MT-CNC",
-  "Name": "Cookies 'N Cream",
-  "description": "",
+  "Name": "Cookies 'N Cream Milktea",
+  "description": "A creamy milk tea blended with crushed cookies and sweet cream — smooth, crunchy, and delightfully indulgent.",
   "Sizes": [
     {
       "Size": "16oz",
@@ -408,8 +408,8 @@
     }
   ],
   "Category": "Milktea",
-  "Allergen": null,
-  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "Allergen": "",
+  "imagelink": "https://i.ibb.co/k2DPr88j/4e8150d76c6c.png",
   "isEnabled": true,
   "AddOns": [
     {
@@ -451,8 +451,8 @@
     "$oid": "6904a99c70e82d14c4569d98"
   },
   "ProductID": "CF-CAR",
-  "Name": "Caramel",
-  "description": "",
+  "Name": "Caramel Coffee",
+  "description": "A decadent blend of rich chocolate, creamy milk tea, and a hint of cherry flavor — a dessert-like indulgence in every sip.\r\n",
   "Sizes": [
     {
       "Size": "16oz",
@@ -461,7 +461,7 @@
   ],
   "Category": "Coffee",
   "Allergen": "Peanut",
-  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "imagelink": "https://i.ibb.co/Xktdkrq2/e7e94e01b928.png",
   "isEnabled": true,
   "Ingredients": [
     {
@@ -486,8 +486,8 @@
     "$oid": "6904aa1370e82d14c4569d99"
   },
   "ProductID": "CF-TON",
-  "Name": "Toffee Nut",
-  "description": "",
+  "Name": "Toffee Nut Coffee",
+  "description": "A warm, nutty blend of espresso, creamy milk, and sweet toffee flavor — cozy, rich, and irresistibly smooth.",
   "Sizes": [
     {
       "Size": "16oz",
@@ -496,7 +496,7 @@
   ],
   "Category": "Coffee",
   "Allergen": "Peanut",
-  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "imagelink": "https://i.ibb.co/ynW2yPKS/b1d4fdcfb97d.png",
   "isEnabled": true,
   "Ingredients": [
     {
@@ -521,8 +521,8 @@
     "$oid": "6904aab070e82d14c4569d9a"
   },
   "ProductID": "CF-MAC",
-  "Name": "Macademia Nut",
-  "description": "",
+  "Name": "Macademia Nut Coffee",
+  "description": "A smooth and creamy coffee infused with the buttery, nutty flavor of macadamia — rich, aromatic, and perfectly balanced",
   "Sizes": [
     {
       "Size": "16oz",
@@ -531,7 +531,7 @@
   ],
   "Category": "Coffee",
   "Allergen": "Peanut",
-  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "imagelink": "https://i.ibb.co/fzY1mV5M/0ae764d03543.png",
   "isEnabled": true,
   "Ingredients": [
     {
@@ -556,8 +556,8 @@
     "$oid": "6904ab4370e82d14c4569d9b"
   },
   "ProductID": "CF-SPL",
-  "Name": "Spanish Latte",
-  "description": "",
+  "Name": "Spanish Latte Coffee",
+  "description": "A rich espresso blended with creamy milk and a hint of sweetness — the perfect balance of bold and smooth in every sip.",
   "Sizes": [
     {
       "Size": "16oz",
@@ -565,8 +565,8 @@
     }
   ],
   "Category": "Coffee",
-  "Allergen": null,
-  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "Allergen": "",
+  "imagelink": "https://i.ibb.co/G4C2jcxs/3493683be66a.png",
   "isEnabled": true,
   "Ingredients": [
     {
@@ -591,8 +591,8 @@
     "$oid": "6904ac3c70e82d14c4569d9c"
   },
   "ProductID": "CF-SCA",
-  "Name": "Salted Caramel",
-  "description": "",
+  "Name": "Salted Caramel Coffee",
+  "description": "A rich and creamy coffee with the perfect mix of sweet caramel and a hint of salt — indulgent and satisfying in every sip.",
   "Sizes": [
     {
       "Size": "16oz",
@@ -600,8 +600,8 @@
     }
   ],
   "Category": "Coffee",
-  "Allergen": null,
-  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "Allergen": "",
+  "imagelink": "https://i.ibb.co/nqk74kXg/67e51224ec03.png",
   "isEnabled": true,
   "Ingredients": [
     {
@@ -626,8 +626,8 @@
     "$oid": "6904afe370e82d14c4569da2"
   },
   "ProductID": "FT-MAN",
-  "Name": "Mango",
-  "description": "",
+  "Name": "Mango Fruit Tea",
+  "description": "A refreshing blend of real mango and tea — sweet, tropical, and bursting with vibrant flavor.",
   "Sizes": [
     {
       "Size": "22oz",
@@ -635,8 +635,8 @@
     }
   ],
   "Category": "Fruit Tea",
-  "Allergen": null,
-  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "Allergen": "",
+  "imagelink": "https://i.ibb.co/gMtb26kq/fa609ee67bf8.png",
   "isEnabled": true,
   "AddOns": [
     {
@@ -664,8 +664,8 @@
     "$oid": "6904b02570e82d14c4569da3"
   },
   "ProductID": "FT-PAF",
-  "Name": "Passion Fruit",
-  "description": "",
+  "Name": "Passion Fruit Tea",
+  "description": "A tropical burst of tangy passion fruit balanced with smooth tea for a refreshing sip.",
   "Sizes": [
     {
       "Size": "22oz",
@@ -673,8 +673,8 @@
     }
   ],
   "Category": "Fruit Tea",
-  "Allergen": null,
-  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "Allergen": "",
+  "imagelink": "https://i.ibb.co/B52vF9CX/57410f68240f.png",
   "isEnabled": true,
   "Ingredients": [
     {
@@ -694,8 +694,8 @@
     "$oid": "6904b0ab70e82d14c4569da4"
   },
   "ProductID": "FT-STR",
-  "Name": "Strawberry",
-  "description": "",
+  "Name": "Strawberry Fruit Tea",
+  "description": "Sweet, juicy strawberries blended with refreshing tea for a fruity delight.",
   "Sizes": [
     {
       "Size": "22oz",
@@ -703,8 +703,8 @@
     }
   ],
   "Category": "Fruit Tea",
-  "Allergen": null,
-  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "Allergen": "",
+  "imagelink": "https://i.ibb.co/1GTMJLq2/20bbf5ab9f29.png",
   "isEnabled": true,
   "AddOns": [
     {
@@ -733,14 +733,18 @@
   },
   "ProductID": "BK-CUP",
   "Name": "Cupcake",
-  "description": "",
+  "description": "Delightfully soft and sweet, a little cake with big flavor.",
   "Sizes": null,
   "Category": "Pastries",
-  "Allergen": null,
-  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "Allergen": "",
+  "imagelink": "https://i.ibb.co/YBNt6kCX/6d80c221fbcf.png",
   "isEnabled": true,
-  "Quantity": 999,
-  "BasePrice": 25
+  "Quantity": 988,
+  "BasePrice": 25,
+  "lastModified": {
+    "$date": "2025-11-11T07:06:22.790Z"
+  },
+  "quantity": -1
 },
 {
   "_id": {
@@ -748,11 +752,11 @@
   },
   "ProductID": "BK-COO",
   "Name": "Cookies",
-  "description": "",
+  "description": "Soft, fudgy, and dusted with sugar—crinkles that melt in your mouth.",
   "Sizes": null,
   "Category": "Pastries",
-  "Allergen": null,
-  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "Allergen": "",
+  "imagelink": "https://i.ibb.co/prR9vQ2G/87d5b2467999.png",
   "isEnabled": true,
   "Quantity": 999,
   "BasePrice": 50
@@ -763,11 +767,11 @@
   },
   "ProductID": "BK-WAF",
   "Name": "Waffles",
-  "description": "",
+  "description": "Crispy on the outside, soft on the inside—your perfect sweet treat.",
   "Sizes": null,
   "Category": "Pastries",
-  "Allergen": null,
-  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "Allergen": "",
+  "imagelink": "https://i.ibb.co/7xjrFbwF/632a6974461a.png",
   "isEnabled": true,
   "Quantity": 999,
   "BasePrice": 120
@@ -778,22 +782,25 @@
   },
   "ProductID": "BK-CRN",
   "Name": "Crinkles",
-  "description": "",
+  "description": "Soft, fudgy, and dusted with sugar—crinkles that melt in your mouth.",
   "Sizes": null,
   "Category": "Pastries",
-  "Allergen": null,
-  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "Allergen": "",
+  "imagelink": "https://i.ibb.co/6JBVSRL4/9d68ff42dc07.png",
   "isEnabled": true,
-  "Quantity": 999,
-  "BasePrice": 50
+  "Quantity": 982,
+  "BasePrice": 50,
+  "lastModified": {
+    "$date": "2025-11-15T07:16:07.926Z"
+  }
 },
 {
   "_id": {
     "$oid": "6904b70a20be68e7d8350ca0"
   },
   "ProductID": "MT-BFO",
-  "Name": "Black Forest",
-  "description": "",
+  "Name": "Black Forest Milktea",
+  "description": "A decadent blend of rich chocolate, creamy milk tea, and a hint of cherry flavor — a dessert-like indulgence in every sip.\r\n",
   "Sizes": [
     {
       "Size": "16oz",
@@ -805,8 +812,8 @@
     }
   ],
   "Category": "Milktea",
-  "Allergen": null,
-  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "Allergen": "",
+  "imagelink": "https://i.ibb.co/ymYmKHKP/05b7b84ab2cf.png",
   "isEnabled": true,
   "AddOns": [
     {
@@ -845,46 +852,11 @@
 },
 {
   "_id": {
-    "$oid": "6904b76820be68e7d8350ca1"
-  },
-  "ProductID": "CF-CAR",
-  "Name": "Caramel",
-  "description": "",
-  "Sizes": [
-    {
-      "Size": "16oz",
-      "BasePrice": 59
-    }
-  ],
-  "Category": "Coffee",
-  "Allergen": null,
-  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
-  "isEnabled": true,
-  "Ingredients": [
-    {
-      "ingredientID": "ING-ESP",
-      "name": "Espresso",
-      "usedGrams": 50
-    },
-    {
-      "ingredientID": "ING-MILK",
-      "name": "Milk",
-      "usedGrams": 200
-    },
-    {
-      "ingredientID": "ING-CARAMEL",
-      "name": "Caramel Syrup",
-      "usedGrams": 30
-    }
-  ]
-},
-{
-  "_id": {
     "$oid": "6904b86d20be68e7d8350ca2"
   },
   "ProductID": "FT-GAP",
-  "Name": "Green Apple",
-  "description": "",
+  "Name": "Green Apple Fruit Tea",
+  "description": "A refreshing twist of tart green apple perfectly blended with tea.",
   "Sizes": [
     {
       "Size": "22oz",
@@ -892,8 +864,8 @@
     }
   ],
   "Category": "Fruit Tea",
-  "Allergen": null,
-  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "Allergen": "",
+  "imagelink": "https://i.ibb.co/S46vhJG8/ee2e1bfeab24.png",
   "isEnabled": true,
   "AddOns": [
     {
@@ -921,8 +893,8 @@
     "$oid": "6904b98f20be68e7d8350ca3"
   },
   "ProductID": "CF-WHC",
-  "Name": "White Chocolate",
-  "description": "",
+  "Name": "White Chocolate Coffee",
+  "description": "A smooth and velvety coffee infused with the sweet, creamy flavor of white chocolate — pure comfort in a cup.",
   "Sizes": [
     {
       "Size": "16oz",
@@ -930,8 +902,8 @@
     }
   ],
   "Category": "Coffee",
-  "Allergen": null,
-  "imagelink": "https://i.ibb.co/Vpgdp74N/38d27d28d751.png",
+  "Allergen": "",
+  "imagelink": "https://i.ibb.co/CpzqyfN8/ef08513930fa.png",
   "isEnabled": true,
   "Ingredients": [
     {

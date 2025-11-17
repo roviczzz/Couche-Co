@@ -4,12 +4,40 @@ body {
 }
 /* Home Page Styles */
 .welcome-section {
-    background: linear-gradient(135deg, #ab8162 0%, #6e5529 100%);
+    background: url('/resources/BannerBC.png') no-repeat center center;
+    background-size: cover;
     color: white;
     padding: 4rem 2rem;
     text-align: center;
     width: 100%;
     box-sizing: border-box;
+    position: relative;
+}
+
+.welcome-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1;
+}
+
+.welcome-content {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-image {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    margin-bottom: 1rem;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .welcome-content h1 {
@@ -22,11 +50,14 @@ body {
 }
 
 .welcome-content p {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     margin-bottom: 2rem;
     max-width: 600px;
     margin-left: auto;
     margin-right: auto;
+    font-family: 'Recoleta Regular', serif;
+    font-weight: 300;
+    line-height: 1.6;
 }
 
 .welcome-actions {
@@ -124,8 +155,43 @@ body {
     transition: none;
     position: relative;
     width: 296px;
-    height: 340px;
+    height: 350px;
     margin: 0 auto;
+}
+
+.gallery-item.unavailable {
+    opacity: 0.6;
+}
+
+.gallery-item.unavailable .gallery-content h4,
+.gallery-item.unavailable .gallery-content p,
+.gallery-item.unavailable .price {
+    color: #999;
+}
+
+.unavailable-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 2;
+    pointer-events: none;
+}
+
+.unavailable-badge {
+    background: rgba(255, 255, 255, 0.95);
+    color: #666;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .gallery-item:hover {
@@ -234,6 +300,9 @@ body {
 }
 
 @media (max-width: 768px) {
+    .hero-image {
+        max-width: 200px;
+    }
     .welcome-section {
         padding: 3rem 1rem;
     }
@@ -345,4 +414,17 @@ body {
     .footer p {
         font-size: 0.9rem;
     }
+}
+
+.footer {
+    background: linear-gradient(135deg, #ab8162 0%, #6e5529 100%);
+    color: white;
+    text-align: center;
+    padding: 2rem;
+    margin-top: 2rem;
+}
+
+.footer p {
+    margin: 0;
+    font-size: 1rem;
 }
