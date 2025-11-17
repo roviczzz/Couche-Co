@@ -2,7 +2,7 @@ body {
     font-family: 'Inter', sans-serif;
     background-color: #f3f3f3;
 }
-
+/* Home Page Styles */
 .welcome-section {
     background: linear-gradient(135deg, #ab8162 0%, #6e5529 100%);
     color: white;
