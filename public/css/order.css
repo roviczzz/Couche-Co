@@ -175,6 +175,25 @@ html, body {
     color: #90ee90;
 }
 
+.dark-theme .promo-section {
+    background-color: rgba(40, 167, 69, 0.1);
+    border-color: rgba(40, 167, 69, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.dark-theme .promo-section h3 {
+    color: var(--text-color);
+    border-bottom-color: var(--border-color);
+}
+
+.dark-theme .promo-name {
+    color: #90ee90;
+}
+
+.dark-theme .promo-discount {
+    color: #4ade80;
+}
+
 .dark-theme .summary-totals {
     background-color: var(--sidebar-bg);
     border: 1px solid var(--border-color);
@@ -741,6 +760,39 @@ tbody tr.selected {
     align-items: center;
 }
 
+.promo-section {
+    margin-bottom: 28px;
+    background-color: #f8fff8;
+    border: 1px solid #d4edda;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.promo-section h3 {
+    margin: 0 0 12px 0;
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: 0.1px;
+    color: #a05c2f;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.promo-name {
+    font-weight: 600;
+    color: #155724;
+    margin-bottom: 8px;
+    font-size: 16px;
+}
+
+.promo-discount {
+    font-weight: 700;
+    color: #28a745;
+    font-size: 18px;
+    text-align: right;
+}
+
 .summary-totals {
     background-color: #f9f9f9;
     border-radius: 8px;
@@ -883,6 +935,10 @@ tbody tr.selected {
     background-color: #f0ad4e;
 }
 
+.status-in-progress {
+    background-color: #6f42c1;
+}
+
 .status-ready {
     background-color: #17a2b8;
 }
@@ -893,6 +949,30 @@ tbody tr.selected {
 
 .status-completed {
     background-color: #5cb85c;
+}
+
+.status-source {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 12px;
+    color: white;
+    min-width: 80px;
+    text-align: center;
+    user-select: text;
+}
+
+.status-chatbot {
+    background-color: #6f42c1;
+}
+
+.status-website {
+    background-color: #007bff;
+}
+
+.status-pos {
+    background-color: #28a745;
 }
 
 #fulfillmentDropdown {

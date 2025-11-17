@@ -1,18 +1,10 @@
-const { MongoClient, ObjectId } = require('mongodb');
-require('dotenv').config();
-const uri = process.env.MONGODB_URI;
-
-async function getDashboardStats() {
+const { ObjectId } = require('mongodb');
+async function getDashboardStats(db) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-
     const totalOrders = await db.collection('Orders').countDocuments();
     const totalProducts = await db.collection('Menu').countDocuments();
     const totalIngredients = await db.collection('Ingredients').countDocuments();
     const totalAddons = await db.collection('Add-ons').countDocuments();
-
-    await client.close();
 
     return { totalOrders, totalProducts, totalIngredients, totalAddons };
   } catch (err) {
@@ -21,10 +13,8 @@ async function getDashboardStats() {
   }
 }
 
-async function getDashboardAnalyticsStats() {
+async function getDashboardAnalyticsStats(db) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
     const ordersCollection = db.collection('Orders');
 
     const today = new Date();
@@ -152,8 +142,6 @@ async function getDashboardAnalyticsStats() {
     const yesterdayOrdersCount = yesterdayOrdersResult.length > 0 ? yesterdayOrdersResult[0].count : 0;
     const ordersTodayPercent = yesterdayOrdersCount === 0 ? 0 : Math.round(((ordersTodayCount - yesterdayOrdersCount) / yesterdayOrdersCount) * 100);
 
-    await client.close();
-
     return {
       totalSales,
       totalOrders,
@@ -179,12 +167,9 @@ async function getDashboardAnalyticsStats() {
   }
 }
 
-async function getAnalyticsData() {
+async function getAnalyticsData(db) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
     const recentOrders = await db.collection('Orders').find().limit(10).toArray();
-    await client.close();
     return { recentOrders };
   } catch (err) {
     console.error('Error getting analytics data:', err);
@@ -192,12 +177,15 @@ async function getAnalyticsData() {
   }
 }
 
-async function getProducts() {
+async function getProducts(db) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
     const products = await db.collection('Menu').find().toArray();
-    await client.close();
+    // Strip domain from imagelinks for local display
+    products.forEach(product => {
+      if (product.imagelink && product.imagelink.startsWith('https://blessingsateverysip.me')) {
+        product.imagelink = product.imagelink.replace('https://blessingsateverysip.me', '');
+      }
+    });
     return products;
   } catch (err) {
     console.error('Error getting products:', err);
@@ -205,12 +193,13 @@ async function getProducts() {
   }
 }
 
-async function getProductById(id) {
+async function getProductById(db, id) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
     const product = await db.collection('Menu').findOne({ _id: new ObjectId(id) });
-    await client.close();
+    // Strip domain from imagelink for local display
+    if (product && product.imagelink && product.imagelink.startsWith('https://blessingsateverysip.me')) {
+      product.imagelink = product.imagelink.replace('https://blessingsateverysip.me', '');
+    }
     return product;
   } catch (err) {
     console.error('Error getting product by id:', err);
@@ -218,12 +207,9 @@ async function getProductById(id) {
   }
 }
 
-async function getOrders() {
+async function getOrders(db) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
     const orders = await db.collection('Orders').find().toArray();
-    await client.close();
     return orders;
   } catch (err) {
     console.error('Error getting orders:', err);
@@ -231,12 +217,9 @@ async function getOrders() {
   }
 }
 
-async function getOrderById(id) {
+async function getOrderById(db, id) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
     const order = await db.collection('Orders').findOne({ _id: new ObjectId(id) });
-    await client.close();
     return order;
   } catch (err) {
     console.error('Error getting order by id:', err);
@@ -244,10 +227,8 @@ async function getOrderById(id) {
   }
 }
 
-async function updateOrderFulfillment(orderId, fulfillmentStatus) {
+async function updateOrderFulfillment(db, orderId, fulfillmentStatus) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
     const ordersCollection = db.collection('Orders');
 
     const filter = { OrderID: orderId };
@@ -273,8 +254,6 @@ async function updateOrderFulfillment(orderId, fulfillmentStatus) {
         console.error('❌ Error during stock rollback:', rollbackError);
       }
     }
-
-    await client.close();
     return updatedOrder;
   } catch (err) {
     console.error('Error updating order fulfillment:', err);
@@ -282,10 +261,8 @@ async function updateOrderFulfillment(orderId, fulfillmentStatus) {
   }
 }
 
-async function updateOrderPaymentStatus(orderId, paymentStatus) {
+async function updateOrderPaymentStatus(db, orderId, paymentStatus) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
     const ordersCollection = db.collection('Orders');
 
     const filter = { OrderID: orderId };
@@ -293,8 +270,6 @@ async function updateOrderPaymentStatus(orderId, paymentStatus) {
 
     await ordersCollection.updateOne(filter, updateDoc);
     const updatedOrder = await ordersCollection.findOne(filter);
-
-    await client.close();
     return updatedOrder;
   } catch (err) {
     console.error('Error updating payment status:', err);
@@ -302,10 +277,8 @@ async function updateOrderPaymentStatus(orderId, paymentStatus) {
   }
 }
 
-async function cancelOrder(orderId) {
+async function cancelOrder(db, orderId) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
     const ordersCollection = db.collection('Orders');
 
     const filter = { OrderID: orderId };
@@ -313,7 +286,6 @@ async function cancelOrder(orderId) {
     // First, get the order data before deleting it (needed for stock rollback)
     const order = await ordersCollection.findOne(filter);
     if (!order) {
-      await client.close();
       console.warn(`Order ${orderId} not found for cancellation`);
       return false;
     }
@@ -322,7 +294,6 @@ async function cancelOrder(orderId) {
     if (order.PaymentStatus === 'Cancelled' || order.FulfillmentStatus === 'Cancelled') {
       console.warn(`Order ${orderId} already cancelled, skipping stock rollback`);
       const result = await ordersCollection.deleteOne(filter);
-      await client.close();
       return result.deletedCount === 1;
     }
 
@@ -345,8 +316,6 @@ async function cancelOrder(orderId) {
 
     // Now delete the order
     const result = await ordersCollection.deleteOne(filter);
-
-    await client.close();
     return result.deletedCount === 1;
   } catch (err) {
     console.error('Error cancelling order:', err);
@@ -354,10 +323,8 @@ async function cancelOrder(orderId) {
   }
 }
 
-async function restoreOrder(orderId) {
+async function restoreOrder(db, orderId) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
     const ordersCollection = db.collection('Orders');
 
     const filter = { OrderID: orderId };
@@ -389,8 +356,6 @@ async function restoreOrder(orderId) {
         console.error('❌ Error during stock deduction:', deductError);
       }
     }
-
-    await client.close();
     return updatedOrder;
   } catch (err) {
     console.error('Error restoring order:', err);
@@ -398,13 +363,10 @@ async function restoreOrder(orderId) {
   }
 }
 
-async function getStockData() {
+async function getStockData(db) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
     const ingredients = await db.collection('Ingredients').find().toArray();
     const addons = await db.collection('Add-ons').find().toArray();
-    await client.close();
     return { ingredients, addons };
   } catch (err) {
     console.error('Error getting stock data:', err);
@@ -412,11 +374,8 @@ async function getStockData() {
   }
 }
 
-async function addIngredient(ingredientData) {
+async function addIngredient(db, ingredientData) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-
     // Check for existing ingredient with same ID and Name combination
     if (ingredientData.IngredientID && ingredientData.Name) {
       const existingIngredient = await db.collection('Ingredients').findOne({
@@ -425,7 +384,6 @@ async function addIngredient(ingredientData) {
       });
 
       if (existingIngredient) {
-        await client.close();
         throw new Error('DUPLICATE_ID_NAME');
       }
     }
@@ -435,8 +393,6 @@ async function addIngredient(ingredientData) {
       createdAt: new Date(),
       lastModified: new Date()
     });
-
-    await client.close();
     return result;
   } catch (err) {
     console.error('Error adding ingredient:', err);
@@ -444,11 +400,8 @@ async function addIngredient(ingredientData) {
   }
 }
 
-async function updateIngredient(id, ingredientData) {
+async function updateIngredient(db, id, ingredientData) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-
     // Determine collection and ID field based on data type
     let collection, idField;
     if (ingredientData.IngredientID) {
@@ -458,7 +411,6 @@ async function updateIngredient(id, ingredientData) {
       collection = 'Add-ons';
       idField = 'AddOnID';
     } else {
-      await client.close();
       throw new Error('Invalid data: missing IngredientID or AddOnID');
     }
 
@@ -469,7 +421,6 @@ async function updateIngredient(id, ingredientData) {
     });
 
     if (existingItem) {
-      await client.close();
       throw new Error(`Another ${collection.toLowerCase().replace(/s$/, '')} with this ID already exists`);
     }
 
@@ -510,8 +461,6 @@ async function updateIngredient(id, ingredientData) {
       { _id: new ObjectId(id) },
       { $set: updateData }
     );
-
-    await client.close();
     return result;
   } catch (err) {
     console.error('Error updating item:', err);
@@ -519,11 +468,8 @@ async function updateIngredient(id, ingredientData) {
   }
 }
 
-async function deleteIngredient(id) {
+async function deleteIngredient(db, id) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-
     // First, check if the item is an ingredient or add-on
     let item = await db.collection('Ingredients').findOne({ _id: new ObjectId(id) });
     let collection = 'Ingredients';
@@ -534,13 +480,10 @@ async function deleteIngredient(id) {
     }
 
     if (!item) {
-      await client.close();
       throw new Error('Item not found');
     }
 
     const result = await db.collection(collection).deleteOne({ _id: new ObjectId(id) });
-
-    await client.close();
     return result;
   } catch (err) {
     console.error('Error deleting item:', err);
@@ -548,11 +491,8 @@ async function deleteIngredient(id) {
   }
 }
 
-async function bulkUpdateIngredients(updates) {
+async function bulkUpdateIngredients(db, updates) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-
     const bulkOps = updates.map(update => {
       const updateData = { ...update.data, lastModified: new Date() };
 
@@ -589,8 +529,6 @@ async function bulkUpdateIngredients(updates) {
     });
 
     const result = await db.collection('Ingredients').bulkWrite(bulkOps);
-
-    await client.close();
     return result.modifiedCount;
   } catch (err) {
     console.error('Error performing bulk update:', err);
@@ -598,15 +536,10 @@ async function bulkUpdateIngredients(updates) {
   }
 }
 
-async function exportIngredientsAndAddons() {
+async function exportIngredientsAndAddons(db) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-
     const ingredients = await db.collection('Ingredients').find().toArray();
     const addons = await db.collection('Add-ons').find().toArray();
-
-    await client.close();
 
     return {
       ingredients,
@@ -625,11 +558,8 @@ async function exportIngredientsAndAddons() {
   }
 }
 
-async function searchIngredientsAddons(query, category, enabled) {
+async function searchIngredientsAddons(db, query, category, enabled) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-
     const searchRegex = new RegExp(query || '', 'i');
     let searchFilter = {
       $or: [
@@ -652,8 +582,6 @@ async function searchIngredientsAddons(query, category, enabled) {
     const ingredients = await db.collection('Ingredients').find(searchFilter).toArray();
     const addons = await db.collection('Add-ons').find(searchFilter).toArray();
 
-    await client.close();
-
     return {
       ingredients,
       addons,
@@ -665,11 +593,8 @@ async function searchIngredientsAddons(query, category, enabled) {
   }
 }
 
-async function getIngredientStats() {
+async function getIngredientStats(db) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-
     const ingredientStats = await db.collection('Ingredients').aggregate([
       {
         $group: {
@@ -699,8 +624,6 @@ async function getIngredientStats() {
       }
     ]).toArray();
 
-    await client.close();
-
     return {
       ingredients: ingredientStats[0] || {
         totalIngredients: 0,
@@ -726,11 +649,8 @@ async function getIngredientStats() {
   }
 }
 
-async function getLowStockAlerts(threshold = 10, urgentThreshold = 5) {
+async function getLowStockAlerts(db, threshold = 10, urgentThreshold = 5) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-
     const lowStockIngredients = await db.collection('Ingredients').find({
       Amount: { $lte: threshold },
       isEnabled: true
@@ -743,8 +663,6 @@ async function getLowStockAlerts(threshold = 10, urgentThreshold = 5) {
 
     const urgentIngredients = lowStockIngredients.filter(item => item.Quantity <= urgentThreshold);
     const urgentAddons = lowStockAddons.filter(item => item.Quantity <= urgentThreshold);
-
-    await client.close();
 
     return {
       lowStockIngredients,
@@ -768,11 +686,8 @@ async function getLowStockAlerts(threshold = 10, urgentThreshold = 5) {
   }
 }
 
-async function getIngredientCategories() {
+async function getIngredientCategories(db) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-
     const ingredientCategories = await db.collection('Ingredients').aggregate([
       { $group: { _id: '$Category', count: { $sum: 1 }, enabled: { $sum: { $cond: ['$isEnabled', 1, 0] } } } },
       { $sort: { _id: 1 } }
@@ -782,8 +697,6 @@ async function getIngredientCategories() {
       { $group: { _id: '$Category', count: { $sum: 1 }, enabled: { $sum: { $cond: ['$isEnabled', 1, 0] } } } },
       { $sort: { _id: 1 } }
     ]).toArray();
-
-    await client.close();
 
     return {
       ingredients: ingredientCategories.filter(cat => cat._id && cat._id.trim()),
@@ -796,17 +709,12 @@ async function getIngredientCategories() {
   }
 }
 
-async function getStockHealth() {
+async function getStockHealth(db) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-
     const ingredientCount = await db.collection('Ingredients').countDocuments();
     const addonCount = await db.collection('Add-ons').countDocuments();
     const enabledIngredients = await db.collection('Ingredients').countDocuments({ isEnabled: true });
     const enabledAddons = await db.collection('Add-ons').countDocuments({ isEnabled: true });
-
-    await client.close();
 
     return {
       status: 'healthy',
@@ -827,13 +735,8 @@ async function getStockHealth() {
   }
 }
 
-async function getDiscounts() {
-  let client;
+async function getDiscounts(db) {
   try {
-    client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-
-    // Check if Promos collection exists, if not, create it
     const collections = await db.listCollections({ name: 'Promos' }).toArray();
     if (collections.length === 0) {
       console.log('Creating Promos collection as it does not exist');
@@ -846,21 +749,12 @@ async function getDiscounts() {
   } catch (err) {
     console.error('Error getting discounts:', err);
     return [];
-  } finally {
-    if (client) {
-      await client.close().catch(console.error);
-    }
   }
 }
 
-async function getDiscountById(id) {
+async function getDiscountById(db, id) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-
     const discount = await db.collection('Promos').findOne({ _id: new ObjectId(id) });
-
-    await client.close();
     return discount;
   } catch (err) {
     console.error('Error getting discount by id:', err);
@@ -868,11 +762,8 @@ async function getDiscountById(id) {
   }
 }
 
-async function addDiscount(discountData) {
+async function addDiscount(db, discountData) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-
     // Parse dates if they're strings
     if (discountData.startDate && typeof discountData.startDate === 'string') {
       discountData.startDate = new Date(discountData.startDate);
@@ -891,8 +782,6 @@ async function addDiscount(discountData) {
     };
 
     const result = await db.collection('Promos').insertOne(newDiscount);
-
-    await client.close();
     return result;
   } catch (err) {
     console.error('Error adding discount:', err);
@@ -900,11 +789,8 @@ async function addDiscount(discountData) {
   }
 }
 
-async function updateDiscount(id, discountData) {
+async function updateDiscount(db, id, discountData) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-
     // Parse dates if they're strings
     if (discountData.startDate && typeof discountData.startDate === 'string') {
       discountData.startDate = new Date(discountData.startDate);
@@ -923,8 +809,6 @@ async function updateDiscount(id, discountData) {
         }
       }
     );
-
-    await client.close();
     return result;
   } catch (err) {
     console.error('Error updating discount:', err);
@@ -932,14 +816,9 @@ async function updateDiscount(id, discountData) {
   }
 }
 
-async function deleteDiscount(id) {
+async function deleteDiscount(db, id) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-
     const result = await db.collection('Promos').deleteOne({ _id: new ObjectId(id) });
-
-    await client.close();
     return result;
   } catch (err) {
     console.error('Error deleting discount:', err);
@@ -947,11 +826,8 @@ async function deleteDiscount(id) {
   }
 }
 
-async function bulkUpdateDiscounts(updates) {
+async function bulkUpdateDiscounts(db, updates) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-
     const bulkOps = updates.map(update => ({
       updateOne: {
         filter: { _id: new ObjectId(update.id) },
@@ -965,8 +841,6 @@ async function bulkUpdateDiscounts(updates) {
     }));
 
     const result = await db.collection('Promos').bulkWrite(bulkOps);
-
-    await client.close();
     return result.modifiedCount;
   } catch (err) {
     console.error('Error performing bulk discount update:', err);
@@ -974,11 +848,8 @@ async function bulkUpdateDiscounts(updates) {
   }
 }
 
-async function getDiscountStats() {
+async function getDiscountStats(db) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-
     const now = new Date();
 
     const totalCount = await db.collection('Promos').countDocuments();
@@ -1011,8 +882,6 @@ async function getDiscountStats() {
       isActive: true
     });
 
-    await client.close();
-
     return {
       total: totalCount,
       active: activeCount,
@@ -1027,16 +896,12 @@ async function getDiscountStats() {
   }
 }
 
-async function getActiveDiscounts() {
+async function getActiveDiscounts(db) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-
     // Check if Promos collection exists
     const collections = await db.listCollections({ name: 'Promos' }).toArray();
     if (collections.length === 0) {
       console.log('Promos collection does not exist, returning empty array');
-      await client.close();
       return [];
     }
 
@@ -1047,8 +912,6 @@ async function getActiveDiscounts() {
       endDate: { $gte: now },
       isActive: true
     }).toArray();
-
-    await client.close();
     return activeDiscounts;
   } catch (err) {
     console.error('Error getting active discounts:', err);
@@ -1056,12 +919,15 @@ async function getActiveDiscounts() {
   }
 }
 
-async function getMenu() {
+async function getMenu(db) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
     const menu = await db.collection('Menu').find().toArray();
-    await client.close();
+    // Strip domain from imagelinks for local display
+    menu.forEach(item => {
+      if (item.imagelink && item.imagelink.startsWith('https://blessingsateverysip.me')) {
+        item.imagelink = item.imagelink.replace('https://blessingsateverysip.me', '');
+      }
+    });
     return menu;
   } catch (err) {
     console.error('Error getting menu:', err);
@@ -1069,10 +935,8 @@ async function getMenu() {
   }
 }
 
-async function getPopularProducts() {
+async function getPopularProducts(db) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
     // Aggregate product sales from Orders using Cart array
     const results = await db.collection('Orders').aggregate([
       { $unwind: "$Cart" },
@@ -1082,7 +946,6 @@ async function getPopularProducts() {
       }},
       { $sort: { totalQuantity: -1 } }
     ]).toArray();
-    await client.close();
     return results;
   } catch (err) {
     console.error('Error in getPopularProducts:', err);
@@ -1090,11 +953,8 @@ async function getPopularProducts() {
   }
 }
 
-async function getAverageSalesPerDay() {
+async function getAverageSalesPerDay(db) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-
     const salesPerDay = await db.collection('Orders').aggregate([
       {
         $addFields: {
@@ -1115,8 +975,6 @@ async function getAverageSalesPerDay() {
       },
       { $sort: { _id: 1 } }
     ]).toArray();
-
-    await client.close();
     return salesPerDay;
   } catch (err) {
     console.error('Error getting average sales per day:', err);
@@ -1124,11 +982,8 @@ async function getAverageSalesPerDay() {
   }
 }
 
-async function getTopCategories() {
+async function getTopCategories(db) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-
     const pipeline = [
       { $unwind: '$Cart' },
       {
@@ -1177,7 +1032,6 @@ async function getTopCategories() {
     ];
 
     const categories = await db.collection('Orders').aggregate(pipeline).toArray();
-    await client.close();
 
     return categories.map(cat => ({
       name: cat._id,
@@ -1191,11 +1045,8 @@ async function getTopCategories() {
   }
 }
 
-async function getPaymentTypes() {
+async function getPaymentTypes(db) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-
     const pipeline = [
       {
         $match: {
@@ -1207,7 +1058,7 @@ async function getPaymentTypes() {
         $project: {
           PaymentMode: {
             $cond: {
-              if: { $in: ['$PaymentMode', ['E-PAYMENT', 'E-Payment']] },
+              if: { $in: ['$PaymentMode', ['E-PAYMENT', 'E-Payment', 'E_Payment']] },
               then: 'E-Payment',
               else: '$PaymentMode'
             }
@@ -1225,7 +1076,6 @@ async function getPaymentTypes() {
     ];
 
     const paymentTypes = await db.collection('Orders').aggregate(pipeline).toArray();
-    await client.close();
 
     return paymentTypes.map(pt => ({
       name: pt._id,
@@ -1237,11 +1087,8 @@ async function getPaymentTypes() {
   }
 }
 
-async function getOrdersBySource() {
+async function getOrdersBySource(db) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-
     const pipeline = [
       {
         $match: {
@@ -1260,7 +1107,6 @@ async function getOrdersBySource() {
     ];
 
     const ordersBySource = await db.collection('Orders').aggregate(pipeline).toArray();
-    await client.close();
 
     return ordersBySource.map(source => ({
       name: source._id,
@@ -1273,11 +1119,8 @@ async function getOrdersBySource() {
   }
 }
 
-async function getSalesPerformance(days = 14) {
+async function getSalesPerformance(db, days = 14) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
@@ -1342,8 +1185,6 @@ async function getSalesPerformance(days = 14) {
         };
       }
     });
-
-    await client.close();
     return formattedResults;
   } catch (err) {
     console.error('Error getting sales performance:', err);
@@ -1353,11 +1194,8 @@ async function getSalesPerformance(days = 14) {
 
 // ===== NOTIFICATION FUNCTIONS =====
 
-async function createNotification(notificationData) {
+async function createNotification(db, notificationData) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    
     const notification = {
       ...notificationData,
       createdAt: new Date(),
@@ -1368,7 +1206,6 @@ async function createNotification(notificationData) {
     };
     
     const result = await db.collection('Notifications').insertOne(notification);
-    await client.close();
     
     return result;
   } catch (err) {
@@ -1377,19 +1214,15 @@ async function createNotification(notificationData) {
   }
 }
 
-async function getNotifications(userRole, limit = 50) {
+async function getNotifications(db, userRole, limit = 50) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    
+    console.log('🔍 getNotifications called with db type:', typeof db, 'hasCollection:', typeof db?.collection);
     const notifications = await db.collection('Notifications').find({
       targetRoles: { $in: [userRole] }
     })
     .sort({ createdAt: -1 })
     .limit(limit)
     .toArray();
-    
-    await client.close();
     return notifications;
   } catch (err) {
     console.error('Error getting notifications:', err);
@@ -1397,17 +1230,12 @@ async function getNotifications(userRole, limit = 50) {
   }
 }
 
-async function getUnreadNotificationCount(userRole) {
+async function getUnreadNotificationCount(db, userRole) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    
     const count = await db.collection('Notifications').countDocuments({
       targetRoles: { $in: [userRole] },
       isRead: false
     });
-    
-    await client.close();
     return count;
   } catch (err) {
     console.error('Error getting unread notification count:', err);
@@ -1415,17 +1243,12 @@ async function getUnreadNotificationCount(userRole) {
   }
 }
 
-async function markNotificationAsRead(notificationId) {
+async function markNotificationAsRead(db, notificationId) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    
     const result = await db.collection('Notifications').updateOne(
       { _id: new ObjectId(notificationId) },
       { $set: { isRead: true, readAt: new Date() } }
     );
-    
-    await client.close();
     return result;
   } catch (err) {
     console.error('Error marking notification as read:', err);
@@ -1433,11 +1256,8 @@ async function markNotificationAsRead(notificationId) {
   }
 }
 
-async function markAllNotificationsAsRead(userRole) {
+async function markAllNotificationsAsRead(db, userRole) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    
     const result = await db.collection('Notifications').updateMany(
       { 
         targetRoles: { $in: [userRole] },
@@ -1445,8 +1265,6 @@ async function markAllNotificationsAsRead(userRole) {
       },
       { $set: { isRead: true, readAt: new Date() } }
     );
-    
-    await client.close();
     return result;
   } catch (err) {
     console.error('Error marking all notifications as read:', err);
@@ -1454,16 +1272,11 @@ async function markAllNotificationsAsRead(userRole) {
   }
 }
 
-async function deleteNotification(notificationId) {
+async function deleteNotification(db, notificationId) {
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    
     const result = await db.collection('Notifications').deleteOne({
       _id: new ObjectId(notificationId)
     });
-    
-    await client.close();
     return result;
   } catch (err) {
     console.error('Error deleting notification:', err);
@@ -1473,11 +1286,11 @@ async function deleteNotification(notificationId) {
 
 // Generate specific types of notifications
 
-async function createNewOrderNotification(orderData) {
+async function createNewOrderNotification(db, orderData) {
   try {
     console.log('🔔 Creating new order notification for order:', orderData.OrderID);
     
-    const notification = await createNotification({
+    const notification = await createNotification(db, {
       type: 'order',
       title: 'New Order Received',
       message: `Order #${orderData.OrderID} received from ${orderData.Customer?.fullname || 'Customer'}`,
@@ -1500,8 +1313,8 @@ async function createNewOrderNotification(orderData) {
   }
 }
 
-async function createMessageNotification(messageData, targetRole = 'admin') {
-  return await createNotification({
+async function createMessageNotification(db, messageData, targetRole = 'admin') {
+  return await createNotification(db, {
     type: 'message',
     title: 'New Message Received',
     message: `New message from ${messageData.senderName || 'Unknown'}`,
@@ -1516,10 +1329,7 @@ async function createMessageNotification(messageData, targetRole = 'admin') {
   });
 }
 
-async function createLowStockNotification(stockData, userSettings = {}) {
-  const client = await MongoClient.connect(uri);
-  const db = client.db('blessingscafe');
-  
+async function createLowStockNotification(db, stockData, userSettings = {}) {
   try {
     // Get user settings from UserSettings collection if not provided
     let effectiveThreshold = userSettings.lowStockAlertRange || userSettings.lowStockThreshold;
@@ -1600,7 +1410,7 @@ async function createLowStockNotification(stockData, userSettings = {}) {
       return null;
     }
     
-    const notification = await createNotification({
+    const notification = await createNotification(db, {
       type: 'stock',
       title: `${priority === 'urgent' ? '🚨 Critical' : '⚠️'} Low Stock Alert`,
       message: `${items.length} item(s) running low: ${itemsText}${additionalText}`,
@@ -1624,16 +1434,15 @@ async function createLowStockNotification(stockData, userSettings = {}) {
     console.error('Error creating low stock notification:', error);
     return null;
   } finally {
-    await client.close();
   }
 }
 
-async function createMonthlyReportNotification() {
+async function createMonthlyReportNotification(db) {
   const now = new Date();
   const month = now.toLocaleString('default', { month: 'long' });
   const year = now.getFullYear();
   
-  return await createNotification({
+  return await createNotification(db, {
     type: 'report',
     title: 'Monthly Report Available',
     message: `Analytics report for ${month} ${year} is now available for download`,
@@ -1648,10 +1457,10 @@ async function createMonthlyReportNotification() {
   });
 }
 
-async function createPromoExpiryNotification(promoData) {
+async function createPromoExpiryNotification(db, promoData) {
   const daysUntilExpiry = Math.ceil((new Date(promoData.endDate) - new Date()) / (1000 * 60 * 60 * 24));
   
-  return await createNotification({
+  return await createNotification(db, {
     type: 'promo',
     title: 'Promotion Expiring Soon',
     message: `"${promoData.event}" expires in ${daysUntilExpiry} day(s)`,
@@ -1668,13 +1477,10 @@ async function createPromoExpiryNotification(promoData) {
 }
 
 // Check for notifications that need to be generated
-async function generatePeriodicNotifications(userSettings = {}) {
+async function generatePeriodicNotifications(db, userSettings = {}) {
   try {
     const notifications = [];
     const now = new Date();
-    const client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
-    
     console.log('🔔 Starting periodic notification generation...');
     
     // Get user settings for all admin users if not provided
@@ -1700,8 +1506,8 @@ async function generatePeriodicNotifications(userSettings = {}) {
     }, 10);
     
     console.log(`🔍 Checking low stock with threshold: ${lowestThreshold}`);
-    const stockData = await getStockData();
-    const lowStockNotif = await createLowStockNotification(stockData, { lowStockAlertRange: lowestThreshold });
+    const stockData = await getStockData(db);
+    const lowStockNotif = await createLowStockNotification(db, stockData, { lowStockAlertRange: lowestThreshold });
     if (lowStockNotif) {
       notifications.push(lowStockNotif);
       console.log('✅ Low stock notification created');
@@ -1724,10 +1530,7 @@ async function generatePeriodicNotifications(userSettings = {}) {
         const lastMonthName = monthNames[lastMonth];
         const year = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
         
-        const monthlyNotif = await createMonthlyReportNotification({
-          month: lastMonthName,
-          year: year
-        });
+        const monthlyNotif = await createMonthlyReportNotification(db);
         notifications.push(monthlyNotif);
         console.log('✅ Monthly report notification created');
       } else {
@@ -1737,7 +1540,7 @@ async function generatePeriodicNotifications(userSettings = {}) {
     
     // Check for expiring promos
     console.log('🎯 Checking for expiring promos...');
-    const promos = await getActiveDiscounts();
+    const promos = await getActiveDiscounts(db);
     for (const promo of promos) {
       const daysUntilExpiry = Math.ceil((new Date(promo.endDate) - now) / (1000 * 60 * 60 * 24));
       if (daysUntilExpiry <= 7 && daysUntilExpiry >= 0) {
@@ -1749,14 +1552,12 @@ async function generatePeriodicNotifications(userSettings = {}) {
         });
         
         if (!existingNotif) {
-          const promoNotif = await createPromoExpiryNotification(promo);
+          const promoNotif = await createPromoExpiryNotification(db, promo);
           notifications.push(promoNotif);
           console.log(`✅ Promo expiry notification created for: ${promo.event}`);
         }
       }
     }
-    
-    await client.close();
     
     console.log(`🔔 Periodic notification generation complete: ${notifications.length} notifications created`);
     return notifications;
@@ -1768,27 +1569,27 @@ async function generatePeriodicNotifications(userSettings = {}) {
 }
 
 // Utility function to trigger notifications based on business events
-async function triggerBusinessEventNotification(eventType, eventData = {}) {
+async function triggerBusinessEventNotification(db, eventType, eventData = {}) {
   try {
     console.log(`🔔 Triggering ${eventType} notification...`);
     
     switch (eventType) {
       case 'low-stock-check':
-        const stockData = await getStockData();
-        const lowStockNotif = await createLowStockNotification(stockData, eventData.userSettings);
+        const stockData = await getStockData(db);
+        const lowStockNotif = await createLowStockNotification(db, stockData, eventData.userSettings);
         return lowStockNotif;
         
       case 'new-order':
-        return await createNewOrderNotification(eventData);
+        return await createNewOrderNotification(db, eventData);
         
       case 'new-message':
-        return await createMessageNotification(eventData.messageData, eventData.targetRole);
+        return await createMessageNotification(db, eventData.messageData, eventData.targetRole);
         
       case 'promo-expiry':
-        return await createPromoExpiryNotification(eventData);
+        return await createPromoExpiryNotification(db, eventData);
         
       case 'monthly-report':
-        return await createMonthlyReportNotification(eventData);
+        return await createMonthlyReportNotification(db);
         
       default:
         console.log(`ℹ️ Unknown event type: ${eventType}`);

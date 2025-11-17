@@ -1,22 +1,13 @@
-const { MongoClient } = require('mongodb');
+const dbConnection = require('./db');
 const cron = require('node-cron');
 
-const uri = process.env.MONGODB_URI;
-
-/**
- * Deactivates expired promos by setting isActive to false
- * for promos where endDate has passed and isActive is currently true
- */
 async function deactivateExpiredPromos() {
-  let client;
   try {
-    client = await MongoClient.connect(uri);
-    const db = client.db('blessingscafe');
+    const db = dbConnection.getDb();
     const promosCollection = db.collection('Promos');
 
     const now = new Date();
 
-    // Find promos that are expired and still active
     const expiredPromos = await promosCollection.find({
       endDate: { $lte: now },
       isActive: true
@@ -27,7 +18,6 @@ async function deactivateExpiredPromos() {
       return { success: true, deactivatedCount: 0, promos: [] };
     }
 
-    // Update all expired active promos to inactive
     const result = await promosCollection.updateMany(
       {
         endDate: { $lte: now },
@@ -59,10 +49,6 @@ async function deactivateExpiredPromos() {
   } catch (error) {
     console.error(`[${new Date().toISOString()}] Error deactivating expired promos:`, error);
     return { success: false, error: error.message };
-  } finally {
-    if (client) {
-      await client.close();
-    }
   }
 }
 

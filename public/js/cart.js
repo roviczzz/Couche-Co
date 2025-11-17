@@ -1,25 +1,49 @@
 // Initialize cart items (will be loaded asynchronously)
 let orderItems = [];
+let cartLastLoaded = 0;
+const CART_LOAD_COOLDOWN = 5000; // 5 seconds cooldown between cart loads
+let cartLoadInProgress = false; // Prevent simultaneous cart loads
 
 document.addEventListener('DOMContentLoaded', async function() {
   // Load cart data based on user type
   if (window.user && window.user._id) {
-    // For logged-in users, load from server
-    try {
-      const response = await fetch('/api/cart');
-      if (response.ok) {
-        orderItems = await response.json();
-        console.log('Loaded cart from server:', orderItems);
-      } else {
-        console.error('Failed to load cart from server, status:', response.status);
+    // For logged-in users, load from server with rate limiting
+    const now = Date.now();
+    if (now - cartLastLoaded > CART_LOAD_COOLDOWN && !cartLoadInProgress) {
+      cartLoadInProgress = true;
+      try {
+        const response = await fetch('/api/cart');
+        if (response.status === 200 && response.headers.get('content-type')?.includes('application/json')) {
+          orderItems = await response.json();
+          cartLastLoaded = now;
+          console.log('Loaded cart from server:', orderItems);
+        } else if (response.status === 429) {
+          console.warn('Rate limited, using localStorage fallback');
+          // Fallback to localStorage for rate limiting
+          orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+        } else {
+          console.error('Failed to load cart from server, status:', response.status);
+          // Fallback to localStorage
+          orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+        }
+      } catch (error) {
+        console.error('Error loading cart from server:', error);
         // Fallback to localStorage
         orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+      } finally {
+        cartLoadInProgress = false;
       }
-    } catch (error) {
-      console.error('Error loading cart from server:', error);
-      // Fallback to localStorage
+    } else {
+      console.log('Cart loaded recently or in progress, using cached data');
       orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
     }
+
+    // Strip domain from imagelinks for local display
+    orderItems.forEach(item => {
+      if (item.imagelink && item.imagelink.startsWith('https://blessingsateverysip.me')) {
+        item.imagelink = item.imagelink.replace('https://blessingsateverysip.me', '');
+      }
+    });
   } else {
     // For guests, use localStorage
     orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
@@ -149,15 +173,20 @@ function changeQuantity(index, delta) {
   const item = orderItems[index];
   if (!item) return;
 
-  const newQuantity = Math.max(1, item.quantity + delta);
-  if (newQuantity !== item.quantity) {
-    item.quantity = newQuantity;
-    saveCart();
-    displayCartItems();
-    updateCartTotal();
+  if (delta === -1 && item.quantity === 1) {
+    // Remove item if decreasing from 1
+    removeItem(index);
+  } else {
+    const newQuantity = Math.max(1, item.quantity + delta);
+    if (newQuantity !== item.quantity) {
+      item.quantity = newQuantity;
+      saveCart();
+      displayCartItems();
+      updateCartTotal();
 
-    if (typeof updateCartCount === 'function') {
-      updateCartCount();
+      if (typeof updateCartCount === 'function') {
+        updateCartCount();
+      }
     }
   }
 }
@@ -222,7 +251,7 @@ function updateCartTotal() {
   }, 0);
 
   cartTotalContainer.innerHTML = `
-    <div">
+    <div>
       <p>Subtotal: ₱${totalPrice.toFixed(2)} PHP</p>
       <p style="font-size: 1rem;">Shipping calculated at checkout</p>
     </div>
@@ -233,15 +262,34 @@ function updateCartTotal() {
 function saveCart() {
   localStorage.setItem('orderItems', JSON.stringify(orderItems));
 
-  // Sync with server for logged-in users
+  // Sync with server for logged-in users (with rate limiting)
   if (window.user && window.user._id) {
-    fetch('/api/cart', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(orderItems)
-    }).catch(err => console.error('Error saving cart to server:', err));
+    // Debounce server saves to prevent excessive API calls
+    if (!saveCart.timeoutId) {
+      saveCart.timeoutId = setTimeout(async () => {
+        try {
+          const response = await fetch('/api/cart', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(orderItems)
+          });
+          
+          if (response.status === 429) {
+            console.warn('Cart save rate limited, will retry later');
+            // Don't clear timeout, let it retry
+            return;
+          } else if (!response.ok) {
+            console.error('Error saving cart to server:', response.status);
+          }
+        } catch (err) {
+          console.error('Error saving cart to server:', err);
+        } finally {
+          saveCart.timeoutId = null;
+        }
+      }, 2000); // Wait 2 seconds before saving to server
+    }
   }
 }
 

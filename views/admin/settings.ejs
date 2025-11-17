@@ -76,6 +76,49 @@
                 </div>
             </div>
 
+            <% if (user.role === 'owner') { %>
+            <div class="settings-card">
+                <div class="card-header">
+                    <h3>Account Management</h3>
+                    <p>Create new staff or admin accounts</p>
+                </div>
+                <div class="card-body">
+                    <form id="createAccountForm">
+                        <div class="form-group">
+                            <label for="accountUsername">Username</label>
+                            <input type="text" id="accountUsername" name="username" placeholder="Enter username" required>
+                        </div>
+
+                        <div class="form-group password-group">
+                            <label for="accountPassword">Password</label>
+                            <div class="password-input-container">
+                                <input type="password" id="accountPassword" name="password" placeholder="Enter password" required minlength="6">
+                                <button type="button" class="password-toggle" id="passwordToggle" aria-label="Toggle password visibility">
+                                    <i class="fas fa-eye" id="passwordIcon"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="accountRole">Role</label>
+                            <select id="accountRole" name="role" required>
+                                <option value="">Select role</option>
+                                <option value="staff">Staff</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn-success" id="createAccountBtn">
+                            <span class="btn-text">Create Account</span>
+                            <span class="btn-loader" style="display: none;">
+                                <i class="fas fa-spinner fa-spin"></i> Creating...
+                            </span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <% } %>
+
             <div class="settings-card">
                 <div class="card-header">
                     <h3>Security</h3>
