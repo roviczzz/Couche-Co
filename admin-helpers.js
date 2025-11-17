@@ -180,6 +180,12 @@ async function getAnalyticsData(db) {
 async function getProducts(db) {
   try {
     const products = await db.collection('Menu').find().toArray();
+    // Strip domain from imagelinks for local display
+    products.forEach(product => {
+      if (product.imagelink && product.imagelink.startsWith('https://blessingsateverysip.me')) {
+        product.imagelink = product.imagelink.replace('https://blessingsateverysip.me', '');
+      }
+    });
     return products;
   } catch (err) {
     console.error('Error getting products:', err);
@@ -190,6 +196,10 @@ async function getProducts(db) {
 async function getProductById(db, id) {
   try {
     const product = await db.collection('Menu').findOne({ _id: new ObjectId(id) });
+    // Strip domain from imagelink for local display
+    if (product && product.imagelink && product.imagelink.startsWith('https://blessingsateverysip.me')) {
+      product.imagelink = product.imagelink.replace('https://blessingsateverysip.me', '');
+    }
     return product;
   } catch (err) {
     console.error('Error getting product by id:', err);
@@ -912,6 +922,12 @@ async function getActiveDiscounts(db) {
 async function getMenu(db) {
   try {
     const menu = await db.collection('Menu').find().toArray();
+    // Strip domain from imagelinks for local display
+    menu.forEach(item => {
+      if (item.imagelink && item.imagelink.startsWith('https://blessingsateverysip.me')) {
+        item.imagelink = item.imagelink.replace('https://blessingsateverysip.me', '');
+      }
+    });
     return menu;
   } catch (err) {
     console.error('Error getting menu:', err);
@@ -1042,7 +1058,7 @@ async function getPaymentTypes(db) {
         $project: {
           PaymentMode: {
             $cond: {
-              if: { $in: ['$PaymentMode', ['E-PAYMENT', 'E-Payment']] },
+              if: { $in: ['$PaymentMode', ['E-PAYMENT', 'E-Payment', 'E_Payment']] },
               then: 'E-Payment',
               else: '$PaymentMode'
             }

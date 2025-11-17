@@ -7,10 +7,15 @@
 <script id="ingredients-data" type="application/json"><%- JSON.stringify(ingredients || []) %></script>
 
   <main class="product-page">
-    <div class="product-container">
+    <% if (!isAvailable) { %>
+    <div class="unavailable-banner">
+      <span>⚠️ This item is currently unavailable due to insufficient ingredients</span>
+    </div>
+    <% } %>
+    <div class="product-container <%= !isAvailable ? 'product-unavailable' : '' %>">
       <div class="product-image">
         <% if (product.imagelink && product.imagelink !== 'null' && product.imagelink !== 'placeholder' && product.imagelink !== null && product.imagelink.trim() !== '') { %>
-          <img src="<%= product.imagelink %>" alt="<%= product.Name %>">
+          <img src="<%= getImageUrl(product.imagelink) %>" alt="<%= product.Name %>">
         <% } else { %>
           <div class="placeholder-div">Image Unavailable</div>
         <% } %>
@@ -58,13 +63,15 @@
         <div class="quantity-section">
           <label for="quantity">Quantity</label>
           <div class="quantity-controls">
-            <button type="button" class="quantity-btn quantity-decrease" onclick="decreaseQuantity()">-</button>
-            <input type="number" id="quantity" name="quantity" min="1" value="1" readonly>
-            <button type="button" class="quantity-btn quantity-increase" onclick="increaseQuantity()">+</button>
+            <button type="button" class="quantity-btn quantity-decrease" onclick="decreaseQuantity()" <%= !isAvailable ? 'disabled' : '' %>>-</button>
+            <input type="number" id="quantity" name="quantity" min="1" value="1" readonly <%= !isAvailable ? 'disabled' : '' %>>
+            <button type="button" class="quantity-btn quantity-increase" onclick="increaseQuantity()" <%= !isAvailable ? 'disabled' : '' %>>+</button>
           </div>
         </div>
 
-        <button id="add-to-cart-btn" class="add-to-cart-btn">Add to Cart</button>
+        <button id="add-to-cart-btn" class="add-to-cart-btn" <%= !isAvailable ? 'disabled' : '' %>>
+          <%= !isAvailable ? 'Currently Unavailable' : 'Add to Cart' %>
+        </button>
       </div>
     </div>
   </main>
@@ -103,7 +110,7 @@
       <div class="cart-side-item">
         <div class="cart-side-image">
           <% if (product.imagelink && product.imagelink !== 'null' && product.imagelink !== 'placeholder' && product.imagelink !== null && product.imagelink.trim() !== '') { %>
-            <img id="cart-popup-image" src="<%= product.imagelink %>" alt="<%= product.Name %>">
+            <img id="cart-popup-image" src="<%= getImageUrl(product.imagelink) %>" alt="<%= product.Name %>">
           <% } else { %>
             <div class="cart-side-placeholder">No Image</div>
           <% } %>

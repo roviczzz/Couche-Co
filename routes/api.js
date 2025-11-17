@@ -1462,13 +1462,6 @@ router.get('/products/:id', async (req, res) => {
     const product = await productCollection.findOne({ _id: new ObjectId(id) });
     if (!product) return res.status(404).send('Not found');
 
-    let ingredientDetails = [];
-    if (Array.isArray(product.Ingredients) && product.Ingredients.length > 0) {
-      ingredientDetails = await ingredientsCollection
-          .find({ IngredientID: { $in: product.Ingredients } })
-          .toArray();
-    }
-
     res.json({
       ...product,
       IngredientsDetails: ingredientDetails
@@ -1555,6 +1548,18 @@ router.get('/search', async (req, res) => {
 
     // Limit to 8 results for better UX
     const finalResults = results.slice(0, 8);
+
+    // Check availability for each result
+    const InventoryManager = require('../utils/inventoryManager');
+    for (const item of finalResults) {
+      try {
+        const availabilityCheck = await InventoryManager.checkProductAvailability(item.ProductID);
+        item.isAvailable = availabilityCheck.available;
+      } catch (error) {
+        console.error(`Error checking availability for ${item.ProductID}:`, error);
+        item.isAvailable = true;
+      }
+    }
 
     // Cache the results
     searchCache.set(cacheKey, { data: finalResults, timestamp: now });

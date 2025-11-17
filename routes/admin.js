@@ -745,16 +745,6 @@ router.get('/analytics/top-categories', nocache, async (req, res) => {
   }
 });
 
-router.get('/analytics/payment-types', nocache, async (req, res) => {
-  try {
-    const categories = await getPaymentTypes(req.db);
-    res.json(categories);
-  } catch (error) {
-    console.error('Payment types error:', error);
-    res.status(500).json({ error: 'Failed to load payment types' });
-  }
-});
-
 // Analytics Page
 router.get('/analytics', nocache, async (req, res) => {
   try {
@@ -915,7 +905,7 @@ router.post('/products/add', upload.single('imagelink'), async (req, res) => {
     const newFilename = `${sanitizedName}-${Date.now()}${path.extname(req.file.originalname)}`;
     const newPath = path.join(uploadsDir, newFilename);
     fs.renameSync(tempPath, newPath);
-    imagelink = `/uploads/products/${newFilename}`;
+    imagelink = `https://blessingsateverysip.me/uploads/products/${newFilename}`;
   }
 
   // ✅ Build the product document to insert
@@ -1017,6 +1007,11 @@ router.get('/api/products/:id', async (req, res) => {
     );
 
     if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
+
+    // Strip domain from imagelink for local display
+    if (product.imagelink && product.imagelink.startsWith('https://blessingsateverysip.me')) {
+      product.imagelink = product.imagelink.replace('https://blessingsateverysip.me', '');
+    }
 
     // Ultra-fast response with minimal processing
     res.json({
@@ -1133,7 +1128,7 @@ router.post('/products/edit/:id', upload.single('imagelink'), async (req, res) =
       const newFilename = `${sanitizedName}-${Date.now()}${path.extname(req.file.originalname)}`;
       const newPath = path.join(uploadsDir, newFilename);
       fs.renameSync(tempPath, newPath);
-      updateFields.imagelink = `/uploads/products/${newFilename}`;
+      updateFields.imagelink = `https://blessingsateverysip.me/uploads/products/${newFilename}`;
     }
 
     // Only update if there are actual changes

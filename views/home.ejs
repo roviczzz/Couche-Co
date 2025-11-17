@@ -39,10 +39,15 @@ function scrollToMenu() {
             <div class="menu-gallery-container">
                 <% categorizedItems[cat].forEach(item => { %>
                 <% if (item.isEnabled !== false) { %>
-                <div class="gallery-item" onclick="window.location.href='/product/<%= item.ProductID %>'" style="cursor: pointer;">
+                <div class="gallery-item <%= !item.isAvailable ? 'unavailable' : '' %>" onclick="window.location.href='/product/<%= item.ProductID %>'" style="cursor: pointer;">
+                    <% if (!item.isAvailable) { %>
+                    <div class="unavailable-overlay">
+                        <span class="unavailable-badge">Currently Unavailable</span>
+                    </div>
+                    <% } %>
                     <div class="gallery-image">
                         <% if (item.imagelink && item.imagelink.length > 0) { %>
-                            <img src="<%= item.imagelink %>" alt="<%= item.Name %>" loading="lazy" onerror="this.alt='Image not available'; this.style.display='none';">
+                            <img src="<%= getImageUrl(item.imagelink) %>" alt="<%= item.Name %>" loading="lazy" onerror="this.alt='Image not available'; this.style.display='none';">
                         <% } else { %>
                             <div class="no-image">No Image</div>
                         <% } %>

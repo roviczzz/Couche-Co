@@ -195,6 +195,16 @@ nav {
     cursor: pointer;
     border-bottom: 1px solid #eee;
     transition: background 0.3s ease;
+    position: relative;
+}
+
+.search-result-item.unavailable {
+    opacity: 0.6;
+}
+
+.search-result-item.unavailable .search-result-name,
+.search-result-item.unavailable .search-result-category {
+    color: #999;
 }
 
 .search-result-item:hover {
@@ -214,6 +224,13 @@ nav {
     font-size: 0.8rem;
     color: #8B4513;
     margin-top: 0.2rem;
+}
+
+.search-result-unavailable {
+    font-size: 0.7rem;
+    color: #dc3545;
+    margin-top: 0.2rem;
+    font-weight: 500;
 }
 
 .no-results {

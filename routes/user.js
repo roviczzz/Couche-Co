@@ -229,6 +229,13 @@ router.get('/products', async (req, res) => {
 
     const products = await productCollection.find().toArray();
 
+    // Strip domain from imagelinks for local display
+    products.forEach(product => {
+      if (product.imagelink && product.imagelink.startsWith('https://blessingsateverysip.me')) {
+        product.imagelink = product.imagelink.replace('https://blessingsateverysip.me', '');
+      }
+    });
+
     const allIngredientIDs = products.flatMap(p => p.Ingredients || []);
 
     const ingredientDocs = await ingredientCollection
@@ -420,6 +427,11 @@ router.get('/edit-product/:id', async (req, res) => {
       return res.status(404).send('Product not found');
     }
 
+    // Strip domain from imagelink for local display
+    if (product.imagelink && product.imagelink.startsWith('https://blessingsateverysip.me')) {
+      product.imagelink = product.imagelink.replace('https://blessingsateverysip.me', '');
+    }
+
     let ingredientDetails = [];
     if (Array.isArray(product.Ingredients) && product.Ingredients.length > 0) {
       ingredientDetails = await ingredientsCollection
@@ -447,6 +459,11 @@ router.get('/api/products/:id', async (req, res) => {
 
     const product = await productCollection.findOne({ _id: new ObjectId(id) });
     if (!product) return res.status(404).send('Not found');
+
+    // Strip domain from imagelink for local display
+    if (product.imagelink && product.imagelink.startsWith('https://blessingsateverysip.me')) {
+      product.imagelink = product.imagelink.replace('https://blessingsateverysip.me', '');
+    }
 
     let ingredientDetails = [];
     if (Array.isArray(product.Ingredients) && product.Ingredients.length > 0) {

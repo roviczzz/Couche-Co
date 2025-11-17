@@ -288,6 +288,15 @@ async function startServer() {
   try {
     await dbConnection.connect();
     app.locals.db = dbConnection.getDb();
+
+// Helper function for image URLs
+app.locals.getImageUrl = function(imagelink) {
+  if (!imagelink) return '';
+  if (imagelink.startsWith('https://blessingsateverysip.me/')) {
+    return imagelink.replace('https://blessingsateverysip.me', '');
+  }
+  return imagelink;
+};
     await initializeNotificationsCron();
     
     app.listen(port, () => {

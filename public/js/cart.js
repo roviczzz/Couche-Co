@@ -37,6 +37,13 @@ document.addEventListener('DOMContentLoaded', async function() {
       console.log('Cart loaded recently or in progress, using cached data');
       orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
     }
+
+    // Strip domain from imagelinks for local display
+    orderItems.forEach(item => {
+      if (item.imagelink && item.imagelink.startsWith('https://blessingsateverysip.me')) {
+        item.imagelink = item.imagelink.replace('https://blessingsateverysip.me', '');
+      }
+    });
   } else {
     // For guests, use localStorage
     orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');

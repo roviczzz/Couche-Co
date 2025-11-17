@@ -51,26 +51,33 @@ router.get('/', async (req, res) => {
     // Always fetch fresh menu items for real-time availability checking
     const allItems = await menuCollection.find().toArray();
 
-    // Filter available items in real-time
+    // Check availability for all items
     const InventoryManager = require('../utils/inventoryManager');
-    const availableItems = [];
+    const itemsWithAvailability = [];
 
     for (const item of allItems) {
       try {
         const availabilityCheck = await InventoryManager.checkProductAvailability(item.ProductID);
-        if (availabilityCheck.available) {
-          availableItems.push(item);
-        }
+        item.isAvailable = availabilityCheck.available;
+        itemsWithAvailability.push(item);
       } catch (error) {
         console.error(`Error checking availability for ${item.ProductID}:`, error);
-        // Include item if availability check fails (fail-safe)
-        availableItems.push(item);
+        // Mark as available if check fails (fail-safe)
+        item.isAvailable = true;
+        itemsWithAvailability.push(item);
       }
     }
 
-    // Categorize available items
+    // Strip domain from imagelinks for local display
+    itemsWithAvailability.forEach(item => {
+      if (item.imagelink && item.imagelink.startsWith('https://blessingsateverysip.me')) {
+        item.imagelink = item.imagelink.replace('https://blessingsateverysip.me', '');
+      }
+    });
+
+    // Categorize all items (both available and unavailable)
     const categorizedItems = {};
-    availableItems.forEach(item => {
+    itemsWithAvailability.forEach(item => {
       const category = item.Category || 'Others';
       if (!categorizedItems[category]) {
         categorizedItems[category] = [];
@@ -301,6 +308,16 @@ router.get('/product/:id', async (req, res) => {
       return res.status(404).send('Product not found');
     }
 
+    // Check product availability
+    const InventoryManager = require('../utils/inventoryManager');
+    let isAvailable = true;
+    try {
+      const availabilityCheck = await InventoryManager.checkProductAvailability(product.ProductID);
+      isAvailable = availabilityCheck.available;
+    } catch (error) {
+      console.error(`Error checking availability for ${product.ProductID}:`, error);
+    }
+
     // Check cache for add-ons and ingredients
     const now = Date.now();
     if (!cachedAddons || !cachedIngredients || (now - cacheTimestamp) > CACHE_DURATION) {
@@ -313,6 +330,7 @@ router.get('/product/:id', async (req, res) => {
     }
 
     res.render('product', {
+      isAvailable,
       product,
       addons: cachedAddons,
       ingredients: cachedIngredients,
