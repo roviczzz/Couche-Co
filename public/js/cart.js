@@ -166,15 +166,20 @@ function changeQuantity(index, delta) {
   const item = orderItems[index];
   if (!item) return;
 
-  const newQuantity = Math.max(1, item.quantity + delta);
-  if (newQuantity !== item.quantity) {
-    item.quantity = newQuantity;
-    saveCart();
-    displayCartItems();
-    updateCartTotal();
+  if (delta === -1 && item.quantity === 1) {
+    // Remove item if decreasing from 1
+    removeItem(index);
+  } else {
+    const newQuantity = Math.max(1, item.quantity + delta);
+    if (newQuantity !== item.quantity) {
+      item.quantity = newQuantity;
+      saveCart();
+      displayCartItems();
+      updateCartTotal();
 
-    if (typeof updateCartCount === 'function') {
-      updateCartCount();
+      if (typeof updateCartCount === 'function') {
+        updateCartCount();
+      }
     }
   }
 }
