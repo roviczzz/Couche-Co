@@ -2813,9 +2813,8 @@ async function connectDB() {
   return db;
 }
 
-router.get("/analytics/order-history", async (req, res) => {
+router.get('/analytics/order-history', async (req, res) => {
   try {
-    const db = await connectDB();
     const days = req.query.days;
 
     let orders = [];
@@ -2841,7 +2840,15 @@ router.get("/analytics/order-history", async (req, res) => {
             Date: {
               $dateToString: {
                 format: '%Y-%m-%d %H:%M',
-                date: { $dateFromString: { dateString: '$Date' } }
+                date: {
+                  $switch: {
+                    branches: [
+                      { case: { $regexMatch: { input: '$Date', regex: '\\d{4}-\\d{2}-\\d{2}T' } }, then: { $dateFromString: { dateString: '$Date' } } },
+                      { case: { $regexMatch: { input: '$Date', regex: '\\d{4}-\\d{2}-\\d{2} \\d{2}' } }, then: { $dateFromString: { dateString: '$Date', format: '%Y-%m-%d %H:%M:%S' } } }
+                    ],
+                    default: '$Date'
+                  }
+                }
               }
             },
             Total: 1,
@@ -2850,7 +2857,7 @@ router.get("/analytics/order-history", async (req, res) => {
           }
         },
         { $sort: { Date: -1 } },
-        { $limit: 50 }
+        { $limit: 100 }
       ]).toArray();
 
       console.log(`Orders fetched: ${orders.length} (filtered by ${days} days), cutoff=${cutoff}`);
@@ -2866,7 +2873,15 @@ router.get("/analytics/order-history", async (req, res) => {
             Date: {
               $dateToString: {
                 format: '%Y-%m-%d %H:%M',
-                date: { $dateFromString: { dateString: '$Date' } }
+                date: {
+                  $switch: {
+                    branches: [
+                      { case: { $regexMatch: { input: '$Date', regex: '\\d{4}-\\d{2}-\\d{2}T' } }, then: { $dateFromString: { dateString: '$Date' } } },
+                      { case: { $regexMatch: { input: '$Date', regex: '\\d{4}-\\d{2}-\\d{2} \\d{2}' } }, then: { $dateFromString: { dateString: '$Date', format: '%Y-%m-%d %H:%M:%S' } } }
+                    ],
+                    default: '$Date'
+                  }
+                }
               }
             },
             Total: 1,
@@ -2875,7 +2890,7 @@ router.get("/analytics/order-history", async (req, res) => {
           }
         },
         { $sort: { Date: -1 } },
-        { $limit: 50 }
+        { $limit: 100 }
       ]).toArray();
 
       console.log(`Orders fetched: ${orders.length} (no filter)`);
