@@ -9,9 +9,8 @@ const nodemailer = require('nodemailer');
 
 const SALT_ROUNDS = 12;
 
-// Create nodemailer transporter with improved Gmail configuration
+// Create nodemailer transporter with Docker-optimized settings
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
   host: 'smtp.gmail.com',
   port: 587,
   secure: false,
@@ -19,24 +18,16 @@ const transporter = nodemailer.createTransport({
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_PASS
   },
-  pool: false,
-  connectionTimeout: 30000,
-  greetingTimeout: 10000,
-  socketTimeout: 30000,
+  pool: false, // Disable connection pooling for Docker
+  connectionTimeout: 10000, // 10 seconds
+  greetingTimeout: 5000, // 5 seconds
+  socketTimeout: 15000, // 15 seconds
   tls: {
-    rejectUnauthorized: false
+    rejectUnauthorized: false,
+    ciphers: 'SSLv3'
   },
-  debug: true,
-  logger: true
-});
-
-// Verify transporter configuration on startup
-transporter.verify(function(error, success) {
-  if (error) {
-    console.log('❌ Gmail SMTP verification failed:', error);
-  } else {
-    console.log('✅ Gmail SMTP server is ready to send emails');
-  }
+  debug: process.env.NODE_ENV !== 'production',
+  logger: process.env.NODE_ENV !== 'production'
 });
 
 // Generate staff ID based on role and user ID
@@ -369,36 +360,24 @@ router.post('/forgot-password',
         }
       );
 
-      // Send reset email with enhanced configuration
+      // Send reset email
       const resetUrl = `${process.env.BASE_URL}/auth/reset-password?token=${resetToken}`;
       const mailOptions = {
-        from: `"Blessings Cafe" <${process.env.GMAIL_USER}>`,
+        from: process.env.GMAIL_USER,
         to: user.email,
-        subject: '🔐 Password Reset Request - Blessings Cafe',
-        text: `Hello ${user.fullname || user.name || 'User'},\n\nYou requested a password reset for your Blessings Cafe account.\n\nClick this link to reset your password: ${resetUrl}\n\nThis link will expire in 1 hour.\n\nIf you didn't request this reset, please ignore this email.\n\nBest regards,\nBlessings Cafe Team`,
+        subject: 'Password Reset - Blessings Cafe',
         html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-            <div style="text-align: center; margin-bottom: 20px;">
-              <h1 style="color: #8B4513; margin: 0;">🍵 Blessings Cafe</h1>
-            </div>
-            <h2 style="color: #333; border-bottom: 2px solid #8B4513; padding-bottom: 10px;">Password Reset Request</h2>
-            <p style="font-size: 16px; line-height: 1.5;">Hello <strong>${user.fullname || user.name || 'User'}</strong>,</p>
-            <p style="font-size: 16px; line-height: 1.5;">You requested a password reset for your Blessings Cafe account.</p>
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${resetUrl}" style="background-color: #8B4513; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; display: inline-block; font-weight: bold; font-size: 16px;">🔐 Reset Your Password</a>
-            </div>
-            <p style="font-size: 14px; color: #666; border-left: 4px solid #ffcc00; padding-left: 10px; margin: 20px 0;">⏰ This link will expire in <strong>1 hour</strong></p>
-            <p style="font-size: 14px; color: #666;">If you didn't request this reset, you can safely ignore this email.</p>
-            <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
-            <p style="font-size: 12px; color: #999; text-align: center;">Best regards,<br>Blessings Cafe Team<br>${process.env.BASE_URL}</p>
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333;">Password Reset Request</h2>
+            <p>Hello ${user.fullname || user.name || 'User'},</p>
+            <p>You requested a password reset for your Blessings Cafe account.</p>
+            <p>Click the link below to reset your password:</p>
+            <a href="${resetUrl}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 10px 0;">Reset Password</a>
+            <p>This link will expire in 1 hour.</p>
+            <p>If you didn't request this reset, please ignore this email.</p>
+            <p>Best regards,<br>Blessings Cafe Team</p>
           </div>
-        `,
-        priority: 'high',
-        headers: {
-          'X-Priority': '1',
-          'X-MSMail-Priority': 'High',
-          'Importance': 'high'
-        }
+        `
       };
 
       // Add timeout wrapper for email sending
@@ -419,35 +398,22 @@ router.post('/forgot-password',
       });
 
       try {
-        const emailResult = await sendEmailWithTimeout;
+        await sendEmailWithTimeout;
         console.log('✅ Password reset email sent successfully');
-        console.log('📧 Email details:', {
-          messageId: emailResult.messageId,
-          from: process.env.GMAIL_USER,
-          to: user.email,
-          subject: mailOptions.subject,
-          timestamp: new Date().toISOString()
-        });
         
         res.render('forgot-password', {
-          success: `Password reset email sent to ${user.email}. Please check your inbox and spam folder.`,
+          success: 'Password reset email sent. Please check your inbox.',
           layout: false,
           errors: {},
           error: null,
           formData: req.body
         });
       } catch (emailError) {
-        console.error('❌ Email sending failed:', {
-          error: emailError.message,
-          code: emailError.code,
-          command: emailError.command,
-          to: user.email,
-          timestamp: new Date().toISOString()
-        });
+        console.error('❌ Email sending failed:', emailError.message);
         
         // Still create the reset token but show different message
         res.render('forgot-password', {
-          success: 'Password reset request processed. If the email exists, you will receive instructions shortly. Please check your spam folder.',
+          success: 'Password reset link has been generated. Please contact support if you do not receive the email.',
           layout: false,
           errors: {},
           error: null,
