@@ -11,10 +11,21 @@ const SALT_ROUNDS = 12;
 
 // Create nodemailer transporter
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false, // true for 465, false for other ports
   auth: {
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_PASS
+  },
+  // Add timeout and other options for better Docker compatibility
+  pool: true,
+  maxConnections: 1,
+  maxMessages: 5,
+  rateDelta: 1000,
+  rateLimit: 5,
+  tls: {
+    rejectUnauthorized: false
   }
 });
 
