@@ -8,24 +8,25 @@ const nodemailer = require('nodemailer');
 
 const SALT_ROUNDS = 12;
 
-// Create nodemailer transporter
+// Create nodemailer transporter with Docker-optimized settings
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
   port: 587,
-  secure: false, // true for 465, false for other ports
+  secure: false,
   auth: {
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_PASS
   },
-  // Add timeout and other options for better Docker compatibility
-  pool: true,
-  maxConnections: 1,
-  maxMessages: 5,
-  rateDelta: 1000,
-  rateLimit: 5,
+  pool: false, // Disable connection pooling for Docker
+  connectionTimeout: 10000, // 10 seconds
+  greetingTimeout: 5000, // 5 seconds
+  socketTimeout: 15000, // 15 seconds
   tls: {
-    rejectUnauthorized: false
-  }
+    rejectUnauthorized: false,
+    ciphers: 'SSLv3'
+  },
+  debug: process.env.NODE_ENV !== 'production',
+  logger: process.env.NODE_ENV !== 'production'
 });
 
 // Generate staff ID based on role and user ID
@@ -315,9 +316,33 @@ router.post('/forgot-password',
         `
       };
 
-      await transporter.sendMail(mailOptions);
+      // Add timeout wrapper for email sending
+      const sendEmailWithTimeout = new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('Email sending timeout'));
+        }, 15000); // 15 second timeout
 
-      res.json({ success: true, message: 'Password reset email sent. Please check your inbox.' });
+        transporter.sendMail(mailOptions)
+          .then(result => {
+            clearTimeout(timeout);
+            resolve(result);
+          })
+          .catch(error => {
+            clearTimeout(timeout);
+            reject(error);
+          });
+      });
+
+      try {
+        await sendEmailWithTimeout;
+        console.log('✅ Admin password reset email sent successfully');
+        res.json({ success: true, message: 'Password reset email sent. Please check your inbox.' });
+      } catch (emailError) {
+        console.error('❌ Admin email sending failed:', emailError.message);
+        
+        // Still create the reset token but show different message
+        res.json({ success: true, message: 'Password reset link has been generated. Please contact support if you do not receive the email.' });
+      }
     } catch (error) {
       console.error('Forgot password error:', error);
       res.status(500).json({ error: 'Server error. Please try again.' });
