@@ -263,10 +263,7 @@ async function drawAverageSalesChart() {
 async function loadOrderHistory(days = 7) {
   console.log('loadOrderHistory called with days:', days);
   try {
-    let url = "/admin/analytics/order-history";
-    if (days !== 'all') {
-      url += `?days=${days}`;
-    }
+    let url = "/admin/analytics/order-history?days=" + days;
     console.log('Fetching URL:', url);
     const res = await fetch(url);
     const orders = await res.json();
@@ -282,7 +279,7 @@ async function loadOrderHistory(days = 7) {
 
 
     orders.forEach(o => {
-      const customerName = o.Customer && o.Customer.fullname ? o.Customer.fullname : 'Unknown Customer';
+      const customerName = o.Customer || 'Unknown Customer';
       const row = `
         <tr>
           <td>${o.OrderID}</td>
