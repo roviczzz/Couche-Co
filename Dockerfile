@@ -26,6 +26,9 @@ RUN apt-get update && apt-get install -y \
 # Set the working directory inside the container
 WORKDIR /app
 
+# Create uploads directory for persistent storage
+RUN mkdir -p /app/public/uploads
+
 # Copy package.json and package-lock.json (if available)
 COPY package*.json ./
 
