@@ -963,22 +963,27 @@ main {
   transform: translateY(-1px);
 }
 
-/* Amount Pack Group for Table */
+/* Amount Pack Group for Table - More Compact */
 .amount-pack-group {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   justify-content: center;
 }
 
 .amount-pack-group input[type="number"] {
-  width: 76px;
+  width: 60px;
   text-align: center;
+  font-size: 11px;
+  padding: 4px 6px;
+  height: 28px;
 }
 
 .amount-pack-group select {
-  width: 70px;
-  font-size: 12px;
+  width: 55px;
+  font-size: 11px;
+  padding: 4px 6px;
+  height: 28px;
 }
 
 /* Enhanced placeholder styling */
@@ -1239,41 +1244,69 @@ main {
   filter: brightness(0.95);
 }
 
-/* Enhanced Table Container */
+/* Enhanced Table Container - More Compact */
 .table-container {
   overflow-x: auto;
   box-shadow: var(--shadow-md);
-  margin-top: 30px;
-  margin-bottom: 40px;
+  margin-top: 20px;
+  margin-bottom: 30px;
   background: var(--white);
   width: 100%;
+  max-width: 100%;
 }
 
-/* Enhanced Table */
+/* Enhanced Table - More Compact */
 .stocks-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 14px;
+  font-size: 13px;
   table-layout: fixed;
+  min-width: 800px; /* Minimum width to prevent too much compression */
 }
 
-/* Column widths for both tables (7 columns each) */
-.stocks-table th:nth-child(1), .stocks-table td:nth-child(1) { width: 18%; }
-.stocks-table th:nth-child(2), .stocks-table td:nth-child(2) { width: 16%; }
-.stocks-table th:nth-child(3), .stocks-table td:nth-child(3) { width: 16%; }
-.stocks-table th:nth-child(4), .stocks-table td:nth-child(4) { width: 14%; }
-.stocks-table th:nth-child(5), .stocks-table td:nth-child(5) { width: 8%; }
-.stocks-table th:nth-child(6), .stocks-table td:nth-child(6) { width: 10%; }
-.stocks-table th:nth-child(7), .stocks-table td:nth-child(7) { width: 18%; }
+/* Column widths for ingredients table (7 columns) */
+#ingredientTableContainer .stocks-table th:nth-child(1),
+#ingredientTableContainer .stocks-table td:nth-child(1) { width: 15%; } /* Ingredient ID */
+#ingredientTableContainer .stocks-table th:nth-child(2),
+#ingredientTableContainer .stocks-table td:nth-child(2) { width: 18%; } /* Name */
+#ingredientTableContainer .stocks-table th:nth-child(3),
+#ingredientTableContainer .stocks-table td:nth-child(3) { width: 8%; font-weight: bold;} /* Current Stock */
+#ingredientTableContainer .stocks-table th:nth-child(4),
+#ingredientTableContainer .stocks-table td:nth-child(4) { width: 15%; } /* Amount Per Pack */
+#ingredientTableContainer .stocks-table th:nth-child(5),
+#ingredientTableContainer .stocks-table td:nth-child(5) { width: 5%; } /* Category */
+#ingredientTableContainer .stocks-table th:nth-child(6),
+#ingredientTableContainer .stocks-table td:nth-child(6) { width: 8%; } /* Allergen */
+#ingredientTableContainer .stocks-table th:nth-child(7),
+#ingredientTableContainer .stocks-table td:nth-child(7) { width: 10%; } /* Status */
+
+/* Column widths for add-ons table (8 columns) */
+#addonTableContainer .stocks-table th:nth-child(1),
+#addonTableContainer .stocks-table td:nth-child(1) { width: 15%; } /* Add-On ID */
+#addonTableContainer .stocks-table th:nth-child(2),
+#addonTableContainer .stocks-table td:nth-child(2) { width: 18%; } /* Name */
+#addonTableContainer .stocks-table th:nth-child(3),
+#addonTableContainer .stocks-table td:nth-child(3) { width: 8%; font-weight: bold} /* Current Stock */
+#addonTableContainer .stocks-table th:nth-child(4),
+#addonTableContainer .stocks-table td:nth-child(4) { width: 15%; } /* Amount Per Pack */
+#addonTableContainer .stocks-table th:nth-child(5),
+#addonTableContainer .stocks-table td:nth-child(5) { width: 8%; } /* Category */
+#addonTableContainer .stocks-table th:nth-child(6),
+#addonTableContainer .stocks-table td:nth-child(6) { width: 12%; } /* Base Price */
+#addonTableContainer .stocks-table th:nth-child(7),
+#addonTableContainer .stocks-table td:nth-child(7) { width: 12%; } /* Status */
+#addonTableContainer .stocks-table th:nth-child(8),
+#addonTableContainer .stocks-table td:nth-child(8) { width: 17%; } /* Actions */
 
 .stocks-table th,
 .stocks-table td {
   text-align: center;
-  padding: 12px 8px;
+  padding: 8px 6px;
   border-bottom: 1px solid var(--border);
   word-wrap: break-word;
   vertical-align: middle;
+  font-size: 12px;
 }
 
 .stocks-table thead {
@@ -1286,10 +1319,10 @@ main {
   background: var(--gray-light);
   color: var(--brown-dark);
   font-weight: 700;
-  font-size: 13px;
+  font-size: 11px;
   letter-spacing: 0.5px;
   text-transform: uppercase;
-  padding: 16px 12px;
+  padding: 10px 6px;
   box-shadow: 0 2px 3px rgba(0,0,0,0.05);
 }
 
@@ -1313,17 +1346,17 @@ main {
   background-color: #eef2f7;
 }
 
-/* Clean table inputs */
+/* Clean table inputs - More Compact */
 .table-input {
   width: 100%;
-  padding: 8px 10px;
+  padding: 6px 8px;
   border: 1px solid var(--border-light);
   border-radius: var(--radius-xs);
   background: var(--white);
   transition: all var(--transition);
-  font-size: 13px;
+  font-size: 11px;
   box-sizing: border-box;
-  height: 36px;
+  height: 30px;
 }
 
 .table-input:hover {
@@ -1338,37 +1371,17 @@ main {
   box-shadow: 0 0 0 2px rgba(40,167,69,0.15);
 }
 
-/* Enhanced Table Displays - Clean Design */
 .prefix-display-table {
-  background: #8B4513;
-  color: #ffffff;
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-size: 11px;
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 10px;
   font-weight: 700;
   text-align: center;
   letter-spacing: 0.5px;
-  min-width: 45px;
+  min-width: 40px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  text-shadow: none;
-  box-shadow: none;
-  border: 1px solid #8B4513;
-}
 
-.category-display-table {
-  background: #4CAF50;
-  color: #ffffff;
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-size: 11px;
-  font-weight: 600;
-  text-align: center;
-  letter-spacing: 0.3px;
-  text-shadow: none;
-  box-shadow: none;
-  border: 1px solid #4CAF50;
 }
 
 /* Ingredient ID Group for Table */
@@ -2131,6 +2144,164 @@ textarea,
 
 .results-counter:not(:empty) {
   display: block;
+}
+
+/* =============================================== */
+/* NOTIFICATION SYSTEM */
+/* =============================================== */
+
+.notification-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  max-width: 400px;
+}
+
+.stocks-notification {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  margin-bottom: 10px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  transform: translateX(100%);
+  opacity: 0;
+  transition: all 0.3s ease;
+  border-left: 4px solid;
+  font-family: 'Inter', sans-serif;
+}
+
+.stocks-notification.show {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.stocks-notification.success {
+  border-left-color: #28a745;
+}
+
+.stocks-notification.error {
+  border-left-color: #dc3545;
+}
+
+.stocks-notification.warning {
+  border-left-color: #ffc107;
+}
+
+.stocks-notification.info {
+  border-left-color: #17a2b8;
+}
+
+.notification-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  font-weight: bold;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stocks-notification.success .notification-icon {
+  color: #28a745;
+}
+
+.stocks-notification.error .notification-icon {
+  color: #dc3545;
+}
+
+.stocks-notification.warning .notification-icon {
+  color: #ffc107;
+}
+
+.stocks-notification.info .notification-icon {
+  color: #17a2b8;
+}
+
+.notification-content {
+  flex: 1;
+  line-height: 1.4;
+}
+
+.notification-message {
+  font-size: 14px;
+  color: #333;
+}
+
+.notification-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #999;
+  padding: 0;
+  margin-left: 8px;
+  flex-shrink: 0;
+  transition: color 0.2s ease;
+}
+
+.notification-close:hover {
+  color: #666;
+}
+
+/* =============================================== */
+/* TOGGLE SWITCH STYLES */
+/* =============================================== */
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.toggle-switch input[type="checkbox"] {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  border-radius: 20px;
+  transition: background-color 0.3s ease;
+}
+
+.toggle-slider::before {
+  content: "";
+  position: absolute;
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background-color: #4CAF50;
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(16px);
+}
+
+.toggle-switch input:disabled + .toggle-slider {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 @media (max-width: 768px) {

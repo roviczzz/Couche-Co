@@ -2177,4 +2177,198 @@ router.post('/complete-order', isAuthorizedForOrderCompletion, async (req, res) 
   }
 });
 
+// Stocks Management
+router.get('/stocks', async (req, res) => {
+  try {
+    const ingredients = await req.db.collection('Ingredients').find().toArray();
+    const addons = await req.db.collection('Add-ons').find().toArray();
+    const message = req.query.msg || null;
+
+    res.render('staff/stocks', {
+      ingredients,
+      addons,
+      title: 'Inventory Management | Blessings Cafe - Staff',
+      user: req.session.user,
+      currentPage: '/staff/stocks',
+      message,
+      uiConfig: {
+        fixedNavbar: true,
+        contentOnlyScroll: true,
+        enhancedModals: true,
+        version: 'V13-Enhanced'
+      },
+      stats: {
+        totalIngredients: ingredients.length,
+        totalAddons: addons.length,
+        enabledIngredients: ingredients.filter(i => i.isEnabled).length,
+        enabledAddons: addons.filter(a => a.isEnabled).length
+      },
+      layout: 'staff/layout'
+    });
+  } catch (error) {
+    console.error('Staff stocks error:', error);
+    res.status(500).render('error', {
+      title: 'Server Error',
+      message: 'Failed to load stock data',
+      status: 500
+    });
+  }
+});
+
+router.post('/stocks', async (req, res) => {
+  try {
+    const isAddon = req.body.AddOnID || req.body.AddOnPrefix || req.body.AddOnSuffix || req.body.BasePrice;
+
+    if (isAddon) {
+      const existingAddon = await req.db.collection('Add-ons').findOne({
+        AddOnID: req.body.AddOnID,
+        Name: req.body.Name.trim()
+      });
+
+      if (existingAddon) {
+        return res.redirect('/staff/stocks?msg=duplicate_id_name');
+      }
+
+      const addOnData = {
+        AddOnID: req.body.AddOnID,
+        AddOnPrefix: req.body.AddOnPrefix || 'AD',
+        AddOnSuffix: req.body.AddOnSuffix,
+        Name: req.body.Name,
+        AmountPerPack: req.body.AmountPerPack,
+        Amount: parseInt(req.body.Amount),
+        Unit: req.body.Unit,
+        Category: req.body.Category || 'Add-Ons',
+        Allergen: req.body.Allergen || 'None',
+        BasePrice: parseFloat(req.body.BasePrice) || 10,
+        isEnabled: req.body.isEnabled === 'true' || req.body.isEnabled === true || req.body.isEnabled === 'on',
+        DeductionQuantityGrams: parseInt(req.body.DeductionQuantityGrams) || 10,
+        lastModified: new Date()
+      };
+
+      await req.db.collection('Add-ons').insertOne(addOnData);
+      console.log('✅ Staff added new add-on:', addOnData.AddOnID);
+    } else {
+      const ingredientData = {
+        IngredientID: req.body.IngredientID,
+        IngredientPrefix: req.body.IngredientPrefix || 'ING',
+        IngredientSuffix: req.body.IngredientSuffix,
+        Name: req.body.Name,
+        AmountPerPack: req.body.AmountPerPack,
+        Amount: parseInt(req.body.Amount),
+        Unit: req.body.Unit,
+        Category: req.body.Category || 'Ingredients',
+        Allergen: req.body.Allergen || 'None',
+        isEnabled: req.body.isEnabled === 'true' || req.body.isEnabled === true || req.body.isEnabled === 'on',
+        isAvailable: req.body.isAvailable === 'true' || req.body.isAvailable === true,
+        DeductionQuantityGrams: parseInt(req.body.DeductionQuantityGrams) || 10,
+        createdAt: new Date(),
+        lastModified: new Date()
+      };
+
+      if (ingredientData.IngredientID && ingredientData.Name) {
+        const existingIngredient = await req.db.collection('Ingredients').findOne({
+          IngredientID: ingredientData.IngredientID,
+          Name: ingredientData.Name.trim()
+        });
+
+        if (existingIngredient) {
+          return res.redirect('/staff/stocks?msg=duplicate_id_name');
+        }
+      }
+
+      await req.db.collection('Ingredients').insertOne(ingredientData);
+      console.log('✅ Staff added new ingredient:', ingredientData.IngredientID);
+    }
+
+    res.redirect('/staff/stocks?msg=add_success');
+  } catch (err) {
+    console.error('Staff add item error:', err);
+    res.status(500).send('Failed to add item');
+  }
+});
+
+router.post('/stocks/edit/:id', async (req, res) => {
+  try {
+    console.log('=== Staff Edit Debug ===');
+    console.log('Item ID:', req.params.id);
+    console.log('Content-Type:', req.headers['content-type']);
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+    console.log('Body keys:', Object.keys(req.body || {}));
+    console.log('========================');
+    
+    if (!req.body || Object.keys(req.body).length === 0) {
+      console.error('Empty request body received');
+      return res.status(400).json({ success: false, error: 'No data received' });
+    }
+    
+    const { ObjectId } = require('mongodb');
+    const itemId = new ObjectId(req.params.id);
+    const isAddon = req.body.AddOnID || req.body.AddOnPrefix || req.body.AddOnSuffix;
+    
+    const updateData = {
+      Name: req.body.Name,
+      AmountPerPack: req.body.AmountPerPack,
+      Amount: parseInt(req.body.Amount),
+      Allergen: req.body.Allergen,
+      isEnabled: req.body.isEnabled === 'true' || req.body.isEnabled === true,
+      DeductionQuantityGrams: parseInt(req.body.DeductionQuantityGrams) || 10,
+      lastModified: new Date()
+    };
+
+    if (isAddon) {
+      updateData.AddOnID = req.body.AddOnID;
+      updateData.AddOnPrefix = req.body.AddOnPrefix || 'AD';
+      updateData.AddOnSuffix = req.body.AddOnSuffix;
+      updateData.BasePrice = parseFloat(req.body.BasePrice);
+      await req.db.collection('Add-ons').updateOne({ _id: itemId }, { $set: updateData });
+    } else {
+      updateData.IngredientID = req.body.IngredientID;
+      updateData.IngredientPrefix = req.body.IngredientPrefix || 'ING';
+      updateData.IngredientSuffix = req.body.IngredientSuffix;
+      updateData.isAvailable = req.body.isAvailable === 'true' || req.body.isAvailable === true;
+      await req.db.collection('Ingredients').updateOne({ _id: itemId }, { $set: updateData });
+    }
+
+    // Check if request is AJAX
+    if (req.xhr || req.headers.accept?.indexOf('json') > -1) {
+      res.json({ success: true, message: 'Item updated successfully' });
+    } else {
+      res.redirect('/staff/stocks?msg=update_success');
+    }
+  } catch (err) {
+    console.error('Staff update item error:', err);
+    if (req.xhr || req.headers.accept?.indexOf('json') > -1) {
+      res.status(500).json({ success: false, error: 'Failed to update item' });
+    } else {
+      res.status(500).send('Failed to update item');
+    }
+  }
+});
+
+router.post('/stocks/delete/:id', async (req, res) => {
+  try {
+    const { ObjectId } = require('mongodb');
+    const itemId = new ObjectId(req.params.id);
+    
+    let result = await req.db.collection('Ingredients').deleteOne({ _id: itemId });
+    if (result.deletedCount === 0) {
+      result = await req.db.collection('Add-ons').deleteOne({ _id: itemId });
+    }
+
+    // Check if request is AJAX
+    if (req.xhr || req.headers.accept?.indexOf('json') > -1) {
+      res.json({ success: true, message: 'Item deleted successfully' });
+    } else {
+      res.redirect('/staff/stocks?msg=delete_success');
+    }
+  } catch (err) {
+    console.error('Staff delete item error:', err);
+    if (req.xhr || req.headers.accept?.indexOf('json') > -1) {
+      res.status(500).json({ success: false, error: 'Failed to delete item' });
+    } else {
+      res.status(500).send('Failed to delete item');
+    }
+  }
+});
+
 module.exports = router;

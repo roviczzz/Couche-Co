@@ -781,7 +781,8 @@
     {
       "parameters": {
         "collection": "Ingredients",
-        "options": {}
+        "options": {},
+        "query": "={ \"IngredientID\": \"{{ $json.IngredientID }}\" }"
       },
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
@@ -813,7 +814,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const items = $input.all().map(i => i.json);\nconst loopData = $('SplitInBatches1').all().map(i => i.json);\n\nlet ingredientDeductions = {};\n\nitems.forEach((product, index) => {\n  const orderItem = loopData[index];\n  const selectedSize = orderItem?.size;\n  const deduction = orderItem?.deduction || 1;\n  \n  if (product.Ingredients && product.Ingredients.length > 0) {\n    product.Ingredients.forEach(ingredient => {\n      const ingredientId = ingredient.ingredientID;\n      const gramsNeeded = ingredient.usedGrams[selectedSize] || 0;\n      const totalGramsNeeded = gramsNeeded * deduction;\n      \n      if (!ingredientDeductions[ingredientId]) {\n        ingredientDeductions[ingredientId] = 0;\n      }\n      ingredientDeductions[ingredientId] += totalGramsNeeded;\n    });\n  }\n});\n\nreturn Object.keys(ingredientDeductions).map(ingredientId => ({\n  json: {\n    IngredientID: ingredientId,\n    deduction: ingredientDeductions[ingredientId]\n  }\n}));"
+        "jsCode": "const items = $input.all().map(i => i.json);\nconst loopData = $('SplitInBatches1').all().map(i => i.json);\n\nlet ingredientDeductions = {};\n\nitems.forEach((product, index) => {\n  const orderItem = loopData[index];\n  if (!orderItem) {\n    // Skip if no matching order data (optional: log or handle error)\n    return;\n  }\n  \n  const selectedSize = orderItem?.size;\n  const deduction = orderItem?.deduction || 1;\n  \n  if (product.Ingredients && product.Ingredients.length > 0) {\n    product.Ingredients.forEach(ingredient => {\n      const ingredientId = ingredient.ingredientID;\n      // Treat usedGrams as a number (not an object); if it's per size in full data, change to: ingredient.usedGrams[selectedSize] || 0\n      const gramsNeeded = ingredient.usedGrams || 0;\n      const totalGramsNeeded = gramsNeeded * deduction;\n      \n      if (!ingredientDeductions[ingredientId]) {\n        ingredientDeductions[ingredientId] = 0;\n      }\n      ingredientDeductions[ingredientId] += totalGramsNeeded;\n    });\n  }\n});\n\nreturn Object.keys(ingredientDeductions).map(ingredientId => ({\n  json: {\n    IngredientID: ingredientId,\n    deduction: ingredientDeductions[ingredientId]\n  }\n}));"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1283,7 +1284,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $('Success Message with QR').item.json.userId }}\"\n  },\n  \"message\": {\n    \"text\": \"Order Confirmed ✅\\n\\n🆔 Order ID: {{ $('Generate Completion URL').item.json.orderId }}\\n\\nThank you for your order. Your order is currently being prepared and will be ready shortly. Our staff will notify you when your order is complete.\\n\\n📍 For Pick-up Orders:\\nPlease visit us at the cafe to collect your order.\\n\\nBLOCK 3, LOT 1, PHASE 1, DREAMVILLE 4, 1C Alapan St, Imus, 4103 Cavite\\n+639550095191\\nhttps://maps.app.goo.gl/staPkcWNff69BZhGA\\n\\n📦 For Delivery Orders:\\nOur staff will deliver your order to your provided address.\\n\\nPlease present the QR code below to our staff upon arrival to confirm and complete your order.\"\n  }\n}",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $('Success Message with QR').item.json.userId }}\"\n  },\n  \"message\": {\n    \"text\": \"Order Confirmed ✅\\n\\n🆔 Order ID: {{ $('Generate Completion URL').item.json.orderId }}\\n\\nThank you for your order. Your order is currently being prepared and will be ready shortly. Our staff will notify you when your order is complete.\\n\\n📍 For Pick-up Orders:\\nPlease visit us at the cafe to collect your order.\\n\\nBLOCK 3, LOT 1, PHASE 1, DREAMVILLE 4, 1C Alapan St, Imus, 4103 Cavite\\n+639550095191\\nhttps://maps.app.goo.gl/staPkcWNff69BZhGA\\n\\n📦 For Delivery Orders:\\nOur staff will deliver your order to your provided address.\\n\\nPlease present the QR code below to our staff upon arrival to confirm and complete your order. If the QR code doesn't show up, kindly present your Order ID instead.\"\n  }\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -1310,7 +1311,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $('Success Message with QR').item.json.userId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"image\",\n      \"payload\": {\n        \"url\": \"{{ $('Upload QR ImgBB').item.json.data.display_url }}\"\n      }\n    }\n  }\n}",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $('Success Message with QR').item.json.userId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"image\",\n      \"payload\": {\n        \"url\": \"{{ $('Upload QR ImgBB').item.json.data.image.url }}\",\n\"is_reusable\": true\n      }\n    }\n  }\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -2066,7 +2067,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "6a420748-2112-4675-bf53-18d174a1e0e5",
+  "versionId": "d18fdb37-3383-4379-9a58-ddaf92767a3e",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "c9a539eddbbcc53188d09f0c160cdca467499addf0ec993ff0d9c5b9cab4ef78"

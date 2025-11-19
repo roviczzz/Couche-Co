@@ -2,6 +2,151 @@
 // Based on Enhanced Promo Management System V9 - SEARCH AND SORT FIXED by MathDaenniel
 // Adapted for Stocks by MathDaenniel - 2025-10-15
 
+// ===============================================
+// NOTIFICATION SYSTEM
+// ===============================================
+
+function showNotification(message, type = 'success') {
+  const container = document.querySelector('.notification-container') || createNotificationContainer();
+  
+  const notification = document.createElement('div');
+  notification.className = `stocks-notification ${type}`;
+  
+  const icons = {
+    success: '✓',
+    error: '✕',
+    warning: '⚠',
+    info: 'ℹ'
+  };
+  
+  notification.innerHTML = `
+    <div class="notification-icon">${icons[type] || icons.info}</div>
+    <div class="notification-content">
+      <div class="notification-message">${message}</div>
+    </div>
+    <button class="notification-close">×</button>
+  `;
+  
+  container.appendChild(notification);
+  
+  setTimeout(() => notification.classList.add('show'), 10);
+  
+  const closeBtn = notification.querySelector('.notification-close');
+  closeBtn.addEventListener('click', () => removeNotification(notification));
+  
+  setTimeout(() => removeNotification(notification), 3000);
+}
+
+function createNotificationContainer() {
+  const container = document.createElement('div');
+  container.className = 'notification-container';
+  document.body.appendChild(container);
+  return container;
+}
+
+function removeNotification(notification) {
+  notification.classList.remove('show');
+  setTimeout(() => notification.remove(), 300);
+}
+
+// ===============================================
+// TABLE ROW CREATION HELPERS
+// ===============================================
+
+function createIngredientRow(data) {
+  const tr = document.createElement('tr');
+  tr.setAttribute('data-item-id', data._id);
+  tr.setAttribute('data-type', 'ingredient');
+  
+  const suffix = data.IngredientID ? data.IngredientID.split('-')[1] || '' : data.IngredientSuffix || '';
+  const amountPerPack = data.AmountPerPack ? data.AmountPerPack.split(' ') : [data.Amount || 0, data.Unit || 'g'];
+  const amount = parseFloat(amountPerPack[0]) || 0;
+  const unit = amountPerPack[1] || 'g';
+  
+  tr.innerHTML = `
+    <td class="ingredient-id-cell">
+      <div class="ingredient-id-group-table">
+        <div class="prefix-display-table">ING</div>
+        <input type="text" name="IngredientSuffix" value="${suffix}" class="table-input suffix-input" data-field="suffix" data-original="${suffix}" required>
+      </div>
+    </td>
+    <td><input type="text" name="Name" value="${data.Name || ''}" class="table-input" data-field="name" data-original="${data.Name || ''}" required></td>
+    <td>${data.Amount || 0} ${unit}</td>
+    <td>
+      <div class="amount-pack-group">
+        <input type="number" name="Amount" value="${amount}" class="table-input number-input" data-field="amount" data-original="${amount}" required min="0">
+        <select name="Unit" class="table-input unit-select" data-field="unit" data-original="${unit}" required>
+          <option value="g" ${unit === 'g' ? 'selected' : ''}> G</option>
+          <option value="mL" ${unit === 'mL' ? 'selected' : ''}> mL</option>
+        </select>
+      </div>
+    </td>
+    <td>Ingredients</td>
+    <td><input type="text" name="Allergen" value="${data.Allergen || ''}" class="table-input" data-field="allergen" data-original="${data.Allergen || ''}" required></td>
+    <td>
+      <label class="toggle-switch">
+        <input type="checkbox" name="isEnabled" data-field="enabled" data-original="${data.isEnabled || false}" ${data.isEnabled ? 'checked' : ''}>
+        <span class="toggle-slider"></span>
+      </label>
+    </td>
+    <td class="actions-cell">
+      <div class="button-wrapper">
+        <button type="button" class="stocks-btn update" data-action="update" data-type="ingredient" data-item-id="${data._id}">Update</button>
+        <button type="button" class="stocks-btn delete" data-action="delete" data-type="ingredient" data-item-id="${data._id}">Delete</button>
+      </div>
+    </td>
+  `;
+  
+  return tr;
+}
+
+function createAddonRow(data) {
+  const tr = document.createElement('tr');
+  tr.setAttribute('data-item-id', data._id);
+  tr.setAttribute('data-type', 'addon');
+  
+  const suffix = data.AddOnID ? data.AddOnID.split('-')[1] || '' : data.AddOnSuffix || '';
+  const amountPerPack = data.AmountPerPack ? data.AmountPerPack.split(' ') : [data.Amount || 0, data.Unit || 'g'];
+  const amount = parseFloat(amountPerPack[0]) || 0;
+  const unit = amountPerPack[1] || 'g';
+  
+  tr.innerHTML = `
+    <td class="addon-id-cell">
+      <div class="addon-id-group-table">
+        <div class="prefix-display-table">AD</div>
+        <input type="text" name="AddOnSuffix" value="${suffix}" class="table-input suffix-input" data-field="suffix" data-original="${suffix}" required>
+      </div>
+    </td>
+    <td><input type="text" name="Name" value="${data.Name || ''}" class="table-input" data-field="name" data-original="${data.Name || ''}" required></td>
+    <td>${data.Amount || 0} ${unit}</td>
+    <td>
+      <div class="amount-pack-group">
+        <input type="number" name="Amount" value="${amount}" class="table-input number-input" data-field="amount" data-original="${amount}" required min="0">
+        <select name="Unit" class="table-input unit-select" data-field="unit" data-original="${unit}" required>
+          <option value="g" ${unit === 'g' ? 'selected' : ''}> G</option>
+          <option value="mL" ${unit === 'mL' ? 'selected' : ''}> mL</option>
+        </select>
+      </div>
+    </td>
+    <td>Add-Ons</td>
+    <td><input type="number" name="BasePrice" value="${data.BasePrice || 10}" class="table-input" data-field="baseprice" data-original="${data.BasePrice || 10}" required></td>
+    <td>
+      <label class="toggle-switch">
+        <input type="checkbox" name="isEnabled" data-field="enabled" data-original="${data.isEnabled || false}" ${data.isEnabled ? 'checked' : ''}>
+        <span class="toggle-slider"></span>
+      </label>
+    </td>
+    <td class="actions-cell">
+      <div class="button-wrapper">
+        <button type="button" class="stocks-btn update" data-action="update" data-type="addon" data-item-id="${data._id}">Update</button>
+        <button type="button" class="stocks-btn delete" data-action="delete" data-type="addon" data-item-id="${data._id}">Delete</button>
+      </div>
+    </td>
+  `;
+  
+  return tr;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   console.log(`[2025-10-15 17:45:23] Initializing Enhanced Stock Management System - SEARCH AND SORT FIXED by MathDaenniel`);
   console.log(`[2025-10-15 17:45:23] Repository: roviczzz/Couche-Co by MathDaenniel`);
@@ -426,7 +571,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const itemLabel = itemType === 'ingredient' ? 'ingredient' : 'add-on';
       if (action === 'update') {
         confirmationTitle.textContent = `Update ${itemLabel.charAt(0).toUpperCase() + itemLabel.slice(1)}`;
-        confirmationMessage.textContent = `Are you sure you want to update this ${itemLabel} with the current values? This action will modify the existing ${itemLabel} data and refresh the active promos display.`;
+        confirmationMessage.textContent = `Are you sure you want to update this ${itemLabel} with the current values`;
       } else if (action === 'delete') {
         confirmationTitle.textContent = `Delete ${itemLabel.charAt(0).toUpperCase() + itemLabel.slice(1)}`;
         confirmationMessage.textContent = `Are you sure you want to permanently delete this ${itemLabel}? This action cannot be undone and will remove all ${itemLabel} data.`;
@@ -776,6 +921,98 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
+  // Handle toggle switch changes for instant updates
+  document.addEventListener('change', async function(e) {
+    if (e.target.type === 'checkbox' && e.target.name === 'isEnabled') {
+      const row = e.target.closest('tr');
+      if (!row) return;
+      
+      const itemId = row.getAttribute('data-item-id');
+      const itemType = row.getAttribute('data-type');
+      
+      if (!itemId || !itemType) return;
+      
+      console.log(`Toggle switch changed for ${itemType} ${itemId}`);
+      
+      // Get all row data
+      let suffix, name, amount, unit, category, allergen, enabled, basePrice;
+      
+      if (itemType === 'ingredient') {
+        suffix = row.querySelector('input[name="IngredientSuffix"]')?.value?.trim();
+      } else {
+        suffix = row.querySelector('input[name="AddOnSuffix"]')?.value?.trim();
+        basePrice = row.querySelector('input[name="BasePrice"]')?.value?.trim() || '10';
+      }
+      
+      name = row.querySelector('input[name="Name"]')?.value?.trim();
+      amount = row.querySelector('.amount-pack-group input[name="Amount"]')?.value?.trim();
+      unit = row.querySelector('.amount-pack-group select[name="Unit"]')?.value?.trim();
+      category = itemType === 'ingredient' ? 'Ingredients' : 'Add-Ons';
+      allergen = row.querySelector('input[name="Allergen"]')?.value?.trim() || 'None';
+      enabled = e.target.checked ? 'true' : 'false';
+      
+      if (!suffix || !name || !amount || !unit) {
+        showNotification('Cannot update status. Please fill in all required fields first.', 'error');
+        e.target.checked = !e.target.checked; // Revert toggle
+        return;
+      }
+      
+      const amountPerPack = `${amount} ${unit}`;
+      const prefix = itemType === 'ingredient' ? 'ING' : 'AD';
+      const fullId = `${prefix}-${suffix}`;
+      
+      const data = {
+        Name: name,
+        Amount: amount,
+        AmountPerPack: amountPerPack,
+        Category: category,
+        Allergen: allergen,
+        isEnabled: enabled,
+        DeductionQuantityGrams: '10'
+      };
+      
+      if (itemType === 'ingredient') {
+        data.IngredientID = fullId;
+        data.IngredientPrefix = prefix;
+        data.IngredientSuffix = suffix;
+      } else {
+        data.AddOnID = fullId;
+        data.AddOnPrefix = prefix;
+        data.AddOnSuffix = suffix;
+        data.BasePrice = basePrice;
+      }
+      
+      const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
+      
+      try {
+        const response = await fetch(`${basePath}/stocks/edit/${itemId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+          // Update original value
+          e.target.setAttribute('data-original', enabled);
+          
+          triggerDashboardRefresh();
+          showNotification(`${itemType === 'ingredient' ? 'Ingredient' : 'Add-on'} ${enabled === 'true' ? 'enabled' : 'disabled'} successfully!`, 'success');
+          console.log(`\u2705 Toggle updated successfully`);
+        } else {
+          showNotification('Failed to update status. Please try again.', 'error');
+          e.target.checked = !e.target.checked; // Revert toggle
+        }
+      } catch (error) {
+        console.error('Error updating toggle:', error);
+        showNotification('Error updating status. Please try again.', 'error');
+        e.target.checked = !e.target.checked; // Revert toggle
+      }
+    }
+  });
+
   // ===============================================
   // FORM VALIDATION AND PROCESSING
   // ===============================================
@@ -899,11 +1136,11 @@ document.addEventListener('DOMContentLoaded', function() {
   // Form processing for ingredient modal
   const ingredientModalForm = ingredientModalOverlay?.querySelector('.stocks-form-vertical');
   if (ingredientModalForm) {
-    ingredientModalForm.addEventListener('submit', function(e) {
+    ingredientModalForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
       console.log(`[2025-10-15 17:45:23] Ingredient form submission by MathDaenniel`);
 
       if (!validateIngredientForm(ingredientModalForm)) {
-        e.preventDefault();
         return;
       }
 
@@ -978,19 +1215,69 @@ document.addEventListener('DOMContentLoaded', function() {
 
       console.log(`[2025-10-15 17:45:23] Adding new ingredient with ID: ${fullId}, AmountPerPack: ${amountPerPack}, Amount: ${amount}, Unit: ${unit} by MathDaenniel`);
       
-      // Trigger dashboard refresh for new ingredient addition
-      triggerDashboardRefresh();
+      // Submit via AJAX
+      const formData = new FormData(ingredientModalForm);
+      const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
+      
+      try {
+        const response = await fetch(`${basePath}/stocks`, {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (response.ok) {
+          // Add new row to table immediately
+          const tbody = document.querySelector('#ingredientTableContainer table tbody');
+          const newRow = createIngredientRow({
+            _id: 'temp_' + Date.now(),
+            IngredientID: fullId,
+            IngredientSuffix: suffix,
+            Name: ingredientModalForm.querySelector('input[name="Name"]').value.trim(),
+            Amount: parseInt(amount),
+            AmountPerPack: amountPerPack,
+            Unit: unit,
+            Allergen: ingredientModalForm.querySelector('input[name="Allergen"]').value.trim(),
+            isEnabled: enabledSwitch.checked
+          });
+          
+          // Remove "No ingredients found" row if it exists
+          const noDataRow = tbody.querySelector('td[colspan]');
+          if (noDataRow) {
+            noDataRow.parentElement.remove();
+          }
+          
+          tbody.insertBefore(newRow, tbody.firstChild);
+          
+          // Close modal and reset form
+          closeIngredientModal();
+          ingredientModalForm.reset();
+          
+          // Trigger dashboard refresh
+          triggerDashboardRefresh();
+          
+          // Reinitialize row data
+          initializeRowsData();
+          
+          showNotification('Ingredient added successfully!', 'success');
+          console.log('✅ Ingredient added successfully');
+        } else {
+          showNotification('Failed to add ingredient. Please try again.', 'error');
+        }
+      } catch (error) {
+        console.error('Error adding ingredient:', error);
+        showNotification('Error adding ingredient. Please try again.', 'error');
+      }
     });
   }
 
   // Form processing for add-on modal
   const addonModalForm = addonModalOverlay?.querySelector('.stocks-form-vertical');
   if (addonModalForm) {
-    addonModalForm.addEventListener('submit', function(e) {
+    addonModalForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
       console.log(`[2025-10-15 17:45:23] Add-on form submission by MathDaenniel`);
 
       if (!validateAddonForm(addonModalForm)) {
-        e.preventDefault();
         console.log(`[2025-10-15 17:45:23] Add-on form validation failed, preventing submission by MathDaenniel`);
         return;
       }
@@ -1067,8 +1354,58 @@ document.addEventListener('DOMContentLoaded', function() {
 
       console.log(`[2025-10-15 17:45:23] Adding new add-on with ID: ${fullId}, AmountPerPack: ${amountPerPack}, BasePrice: ${basePrice} by MathDaenniel`);
       
-      // Trigger dashboard refresh for new add-on addition
-      triggerDashboardRefresh();
+      // Submit via AJAX
+      const formData = new FormData(addonModalForm);
+      const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
+      
+      try {
+        const response = await fetch(`${basePath}/stocks`, {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (response.ok) {
+          // Add new row to table immediately
+          const tbody = document.querySelector('#addonTableContainer table tbody');
+          const newRow = createAddonRow({
+            _id: 'temp_' + Date.now(),
+            AddOnID: fullId,
+            AddOnSuffix: suffix,
+            Name: addonModalForm.querySelector('input[name="Name"]').value.trim(),
+            Amount: parseInt(amount),
+            AmountPerPack: amountPerPack,
+            Unit: unit,
+            BasePrice: parseFloat(basePrice) || 10,
+            isEnabled: enabledSwitch.checked
+          });
+          
+          // Remove "No add-ons found" row if it exists
+          const noDataRow = tbody.querySelector('td[colspan]');
+          if (noDataRow) {
+            noDataRow.parentElement.remove();
+          }
+          
+          tbody.insertBefore(newRow, tbody.firstChild);
+          
+          // Close modal and reset form
+          closeAddonModal();
+          addonModalForm.reset();
+          
+          // Trigger dashboard refresh
+          triggerDashboardRefresh();
+          
+          // Reinitialize row data
+          initializeRowsData();
+          
+          showNotification('Add-on added successfully!', 'success');
+          console.log('✅ Add-on added successfully');
+        } else {
+          showNotification('Failed to add add-on. Please try again.', 'error');
+        }
+      } catch (error) {
+        console.error('Error adding add-on:', error);
+        showNotification('Error adding add-on. Please try again.', 'error');
+      }
     });
   }
 
@@ -1086,6 +1423,65 @@ document.addEventListener('DOMContentLoaded', function() {
   let addonSortMode = 'default';
   let addonRowsData = [];
   let addonFilteredData = [];
+  
+  function initializeRowsData() {
+    ingredientRowsData = [];
+    addonRowsData = [];
+    
+    const allTables = document.querySelectorAll('table.stocks-table');
+    const ingredientTableBody = allTables[0]?.querySelector('tbody');
+    const addonTableBody = allTables[1]?.querySelector('tbody');
+    
+    if (ingredientTableBody) {
+      const ingredientRows = ingredientTableBody.querySelectorAll('tr[data-item-id][data-type="ingredient"]');
+      ingredientRows.forEach(row => {
+        const nameInput = row.querySelector('input[name="Name"]');
+        if (!nameInput) return;
+        
+        const itemName = nameInput.getAttribute("data-original") || nameInput.value || "";
+        const clonedRow = row.cloneNode(true);
+        const itemId = row.getAttribute('data-item-id');
+        const itemType = row.getAttribute('data-type');
+        
+        clonedRow.setAttribute('data-item-id', itemId);
+        clonedRow.setAttribute('data-type', itemType);
+        
+        ingredientRowsData.push({
+          name: itemName.toLowerCase(),
+          displayName: itemName,
+          itemId: itemId,
+          itemType: itemType,
+          row: clonedRow
+        });
+      });
+      ingredientFilteredData = [...ingredientRowsData];
+    }
+    
+    if (addonTableBody) {
+      const addonRows = addonTableBody.querySelectorAll('tr[data-item-id][data-type="addon"]');
+      addonRows.forEach(row => {
+        const nameInput = row.querySelector('input[name="Name"]');
+        if (!nameInput) return;
+        
+        const itemName = nameInput.getAttribute("data-original") || nameInput.value || "";
+        const clonedRow = row.cloneNode(true);
+        const itemId = row.getAttribute('data-item-id');
+        const itemType = row.getAttribute('data-type');
+        
+        clonedRow.setAttribute('data-item-id', itemId);
+        clonedRow.setAttribute('data-type', itemType);
+        
+        addonRowsData.push({
+          name: itemName.toLowerCase(),
+          displayName: itemName,
+          itemId: itemId,
+          itemType: itemType,
+          row: clonedRow
+        });
+      });
+      addonFilteredData = [...addonRowsData];
+    }
+  }
 
   const ingredientCounter = document.createElement("div");
   ingredientCounter.className = "results-counter";
@@ -1551,7 +1947,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  function handleUpdateItem(itemId, itemType) {
+  async function handleUpdateItem(itemId, itemType) {
     console.log(`[2025-10-15 17:45:23] Handling individual update: ${itemId} (${itemType}) by MathDaenniel`);
 
     const row = document.querySelector(`tr[data-item-id="${itemId}"][data-type="${itemType}"]`);
@@ -1560,14 +1956,13 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
-    let formId, suffix, name, amount, unit, category, allergen, enabled;
+    let suffix, name, amount, unit, category, allergen, enabled, basePrice;
 
     if (itemType === 'ingredient') {
       suffix = row.querySelector('input[name="IngredientSuffix"]')?.value?.trim();
-      formId = `update-ingredient-form-${itemId}`;
     } else {
       suffix = row.querySelector('input[name="AddOnSuffix"]')?.value?.trim();
-      formId = `update-addon-form-${itemId}`;
+      basePrice = row.querySelector('input[name="BasePrice"]')?.value?.trim() || '10';
     }
 
     name = row.querySelector('input[name="Name"]')?.value?.trim();
@@ -1575,69 +1970,119 @@ document.addEventListener('DOMContentLoaded', function() {
     unit = row.querySelector('.amount-pack-group select[name="Unit"]')?.value?.trim();
     category = itemType === 'ingredient' ? 'Ingredients' : 'Add-Ons';
     allergen = row.querySelector('input[name="Allergen"]')?.value?.trim() || 'None';
-    enabled = row.querySelector('select[name="isEnabled"]')?.value;
+    enabled = row.querySelector('input[name="isEnabled"][type="checkbox"]')?.checked ? 'true' : 'false';
 
     if (!suffix || !name || !amount || !unit) {
-      alert('Please fill in all required fields.');
+      showNotification('Please fill in all required fields.', 'error');
       return;
     }
 
-    const form = document.getElementById(formId);
-    if (!form) {
-      alert('Error: Update form not found');
-      return;
-    }
-
-    // Create AmountPerPack from Amount and Unit
     const amountPerPack = `${amount} ${unit}`;
+    const prefix = itemType === 'ingredient' ? 'ING' : 'AD';
+    const fullId = `${prefix}-${suffix}`;
+    
+    const data = {
+      Name: name,
+      Amount: amount,
+      AmountPerPack: amountPerPack,
+      Category: category,
+      Allergen: allergen,
+      isEnabled: enabled,
+      DeductionQuantityGrams: '10'
+    };
+    
+    if (itemType === 'ingredient') {
+      data.IngredientID = fullId;
+      data.IngredientPrefix = prefix;
+      data.IngredientSuffix = suffix;
+    } else {
+      data.AddOnID = fullId;
+      data.AddOnPrefix = prefix;
+      data.AddOnSuffix = suffix;
+      data.BasePrice = basePrice;
+    }
 
-    form.querySelector('input[name="' + (itemType === 'ingredient' ? 'IngredientID' : 'AddOnID') + '"]').value =
-      itemType === 'ingredient' ? `ING-${suffix}` : `AD-${suffix}`;
-    form.querySelector('input[name="' + (itemType === 'ingredient' ? 'IngredientPrefix' : 'AddOnPrefix') + '"]').value =
-      itemType === 'ingredient' ? 'ING' : 'AD';
-    form.querySelector('input[name="' + (itemType === 'ingredient' ? 'IngredientSuffix' : 'AddOnSuffix') + '"]').value = suffix;
-    form.querySelector('input[name="Name"]').value = name;
-    form.querySelector('input[name="Amount"]').value = amount;
-    form.querySelector('input[name="AmountPerPack"]').value = amountPerPack;
-    form.querySelector('input[name="Category"]').value = category;
-    form.querySelector('input[name="Allergen"]').value = allergen;
-    form.querySelector('input[name="isEnabled"]').value = enabled;
-
-    console.log(`[2025-10-15 17:45:23] Submitting update form for ${itemType} ${itemId} with AmountPerPack: ${amountPerPack} by MathDaenniel`);
-
-    // Trigger dashboard refresh after successful update
-    form.addEventListener('submit', function() {
-      // Use a timeout to allow the form submission to complete
-      setTimeout(() => {
-        // Trigger dashboard refresh if the function exists
-        if (window.forceDashboardRefresh) {
-          window.forceDashboardRefresh();
+    const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
+    
+    try {
+      const response = await fetch(`${basePath}/stocks/edit/${itemId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+      
+      if (response.ok) {
+        // Update current stock cell
+        const currentStockCell = row.cells[2];
+        if (currentStockCell) {
+          const response = await fetch(`${basePath}/stocks`);
+          const html = await response.text();
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, 'text/html');
+          const updatedRow = doc.querySelector(`tr[data-item-id="${itemId}"]`);
+          if (updatedRow && updatedRow.cells[2]) {
+            currentStockCell.textContent = updatedRow.cells[2].textContent;
+          }
         }
-        // Also dispatch custom event for cross-tab communication
-        window.dispatchEvent(new CustomEvent('stockUpdated', {
-          detail: { itemId, itemType, action: 'update' }
-        }));
-        // Set localStorage flag for cross-tab communication
-        localStorage.setItem('stockDataChanged', Date.now().toString());
-      }, 100);
-    });
-
-    form.submit();
+        
+        // Update original values
+        row.querySelectorAll('[data-original]').forEach(field => {
+          field.setAttribute('data-original', field.value);
+        });
+        
+        triggerDashboardRefresh();
+        showNotification('Item updated successfully!', 'success');
+        console.log('✅ Item updated successfully');
+      } else {
+        showNotification('Failed to update item. Please try again.', 'error');
+      }
+    } catch (error) {
+      console.error('Error updating item:', error);
+      showNotification('Error updating item. Please try again.', 'error');
+    }
   }
 
-  function handleDeleteItem(itemId, itemType) {
+  async function handleDeleteItem(itemId, itemType) {
     console.log(`[2025-10-15 17:45:23] Handling individual delete: ${itemId} (${itemType}) by MathDaenniel`);
 
-    const formId = itemType === 'ingredient' ? `delete-ingredient-form-${itemId}` : `delete-addon-form-${itemId}`;
-    const form = document.getElementById(formId);
-
-    if (!form) {
-      alert('Error: Delete form not found');
-      return;
+    const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
+    
+    try {
+      const response = await fetch(`${basePath}/stocks/delete/${itemId}`, {
+        method: 'POST'
+      });
+      
+      if (response.ok) {
+        // Remove row from table
+        const row = document.querySelector(`tr[data-item-id="${itemId}"]`);
+        if (row) {
+          row.remove();
+          
+          // Check if table is empty
+          const tbody = row.closest('tbody');
+          if (tbody && tbody.querySelectorAll('tr').length === 0) {
+            const noDataRow = document.createElement('tr');
+            noDataRow.innerHTML = `<td colspan="8" class="stocks-center">No ${itemType}s found.</td>`;
+            tbody.appendChild(noDataRow);
+          }
+        }
+        
+        // Reinitialize row data
+        initializeRowsData();
+        
+        triggerDashboardRefresh();
+        showNotification('Item deleted successfully!', 'success');
+        console.log('✅ Item deleted successfully');
+      } else {
+        showNotification('Failed to delete item. Please try again.', 'error');
+      }
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      showNotification('Error deleting item. Please try again.', 'error');
     }
-
-    console.log(`[2025-10-15 17:45:23] Submitting delete form for ${itemType} ${itemId} by MathDaenniel`);
-    form.submit();
   }
 
   async function handleIndividualUpdate(itemId, itemType, row, silent = false) {
