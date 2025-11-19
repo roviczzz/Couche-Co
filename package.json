@@ -27,6 +27,7 @@
     "mongodb": "^6.17.0",
     "multer": "^2.0.2",
     "node-cron": "^4.2.1",
+    "nodemailer": "^7.0.10",
     "puppeteer": "^24.29.1",
     "qrcode": "^1.5.4",
     "serve-favicon": "^2.5.1"

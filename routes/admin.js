@@ -3,8 +3,19 @@ const router = express.Router();
 const { ObjectId } = require('mongodb');
 const bcrypt = require('bcrypt');
 const { check, validationResult } = require('express-validator');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 
 const SALT_ROUNDS = 12;
+
+// Create nodemailer transporter
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS
+  }
+});
 
 // Generate staff ID based on role and user ID
 function generateStaffId(role, userId) {
@@ -240,6 +251,72 @@ router.get('/forgot-password', (req, res) => {
     layout: false
   });
 });
+
+// Forgot password form submission
+router.post('/forgot-password',
+  [
+    check('username').notEmpty().withMessage('Username is required')
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ error: 'Username is required' });
+    }
+
+    try {
+      const user = await req.db.collection('users').findOne({ username: req.body.username });
+      if (!user) {
+        return res.status(404).json({ error: 'Username not found' });
+      }
+
+      // Generate reset token
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
+
+      // Store token in database
+      await req.db.collection('users').updateOne(
+        { _id: user._id },
+        {
+          $set: {
+            resetToken: resetToken,
+            resetTokenExpiry: resetTokenExpiry
+          }
+        }
+      );
+
+      // Send reset email - use email if available, otherwise skip
+      if (user.email) {
+        const resetUrl = `${process.env.BASE_URL}/auth/reset-password?token=${resetToken}`;
+        const mailOptions = {
+          from: process.env.GMAIL_USER,
+          to: user.email,
+          subject: 'Password Reset - Blessings Cafe Admin',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #333;">Password Reset Request</h2>
+              <p>Hello ${user.fullname || user.name || 'Admin'},</p>
+              <p>You requested a password reset for your Blessings Cafe admin account.</p>
+              <p>Click the link below to reset your password:</p>
+              <a href="${resetUrl}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 10px 0;">Reset Password</a>
+              <p>This link will expire in 1 hour.</p>
+              <p>If you didn't request this reset, please ignore this email.</p>
+              <p>Best regards,<br>Blessings Cafe Team</p>
+            </div>
+          `
+        };
+
+        await transporter.sendMail(mailOptions);
+        res.json({ success: true, message: 'Password reset email sent. Please check your inbox.' });
+      } else {
+        // No email available - perhaps show different message or handle differently
+        res.status(400).json({ error: 'No email associated with this account. Please contact administrator.' });
+      }
+    } catch (error) {
+      console.error('Forgot password error:', error);
+      res.status(500).json({ error: 'Server error. Please try again.' });
+    }
+  }
+);
 
 // Analytics Endpoints (before auth middleware)
 router.get('/analytics/dashboard-stats', nocache, async (req, res) => {

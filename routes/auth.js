@@ -3,9 +3,20 @@ const router = express.Router();
 const { ObjectId } = require('mongodb');
 const { check, validationResult } = require('express-validator');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 
 
 const SALT_ROUNDS = 12;
+
+// Create nodemailer transporter
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS
+  }
+});
 
 // Generate staff ID based on role and user ID
 function generateStaffId(role, userId) {
@@ -286,7 +297,13 @@ router.get('/account/register', (req, res) => {
 
 // Forgot password page
 router.get('/forgot-password', (req, res) => {
-  res.render('forgot-password', { layout: false });
+  res.render('forgot-password', {
+    layout: false,
+    error: null,
+    success: null,
+    errors: {},
+    formData: {}
+  });
 });
 
 // Forgot password form submission (email based)
@@ -316,7 +333,43 @@ router.post('/forgot-password',
         });
       }
 
-      // Here you would send reset email, but for now just show success
+      // Generate reset token
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
+
+      // Store token in database
+      await req.db.collection('users').updateOne(
+        { _id: user._id },
+        {
+          $set: {
+            resetToken: resetToken,
+            resetTokenExpiry: resetTokenExpiry
+          }
+        }
+      );
+
+      // Send reset email
+      const resetUrl = `${process.env.BASE_URL}/auth/reset-password?token=${resetToken}`;
+      const mailOptions = {
+        from: process.env.GMAIL_USER,
+        to: user.email,
+        subject: 'Password Reset - Blessings Cafe',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333;">Password Reset Request</h2>
+            <p>Hello ${user.fullname || user.name || 'User'},</p>
+            <p>You requested a password reset for your Blessings Cafe account.</p>
+            <p>Click the link below to reset your password:</p>
+            <a href="${resetUrl}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 10px 0;">Reset Password</a>
+            <p>This link will expire in 1 hour.</p>
+            <p>If you didn't request this reset, please ignore this email.</p>
+            <p>Best regards,<br>Blessings Cafe Team</p>
+          </div>
+        `
+      };
+
+      await transporter.sendMail(mailOptions);
+
       res.render('forgot-password', {
         success: 'Password reset email sent. Please check your inbox.',
         layout: false,
@@ -331,6 +384,130 @@ router.post('/forgot-password',
         errors: {},
         error: 'Server error. Please try again.',
         formData: req.body
+      });
+    }
+  }
+);
+
+// Reset password page
+router.get('/reset-password', async (req, res) => {
+  const { token } = req.query;
+
+  if (!token) {
+    return res.render('reset-password', {
+      layout: false,
+      error: 'Invalid reset token',
+      token: null,
+      errors: {},
+      success: null
+    });
+  }
+
+  try {
+    const user = await req.db.collection('users').findOne({
+      resetToken: token,
+      resetTokenExpiry: { $gt: new Date() }
+    });
+
+    if (!user) {
+      return res.render('reset-password', {
+        layout: false,
+        error: 'Invalid or expired reset token',
+        token: null,
+        errors: {},
+        success: null
+      });
+    }
+
+    res.render('reset-password', {
+      layout: false,
+      error: null,
+      token: token,
+      errors: {},
+      success: null
+    });
+  } catch (error) {
+    console.error('Reset password page error:', error);
+    res.render('reset-password', {
+      layout: false,
+      error: 'Server error. Please try again.',
+      token: null,
+      errors: {},
+      success: null
+    });
+  }
+});
+
+// Reset password form submission
+router.post('/reset-password',
+  [
+    check('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+    check('confirmPassword').custom((value, { req }) => {
+      if (value !== req.body.password) {
+        throw new Error('Passwords do not match');
+      }
+      return true;
+    }),
+    check('token').notEmpty().withMessage('Reset token is required')
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.render('reset-password', {
+        layout: false,
+        errors: errors.mapped(),
+        error: 'Please fix the errors below',
+        token: req.body.token
+      });
+    }
+
+    try {
+      const user = await req.db.collection('users').findOne({
+        resetToken: req.body.token,
+        resetTokenExpiry: { $gt: new Date() }
+      });
+
+      if (!user) {
+        return res.render('reset-password', {
+          layout: false,
+          errors: {},
+          error: 'Invalid or expired reset token',
+          token: req.body.token
+        });
+      }
+
+      // Hash new password
+      const hashedPassword = await bcrypt.hash(req.body.password, SALT_ROUNDS);
+
+      // Update password and clear reset token
+      await req.db.collection('users').updateOne(
+        { _id: user._id },
+        {
+          $set: {
+            password: hashedPassword,
+            passwordResetAt: new Date()
+          },
+          $unset: {
+            resetToken: '',
+            resetTokenExpiry: ''
+          }
+        }
+      );
+
+      res.render('reset-password', {
+        success: 'Password reset successfully. You can now log in with your new password.',
+        layout: false,
+        errors: {},
+        error: null,
+        token: null
+      });
+    } catch (error) {
+      console.error('Reset password error:', error);
+      res.render('reset-password', {
+        layout: false,
+        errors: {},
+        error: 'Server error. Please try again.',
+        token: req.body.token
       });
     }
   }
