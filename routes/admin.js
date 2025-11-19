@@ -2181,6 +2181,7 @@ router.post('/stocks', async (req, res) => {
         Allergen: req.body.Allergen || 'None',
         BasePrice: parseFloat(req.body.BasePrice) || 10,
         isEnabled: req.body.isEnabled === 'true' || req.body.isEnabled === true || req.body.isEnabled === 'on',
+        DeductionQuantityGrams: parseInt(req.body.DeductionQuantityGrams) || 10,
         lastModified: new Date()
       };
 
@@ -2200,6 +2201,7 @@ router.post('/stocks', async (req, res) => {
         Allergen: req.body.Allergen || 'None',
         isEnabled: req.body.isEnabled === 'true' || req.body.isEnabled === true || req.body.isEnabled === 'on',
         isAvailable: req.body.isAvailable === 'true' || req.body.isAvailable === true,
+        DeductionQuantityGrams: parseInt(req.body.DeductionQuantityGrams) || 10,
         createdAt: new Date(),
         lastModified: new Date()
       };
@@ -2249,20 +2251,39 @@ router.post('/stocks/edit/:id', async (req, res) => {
       console.error('Failed to create stock notification after update:', notifError);
     }
     
-    res.redirect('/admin/stocks?msg=update_success');
+    // Check if request is AJAX
+    if (req.xhr || req.headers.accept?.indexOf('json') > -1) {
+      res.json({ success: true, message: 'Item updated successfully' });
+    } else {
+      res.redirect('/admin/stocks?msg=update_success');
+    }
   } catch (err) {
     console.error('Update item error:', err);
-    res.status(500).send('Failed to update item');
+    if (req.xhr || req.headers.accept?.indexOf('json') > -1) {
+      res.status(500).json({ success: false, error: 'Failed to update item' });
+    } else {
+      res.status(500).send('Failed to update item');
+    }
   }
 });
 
 router.post('/stocks/delete/:id', async (req, res) => {
   try {
     await deleteIngredient(req.db, req.params.id);
-    res.redirect('/admin/stocks?msg=delete_success');
+    
+    // Check if request is AJAX
+    if (req.xhr || req.headers.accept?.indexOf('json') > -1) {
+      res.json({ success: true, message: 'Item deleted successfully' });
+    } else {
+      res.redirect('/admin/stocks?msg=delete_success');
+    }
   } catch (err) {
     console.error('Delete item error:', err);
-    res.status(500).send('Failed to delete item');
+    if (req.xhr || req.headers.accept?.indexOf('json') > -1) {
+      res.status(500).json({ success: false, error: 'Failed to delete item' });
+    } else {
+      res.status(500).send('Failed to delete item');
+    }
   }
 });
 router.post('/stocks/bulk-update', async (req, res) => {
