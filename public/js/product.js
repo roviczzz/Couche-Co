@@ -735,7 +735,7 @@ function setupCartSidePopup() {
 
     // Continue shopping button
     if (continueBtn) {
-        continueBtn.addEventListener('click', hideCartSidePopup);
+        continueBtn.addEventListener('click', () => location.href = '/');
     }
 
     // View cart button
