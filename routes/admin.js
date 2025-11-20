@@ -2661,7 +2661,7 @@ router.get('/analytics/export-performance', async (req, res) => {
         }
         .summary-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(6, 1fr);
             gap: 20px;
             margin-bottom: 30px;
         }
@@ -3119,6 +3119,13 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
     const totalOrders = orders.length;
     const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
+    // Calculate delivery statistics (case-insensitive and robust)
+    const totalDeliveryOrders = orders.filter(order => {
+      const method = order.FulfillmentMethod;
+      return method && (method.toLowerCase() === 'delivery' || method === 'Delivery');
+    }).length;
+    const totalDeliveryRevenue = totalDeliveryOrders * 20;
+
     // Get payment method breakdown (normalize E-Payment variations)
     const paymentBreakdown = orders.reduce((acc, order) => {
       let method = order.PaymentMode || 'Unknown';
@@ -3360,7 +3367,7 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
             <div class="summary-value">₱${totalRevenue.toLocaleString()}</div>
             <div class="summary-label">Total Revenue</div>
         </div>
-    <div class="summary-card">
+        <div class="summary-card">
             <div class="summary-value">₱${(!isNaN(averageOrderValue) ? averageOrderValue.toFixed(2) : '0.00')}</div>
             <div class="summary-label">Avg Order Value</div>
         </div>
@@ -3370,6 +3377,14 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
                 return (totalRevenue / daysDiff).toFixed(2);
             })()}</div>
             <div class="summary-label">Daily Revenue</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-value">${totalDeliveryOrders.toLocaleString()}</div>
+            <div class="summary-label">Delivery Orders</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-value">₱${totalDeliveryRevenue.toLocaleString()}</div>
+            <div class="summary-label">Delivery Revenue</div>
         </div>
     </div>
 
