@@ -49,40 +49,52 @@
   "event": "legolego",
   "category": "Milktea",
   "description": "QWEASDASDASDAS",
-  "discountPercentage": 3,
+  "discountPercentage": 5,
   "startDate": {
     "$date": "2025-11-07T00:00:00.000Z"
   },
   "endDate": {
-    "$date": "2025-11-13T00:00:00.000Z"
+    "$date": "2025-11-27T00:00:00.000Z"
   },
   "createdAt": {
     "$date": "2025-11-07T14:46:32.843Z"
   },
   "lastModified": {
-    "$date": "2025-11-07T15:21:30.749Z"
+    "$date": "2025-11-19T16:15:31.568Z"
   },
-  "isActive": true
+  "isActive": true,
+  "metadata": {
+    "updatedBy": "MathDaenniel",
+    "repository": "roviczzz/Couche-Co",
+    "timestamp": "2025-11-19T16:15:31.519Z",
+    "version": "V9-SortingFeature"
+  }
 },
 {
   "_id": {
     "$oid": "690e1287ac339935973d4614"
   },
   "event": "fruiterism",
-  "category": "Fruit Tea",
+  "category": "",
   "description": "Eatery all u can",
   "discountPercentage": 2,
   "startDate": {
     "$date": "2025-11-07T00:00:00.000Z"
   },
   "endDate": {
-    "$date": "2025-11-25T00:00:00.000Z"
+    "$date": "2025-11-27T00:00:00.000Z"
   },
   "createdAt": {
     "$date": "2025-11-07T15:38:47.518Z"
   },
   "lastModified": {
-    "$date": "2025-11-07T15:38:47.518Z"
+    "$date": "2025-11-19T17:11:17.445Z"
   },
-  "isActive": true
+  "isActive": false,
+  "metadata": {
+    "updatedBy": "MathDaenniel",
+    "repository": "roviczzz/Couche-Co",
+    "timestamp": "2025-11-19T17:11:17.387Z",
+    "version": "V9-SortingFeature"
+  }
 }]

@@ -630,11 +630,14 @@ async function handleReportGeneration(event) {
 }
 
 // Initialize charts and load data on page load
-document.addEventListener("DOMContentLoaded", function() {
-  drawPopularProductsChart();
-  drawAverageSalesChart();
-  drawPaymentMethodsChart();
-  drawOrderSourcesChart();
+document.addEventListener("DOMContentLoaded", async function() {
+  await drawPopularProductsChart();
+  await new Promise(resolve => setTimeout(resolve, 500)); // Small delay
+  await drawAverageSalesChart();
+  await new Promise(resolve => setTimeout(resolve, 500));
+  await drawPaymentMethodsChart();
+  await new Promise(resolve => setTimeout(resolve, 500));
+  await drawOrderSourcesChart();
   setupOrderHistoryFilters();
   document.getElementById('filter7days').classList.add('active');
   loadOrderHistory(7);

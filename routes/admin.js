@@ -3,8 +3,31 @@ const router = express.Router();
 const { ObjectId } = require('mongodb');
 const bcrypt = require('bcrypt');
 const { check, validationResult } = require('express-validator');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 
 const SALT_ROUNDS = 12;
+
+// Create nodemailer transporter with Docker-optimized settings
+const transporter = nodemailer.createTransport({
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS
+  },
+  pool: false, // Disable connection pooling for Docker
+  connectionTimeout: 10000, // 10 seconds
+  greetingTimeout: 5000, // 5 seconds
+  socketTimeout: 15000, // 15 seconds
+  tls: {
+    rejectUnauthorized: false,
+    ciphers: 'SSLv3'
+  },
+  debug: process.env.NODE_ENV !== 'production',
+  logger: process.env.NODE_ENV !== 'production'
+});
 
 // Generate staff ID based on role and user ID
 function generateStaffId(role, userId) {
@@ -240,6 +263,92 @@ router.get('/forgot-password', (req, res) => {
     layout: false
   });
 });
+
+// Forgot password form submission
+router.post('/forgot-password',
+  [
+    check('email').isEmail().withMessage('Invalid email address')
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ error: 'Invalid email address' });
+    }
+
+    try {
+      const user = await req.db.collection('users').findOne({ email: req.body.email });
+      if (!user) {
+        return res.status(404).json({ error: 'Email not registered' });
+      }
+
+      // Generate reset token
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
+
+      // Store token in database
+      await req.db.collection('users').updateOne(
+        { _id: user._id },
+        {
+          $set: {
+            resetToken: resetToken,
+            resetTokenExpiry: resetTokenExpiry
+          }
+        }
+      );
+
+      // Send reset email
+      const resetUrl = `${process.env.BASE_URL}/auth/reset-password?token=${resetToken}`;
+      const mailOptions = {
+        from: process.env.GMAIL_USER,
+        to: user.email,
+        subject: 'Password Reset - Blessings Cafe Admin',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333;">Password Reset Request</h2>
+            <p>Hello ${user.fullname || user.name || 'Admin'},</p>
+            <p>You requested a password reset for your Blessings Cafe admin account.</p>
+            <p>Click the link below to reset your password:</p>
+            <a href="${resetUrl}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 10px 0;">Reset Password</a>
+            <p>This link will expire in 1 hour.</p>
+            <p>If you didn't request this reset, please ignore this email.</p>
+            <p>Best regards,<br>Blessings Cafe Team</p>
+          </div>
+        `
+      };
+
+      // Add timeout wrapper for email sending
+      const sendEmailWithTimeout = new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('Email sending timeout'));
+        }, 15000); // 15 second timeout
+
+        transporter.sendMail(mailOptions)
+          .then(result => {
+            clearTimeout(timeout);
+            resolve(result);
+          })
+          .catch(error => {
+            clearTimeout(timeout);
+            reject(error);
+          });
+      });
+
+      try {
+        await sendEmailWithTimeout;
+        console.log('✅ Admin password reset email sent successfully');
+        res.json({ success: true, message: 'Password reset email sent. Please check your inbox.' });
+      } catch (emailError) {
+        console.error('❌ Admin email sending failed:', emailError.message);
+        
+        // Still create the reset token but show different message
+        res.json({ success: true, message: 'Password reset link has been generated. Please contact support if you do not receive the email.' });
+      }
+    } catch (error) {
+      console.error('Forgot password error:', error);
+      res.status(500).json({ error: 'Server error. Please try again.' });
+    }
+  }
+);
 
 // Analytics Endpoints (before auth middleware)
 router.get('/analytics/dashboard-stats', nocache, async (req, res) => {
