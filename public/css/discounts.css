@@ -1130,10 +1130,10 @@ main {
 .stocks-table th:nth-child(1), .stocks-table td:nth-child(1) { width: 15%; } /* Event Name - smaller */
 .stocks-table th:nth-child(2), .stocks-table td:nth-child(2) { width: 9%; } /* Start Date */
 .stocks-table th:nth-child(3), .stocks-table td:nth-child(3) { width: 9%; } /* End Date */
-.stocks-table th:nth-child(4), .stocks-table td:nth-child(4) { width: 18%; } /* Description */
-.stocks-table th:nth-child(5), .stocks-table td:nth-child(5) { width: 5%; } /* Discount % */
-.stocks-table th:nth-child(6), .stocks-table td:nth-child(6) { width: 17%; } /* Category - smaller */
-.stocks-table th:nth-child(7), .stocks-table td:nth-child(7) { width: 20%; } /* Actions */
+.stocks-table th:nth-child(4), .stocks-table td:nth-child(4) { width: 20%; } /* Description */
+.stocks-table th:nth-child(5), .stocks-table td:nth-child(5) { width: 8%; } /* Discount % */
+.stocks-table th:nth-child(6), .stocks-table td:nth-child(6) { width: 22%; } /* Category - smaller */
+.stocks-table th:nth-child(7), .stocks-table td:nth-child(7) { width: 25%; } /* Actions */
 
 .stocks-table th,
 .stocks-table td {
