@@ -9,7 +9,7 @@ const path = require('path');
 const cron = require('node-cron');
 
 const app = express();
-const port = 8080;
+const port = process.env.PORT || 8080;
 require('dotenv').config();
 
 const dbConnection = require('./utils/db');

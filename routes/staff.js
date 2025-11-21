@@ -1262,6 +1262,116 @@ router.get('/analytics/order-history', async (req, res) => {
   }
 });
 
+// Debug endpoint to check delivery filtering
+router.get('/analytics/debug-deliveries', async (req, res) => {
+  try {
+    const userData = req.session.user;
+    const { start_date, end_date, days } = req.query;
+
+    // Validate date range
+    let startDate, endDate;
+    let reportTitle = "Delivery Debug Report";
+
+    try {
+      if (days && days !== "custom") {
+        const numDays = parseInt(days);
+        if (!isNaN(numDays) && numDays > 0) {
+          endDate = new Date();
+          startDate = new Date();
+          startDate.setDate(startDate.getDate() - numDays);
+          reportTitle = `Delivery Debug - Last ${numDays} Days`;
+        } else {
+          throw new Error('Invalid days parameter');
+        }
+      } else {
+        // Default to last 30 days
+        endDate = new Date();
+        startDate = new Date();
+        startDate.setDate(startDate.getDate() - 30);
+        reportTitle = "Delivery Debug - Last 30 Days";
+      }
+
+
+
+
+      // Ensure dates are valid
+      if (!startDate || !endDate || isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        throw new Error('Invalid date range');
+      }
+
+    } catch (error) {
+      console.error('Date validation error:', error);
+      return res.status(400).json({ error: 'Invalid date parameters', details: error.message });
+    }
+
+    // Create date strings for comparison (same format as order-history route)
+    const cutoffStart = startDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+    const cutoffEnd = endDate.toISOString().split('T')[0];
+
+    // Query ALL orders within date range for delivery counting (including all payment statuses)
+    const allOrdersInRange = await req.db.collection('Orders').find({
+      Date: { $gte: cutoffStart, $lte: cutoffEnd },
+      FulfillmentStatus: { $ne: "Cancelled" } // Only exclude truly cancelled fulfillment
+    })
+    .sort({ Date: -1 })
+    .toArray();
+
+    // Also query today's orders specifically for debugging missing deliveries
+    const todayDateStr = (new Date()).toISOString().split('T')[0];
+    const todaysOrders = await req.db.collection('Orders').find({
+      Date: { $gte: todayDateStr },
+      FulfillmentStatus: { $ne: "Cancelled" }
+    })
+    .sort({ Date: -1 })
+    .toArray();
+
+    const deliveryOrders = allOrdersInRange.filter(order => {
+      const method = order.FulfillmentMethod;
+      return method && (method.toLowerCase().includes('deliver') || method.toLowerCase().includes('home'));
+    });
+
+    // Get unique FulfillmentMethod values to see what's available
+    const uniqueFulfillmentMethods = [...new Set(allOrdersInRange.map(order => order.FulfillmentMethod).filter(Boolean))];
+
+    const debugInfo = {
+      dateRange: {
+        start: cutoffStart,
+        end: cutoffEnd,
+        reportTitle
+      },
+      totalOrdersInRange: allOrdersInRange.length,
+      filteredDeliveryOrders: deliveryOrders.length,
+      uniqueFulfillmentMethods,
+      deliveryOrdersDetails: deliveryOrders.map((order, index) => ({
+        index: index + 1,
+        orderId: order.OrderID,
+        date: order.Date,
+        paymentStatus: order.PaymentStatus,
+        fulfillmentStatus: order.FulfillmentStatus,
+        fulfillmentMethod: order.FulfillmentMethod,
+        total: order.Total
+      })),
+      nonDeliveryOrders: allOrdersInRange
+        .filter(order => {
+          const method = order.FulfillmentMethod;
+          return !method || (method.toLowerCase() !== 'delivery' && method !== 'Delivery');
+        })
+        .map(order => ({
+          orderId: order.OrderID,
+          date: order.Date,
+          fulfillmentMethod: order.FulfillmentMethod,
+          total: order.Total
+        }))
+        .slice(0, 10) // Show first 10
+    };
+
+    res.json(debugInfo);
+  } catch (error) {
+    console.error('Debug delivery error:', error);
+    res.status(500).json({ error: 'Failed to debug deliveries', details: error.message });
+  }
+});
+
 router.get('/analytics/sales-report-pdf', async (req, res) => {
   try {
     // Get user fullname for PDF header (same as analytics page route)
@@ -1323,7 +1433,7 @@ router.get('/analytics/sales-report-pdf', async (req, res) => {
     const cutoffStart = startDate.toISOString().split('T')[0]; // YYYY-MM-DD format
     const cutoffEnd = endDate.toISOString().split('T')[0];
 
-    // Query orders within date range (like the working order-history route)
+    // Query orders within date range for sales metrics (exclude only cancelled)
     const orders = await req.db.collection('Orders').find({
       Date: { $gte: cutoffStart, $lte: cutoffEnd },
       PaymentStatus: { $ne: "Cancelled" }
@@ -1331,13 +1441,123 @@ router.get('/analytics/sales-report-pdf', async (req, res) => {
     .sort({ Date: -1 })
     .toArray();
 
-    // Calculate summary statistics with proper null handling
+    // Query ALL orders within date range for delivery counting (including all payment statuses)
+    const allOrdersInRange = await req.db.collection('Orders').find({
+      Date: { $gte: cutoffStart, $lte: cutoffEnd },
+      FulfillmentStatus: { $ne: "Cancelled" } // Only exclude truly cancelled fulfillment
+    })
+    .sort({ Date: -1 })
+    .toArray();
+
+    // Calculate summary statistics with proper null handling (for paid orders only)
     const totalRevenue = orders.reduce((sum, order) => {
       const orderTotal = typeof order.Total === 'number' && !isNaN(order.Total) ? order.Total : 0;
       return sum + orderTotal;
     }, 0);
     const totalOrders = orders.length;
     const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
+    // Calculate delivery statistics from ALL orders (not just paid ones) - fix the discrepancy
+    const deliveryOrders = allOrdersInRange.filter(order => {
+      const method = order.FulfillmentMethod;
+      const isDelivery = method && (
+        typeof method === 'string' &&
+        method.trim().length > 0 &&
+        (method.toLowerCase() === 'delivery' ||
+         method === 'Delivery' ||
+         method.toLowerCase().includes('delivery'))
+      );
+      return isDelivery;
+    });
+
+    // Debug logging for delivery orders
+    console.log('='.repeat(80));
+    console.log('DELIVERY ORDERS DEBUGGING - Last 30 Days');
+    console.log('='.repeat(80));
+    console.log(`Total orders in date range: ${allOrdersInRange.length}`);
+    console.log(`Filtered delivery orders: ${deliveryOrders.length}`);
+    console.log('');
+
+    deliveryOrders.forEach((order, index) => {
+      console.log(`${index + 1}. OrderID: ${order.OrderID}`);
+      console.log(`   Date: ${order.Date}`);
+      console.log(`   PaymentStatus: ${order.PaymentStatus || 'N/A'}`);
+      console.log(`   FulfillmentStatus: ${order.FulfillmentStatus || 'N/A'}`);
+      console.log(`   FulfillmentMethod: "${order.FulfillmentMethod}"`);
+      console.log('');
+    });
+
+    // Count deliveries with different payment statuses
+    const paymentStatusCounts = deliveryOrders.reduce((acc, order) => {
+      const status = order.PaymentStatus || 'Unknown';
+      acc[status] = (acc[status] || 0) + 1;
+      return acc;
+    }, {});
+
+    // Count deliveries by date to show which dates have deliveries
+    const deliveriesByDate = deliveryOrders.reduce((acc, order) => {
+      const date = order.Date;
+      if (date) {
+        // Extract YYYY-MM-DD part only, same logic as other date processing
+        const dateKey = date.substring(0, 10);
+        acc[dateKey] = (acc[dateKey] || 0) + 1;
+      }
+      return acc;
+    }, {});
+
+    console.log('Delivery orders by PaymentStatus:');
+    Object.entries(paymentStatusCounts).forEach(([status, count]) => {
+      console.log(`  ${status}: ${count} orders`);
+    });
+
+    console.log('');
+    console.log('Delivery orders by Date (Last 30 Days):');
+    console.log('Date\t\tDeliveries');
+    console.log('-'.repeat(40));
+
+    // Sort dates and show which dates have deliveries
+    const sortedDates = Object.keys(deliveriesByDate).sort();
+    sortedDates.forEach(date => {
+      console.log(`${date}\t${deliveriesByDate[date]}`);
+    });
+
+    // Show total deliveries per day average
+    const totalDeliveryDays = sortedDates.length;
+    const averageDeliveriesPerDeliveryDay = totalDeliveryDays > 0 ? (deliveryOrders.length / totalDeliveryDays) : 0;
+
+    console.log('');
+    console.log(`Summary for Last 30 Days:`);
+    console.log(`  Total delivery orders: ${deliveryOrders.length}`);
+    console.log(`  Days with deliveries: ${totalDeliveryDays}`);
+    console.log(`  Avg deliveries/day (when there are deliveries): ${averageDeliveriesPerDeliveryDay.toFixed(1)}`);
+
+    // Show days with NO deliveries (to understand the gap)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    // Create date strings for comparison (same format as order-history route)
+    const daysWithDeliveriesSet = new Set(sortedDates);
+    const totalDays = Math.floor((new Date() - thirtyDaysAgo) / (1000 * 60 * 60 * 24)) + 1;
+
+    let daysWithoutDeliveries = [];
+    for (let i = 0; i < totalDays; i++) {
+      const currentDate = new Date(thirtyDaysAgo);
+      currentDate.setDate(currentDate.getDate() + i);
+      const dateStr = currentDate.toISOString().split('T')[0];
+
+      if (!daysWithDeliveriesSet.has(dateStr)) {
+        daysWithoutDeliveries.push(dateStr);
+      }
+    }
+
+    console.log(`  Total days in period: ${totalDays}`);
+    console.log(`  Days without deliveries: ${daysWithoutDeliveries.length}`);
+
+    console.log('');
+    console.log(`Total delivery revenue: ₱${deliveryOrders.length * 20} (${deliveryOrders.length} deliveries × ₱20)`);
+    console.log('='.repeat(80));
+
+    const totalDeliveryOrders = deliveryOrders.length;
+    const totalDeliveryRevenue = totalDeliveryOrders * 20;
 
     // Get payment method breakdown (normalize E-Payment variations)
     const paymentBreakdown = orders.reduce((acc, order) => {
@@ -1484,7 +1704,7 @@ router.get('/analytics/sales-report-pdf', async (req, res) => {
         }
         .summary-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(6, 1fr);
             gap: 20px;
             margin-bottom: 30px;
         }
@@ -1590,6 +1810,14 @@ router.get('/analytics/sales-report-pdf', async (req, res) => {
                 return (totalRevenue / daysDiff).toFixed(2);
             })()}</div>
             <div class="summary-label">Daily Revenue</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-value">${totalDeliveryOrders.toLocaleString()}</div>
+            <div class="summary-label">Delivery Orders</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-value">₱${totalDeliveryRevenue.toLocaleString()}</div>
+            <div class="summary-label">Delivery Revenue</div>
         </div>
     </div>
 

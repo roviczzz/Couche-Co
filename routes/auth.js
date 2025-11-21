@@ -3,9 +3,32 @@ const router = express.Router();
 const { ObjectId } = require('mongodb');
 const { check, validationResult } = require('express-validator');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 
 
 const SALT_ROUNDS = 12;
+
+// Create nodemailer transporter with Docker-optimized settings
+const transporter = nodemailer.createTransport({
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS
+  },
+  pool: false, // Disable connection pooling for Docker
+  connectionTimeout: 10000, // 10 seconds
+  greetingTimeout: 5000, // 5 seconds
+  socketTimeout: 15000, // 15 seconds
+  tls: {
+    rejectUnauthorized: false,
+    ciphers: 'SSLv3'
+  },
+  debug: process.env.NODE_ENV !== 'production',
+  logger: process.env.NODE_ENV !== 'production'
+});
 
 // Generate staff ID based on role and user ID
 function generateStaffId(role, userId) {
@@ -286,7 +309,13 @@ router.get('/account/register', (req, res) => {
 
 // Forgot password page
 router.get('/forgot-password', (req, res) => {
-  res.render('forgot-password', { layout: false });
+  res.render('forgot-password', {
+    layout: false,
+    error: null,
+    success: null,
+    errors: {},
+    formData: {}
+  });
 });
 
 // Forgot password form submission (email based)
@@ -316,14 +345,81 @@ router.post('/forgot-password',
         });
       }
 
-      // Here you would send reset email, but for now just show success
-      res.render('forgot-password', {
-        success: 'Password reset email sent. Please check your inbox.',
-        layout: false,
-        errors: {},
-        error: null,
-        formData: req.body
+      // Generate reset token
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
+
+      // Store token in database
+      await req.db.collection('users').updateOne(
+        { _id: user._id },
+        {
+          $set: {
+            resetToken: resetToken,
+            resetTokenExpiry: resetTokenExpiry
+          }
+        }
+      );
+
+      // Send reset email
+      const resetUrl = `${process.env.BASE_URL}/auth/reset-password?token=${resetToken}`;
+      const mailOptions = {
+        from: process.env.GMAIL_USER,
+        to: user.email,
+        subject: 'Password Reset - Blessings Cafe',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333;">Password Reset Request</h2>
+            <p>Hello ${user.fullname || user.name || 'User'},</p>
+            <p>You requested a password reset for your Blessings Cafe account.</p>
+            <p>Click the link below to reset your password:</p>
+            <a href="${resetUrl}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 10px 0;">Reset Password</a>
+            <p>This link will expire in 1 hour.</p>
+            <p>If you didn't request this reset, please ignore this email.</p>
+            <p>Best regards,<br>Blessings Cafe Team</p>
+          </div>
+        `
+      };
+
+      // Add timeout wrapper for email sending
+      const sendEmailWithTimeout = new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('Email sending timeout'));
+        }, 15000); // 15 second timeout
+
+        transporter.sendMail(mailOptions)
+          .then(result => {
+            clearTimeout(timeout);
+            resolve(result);
+          })
+          .catch(error => {
+            clearTimeout(timeout);
+            reject(error);
+          });
       });
+
+      try {
+        await sendEmailWithTimeout;
+        console.log('✅ Password reset email sent successfully');
+        
+        res.render('forgot-password', {
+          success: 'Password reset email sent. Please check your inbox.',
+          layout: false,
+          errors: {},
+          error: null,
+          formData: req.body
+        });
+      } catch (emailError) {
+        console.error('❌ Email sending failed:', emailError.message);
+        
+        // Still create the reset token but show different message
+        res.render('forgot-password', {
+          success: 'Password reset link has been generated. Please contact support if you do not receive the email.',
+          layout: false,
+          errors: {},
+          error: null,
+          formData: req.body
+        });
+      }
     } catch (error) {
       console.error('Forgot password error:', error);
       res.render('forgot-password', {
@@ -331,6 +427,130 @@ router.post('/forgot-password',
         errors: {},
         error: 'Server error. Please try again.',
         formData: req.body
+      });
+    }
+  }
+);
+
+// Reset password page
+router.get('/reset-password', async (req, res) => {
+  const { token } = req.query;
+
+  if (!token) {
+    return res.render('reset-password', {
+      layout: false,
+      error: 'Invalid reset token',
+      token: null,
+      errors: {},
+      success: null
+    });
+  }
+
+  try {
+    const user = await req.db.collection('users').findOne({
+      resetToken: token,
+      resetTokenExpiry: { $gt: new Date() }
+    });
+
+    if (!user) {
+      return res.render('reset-password', {
+        layout: false,
+        error: 'Invalid or expired reset token',
+        token: null,
+        errors: {},
+        success: null
+      });
+    }
+
+    res.render('reset-password', {
+      layout: false,
+      error: null,
+      token: token,
+      errors: {},
+      success: null
+    });
+  } catch (error) {
+    console.error('Reset password page error:', error);
+    res.render('reset-password', {
+      layout: false,
+      error: 'Server error. Please try again.',
+      token: null,
+      errors: {},
+      success: null
+    });
+  }
+});
+
+// Reset password form submission
+router.post('/reset-password',
+  [
+    check('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+    check('confirmPassword').custom((value, { req }) => {
+      if (value !== req.body.password) {
+        throw new Error('Passwords do not match');
+      }
+      return true;
+    }),
+    check('token').notEmpty().withMessage('Reset token is required')
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.render('reset-password', {
+        layout: false,
+        errors: errors.mapped(),
+        error: 'Please fix the errors below',
+        token: req.body.token
+      });
+    }
+
+    try {
+      const user = await req.db.collection('users').findOne({
+        resetToken: req.body.token,
+        resetTokenExpiry: { $gt: new Date() }
+      });
+
+      if (!user) {
+        return res.render('reset-password', {
+          layout: false,
+          errors: {},
+          error: 'Invalid or expired reset token',
+          token: req.body.token
+        });
+      }
+
+      // Hash new password
+      const hashedPassword = await bcrypt.hash(req.body.password, SALT_ROUNDS);
+
+      // Update password and clear reset token
+      await req.db.collection('users').updateOne(
+        { _id: user._id },
+        {
+          $set: {
+            password: hashedPassword,
+            passwordResetAt: new Date()
+          },
+          $unset: {
+            resetToken: '',
+            resetTokenExpiry: ''
+          }
+        }
+      );
+
+      res.render('reset-password', {
+        success: 'Password reset successfully. You can now log in with your new password.',
+        layout: false,
+        errors: {},
+        error: null,
+        token: null
+      });
+    } catch (error) {
+      console.error('Reset password error:', error);
+      res.render('reset-password', {
+        layout: false,
+        errors: {},
+        error: 'Server error. Please try again.',
+        token: req.body.token
       });
     }
   }

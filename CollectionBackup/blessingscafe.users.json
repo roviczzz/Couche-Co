@@ -19,11 +19,15 @@
   "role": "admin",
   "fullname": "asdf",
   "lastLogin": {
-    "$date": "2025-10-20T02:44:19.856Z"
+    "$date": "2025-11-19T07:22:19.619Z"
   },
   "staffId": "ADM001",
-  "email": "",
-  "phone": ""
+  "email": "blessingscafe1@gmail.com",
+  "phone": "",
+  "resetToken": "8fa5c33025f550e9c31af6b849e0b65c31536b099269acc8d990828be0a01b18",
+  "resetTokenExpiry": {
+    "$date": "2025-11-19T08:37:28.553Z"
+  }
 },
 {
   "_id": {
@@ -49,7 +53,7 @@
   "email": "testemail@gmail.com",
   "phone": "09123798171",
   "lastLogin": {
-    "$date": "2025-10-07T04:36:08.987Z"
+    "$date": "2025-11-19T06:52:32.333Z"
   },
   "staffId": "BC002"
 },
@@ -141,7 +145,7 @@
   "role": "owner",
   "staffId": "OWN001",
   "lastLogin": {
-    "$date": "2025-10-03T04:33:59.995Z"
+    "$date": "2025-11-19T06:18:02.689Z"
   }
 },
 {
@@ -156,5 +160,121 @@
   "role": "user",
   "createdAt": {
     "$date": "2025-10-20T02:48:27.010Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68f5a91f2beac5b6c838db1d"
+  },
+  "email": "rb@gmail.com",
+  "fullname": "asd asd",
+  "phone": "09871263875",
+  "address": "asd, Imus, Cavite",
+  "password": "$2b$12$Hs8KjPpOX8SwhZHvRwM/g.xAt98aaCeI8AY9ZnDR4NmhlqLd4XoJe",
+  "role": "user",
+  "createdAt": {
+    "$date": "2025-10-20T03:14:39.314Z"
+  },
+  "lastLogin": {
+    "$date": "2025-11-13T15:50:50.082Z"
+  },
+  "city": "Alapan I-C, Imus",
+  "lastModified": {
+    "$date": "2025-10-21T17:13:15.533Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68faf746694f4346fcfd9c2e"
+  },
+  "email": "rv@gmail.com",
+  "fullname": "Rovic Rod",
+  "phone": "09871628736",
+  "address": "test address, Imus, Cavite",
+  "password": "$2b$12$gUMHzeE6H6PogAyuX572GuyRXZ02AdR1.eszfHUjl8bGDs..7W0bu",
+  "role": "user",
+  "createdAt": {
+    "$date": "2025-10-24T03:49:26.900Z"
+  },
+  "lastLogin": {
+    "$date": "2025-10-24T03:49:54.144Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68fe0ffe6f980002d1a0b557"
+  },
+  "email": "math@gmail.com",
+  "fullname": "Math Pogi",
+  "phone": "09817256381",
+  "address": "test, Imus, Cavite",
+  "password": "$2b$12$JiSwLxc35Fq8N1l.ufXxtuQZrkJNCdJV7lCGQQtoNGVz5AXVpCCdi",
+  "role": "user",
+  "createdAt": {
+    "$date": "2025-10-26T12:11:42.949Z"
+  },
+  "lastLogin": {
+    "$date": "2025-10-26T12:12:03.718Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69121e2069bb558e4338c325"
+  },
+  "email": "kendivino6@gmail.com",
+  "fullname": "Earl Alonzo",
+  "phone": "09546786431",
+  "address": "Imus Cavite, Imus, Cavite",
+  "password": "$2b$12$euNUbwLRlYJMq4f.uWfacOszvpQwJ0s92VFp37kvOXmOieP/DYPDS",
+  "role": "user",
+  "createdAt": {
+    "$date": "2025-11-10T17:17:20.172Z"
+  },
+  "lastLogin": {
+    "$date": "2025-11-17T06:45:23.850Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "691760e92c6cf983f25d37a7"
+  },
+  "username": "ownermalupet",
+  "password": "$2b$12$0neE4c4gB7ws7Xc5T8aSxuzlVBTe7.XMJ3dBuTDy/E17cN64sJK4q",
+  "fullname": "ownermalupet",
+  "role": "staff",
+  "passwordUpgraded": {
+    "$date": "2025-11-14T17:03:37.416Z"
+  },
+  "lastModified": {
+    "$date": "2025-11-14T17:03:37.416Z"
+  },
+  "passwordChangedAt": {
+    "$date": "2025-11-14T17:03:37.416Z"
+  },
+  "passwordChangedBy": "ownermalupet",
+  "upgradedBy": "BlessingsOwner",
+  "createdAt": {
+    "$date": "2025-11-14T17:03:37.416Z"
+  },
+  "staffId": "BC17880",
+  "lastLogin": {
+    "$date": "2025-11-17T15:44:51.460Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6918175a2d7876c0155c8424"
+  },
+  "email": "slsarellado@gmail.com",
+  "fullname": "John Arellado",
+  "phone": "09203642597",
+  "address": "30 Santo Nino Sanpedro, Imus, Cavite",
+  "password": "$2b$12$ytrvdk9dMjlZ5JFGM77OyOmuuenEJ4UigpCCdxlCWm4RJxq1HNz7q",
+  "role": "user",
+  "createdAt": {
+    "$date": "2025-11-15T06:02:02.277Z"
+  },
+  "lastLogin": {
+    "$date": "2025-11-17T03:56:28.812Z"
   }
 }]
