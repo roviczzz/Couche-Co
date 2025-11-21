@@ -18,21 +18,15 @@ class OrderStatusPoller {
   }
 
   init() {
-    // Get initial elements
     this.progressFill = document.querySelector('.progress-fill');
     this.progressPercentage = document.querySelector('.progress-percentage');
     this.statusMessage = document.querySelector('.status-message');
     this.currentStatusElement = document.querySelector('.current-status p');
 
-    // Get initial values (from server-rendered data)
-    // Extract status from the <p>'s textContent (assuming it starts with "Current Status: ")
     this.lastStatus = this.currentStatusElement ? this.currentStatusElement.textContent.replace('Current Status: ', '').trim() : 'Preparing';
 
-    // Start polling if order is not completed
     if (this.lastStatus !== 'Completed') {
-      // Initial poll after 2 seconds
-      setTimeout(() => this.pollStatus(), 2000);
-      // Then poll regularly
+      setTimeout(() => this.pollStatus(), 3000);
       this.pollInterval = setInterval(() => this.pollStatus(), this.POLL_INTERVAL);
     }
   }
@@ -113,48 +107,74 @@ class OrderStatusPoller {
     fetch(`/api/orders/${this.orderId}/status`)
       .then(response => {
         if (!response.ok) {
-          throw new Error('Failed to fetch status');
+          if (response.status === 404) {
+            console.warn(`Order ${this.orderId} not found yet`);
+            return null;
+          }
+          throw new Error(`HTTP ${response.status}: Failed to fetch status`);
         }
         return response.json();
       })
       .then(data => {
-        if (!data.success) {
-          throw new Error('API returned error');
+        if (!data || !data.success) {
+          if (data) {
+            console.warn('Status API returned error:', data.error);
+          }
+          return;
         }
 
         const fulfillmentStatus = data.data.fulfillmentStatus;
+        const fulfillmentMethod = (data.data.fulfillmentMethod || 'Pickup').toLowerCase();
+        const isDelivery = fulfillmentMethod === 'delivery';
 
-        // Calculate progress and status text based on fulfillment method and status
-        let progressPercentage = 10; // Default minimum progress
-        let statusText = 'Order received';
+        let progressPercentage = 25;
+        let statusText = 'Preparing your order';
 
-        // Note: We don't have fulfillment method in this response, so we'll use a simplified logic
-        // In a real implementation, you might want to fetch the full order details initially
-        if (fulfillmentStatus === 'Preparing') {
-          progressPercentage = 25;
-          statusText = 'Preparing your order';
-        } else if (fulfillmentStatus === 'In Progress') {
-          progressPercentage = 50;
-          statusText = 'Your order is being prepared';
-        } else if (fulfillmentStatus === 'Ready') {
-          progressPercentage = 90;
-          statusText = 'Your order is ready for pickup/delivery';
-        } else if (fulfillmentStatus === 'In Delivery') {
-          progressPercentage = 90;
-          statusText = 'Your order is out for delivery';
-        } else if (fulfillmentStatus === 'Completed') {
-          progressPercentage = 100;
-          statusText = 'Order completed successfully';
+        if (isDelivery) {
+          if (fulfillmentStatus === 'Preparing') {
+            progressPercentage = 20;
+            statusText = 'Preparing your order';
+          } else if (fulfillmentStatus === 'In Progress') {
+            progressPercentage = 40;
+            statusText = 'Your order is being prepared';
+          } else if (fulfillmentStatus === 'Ready') {
+            progressPercentage = 70;
+            statusText = 'Your order is ready for delivery';
+          } else if (fulfillmentStatus === 'In Delivery') {
+            progressPercentage = 90;
+            statusText = 'Your order is out for delivery';
+          } else if (fulfillmentStatus === 'Completed') {
+            progressPercentage = 100;
+            statusText = 'Order delivered successfully';
+          } else {
+            progressPercentage = 20;
+            statusText = 'Preparing your order';
+          }
+        } else {
+          if (fulfillmentStatus === 'Preparing') {
+            progressPercentage = 25;
+            statusText = 'Preparing your order';
+          } else if (fulfillmentStatus === 'In Progress') {
+            progressPercentage = 50;
+            statusText = 'Your order is being prepared';
+          } else if (fulfillmentStatus === 'Ready') {
+            progressPercentage = 90;
+            statusText = 'Your order is ready for pickup';
+          } else if (fulfillmentStatus === 'Completed') {
+            progressPercentage = 100;
+            statusText = 'Order completed successfully';
+          } else {
+            progressPercentage = 25;
+            statusText = 'Preparing your order';
+          }
         }
 
         if (fulfillmentStatus !== this.lastStatus || progressPercentage !== this.lastProgress) {
-          // Status changed!
           this.lastStatus = fulfillmentStatus;
           this.lastProgress = progressPercentage;
 
           this.updateProgress(fulfillmentStatus, progressPercentage, statusText);
 
-          // Stop polling if completed
           if (fulfillmentStatus === 'Completed') {
             this.isActive = false;
             if (this.pollInterval) {
@@ -165,8 +185,7 @@ class OrderStatusPoller {
         }
       })
       .catch(error => {
-        console.warn('Error polling order status:', error);
-        // Don't show user-visible error for polling failures
+        console.debug(`Order status polling attempt ${this.pollCount}: ${error.message}`);
       });
   }
 

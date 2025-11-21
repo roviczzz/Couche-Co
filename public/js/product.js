@@ -254,6 +254,25 @@ function addToOrder(name, price, size, category, productId, addons, imagelink, i
 
     // Show cart side popup instead of toast
     showCartSidePopup(orderItem);
+
+    // Reset selected options after adding to cart
+    document.querySelectorAll('.addon-checkbox').forEach(cb => { cb.checked = false; });
+    document.querySelectorAll('.ingredient-checkbox').forEach(cb => { cb.checked = false; });
+    selectedAddons.length = 0;
+    selectedIngredients.length = 0;
+    const quantityInput = document.getElementById('quantity');
+    if (quantityInput) quantityInput.value = 1;
+    document.querySelectorAll('input[name="size-radio"]').forEach(radio => { radio.checked = false; });
+    const badge = document.getElementById('ingredients-badge');
+    if (badge) {
+        badge.textContent = '';
+        badge.style.display = 'none';
+        badge.classList.add('hidden');
+        badge.style.visibility = 'hidden';
+        badge.style.opacity = '0';
+        badge.style.zIndex = '0';
+    }
+    updateIngredientsBadge();
 }
 
 // Fetch and display add-ons - try server-side data first, then API as fallback
@@ -668,6 +687,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Show cart side popup with item details
 function showCartSidePopup(orderItem) {
+        // Hide ingredients badge when cart-side-popup is shown
+        const badge = document.getElementById('ingredients-badge');
+        if (badge) {
+            badge.style.display = 'none';
+            badge.classList.add('hidden');
+            badge.style.visibility = 'hidden';
+            badge.style.opacity = '0';
+            badge.style.zIndex = '0';
+        }
     // Update popup content
     const itemNameElement = document.getElementById('cart-popup-name');
     const itemPriceElement = document.getElementById('cart-popup-price');

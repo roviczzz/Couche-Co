@@ -1,0 +1,21 @@
+{
+  "watch": [
+    "server.js",
+    "routes",
+    "utils",
+    "admin-helpers.js",
+    "middleware"
+  ],
+  "ext": "js,json",
+  "ignore": [
+    "node_modules",
+    "public",
+    "views",
+    "public/uploads",
+    "*.log"
+  ],
+  "delay": "1000",
+  "env": {
+    "NODE_ENV": "development"
+  }
+}

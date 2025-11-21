@@ -364,7 +364,8 @@ router.post('/orders', checkInventoryAvailability, async (req, res) => {
       }
     }
 
-    // Trigger new order notification
+    const createdOrder = await req.db.collection('Orders').findOne({ OrderID: orderData.OrderID });
+
     try {
       const { triggerBusinessEventNotification } = require('../admin-helpers');
       await triggerBusinessEventNotification(req.db, 'new-order', {
@@ -374,6 +375,24 @@ router.post('/orders', checkInventoryAvailability, async (req, res) => {
       });
     } catch (notifError) {
       console.error('Error creating new order notification:', notifError);
+    }
+
+    try {
+      const { sendOrderReceipt } = require('../utils/emailService');
+      if (orderData.Customer && orderData.Customer.Email) {
+        const emailResult = await sendOrderReceipt(
+          createdOrder,
+          orderData.Customer.Email,
+          orderData.Customer.Name || orderData.Customer.FullName || 'Valued Customer'
+        );
+        if (emailResult.success) {
+          console.log(`Receipt email sent for order ${orderData.OrderID}`);
+        } else {
+          console.warn(`Failed to send receipt email for order ${orderData.OrderID}: ${emailResult.error}`);
+        }
+      }
+    } catch (emailError) {
+      console.error('Error sending order receipt email:', emailError);
     }
 
     console.log(`Order created: ${orderData.OrderID} (Inventory ${req.inventoryChecked ? 'validated' : 'check failed'})`);
@@ -629,56 +648,6 @@ router.patch('/orders/:OrderID/restore', async (req, res) => {
   } catch (error) {
     console.error('Error restoring order:', error);
     return res.status(500).json({ error: 'Server error while restoring order' });
-  }
-});
-
-router.get('/orders/:orderId/status', async (req, res) => {
-  try {
-    const { orderId } = req.params;
-    // Using shared DB connection from req.db
-    const ordersCollection = req.db.collection('Orders');
-
-    const order = await ordersCollection.findOne({ OrderID: orderId });
-
-    if (!order) {
-      return res.status(404).json({ error: 'Order not found' });
-    }
-
-    // Calculate progress percentage based on FulfillmentStatus
-    let progressPercentage = 25; // Default preparing
-    let statusText = 'Preparing your order';
-    switch (order.FulfillmentStatus) {
-      case 'Preparing':
-        progressPercentage = 25;
-        statusText = 'Preparing your order';
-        break;
-      case 'In Progress':
-        progressPercentage = 50;
-        statusText = 'Your order is being prepared';
-        break;
-      case 'Ready':
-        progressPercentage = 90;
-        statusText = 'Your order is ready for pickup';
-        break;
-      case 'Completed':
-        progressPercentage = 100;
-        statusText = 'Order completed successfully';
-        break;
-      default:
-        progressPercentage = 25;
-        statusText = 'Preparing your order';
-    }
-
-    res.json({
-      FulfillmentStatus: order.FulfillmentStatus,
-      PaymentStatus: order.PaymentStatus,
-      progressPercentage: progressPercentage,
-      statusText: statusText,
-      orderId: order.OrderID
-    });
-  } catch (error) {
-    console.error('Error fetching order status:', error);
-    res.status(500).json({ error: 'Failed to fetch order status' });
   }
 });
 
@@ -1513,7 +1482,7 @@ router.get('/search', async (req, res) => {
         Name: { $regex: `^${trimmedQuery}`, $options: 'i' },
         isEnabled: { $ne: false } // Only enabled products
       })
-      .project({ Name: 1, Category: 1, imagelink: 1, _id: 1 })
+      .project({ Name: 1, Category: 1, imagelink: 1, _id: 1, ProductID: 1, Ingredients: 1, isEnabled: 1, Quantity: 1 })
       .limit(5)
       .toArray();
 
@@ -1527,7 +1496,7 @@ router.get('/search', async (req, res) => {
           isEnabled: { $ne: false },
           _id: { $nin: results.map(r => r._id) } // Exclude already found results
         })
-        .project({ Name: 1, Category: 1, imagelink: 1, _id: 1 })
+        .project({ Name: 1, Category: 1, imagelink: 1, _id: 1, ProductID: 1, Ingredients: 1, isEnabled: 1, Quantity: 1 })
         .limit(10 - results.length)
         .toArray();
 
@@ -1553,10 +1522,11 @@ router.get('/search', async (req, res) => {
     const InventoryManager = require('../utils/inventoryManager');
     for (const item of finalResults) {
       try {
-        const availabilityCheck = await InventoryManager.checkProductAvailability(item.ProductID);
+        const productId = item.ProductID || item._id;
+        const availabilityCheck = await InventoryManager.checkProductAvailability(productId);
         item.isAvailable = availabilityCheck.available;
       } catch (error) {
-        console.error(`Error checking availability for ${item.ProductID}:`, error);
+        console.error(`Error checking availability for ${item.ProductID || item._id}:`, error);
         item.isAvailable = true;
       }
     }
@@ -1782,12 +1752,18 @@ router.get('/orders/:orderId/status', async (req, res) => {
     const { orderId } = req.params;
     const order = await req.db.collection('Orders').findOne(
       { OrderID: orderId },
-      { projection: { FulfillmentStatus: 1 } }
+      { projection: { FulfillmentStatus: 1, FulfillmentMethod: 1 } }
     );
     if (!order) {
       return res.status(404).json({ success: false, error: 'Order not found' });
     }
-    res.json({ success: true, data: { fulfillmentStatus: order.FulfillmentStatus } });
+    res.json({ 
+      success: true, 
+      data: { 
+        fulfillmentStatus: order.FulfillmentStatus,
+        fulfillmentMethod: order.FulfillmentMethod || 'Pickup'
+      } 
+    });
   } catch (error) {
     console.error('Status polling error:', error);
     res.status(500).json({ success: false, error: 'Internal server error' });

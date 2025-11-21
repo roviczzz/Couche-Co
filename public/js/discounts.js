@@ -449,7 +449,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         setTimeout(() => {
           hidePromoModal();
-          updateActivePromosSection();
           window.location.href = '/admin/discounts?msg=add_success';
         }, 1000);
       } else {
@@ -847,6 +846,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const activePromos = [];
     const tableRows = document.querySelectorAll('#promoTableBody tr[data-promo-id]');
 
+    if (tableRows.length === 0) {
+      // No rows in table yet, show empty state
+      elements.activePromosGrid.innerHTML = `
+        <div class="no-active-promos">
+          <div class="no-promos-icon">📅</div>
+          <h4>No Active Promos</h4>
+          <p>There are currently no active promotional offers. Check back later or add new promos!</p>
+          <button class="quick-add-btn" onclick="document.getElementById('addPromoBtn').click()">
+            <span>Add Promo</span>
+          </button>
+        </div>
+      `;
+      elements.activePromosCount.textContent = '0';
+      return;
+    }
+
     tableRows.forEach((row) => {
       const promoId = row.dataset.promoId;
       const startDateInput = row.querySelector('.start-date-input');
@@ -924,7 +939,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             daysRemaining = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
           }
-        } catch (error) {}
+        } catch (error) {
+          console.warn('Error formatting dates:', error);
+        }
 
         const isExpiringSoon = daysRemaining <= 7 && daysRemaining > 0;
 

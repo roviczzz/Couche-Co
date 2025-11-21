@@ -709,7 +709,7 @@ function updateCartDisplay() {
                         if (!item.isB1T1 && !item.b1t1Used) {
                             const menuData = JSON.parse(document.getElementById('menu-data').textContent);
                             const menuItem = menuData.find(mItem => mItem._id === item.ProductID || mItem.id === item.ProductID || mItem.Name === item.ProductName);
-                            if (menuItem && menuItem.Category !== 'Pastries' && item.Size === '22oz') {
+                            if (menuItem && menuItem.Category === 'Milktea' && item.Size === '22oz') {
                                 return `<button class="b1t1-btn" onclick="showB1T1Modal('${menuItem.Category.replace(/'/g, "\\'")}', '${item.Size.replace(/'/g, "\\'")}', ${index})"
                                         style="margin-top: 8px; padding: 8px 12px; background: #8B4513; color: white; border: none; border-radius: 8px; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; transition: all 0.2s ease;"
                                         onmouseover="this.style.backgroundColor='#a05c2f'; this.style.transform='scale(1.05)';"
@@ -1180,7 +1180,7 @@ function getMenuDrinksWithSize(category, basisSize) {
     const menuData = JSON.parse(document.getElementById('menu-data').textContent);
     let availableDrinks = [];
     menuData.forEach(menuItem => {
-        if (menuItem.Category === category && menuItem.Category !== 'Pastries') {
+        if (menuItem.Category === category && category === 'Milktea') {
             const sizeObj = menuItem.Sizes ? menuItem.Sizes.find(s => (s.SizeName || s.Size) === basisSize) : null;
             if (sizeObj) {
                 availableDrinks.push({ menuItem, sizeObj });

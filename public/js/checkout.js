@@ -757,28 +757,36 @@ document.addEventListener('DOMContentLoaded', async function() {
   deliveryMethodSelect.addEventListener('change', async function() {
     const method = this.value;
     const pickupAgreement = document.getElementById('pickupAgreement');
+    const deliveryAgreement = document.getElementById('deliveryAgreement');
     const deliveryFields = document.getElementById('deliveryFields');
     const pickupCheckbox = document.getElementById('pickupAgreed');
+    const deliveryCheckbox = document.getElementById('deliveryAgreed');
     const cityInput = document.getElementById('city');
     const addressInput = document.getElementById('address');
 
     if (method === 'Pick-up') {
       pickupAgreement.style.display = 'block';
+      deliveryAgreement.style.display = 'none';
       deliveryFields.style.display = 'none';
       pickupCheckbox.setAttribute('required', '');
+      deliveryCheckbox.removeAttribute('required');
       cityInput.removeAttribute('required');
       addressInput.removeAttribute('required');
     } else if (method === 'Delivery') {
       pickupAgreement.style.display = 'none';
+      deliveryAgreement.style.display = 'block';
       deliveryFields.style.display = 'block';
       pickupCheckbox.removeAttribute('required');
+      deliveryCheckbox.setAttribute('required', '');
       cityInput.setAttribute('required', '');
       addressInput.setAttribute('required', '');
     } else {
       // Default/unselected state
       pickupAgreement.style.display = 'none';
+      deliveryAgreement.style.display = 'none';
       deliveryFields.style.display = 'none';
       pickupCheckbox.removeAttribute('required');
+      deliveryCheckbox.removeAttribute('required');
       cityInput.removeAttribute('required');
       addressInput.removeAttribute('required');
     }

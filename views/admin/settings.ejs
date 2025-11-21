@@ -117,6 +117,33 @@
                     </form>
                 </div>
             </div>
+
+            <div class="settings-card">
+                <div class="card-header">
+                    <h3>Page Management</h3>
+                    <p>Edit carousel banners, captions, and titles</p>
+                </div>
+                <div class="card-body">
+                    <div class="page-management-tabs">
+                        <button class="tab-button active" data-tab="carousel-tab">Home Carousel</button>
+                    </div>
+
+                    <div id="carousel-tab" class="tab-content active">
+                        <div id="carouselSlidesList" class="carousel-slides-grid"></div>
+                        <div style="margin-top: 15px; display: flex; gap: 10px;">
+                            <button type="button" class="btn-secondary" id="addSlideBtn" style="flex: 1;">
+                                <i class="fas fa-plus"></i> Add Slide
+                            </button>
+                            <button type="button" class="btn-primary" id="saveCarouselBtn" style="flex: 1;">
+                                <span class="btn-text">Save</span>
+                                <span class="btn-loader" style="display: none;">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <% } %>
 
             <div class="settings-card">

@@ -3587,4 +3587,129 @@ router.post('/complete-order', isAuthorizedForOrderCompletion, async (req, res) 
   }
 });
 
+router.get('/api/page-management/carousel', async (req, res) => {
+  try {
+    let pageData = await req.db.collection('PageSettings').findOne({ pageId: 'home-carousel' });
+    
+    if (!pageData) {
+      pageData = {
+        pageId: 'home-carousel',
+        pageName: 'Home Carousel Banner',
+        slides: [
+          {
+            slideId: 'slide-1',
+            title: 'Blessings Cafe',
+            caption: 'Welcome to Blessings Cafe — your happy spot for good drinks and good vibes. Here, every cup is made with care and a little touch of joy. Because at Blessings Cafe, we believe there are "Blessings at Every Sip."',
+            bannerImage: '/resources/BannerBC.png',
+            buttonText: 'View Menu',
+            order: 1
+          },
+          {
+            slideId: 'slide-2',
+            title: 'Premium Coffee',
+            caption: 'Discover our freshly brewed premium coffee drinks, expertly crafted with passion and the finest beans. Every sip is a moment of pure bliss.',
+            bannerImage: '/resources/BannerBC.png',
+            buttonText: 'Explore Coffee',
+            order: 2
+          },
+          {
+            slideId: 'slide-3',
+            title: 'Refreshing Beverages',
+            caption: 'From creamy milk teas to cool frappes, explore our diverse selection of refreshing drinks perfect for any occasion.',
+            bannerImage: '/resources/BannerBC.png',
+            buttonText: 'View All Drinks',
+            order: 3
+          }
+        ],
+        supportedFormats: ['JPG', 'PNG', 'WebP'],
+        maxFileSize: '2MB'
+      };
+      
+      await req.db.collection('PageSettings').insertOne(pageData);
+    }
+    
+    res.json({ success: true, data: pageData });
+  } catch (error) {
+    console.error('Carousel fetch error:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch carousel data' });
+  }
+});
+
+router.post('/api/page-management/carousel/update', async (req, res) => {
+  try {
+    const { slides } = req.body;
+    
+    if (!Array.isArray(slides) || slides.length === 0) {
+      return res.status(400).json({ success: false, error: 'Invalid slides data' });
+    }
+
+    const updateData = {
+      slides: slides.map((slide, index) => ({
+        slideId: slide.slideId || `slide-${index + 1}`,
+        title: slide.title || '',
+        caption: slide.caption || '',
+        bannerImage: slide.bannerImage || '/resources/BannerBC.png',
+        buttonText: slide.buttonText || 'Learn More',
+        order: index + 1
+      })),
+      updatedAt: new Date()
+    };
+
+    const result = await req.db.collection('PageSettings').findOneAndUpdate(
+      { pageId: 'home-carousel' },
+      { $set: updateData },
+      { returnDocument: 'after' }
+    );
+
+    if (!result) {
+      return res.status(404).json({ success: false, error: 'Page settings not found' });
+    }
+
+    res.json({ success: true, message: 'Carousel updated successfully', data: result });
+  } catch (error) {
+    console.error('Carousel update error:', error);
+    res.status(500).json({ success: false, error: 'Failed to update carousel' });
+  }
+});
+
+router.post('/api/page-management/carousel/upload-image', async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'No image file provided' });
+    }
+
+    const file = req.file;
+    const maxSize = 2 * 1024 * 1024; // 2MB
+
+    if (file.size > maxSize) {
+      return res.status(400).json({ success: false, error: 'File size exceeds 2MB limit' });
+    }
+
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedMimes.includes(file.mimetype)) {
+      return res.status(400).json({ success: false, error: 'Invalid image format. Use JPG, PNG, or WebP' });
+    }
+
+    const fs = require('fs');
+    const path = require('path');
+    const ext = file.originalname.split('.').pop();
+    const filename = `banner-${Date.now()}.${ext}`;
+    const uploadPath = path.join(__dirname, `../public/resources/${filename}`);
+
+    fs.renameSync(file.path, uploadPath);
+
+    res.json({ 
+      success: true, 
+      message: 'Image uploaded successfully',
+      data: { 
+        filename: filename,
+        path: `/resources/${filename}`
+      }
+    });
+  } catch (error) {
+    console.error('Image upload error:', error);
+    res.status(500).json({ success: false, error: 'Failed to upload image' });
+  }
+});
+
 module.exports = router;

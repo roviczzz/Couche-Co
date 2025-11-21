@@ -22,15 +22,13 @@
         <h2>Order Progress</h2>
         <div class="progress-bar-container">
           <%
-// Define progress levels based on fulfillment method and status
-let progressPercentage = 10; // Default minimum progress
-let statusText = 'Order received';
+let progressPercentage = 10;
+let statusText = 'Preparing your order';
 
 const fulfillmentMethod = order.FulfillmentMethod || order.fulfillmentMethod || '';
 const isDelivery = fulfillmentMethod.toLowerCase() === 'delivery';
 
 if (isDelivery) {
-  // Delivery flow: Preparing -> In Progress -> Ready -> In Delivery -> Completed
   if (order.FulfillmentStatus === 'Preparing') {
     progressPercentage = 20;
     statusText = 'Preparing your order';
@@ -46,9 +44,11 @@ if (isDelivery) {
   } else if (order.FulfillmentStatus === 'Completed') {
     progressPercentage = 100;
     statusText = 'Order delivered successfully';
+  } else {
+    progressPercentage = 20;
+    statusText = 'Preparing your order';
   }
 } else {
-  // Pick-up flow: Preparing -> In Progress -> Ready -> Completed
   if (order.FulfillmentStatus === 'Preparing') {
     progressPercentage = 25;
     statusText = 'Preparing your order';
@@ -61,6 +61,9 @@ if (isDelivery) {
   } else if (order.FulfillmentStatus === 'Completed') {
     progressPercentage = 100;
     statusText = 'Order completed successfully';
+  } else {
+    progressPercentage = 25;
+    statusText = 'Preparing your order';
   }
 }
 %>
@@ -82,7 +85,11 @@ if (isDelivery) {
       <div class="order-details">
         <h3>Order Details</h3>
         <p><strong>Order ID:</strong> <%= orderId %></p>
+        <% if (order && order.Customer && order.Customer.Email) { %>
+        <p style="color: #28a745; font-weight: 500;">✓ A receipt has been sent to <strong><%= order.Customer.Email %></strong></p>
+        <% } else { %>
         <p>You will receive an email confirmation with your order details.</p>
+        <% } %>
         <%
         if (order && order.Total) {
         %>
@@ -126,8 +133,8 @@ if (isDelivery) {
 
   <!-- Footer Section - Full Width -->
   <div class="success-actions">
-    <a href="/" class="btn btn-primary">Continue Shopping</a>
-    <a href="/cart" class="btn btn-secondary">Back to Cart</a>
+    <a href="/" class="btn btn-primary">Back to Menu</a>
+    <a href="/cart" class="btn btn-secondary">View Cart</a>
   </div>
 <!-- Hidden data for JavaScript -->
 <div id="order-data" data-order-id="<%= orderId %>" style="display:none;"></div>
