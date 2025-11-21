@@ -22,11 +22,30 @@
 .login-container {
     background: white;
     border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     width: 100%;
     max-width: 510px;
     padding: 2.5rem 2rem;
     text-align: center;
+    position: relative;
+}
+
+.back-btn {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: transparent;
+    color: #a05c2f;
+    padding: 0;
+    border-radius: 0;
+    text-decoration: underline;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+}
+
+.back-btn:hover {
+    text-decoration: underline;
 }
 
 .logo {
@@ -305,5 +324,354 @@
     }
     to {
         width: 100%;
+    }
+}
+
+/* Responsive Design - Mobile and Tablet */
+@media (max-width: 1024px) {
+    .login-body {
+        padding: 1.5rem;
+    }
+
+    .login-container {
+        max-width: 450px;
+        padding: 2rem 1.5rem;
+    }
+
+    .login-container h1 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .back-btn {
+        font-size: 13px;
+        top: 15px;
+        left: 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    .login-body {
+        padding: 1rem;
+        min-height: 90vh;
+    }
+
+    .login-container {
+        max-width: 400px;
+        width: 100%;
+        padding: 1.5rem;
+        border-radius: 10px;
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .logo {
+        width: 80px;
+        margin-bottom: 0.5rem;
+    }
+
+    .login-container h1 {
+        font-size: 2rem;
+        margin-bottom: 0.8rem;
+        letter-spacing: -0.2vh;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-group input {
+        width: 88%;
+        padding: 12px 14px;
+        font-size: 14px;
+        min-height: 44px;
+        border-radius: 6px;
+    }
+
+    .form-group label {
+        font-size: 13px;
+        margin-bottom: 6px;
+    }
+
+    .btn {
+        padding: 12px;
+        font-size: 14px;
+        min-height: 44px;
+        border-radius: 6px;
+    }
+
+    .error {
+        font-size: 12px;
+    }
+
+    .divider {
+        margin: 1rem 0;
+        font-size: 12px;
+    }
+
+    .admin-section {
+        margin-top: 1rem;
+        padding-top: 1rem;
+    }
+
+    .admin-text {
+        font-size: 12px;
+        margin-bottom: 0.5rem;
+    }
+
+    .register-link {
+        margin-top: 1rem;
+    }
+
+    .register-link span {
+        font-size: 13px;
+    }
+
+    .back-btn {
+        font-size: 12px;
+        top: 12px;
+        left: 12px;
+        padding: 6px 0;
+    }
+
+    /* Name row responsive */
+    .name-row {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .name-input input {
+        width: 88%;
+    }
+
+    /* Address row responsive */
+    .address-row {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .address-input input,
+    .address-input select {
+        width: 88%;
+        height: 44px;
+        box-sizing: border-box;
+    }
+
+    /* Form spacing for mobile */
+    .form-group:last-child {
+        margin-bottom: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-body {
+        padding: 0.5rem;
+        align-items: flex-start;
+        padding-top: 2rem;
+        min-height: 95vh;
+    }
+
+    .login-container {
+        max-width: 100%;
+        width: 100%;
+        padding: 1.25rem;
+        border-radius: 8px;
+        margin: 0;
+    }
+
+    .logo {
+        width: 70px;
+        margin-bottom: 0.25rem;
+    }
+
+    .login-container h1 {
+        font-size: 1.8rem;
+        margin-bottom: 0.75rem;
+        letter-spacing: -0.1vh;
+    }
+
+    .form-group {
+        margin-bottom: 0.875rem;
+    }
+
+    .form-group input {
+        width: 96%;
+        padding: 14px 12px;
+        font-size: 16px; /* Prevents zoom on iOS */
+        border-radius: 5px;
+        box-sizing: border-box;
+    }
+
+    .form-group label {
+        font-size: 14px;
+        margin-bottom: 4px;
+    }
+
+    .btn {
+        width: 100%;
+        padding: 14px;
+        font-size: 16px;
+        font-weight: 600;
+        min-height: 48px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(74, 144, 226, 0.2);
+    }
+
+    .btn-text {
+        font-size: 14px;
+        padding: 8px 4px;
+    }
+
+    .error {
+        font-size: 13px;
+        margin-top: 6px;
+    }
+
+    .login-flash-error {
+        margin-bottom: 0.75rem;
+        text-align: center;
+    }
+
+    .divider {
+        margin: 0.875rem 0;
+        font-size: 13px;
+    }
+
+    .admin-section {
+        margin-top: 0.875rem;
+        padding-top: 0.875rem;
+    }
+
+    .admin-text {
+        font-size: 13px;
+        margin-bottom: 0.5rem;
+        text-align: center;
+    }
+
+    .register-link {
+        margin-top: 0.875rem;
+        text-align: center;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .register-link span {
+        font-size: 14px;
+        margin-bottom: 0.25rem;
+    }
+
+    .forgot-password-link {
+        text-align: center;
+        display: block;
+        margin-top: 8px;
+        font-size: 14px;
+    }
+
+    .name-input input,
+    .address-input input,
+    .address-input select {
+        width: 96%;
+        height: 48px;
+    }
+
+    .btn-admin {
+        width: 100%;
+        margin: 0.5rem auto;
+        min-height: 44px;
+        font-size: 16px;
+    }
+
+    /* Touch-friendly spacing */
+    .btn-text:hover {
+        transform: none;
+        color: var(--primary);
+    }
+}
+
+@media (max-width: 360px) {
+    .login-container {
+        padding: 1rem;
+    }
+
+    .login-container h1 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .logo {
+        width: 60px;
+        margin-bottom: 0.25rem;
+    }
+
+    .form-group input {
+        padding: 12px 10px;
+        min-height: 44px;
+    }
+
+    .btn {
+        min-height: 46px;
+        font-size: 15px;
+    }
+
+    .form-group {
+        margin-bottom: 0.75rem;
+    }
+
+    .back-btn {
+        font-size: 11px;
+        top: 10px;
+        left: 10px;
+    }
+
+    .form-group input,
+    .name-input input,
+    .address-input input,
+    .address-input select {
+        width: 98%;
+    }
+}
+
+/* Success Modal Responsive */
+@media (max-width: 768px) {
+    .success-modal-content {
+        width: 95%;
+        max-width: 350px;
+        padding: 1.5rem;
+        border-radius: 10px;
+    }
+
+    .success-icon {
+        width: 50px;
+        height: 50px;
+        margin: 0 auto 0.75rem;
+    }
+
+    .success-icon::after {
+        font-size: 1.5rem;
+    }
+
+    .success-message,
+    .success-submessage {
+        font-size: 1rem;
+    }
+
+    .success-loader {
+        margin-bottom: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .success-modal-content {
+        width: 98%;
+        padding: 1.25rem;
+    }
+
+    .success-message {
+        font-size: 0.9rem;
+        margin-bottom: 0.375rem;
+    }
+
+    .success-submessage {
+        font-size: 13px;
+        margin-bottom: 0.75rem;
     }
 }
