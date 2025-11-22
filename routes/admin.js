@@ -2782,7 +2782,7 @@ router.get('/analytics/export-performance', async (req, res) => {
                     <th>Costs</th>
                     <th>Profit</th>
                     <th>Orders</th>
-                    <th>Avg Order Value</th>
+                    <th>Average Sales per Order</th>
                 </tr>
             </thead>
             <tbody>
@@ -3372,18 +3372,18 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
         </div>
         <div class="summary-card">
             <div class="summary-value">₱${totalRevenue.toLocaleString()}</div>
-            <div class="summary-label">Total Revenue</div>
+            <div class="summary-label">Total Sales Amount</div>
         </div>
         <div class="summary-card">
             <div class="summary-value">₱${(!isNaN(averageOrderValue) ? averageOrderValue.toFixed(2) : '0.00')}</div>
-            <div class="summary-label">Avg Order Value</div>
+            <div class="summary-label">Average Sales per Order</div>
         </div>
         <div class="summary-card">
             <div class="summary-value">₱${(() => {
                 const daysDiff = Math.max(Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)), 1);
                 return (totalRevenue / daysDiff).toFixed(2);
             })()}</div>
-            <div class="summary-label">Daily Revenue</div>
+            <div class="summary-label">Daily Sales Amount</div>
         </div>
         <div class="summary-card">
             <div class="summary-value">${totalDeliveryOrders.toLocaleString()}</div>
@@ -3425,12 +3425,12 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
     </div>
 
     <div class="section">
-        <div class="section-title">Top Selling Products (by Revenue)</div>
+        <div class="section-title">Top Selling Products \(by Sales Amount\)</div>
         <table>
             <thead>
                 <tr>
                     <th style="width: 55%">Product Name</th>
-                    <th style="width: 22%">Total Revenue</th>
+                    <th style="width: 22%">Total Sales Amount</th>
                     <th style="width: 23%">Units Sold</th>
                 </tr>
             </thead>
