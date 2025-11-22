@@ -3221,6 +3221,13 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
         quantity: stats.quantity
       }));
 
+    // Calculate orders by source
+    const ordersBySource = orders.reduce((acc, order) => {
+      const source = order.Source || 'Unknown';
+      acc[source] = (acc[source] || 0) + 1;
+      return acc;
+    }, {});
+
     // Generate HTML for PDF
     const html = `
 <!DOCTYPE html>
@@ -3398,6 +3405,22 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
                     <div style="font-size: 12px; color: #666;">${((amount / totalRevenue) * 100).toFixed(1)}% of total</div>
                 </div>
             `).join('')}
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Orders by Source</div>
+        <div class="payment-methods">
+            ${Object.entries(ordersBySource).map(([source, count]) => {
+              const percentage = totalOrders > 0 ? ((count / totalOrders) * 100).toFixed(1) : '0.0';
+              return `
+                <div class="payment-method">
+                    <div class="payment-name">${source}</div>
+                    <div class="payment-amount">${count} orders</div>
+                    <div style="font-size: 12px; color: #666;">${percentage}% of total</div>
+                </div>
+              `;
+            }).join('')}
         </div>
     </div>
 
