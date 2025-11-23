@@ -328,6 +328,13 @@ app.locals.getImageUrl = function(imagelink) {
   }
   return imagelink;
 };
+    
+    const { verifyEmailConnection } = require('./utils/emailService');
+    const emailConnected = await verifyEmailConnection();
+    if (!emailConnected) {
+      console.warn('⚠️ Email service verification failed - emails may not be sent');
+    }
+    
     await initializeNotificationsCron();
     
     const server = app.listen(port, () => {

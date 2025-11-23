@@ -270,7 +270,7 @@ router.get('/xendit/check-payment-by-order/:OrderID', async (req, res) => {
   }
 })
 
-router.post('/xendit/webhook', express.raw({type: 'application/json'}), (req, res) => {
+router.post('/xendit/webhook', express.raw({type: 'application/json'}), async (req, res) => {
   try {
     const payload = JSON.parse(req.body)
 
@@ -278,8 +278,7 @@ router.post('/xendit/webhook', express.raw({type: 'application/json'}), (req, re
 
     if (payload.status === 'PAID') {
       console.log(`Payment completed for invoice: ${payload.external_id}`)
-      // Update order status in database
-      updateOrderAfterPayment(payload.external_id)
+      await updateOrderAfterPayment(req.db, payload.external_id)
     }
 
     res.status(200).send('OK')
@@ -289,20 +288,40 @@ router.post('/xendit/webhook', express.raw({type: 'application/json'}), (req, re
   }
 })
 
-// Helper function to update order after payment
-async function updateOrderAfterPayment(externalId) {
+async function updateOrderAfterPayment(db, externalId) {
   try {
-    // Using shared DB connection from req.db
-    const result = await req.db.collection('Orders').updateOne(
+    const result = await db.collection('Orders').updateOne(
       { OrderID: externalId },
       {
         $set: {
           PaymentStatus: 'Paid',
-          FulfillmentStatus: 'Preparing' // or 'Ready for Processing'
+          FulfillmentStatus: 'Preparing'
         }
       }
     )
     console.log(`Updated order ${externalId} payment status: ${result.matchedCount} matched`)
+
+    if (result.matchedCount > 0) {
+      const order = await db.collection('Orders').findOne({ OrderID: externalId })
+      const customerEmail = order?.Customer?.email || order?.Customer?.Email;
+      const customerName = order?.Customer?.Name || order?.Customer?.FullName || order?.Customer?.fullname || 'Valued Customer';
+      const isEwalletPayment = order?.PaymentMode === 'E-Payment' || ['GCASH', 'PAYMAYA', 'SHOPEEPAY', 'EWALLET'].includes(order?.PaymentMethod);
+      
+      if (order && isEwalletPayment && order.Customer && customerEmail) {
+        const { sendOrderReceipt } = require('../utils/emailService')
+        const emailResult = await sendOrderReceipt(
+          order,
+          customerEmail,
+          customerName
+        )
+        
+        if (emailResult.success) {
+          console.log(`✅ Receipt email sent for e-payment order ${externalId}`)
+        } else {
+          console.warn(`⚠️ Failed to send receipt email for e-payment order ${externalId}: ${emailResult.error}`)
+        }
+      }
+    }
   } catch (error) {
     console.error('Error updating order after payment:', error)
   }
@@ -329,11 +348,23 @@ router.post('/orders', checkInventoryAvailability, async (req, res) => {
       console.warn(`Order ${orderData.OrderID} created without inventory validation due to: ${req.inventoryError}`);
     }
 
-    await req.db.collection('Orders').insertOne(orderData);
+    console.log(`[ORDER] Inserting order ${orderData.OrderID} into database...`);
+    const insertResult = await req.db.collection('Orders').insertOne(orderData);
+    console.log(`[ORDER] Order inserted successfully with ID: ${insertResult.insertedId}`);
+
+    // Fetch the created order for reference
+    const createdOrder = await req.db.collection('Orders').findOne({ OrderID: orderData.OrderID });
+    if (!createdOrder) {
+      console.error(`[ORDER ERROR] Failed to retrieve created order ${orderData.OrderID}`);
+      return res.status(500).json({ success: false, error: 'Order created but could not be retrieved' });
+    }
+    console.log(`[ORDER] Successfully retrieved created order from database`);
 
     // For cash orders, deduct inventory immediately since payment is already received
     if (orderData.PaymentMethod === 'cash') {
       console.log(`[ORDER] Cash order ${orderData.OrderID} detected, deducting inventory immediately...`);
+      // Attach db to orderData for inventory operations
+      orderData.db = req.db;
       const inventoryResult = await deductInventoryAfterPayment(orderData);
 
       if (!inventoryResult.success) {
@@ -364,8 +395,6 @@ router.post('/orders', checkInventoryAvailability, async (req, res) => {
       }
     }
 
-    const createdOrder = await req.db.collection('Orders').findOne({ OrderID: orderData.OrderID });
-
     try {
       const { triggerBusinessEventNotification } = require('../admin-helpers');
       await triggerBusinessEventNotification(req.db, 'new-order', {
@@ -380,26 +409,38 @@ router.post('/orders', checkInventoryAvailability, async (req, res) => {
     try {
       const { sendOrderReceipt } = require('../utils/emailService');
       if (orderData.Customer && orderData.Customer.Email) {
-        const emailResult = await sendOrderReceipt(
-          createdOrder,
-          orderData.Customer.Email,
-          orderData.Customer.Name || orderData.Customer.FullName || 'Valued Customer'
-        );
-        if (emailResult.success) {
-          console.log(`Receipt email sent for order ${orderData.OrderID}`);
+        // For e-payment orders, skip email on creation (will send after payment confirmed)
+        // For cash orders, send email immediately
+        if (orderData.PaymentMethod !== 'e-payment') {
+          const emailResult = await sendOrderReceipt(
+            createdOrder,
+            orderData.Customer.Email,
+            orderData.Customer.Name || orderData.Customer.FullName || 'Valued Customer'
+          );
+          if (emailResult.success) {
+            console.log(`Receipt email sent for ${orderData.PaymentMethod} order ${orderData.OrderID}`);
+          } else {
+            console.warn(`Failed to send receipt email for ${orderData.PaymentMethod} order ${orderData.OrderID}: ${emailResult.error}`);
+          }
         } else {
-          console.warn(`Failed to send receipt email for order ${orderData.OrderID}: ${emailResult.error}`);
+          console.log(`[EMAIL] E-payment order ${orderData.OrderID} created. Email will be sent after payment confirmation.`);
         }
       }
     } catch (emailError) {
       console.error('Error sending order receipt email:', emailError);
     }
 
-    console.log(`Order created: ${orderData.OrderID} (Inventory ${req.inventoryChecked ? 'validated' : 'check failed'})`);
+    console.log(`✅ Order created: ${orderData.OrderID} (Inventory ${req.inventoryChecked ? 'validated' : 'check failed'})`);
     res.json({ success: true, orderId: orderData.OrderID });
   } catch (err) {
-    console.error('Error saving order:', err);
-    res.status(500).json({ success: false, error: 'Failed to save order' });
+    console.error('❌ Error saving order:', err);
+    console.error('❌ Error stack:', err.stack);
+    console.error('❌ Error details:', {
+      message: err.message,
+      code: err.code,
+      name: err.name
+    });
+    res.status(500).json({ success: false, error: 'Failed to save order', details: err.message });
   }
 });
 
@@ -439,6 +480,8 @@ router.post('/orders/update-payment-status', async (req, res) => {
       
       if (order) {
         console.log(`[ORDER] Payment confirmed for order ${paymentId}, processing inventory deduction...`);
+        // Attach db to order for inventory operations
+        order.db = req.db;
         const inventoryResult = await deductInventoryAfterPayment(order);
         
         if (!inventoryResult.success) {
@@ -466,6 +509,36 @@ router.post('/orders/update-payment-status', async (req, res) => {
             }
           );
           console.log(`[ORDER SUCCESS] Inventory successfully deducted for order ${paymentId}. Items processed: ${inventoryResult.deductions.length}`);
+        }
+
+        const orderPaymentMethod = order.PaymentMethod || PaymentMethod;
+        const customerEmail = order.Customer?.email || order.Customer?.Email;
+        const customerName = order.Customer?.Name || order.Customer?.FullName || order.Customer?.fullname || 'Valued Customer';
+        const isEwalletPayment = order.PaymentMode === 'E-Payment' || ['GCASH', 'PAYMAYA', 'SHOPEEPAY', 'EWALLET'].includes(orderPaymentMethod);
+        console.log(`[EMAIL] Checking email conditions: PaymentMethod=${orderPaymentMethod}, PaymentMode=${order.PaymentMode}, Has Email=${!!customerEmail}, Customer=${customerName}, IsEwallet=${isEwalletPayment}`);
+        
+        if (isEwalletPayment && order.Customer && customerEmail) {
+          // Send email asynchronously (fire and forget) so it doesn't delay the response
+          (async () => {
+            try {
+              console.log(`[EMAIL] Triggering receipt email for e-wallet order ${paymentId} to ${customerEmail}`);
+              const { sendOrderReceipt } = require('../utils/emailService');
+              const emailResult = await sendOrderReceipt(
+                order,
+                customerEmail,
+                customerName
+              );
+              if (emailResult.success) {
+                console.log(`✅ Receipt email sent for e-payment order ${paymentId}`);
+              } else {
+                console.warn(`⚠️ Failed to send receipt email for e-payment order ${paymentId}: ${emailResult.error}`);
+              }
+            } catch (emailError) {
+              console.error('Error sending order receipt email:', emailError);
+            }
+          })();
+        } else {
+          console.log(`[EMAIL] Email conditions NOT met. PaymentMethod: ${orderPaymentMethod}, Email provided: ${!!order.Customer?.Email}`);
         }
       }
     }

@@ -97,8 +97,8 @@ const deductInventoryAfterPayment = async (orderData) => {
     // After successful inventory deduction, check for low stock and trigger notification
     try {
       console.log('[INVENTORY] Checking for low stock after inventory deduction...');
-      const stockData = await getStockData();
-      const notification = await createLowStockNotification(stockData);
+      const stockData = await getStockData(orderData.db);
+      const notification = await createLowStockNotification(orderData.db, stockData);
 
       if (notification) {
         console.log('[INVENTORY] Low stock notification created after inventory deduction');

@@ -3,38 +3,43 @@ const QRCode = require('qrcode');
 const path = require('path');
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
   auth: {
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_PASSWORD
+  },
+  tls: {
+    rejectUnauthorized: false
   }
 });
 
 const generateEmailTemplate = (order, customerName) => {
   const itemsHTML = order.Cart.map(item => `
     <tr>
-      <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: left;">${item.ProductName || item.name}</td>
-      <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">${item.Quantity}</td>
-      <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right;">₱${(item.Price || item.unitPrice).toFixed(2)}</td>
-      <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right;">₱${(item.Subtotal || (item.Quantity * (item.Price || item.unitPrice))).toFixed(2)}</td>
+      <td style="padding: 12px; border-bottom: 1px solid #e8e8e8; text-align: left; font-size: 14px;">${item.ProductName || item.name}</td>
+      <td style="padding: 12px; border-bottom: 1px solid #e8e8e8; text-align: center; font-size: 14px;">${item.Quantity}</td>
+      <td style="padding: 12px; border-bottom: 1px solid #e8e8e8; text-align: right; font-size: 14px;">₱${(item.Price || item.unitPrice).toFixed(2)}</td>
+      <td style="padding: 12px; border-bottom: 1px solid #e8e8e8; text-align: right; font-size: 14px; font-weight: 600;">₱${(item.Subtotal || (item.Quantity * (item.Price || item.unitPrice))).toFixed(2)}</td>
     </tr>
   `).join('');
 
   const addOnsHTML = order.Cart.some(item => item.AddOns && item.AddOns.length > 0) ? `
-    <div style="margin: 20px 0; background-color: #f9f9f9; padding: 15px; border-radius: 5px;">
-      <h3 style="margin: 0 0 10px 0; color: #333;">Add-ons</h3>
+    <div style="margin: 20px 0; background-color: #faf8f6; padding: 15px; border-radius: 5px; border-left: 4px solid #a05c2f;">
+      <h3 style="margin: 0 0 12px 0; color: #8b4a26; font-size: 14px; font-weight: 600; text-transform: uppercase;">Add-ons</h3>
       ${order.Cart.flatMap(item => item.AddOns || []).map(addon => `
-        <div style="padding: 8px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between;">
-          <span>${addon.Name || addon.name}</span>
-          <span style="font-weight: bold;">₱${addon.Price.toFixed(2)}</span>
+        <div style="padding: 8px 0; border-bottom: 1px solid #e8e8e8; display: flex; justify-content: space-between; font-size: 13px;">
+          <span style="color: #372b2a;">${addon.Name || addon.name}</span>
+          <span style="font-weight: 600; color: #8b4a26;">₱${addon.Price.toFixed(2)}</span>
         </div>
       `).join('')}
     </div>
   ` : '';
 
-  const statusBadgeColor = order.FulfillmentStatus === 'Completed' ? '#4CAF50' : 
-                           order.FulfillmentStatus === 'Preparing' ? '#FF9800' : 
-                           order.FulfillmentStatus === 'Ready' ? '#2196F3' : '#999';
+  const statusBadgeColor = order.FulfillmentStatus === 'Completed' ? '#a05c2f' : 
+                           order.FulfillmentStatus === 'Preparing' ? '#d4894c' : 
+                           order.FulfillmentStatus === 'Ready' ? '#8b4a26' : '#999';
 
   const fulfillmentMethod = order.FulfillmentMethod || order.fulfillmentMethod || 'Pickup';
 
@@ -43,74 +48,103 @@ const generateEmailTemplate = (order, customerName) => {
     <html>
     <head>
       <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <style>
         body {
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
           line-height: 1.6;
-          color: #333;
+          color: #372b2a;
           max-width: 600px;
           margin: 0 auto;
-          padding: 20px;
-          background-color: #f5f5f5;
+          padding: 0;
+          background-color: #f5f3f0;
         }
         .container {
-          background-color: white;
-          border-radius: 8px;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          background-color: #ffffff;
           overflow: hidden;
+          margin: 20px;
+          border-radius: 8px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
         .header {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #a05c2f 0%, #8b4a26 100%);
           color: white;
-          padding: 30px;
+          padding: 40px 30px;
           text-align: center;
         }
         .header h1 {
-          margin: 0 0 10px 0;
-          font-size: 28px;
-        }
-        .header p {
           margin: 0;
-          opacity: 0.9;
+          font-size: 32px;
+          font-weight: 700;
+          letter-spacing: -0.5px;
+        }
+        .header-subtitle {
+          margin: 8px 0 0 0;
+          font-size: 14px;
+          opacity: 0.95;
+          font-weight: 300;
+          letter-spacing: 1px;
+          text-transform: uppercase;
         }
         .content {
-          padding: 30px;
+          padding: 40px;
         }
         .greeting {
-          font-size: 18px;
-          margin-bottom: 20px;
-          color: #333;
+          font-size: 16px;
+          margin-bottom: 30px;
+          color: #372b2a;
+          line-height: 1.5;
+        }
+        .greeting strong {
+          color: #a05c2f;
+          font-weight: 600;
         }
         .order-meta {
-          display: flex;
-          justify-content: space-between;
-          margin-bottom: 20px;
-          padding-bottom: 20px;
-          border-bottom: 2px solid #eee;
+          display: grid;
+          grid-template-columns: 1fr 1fr 1fr;
+          gap: 20px;
+          margin-bottom: 30px;
+          padding-bottom: 30px;
+          border-bottom: 2px solid #e8e8e8;
         }
         .meta-item {
-          flex: 1;
+          text-align: center;
         }
         .meta-label {
           color: #999;
-          font-size: 12px;
+          font-size: 11px;
           text-transform: uppercase;
-          margin-bottom: 5px;
+          margin-bottom: 6px;
+          font-weight: 600;
+          letter-spacing: 0.5px;
         }
         .meta-value {
-          font-size: 16px;
-          font-weight: bold;
-          color: #333;
+          font-size: 18px;
+          font-weight: 700;
+          color: #a05c2f;
+        }
+        .meta-value.date {
+          font-size: 14px;
+          color: #372b2a;
         }
         .status-badge {
           display: inline-block;
           background-color: ${statusBadgeColor};
           color: white;
-          padding: 8px 16px;
+          padding: 6px 14px;
           border-radius: 20px;
-          font-size: 12px;
-          font-weight: bold;
+          font-size: 11px;
+          font-weight: 700;
           text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+        .section-title {
+          font-size: 14px;
+          font-weight: 700;
+          color: #8b4a26;
+          margin: 30px 0 15px 0;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
         }
         table {
           width: 100%;
@@ -118,76 +152,126 @@ const generateEmailTemplate = (order, customerName) => {
           border-collapse: collapse;
         }
         th {
-          background-color: #f5f5f5;
+          background-color: #faf8f6;
           padding: 12px;
           text-align: left;
-          font-weight: bold;
-          color: #666;
-          border-bottom: 2px solid #ddd;
+          font-weight: 600;
+          color: #8b4a26;
+          border-bottom: 2px solid #e8e8e8;
+          font-size: 12px;
+          text-transform: uppercase;
+          letter-spacing: 0.3px;
+        }
+        th.text-right {
+          text-align: right;
+        }
+        th.text-center {
+          text-align: center;
         }
         .summary {
-          margin-top: 20px;
+          margin-top: 30px;
           padding-top: 20px;
-          border-top: 2px solid #eee;
+          border-top: 2px solid #e8e8e8;
         }
         .summary-row {
           display: flex;
           justify-content: space-between;
-          margin: 10px 0;
+          margin: 12px 0;
           font-size: 14px;
+          color: #372b2a;
+        }
+        .summary-row .label {
+          color: #666;
+        }
+        .summary-row.subtotal {
+          padding-bottom: 10px;
         }
         .summary-row.total {
-          font-size: 18px;
-          font-weight: bold;
-          color: #667eea;
+          font-size: 20px;
+          font-weight: 700;
+          color: #a05c2f;
           margin-top: 15px;
           padding-top: 15px;
-          border-top: 1px solid #eee;
+          border-top: 1px solid #e8e8e8;
         }
         .fulfillment {
-          margin: 20px 0;
-          padding: 15px;
-          background-color: #f0f7ff;
-          border-left: 4px solid #2196F3;
+          margin: 30px 0;
+          padding: 15px 20px;
+          background-color: #faf8f6;
+          border-left: 4px solid #a05c2f;
           border-radius: 4px;
         }
         .fulfillment-label {
-          color: #666;
-          font-size: 12px;
+          color: #8b4a26;
+          font-size: 11px;
           text-transform: uppercase;
-          margin-bottom: 5px;
+          margin-bottom: 6px;
+          font-weight: 600;
         }
         .fulfillment-value {
           font-size: 16px;
-          font-weight: bold;
-          color: #333;
+          font-weight: 600;
+          color: #372b2a;
         }
         .qr-section {
           text-align: center;
-          margin: 30px 0;
-          padding: 20px;
-          background-color: #f9f9f9;
+          margin: 35px 0;
+          padding: 25px;
+          background-color: #faf8f6;
           border-radius: 8px;
         }
-        .qr-section p {
-          color: #999;
+        .qr-section img {
+          width: 120px;
+          height: 120px;
+          border-radius: 8px;
+          border: 2px solid #e8e8e8;
+        }
+        .qr-label {
+          color: #8b4a26;
           font-size: 12px;
-          margin-top: 10px;
+          margin-top: 12px;
+          font-weight: 600;
         }
         .footer {
-          background-color: #f5f5f5;
-          padding: 20px;
+          background-color: #372b2a;
+          padding: 30px;
           text-align: center;
-          border-top: 1px solid #eee;
+          border-top: 1px solid #e8e8e8;
           font-size: 12px;
-          color: #666;
+          color: #ccc;
         }
-        .footer h4 {
-          margin: 0 0 10px 0;
-          color: #333;
+        .footer-brand {
+          margin: 0 0 15px 0;
+          color: #a05c2f;
+          font-size: 16px;
+          font-weight: 700;
         }
         .footer p {
-          margin: 5px 0;
+          margin: 8px 0;
+          line-height: 1.4;
+        }
+        .footer-note {
+          margin-top: 15px;
+          color: #999;
+          font-size: 11px;
+        }
+        @media (max-width: 480px) {
+          .content {
+            padding: 20px;
+          }
+          .header {
+            padding: 25px 20px;
+          }
+          .header h1 {
+            font-size: 24px;
+          }
+          .order-meta {
+            grid-template-columns: 1fr;
+            gap: 15px;
+          }
+          table {
+            font-size: 13px;
+          }
         }
       </style>
     </head>
@@ -195,7 +279,7 @@ const generateEmailTemplate = (order, customerName) => {
       <div class="container">
         <div class="header">
           <h1>Blessings Café</h1>
-          <p>Order Receipt</p>
+          <p class="header-subtitle">Order Receipt</p>
         </div>
         
         <div class="content">
@@ -205,26 +289,27 @@ const generateEmailTemplate = (order, customerName) => {
           
           <div class="order-meta">
             <div class="meta-item">
-              <div class="meta-label">Order ID</div>
+              <div class="meta-label">Order Number</div>
               <div class="meta-value">#${order.OrderID}</div>
             </div>
             <div class="meta-item">
               <div class="meta-label">Date</div>
-              <div class="meta-value">${new Date(order.Date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+              <div class="meta-value date">${new Date(order.Date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
             </div>
             <div class="meta-item">
               <div class="meta-label">Status</div>
-              <div><span class="status-badge">${order.FulfillmentStatus}</span></div>
+              <div style="margin-top: 8px;"><span class="status-badge">${order.FulfillmentStatus}</span></div>
             </div>
           </div>
 
+          <h2 class="section-title">Order Items</h2>
           <table>
             <thead>
               <tr>
                 <th>Item</th>
-                <th style="text-align: center;">Qty</th>
-                <th style="text-align: right;">Price</th>
-                <th style="text-align: right;">Subtotal</th>
+                <th class="text-center" style="width: 60px;">Qty</th>
+                <th class="text-right" style="width: 80px;">Price</th>
+                <th class="text-right" style="width: 80px;">Subtotal</th>
               </tr>
             </thead>
             <tbody>
@@ -235,27 +320,32 @@ const generateEmailTemplate = (order, customerName) => {
           ${addOnsHTML}
 
           <div class="summary">
+            <div class="summary-row subtotal">
+              <span class="label">Subtotal</span>
+              <span>₱${(order.Total || 0).toFixed(2)}</span>
+            </div>
             <div class="summary-row total">
-              <span>Total Amount:</span>
+              <span>Total Amount</span>
               <span>₱${order.Total.toFixed(2)}</span>
             </div>
           </div>
 
           <div class="fulfillment">
             <div class="fulfillment-label">Fulfillment Method</div>
-            <div class="fulfillment-value">${fulfillmentMethod === 'Delivery' ? '🚚 Delivery' : '🏪 Pickup'}</div>
+            <div class="fulfillment-value">${fulfillmentMethod === 'Delivery' ? 'Delivery' : 'Pickup'}</div>
           </div>
 
           <div class="qr-section">
-            <img src="cid:qrcode" alt="Order QR Code" style="width: 150px; height: 150px; border-radius: 8px;">
-            <p>Scan to view order details</p>
+            <img src="cid:qrcode" alt="Order QR Code">
+            <div class="qr-label">Scan QR to track your order</div>
           </div>
         </div>
 
         <div class="footer">
-          <h4>Blessings Café</h4>
-          <p>Thank you for your order!</p>
-          <p style="margin-top: 15px; color: #999;">This is an automated email. Please do not reply directly to this message.</p>
+          <div class="footer-brand">Blessings Café</div>
+          <p>We appreciate your order! Your satisfaction is our priority.</p>
+          <p style="margin-top: 20px; border-top: 1px solid #555; padding-top: 15px;">For inquiries or feedback, please contact us through the website.</p>
+          <p class="footer-note">This is an automated message. Please do not reply directly.</p>
         </div>
       </div>
     </body>
@@ -278,16 +368,25 @@ const generateQRCode = async (orderId) => {
 
 const sendOrderReceipt = async (order, customerEmail, customerName) => {
   try {
+    console.log(`[EMAILSVC] Starting email send. Email: ${customerEmail}, Order: ${order.OrderID}, Customer: ${customerName}`);
+    
     if (!process.env.GMAIL_USER || !process.env.GMAIL_PASSWORD) {
-      console.error('Gmail credentials not configured in environment variables');
+      console.error('[EMAILSVC] Gmail credentials not configured in environment variables');
+      console.error(`[EMAILSVC] GMAIL_USER: ${process.env.GMAIL_USER ? 'SET' : 'NOT SET'}`);
+      console.error(`[EMAILSVC] GMAIL_PASSWORD: ${process.env.GMAIL_PASSWORD ? 'SET' : 'NOT SET'}`);
       return {
         success: false,
         error: 'Email service not configured'
       };
     }
 
+    console.log(`[EMAILSVC] Generating QR code for order ${order.OrderID}`);
     const qrCodeBuffer = await generateQRCode(order.OrderID);
+    console.log(`[EMAILSVC] QR code generated successfully`);
+    
+    console.log(`[EMAILSVC] Generating email template`);
     const emailHTML = generateEmailTemplate(order, customerName);
+    console.log(`[EMAILSVC] Email template generated (length: ${emailHTML.length})`);
 
     const mailOptions = {
       from: process.env.GMAIL_USER,
@@ -303,16 +402,23 @@ const sendOrderReceipt = async (order, customerEmail, customerName) => {
       ]
     };
 
+    console.log(`[EMAILSVC] Attempting to send email...`);
     const result = await transporter.sendMail(mailOptions);
     
-    console.log(`Order receipt sent to ${customerEmail} for order ${order.OrderID}`);
+    console.log(`✅ [EMAILSVC] Email sent successfully! MessageID: ${result.messageId}`);
+    console.log(`✅ Order receipt sent to ${customerEmail} for order ${order.OrderID}`);
     
     return {
       success: true,
       messageId: result.messageId
     };
   } catch (error) {
-    console.error(`Error sending order receipt to ${customerEmail}:`, error);
+    console.error(`❌ [EMAILSVC] Error sending order receipt to ${customerEmail}:`, error);
+    console.error(`❌ [EMAILSVC] Error details:`, {
+      message: error.message,
+      code: error.code,
+      command: error.command
+    });
     return {
       success: false,
       error: error.message

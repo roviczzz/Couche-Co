@@ -15,7 +15,7 @@ const transporter = nodemailer.createTransport({
   secure: false,
   auth: {
     user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASS
+    pass: process.env.GMAIL_PASSWORD
   },
   pool: false, // Disable connection pooling for Docker
   connectionTimeout: 10000, // 10 seconds
