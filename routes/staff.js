@@ -1886,8 +1886,7 @@ router.get('/analytics/sales-report-pdf', async (req, res) => {
                 <tr>
                     <th>Date</th>
                     <th>Orders</th>
-                    <th>Revenue</th>
-                    <th>Average Order Value</th>
+                    <th>Sales</th>
                 </tr>
             </thead>
             <tbody>
@@ -1896,7 +1895,6 @@ router.get('/analytics/sales-report-pdf', async (req, res) => {
                         <td>${day.date ? new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}</td>
                         <td>${day.count}</td>
                         <td>₱${(day.total || 0).toLocaleString()}</td>
-                        <td>₱${day.count > 0 ? ((day.total || 0) / day.count).toFixed(2) : '0.00'}</td>
                     </tr>
                 `).join('')}
             </tbody>
