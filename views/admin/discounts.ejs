@@ -154,6 +154,17 @@
         </div>
 
         <div class="form-group">
+          <label for="categoryInput">Category:</label>
+          <select id="categoryInput" name="category" required>
+            <option value="">Select category</option>
+            <option value="Coffee">Coffee</option>
+            <option value="Milktea">Milktea</option>
+            <option value="Fruit Tea">Fruit Tea</option>
+            <option value="Pastries">Pastries</option>
+          </select>
+        </div>
+
+        <div class="form-group">
           <label for="startDateInput">Starting Date:</label>
           <input type="date" id="startDateInput" name="startDate" required>
         </div>
@@ -217,6 +228,7 @@
           <th>Closing Date</th>
           <th>Description</th>
           <th>Discount %</th>
+          <th>Category</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -243,7 +255,16 @@
                   <option value="10" <%= promo.discountPercentage === 10 ? 'selected' : '' %>>10%</option>
                 </select>
               </td>
-              <td class="actions-cell">
+              <td>
+                <select name="category" class="table-input category-input" data-id="<%= promo._id %>" data-original="<%= promo.category || 'All' %>" required>
+                  <option value="All" <%= (promo.category || 'All') === 'All' ? 'selected' : '' %>>All</option>
+                  <option value="Coffee" <%= promo.category === 'Coffee' ? 'selected' : '' %>>Coffee</option>
+                  <option value="Milktea" <%= promo.category === 'Milktea' ? 'selected' : '' %>>Milktea</option>
+                  <option value="Fruit Tea" <%= promo.category === 'Fruit Tea' ? 'selected' : '' %>>Fruit Tea</option>
+                  <option value="Pastries" <%= promo.category === 'Pastries' ? 'selected' : '' %>>Pastries</option>
+                </select>
+              </td>
+              <td>
                 <div class="button-wrapper">
                   <button type="button" class="stocks-btn update" data-action="update" data-promo-id="<%= promo._id %>">Update</button>
                   <button type="button" class="stocks-btn delete" data-action="delete" data-promo-id="<%= promo._id %>">Delete</button>
@@ -253,7 +274,7 @@
           <% }) %>
         <% } else { %>
           <tr>
-            <td colspan="6" class="stocks-center">No promos found.</td>
+            <td colspan="7" class="stocks-center">No promos found.</td>
           </tr>
         <% } %>
       </tbody>

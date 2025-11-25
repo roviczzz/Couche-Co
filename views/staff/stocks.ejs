@@ -233,7 +233,7 @@
         <h3>Add New Ingredient</h3>
         <button type="button" class="close-btn" id="closeIngredientModal">&times;</button>
       </div>
-      <form class="stocks-form-vertical" action="/admin/stocks" method="POST">
+      <form class="stocks-form-vertical" action="/staff/stocks" method="POST">
         <div class="form-group">
           <label for="IngredientSuffix">Ingredient ID:</label>
           <div class="ingredient-id-group">
@@ -283,7 +283,7 @@
         <h3>Add New Add-On</h3>
         <button type="button" class="close-btn" id="closeAddonModal">&times;</button>
       </div>
-      <form class="stocks-form-vertical" action="/admin/stocks" method="POST">
+      <form class="stocks-form-vertical" action="/staff/stocks" method="POST">
         <div class="form-group">
           <label for="AddOnSuffix">Add-On ID:</label>
           <div class="ingredient-id-group">
@@ -332,7 +332,7 @@
 
   <!-- Hidden forms for ingredients -->
   <% (ingredients || []).forEach(i => { %>
-    <form id="update-ingredient-form-<%= i._id %>" action="/admin/stocks/edit/<%= i._id %>" method="POST" style="display: none;">
+    <form id="update-ingredient-form-<%= i._id %>" action="/staff/stocks/edit/<%= i._id %>" method="POST" style="display: none;">
       <input type="hidden" name="IngredientID" value="">
       <input type="hidden" name="IngredientPrefix" value="ING">
       <input type="hidden" name="IngredientSuffix" value="">
@@ -345,13 +345,13 @@
       <input type="hidden" name="isEnabled" value="">
       <input type="hidden" name="DeductionQuantityGrams" value="10">
     </form>
-    <form id="delete-ingredient-form-<%= i._id %>" action="/admin/stocks/delete/<%= i._id %>" method="POST" style="display: none;">
+    <form id="delete-ingredient-form-<%= i._id %>" action="/staff/stocks/delete/<%= i._id %>" method="POST" style="display: none;">
     </form>
   <% }) %>
 
   <!-- Hidden forms for add-ons -->
   <% (addons || []).forEach(a => { %>
-    <form id="update-addon-form-<%= a._id %>" action="/admin/stocks/edit/<%= a._id %>" method="POST" style="display: none;">
+    <form id="update-addon-form-<%= a._id %>" action="/staff/stocks/edit/<%= a._id %>" method="POST" style="display: none;">
       <input type="hidden" name="AddOnID" value="">
       <input type="hidden" name="AddOnPrefix" value="AD">
       <input type="hidden" name="AddOnSuffix" value="">
@@ -363,7 +363,7 @@
       <input type="hidden" name="isEnabled" value="">
       <input type="hidden" name="DeductionQuantityGrams" value="10">
     </form>
-    <form id="delete-addon-form-<%= a._id %>" action="/admin/stocks/delete/<%= a._id %>" method="POST" style="display: none;">
+    <form id="delete-addon-form-<%= a._id %>" action="/staff/stocks/delete/<%= a._id %>" method="POST" style="display: none;">
     </form>
   <% }) %>
 </div>

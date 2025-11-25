@@ -4,6 +4,7 @@ class NotificationManager {
         this.isPopupOpen = false;
         this.pollInterval = null;
         this.lastNotificationCount = 0;
+        this.isInitialLoad = true;
         
         this.init();
     }
@@ -98,12 +99,13 @@ class NotificationManager {
             if (data.success) {
                 this.updateNotificationBadge(data.unreadCount);
                 
-                // Show notification sound/animation for new notifications
-                if (data.unreadCount > this.lastNotificationCount) {
+                // Show notification sound/animation for new notifications (skip on initial load)
+                if (data.unreadCount > this.lastNotificationCount && !this.isInitialLoad) {
                     this.showNewNotificationIndicator();
                 }
                 
                 this.lastNotificationCount = data.unreadCount;
+                this.isInitialLoad = false;
             }
         } catch (error) {
             console.error('Error fetching unread count:', error);

@@ -2,45 +2,76 @@ body {
     font-family: 'Inter', sans-serif;
     background-color: #f3f3f3;
 }
-/* Home Page Styles */
-.welcome-section {
-    background: url('/resources/BannerBC.png') no-repeat center center;
-    background-size: cover;
-    color: white;
-    padding: 4rem 2rem;
-    text-align: center;
+
+.carousel-banner {
     width: 100%;
-    box-sizing: border-box;
     position: relative;
+    overflow: hidden;
 }
 
-.welcome-section::before {
-    content: '';
+.carousel-container {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+}
+
+.carousel-inner {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
+.carousel-slide {
+    display: none;
+    position: relative;
+    width: 100%;
+    height: 600px;
+    opacity: 0;
+    transition: opacity 0.8s ease-in-out;
+}
+
+.carousel-slide.active {
+    display: flex;
+    opacity: 1;
+}
+
+.carousel-image {
     position: absolute;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    z-index: 0;
+}
+
+.carousel-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     background: rgba(0, 0, 0, 0.6);
     z-index: 1;
 }
 
-.welcome-content {
+.carousel-content {
     position: relative;
     z-index: 2;
-}
-
-.hero-image {
+    color: white;
+    padding: 4rem 2rem;
+    text-align: center;
     width: 100%;
-    max-width: 300px;
-    height: auto;
-    margin-bottom: 1rem;
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
 }
 
-.welcome-content h1 {
+.carousel-content h1 {
     font-family: 'TNR Regular';
     font-size: 8rem;
     letter-spacing: -0.8vh;
@@ -49,23 +80,86 @@ body {
     text-rendering: optimizeLegibility !important;
 }
 
-.welcome-content p {
+.carousel-content p {
     font-size: 1.1rem;
     margin-bottom: 2rem;
     max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
     font-family: 'Recoleta Regular', serif;
     font-weight: 300;
     line-height: 1.6;
 }
 
-.welcome-actions {
+.carousel-actions {
     display: flex;
     gap: 1rem;
     justify-content: center;
     flex-wrap: wrap;
 }
+
+.carousel-control {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.3);
+    color: white;
+    border: none;
+    padding: 12px 15px;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 10;
+    transition: background 0.3s ease;
+    border-radius: 4px;
+}
+
+.carousel-control:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.carousel-control-prev {
+    left: 20px;
+}
+
+.carousel-control-next {
+    right: 20px;
+}
+
+.carousel-control-icon {
+    display: block;
+    line-height: 1;
+}
+
+.carousel-indicators {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+}
+
+.carousel-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+    border: 2px solid white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.carousel-indicator.active {
+    background: white;
+    width: 16px;
+    height: 16px;
+    margin: -2px 0;
+}
+
+.carousel-indicator:hover {
+    background: rgba(255, 255, 255, 0.7);
+}
+
+/* Home Page Styles */
 
 .btn {
     padding: 0.75rem 1.5rem;
@@ -178,20 +272,27 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(0, 0, 0, 0.4);
+    background: linear-gradient(135deg, rgba(139, 74, 38, 0.65) 0%, rgba(160, 92, 47, 0.55) 100%);
+    backdrop-filter: blur(3px);
     z-index: 2;
     pointer-events: none;
+    transition: all 0.3s ease;
 }
 
 .unavailable-badge {
-    background: rgba(255, 255, 255, 0.95);
-    color: #666;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    font-size: 0.85rem;
-    font-weight: 600;
+    background: linear-gradient(135deg, #fef3e2 0%, #fce9d1 100%);
+    color: #8b4a26;
+    padding: 0.85rem 1.5rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 1.2px;
+    box-shadow: 0 8px 24px rgba(139, 74, 38, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    white-space: nowrap;
+    font-family: 'Inter', sans-serif;
+    position: relative;
 }
 
 .gallery-item:hover {
@@ -293,33 +394,46 @@ body {
 
 /* Responsive Design */
 @media (max-width: 1024px) {
-    .welcome-content h1 {
+    .carousel-content h1 {
         font-size: 6rem;
         letter-spacing: -0.4vh;
+    }
+    .carousel-slide {
+        height: 500px;
     }
 }
 
 @media (max-width: 768px) {
-    .hero-image {
-        max-width: 200px;
-    }
-    .welcome-section {
+    .carousel-content {
         padding: 3rem 1rem;
     }
-    .welcome-content h1 {
+    .carousel-slide {
+        height: 400px;
+    }
+    .carousel-content h1 {
         font-size: 4rem;
         letter-spacing: -0.2rem;
     }
-    .welcome-content p {
+    .carousel-content p {
         font-size: 1rem;
     }
-    .welcome-actions {
+    .carousel-actions {
         flex-direction: column;
         gap: 0.5rem;
     }
     .btn {
         padding: 0.6rem 1.2rem;
         font-size: 14px;
+    }
+    .carousel-control {
+        padding: 10px 12px;
+        font-size: 18px;
+    }
+    .carousel-control-prev {
+        left: 10px;
+    }
+    .carousel-control-next {
+        right: 10px;
     }
     .category-title {
         font-size: 1.5rem;
@@ -346,22 +460,43 @@ body {
 }
 
 @media (max-width: 480px) {
-    .welcome-section {
+    .carousel-content {
         padding: 2rem 1rem;
     }
-    .welcome-content h1 {
+    .carousel-slide {
+        height: 300px;
+    }
+    .carousel-content h1 {
         font-size: 3rem;
         letter-spacing: -0.1rem;
     }
-    .welcome-content p {
+    .carousel-content p {
         font-size: 0.9rem;
+        margin-bottom: 1.5rem;
     }
-    .welcome-actions {
+    .carousel-actions {
         gap: 0.75rem;
     }
     .btn {
         padding: 0.5rem 1rem;
         font-size: 14px;
+    }
+    .carousel-control {
+        padding: 8px 10px;
+        font-size: 16px;
+    }
+    .carousel-indicators {
+        bottom: 10px;
+        gap: 6px;
+    }
+    .carousel-indicator {
+        width: 10px;
+        height: 10px;
+    }
+    .carousel-indicator.active {
+        width: 14px;
+        height: 14px;
+        margin: -2px 0;
     }
     .category-title {
         font-size: 1.8rem;

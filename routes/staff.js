@@ -1262,6 +1262,116 @@ router.get('/analytics/order-history', async (req, res) => {
   }
 });
 
+// Debug endpoint to check delivery filtering
+router.get('/analytics/debug-deliveries', async (req, res) => {
+  try {
+    const userData = req.session.user;
+    const { start_date, end_date, days } = req.query;
+
+    // Validate date range
+    let startDate, endDate;
+    let reportTitle = "Delivery Debug Report";
+
+    try {
+      if (days && days !== "custom") {
+        const numDays = parseInt(days);
+        if (!isNaN(numDays) && numDays > 0) {
+          endDate = new Date();
+          startDate = new Date();
+          startDate.setDate(startDate.getDate() - numDays);
+          reportTitle = `Delivery Debug - Last ${numDays} Days`;
+        } else {
+          throw new Error('Invalid days parameter');
+        }
+      } else {
+        // Default to last 30 days
+        endDate = new Date();
+        startDate = new Date();
+        startDate.setDate(startDate.getDate() - 30);
+        reportTitle = "Delivery Debug - Last 30 Days";
+      }
+
+
+
+
+      // Ensure dates are valid
+      if (!startDate || !endDate || isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        throw new Error('Invalid date range');
+      }
+
+    } catch (error) {
+      console.error('Date validation error:', error);
+      return res.status(400).json({ error: 'Invalid date parameters', details: error.message });
+    }
+
+    // Create date strings for comparison (same format as order-history route)
+    const cutoffStart = startDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+    const cutoffEnd = endDate.toISOString().split('T')[0];
+
+    // Query ALL orders within date range for delivery counting (including all payment statuses)
+    const allOrdersInRange = await req.db.collection('Orders').find({
+      Date: { $gte: cutoffStart, $lte: cutoffEnd },
+      FulfillmentStatus: { $ne: "Cancelled" } // Only exclude truly cancelled fulfillment
+    })
+    .sort({ Date: -1 })
+    .toArray();
+
+    // Also query today's orders specifically for debugging missing deliveries
+    const todayDateStr = (new Date()).toISOString().split('T')[0];
+    const todaysOrders = await req.db.collection('Orders').find({
+      Date: { $gte: todayDateStr },
+      FulfillmentStatus: { $ne: "Cancelled" }
+    })
+    .sort({ Date: -1 })
+    .toArray();
+
+    const deliveryOrders = allOrdersInRange.filter(order => {
+      const method = order.FulfillmentMethod;
+      return method && (method.toLowerCase().includes('deliver') || method.toLowerCase().includes('home'));
+    });
+
+    // Get unique FulfillmentMethod values to see what's available
+    const uniqueFulfillmentMethods = [...new Set(allOrdersInRange.map(order => order.FulfillmentMethod).filter(Boolean))];
+
+    const debugInfo = {
+      dateRange: {
+        start: cutoffStart,
+        end: cutoffEnd,
+        reportTitle
+      },
+      totalOrdersInRange: allOrdersInRange.length,
+      filteredDeliveryOrders: deliveryOrders.length,
+      uniqueFulfillmentMethods,
+      deliveryOrdersDetails: deliveryOrders.map((order, index) => ({
+        index: index + 1,
+        orderId: order.OrderID,
+        date: order.Date,
+        paymentStatus: order.PaymentStatus,
+        fulfillmentStatus: order.FulfillmentStatus,
+        fulfillmentMethod: order.FulfillmentMethod,
+        total: order.Total
+      })),
+      nonDeliveryOrders: allOrdersInRange
+        .filter(order => {
+          const method = order.FulfillmentMethod;
+          return !method || (method.toLowerCase() !== 'delivery' && method !== 'Delivery');
+        })
+        .map(order => ({
+          orderId: order.OrderID,
+          date: order.Date,
+          fulfillmentMethod: order.FulfillmentMethod,
+          total: order.Total
+        }))
+        .slice(0, 10) // Show first 10
+    };
+
+    res.json(debugInfo);
+  } catch (error) {
+    console.error('Debug delivery error:', error);
+    res.status(500).json({ error: 'Failed to debug deliveries', details: error.message });
+  }
+});
+
 router.get('/analytics/sales-report-pdf', async (req, res) => {
   try {
     // Get user fullname for PDF header (same as analytics page route)
@@ -1323,7 +1433,7 @@ router.get('/analytics/sales-report-pdf', async (req, res) => {
     const cutoffStart = startDate.toISOString().split('T')[0]; // YYYY-MM-DD format
     const cutoffEnd = endDate.toISOString().split('T')[0];
 
-    // Query orders within date range (like the working order-history route)
+    // Query orders within date range for sales metrics (exclude only cancelled)
     const orders = await req.db.collection('Orders').find({
       Date: { $gte: cutoffStart, $lte: cutoffEnd },
       PaymentStatus: { $ne: "Cancelled" }
@@ -1331,13 +1441,123 @@ router.get('/analytics/sales-report-pdf', async (req, res) => {
     .sort({ Date: -1 })
     .toArray();
 
-    // Calculate summary statistics with proper null handling
+    // Query ALL orders within date range for delivery counting (including all payment statuses)
+    const allOrdersInRange = await req.db.collection('Orders').find({
+      Date: { $gte: cutoffStart, $lte: cutoffEnd },
+      FulfillmentStatus: { $ne: "Cancelled" } // Only exclude truly cancelled fulfillment
+    })
+    .sort({ Date: -1 })
+    .toArray();
+
+    // Calculate summary statistics with proper null handling (for paid orders only)
     const totalRevenue = orders.reduce((sum, order) => {
       const orderTotal = typeof order.Total === 'number' && !isNaN(order.Total) ? order.Total : 0;
       return sum + orderTotal;
     }, 0);
     const totalOrders = orders.length;
     const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
+    // Calculate delivery statistics from ALL orders (not just paid ones) - fix the discrepancy
+    const deliveryOrders = allOrdersInRange.filter(order => {
+      const method = order.FulfillmentMethod;
+      const isDelivery = method && (
+        typeof method === 'string' &&
+        method.trim().length > 0 &&
+        (method.toLowerCase() === 'delivery' ||
+         method === 'Delivery' ||
+         method.toLowerCase().includes('delivery'))
+      );
+      return isDelivery;
+    });
+
+    // Debug logging for delivery orders
+    console.log('='.repeat(80));
+    console.log('DELIVERY ORDERS DEBUGGING - Last 30 Days');
+    console.log('='.repeat(80));
+    console.log(`Total orders in date range: ${allOrdersInRange.length}`);
+    console.log(`Filtered delivery orders: ${deliveryOrders.length}`);
+    console.log('');
+
+    deliveryOrders.forEach((order, index) => {
+      console.log(`${index + 1}. OrderID: ${order.OrderID}`);
+      console.log(`   Date: ${order.Date}`);
+      console.log(`   PaymentStatus: ${order.PaymentStatus || 'N/A'}`);
+      console.log(`   FulfillmentStatus: ${order.FulfillmentStatus || 'N/A'}`);
+      console.log(`   FulfillmentMethod: "${order.FulfillmentMethod}"`);
+      console.log('');
+    });
+
+    // Count deliveries with different payment statuses
+    const paymentStatusCounts = deliveryOrders.reduce((acc, order) => {
+      const status = order.PaymentStatus || 'Unknown';
+      acc[status] = (acc[status] || 0) + 1;
+      return acc;
+    }, {});
+
+    // Count deliveries by date to show which dates have deliveries
+    const deliveriesByDate = deliveryOrders.reduce((acc, order) => {
+      const date = order.Date;
+      if (date) {
+        // Extract YYYY-MM-DD part only, same logic as other date processing
+        const dateKey = date.substring(0, 10);
+        acc[dateKey] = (acc[dateKey] || 0) + 1;
+      }
+      return acc;
+    }, {});
+
+    console.log('Delivery orders by PaymentStatus:');
+    Object.entries(paymentStatusCounts).forEach(([status, count]) => {
+      console.log(`  ${status}: ${count} orders`);
+    });
+
+    console.log('');
+    console.log('Delivery orders by Date (Last 30 Days):');
+    console.log('Date\t\tDeliveries');
+    console.log('-'.repeat(40));
+
+    // Sort dates and show which dates have deliveries
+    const sortedDates = Object.keys(deliveriesByDate).sort();
+    sortedDates.forEach(date => {
+      console.log(`${date}\t${deliveriesByDate[date]}`);
+    });
+
+    // Show total deliveries per day average
+    const totalDeliveryDays = sortedDates.length;
+    const averageDeliveriesPerDeliveryDay = totalDeliveryDays > 0 ? (deliveryOrders.length / totalDeliveryDays) : 0;
+
+    console.log('');
+    console.log(`Summary for Last 30 Days:`);
+    console.log(`  Total delivery orders: ${deliveryOrders.length}`);
+    console.log(`  Days with deliveries: ${totalDeliveryDays}`);
+    console.log(`  Avg deliveries/day (when there are deliveries): ${averageDeliveriesPerDeliveryDay.toFixed(1)}`);
+
+    // Show days with NO deliveries (to understand the gap)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    // Create date strings for comparison (same format as order-history route)
+    const daysWithDeliveriesSet = new Set(sortedDates);
+    const totalDays = Math.floor((new Date() - thirtyDaysAgo) / (1000 * 60 * 60 * 24)) + 1;
+
+    let daysWithoutDeliveries = [];
+    for (let i = 0; i < totalDays; i++) {
+      const currentDate = new Date(thirtyDaysAgo);
+      currentDate.setDate(currentDate.getDate() + i);
+      const dateStr = currentDate.toISOString().split('T')[0];
+
+      if (!daysWithDeliveriesSet.has(dateStr)) {
+        daysWithoutDeliveries.push(dateStr);
+      }
+    }
+
+    console.log(`  Total days in period: ${totalDays}`);
+    console.log(`  Days without deliveries: ${daysWithoutDeliveries.length}`);
+
+    console.log('');
+    console.log(`Total delivery revenue: ₱${deliveryOrders.length * 20} (${deliveryOrders.length} deliveries × ₱20)`);
+    console.log('='.repeat(80));
+
+    const totalDeliveryOrders = deliveryOrders.length;
+    const totalDeliveryRevenue = totalDeliveryOrders * 20;
 
     // Get payment method breakdown (normalize E-Payment variations)
     const paymentBreakdown = orders.reduce((acc, order) => {
@@ -1434,6 +1654,13 @@ router.get('/analytics/sales-report-pdf', async (req, res) => {
         quantity: stats.quantity
       }));
 
+    // Calculate orders by source
+    const ordersBySource = orders.reduce((acc, order) => {
+      const source = order.Source || 'Unknown';
+      acc[source] = (acc[source] || 0) + 1;
+      return acc;
+    }, {});
+
     // Generate HTML for PDF
     const html = `
 <!DOCTYPE html>
@@ -1484,7 +1711,7 @@ router.get('/analytics/sales-report-pdf', async (req, res) => {
         }
         .summary-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(6, 1fr);
             gap: 20px;
             margin-bottom: 30px;
         }
@@ -1578,18 +1805,26 @@ router.get('/analytics/sales-report-pdf', async (req, res) => {
         </div>
         <div class="summary-card">
             <div class="summary-value">₱${totalRevenue.toLocaleString()}</div>
-            <div class="summary-label">Total Revenue</div>
+            <div class="summary-label">Total Sales Amount</div>
         </div>
     <div class="summary-card">
             <div class="summary-value">₱${(!isNaN(averageOrderValue) ? averageOrderValue.toFixed(2) : '0.00')}</div>
-            <div class="summary-label">Avg Order Value</div>
+            <div class="summary-label">Average Sales per Order</div>
         </div>
         <div class="summary-card">
             <div class="summary-value">₱${(() => {
                 const daysDiff = Math.max(Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)), 1);
                 return (totalRevenue / daysDiff).toFixed(2);
             })()}</div>
-            <div class="summary-label">Daily Revenue</div>
+            <div class="summary-label">Daily Sales Amount</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-value">${totalDeliveryOrders.toLocaleString()}</div>
+            <div class="summary-label">Delivery Orders</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-value">₱${totalDeliveryRevenue.toLocaleString()}</div>
+            <div class="summary-label">Delivery Revenue</div>
         </div>
     </div>
 
@@ -1607,12 +1842,28 @@ router.get('/analytics/sales-report-pdf', async (req, res) => {
     </div>
 
     <div class="section">
-        <div class="section-title">Top Selling Products (by Revenue)</div>
+        <div class="section-title">Orders by Source</div>
+        <div class="payment-methods">
+            ${Object.entries(ordersBySource).map(([source, count]) => {
+              const percentage = totalOrders > 0 ? ((count / totalOrders) * 100).toFixed(1) : '0.0';
+              return `
+                <div class="payment-method">
+                    <div class="payment-name">${source}</div>
+                    <div class="payment-amount">${count} orders</div>
+                    <div style="font-size: 12px; color: #666;">${percentage}% of total</div>
+                </div>
+              `;
+            }).join('')}
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Top Selling Products \(by Sales Amount\)</div>
         <table>
             <thead>
                 <tr>
                     <th style="width: 55%">Product Name</th>
-                    <th style="width: 22%">Total Revenue</th>
+                    <th style="width: 22%">Total Sales Amount</th>
                     <th style="width: 23%">Units Sold</th>
                 </tr>
             </thead>
@@ -1635,8 +1886,7 @@ router.get('/analytics/sales-report-pdf', async (req, res) => {
                 <tr>
                     <th>Date</th>
                     <th>Orders</th>
-                    <th>Revenue</th>
-                    <th>Average Order Value</th>
+                    <th>Sales</th>
                 </tr>
             </thead>
             <tbody>
@@ -1645,7 +1895,6 @@ router.get('/analytics/sales-report-pdf', async (req, res) => {
                         <td>${day.date ? new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}</td>
                         <td>${day.count}</td>
                         <td>₱${(day.total || 0).toLocaleString()}</td>
-                        <td>₱${day.count > 0 ? ((day.total || 0) / day.count).toFixed(2) : '0.00'}</td>
                     </tr>
                 `).join('')}
             </tbody>
@@ -1998,7 +2247,7 @@ router.get('/analytics/export-performance', async (req, res) => {
                     <th>Costs</th>
                     <th>Profit</th>
                     <th>Orders</th>
-                    <th>Avg Order Value</th>
+                    <th>Average Sales per Order</th>
                 </tr>
             </thead>
             <tbody>
@@ -2174,6 +2423,200 @@ router.post('/complete-order', isAuthorizedForOrderCompletion, async (req, res) 
   } catch (error) {
     console.error('Staff complete order error:', error);
     res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
+// Stocks Management
+router.get('/stocks', async (req, res) => {
+  try {
+    const ingredients = await req.db.collection('Ingredients').find().toArray();
+    const addons = await req.db.collection('Add-ons').find().toArray();
+    const message = req.query.msg || null;
+
+    res.render('staff/stocks', {
+      ingredients,
+      addons,
+      title: 'Inventory Management | Blessings Cafe - Staff',
+      user: req.session.user,
+      currentPage: '/staff/stocks',
+      message,
+      uiConfig: {
+        fixedNavbar: true,
+        contentOnlyScroll: true,
+        enhancedModals: true,
+        version: 'V13-Enhanced'
+      },
+      stats: {
+        totalIngredients: ingredients.length,
+        totalAddons: addons.length,
+        enabledIngredients: ingredients.filter(i => i.isEnabled).length,
+        enabledAddons: addons.filter(a => a.isEnabled).length
+      },
+      layout: 'staff/layout'
+    });
+  } catch (error) {
+    console.error('Staff stocks error:', error);
+    res.status(500).render('error', {
+      title: 'Server Error',
+      message: 'Failed to load stock data',
+      status: 500
+    });
+  }
+});
+
+router.post('/stocks', async (req, res) => {
+  try {
+    const isAddon = req.body.AddOnID || req.body.AddOnPrefix || req.body.AddOnSuffix || req.body.BasePrice;
+
+    if (isAddon) {
+      const existingAddon = await req.db.collection('Add-ons').findOne({
+        AddOnID: req.body.AddOnID,
+        Name: req.body.Name.trim()
+      });
+
+      if (existingAddon) {
+        return res.redirect('/staff/stocks?msg=duplicate_id_name');
+      }
+
+      const addOnData = {
+        AddOnID: req.body.AddOnID,
+        AddOnPrefix: req.body.AddOnPrefix || 'AD',
+        AddOnSuffix: req.body.AddOnSuffix,
+        Name: req.body.Name,
+        AmountPerPack: req.body.AmountPerPack,
+        Amount: parseInt(req.body.Amount),
+        Unit: req.body.Unit,
+        Category: req.body.Category || 'Add-Ons',
+        Allergen: req.body.Allergen || 'None',
+        BasePrice: parseFloat(req.body.BasePrice) || 10,
+        isEnabled: req.body.isEnabled === 'true' || req.body.isEnabled === true || req.body.isEnabled === 'on',
+        DeductionQuantityGrams: parseInt(req.body.DeductionQuantityGrams) || 10,
+        lastModified: new Date()
+      };
+
+      await req.db.collection('Add-ons').insertOne(addOnData);
+      console.log('✅ Staff added new add-on:', addOnData.AddOnID);
+    } else {
+      const ingredientData = {
+        IngredientID: req.body.IngredientID,
+        IngredientPrefix: req.body.IngredientPrefix || 'ING',
+        IngredientSuffix: req.body.IngredientSuffix,
+        Name: req.body.Name,
+        AmountPerPack: req.body.AmountPerPack,
+        Amount: parseInt(req.body.Amount),
+        Unit: req.body.Unit,
+        Category: req.body.Category || 'Ingredients',
+        Allergen: req.body.Allergen || 'None',
+        isEnabled: req.body.isEnabled === 'true' || req.body.isEnabled === true || req.body.isEnabled === 'on',
+        isAvailable: req.body.isAvailable === 'true' || req.body.isAvailable === true,
+        DeductionQuantityGrams: parseInt(req.body.DeductionQuantityGrams) || 10,
+        createdAt: new Date(),
+        lastModified: new Date()
+      };
+
+      if (ingredientData.IngredientID && ingredientData.Name) {
+        const existingIngredient = await req.db.collection('Ingredients').findOne({
+          IngredientID: ingredientData.IngredientID,
+          Name: ingredientData.Name.trim()
+        });
+
+        if (existingIngredient) {
+          return res.redirect('/staff/stocks?msg=duplicate_id_name');
+        }
+      }
+
+      await req.db.collection('Ingredients').insertOne(ingredientData);
+      console.log('✅ Staff added new ingredient:', ingredientData.IngredientID);
+    }
+
+    res.redirect('/staff/stocks?msg=add_success');
+  } catch (err) {
+    console.error('Staff add item error:', err);
+    res.status(500).send('Failed to add item');
+  }
+});
+
+router.post('/stocks/edit/:id', async (req, res) => {
+  try {
+    console.log('=== Staff Edit Debug ===');
+    console.log('Item ID:', req.params.id);
+    console.log('Content-Type:', req.headers['content-type']);
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+    console.log('Body keys:', Object.keys(req.body || {}));
+    console.log('========================');
+    
+    if (!req.body || Object.keys(req.body).length === 0) {
+      console.error('Empty request body received');
+      return res.status(400).json({ success: false, error: 'No data received' });
+    }
+    
+    const { ObjectId } = require('mongodb');
+    const itemId = new ObjectId(req.params.id);
+    const isAddon = req.body.AddOnID || req.body.AddOnPrefix || req.body.AddOnSuffix;
+    
+    const updateData = {
+      Name: req.body.Name,
+      AmountPerPack: req.body.AmountPerPack,
+      Amount: parseInt(req.body.Amount),
+      Allergen: req.body.Allergen,
+      isEnabled: req.body.isEnabled === 'true' || req.body.isEnabled === true,
+      DeductionQuantityGrams: parseInt(req.body.DeductionQuantityGrams) || 10,
+      lastModified: new Date()
+    };
+
+    if (isAddon) {
+      updateData.AddOnID = req.body.AddOnID;
+      updateData.AddOnPrefix = req.body.AddOnPrefix || 'AD';
+      updateData.AddOnSuffix = req.body.AddOnSuffix;
+      updateData.BasePrice = parseFloat(req.body.BasePrice);
+      await req.db.collection('Add-ons').updateOne({ _id: itemId }, { $set: updateData });
+    } else {
+      updateData.IngredientID = req.body.IngredientID;
+      updateData.IngredientPrefix = req.body.IngredientPrefix || 'ING';
+      updateData.IngredientSuffix = req.body.IngredientSuffix;
+      updateData.isAvailable = req.body.isAvailable === 'true' || req.body.isAvailable === true;
+      await req.db.collection('Ingredients').updateOne({ _id: itemId }, { $set: updateData });
+    }
+
+    // Check if request is AJAX
+    if (req.xhr || req.headers.accept?.indexOf('json') > -1) {
+      res.json({ success: true, message: 'Item updated successfully' });
+    } else {
+      res.redirect('/staff/stocks?msg=update_success');
+    }
+  } catch (err) {
+    console.error('Staff update item error:', err);
+    if (req.xhr || req.headers.accept?.indexOf('json') > -1) {
+      res.status(500).json({ success: false, error: 'Failed to update item' });
+    } else {
+      res.status(500).send('Failed to update item');
+    }
+  }
+});
+
+router.post('/stocks/delete/:id', async (req, res) => {
+  try {
+    const { ObjectId } = require('mongodb');
+    const itemId = new ObjectId(req.params.id);
+    
+    let result = await req.db.collection('Ingredients').deleteOne({ _id: itemId });
+    if (result.deletedCount === 0) {
+      result = await req.db.collection('Add-ons').deleteOne({ _id: itemId });
+    }
+
+    // Check if request is AJAX
+    if (req.xhr || req.headers.accept?.indexOf('json') > -1) {
+      res.json({ success: true, message: 'Item deleted successfully' });
+    } else {
+      res.redirect('/staff/stocks?msg=delete_success');
+    }
+  } catch (err) {
+    console.error('Staff delete item error:', err);
+    if (req.xhr || req.headers.accept?.indexOf('json') > -1) {
+      res.status(500).json({ success: false, error: 'Failed to delete item' });
+    } else {
+      res.status(500).send('Failed to delete item');
+    }
   }
 });
 

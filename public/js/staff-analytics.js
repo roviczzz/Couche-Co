@@ -214,6 +214,22 @@ async function drawAverageSalesChart() {
           },
           title: {
             display: false
+          },
+          zoom: {
+            pan: {
+              enabled: true,
+              mode: 'x',
+              threshold: 10
+            },
+            zoom: {
+              wheel: {
+                enabled: true
+              },
+              pinch: {
+                enabled: true
+              },
+              mode: 'x'
+            }
           }
         },
         scales: {
@@ -221,7 +237,9 @@ async function drawAverageSalesChart() {
             ticks: {
               font: { size: 11, weight: '500' },
               maxRotation: 0,
-              color: '#6d7175'
+              color: '#6d7175',
+              maxTicksLimit: Math.min(labels.length, 14), // Limit to 14 ticks max
+              autoSkip: true // Allow auto-skipping for dense dates
             },
             grid: {
               display: false
@@ -263,10 +281,7 @@ async function drawAverageSalesChart() {
 async function loadOrderHistory(days = 7) {
   console.log('loadOrderHistory called with days:', days);
   try {
-    let url = "/staff/analytics/order-history";
-    if (days !== 'all') {
-      url += `?days=${days}`;
-    }
+    let url = "/staff/analytics/order-history?days=" + days;
     console.log('Fetching URL:', url);
     const res = await fetch(url);
     const orders = await res.json();

@@ -297,6 +297,24 @@ body {
   font-family: 'Inter', sans-serif;
 }
 
+.back-btn {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: transparent;
+  color: #a05c2f;
+  padding: 0;
+  border-radius: 0;
+  text-decoration: underline;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+}
+
+.back-btn:hover {
+  text-decoration: underline;
+}
+
 .login-box img {
   width: 80px;
   position: absolute;

@@ -8,6 +8,7 @@
 </head>
 <body>
 <div class="login-box">
+    <a href="/" class="back-btn">← Back to Home</a>
     <img src="/resources/Blessings-Logo.png" alt="Blessings Cafe Logo" />
     <h2>Administrator Login</h2>
     <form action="/admin/login" method="post">
@@ -27,7 +28,7 @@
             <span class="error"><%= errors.Password.msg %></span>
         <% } %>
         <div class="forgot-password-group">
-        <a href="/forgot-password" class="forgot">Forgot password</a>
+        <a href="/admin/forgot-password" class="forgot">Forgot password</a>
         </div>
         <button type="submit">Log In</button>
         <% if (error) { %>

@@ -214,6 +214,22 @@ async function drawAverageSalesChart() {
           },
           title: {
             display: false
+          },
+          zoom: {
+            pan: {
+              enabled: true,
+              mode: 'x',
+              threshold: 10
+            },
+            zoom: {
+              wheel: {
+                enabled: true
+              },
+              pinch: {
+                enabled: true
+              },
+              mode: 'x'
+            }
           }
         },
         scales: {
@@ -221,7 +237,9 @@ async function drawAverageSalesChart() {
             ticks: {
               font: { size: 11, weight: '500' },
               maxRotation: 0,
-              color: '#6d7175'
+              color: '#6d7175',
+              maxTicksLimit: Math.min(labels.length, 14), // Limit to 14 ticks max
+              autoSkip: true // Allow auto-skipping for dense dates
             },
             grid: {
               display: false
@@ -263,10 +281,7 @@ async function drawAverageSalesChart() {
 async function loadOrderHistory(days = 7) {
   console.log('loadOrderHistory called with days:', days);
   try {
-    let url = "/admin/analytics/order-history";
-    if (days !== 'all') {
-      url += `?days=${days}`;
-    }
+    let url = "/admin/analytics/order-history?days=" + days;
     console.log('Fetching URL:', url);
     const res = await fetch(url);
     const orders = await res.json();
@@ -282,7 +297,7 @@ async function loadOrderHistory(days = 7) {
 
 
     orders.forEach(o => {
-      const customerName = o.Customer && o.Customer.fullname ? o.Customer.fullname : 'Unknown Customer';
+      const customerName = o.Customer || 'Unknown Customer';
       const row = `
         <tr>
           <td>${o.OrderID}</td>
@@ -615,11 +630,14 @@ async function handleReportGeneration(event) {
 }
 
 // Initialize charts and load data on page load
-document.addEventListener("DOMContentLoaded", function() {
-  drawPopularProductsChart();
-  drawAverageSalesChart();
-  drawPaymentMethodsChart();
-  drawOrderSourcesChart();
+document.addEventListener("DOMContentLoaded", async function() {
+  await drawPopularProductsChart();
+  await new Promise(resolve => setTimeout(resolve, 500)); // Small delay
+  await drawAverageSalesChart();
+  await new Promise(resolve => setTimeout(resolve, 500));
+  await drawPaymentMethodsChart();
+  await new Promise(resolve => setTimeout(resolve, 500));
+  await drawOrderSourcesChart();
   setupOrderHistoryFilters();
   document.getElementById('filter7days').classList.add('active');
   loadOrderHistory(7);

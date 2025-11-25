@@ -7,9 +7,45 @@ const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
 const cron = require('node-cron');
+const multer = require('multer');
 
 const app = express();
-const port = 8080;
+const port = process.env.PORT || 8080;
+if (process.env.NODE_ENV !== 'production') {
+  const browserSync = require('browser-sync');
+  const bs = browserSync.create();
+  
+  // Start Browsersync after Express server starts
+  const startBrowsersync = () => {
+    bs.init({
+      proxy: `http://localhost:${port}`,
+      files: [
+        path.join(__dirname, 'views'),
+        path.join(__dirname, 'public')
+      ],
+      open: false,
+      notify: false,
+      port: 3000
+    });
+  };
+  // Attach to app.locals for later use in startServer
+  app.locals.startBrowsersync = startBrowsersync;
+}
+
+if (process.env.NODE_ENV === 'production') {
+  app.use(compression({
+    level: 6,
+    threshold: 1024,
+    filter: (req, res) => {
+      if (req.headers['x-no-compression']) {
+        return false;
+      }
+      return compression.filter(req, res);
+    }
+  }));
+}
+
+
 require('dotenv').config();
 
 const dbConnection = require('./utils/db');
@@ -41,18 +77,6 @@ process.on('SIGINT', async () => {
   await dbConnection.close();
   process.exit(0);
 });
-
-// Enable gzip compression for all responses
-app.use(compression({
-  level: 6,
-  threshold: 1024,
-  filter: (req, res) => {
-    if (req.headers['x-no-compression']) {
-      return false;
-    }
-    return compression.filter(req, res);
-  }
-}));
 
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 
@@ -189,6 +213,13 @@ app.set('views', __dirname + '/views');
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+const uploadDir = path.join(__dirname, 'public/resources');
+const upload = multer({ 
+  dest: uploadDir,
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+});
+app.use('/admin/api/page-management', upload.single('bannerImage'));
+
 // Static files with caching
 app.use(express.static(__dirname + '/public', {
   maxAge: '1d',
@@ -297,10 +328,21 @@ app.locals.getImageUrl = function(imagelink) {
   }
   return imagelink;
 };
+    
+    const { verifyEmailConnection } = require('./utils/emailService');
+    const emailConnected = await verifyEmailConnection();
+    if (!emailConnected) {
+      console.warn('⚠️ Email service verification failed - emails may not be sent');
+    }
+    
     await initializeNotificationsCron();
     
-    app.listen(port, () => {
+    const server = app.listen(port, () => {
       console.log(`Server running on http://localhost:${port}`);
+      if (process.env.NODE_ENV !== 'production' && app.locals.startBrowsersync) {
+        app.locals.startBrowsersync();
+        console.log('Browsersync running on http://localhost:3000');
+      }
     });
   } catch (error) {
     console.error('Failed to start server:', error);

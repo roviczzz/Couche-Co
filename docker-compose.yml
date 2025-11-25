@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "3000:8080"
+    volumes:
+      - uploads_data:/app/public/uploads
+      - ./.env:/app/.env
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=${MONGODB_URI}
+      - IMGBB_API_KEY=${IMGBB_API_KEY}
+      - XENDIT_SECRET_KEY=${XENDIT_SECRET_KEY}
+      - BASE_URL=${BASE_URL}
+      - N8N_DELIVERY_WEBHOOK_URL=${N8N_DELIVERY_WEBHOOK_URL}
+      - N8N_PICKUP_WEBHOOK_URL=${N8N_PICKUP_WEBHOOK_URL}
+      - ENABLE_CHATBOT_NOTIFICATIONS=${ENABLE_CHATBOT_NOTIFICATIONS}
+      - N8N_WEBHOOK_SECRET=${N8N_WEBHOOK_SECRET}
+      - ORDER_COMPLETION_SECRET=${ORDER_COMPLETION_SECRET}
+      - SESSION_SECRET=${SESSION_SECRET}
+      - GMAIL_USER=${GMAIL_USER}
+      - GMAIL_PASSWORD=${GMAIL_PASSWORD}
+    restart: unless-stopped
+
+volumes:
+  uploads_data:

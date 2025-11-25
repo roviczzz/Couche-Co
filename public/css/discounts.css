@@ -1122,22 +1122,23 @@ main {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 14px;
+  font-size: 13px;
   table-layout: fixed;
 }
 
-/* Column widths for promo table (6 columns) */
-.stocks-table th:nth-child(1), .stocks-table td:nth-child(1) { width: 18%; }
-.stocks-table th:nth-child(2), .stocks-table td:nth-child(2) { width: 14%; }
-.stocks-table th:nth-child(3), .stocks-table td:nth-child(3) { width: 14%; }
-.stocks-table th:nth-child(4), .stocks-table td:nth-child(4) { width: 22%; }
-.stocks-table th:nth-child(5), .stocks-table td:nth-child(5) { width: 12%; }
-.stocks-table th:nth-child(6), .stocks-table td:nth-child(6) { width: 20%; }
+/* Column widths for promo table (7 columns: Event Name, Start Date, End Date, Description, Discount %, Category, Actions) */
+.stocks-table th:nth-child(1), .stocks-table td:nth-child(1) { width: 15%; } /* Event Name - smaller */
+.stocks-table th:nth-child(2), .stocks-table td:nth-child(2) { width: 9%; } /* Start Date */
+.stocks-table th:nth-child(3), .stocks-table td:nth-child(3) { width: 9%; } /* End Date */
+.stocks-table th:nth-child(4), .stocks-table td:nth-child(4) { width: 20%; } /* Description */
+.stocks-table th:nth-child(5), .stocks-table td:nth-child(5) { width: 8%; } /* Discount % */
+.stocks-table th:nth-child(6), .stocks-table td:nth-child(6) { width: 22%; } /* Category - smaller */
+.stocks-table th:nth-child(7), .stocks-table td:nth-child(7) { width: 25%; } /* Actions */
 
 .stocks-table th,
 .stocks-table td {
   text-align: center;
-  padding: 12px 8px;
+  padding: 8px 6px;
   border-bottom: 1px solid var(--border);
   word-wrap: break-word;
   vertical-align: middle;
@@ -1153,10 +1154,10 @@ main {
   background: var(--gray-light);
   color: var(--brown-dark);
   font-weight: 700;
-  font-size: 13px;
+  font-size: 12px;
   letter-spacing: 0.5px;
   text-transform: uppercase;
-  padding: 16px 12px;
+  padding: 12px 6px;
   box-shadow: 0 2px 3px rgba(0,0,0,0.05);
 }
 
@@ -1183,14 +1184,15 @@ main {
 /* Clean table inputs */
 .table-input {
   width: 100%;
-  padding: 8px 10px;
+  padding: 6px 8px;
   border: 1px solid var(--border-light);
   border-radius: var(--radius-xs);
   background: var(--white);
   transition: all var(--transition);
-  font-size: 13px;
+  font-size: 12px;
   box-sizing: border-box;
-  height: 36px;
+  height: 32px;
+  line-height: 1.2;
 }
 
 .table-input:hover {
@@ -1229,27 +1231,27 @@ main {
 .button-wrapper {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 6px;
   width: 100%;
-  max-width: 180px;
+  max-width: 160px;
   margin: 0 auto;
 }
 
 /* Enhanced Action Buttons */
 .stocks-btn {
-  padding: 10px 16px;
+  padding: 8px 12px;
   border: none;
   border-radius: var(--radius-xs);
   color: var(--white);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   cursor: pointer;
   transition: all var(--transition);
   box-shadow: var(--shadow-sm);
   position: relative;
   overflow: hidden;
-  min-width: 75px;
-  height: 36px;
+  min-width: 65px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1453,32 +1455,32 @@ main {
   }
   
   .stocks-table thead th {
-    font-size: 11px;
-    padding: 12px 6px;
+    font-size: 9px;
+    padding: 8px 2px;
   }
   
   .stocks-table th,
   .stocks-table td {
-    padding: 10px 4px;
+    padding: 6px 2px;
   }
   
   .stocks-btn {
-    padding: 8px 12px;
-    font-size: 11px;
-    min-width: 65px;
-    height: 32px;
+    padding: 4px 8px;
+    font-size: 9px;
+    min-width: 45px;
+    height: 24px;
   }
 
   .button-wrapper {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 4px;
-    max-width: 100px;
+    max-width: 120px;
   }
 
   .table-input {
-    font-size: 12px;
-    height: 32px;
-    padding: 6px 8px;
+    font-size: 10px;
+    height: 24px;
+    padding: 2px 4px;
   }
 
   .confirmation-buttons {
@@ -1534,7 +1536,7 @@ main {
   }
 
   .button-wrapper {
-    max-width: 90px;
+    max-width: 140px;
   }
 
   .stocks-btn {
@@ -1956,4 +1958,107 @@ textarea,
     padding: 10px 16px;
     font-size: 13px;
   }
+}
+
+/* =============================================== */
+/* NOTIFICATION SYSTEM */
+/* =============================================== */
+
+.notification-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  max-width: 400px;
+}
+
+.stocks-notification {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  margin-bottom: 10px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  transform: translateX(100%);
+  opacity: 0;
+  transition: all 0.3s ease;
+  border-left: 4px solid;
+  font-family: 'Inter', sans-serif;
+}
+
+.stocks-notification.show {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.stocks-notification.success {
+  border-left-color: #28a745;
+}
+
+.stocks-notification.error {
+  border-left-color: #dc3545;
+}
+
+.stocks-notification.warning {
+  border-left-color: #ffc107;
+}
+
+.stocks-notification.info {
+  border-left-color: #17a2b8;
+}
+
+.notification-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  font-weight: bold;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stocks-notification.success .notification-icon {
+  color: #28a745;
+}
+
+.stocks-notification.error .notification-icon {
+  color: #dc3545;
+}
+
+.stocks-notification.warning .notification-icon {
+  color: #ffc107;
+}
+
+.stocks-notification.info .notification-icon {
+  color: #17a2b8;
+}
+
+.notification-content {
+  flex: 1;
+  line-height: 1.4;
+}
+
+.notification-message {
+  font-size: 14px;
+  color: #333;
+}
+
+.notification-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #999;
+  padding: 0;
+  margin-left: 8px;
+  flex-shrink: 0;
+  transition: color 0.2s ease;
+}
+
+.notification-close:hover {
+  color: #666;
 }

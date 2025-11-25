@@ -970,7 +970,7 @@ async function getAverageSalesPerDay(db) {
       {
         $group: {
           _id: { $dateToString: { format: "%Y-%m-%d", date: "$parsedDate" } },
-          avgSales: { $avg: "$Total" }
+          totalSales: { $sum: "$Total" }
         }
       },
       { $sort: { _id: 1 } }

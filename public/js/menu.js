@@ -709,12 +709,12 @@ function updateCartDisplay() {
                         if (!item.isB1T1 && !item.b1t1Used) {
                             const menuData = JSON.parse(document.getElementById('menu-data').textContent);
                             const menuItem = menuData.find(mItem => mItem._id === item.ProductID || mItem.id === item.ProductID || mItem.Name === item.ProductName);
-                            if (menuItem && menuItem.Category !== 'Pastries') {
+                            if (menuItem && menuItem.Category === 'Milktea' && item.Size === '22oz') {
                                 return `<button class="b1t1-btn" onclick="showB1T1Modal('${menuItem.Category.replace(/'/g, "\\'")}', '${item.Size.replace(/'/g, "\\'")}', ${index})"
                                         style="margin-top: 8px; padding: 8px 12px; background: #8B4513; color: white; border: none; border-radius: 8px; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; transition: all 0.2s ease;"
                                         onmouseover="this.style.backgroundColor='#a05c2f'; this.style.transform='scale(1.05)';"
                                         onmouseout="this.style.backgroundColor='#8B4513'; this.style.transform='scale(1)';"
-                                        title="Buy 1 Take 1">🛍️ B1T1</button>`;
+                                        title="Buy 1 Take 1">🛍️ B1T1 (Pair: ₱99)</button>`;
                             }
                         }
                         return '';
@@ -727,6 +727,8 @@ function updateCartDisplay() {
     // Add promotional information
     const promoSets = checkBuy3For143(window.cartItems);
     const savings = calculateBuy3For143Savings(window.cartItems);
+    const hasB1T1Pair = window.cartItems.some(item => item.b1t1Used);
+
     if (promoSets > 0 && savings > 0) {
         html += `
             <div style="background: #e8f5e8; border: 1px solid #4caf50; border-radius: 8px; padding: 12px; margin: 12px 0;">
@@ -736,6 +738,20 @@ function updateCartDisplay() {
                 </div>
                 <div style="color: #2e7d32; font-size: 12px; margin-top: 4px;">
                     You save ₱${savings.toFixed(2)} on ${promoSets} set${promoSets > 1 ? 's' : ''} of drinks
+                </div>
+            </div>
+        `;
+    }
+
+    if (hasB1T1Pair) {
+        html += `
+            <div style="background: #fff3e0; border: 1px solid #ff9800; border-radius: 8px; padding: 12px; margin: 12px 0;">
+                <div style="display: flex; align-items: center; gap: 8px; color: #f57c00; font-weight: 600; font-size: 14px;">
+                    <span>🎁</span>
+                    <span>Buy 1 Take 1 Applied!</span>
+                </div>
+                <div style="color: #f57c00; font-size: 12px; margin-top: 4px;">
+                    Your drink pair totals ₱99.00 (great value!)
                 </div>
             </div>
         `;
@@ -873,16 +889,24 @@ function removeFromCart(index) {
         }
     }
 
+    // If this is a B1T1 free drink, unset the promotion flag on the basis item
+    if (itemToRemove.isB1T1) {
+        const basisItem = window.cartItems.find(item => item.itemId === itemToRemove.b1t1BasisId);
+        if (basisItem) {
+            basisItem.b1t1Used = false;
+        }
+    }
+
     // Now remove the main item
     window.cartItems.splice(index, 1);
-    
+
     // Check if promo is still valid after removal, reset if not
     if (selectedPromo && !isPromoApplicableToCart(selectedPromo)) {
         selectedPromo = null;
         const promoSelect = document.getElementById('promo-select');
         if (promoSelect) promoSelect.value = '';
     }
-    
+
     updateCartDisplay();
 }
 
@@ -1156,7 +1180,7 @@ function getMenuDrinksWithSize(category, basisSize) {
     const menuData = JSON.parse(document.getElementById('menu-data').textContent);
     let availableDrinks = [];
     menuData.forEach(menuItem => {
-        if (menuItem.Category === category && menuItem.Category !== 'Pastries') {
+        if (menuItem.Category === category && category === 'Milktea') {
             const sizeObj = menuItem.Sizes ? menuItem.Sizes.find(s => (s.SizeName || s.Size) === basisSize) : null;
             if (sizeObj) {
                 availableDrinks.push({ menuItem, sizeObj });
@@ -1207,14 +1231,23 @@ function selectB1T1DrinkFromIndex(index) {
     const drinkData = window.b1t1Options[index];
     if (!drinkData) return;
 
-    addToCart(drinkData.menuItem, drinkData.sizeObj);
-    const freeItemIndex = window.cartItems.length - 1;
-    const calculatedPrice = window.cartItems[freeItemIndex].BasePrice; // Store calculated price before setting to 0
-    window.cartItems[freeItemIndex].originalPrice = calculatedPrice;
-    window.cartItems[freeItemIndex].isB1T1 = true;
-    window.cartItems[freeItemIndex].b1t1BasisId = window.cartItems[window.b1t1BasisIndex].itemId; // Track which basis drink this free drink belongs to
-    window.cartItems[freeItemIndex].BasePrice = 0;
-    window.cartItems[freeItemIndex].ProductName += ' (B1T1 FREE)';
+    // Create free drink item directly with BasePrice = 0 (no async addToCart)
+    const originalPrice = getItemPrice(drinkData.menuItem, drinkData.sizeObj);
+    const freeCartItem = {
+        itemId: Date.now() + Math.random(),
+        ProductName: drinkData.menuItem.Name + ' (B1T1 FREE)',
+        ProductID: drinkData.menuItem.ProductID || drinkData.menuItem._id || drinkData.menuItem.id,
+        Size: drinkData.sizeObj.Size || drinkData.sizeObj.SizeName || 'Regular',
+        AddOns: [],
+        Quantity: 1,
+        BasePrice: 0,
+        originalPrice: originalPrice,
+        ImageLink: drinkData.menuItem.imagelink || "",
+        isB1T1: true,
+        b1t1BasisId: window.cartItems[window.b1t1BasisIndex].itemId
+    };
+
+    window.cartItems.push(freeCartItem);
 
     // Mark the basis item as having used B1T1
     if (window.b1t1BasisIndex >= 0) {
@@ -2461,6 +2494,14 @@ function calculatePromotionalTotal(cart) {
             total += (item.BasePrice || 0) * (item.Quantity || 1);
         });
     }
+
+    // Apply B1T1 promotion adjustment
+    cart.forEach(item => {
+      if (item.b1t1Used) {
+        total -= item.BasePrice;
+        total += 99;
+      }
+    });
 
     return total;
 }

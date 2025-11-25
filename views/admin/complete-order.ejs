@@ -25,7 +25,16 @@
       <ul>
         <% if (order.Cart && Array.isArray(order.Cart)) { %>
           <% order.Cart.forEach(item => { %>
-            <li><%= item.Quantity %>x <%= item.Name %> - ₱<%= item.Price ? item.Price.toFixed(2) : 'N/A' %></li>
+            <li>
+              <div><%= item.Quantity %>x <%= item.ProductName || item.Name || 'Unnamed Product' %><% if (item.Size) { %> (<%= item.Size %>)<% } %> - ₱<%= item.Price ? item.Price.toFixed(2) : 'N/A' %></div>
+              <% if (item.Addons && Array.isArray(item.Addons) && item.Addons.length > 0) { %>
+                <div style="margin-left: 20px; font-size: 0.9em; color: #666;">
+                  <% item.Addons.forEach(addon => { %>
+                    <div>+ <%= addon.Name || addon.name %></div>
+                  <% }); %>
+                </div>
+              <% } %>
+            </li>
           <% }); %>
         <% } else { %>
           <li>No items found</li>
@@ -39,17 +48,21 @@
       <input type="hidden" name="orderId" value="<%= orderId %>">
       <input type="hidden" name="secret" value="<%= secret %>">
 
-      <div class="confirmation-section">
-        <label>
-          <input type="checkbox" id="confirm-completion" required>
-          I confirm that this order has been successfully <%= order.FulfillmentMethod === 'delivery' ? 'delivered' : 'picked up' %> and all items are correct.
-        </label>
-      </div>
+      <% if (order.FulfillmentStatus !== 'Completed') { %>
+        <div class="confirmation-section">
+          <label>
+            <input type="checkbox" id="confirm-completion" required>
+            I confirm that this order has been successfully <%= order.FulfillmentMethod === 'delivery' ? 'delivered' : 'picked up' %> and all items are correct.
+          </label>
+        </div>
+      <% } %>
 
-      <div class="button-group">
-        <button type="submit" class="btn btn-success" id="complete-btn" disabled>
-          Mark as Completed
-        </button>
+      <div class="button-group" <% if (order.FulfillmentStatus === 'Completed') { %> style="justify-content: center;" <% } %>>
+        <% if (order.FulfillmentStatus !== 'Completed') { %>
+          <button type="submit" class="btn btn-success" id="complete-btn" disabled>
+            Mark as Completed
+          </button>
+        <% } %>
         <a href="/admin/orders" class="btn btn-secondary">Back to Orders</a>
       </div>
     </form>
@@ -73,7 +86,13 @@ document.getElementById('complete-form').addEventListener('submit', async functi
     const formData = new FormData(this);
     const response = await fetch('/admin/complete-order', {
       method: 'POST',
-      body: formData
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        orderId: formData.get('orderId'),
+        secret: formData.get('secret')
+      })
     });
 
     const result = await response.json();
