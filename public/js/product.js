@@ -277,6 +277,14 @@ function addToOrder(name, price, size, category, productId, addons, imagelink, i
 
 // Fetch and display add-ons - try server-side data first, then API as fallback
 function loadAddons() {
+    // Check if add-ons are already rendered server-side
+    const addonOptionsContainer = document.querySelector('.addon-options');
+    if (addonOptionsContainer && addonOptionsContainer.children.length > 0) {
+        // Add-ons are already rendered, just set up event listeners
+        setupAddonEventListeners();
+        return;
+    }
+
     // Try server-side data first
     const addonsDataScript = document.getElementById('addons-data');
     let addons = [];
@@ -367,6 +375,27 @@ function displayAddons(addons) {
     } else {
         addonOptionsContainer.innerHTML = '<span style="font-size:12px;color:#999">No add-ons available.</span>';
     }
+}
+
+// Setup event listeners for server-side rendered add-ons
+function setupAddonEventListeners() {
+    const addonCheckboxes = document.querySelectorAll('.addon-checkbox');
+    addonCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                selectedAddons.push({
+                    AddOnID: this.dataset.addonId,
+                    Name: this.dataset.addonName,
+                    BasePrice: this.dataset.addonPrice
+                });
+            } else {
+                const index = selectedAddons.findIndex(a => a.AddOnID === this.dataset.addonId);
+                if (index > -1) {
+                    selectedAddons.splice(index, 1);
+                }
+            }
+        });
+    });
 }
 
 // Initialize function

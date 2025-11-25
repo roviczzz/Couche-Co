@@ -326,14 +326,41 @@ router.get('/product/:id', async (req, res) => {
         req.db.collection('Ingredients').find({ isEnabled: true }).toArray()
       ]);
       cacheTimestamp = now;
-    } else {
+    }
+
+    // Fetch recommended add-ons/ingredients for this category
+    const categoryRec = await req.db.collection('CategoryRecommendations').findOne({ 
+      category: product.Category 
+    });
+    
+    let displayAddons = cachedAddons;
+    let displayIngredients = cachedIngredients;
+    
+    if (categoryRec && categoryRec.recommendations && categoryRec.recommendations.length > 0) {
+      // Map recommendations to actual items with prices
+      const recommendedItems = categoryRec.recommendations.map(rec => {
+        if (rec.type === 'addon') {
+          return cachedAddons.find(a => a.AddOnID === rec.id);
+        } else if (rec.type === 'ingredient') {
+          const ingredient = cachedIngredients.find(i => i.IngredientID === rec.id);
+          if (ingredient) {
+            return { ...ingredient, AddOnID: ingredient.IngredientID, Name: ingredient.Name, BasePrice: 15 };
+          }
+        }
+        return null;
+      }).filter(item => item !== null);
+      
+      // All recommendations go to displayAddons (main section)
+      if (recommendedItems.length > 0) {
+        displayAddons = recommendedItems;
+      }
     }
 
     res.render('product', {
       isAvailable,
       product,
-      addons: cachedAddons,
-      ingredients: cachedIngredients,
+      addons: displayAddons,
+      ingredients: displayIngredients,
       title: `${product.Name} | Blessings Cafe`,
       user: req.session?.user || null,
       extraCSS: '/css/product.css'

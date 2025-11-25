@@ -263,6 +263,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
     // Re-enable and show the button after closing modal
     placeOrderBtn.disabled = false;
+    placeOrderBtn.style.display = 'block';
     placeOrderBtn.textContent = 'Place Order';
   }
 
@@ -293,7 +294,6 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Disable button to prevent double submission
     placeOrderBtn.disabled = true;
-    placeOrderBtn.style.display = 'none';
 
     try {
       // Show overlay

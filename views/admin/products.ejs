@@ -15,7 +15,14 @@
 
   <div class="content">
     <% Object.keys(grouped).forEach(category => { %>
-      <div class="section-title"><%= category %></div>
+      <div class="section-header">
+        <div class="section-title"><%= category %></div>
+        <% if (category !== 'Pastries') { %>
+        <button type="button" class="addon-recommendation-btn" data-category="<%= category %>" onclick="openAddonRecommendationModal('<%= category %>')">
+          Set Add-on Recommendations
+        </button>
+        <% } %>
+      </div>
       <div class="products-grid">
         <% grouped[category].forEach(product => { %>
           <div class="product-card <%= product.isEnabled ? 'enabled' : '' %>"
@@ -250,5 +257,140 @@
   </div>
 </div>
 
+<!-- Add-on Recommendation Modal -->
+<div id="addonRecommendationModal" class="custom-confirm hidden">
+  <div class="confirm-box addon-recommendation-box" style="max-height: 80vh; overflow-y: auto;">
+    <div class="form-header">
+      <div class="form-title">Set Add-on Recommendations for <span id="modalCategoryName"></span></div>
+      <span class="modal-close" onclick="closeAddonRecommendationModal()">&times;</span>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Select Add-ons & Ingredients to Recommend</label>
+      <input type="text" id="addonSearchInput" class="form-input" placeholder="Search add-ons and ingredients...">
+      <div id="addonChecklistContainer" style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 6px; padding: 10px; margin-top: 10px;">
+      </div>
+    </div>
+    <div class="btn-row">
+      <button type="button" class="submit-button add" onclick="saveAddonRecommendations()">Save Recommendations</button>
+      <button type="button" class="submit-button cancel" onclick="closeAddonRecommendationModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- External Products JavaScript -->
 <script src="/js/products.js"></script>
+
+<script>
+let currentCategoryForAddon = null;
+let allAddonsAndIngredients = [];
+let selectedAddonRecommendations = [];
+let existingRecommendations = [];
+
+async function openAddonRecommendationModal(category) {
+  currentCategoryForAddon = category;
+  document.getElementById('modalCategoryName').textContent = category;
+  document.getElementById('addonRecommendationModal').classList.remove('hidden');
+  
+  if (allAddonsAndIngredients.length === 0) {
+    await fetchAddonsAndIngredients();
+  }
+  
+  await fetchExistingRecommendations(category);
+  renderAddonChecklist();
+}
+
+function closeAddonRecommendationModal() {
+  document.getElementById('addonRecommendationModal').classList.add('hidden');
+  currentCategoryForAddon = null;
+  selectedAddonRecommendations = [];
+  existingRecommendations = [];
+}
+
+async function fetchAddonsAndIngredients() {
+  try {
+    const response = await fetch('/admin/api/addons-ingredients');
+    const data = await response.json();
+    if (data.success) {
+      allAddonsAndIngredients = data.data;
+    }
+  } catch (error) {
+    console.error('Failed to fetch add-ons and ingredients:', error);
+  }
+}
+
+async function fetchExistingRecommendations(category) {
+  try {
+    const response = await fetch(`/admin/api/category-addon-recommendations?category=${encodeURIComponent(category)}`);
+    const data = await response.json();
+    if (data.success && data.recommendations) {
+      existingRecommendations = data.recommendations;
+      selectedAddonRecommendations = [...existingRecommendations];
+    } else {
+      existingRecommendations = [];
+      selectedAddonRecommendations = [];
+    }
+  } catch (error) {
+    console.error('Failed to fetch existing recommendations:', error);
+    existingRecommendations = [];
+    selectedAddonRecommendations = [];
+  }
+}
+
+function renderAddonChecklist() {
+  const container = document.getElementById('addonChecklistContainer');
+  const searchValue = document.getElementById('addonSearchInput').value.toLowerCase();
+  
+  const filtered = allAddonsAndIngredients.filter(item => 
+    item.Name.toLowerCase().includes(searchValue)
+  );
+  
+  container.innerHTML = filtered.map(item => {
+    const isChecked = existingRecommendations.some(rec => rec.id === item.id);
+    return `
+      <label style="display: flex; align-items: center; padding: 8px; cursor: pointer; border-bottom: 1px solid #eee;">
+        <input type="checkbox" class="addon-recommendation-checkbox" data-id="${item.id}" data-type="${item.type}" data-name="${item.Name}" style="margin-right: 10px;" ${isChecked ? 'checked' : ''}>
+        <span>${item.Name}</span>
+        <span style="margin-left: auto; font-size: 0.85em; color: #666;">${item.type === 'addon' ? '(Add-on)' : '(Ingredient)'}</span>
+      </label>
+    `;
+  }).join('');
+  
+  document.querySelectorAll('.addon-recommendation-checkbox').forEach(cb => {
+    cb.addEventListener('change', updateSelectedAddons);
+  });
+}
+
+function updateSelectedAddons() {
+  selectedAddonRecommendations = Array.from(document.querySelectorAll('.addon-recommendation-checkbox:checked')).map(cb => ({
+    id: cb.dataset.id,
+    type: cb.dataset.type,
+    name: cb.dataset.name
+  }));
+}
+
+async function saveAddonRecommendations() {
+  try {
+    const response = await fetch('/admin/api/category-addon-recommendations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        category: currentCategoryForAddon,
+        recommendations: selectedAddonRecommendations
+      })
+    });
+    
+    const data = await response.json();
+    if (data.success) {
+      alert('Add-on recommendations saved successfully!');
+      closeAddonRecommendationModal();
+    } else {
+      alert('Failed to save recommendations: ' + data.error);
+    }
+  } catch (error) {
+    console.error('Error saving recommendations:', error);
+    alert('Error saving recommendations');
+  }
+}
+
+document.getElementById('addonSearchInput')?.addEventListener('input', renderAddonChecklist);
+</script>

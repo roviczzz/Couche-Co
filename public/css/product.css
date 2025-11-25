@@ -994,3 +994,38 @@
     color: #333;
     text-decoration: underline;
 }
+
+.recommended-addons-group {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.recommended-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #a05c2f;
+  margin: 0 0 0.75rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.other-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #999;
+  margin: 1rem 0 0.75rem 0;
+  text-transform: uppercase;
+}
+
+.addon-checkbox-label.recommended {
+  background: linear-gradient(135deg, #fef3e2 0%, #fce9d1 100%);
+  border: 1px solid rgba(160, 92, 47, 0.3);
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+
+.addon-checkbox-label.recommended span {
+  color: #8b4a26;
+  font-weight: 600;
+}

@@ -1075,6 +1075,65 @@ router.get('/products/add', nocache, (req, res) => {
   });
 });
 
+router.get('/api/addons-ingredients', async (req, res) => {
+  try {
+    const addons = await req.db.collection('Add-ons').find({ isEnabled: true }).toArray();
+    const ingredients = await req.db.collection('Ingredients').find({ isEnabled: true }).toArray();
+    
+    const combined = [
+      ...addons.map(a => ({ id: a.AddOnID, type: 'addon', Name: a.Name })),
+      ...ingredients.map(i => ({ id: i.IngredientID, type: 'ingredient', Name: i.Name }))
+    ].sort((a, b) => a.Name.localeCompare(b.Name));
+    
+    res.json({ success: true, data: combined });
+  } catch (error) {
+    console.error('API error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.get('/api/category-addon-recommendations', async (req, res) => {
+  try {
+    const { category } = req.query;
+    
+    if (!category) {
+      return res.status(400).json({ success: false, error: 'Category is required' });
+    }
+    
+    const categoryRec = await req.db.collection('CategoryRecommendations').findOne({ category });
+    
+    if (!categoryRec || !categoryRec.recommendations) {
+      return res.json({ success: true, recommendations: [] });
+    }
+    
+    res.json({ success: true, recommendations: categoryRec.recommendations });
+  } catch (error) {
+    console.error('API error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.post('/api/category-addon-recommendations', async (req, res) => {
+  try {
+    const { category, recommendations } = req.body;
+    
+    if (!category || !Array.isArray(recommendations)) {
+      return res.status(400).json({ success: false, error: 'Invalid data' });
+    }
+    
+    await req.db.collection('CategoryRecommendations').updateOne(
+      { category },
+      { $set: { category, recommendations, updatedAt: new Date() } },
+      { upsert: true }
+    );
+    
+    res.json({ success: true, message: 'Recommendations saved' });
+  } catch (error) {
+    console.error('API error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Lightning-fast API endpoint with maximum optimizations
 router.get('/api/products/:id', async (req, res) => {
   const { id } = req.params;
