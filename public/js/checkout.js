@@ -109,9 +109,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
   }
 
-  // Load active promos
-  loadActivePromos();
-
   // Load user data when page loads
   loadUserData();
 
@@ -119,10 +116,11 @@ document.addEventListener('DOMContentLoaded', async function() {
   await loadCheckoutData();
 
   async function loadCheckoutData() {
-    // Wait for cart data to be ready, then update totals
+    // Wait for cart data to be ready, then update totals and load promos
     const checkCartReady = () => {
       if (window.checkoutCartReady) {
         updateTotalDisplay();
+        loadActivePromos();
       } else {
         setTimeout(checkCartReady, 50);
       }
@@ -591,15 +589,29 @@ document.addEventListener('DOMContentLoaded', async function() {
     promoApiInProgress = true;
     try {
       const response = await fetch('/api/discounts/active');
-      if (response.status === 200 && response.headers.get('content-type')?.includes('application/json')) {
-        availablePromos = await response.json();
-        lastPromoApiCall = now;
-        populatePromoSelect();
-      } else {
-        console.error('Failed to load active promos, status:', response.status, 'content-type:', response.headers.get('content-type'));
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: Failed to fetch promos`);
       }
+      
+      const contentType = response.headers.get('content-type');
+      if (!contentType?.includes('application/json')) {
+        throw new Error(`Invalid content-type: ${contentType}`);
+      }
+      
+      availablePromos = await response.json();
+      lastPromoApiCall = now;
+      
+      if (!Array.isArray(availablePromos)) {
+        console.warn('Promos response is not an array:', availablePromos);
+        availablePromos = [];
+        return;
+      }
+      
+      console.log('Successfully loaded promos:', availablePromos.length);
+      populatePromoSelect();
     } catch (error) {
       console.error('Error loading active promos:', error);
+      availablePromos = [];
     } finally {
       promoApiInProgress = false;
     }
@@ -654,21 +666,50 @@ document.addEventListener('DOMContentLoaded', async function() {
 
   function populatePromoSelect() {
     const promoSelect = document.getElementById('promoCode');
-    // Clear existing options except the default
+    if (!promoSelect) {
+      console.error('Promo code select element not found');
+      return;
+    }
+    
     promoSelect.innerHTML = '<option value="">No promo selected</option>';
 
+    if (!availablePromos || availablePromos.length === 0) {
+      console.log('No available promos to display');
+      return;
+    }
+
     getCartCategories().then(cartCategories => {
-      // Filter promos based on cart categories and applicability
+      console.log('Cart categories:', cartCategories);
+      console.log('Available promos:', availablePromos.length);
+      
       const filteredPromos = availablePromos.filter(promo => {
-        // If cart has categories, show promos that match those categories or apply to all
+        if (!promo || !promo._id) {
+          console.warn('Invalid promo object:', promo);
+          return false;
+        }
+        
         if (cartCategories.length > 0) {
           const matchesCategory = cartCategories.includes(promo.category);
-          const appliesToAll = promo.applicableToAll === true || promo.category === '';
-          return matchesCategory || appliesToAll;
+          const appliesToAll = promo.applicableToAll === true || !promo.category;
+          const isApplicable = matchesCategory || appliesToAll;
+          console.log(`Promo "${promo.event}" - Category: ${promo.category}, Matches: ${isApplicable}`);
+          return isApplicable;
         }
-        // If no categories in cart, show all promos that apply to all or have no category
-        return promo.applicableToAll === true || promo.category === '';
+        return promo.applicableToAll === true || !promo.category;
       });
+
+      console.log('Filtered promos:', filteredPromos.length);
+      
+      if (filteredPromos.length === 0) {
+        if (availablePromos.length > 0) {
+          const option = document.createElement('option');
+          option.value = '';
+          option.textContent = 'No applicable promos for your order';
+          option.disabled = true;
+          promoSelect.appendChild(option);
+        }
+        return;
+      }
 
       filteredPromos.forEach(promo => {
         const option = document.createElement('option');
@@ -676,17 +717,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         option.textContent = `${promo.event} - ${promo.discountPercentage}% OFF`;
         promoSelect.appendChild(option);
       });
-
-      // If no applicable promos, show message
-      if (filteredPromos.length === 0 && availablePromos.length > 0) {
-        const option = document.createElement('option');
-        option.value = '';
-        option.textContent = 'No applicable promos for your order';
-        option.disabled = true;
-        promoSelect.appendChild(option);
-      }
     }).catch(error => {
-      console.error('Error loading cart categories for promos:', error);
+      console.error('Error populating promo select:', error);
     });
   }
 
