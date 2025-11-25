@@ -1,6 +1,10 @@
 // Initialize orderItems array with data from localStorage
 var orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
 
+var editingCartItem = null;
+var editingCartItemIndex = null;
+var isEditMode = false;
+
 // Get product data from EJS
 try {
     var product = JSON.parse(document.getElementById('product-data').textContent);
@@ -358,7 +362,7 @@ function displayAddons(addons) {
                     selectedAddons.push({
                         AddOnID: addon.AddOnID,
                         Name: addon.Name,
-                        BasePrice: addon.BasePrice
+                        BasePrice: parseFloat(addon.BasePrice) || 0
                     });
                 } else {
                     const index = selectedAddons.findIndex(a => a.AddOnID === addon.AddOnID);
@@ -386,7 +390,7 @@ function setupAddonEventListeners() {
                 selectedAddons.push({
                     AddOnID: this.dataset.addonId,
                     Name: this.dataset.addonName,
-                    BasePrice: this.dataset.addonPrice
+                    BasePrice: parseFloat(this.dataset.addonPrice) || 0
                 });
             } else {
                 const index = selectedAddons.findIndex(a => a.AddOnID === this.dataset.addonId);
@@ -400,6 +404,8 @@ function setupAddonEventListeners() {
 
 // Initialize function
 function initializePage() {
+    detectAndLoadEditMode();
+
     // Load add-ons
     loadAddons();
 
@@ -415,10 +421,12 @@ function initializePage() {
     // Initialize badge state - ensure it's hidden on load
     initializeBadge();
 
-    // Ensure all size options are unselected on load
-    document.querySelectorAll('input[name="size-radio"]').forEach(rb => {
-        rb.checked = false;
-    });
+    // Ensure all size options are unselected on load (unless in edit mode, handled by detectAndLoadEditMode)
+    if (!isEditMode) {
+        document.querySelectorAll('input[name="size-radio"]').forEach(rb => {
+            rb.checked = false;
+        });
+    }
 
     // Add event listeners to size option buttons to handle selection
     const sizeOptionBtns = document.querySelectorAll('.size-option-btn');
@@ -447,39 +455,189 @@ function initializePage() {
         });
     });
 
-    // Add to cart button event listener
+    // Add to cart button event listener (modified for edit mode)
     const addToCartBtn = document.getElementById('add-to-cart-btn');
     if (addToCartBtn) {
         addToCartBtn.addEventListener('click', async function() {
-            const quantity = document.getElementById('quantity').value;
-            const selectedRadio = document.querySelector('input[name="size-radio"]:checked');
-
-            // Validate size selection for products that have sizes
-            if (product.Sizes && product.Sizes.length > 0 && !selectedRadio) {
-                showToast('Please select a size before adding to cart.', 'error');
-                return;
+            if (isEditMode) {
+                updateCartItem();
+            } else {
+                addNewCartItem();
             }
-
-            // Check product availability first
-            try {
-                const availabilityResponse = await fetch(`/api/check-product-availability/${product.ProductID}`);
-                const availabilityData = await availabilityResponse.json();
-
-                if (!availabilityData.available) {
-                    showCenteredError(availabilityData.reason || 'This product is currently unavailable');
-                    return;
-                }
-            } catch (error) {
-                console.error('Error checking product availability:', error);
-                // Continue with adding to cart if availability check fails (fail-safe)
-            }
-
-            let size = selectedRadio ? selectedRadio.value : null;
-            let price = selectedRadio ? parseFloat(selectedRadio.closest('.size-option-btn').dataset.price) : parseFloat(product.BasePrice || 0);
-
-            addToOrder(product.Name, price, size, product.Category, product.ProductID, selectedAddons.slice(), product.imagelink, false, null, quantity);
         });
     }
+
+    // Cancel edit button event listener
+    const cancelEditBtn = document.getElementById('cancel-edit-btn');
+    if (cancelEditBtn) {
+        cancelEditBtn.addEventListener('click', cancelEditMode);
+    }
+}
+
+function detectAndLoadEditMode() {
+    const editData = sessionStorage.getItem('editingCartItem');
+    if (!editData) {
+        isEditMode = false;
+        return;
+    }
+
+    try {
+        editingCartItem = JSON.parse(editData);
+        editingCartItemIndex = editingCartItem.cartItemIndex;
+        isEditMode = true;
+
+        showEditModeBanner();
+        prePopulateFormWithEditData();
+
+        sessionStorage.removeItem('editingCartItem');
+    } catch (error) {
+        console.error('Error loading edit mode data:', error);
+        isEditMode = false;
+    }
+}
+
+function showEditModeBanner() {
+    const banner = document.getElementById('edit-mode-banner');
+    if (banner) {
+        banner.style.display = 'block';
+    }
+
+    const addBtn = document.getElementById('add-to-cart-btn');
+    const cancelBtn = document.getElementById('cancel-edit-btn');
+    if (addBtn) {
+        addBtn.textContent = 'Update Cart';
+        addBtn.style.backgroundColor = '#8B4513';
+        addBtn.style.boxShadow = '0 2px 8px rgba(139, 69, 19, 0.3)';
+        addBtn.style.border = '2px solid #8B4513';
+        addBtn.style.marginBottom = '5px';
+    }
+    if (cancelBtn) {
+        cancelBtn.style.display = 'block';
+    }
+}
+
+function prePopulateFormWithEditData() {
+    if (!editingCartItem) return;
+
+    const quantity = parseInt(editingCartItem.quantity) || 1;
+    const quantityInput = document.getElementById('quantity');
+    if (quantityInput) {
+        quantityInput.value = quantity;
+    }
+
+    if (editingCartItem.selectedSize) {
+        const sizeRadio = document.querySelector(`input[name="size-radio"][value="${editingCartItem.selectedSize}"]`);
+        if (sizeRadio) {
+            sizeRadio.checked = true;
+            const sizeBtn = sizeRadio.closest('.size-option-btn');
+            if (sizeBtn) {
+                sizeBtn.classList.add('selected');
+            }
+        }
+    }
+
+    if (editingCartItem.addons && Array.isArray(editingCartItem.addons)) {
+        const addonCheckboxes = document.querySelectorAll('.addon-checkbox');
+        addonCheckboxes.forEach(checkbox => {
+            const addonId = checkbox.dataset.addonId;
+            const isSelected = editingCartItem.addons.some(addon => 
+                addon.AddOnID === addonId
+            );
+            checkbox.checked = isSelected;
+        });
+
+        const ingredientCheckboxes = document.querySelectorAll('.ingredient-checkbox');
+        ingredientCheckboxes.forEach(checkbox => {
+            const ingredientId = checkbox.dataset.ingredientId;
+            const isSelected = editingCartItem.addons.some(addon => 
+                addon.IngredientID === ingredientId
+            );
+            checkbox.checked = isSelected;
+        });
+
+        selectedAddons = editingCartItem.addons.slice();
+        selectedIngredients = editingCartItem.addons.filter(addon => addon.IngredientID).slice();
+    }
+
+    updateIngredientsBadge();
+}
+
+async function addNewCartItem() {
+    const quantity = document.getElementById('quantity').value;
+    const selectedRadio = document.querySelector('input[name="size-radio"]:checked');
+
+    // Validate size selection for products that have sizes
+    if (product.Sizes && product.Sizes.length > 0 && !selectedRadio) {
+        showToast('Please select a size before adding to cart.', 'error');
+        return;
+    }
+
+    // Check product availability first
+    try {
+        const availabilityResponse = await fetch(`/api/check-product-availability/${product.ProductID}`);
+        const availabilityData = await availabilityResponse.json();
+
+        if (!availabilityData.available) {
+            showCenteredError(availabilityData.reason || 'This product is currently unavailable');
+            return;
+        }
+    } catch (error) {
+        console.error('Error checking product availability:', error);
+        // Continue with adding to cart if availability check fails (fail-safe)
+    }
+
+    let size = selectedRadio ? selectedRadio.value : null;
+    let price = selectedRadio ? parseFloat(selectedRadio.closest('.size-option-btn').dataset.price) : parseFloat(product.BasePrice || 0);
+
+    addToOrder(product.Name, price, size, product.Category, product.ProductID, selectedAddons.slice(), product.imagelink, false, null, quantity);
+}
+
+function updateCartItem() {
+    if (!isEditMode || editingCartItemIndex === null) {
+        showToast('Error: Not in edit mode', 'error');
+        return;
+    }
+
+    const quantity = parseInt(document.getElementById('quantity').value) || 1;
+    const selectedRadio = document.querySelector('input[name="size-radio"]:checked');
+
+    // Validate size selection for products that have sizes
+    if (product.Sizes && product.Sizes.length > 0 && !selectedRadio) {
+        showToast('Please select a size before updating cart.', 'error');
+        return;
+    }
+
+    let size = selectedRadio ? selectedRadio.value : null;
+    let price = selectedRadio ? parseFloat(selectedRadio.closest('.size-option-btn').dataset.price) : parseFloat(product.BasePrice || 0);
+
+    const originalItem = orderItems[editingCartItemIndex];
+    if (!originalItem) {
+        showToast('Error: Cart item not found', 'error');
+        return;
+    }
+
+    originalItem.quantity = quantity;
+    originalItem.size = size;
+    originalItem.price = price;
+    originalItem.addons = selectedAddons.slice();
+
+    saveOrderItems();
+
+    showToast('Cart item updated successfully!', 'success');
+
+    setTimeout(() => {
+        window.location.href = '/cart';
+    }, 1500);
+}
+
+function cancelEditMode() {
+    isEditMode = false;
+    editingCartItem = null;
+    editingCartItemIndex = null;
+
+    sessionStorage.removeItem('editingCartItem');
+
+    window.location.href = '/cart';
 }
 
 // Setup modal functionality with enhanced UX

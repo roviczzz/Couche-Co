@@ -966,18 +966,45 @@
 
   /* Mobile checkbox improvements */
   .checkbox-container {
-    gap: 10px;
+    gap: 12px;
+    padding: 8px 0;
   }
 
   .checkbox-container input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
-    margin-top: 1px;
+    width: 30px;
+    height: 30px;
+    margin: 0;
+    padding: 0;
+    margin-top: 0px;
+    flex-shrink: 0;
+    cursor: pointer;
+    accent-color: #8B4513;
+    -webkit-appearance: none;
+    appearance: none;
+    border: 2px solid #8B4513;
+    border-radius: 4px;
+    background: white;
+    transition: all 0.2s ease;
+  }
+
+  .checkbox-container input[type="checkbox"]:checked {
+    background: #8B4513;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m 3.5 7.5 l 2 2 l 5.5 -6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 100% 100%;
+  }
+
+  .checkbox-container input[type="checkbox"]:active,
+  .checkbox-container input[type="checkbox"]:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.2);
   }
 
   .checkbox-container label {
     font-size: 14px;
     line-height: 1.4;
+    margin-top: 2px;
   }
 
   /* Promo code section mobile optimization */

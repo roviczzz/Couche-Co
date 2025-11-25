@@ -124,15 +124,15 @@ function displayCartItems() {
 
     if (item.addons && item.addons.length > 0) {
       item.addons.forEach(addon => {
-        addonsTotal += addon.BasePrice || 0;
-        addonsList.push(`${addon.Name || addon.IngredientID} (+₱${addon.BasePrice || 0})`);
+        addonsTotal += parseFloat(addon.BasePrice) || 0;
+        addonsList.push(`${addon.Name || addon.IngredientID} (+₱${(parseFloat(addon.BasePrice) || 0).toFixed(2)})`);
       });
     }
 
     const itemTotal = (item.price + addonsTotal) * item.quantity;
 
     itemsHTML += `
-      <div class="cart-item" data-index="${index}">
+      <div class="cart-item" data-index="${index}" data-product-id="${item.productId}">
         <img src="${item.imagelink || '/resources/coffee-icon.png'}" alt="${item.name}" class="cart-item-image">
         <div class="cart-item-details">
           <div class="cart-item-info">
@@ -166,6 +166,39 @@ function displayCartItems() {
   });
 
   cartItemsContainer.innerHTML = itemsHTML;
+
+  attachCartItemClickHandlers();
+}
+
+function attachCartItemClickHandlers() {
+  const cartItems = document.querySelectorAll('.cart-item');
+  cartItems.forEach((cartItem, index) => {
+    cartItem.style.cursor = 'pointer';
+    cartItem.addEventListener('click', function(event) {
+      if (event.target.closest('.remove-btn') || event.target.closest('.quantity-btn') || event.target.closest('.quantity-input')) {
+        return;
+      }
+
+      const item = orderItems[index];
+      if (!item) return;
+
+      const editData = {
+        productId: item.productId,
+        name: item.name,
+        selectedSize: item.size,
+        quantity: item.quantity,
+        addons: item.addons || [],
+        price: item.price,
+        category: item.category,
+        imagelink: item.imagelink,
+        cartItemIndex: index
+      };
+
+      sessionStorage.setItem('editingCartItem', JSON.stringify(editData));
+
+      window.location.href = `/product/${item.productId}`;
+    });
+  });
 }
 
 // Change quantity (increase/decrease)
@@ -246,8 +279,8 @@ function updateCartTotal() {
   const totalItems = orderItems.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = orderItems.reduce((sum, item) => {
     if (item.isFree) return sum;
-    const addonsTotal = item.addons ? item.addons.reduce((sum, ad) => sum + (ad.BasePrice || 0), 0) : 0;
-    return sum + ((item.price + addonsTotal) * item.quantity);
+    const addonsTotal = item.addons ? item.addons.reduce((sum, ad) => sum + (parseFloat(ad.BasePrice) || 0), 0) : 0;
+    return sum + ((parseFloat(item.price) + addonsTotal) * parseInt(item.quantity));
   }, 0);
 
   cartTotalContainer.innerHTML = `

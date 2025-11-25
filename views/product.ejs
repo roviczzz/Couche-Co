@@ -5,6 +5,11 @@
 <script id="product-data" type="application/json"><%- JSON.stringify(product) %></script>
 <script id="addons-data" type="application/json"><%- JSON.stringify(addons || []) %></script>
 <script id="ingredients-data" type="application/json"><%- JSON.stringify(ingredients || []) %></script>
+<div id="edit-mode-banner" class="edit-mode-banner" style="display: none;">
+  <div class="edit-mode-banner-content">
+    <span>Editing Cart Item - Modify and click 'Update Cart' to save changes</span>
+  </div>
+</div>
 
   <main class="product-page">
     <% if (!isAvailable) { %>
@@ -71,6 +76,9 @@
 
         <button id="add-to-cart-btn" class="add-to-cart-btn" <%= !isAvailable ? 'disabled' : '' %>>
           <%= !isAvailable ? 'Currently Unavailable' : 'Add to Cart' %>
+        </button>
+        <button id="cancel-edit-btn" class="add-to-cart-btn cancel-edit-btn" style="display: none; background-color: #999;">
+          Cancel Edit
         </button>
       </div>
     </div>
