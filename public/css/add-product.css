@@ -207,3 +207,167 @@ body {
   from { opacity: 0; transform: translateY(15px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Mobile-Responsive Styles */
+
+/* 320px - Extra Small Mobile */
+@media (max-width: 320px) {
+  .form-container {
+    max-width: calc(100vw - 20px);
+    margin: 20px 10px;
+    padding: 20px 16px;
+    border-radius: 12px;
+  }
+  
+  .form-title {
+    font-size: 20px;
+  }
+  
+  .form-label {
+    font-size: 13px;
+    margin-top: 16px;
+  }
+  
+  .form-input, select {
+    font-size: 16px;
+    padding: 12px;
+    margin-top: 6px;
+    min-height: 44px;
+  }
+  
+  .price-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .submit-button {
+    font-size: 14px;
+    padding: 14px;
+    min-height: 44px;
+  }
+}
+
+/* 480px - Small Mobile */
+@media (max-width: 480px) {
+  .form-container {
+    max-width: calc(100vw - 24px);
+    margin: 24px 12px;
+    padding: 24px 20px;
+    border-radius: 12px;
+  }
+  
+  .form-header {
+    margin-bottom: 24px;
+  }
+  
+  .form-title {
+    font-size: 22px;
+  }
+  
+  .form-label {
+    font-size: 14px;
+    margin-top: 18px;
+  }
+  
+  .form-input, select {
+    font-size: 16px;
+    padding: 12px;
+    min-height: 44px;
+  }
+  
+  .price-row {
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 6px;
+  }
+  
+  .price-row input {
+    flex: 1;
+    width: 100%;
+  }
+  
+  .chip-container {
+    height: auto;
+    min-height: 44px;
+    padding: 8px 12px;
+  }
+  
+  .chip-input {
+    min-width: 80px;
+    font-size: 16px;
+  }
+  
+  #suggestions {
+    max-height: 200px;
+  }
+  
+  .toggle {
+    margin-top: 20px;
+  }
+  
+  .switch {
+    width: 56px;
+    height: 28px;
+  }
+  
+  .slider::before {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .switch input:checked + .slider::before {
+    transform: translateX(28px);
+  }
+  
+  .submit-button {
+    font-size: 15px;
+    padding: 14px;
+    min-height: 44px;
+    margin-top: 16px;
+  }
+}
+
+/* 600px - Large Mobile / Small Tablet */
+@media (max-width: 600px) {
+  .form-container {
+    max-width: calc(100vw - 32px);
+    margin: 20px 16px;
+    padding: 28px 24px;
+  }
+  
+  .form-title {
+    font-size: 24px;
+  }
+  
+  .form-input, select {
+    font-size: 16px;
+    padding: 12px;
+    min-height: 44px;
+  }
+  
+  .price-row {
+    gap: 12px;
+  }
+}
+
+/* 768px - Tablet and Up */
+@media (min-width: 769px) {
+  .form-container {
+    max-width: 700px;
+    margin: 50px auto;
+    padding: 40px 45px;
+  }
+  
+  .form-title {
+    font-size: 28px;
+  }
+  
+  .form-input, select {
+    font-size: 15px;
+    padding: 14px;
+  }
+  
+  .price-row {
+    gap: 16px;
+  }
+}

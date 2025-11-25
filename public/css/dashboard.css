@@ -422,3 +422,98 @@
         .card-label { font-size: 16px; }
         .sales-performance, .top-categories, .payment-types, .orders-by-source { min-height: 220px; }
     }
+
+/* Mobile-Responsive Styles */
+
+/* 320px - Extra Small Mobile */
+@media (max-width: 320px) {
+    .dashboard-cards-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .summary-card, .card {
+        padding: 12px;
+    }
+    
+    .card-label {
+        font-size: 12px;
+    }
+    
+    .card-value {
+        font-size: 18px;
+    }
+}
+
+/* 480px - Small Mobile */
+@media (max-width: 480px) {
+    .dashboard-cards-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+        padding: 12px;
+    }
+    
+    .dashboard-header-greeting {
+        font-size: 18px;
+    }
+    
+    .main-summary-cards, .performance-cards-row {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .summary-card, .card {
+        padding: 14px;
+    }
+    
+    .card-label {
+        font-size: 13px;
+    }
+    
+    .card-value {
+        font-size: 20px;
+    }
+    
+    .action-btn {
+        width: 100%;
+        min-height: 40px;
+        font-size: 13px;
+    }
+}
+
+/* 600px - Large Mobile / Small Tablet */
+@media (max-width: 600px) {
+    .dashboard-cards-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    .summary-card {
+        padding: 16px;
+    }
+}
+
+/* 768px - Tablet */
+@media (max-width: 768px) {
+    .dashboard-cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+    
+    .main-summary-cards {
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .summary-card {
+        padding: 16px;
+    }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .action-btn {
+        min-height: 48px;
+        padding: 12px 14px;
+    }
+}

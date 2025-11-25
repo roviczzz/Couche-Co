@@ -1903,3 +1903,158 @@ tbody tr.selected {
     color: #c07a46;
     background-color: rgba(160, 92, 47, 0.15);
 }
+
+/* Mobile-Responsive Styles */
+
+/* 320px - Extra Small Mobile */
+@media (max-width: 320px) {
+  .header-section {
+    margin-left: 0;
+    margin-top: 0;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  
+  .header-section h1 {
+    font-size: 20px;
+    width: 100%;
+  }
+  
+  .reset-sort-btn {
+    width: 50px;
+    height: 50px;
+    bottom: 16px;
+    right: 16px;
+    font-size: 22px;
+  }
+  
+  .orders-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  table {
+    font-size: 12px;
+  }
+  
+  th, td {
+    padding: 8px 4px;
+  }
+}
+
+/* 480px - Small Mobile */
+@media (max-width: 480px) {
+  .header-section {
+    margin-left: 0;
+    margin-top: 0;
+    flex-direction: column;
+    gap: 12px;
+    padding-bottom: 12px;
+  }
+  
+  .header-section h1 {
+    font-size: 22px;
+    margin: 0;
+  }
+  
+  .reset-sort-btn {
+    width: 52px;
+    height: 52px;
+    bottom: 20px;
+    right: 20px;
+    font-size: 24px;
+  }
+  
+  .orders-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  table {
+    font-size: 13px;
+    min-width: 600px;
+  }
+  
+  th {
+    padding: 10px 8px;
+    font-size: 12px;
+  }
+  
+  td {
+    padding: 10px 8px;
+  }
+  
+  .status-badge, .action-btn {
+    font-size: 12px;
+    padding: 6px 8px;
+    min-height: 32px;
+  }
+}
+
+/* 600px - Large Mobile / Small Tablet */
+@media (max-width: 600px) {
+  .header-section {
+    flex-direction: column;
+  }
+  
+  .header-section h1 {
+    font-size: 24px;
+  }
+  
+  .orders-table-container {
+    overflow-x: auto;
+  }
+  
+  table {
+    min-width: 700px;
+  }
+  
+  .action-btn {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    margin: 4px 0;
+  }
+}
+
+/* 768px - Tablet */
+@media (max-width: 768px) {
+  .header-section {
+    flex-wrap: wrap;
+  }
+  
+  .orders-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  table {
+    min-width: 800px;
+  }
+  
+  .reset-sort-btn {
+    width: 56px;
+    height: 56px;
+    bottom: 24px;
+    right: 24px;
+  }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .reset-sort-btn {
+    width: 60px;
+    height: 60px;
+    bottom: 24px;
+    right: 24px;
+  }
+  
+  .action-btn {
+    min-height: 48px;
+    padding: 12px 14px;
+  }
+  
+  table td {
+    padding: 12px 10px;
+  }
+}

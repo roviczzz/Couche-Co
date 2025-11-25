@@ -490,3 +490,130 @@
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/* Mobile-Responsive Styles */
+
+/* 320px - Extra Small Mobile */
+@media (max-width: 320px) {
+    .addon-group h5 {
+        font-size: 14px;
+    }
+    
+    .addon-group .options-grid {
+        grid-template-columns: 1fr;
+        gap: 6px;
+    }
+    
+    .size-option, .addon-option {
+        padding: 10px;
+        gap: 6px;
+        min-height: 44px;
+    }
+    
+    .pos-calculator-container {
+        width: calc(100vw - 10px);
+        max-width: none;
+    }
+    
+    .calc-btn {
+        min-height: 40px;
+        font-size: 14px;
+    }
+}
+
+/* 480px - Small Mobile */
+@media (max-width: 480px) {
+    .addon-group .options-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .size-option, .addon-option {
+        padding: 12px 10px;
+        min-height: 44px;
+    }
+    
+    .size-label, .addon-label {
+        font-size: 15px;
+    }
+    
+    .section-title {
+        font-size: 16px;
+    }
+    
+    .pos-calculator-container {
+        width: 95vw;
+        max-width: 100%;
+        max-height: 85vh;
+    }
+    
+    .pos-calculator-body {
+        padding: 14px;
+    }
+    
+    .calc-row {
+        gap: 6px;
+        margin-bottom: 6px;
+    }
+    
+    .calc-btn {
+        min-height: 44px;
+        font-size: 15px;
+        padding: 8px 4px;
+    }
+    
+    .cash-input {
+        font-size: 18px;
+        padding: 12px 12px 12px 36px;
+        min-height: 44px;
+    }
+    
+    .pos-total-value {
+        font-size: 20px;
+    }
+}
+
+/* 600px - Large Mobile / Small Tablet */
+@media (max-width: 600px) {
+    .addon-group .options-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .pos-calculator-container {
+        max-width: 500px;
+        width: 90vw;
+    }
+    
+    .calc-row {
+        gap: 8px;
+    }
+    
+    .calc-btn {
+        min-height: 48px;
+    }
+}
+
+/* 768px - Tablet */
+@media (max-width: 768px) {
+    .addon-group .options-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .size-option, .addon-option {
+        padding: 14px 12px;
+        min-height: 48px;
+    }
+    
+    .calc-btn {
+        min-height: 56px;
+        font-size: 16px;
+    }
+    
+    .cash-input {
+        font-size: 20px;
+        min-height: 48px;
+    }
+}

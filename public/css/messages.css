@@ -1524,3 +1524,127 @@
     background: var(--sidebar-hover-bg);
     color: var(--text-color);
 }
+
+/* Mobile-Responsive Styles */
+
+/* 320px - Extra Small Mobile */
+@media (max-width: 320px) {
+    .messages-container, .email-container {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    .conversations-panel, .inbox-panel {
+        width: 100%;
+        min-height: auto;
+        max-height: 200px;
+    }
+    
+    .chat-panel, .message-view {
+        width: 100%;
+        min-height: auto;
+    }
+    
+    .message-input {
+        font-size: 14px;
+        padding: 8px;
+        min-height: 40px;
+    }
+    
+    .send-btn {
+        min-height: 40px;
+        font-size: 12px;
+    }
+}
+
+/* 480px - Small Mobile */
+@media (max-width: 480px) {
+    .messages-container, .email-container {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    .conversations-panel, .inbox-panel {
+        width: 100%;
+        max-height: 250px;
+        border-right: none;
+        border-bottom: 1px solid #e1e5e9;
+    }
+    
+    .chat-panel, .message-view {
+        width: 100%;
+        min-height: 300px;
+    }
+    
+    .chat-header, .inbox-header {
+        padding: 12px;
+        font-size: 16px;
+    }
+    
+    .message-input {
+        font-size: 16px;
+        padding: 10px;
+        min-height: 44px;
+    }
+    
+    .send-btn {
+        min-height: 44px;
+        min-width: 44px;
+        padding: 10px;
+    }
+    
+    .message-content {
+        max-width: 85%;
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+}
+
+/* 600px - Large Mobile / Small Tablet */
+@media (max-width: 600px) {
+    .messages-container, .email-container {
+        flex-direction: column;
+    }
+    
+    .conversations-panel, .inbox-panel {
+        width: 100%;
+        max-height: 300px;
+    }
+    
+    .message-input {
+        font-size: 16px;
+        min-height: 44px;
+    }
+}
+
+/* 768px - Tablet */
+@media (max-width: 768px) {
+    .messages-container, .email-container {
+        flex-direction: row;
+    }
+    
+    .conversations-panel, .inbox-panel {
+        width: 200px;
+        max-height: none;
+        border-right: 1px solid #e1e5e9;
+        border-bottom: none;
+    }
+    
+    .chat-panel, .message-view {
+        width: calc(100% - 200px);
+    }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .send-btn {
+        min-height: 48px;
+        min-width: 48px;
+    }
+    
+    .message-input {
+        font-size: 16px;
+        min-height: 48px;
+        padding: 12px;
+    }
+}

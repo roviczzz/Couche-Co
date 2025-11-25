@@ -1579,3 +1579,172 @@
     max-height: 80vh;
   }
 }
+
+/* Enhanced Mobile Responsive Styles */
+
+/* 320px - Extra Small Mobile */
+@media (max-width: 320px) {
+  .checkout-content {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 12px 8px;
+  }
+  
+  .checkout-form, .order-summary {
+    padding: 16px 12px;
+  }
+  
+  .form-section {
+    padding: 14px 10px;
+    margin-bottom: 16px;
+  }
+  
+  .form-group input, .form-group select, .form-group textarea {
+    font-size: 16px;
+    padding: 12px 10px;
+    min-height: 44px;
+  }
+  
+  .place-order-btn {
+    min-height: 48px;
+    font-size: 15px;
+  }
+}
+
+/* 480px - Small Mobile */
+@media (max-width: 480px) {
+  .checkout-header {
+    padding: 24px 16px;
+  }
+  
+  .checkout-container h1 {
+    font-size: 1.5rem;
+  }
+  
+  .checkout-subtitle {
+    font-size: 0.95rem;
+  }
+  
+  .checkout-content {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 16px 12px;
+  }
+  
+  .checkout-form {
+    padding: 20px 16px;
+    border-radius: 10px;
+  }
+  
+  .form-section {
+    padding: 16px 12px;
+    margin-bottom: 16px;
+    border-radius: 8px;
+  }
+  
+  .form-section-title {
+    font-size: 1.1rem;
+    margin-bottom: 16px;
+  }
+  
+  .form-group {
+    margin-bottom: 14px;
+  }
+  
+  .form-group label {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+  
+  .form-group input, .form-group select, .form-group textarea {
+    font-size: 16px;
+    padding: 12px 10px;
+    min-height: 44px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .form-row {
+    flex-direction: column;
+  }
+  
+  .form-row .form-group {
+    flex: 1;
+    width: 100%;
+  }
+  
+  .order-summary {
+    padding: 16px 12px;
+    background: #f8f9fa;
+    border-radius: 10px;
+  }
+  
+  .order-summary-item {
+    padding: 8px 0;
+    font-size: 14px;
+  }
+  
+  .summary-total {
+    font-size: 1.2rem;
+    padding: 12px 0;
+    margin-top: 8px;
+  }
+  
+  .place-order-btn {
+    width: 100%;
+    padding: 14px 16px;
+    font-size: 15px;
+    min-height: 48px;
+  }
+}
+
+/* 600px - Large Mobile / Small Tablet */
+@media (max-width: 600px) {
+  .checkout-content {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 20px 16px;
+  }
+  
+  .checkout-form {
+    padding: 24px;
+  }
+  
+  .form-section {
+    padding: 18px 16px;
+  }
+  
+  .form-group input, .form-group select, .form-group textarea {
+    font-size: 16px;
+    padding: 12px 10px;
+    min-height: 44px;
+  }
+}
+
+/* 768px - Tablet */
+@media (max-width: 768px) {
+  .checkout-content {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 20px 16px;
+    max-width: 100%;
+  }
+  
+  .checkout-form {
+    padding: 28px;
+  }
+  
+  .order-summary {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+/* 1024px - Large Tablet / Desktop */
+@media (min-width: 769px) {
+  .checkout-content {
+    grid-template-columns: 1fr 400px;
+    gap: 40px;
+    padding: 40px 20px;
+  }
+}

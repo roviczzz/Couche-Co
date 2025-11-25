@@ -940,3 +940,199 @@ input:checked + .slider:before {
     }
 }
 
+/* Mobile-Responsive Styles */
+
+/* 320px - Extra Small Mobile */
+@media (max-width: 320px) {
+    .settings-container {
+        padding: 12px;
+    }
+    
+    .settings-header h2 {
+        font-size: 22px;
+    }
+    
+    .settings-header p {
+        font-size: 13px;
+    }
+    
+    .settings-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    .settings-card, .info-card {
+        padding: 14px;
+        border-radius: 8px;
+    }
+    
+    .card-header h3 {
+        font-size: 14px;
+    }
+    
+    .form-group label {
+        font-size: 13px;
+    }
+    
+    .form-group input, .form-group select {
+        font-size: 16px;
+        padding: 10px;
+        min-height: 44px;
+    }
+}
+
+/* 480px - Small Mobile */
+@media (max-width: 480px) {
+    .settings-container {
+        padding: 16px;
+        max-width: 100%;
+    }
+    
+    .settings-header {
+        margin-bottom: 24px;
+    }
+    
+    .settings-header h2 {
+        font-size: 24px;
+    }
+    
+    .settings-header p {
+        font-size: 14px;
+    }
+    
+    .settings-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .settings-card, .info-card {
+        padding: 16px;
+        border-radius: 8px;
+    }
+    
+    .card-header {
+        padding: 12px 0;
+        border-radius: 0;
+    }
+    
+    .card-header h3 {
+        font-size: 15px;
+        margin: 0 0 12px 0;
+    }
+    
+    .form-group {
+        margin-bottom: 14px;
+    }
+    
+    .form-group label {
+        font-size: 14px;
+        margin-bottom: 6px;
+        display: block;
+    }
+    
+    .form-group input, .form-group select {
+        font-size: 16px;
+        padding: 12px;
+        min-height: 44px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .number-input {
+        flex-direction: row;
+        gap: 8px;
+    }
+    
+    .number-input input {
+        flex: 1;
+        min-height: 44px;
+    }
+    
+    .number-input button {
+        min-width: 44px;
+        min-height: 44px;
+    }
+    
+    .info-item {
+        padding: 12px 0;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .info-item .label {
+        font-size: 14px;
+        flex: 1;
+        min-width: 100%;
+    }
+    
+    .info-item .value {
+        font-size: 14px;
+        flex: 1;
+        min-width: 100%;
+    }
+    
+    .action-btn {
+        width: 100%;
+        padding: 12px;
+        min-height: 44px;
+        font-size: 14px;
+    }
+}
+
+/* 600px - Large Mobile / Small Tablet */
+@media (max-width: 600px) {
+    .settings-container {
+        padding: 20px;
+    }
+    
+    .settings-header h2 {
+        font-size: 26px;
+    }
+    
+    .settings-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .settings-card, .info-card {
+        padding: 18px;
+    }
+    
+    .form-group input, .form-group select {
+        font-size: 16px;
+        padding: 12px;
+        min-height: 44px;
+    }
+}
+
+/* 768px - Tablet */
+@media (max-width: 768px) {
+    .settings-container {
+        padding: 20px;
+        max-width: 100%;
+    }
+    
+    .settings-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+    
+    .carousel-slides-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+    
+    .modal-content {
+        max-width: 90vw;
+        margin: 20px auto;
+    }
+}
+
+/* 1024px and up - Desktop */
+@media (min-width: 1025px) {
+    .settings-grid {
+        grid-template-columns: 1fr 300px;
+        gap: 24px;
+    }
+}
+

@@ -2062,3 +2062,172 @@ textarea,
 .notification-close:hover {
   color: #666;
 }
+
+/* Mobile-Responsive Styles */
+
+/* 320px - Extra Small Mobile */
+@media (max-width: 320px) {
+  .stocks-container {
+    padding: 8px;
+    height: calc(100vh - 70px);
+  }
+  
+  .navbar, nav, .header, header {
+    height: 60px !important;
+  }
+  
+  .main-content {
+    margin-top: 60px !important;
+    height: calc(100vh - 60px);
+  }
+  
+  .heading-section h1 {
+    font-size: 18px;
+  }
+  
+  .table-controls-container {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .search-container input {
+    font-size: 14px;
+    padding: 8px;
+    min-height: 40px;
+  }
+  
+  table {
+    font-size: 11px;
+  }
+  
+  th, td {
+    padding: 6px 4px;
+  }
+}
+
+/* 480px - Small Mobile */
+@media (max-width: 480px) {
+  .stocks-container {
+    padding: 12px;
+    height: calc(100vh - 70px);
+  }
+  
+  .navbar, nav, .header, header {
+    height: 70px !important;
+  }
+  
+  .main-content {
+    margin-top: 70px !important;
+    height: calc(100vh - 70px);
+  }
+  
+  .heading-section {
+    margin-bottom: 16px;
+  }
+  
+  .heading-section h1 {
+    font-size: 20px;
+  }
+  
+  .table-controls-container {
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 10px;
+  }
+  
+  .search-container {
+    width: 100%;
+  }
+  
+  .search-container input {
+    font-size: 14px;
+    padding: 10px;
+    min-height: 44px;
+  }
+  
+  .sort-buttons-container {
+    width: 100%;
+    gap: 8px;
+  }
+  
+  .sort-btn {
+    flex: 1;
+    min-height: 40px;
+    font-size: 12px;
+  }
+  
+  table {
+    font-size: 12px;
+    min-width: 600px;
+  }
+  
+  th {
+    padding: 8px 6px;
+  }
+  
+  td {
+    padding: 8px 6px;
+  }
+  
+  .action-btn {
+    display: block;
+    width: 100%;
+    min-height: 40px;
+    font-size: 12px;
+    margin: 4px 0;
+  }
+}
+
+/* 600px - Large Mobile / Small Tablet */
+@media (max-width: 600px) {
+  .stocks-container {
+    padding: 14px;
+  }
+  
+  table {
+    min-width: 700px;
+  }
+  
+  .heading-section h1 {
+    font-size: 22px;
+  }
+}
+
+/* 768px - Tablet */
+@media (max-width: 768px) {
+  .stocks-container {
+    padding: 16px;
+  }
+  
+  .table-controls-container {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .search-container {
+    max-width: 100%;
+  }
+  
+  .sort-buttons-container {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .sort-btn {
+    flex: 1;
+    min-width: 70px;
+    min-height: 44px;
+  }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .sort-btn, .action-btn {
+    min-height: 48px;
+    padding: 12px 14px;
+  }
+  
+  table td {
+    padding: 12px 8px;
+  }
+}
