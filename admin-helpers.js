@@ -778,7 +778,8 @@ async function addDiscount(db, discountData) {
       ...discountData,
       createdAt: new Date(),
       lastModified: new Date(),
-      isActive: discountData.isActive !== false
+      isActive: discountData.isActive !== false,
+      applicableToAll: discountData.applicableToAll === true || discountData.category === ''
     };
 
     const result = await db.collection('Promos').insertOne(newDiscount);

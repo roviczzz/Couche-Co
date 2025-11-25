@@ -658,14 +658,16 @@ document.addEventListener('DOMContentLoaded', async function() {
     promoSelect.innerHTML = '<option value="">No promo selected</option>';
 
     getCartCategories().then(cartCategories => {
-      // Filter promos based on cart categories
+      // Filter promos based on cart categories and applicability
       const filteredPromos = availablePromos.filter(promo => {
-        // If cart has categories, only show promos that match those categories
+        // If cart has categories, show promos that match those categories or apply to all
         if (cartCategories.length > 0) {
-          return cartCategories.includes(promo.category);
+          const matchesCategory = cartCategories.includes(promo.category);
+          const appliesToAll = promo.applicableToAll === true || promo.category === '';
+          return matchesCategory || appliesToAll;
         }
-        // If no categories in cart, show all promos
-        return true;
+        // If no categories in cart, show all promos that apply to all or have no category
+        return promo.applicableToAll === true || promo.category === '';
       });
 
       filteredPromos.forEach(promo => {
