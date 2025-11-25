@@ -536,7 +536,10 @@ function prePopulateFormWithEditData() {
         }
     }
 
-    if (editingCartItem.addons && Array.isArray(editingCartItem.addons)) {
+    selectedAddons.length = 0;
+    selectedIngredients.length = 0;
+
+    if (editingCartItem.addons && Array.isArray(editingCartItem.addons) && editingCartItem.addons.length > 0) {
         const addonCheckboxes = document.querySelectorAll('.addon-checkbox');
         addonCheckboxes.forEach(checkbox => {
             const addonId = checkbox.dataset.addonId;
@@ -557,6 +560,12 @@ function prePopulateFormWithEditData() {
 
         selectedAddons = editingCartItem.addons.slice();
         selectedIngredients = editingCartItem.addons.filter(addon => addon.IngredientID).slice();
+    } else {
+        const addonCheckboxes = document.querySelectorAll('.addon-checkbox');
+        addonCheckboxes.forEach(cb => cb.checked = false);
+
+        const ingredientCheckboxes = document.querySelectorAll('.ingredient-checkbox');
+        ingredientCheckboxes.forEach(cb => cb.checked = false);
     }
 
     updateIngredientsBadge();
@@ -593,7 +602,8 @@ async function addNewCartItem() {
 }
 
 function updateCartItem() {
-    if (!isEditMode || editingCartItemIndex === null) {
+    if (!isEditMode || editingCartItemIndex === null || editingCartItemIndex === undefined) {
+        console.log('DEBUG: isEditMode=' + isEditMode + ', index=' + editingCartItemIndex);
         showToast('Error: Not in edit mode', 'error');
         return;
     }
@@ -601,7 +611,6 @@ function updateCartItem() {
     const quantity = parseInt(document.getElementById('quantity').value) || 1;
     const selectedRadio = document.querySelector('input[name="size-radio"]:checked');
 
-    // Validate size selection for products that have sizes
     if (product.Sizes && product.Sizes.length > 0 && !selectedRadio) {
         showToast('Please select a size before updating cart.', 'error');
         return;
@@ -610,16 +619,31 @@ function updateCartItem() {
     let size = selectedRadio ? selectedRadio.value : null;
     let price = selectedRadio ? parseFloat(selectedRadio.closest('.size-option-btn').dataset.price) : parseFloat(product.BasePrice || 0);
 
-    const originalItem = orderItems[editingCartItemIndex];
-    if (!originalItem) {
+    if (!orderItems || orderItems.length === 0) {
+        console.log('ERROR: orderItems is empty');
+        showToast('Error: Cart is empty', 'error');
+        return;
+    }
+
+    if (editingCartItemIndex >= orderItems.length) {
+        console.log('ERROR: Index out of range - index:', editingCartItemIndex, 'length:', orderItems.length);
         showToast('Error: Cart item not found', 'error');
         return;
     }
 
+    const originalItem = orderItems[editingCartItemIndex];
+    if (!originalItem) {
+        console.log('ERROR: Item not found at index', editingCartItemIndex);
+        showToast('Error: Cart item not found', 'error');
+        return;
+    }
+
+    console.log('Updating item at index', editingCartItemIndex, {quantity, size, price, addonsCount: selectedAddons.length});
+
     originalItem.quantity = quantity;
     originalItem.size = size;
     originalItem.price = price;
-    originalItem.addons = selectedAddons.slice();
+    originalItem.addons = selectedAddons && Array.isArray(selectedAddons) ? selectedAddons.slice() : [];
 
     saveOrderItems();
 
