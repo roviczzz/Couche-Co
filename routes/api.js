@@ -826,13 +826,75 @@ router.get('/ingredients/search', async (req, res) => {
 
     // Using shared DB connection from req.db
 
-    // Search for ingredients that match the Name
+    // Search for ingredients that match the Name or itemName
     const results = await req.db.collection('Ingredients')
-      .find({ Name: { $regex: query, $options: 'i' }, isEnabled: true })
-      .project({ IngredientID: 1, Name: 1, _id: 0 })
+      .find({
+        $or: [
+          { Name: { $regex: query, $options: 'i' } },
+          { itemName: { $regex: query, $options: 'i' } }
+        ],
+        isEnabled: true
+      })
+      .project({
+        IngredientID: 1,
+        Name: { $ifNull: ["$Name", "$itemName"] },
+        _id: 0
+      })
       .limit(50)
       .toArray();
-    res.json(results);
+
+    // Process results to ensure IngredientID is always present
+    const processedResults = await Promise.all(results.map(async (item) => {
+      try {
+        let ingredientId = item.IngredientID;
+        let name = item.Name;
+
+        // Generate IngredientID if missing or null, and save it to the collection
+        if (!ingredientId) {
+          // Generate format like ING-TEA from name
+          const safeName = (name && typeof name === 'string') ? name : 'Unnamed';
+          ingredientId = `ING-${safeName.toUpperCase().replace(/[^A-Z0-9]/g, '-')}`;
+
+          // Persist the generated IngredientID back to the Ingredients collection
+          try {
+            await req.db.collection('Ingredients').updateOne(
+              { _id: item._id },
+              { $set: { IngredientID: ingredientId } }
+            );
+          } catch (updateErr) {
+            console.error('Failed to update IngredientID in collection:', updateErr);
+          }
+        }
+
+        // Ensure IngredientID is always valid
+        if (!ingredientId || typeof ingredientId !== 'string') {
+          ingredientId = 'GENERATED-' + Date.now();
+        }
+
+        // Ensure Name is never null for proper display
+        if (!name || typeof name !== 'string') {
+          name = 'Unknown Ingredient';
+        }
+
+        return {
+          IngredientID: ingredientId,
+          ingredientID: ingredientId,
+          id: ingredientId,
+          Name: name
+        };
+      } catch (err) {
+        console.error('Error processing ingredient item:', err, item);
+        // Return safe fallback
+        return {
+          IngredientID: 'ERROR-' + Date.now(),
+          ingredientID: 'ERROR-' + Date.now(),
+          id: 'ERROR-' + Date.now(),
+          Name: item.Name || 'Error Loading Ingredient'
+        };
+      }
+    }));
+
+    res.json(processedResults);
   } catch (err) {
     console.error('Error in ingredient search:', err);
     res.status(500).json({ error: 'Server error' });

@@ -2841,7 +2841,7 @@ router.get('/analytics/export-performance', async (req, res) => {
                     <th>Costs</th>
                     <th>Profit</th>
                     <th>Orders</th>
-                    <th>Avg Order Value</th>
+                    <th>Average Sales per Order</th>
                 </tr>
             </thead>
             <tbody>
@@ -3280,6 +3280,13 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
         quantity: stats.quantity
       }));
 
+    // Calculate orders by source
+    const ordersBySource = orders.reduce((acc, order) => {
+      const source = order.Source || 'Unknown';
+      acc[source] = (acc[source] || 0) + 1;
+      return acc;
+    }, {});
+
     // Generate HTML for PDF
     const html = `
 <!DOCTYPE html>
@@ -3424,18 +3431,18 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
         </div>
         <div class="summary-card">
             <div class="summary-value">₱${totalRevenue.toLocaleString()}</div>
-            <div class="summary-label">Total Revenue</div>
+            <div class="summary-label">Total Sales Amount</div>
         </div>
         <div class="summary-card">
             <div class="summary-value">₱${(!isNaN(averageOrderValue) ? averageOrderValue.toFixed(2) : '0.00')}</div>
-            <div class="summary-label">Avg Order Value</div>
+            <div class="summary-label">Average Sales per Order</div>
         </div>
         <div class="summary-card">
             <div class="summary-value">₱${(() => {
                 const daysDiff = Math.max(Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)), 1);
                 return (totalRevenue / daysDiff).toFixed(2);
             })()}</div>
-            <div class="summary-label">Daily Revenue</div>
+            <div class="summary-label">Daily Sales Amount</div>
         </div>
         <div class="summary-card">
             <div class="summary-value">${totalDeliveryOrders.toLocaleString()}</div>
@@ -3461,12 +3468,28 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
     </div>
 
     <div class="section">
-        <div class="section-title">Top Selling Products (by Revenue)</div>
+        <div class="section-title">Orders by Source</div>
+        <div class="payment-methods">
+            ${Object.entries(ordersBySource).map(([source, count]) => {
+              const percentage = totalOrders > 0 ? ((count / totalOrders) * 100).toFixed(1) : '0.0';
+              return `
+                <div class="payment-method">
+                    <div class="payment-name">${source}</div>
+                    <div class="payment-amount">${count} orders</div>
+                    <div style="font-size: 12px; color: #666;">${percentage}% of total</div>
+                </div>
+              `;
+            }).join('')}
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Top Selling Products \(by Sales Amount\)</div>
         <table>
             <thead>
                 <tr>
                     <th style="width: 55%">Product Name</th>
-                    <th style="width: 22%">Total Revenue</th>
+                    <th style="width: 22%">Total Sales Amount</th>
                     <th style="width: 23%">Units Sold</th>
                 </tr>
             </thead>
@@ -3489,8 +3512,7 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
                 <tr>
                     <th>Date</th>
                     <th>Orders</th>
-                    <th>Revenue</th>
-                    <th>Average Order Value</th>
+                    <th>Sales</th>
                 </tr>
             </thead>
             <tbody>
@@ -3499,7 +3521,6 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
                         <td>${day.date ? new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}</td>
                         <td>${day.count}</td>
                         <td>₱${(day.total || 0).toLocaleString()}</td>
-                        <td>₱${day.count > 0 ? ((day.total || 0) / day.count).toFixed(2) : '0.00'}</td>
                     </tr>
                 `).join('')}
             </tbody>
