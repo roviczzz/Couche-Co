@@ -1478,6 +1478,188 @@ tbody tr.selected {
         flex: 0 0 auto;
         width: 100%;
     }
+
+    /* Tablet adjustments for order summary */
+    .panel-header h2 {
+        font-size: 19px;
+    }
+
+    .order-detail-section h3 {
+        font-size: 16px;
+    }
+
+    .order-detail-section ul li {
+        padding: 14px;
+    }
+
+    .product-name {
+        font-size: 15px;
+    }
+
+    .product-quantity-price {
+        font-size: 13px;
+    }
+
+    .promo-name {
+        font-size: 15px;
+    }
+
+    .promo-discount {
+        font-size: 17px;
+    }
+}
+
+@media (max-width: 768px) {
+    .order-detail-panel {
+        width: 100%;
+        max-width: none;
+        margin: 20px 0 0 0;
+    }
+
+    .order-detail-panel.show {
+        flex: 0 0 auto;
+        width: 100%;
+        border-radius: 6px;
+    }
+
+    /* Mobile responsive adjustments for order summary */
+    .panel-header {
+        padding: 18px 20px 14px;
+    }
+
+    .panel-header h2 {
+        font-size: 18px;
+    }
+
+    .close-panel {
+        width: 36px;
+        height: 36px;
+        font-size: 20px;
+        right: 16px;
+    }
+
+    .panel-content {
+        padding: 16px 20px;
+    }
+
+    .order-detail-section {
+        margin-bottom: 24px;
+    }
+
+    .order-detail-section h3 {
+        font-size: 15px;
+        margin-bottom: 14px;
+    }
+
+    .order-detail-section ul li {
+        padding: 12px;
+        border-radius: 6px;
+    }
+
+    .product-name {
+        font-size: 14px;
+        margin-bottom: 4px;
+    }
+
+    .product-quantity-price {
+        font-size: 12px;
+        gap: 12px;
+    }
+
+    .product-addons {
+        margin-top: 6px;
+        padding-left: 10px;
+        border-left-width: 2px;
+    }
+
+    .addon-item {
+        padding: 3px 0;
+        font-size: 12px;
+    }
+
+    .product-price {
+        font-size: 14px;
+    }
+
+    .info-grid {
+        gap: 10px;
+    }
+
+    .info-item {
+        padding: 8px 0;
+    }
+
+    .info-label {
+        font-size: 14px;
+    }
+
+    .info-value {
+        font-size: 14px;
+    }
+
+    .promo-label {
+        padding: 6px 10px;
+        margin: 14px 0;
+        font-size: 13px;
+    }
+
+    .promo-section {
+        padding: 14px;
+        margin-bottom: 24px;
+    }
+
+    .promo-section h3 {
+        font-size: 16px;
+        margin-bottom: 10px;
+    }
+
+    .promo-name {
+        font-size: 14px;
+    }
+
+    .promo-discount {
+        font-size: 16px;
+    }
+
+    .summary-totals {
+        padding: 14px;
+        margin-top: 14px;
+    }
+
+    .summary-totals .total-line {
+        padding: 5px 0;
+        font-size: 14px;
+    }
+
+    .summary-totals .total-line.final {
+        font-size: 16px;
+        padding-top: 10px;
+    }
+
+    .order-detail-buttons {
+        padding: 18px 20px;
+    }
+
+    .button-row {
+        gap: 10px;
+    }
+
+    .btn-accent {
+        padding: 12px 14px;
+        font-size: 13px;
+        min-height: 44px;
+    }
+
+    .btn-secondary {
+        background-color: #f8f9fa;
+        color: #6c757d;
+        border: 1px solid #dee2e6;
+    }
+
+    .btn-secondary:hover {
+        background-color: #e9ecef;
+        color: #495057;
+    }
 }
 
 .cancel-confirmation-modal {
