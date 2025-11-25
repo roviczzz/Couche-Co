@@ -215,11 +215,17 @@ document.addEventListener('DOMContentLoaded', async function() {
 
           setTimeout(() => {
             window.location.href = `/order/success?orderId=${currentOrderId}`;
-          }, 3000);
+          }, 1500);
         } else if (!paymentStatusInterval) {
-          // This is from manual check, show notification
+          // This is from manual check, show notification and restore UI
           notificationSystem.warning('Payment not yet confirmed. Please complete the payment in the new tab.', 'Payment Status');
-        } // If polling, just continue without notification
+          overlay.classList.add('hidden');
+          placeOrderBtn.disabled = false;
+          placeOrderBtn.textContent = 'Place Order';
+        } else {
+          // If polling, just continue without notification
+          console.log('Still waiting for payment confirmation...');
+        }
       } else {
         const errorData = await response.json().catch(() => ({}));
         console.error('Payment check error:', errorData);
@@ -231,6 +237,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (!paymentStatusInterval) {
           // Only show notification if manual check
           notificationSystem.error(errorMessage, 'Payment Check Failed');
+          overlay.classList.add('hidden');
+          placeOrderBtn.disabled = false;
+          placeOrderBtn.textContent = 'Place Order';
         }
       }
     } catch (error) {
@@ -238,6 +247,9 @@ document.addEventListener('DOMContentLoaded', async function() {
       if (!paymentStatusInterval) {
         // Only show notification if manual check
         notificationSystem.error('Error checking payment status. Please try again or contact support.', 'Connection Error');
+        overlay.classList.add('hidden');
+        placeOrderBtn.disabled = false;
+        placeOrderBtn.textContent = 'Place Order';
       }
     }
   }
@@ -251,6 +263,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
     // Re-enable and show the button after closing modal
     placeOrderBtn.disabled = false;
+    placeOrderBtn.style.display = 'block';
     placeOrderBtn.textContent = 'Place Order';
   }
 
@@ -279,17 +292,11 @@ document.addEventListener('DOMContentLoaded', async function() {
       }
     }
 
-    // Show confirmation modal before placing order
-    showConfirmationModal(
-      'Confirm Order',
-      'Are you sure you want to place this order? Please review your details before proceeding.',
-      async () => {
-        // Disable button to prevent double submission
-        placeOrderBtn.disabled = true;
-        placeOrderBtn.style.display = 'none';
+    // Disable button to prevent double submission
+    placeOrderBtn.disabled = true;
 
-        try {
-          // Show overlay
+    try {
+      // Show overlay
       overlay.classList.remove('hidden');
       processingMessage.textContent = 'Checking inventory availability...';
       paymentInstructions.style.display = 'none';
@@ -323,7 +330,22 @@ document.addEventListener('DOMContentLoaded', async function() {
       });
 
       if (!inventoryCheck.ok) {
-        const inventoryError = await inventoryCheck.json();
+        if (inventoryCheck.status === 429) {
+          // Rate limited - show user-friendly message
+          notificationSystem.error('Too many requests. Please wait a moment and try again.', 'Rate Limited');
+          overlay.classList.add('hidden');
+          placeOrderBtn.disabled = false;
+          placeOrderBtn.textContent = 'Place Order';
+          return;
+        }
+        
+        let inventoryError;
+        try {
+          inventoryError = await inventoryCheck.json();
+        } catch (parseError) {
+          console.error('Failed to parse inventory check response:', parseError);
+          throw new Error('Inventory check failed. Please try again.');
+        }
         
         if (inventoryCheck.status === 409) {
           // Log detailed error information for debugging
@@ -331,30 +353,34 @@ document.addEventListener('DOMContentLoaded', async function() {
           console.log('Full error response:', inventoryError);
           
           // Log each unavailable item with details
-          inventoryError.unavailableItems.forEach(item => {
-            console.log(`Unavailable item: ${item.item} - Reason: ${item.reason}`);
-            if (item.missingIngredients && item.missingIngredients.length > 0) {
-              item.missingIngredients.forEach(ing => {
-                if (ing.type === 'addon') {
-                  console.log(`  Missing add-on: ${ing.name} - Need: ${ing.needed}, Available: ${ing.available}`);
-                } else {
-                  console.log(`  Missing ingredient: ${ing.name} - Need: ${ing.needed}g, Available: ${ing.available}g`);
-                }
-              });
+          if (inventoryError.unavailableItems && Array.isArray(inventoryError.unavailableItems)) {
+            inventoryError.unavailableItems.forEach(item => {
+              console.log(`Unavailable item: ${item.item} - Reason: ${item.reason}`);
+              if (item.missingIngredients && item.missingIngredients.length > 0) {
+                item.missingIngredients.forEach(ing => {
+                  if (ing.type === 'addon') {
+                    console.log(`  Missing add-on: ${ing.name} - Need: ${ing.needed}, Available: ${ing.available}`);
+                  } else {
+                    console.log(`  Missing ingredient: ${ing.name} - Need: ${ing.needed}g, Available: ${ing.available}g`);
+                  }
+                });
+              }
+            });
+            
+            // Customer-friendly message
+            const unavailableItemNames = inventoryError.unavailableItems.map(item => item.item);
+            let customerMessage;
+            
+            if (unavailableItemNames.length === 1) {
+              customerMessage = `Sorry, ${unavailableItemNames[0]} is currently unavailable due to insufficient ingredients.\n\nPlease choose a different item or modify your order.`;
+            } else {
+              customerMessage = `Sorry, the following items are currently unavailable:\n\n${unavailableItemNames.map(name => `• ${name}`).join('\n')}\n\nPlease choose different items or modify your order.`;
             }
-          });
-          
-          // Customer-friendly message
-          const unavailableItemNames = inventoryError.unavailableItems.map(item => item.item);
-          let customerMessage;
-          
-          if (unavailableItemNames.length === 1) {
-            customerMessage = `Sorry, ${unavailableItemNames[0]} is currently unavailable due to insufficient ingredients.\n\nPlease choose a different item or modify your order.`;
+            
+            notificationSystem.error(customerMessage, 'Item Unavailable');
           } else {
-            customerMessage = `Sorry, the following items are currently unavailable:\n\n${unavailableItemNames.map(name => `• ${name}`).join('\n')}\n\nPlease choose different items or modify your order.`;
+            notificationSystem.error('Some items in your cart are unavailable. Please modify your order.', 'Item Unavailable');
           }
-          
-          notificationSystem.error(customerMessage, 'Item Unavailable');
           overlay.classList.add('hidden');
           placeOrderBtn.disabled = false;
           placeOrderBtn.textContent = 'Place Order';
@@ -552,8 +578,6 @@ document.addEventListener('DOMContentLoaded', async function() {
       placeOrderBtn.disabled = false;
       placeOrderBtn.textContent = 'Place Order';
     }
-      }
-    );
   });
 
   // Load active promos and set up promo selection
@@ -764,28 +788,36 @@ document.addEventListener('DOMContentLoaded', async function() {
   deliveryMethodSelect.addEventListener('change', async function() {
     const method = this.value;
     const pickupAgreement = document.getElementById('pickupAgreement');
+    const deliveryAgreement = document.getElementById('deliveryAgreement');
     const deliveryFields = document.getElementById('deliveryFields');
     const pickupCheckbox = document.getElementById('pickupAgreed');
+    const deliveryCheckbox = document.getElementById('deliveryAgreed');
     const cityInput = document.getElementById('city');
     const addressInput = document.getElementById('address');
 
     if (method === 'Pick-up') {
       pickupAgreement.style.display = 'block';
+      deliveryAgreement.style.display = 'none';
       deliveryFields.style.display = 'none';
       pickupCheckbox.setAttribute('required', '');
+      deliveryCheckbox.removeAttribute('required');
       cityInput.removeAttribute('required');
       addressInput.removeAttribute('required');
     } else if (method === 'Delivery') {
       pickupAgreement.style.display = 'none';
+      deliveryAgreement.style.display = 'block';
       deliveryFields.style.display = 'block';
       pickupCheckbox.removeAttribute('required');
+      deliveryCheckbox.setAttribute('required', '');
       cityInput.setAttribute('required', '');
       addressInput.setAttribute('required', '');
     } else {
       // Default/unselected state
       pickupAgreement.style.display = 'none';
+      deliveryAgreement.style.display = 'none';
       deliveryFields.style.display = 'none';
       pickupCheckbox.removeAttribute('required');
+      deliveryCheckbox.removeAttribute('required');
       cityInput.removeAttribute('required');
       addressInput.removeAttribute('required');
     }
@@ -794,91 +826,6 @@ document.addEventListener('DOMContentLoaded', async function() {
   });
 
 });
-
-// Modal confirmation functions
-function showConfirmationModal(title, message, onConfirm = null, onCancel = null) {
-  const modal = document.getElementById('confirmationModal');
-  const modalTitle = document.getElementById('confirmationTitle');
-  const modalMessage = document.getElementById('confirmationMessage');
-  const confirmBtn = document.getElementById('confirmProceed');
-  const cancelBtn = document.getElementById('confirmCancel');
-
-  if (!modal || !modalTitle || !modalMessage || !confirmBtn || !cancelBtn) {
-    console.error('Confirmation modal elements not found');
-    return;
-  }
-
-  // Set content
-  modalTitle.textContent = title;
-  modalMessage.textContent = message;
-
-  // Set up event handlers
-  const handleConfirm = () => {
-    hideConfirmationModal();
-    if (onConfirm) onConfirm();
-  };
-
-  const handleCancel = () => {
-    hideConfirmationModal();
-    if (onCancel) onCancel();
-  };
-
-  // Remove previous event listeners
-  confirmBtn.replaceWith(confirmBtn.cloneNode(true));
-  cancelBtn.replaceWith(cancelBtn.cloneNode(true));
-
-  // Get fresh references
-  const newConfirmBtn = document.getElementById('confirmProceed');
-  const newCancelBtn = document.getElementById('confirmCancel');
-
-  // Add new event listeners
-  newConfirmBtn.addEventListener('click', handleConfirm);
-  newCancelBtn.addEventListener('click', handleCancel);
-
-  // Add click outside to close
-  const handleOutsideClick = (e) => {
-    if (e.target === modal) {
-      hideConfirmationModal();
-      if (onCancel) onCancel();
-    }
-  };
-
-  modal.addEventListener('click', handleOutsideClick);
-
-  // Add escape key to close
-  const handleEscape = (e) => {
-    if (e.key === 'Escape') {
-      hideConfirmationModal();
-      if (onCancel) onCancel();
-    }
-  };
-
-  document.addEventListener('keydown', handleEscape);
-
-  // Store handlers for cleanup
-  modal._outsideClickHandler = handleOutsideClick;
-  modal._escapeHandler = handleEscape;
-
-  // Show modal
-  modal.classList.add('show');
-}
-
-function hideConfirmationModal() {
-  const modal = document.getElementById('confirmationModal');
-  if (modal) {
-    modal.classList.remove('show');
-
-    // Clean up event listeners
-    if (modal._outsideClickHandler) {
-      modal.removeEventListener('click', modal._outsideClickHandler);
-      delete modal._outsideClickHandler;
-    }
-    if (modal._escapeHandler) {
-      document.removeEventListener('keydown', modal._escapeHandler);
-      delete modal._escapeHandler;
-    }
-  }
-}
 
 // Clear user's cart from both localStorage and database upon successful payment
 async function clearUserCart() {

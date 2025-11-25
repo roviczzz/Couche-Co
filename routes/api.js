@@ -270,7 +270,7 @@ router.get('/xendit/check-payment-by-order/:OrderID', async (req, res) => {
   }
 })
 
-router.post('/xendit/webhook', express.raw({type: 'application/json'}), (req, res) => {
+router.post('/xendit/webhook', express.raw({type: 'application/json'}), async (req, res) => {
   try {
     const payload = JSON.parse(req.body)
 
@@ -278,8 +278,7 @@ router.post('/xendit/webhook', express.raw({type: 'application/json'}), (req, re
 
     if (payload.status === 'PAID') {
       console.log(`Payment completed for invoice: ${payload.external_id}`)
-      // Update order status in database
-      updateOrderAfterPayment(payload.external_id)
+      await updateOrderAfterPayment(req.db, payload.external_id)
     }
 
     res.status(200).send('OK')
@@ -289,20 +288,40 @@ router.post('/xendit/webhook', express.raw({type: 'application/json'}), (req, re
   }
 })
 
-// Helper function to update order after payment
-async function updateOrderAfterPayment(externalId) {
+async function updateOrderAfterPayment(db, externalId) {
   try {
-    // Using shared DB connection from req.db
-    const result = await req.db.collection('Orders').updateOne(
+    const result = await db.collection('Orders').updateOne(
       { OrderID: externalId },
       {
         $set: {
           PaymentStatus: 'Paid',
-          FulfillmentStatus: 'Preparing' // or 'Ready for Processing'
+          FulfillmentStatus: 'Preparing'
         }
       }
     )
     console.log(`Updated order ${externalId} payment status: ${result.matchedCount} matched`)
+
+    if (result.matchedCount > 0) {
+      const order = await db.collection('Orders').findOne({ OrderID: externalId })
+      const customerEmail = order?.Customer?.email || order?.Customer?.Email;
+      const customerName = order?.Customer?.Name || order?.Customer?.FullName || order?.Customer?.fullname || 'Valued Customer';
+      const isEwalletPayment = order?.PaymentMode === 'E-Payment' || ['GCASH', 'PAYMAYA', 'SHOPEEPAY', 'EWALLET'].includes(order?.PaymentMethod);
+      
+      if (order && isEwalletPayment && order.Customer && customerEmail) {
+        const { sendOrderReceipt } = require('../utils/emailService')
+        const emailResult = await sendOrderReceipt(
+          order,
+          customerEmail,
+          customerName
+        )
+        
+        if (emailResult.success) {
+          console.log(`✅ Receipt email sent for e-payment order ${externalId}`)
+        } else {
+          console.warn(`⚠️ Failed to send receipt email for e-payment order ${externalId}: ${emailResult.error}`)
+        }
+      }
+    }
   } catch (error) {
     console.error('Error updating order after payment:', error)
   }
@@ -329,11 +348,23 @@ router.post('/orders', checkInventoryAvailability, async (req, res) => {
       console.warn(`Order ${orderData.OrderID} created without inventory validation due to: ${req.inventoryError}`);
     }
 
-    await req.db.collection('Orders').insertOne(orderData);
+    console.log(`[ORDER] Inserting order ${orderData.OrderID} into database...`);
+    const insertResult = await req.db.collection('Orders').insertOne(orderData);
+    console.log(`[ORDER] Order inserted successfully with ID: ${insertResult.insertedId}`);
+
+    // Fetch the created order for reference
+    const createdOrder = await req.db.collection('Orders').findOne({ OrderID: orderData.OrderID });
+    if (!createdOrder) {
+      console.error(`[ORDER ERROR] Failed to retrieve created order ${orderData.OrderID}`);
+      return res.status(500).json({ success: false, error: 'Order created but could not be retrieved' });
+    }
+    console.log(`[ORDER] Successfully retrieved created order from database`);
 
     // For cash orders, deduct inventory immediately since payment is already received
     if (orderData.PaymentMethod === 'cash') {
       console.log(`[ORDER] Cash order ${orderData.OrderID} detected, deducting inventory immediately...`);
+      // Attach db to orderData for inventory operations
+      orderData.db = req.db;
       const inventoryResult = await deductInventoryAfterPayment(orderData);
 
       if (!inventoryResult.success) {
@@ -364,7 +395,6 @@ router.post('/orders', checkInventoryAvailability, async (req, res) => {
       }
     }
 
-    // Trigger new order notification
     try {
       const { triggerBusinessEventNotification } = require('../admin-helpers');
       await triggerBusinessEventNotification(req.db, 'new-order', {
@@ -376,11 +406,41 @@ router.post('/orders', checkInventoryAvailability, async (req, res) => {
       console.error('Error creating new order notification:', notifError);
     }
 
-    console.log(`Order created: ${orderData.OrderID} (Inventory ${req.inventoryChecked ? 'validated' : 'check failed'})`);
+    try {
+      const { sendOrderReceipt } = require('../utils/emailService');
+      if (orderData.Customer && orderData.Customer.Email) {
+        // For e-payment orders, skip email on creation (will send after payment confirmed)
+        // For cash orders, send email immediately
+        if (orderData.PaymentMethod !== 'e-payment') {
+          const emailResult = await sendOrderReceipt(
+            createdOrder,
+            orderData.Customer.Email,
+            orderData.Customer.Name || orderData.Customer.FullName || 'Valued Customer'
+          );
+          if (emailResult.success) {
+            console.log(`Receipt email sent for ${orderData.PaymentMethod} order ${orderData.OrderID}`);
+          } else {
+            console.warn(`Failed to send receipt email for ${orderData.PaymentMethod} order ${orderData.OrderID}: ${emailResult.error}`);
+          }
+        } else {
+          console.log(`[EMAIL] E-payment order ${orderData.OrderID} created. Email will be sent after payment confirmation.`);
+        }
+      }
+    } catch (emailError) {
+      console.error('Error sending order receipt email:', emailError);
+    }
+
+    console.log(`✅ Order created: ${orderData.OrderID} (Inventory ${req.inventoryChecked ? 'validated' : 'check failed'})`);
     res.json({ success: true, orderId: orderData.OrderID });
   } catch (err) {
-    console.error('Error saving order:', err);
-    res.status(500).json({ success: false, error: 'Failed to save order' });
+    console.error('❌ Error saving order:', err);
+    console.error('❌ Error stack:', err.stack);
+    console.error('❌ Error details:', {
+      message: err.message,
+      code: err.code,
+      name: err.name
+    });
+    res.status(500).json({ success: false, error: 'Failed to save order', details: err.message });
   }
 });
 
@@ -420,6 +480,8 @@ router.post('/orders/update-payment-status', async (req, res) => {
       
       if (order) {
         console.log(`[ORDER] Payment confirmed for order ${paymentId}, processing inventory deduction...`);
+        // Attach db to order for inventory operations
+        order.db = req.db;
         const inventoryResult = await deductInventoryAfterPayment(order);
         
         if (!inventoryResult.success) {
@@ -447,6 +509,36 @@ router.post('/orders/update-payment-status', async (req, res) => {
             }
           );
           console.log(`[ORDER SUCCESS] Inventory successfully deducted for order ${paymentId}. Items processed: ${inventoryResult.deductions.length}`);
+        }
+
+        const orderPaymentMethod = order.PaymentMethod || PaymentMethod;
+        const customerEmail = order.Customer?.email || order.Customer?.Email;
+        const customerName = order.Customer?.Name || order.Customer?.FullName || order.Customer?.fullname || 'Valued Customer';
+        const isEwalletPayment = order.PaymentMode === 'E-Payment' || ['GCASH', 'PAYMAYA', 'SHOPEEPAY', 'EWALLET'].includes(orderPaymentMethod);
+        console.log(`[EMAIL] Checking email conditions: PaymentMethod=${orderPaymentMethod}, PaymentMode=${order.PaymentMode}, Has Email=${!!customerEmail}, Customer=${customerName}, IsEwallet=${isEwalletPayment}`);
+        
+        if (isEwalletPayment && order.Customer && customerEmail) {
+          // Send email asynchronously (fire and forget) so it doesn't delay the response
+          (async () => {
+            try {
+              console.log(`[EMAIL] Triggering receipt email for e-wallet order ${paymentId} to ${customerEmail}`);
+              const { sendOrderReceipt } = require('../utils/emailService');
+              const emailResult = await sendOrderReceipt(
+                order,
+                customerEmail,
+                customerName
+              );
+              if (emailResult.success) {
+                console.log(`✅ Receipt email sent for e-payment order ${paymentId}`);
+              } else {
+                console.warn(`⚠️ Failed to send receipt email for e-payment order ${paymentId}: ${emailResult.error}`);
+              }
+            } catch (emailError) {
+              console.error('Error sending order receipt email:', emailError);
+            }
+          })();
+        } else {
+          console.log(`[EMAIL] Email conditions NOT met. PaymentMethod: ${orderPaymentMethod}, Email provided: ${!!order.Customer?.Email}`);
         }
       }
     }
@@ -632,56 +724,6 @@ router.patch('/orders/:OrderID/restore', async (req, res) => {
   }
 });
 
-router.get('/orders/:orderId/status', async (req, res) => {
-  try {
-    const { orderId } = req.params;
-    // Using shared DB connection from req.db
-    const ordersCollection = req.db.collection('Orders');
-
-    const order = await ordersCollection.findOne({ OrderID: orderId });
-
-    if (!order) {
-      return res.status(404).json({ error: 'Order not found' });
-    }
-
-    // Calculate progress percentage based on FulfillmentStatus
-    let progressPercentage = 25; // Default preparing
-    let statusText = 'Preparing your order';
-    switch (order.FulfillmentStatus) {
-      case 'Preparing':
-        progressPercentage = 25;
-        statusText = 'Preparing your order';
-        break;
-      case 'In Progress':
-        progressPercentage = 50;
-        statusText = 'Your order is being prepared';
-        break;
-      case 'Ready':
-        progressPercentage = 90;
-        statusText = 'Your order is ready for pickup';
-        break;
-      case 'Completed':
-        progressPercentage = 100;
-        statusText = 'Order completed successfully';
-        break;
-      default:
-        progressPercentage = 25;
-        statusText = 'Preparing your order';
-    }
-
-    res.json({
-      FulfillmentStatus: order.FulfillmentStatus,
-      PaymentStatus: order.PaymentStatus,
-      progressPercentage: progressPercentage,
-      statusText: statusText,
-      orderId: order.OrderID
-    });
-  } catch (error) {
-    console.error('Error fetching order status:', error);
-    res.status(500).json({ error: 'Failed to fetch order status' });
-  }
-});
-
 // Add Stock Management Routes
 router.get('/stocks/ingredients', async (req, res) => {
   try {
@@ -784,13 +826,75 @@ router.get('/ingredients/search', async (req, res) => {
 
     // Using shared DB connection from req.db
 
-    // Search for ingredients that match the Name
+    // Search for ingredients that match the Name or itemName
     const results = await req.db.collection('Ingredients')
-      .find({ Name: { $regex: query, $options: 'i' }, isEnabled: true })
-      .project({ IngredientID: 1, Name: 1, _id: 0 })
+      .find({
+        $or: [
+          { Name: { $regex: query, $options: 'i' } },
+          { itemName: { $regex: query, $options: 'i' } }
+        ],
+        isEnabled: true
+      })
+      .project({
+        IngredientID: 1,
+        Name: { $ifNull: ["$Name", "$itemName"] },
+        _id: 0
+      })
       .limit(50)
       .toArray();
-    res.json(results);
+
+    // Process results to ensure IngredientID is always present
+    const processedResults = await Promise.all(results.map(async (item) => {
+      try {
+        let ingredientId = item.IngredientID;
+        let name = item.Name;
+
+        // Generate IngredientID if missing or null, and save it to the collection
+        if (!ingredientId) {
+          // Generate format like ING-TEA from name
+          const safeName = (name && typeof name === 'string') ? name : 'Unnamed';
+          ingredientId = `ING-${safeName.toUpperCase().replace(/[^A-Z0-9]/g, '-')}`;
+
+          // Persist the generated IngredientID back to the Ingredients collection
+          try {
+            await req.db.collection('Ingredients').updateOne(
+              { _id: item._id },
+              { $set: { IngredientID: ingredientId } }
+            );
+          } catch (updateErr) {
+            console.error('Failed to update IngredientID in collection:', updateErr);
+          }
+        }
+
+        // Ensure IngredientID is always valid
+        if (!ingredientId || typeof ingredientId !== 'string') {
+          ingredientId = 'GENERATED-' + Date.now();
+        }
+
+        // Ensure Name is never null for proper display
+        if (!name || typeof name !== 'string') {
+          name = 'Unknown Ingredient';
+        }
+
+        return {
+          IngredientID: ingredientId,
+          ingredientID: ingredientId,
+          id: ingredientId,
+          Name: name
+        };
+      } catch (err) {
+        console.error('Error processing ingredient item:', err, item);
+        // Return safe fallback
+        return {
+          IngredientID: 'ERROR-' + Date.now(),
+          ingredientID: 'ERROR-' + Date.now(),
+          id: 'ERROR-' + Date.now(),
+          Name: item.Name || 'Error Loading Ingredient'
+        };
+      }
+    }));
+
+    res.json(processedResults);
   } catch (err) {
     console.error('Error in ingredient search:', err);
     res.status(500).json({ error: 'Server error' });
@@ -1513,7 +1617,7 @@ router.get('/search', async (req, res) => {
         Name: { $regex: `^${trimmedQuery}`, $options: 'i' },
         isEnabled: { $ne: false } // Only enabled products
       })
-      .project({ Name: 1, Category: 1, imagelink: 1, _id: 1 })
+      .project({ Name: 1, Category: 1, imagelink: 1, _id: 1, ProductID: 1, Ingredients: 1, isEnabled: 1, Quantity: 1 })
       .limit(5)
       .toArray();
 
@@ -1527,7 +1631,7 @@ router.get('/search', async (req, res) => {
           isEnabled: { $ne: false },
           _id: { $nin: results.map(r => r._id) } // Exclude already found results
         })
-        .project({ Name: 1, Category: 1, imagelink: 1, _id: 1 })
+        .project({ Name: 1, Category: 1, imagelink: 1, _id: 1, ProductID: 1, Ingredients: 1, isEnabled: 1, Quantity: 1 })
         .limit(10 - results.length)
         .toArray();
 
@@ -1553,10 +1657,11 @@ router.get('/search', async (req, res) => {
     const InventoryManager = require('../utils/inventoryManager');
     for (const item of finalResults) {
       try {
-        const availabilityCheck = await InventoryManager.checkProductAvailability(item.ProductID);
+        const productId = item.ProductID || item._id;
+        const availabilityCheck = await InventoryManager.checkProductAvailability(productId);
         item.isAvailable = availabilityCheck.available;
       } catch (error) {
-        console.error(`Error checking availability for ${item.ProductID}:`, error);
+        console.error(`Error checking availability for ${item.ProductID || item._id}:`, error);
         item.isAvailable = true;
       }
     }
@@ -1782,12 +1887,18 @@ router.get('/orders/:orderId/status', async (req, res) => {
     const { orderId } = req.params;
     const order = await req.db.collection('Orders').findOne(
       { OrderID: orderId },
-      { projection: { FulfillmentStatus: 1 } }
+      { projection: { FulfillmentStatus: 1, FulfillmentMethod: 1 } }
     );
     if (!order) {
       return res.status(404).json({ success: false, error: 'Order not found' });
     }
-    res.json({ success: true, data: { fulfillmentStatus: order.FulfillmentStatus } });
+    res.json({ 
+      success: true, 
+      data: { 
+        fulfillmentStatus: order.FulfillmentStatus,
+        fulfillmentMethod: order.FulfillmentMethod || 'Pickup'
+      } 
+    });
   } catch (error) {
     console.error('Status polling error:', error);
     res.status(500).json({ success: false, error: 'Internal server error' });

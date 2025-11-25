@@ -305,7 +305,9 @@ router.post('/products/add', async (req, res) => {
     Allergen,
     imagelink,
     isEnabled,
-    BasePrice
+    BasePrice,
+    addonCategories,
+    applicableCategories
   } = req.body;
 
   const categoryMap = {
@@ -333,6 +335,25 @@ router.post('/products/add', async (req, res) => {
       ? Ingredients.split(',').map(i => i.trim())
       : [];
 
+  // Parse applicable categories for add-ons
+  let applicableCategoriesArray = [];
+  if (addonCategories) {
+    const categoriesArray = Array.isArray(addonCategories) ? addonCategories : [addonCategories];
+    applicableCategoriesArray = categoriesArray.filter(cat => 
+      ['Coffee', 'Milktea', 'Fruit Tea'].includes(cat)
+    );
+  } else if (applicableCategories) {
+    try {
+      applicableCategoriesArray = JSON.parse(applicableCategories);
+      if (!Array.isArray(applicableCategoriesArray)) {
+        applicableCategoriesArray = [];
+      }
+    } catch (err) {
+      console.error('Error parsing applicableCategories JSON:', err);
+      applicableCategoriesArray = [];
+    }
+  }
+
   const productData = {
     ProductID,
     Name,
@@ -343,6 +364,11 @@ router.post('/products/add', async (req, res) => {
     imagelink: imagelink || 'placeholder',
     isEnabled: isEnabled === 'true'
   };
+
+  // Add applicable categories if provided
+  if (applicableCategoriesArray.length > 0) {
+    productData.applicableCategories = applicableCategoriesArray;
+  }
 
   if (Category.toLowerCase() === 'pastries' && !isNaN(parseFloat(BasePrice))) {
     productData.BasePrice = parseFloat(BasePrice);

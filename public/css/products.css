@@ -578,3 +578,36 @@ body {
   background-color: #f3e5d0;
   border-color: #a0522d;
 }
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.section-title {
+  flex: 1;
+}
+
+.addon-recommendation-btn {
+  background-color: #a05c2f;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  white-space: nowrap;
+  margin-left: 1rem;
+  font-weight: 600;
+}
+
+.addon-recommendation-btn:hover {
+  background-color: #8b4a26;
+}
+
+.addon-recommendation-box {
+  min-width: 500px;
+}

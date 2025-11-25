@@ -21,7 +21,7 @@ services:
       - ORDER_COMPLETION_SECRET=${ORDER_COMPLETION_SECRET}
       - SESSION_SECRET=${SESSION_SECRET}
       - GMAIL_USER=${GMAIL_USER}
-      - GMAIL_PASS=${GMAIL_PASS}
+      - GMAIL_PASSWORD=${GMAIL_PASSWORD}
     restart: unless-stopped
 
 volumes:

@@ -21,6 +21,21 @@
       <% } %>
     </div>
   </div>
+
+  <div class="order-items">
+    <h3>Items Ordered</h3>
+    <ul>
+      <% if (order.Cart && Array.isArray(order.Cart)) { %>
+        <% order.Cart.forEach(function(item) { %>
+          <li>
+            <%= item.Quantity %>x <%= item.ProductName || item.Name || 'Unnamed Product' %> - ₱<%= item.Price ? item.Price.toFixed(2) : 'N/A' %>
+          </li>
+        <% }); %>
+      <% } else { %>
+        <li>No items found</li>
+      <% } %>
+    </ul>
+  </div>
   <% } %>
 
   <div class="action-buttons">

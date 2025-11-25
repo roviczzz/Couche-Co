@@ -517,3 +517,426 @@ input:checked + .slider:before {
     background: var(--sidebar-hover-bg);
     color: var(--text-color);
 }
+
+/* Page Management Styles */
+.page-management-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e1e5e9;
+}
+
+.tab-button {
+    padding: 12px 16px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    color: #999;
+    transition: all 0.3s;
+    margin-bottom: -2px;
+}
+
+.tab-button.active {
+    color: #8B4513;
+    border-bottom-color: #8B4513;
+}
+
+.tab-button:hover {
+    color: #333;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.carousel-slides-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.carousel-slide-card {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.carousel-slide-card:hover {
+    transform: translateY(-2px);
+}
+
+.slide-thumbnail {
+    position: relative;
+    width: 100%;
+    height: 120px;
+    overflow: hidden;
+    background: #f0f0f0;
+    border-radius: 6px;
+    border: 2px solid #e1e5e9;
+}
+
+.slide-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+
+.carousel-slide-card:hover .slide-thumbnail img {
+    transform: scale(1.05);
+}
+
+.slide-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.carousel-slide-card:hover .slide-overlay {
+    opacity: 1;
+}
+
+.btn-edit-slide,
+.btn-delete-slide {
+    width: 36px;
+    height: 36px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+.btn-edit-slide {
+    background: #007bff;
+    color: white;
+}
+
+.btn-edit-slide:hover {
+    background: #0056b3;
+}
+
+.btn-delete-slide {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-delete-slide:hover {
+    background: #c82333;
+}
+
+.slide-info {
+    padding: 8px;
+    background: white;
+    border: 1px solid #e1e5e9;
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+}
+
+.slide-info h4 {
+    margin: 0 0 4px 0;
+    font-size: 12px;
+    font-weight: 700;
+    color: #333;
+}
+
+.slide-title-text {
+    margin: 0 0 3px 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: #8B4513;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.slide-preview {
+    margin: 0;
+    font-size: 11px;
+    color: #666;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Modal Styles */
+.slide-edit-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.slide-edit-modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #e1e5e9;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: #333;
+    font-size: 18px;
+}
+
+.btn-close-modal {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #999;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+}
+
+.btn-close-modal:hover {
+    color: #333;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.modal-body .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 15px;
+}
+
+.modal-body .form-group label {
+    font-weight: 600;
+    color: #333;
+    font-size: 13px;
+}
+
+.modal-body input,
+.modal-body textarea {
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.modal-body input:focus,
+.modal-body textarea:focus {
+    outline: none;
+    border-color: #8B4513;
+    box-shadow: 0 0 0 2px rgba(139, 69, 19, 0.1);
+}
+
+.modal-body textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.image-preview {
+    width: 100%;
+    height: 120px;
+    background: #f0f0f0;
+    border: 1px solid #e1e5e9;
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.image-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.btn-upload-image {
+    width: 100%;
+    padding: 10px 16px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-upload-image:hover {
+    background: #0056b3;
+}
+
+.modal-footer {
+    display: flex;
+    gap: 10px;
+    padding: 20px;
+    border-top: 1px solid #e1e5e9;
+    justify-content: flex-end;
+}
+
+.modal-footer button {
+    padding: 10px 16px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.btn-cancel-edit {
+    background: #f0f0f0;
+    color: #333;
+}
+
+.btn-cancel-edit:hover {
+    background: #e0e0e0;
+}
+
+.btn-save-slide-edit {
+    background: #8B4513;
+    color: white;
+}
+
+.btn-save-slide-edit:hover {
+    background: #6b3410;
+}
+
+/* Dark theme for Page Management */
+.dark-theme .page-management-tabs {
+    border-bottom-color: var(--border-color);
+}
+
+.dark-theme .tab-button {
+    color: var(--sidebar-text);
+}
+
+.dark-theme .tab-button.active {
+    color: #a05c2f;
+    border-bottom-color: #a05c2f;
+}
+
+.dark-theme .slide-thumbnail {
+    border-color: var(--border-color);
+}
+
+.dark-theme .slide-info {
+    background: var(--card-bg);
+    border-color: var(--border-color);
+}
+
+.dark-theme .slide-info h4,
+.dark-theme .slide-title-text {
+    color: var(--text-color);
+}
+
+.dark-theme .slide-preview {
+    color: var(--sidebar-text);
+}
+
+.dark-theme .modal-content {
+    background: var(--card-bg);
+}
+
+.dark-theme .modal-header {
+    border-bottom-color: var(--border-color);
+}
+
+.dark-theme .modal-header h3 {
+    color: var(--text-color);
+}
+
+.dark-theme .modal-body input,
+.dark-theme .modal-body textarea {
+    background: var(--input-bg);
+    border-color: var(--input-border);
+    color: var(--text-color);
+}
+
+.dark-theme .image-preview {
+    background: rgba(0, 0, 0, 0.2);
+    border-color: var(--border-color);
+}
+
+.dark-theme .modal-footer {
+    border-top-color: var(--border-color);
+}
+
+.dark-theme .btn-cancel-edit {
+    background: var(--card-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+.dark-theme .btn-cancel-edit:hover {
+    background: var(--sidebar-hover-bg);
+}
+
+@media (max-width: 768px) {
+    .carousel-slides-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 10px;
+    }
+
+    .modal-content {
+        max-width: 90vw;
+    }
+}
+

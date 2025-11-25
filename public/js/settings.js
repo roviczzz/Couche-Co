@@ -269,3 +269,307 @@ if (createAccountForm) {
         }
     });
 }
+
+class CarouselPageManager {
+    constructor() {
+        this.carouselData = null;
+        this.editingIndex = null;
+        this.init();
+    }
+
+    async init() {
+        try {
+            await this.loadCarouselData();
+            this.renderSlides();
+            this.attachEventListeners();
+        } catch (error) {
+            console.error('Failed to initialize carousel manager:', error);
+        }
+    }
+
+    async loadCarouselData() {
+        const response = await fetch('/admin/api/page-management/carousel');
+        if (!response.ok) throw new Error('Failed to load carousel data');
+        const result = await response.json();
+        this.carouselData = result.data;
+    }
+
+    renderSlides() {
+        const slidesList = document.getElementById('carouselSlidesList');
+        if (!slidesList || !this.carouselData) return;
+
+        slidesList.innerHTML = this.carouselData.slides.map((slide, index) => `
+            <div class="carousel-slide-card" data-slide-id="${slide.slideId}" data-index="${index}">
+                <div class="slide-thumbnail">
+                    <img src="${slide.bannerImage}" alt="${slide.title}">
+                    <div class="slide-overlay">
+                        <button type="button" class="btn-edit-slide" data-index="${index}" title="Edit slide">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button type="button" class="btn-delete-slide" data-index="${index}" title="Delete slide">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="slide-info">
+                    <h4>Slide ${index + 1}</h4>
+                    <p class="slide-title-text">${slide.title}</p>
+                    <p class="slide-preview">${slide.caption.substring(0, 60)}${slide.caption.length > 60 ? '...' : ''}</p>
+                </div>
+            </div>
+        `).join('');
+
+        this.renderEditModal();
+    }
+
+    renderEditModal() {
+        let editModal = document.getElementById('slideEditModal');
+        if (!editModal) {
+            editModal = document.createElement('div');
+            editModal.id = 'slideEditModal';
+            editModal.className = 'slide-edit-modal';
+            document.body.appendChild(editModal);
+        }
+
+        if (this.editingIndex !== null) {
+            const slide = this.carouselData.slides[this.editingIndex];
+            editModal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Edit Slide ${this.editingIndex + 1}</h3>
+                        <button type="button" class="btn-close-modal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Title</label>
+                            <input type="text" class="slide-title" value="${slide.title}" placeholder="Slide title">
+                        </div>
+                        <div class="form-group">
+                            <label>Caption/Description</label>
+                            <textarea class="slide-caption" placeholder="Slide caption" rows="4">${slide.caption}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Button Text</label>
+                            <input type="text" class="slide-button-text" value="${slide.buttonText}" placeholder="Button text">
+                        </div>
+                        <div class="form-group">
+                            <label>Banner Image</label>
+                            <div class="image-preview">
+                                <img src="${slide.bannerImage}" alt="Current banner">
+                            </div>
+                            <button type="button" class="btn-upload-image">
+                                <i class="fas fa-upload"></i> Change Image
+                            </button>
+                            <input type="file" class="slide-image-upload" accept="image/*" style="display: none;">
+                            <p style="font-size: 11px; color: #999; margin-top: 8px;">Max: 2MB (JPG, PNG, WebP - any resolution)</p>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secondary btn-cancel-edit">Cancel</button>
+                        <button type="button" class="btn-primary btn-save-slide-edit">Save Changes</button>
+                    </div>
+                </div>
+            `;
+            editModal.classList.add('active');
+        } else {
+            editModal.classList.remove('active');
+        }
+    }
+
+    attachEventListeners() {
+        const slidesList = document.getElementById('carouselSlidesList');
+        
+        slidesList.querySelectorAll('.btn-edit-slide').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.editingIndex = parseInt(btn.dataset.index);
+                this.renderEditModal();
+                this.attachModalListeners();
+            });
+        });
+
+        slidesList.querySelectorAll('.btn-delete-slide').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const index = parseInt(btn.dataset.index);
+                if (this.carouselData.slides.length > 1 && confirm('Are you sure you want to delete this slide?')) {
+                    this.carouselData.slides.splice(index, 1);
+                    this.renderSlides();
+                    this.attachEventListeners();
+                } else if (this.carouselData.slides.length === 1) {
+                    alert('You must keep at least one slide');
+                }
+            });
+        });
+
+        const addSlideBtn = document.getElementById('addSlideBtn');
+        if (addSlideBtn) {
+            addSlideBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const newSlide = {
+                    slideId: `slide-${Date.now()}`,
+                    title: 'New Slide',
+                    caption: 'Enter slide caption here',
+                    bannerImage: '/resources/BannerBC.png',
+                    buttonText: 'Learn More',
+                    order: this.carouselData.slides.length + 1
+                };
+                this.carouselData.slides.push(newSlide);
+                this.renderSlides();
+                this.attachEventListeners();
+            });
+        }
+
+        const saveCarouselBtn = document.getElementById('saveCarouselBtn');
+        if (saveCarouselBtn) {
+            saveCarouselBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.saveCarousel();
+            });
+        }
+    }
+
+    attachModalListeners() {
+        const modal = document.getElementById('slideEditModal');
+        if (!modal) return;
+
+        const uploadBtn = modal.querySelector('.btn-upload-image');
+        const fileInput = modal.querySelector('.slide-image-upload');
+        
+        if (uploadBtn) {
+            uploadBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                fileInput.click();
+            });
+        }
+
+        if (fileInput) {
+            fileInput.addEventListener('change', (e) => {
+                this.handleImageUpload(e, this.editingIndex);
+            });
+        }
+
+        const closeBtn = modal.querySelector('.btn-close-modal');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                this.editingIndex = null;
+                this.renderEditModal();
+            });
+        }
+
+        const cancelBtn = modal.querySelector('.btn-cancel-edit');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => {
+                this.editingIndex = null;
+                this.renderEditModal();
+            });
+        }
+
+        const saveBtn = modal.querySelector('.btn-save-slide-edit');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', () => {
+                this.saveSlideEdit();
+            });
+        }
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.editingIndex = null;
+                this.renderEditModal();
+            }
+        });
+    }
+
+    saveSlideEdit() {
+        const modal = document.getElementById('slideEditModal');
+        if (this.editingIndex !== null) {
+            this.carouselData.slides[this.editingIndex].title = modal.querySelector('.slide-title').value;
+            this.carouselData.slides[this.editingIndex].caption = modal.querySelector('.slide-caption').value;
+            this.carouselData.slides[this.editingIndex].buttonText = modal.querySelector('.slide-button-text').value;
+            
+            this.editingIndex = null;
+            this.renderSlides();
+            this.attachEventListeners();
+        }
+    }
+
+    async handleImageUpload(e, index) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('bannerImage', file);
+
+        try {
+            const response = await fetch('/admin/api/page-management/carousel/upload-image', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                this.carouselData.slides[index].bannerImage = result.data.path;
+                const modal = document.getElementById('slideEditModal');
+                const preview = modal.querySelector('.image-preview img');
+                if (preview) {
+                    preview.src = result.data.path;
+                }
+                alert('Image uploaded successfully');
+            } else {
+                alert('Error uploading image: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Image upload error:', error);
+            alert('Failed to upload image');
+        }
+    }
+
+    async saveCarousel() {
+        const saveBtn = document.getElementById('saveCarouselBtn');
+        const btnText = saveBtn.querySelector('.btn-text');
+        const btnLoader = saveBtn.querySelector('.btn-loader');
+
+        btnText.style.display = 'none';
+        btnLoader.style.display = 'inline';
+
+        try {
+            const updatedSlides = this.carouselData.slides.map((slide, index) => ({
+                slideId: slide.slideId,
+                title: slide.title,
+                caption: slide.caption,
+                bannerImage: slide.bannerImage,
+                buttonText: slide.buttonText,
+                order: index + 1
+            }));
+
+            const response = await fetch('/admin/api/page-management/carousel/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ slides: updatedSlides })
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                alert('Carousel saved successfully! Changes will appear on the home page.');
+                await this.loadCarouselData();
+                this.renderSlides();
+                this.attachEventListeners();
+            } else {
+                alert('Error saving carousel: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Carousel save error:', error);
+            alert('Failed to save carousel');
+        } finally {
+            btnText.style.display = 'inline';
+            btnLoader.style.display = 'none';
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const carouselTab = document.getElementById('carousel-tab');
+    if (carouselTab) {
+        new CarouselPageManager();
+    }
+});

@@ -1,17 +1,164 @@
 <link rel="stylesheet" href="/css/home.css">
 <link rel="stylesheet" href="/css/site-public.css">
 
-<section class="welcome-section">
-    <div class="welcome-content">
-        <h1>Blessings Cafe</h1>
-        <p>Welcome to Blessings Cafe — your happy spot for good drinks and good vibes. Here, every cup is made with care and a little touch of joy. Because at Blessings Cafe, we believe there are “Blessings at Every Sip.”</p>
-        <div class="welcome-actions">
-            <a onclick="scrollToMenu()" class="btn btn-primary">View Menu</a>
+<section class="carousel-banner">
+    <div class="carousel-container">
+        <div class="carousel-inner" id="carouselInner">
+            <!-- Slides will be dynamically loaded here -->
+        </div>
+
+        <button class="carousel-control carousel-control-prev" onclick="carouselBannerController.prev()">
+            <span class="carousel-control-icon">&#10094;</span>
+        </button>
+        <button class="carousel-control carousel-control-next" onclick="carouselBannerController.next()">
+            <span class="carousel-control-icon">&#10095;</span>
+        </button>
+
+        <div class="carousel-indicators" id="carouselIndicators">
+            <!-- Indicators will be dynamically generated here -->
         </div>
     </div>
 </section>
 
 <script>
+const carouselBannerController = {
+    currentSlide: 0,
+    autoPlayInterval: null,
+    autoPlayDelay: 6000,
+    slides: [],
+
+    async init() {
+        try {
+            await this.loadSlides();
+            this.renderSlides();
+            this.updateSlide();
+            this.startAutoPlay();
+        } catch (error) {
+            console.error('Failed to load carousel:', error);
+            this.renderDefaultSlides();
+        }
+    },
+
+    async loadSlides() {
+        try {
+            const response = await fetch('/admin/api/page-management/carousel');
+            const result = await response.json();
+            if (result.success && result.data.slides) {
+                this.slides = result.data.slides;
+            } else {
+                throw new Error('Invalid carousel data');
+            }
+        } catch (error) {
+            console.error('Failed to load carousel data:', error);
+            throw error;
+        }
+    },
+
+    renderSlides() {
+        const carouselInner = document.getElementById('carouselInner');
+        const carouselIndicators = document.getElementById('carouselIndicators');
+        
+        if (!carouselInner || !carouselIndicators) return;
+
+        carouselInner.innerHTML = this.slides.map((slide, index) => `
+            <div class="carousel-slide ${index === 0 ? 'active' : ''}">
+                <div class="carousel-overlay"></div>
+                <div class="carousel-image" style="background-image: url('${slide.bannerImage}')"></div>
+                <div class="carousel-content">
+                    <h1>${slide.title}</h1>
+                    <p>${slide.caption}</p>
+                    <div class="carousel-actions">
+                        <a onclick="scrollToMenu(); carouselBannerController.stop()" class="btn btn-primary">${slide.buttonText}</a>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        carouselIndicators.innerHTML = this.slides.map((_, index) => `
+            <button class="carousel-indicator ${index === 0 ? 'active' : ''}" onclick="carouselBannerController.goToSlide(${index})"></button>
+        `).join('');
+    },
+
+    renderDefaultSlides() {
+        this.slides = [
+            {
+                slideId: 'slide-1',
+                title: 'Blessings Cafe',
+                caption: 'Welcome to Blessings Cafe — your happy spot for good drinks and good vibes. Here, every cup is made with care and a little touch of joy. Because at Blessings Cafe, we believe there are "Blessings at Every Sip."',
+                bannerImage: '/resources/BannerBC.png',
+                buttonText: 'View Menu'
+            },
+            {
+                slideId: 'slide-2',
+                title: 'Premium Coffee',
+                caption: 'Discover our freshly brewed premium coffee drinks, expertly crafted with passion and the finest beans. Every sip is a moment of pure bliss.',
+                bannerImage: '/resources/BannerBC.png',
+                buttonText: 'Explore Coffee'
+            },
+            {
+                slideId: 'slide-3',
+                title: 'Refreshing Beverages',
+                caption: 'From creamy milk teas to cool frappes, explore our diverse selection of refreshing drinks perfect for any occasion.',
+                bannerImage: '/resources/BannerBC.png',
+                buttonText: 'View All Drinks'
+            }
+        ];
+        this.renderSlides();
+    },
+
+    next() {
+        this.currentSlide = (this.currentSlide + 1) % this.slides.length;
+        this.updateSlide();
+        this.resetAutoPlay();
+    },
+
+    prev() {
+        this.currentSlide = (this.currentSlide - 1 + this.slides.length) % this.slides.length;
+        this.updateSlide();
+        this.resetAutoPlay();
+    },
+
+    goToSlide(index) {
+        this.currentSlide = index;
+        this.updateSlide();
+        this.resetAutoPlay();
+    },
+
+    updateSlide() {
+        const slides = document.querySelectorAll('.carousel-slide');
+        const indicators = document.querySelectorAll('.carousel-indicator');
+        
+        slides.forEach(slide => slide.classList.remove('active'));
+        indicators.forEach(indicator => indicator.classList.remove('active'));
+        
+        if (slides[this.currentSlide]) {
+            slides[this.currentSlide].classList.add('active');
+        }
+        if (indicators[this.currentSlide]) {
+            indicators[this.currentSlide].classList.add('active');
+        }
+    },
+
+    startAutoPlay() {
+        this.autoPlayInterval = setInterval(() => {
+            this.next();
+        }, this.autoPlayDelay);
+    },
+
+    resetAutoPlay() {
+        clearInterval(this.autoPlayInterval);
+        this.startAutoPlay();
+    },
+
+    stop() {
+        clearInterval(this.autoPlayInterval);
+    }
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    carouselBannerController.init();
+});
+
 function scrollToMenu() {
     document.getElementById('menu-gallery').scrollIntoView({behavior: 'smooth'});
 }

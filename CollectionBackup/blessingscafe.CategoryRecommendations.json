@@ -1,0 +1,26 @@
+[{
+  "_id": {
+    "$oid": "69248187356c448a9700a7b0"
+  },
+  "category": "Milktea",
+  "recommendations": [
+    {
+      "id": "ING-CARAMEL",
+      "type": "ingredient",
+      "name": "Caramel Syrup"
+    },
+    {
+      "id": "ING-SCPWDR",
+      "type": "ingredient",
+      "name": "Salted Caramel Powder"
+    },
+    {
+      "id": "ING-SCARMEL",
+      "type": "ingredient",
+      "name": "Salted Caramel Syrup"
+    }
+  ],
+  "updatedAt": {
+    "$date": "2025-11-24T16:03:04.688Z"
+  }
+}]

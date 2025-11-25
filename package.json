@@ -4,7 +4,9 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "dev:watch": "nodemon -e js,ejs,css,json server.js"
   },
   "keywords": [],
   "author": "",
@@ -34,6 +36,8 @@
   },
   "description": "",
   "devDependencies": {
-    "clean-css-cli": "^5.6.3"
+    "browser-sync": "^3.0.4",
+    "clean-css-cli": "^5.6.3",
+    "nodemon": "^3.1.11"
   }
 }

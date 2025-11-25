@@ -15,7 +15,7 @@ const transporter = nodemailer.createTransport({
   secure: false,
   auth: {
     user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASS
+    pass: process.env.GMAIL_PASSWORD
   },
   pool: false, // Disable connection pooling for Docker
   connectionTimeout: 10000, // 10 seconds
@@ -1073,6 +1073,65 @@ router.get('/products/add', nocache, (req, res) => {
     layout: 'admin/layout',
     categories: ['Coffee', 'Tea', 'Pastry', 'Meal']
   });
+});
+
+router.get('/api/addons-ingredients', async (req, res) => {
+  try {
+    const addons = await req.db.collection('Add-ons').find({ isEnabled: true }).toArray();
+    const ingredients = await req.db.collection('Ingredients').find({ isEnabled: true }).toArray();
+    
+    const combined = [
+      ...addons.map(a => ({ id: a.AddOnID, type: 'addon', Name: a.Name })),
+      ...ingredients.map(i => ({ id: i.IngredientID, type: 'ingredient', Name: i.Name }))
+    ].sort((a, b) => a.Name.localeCompare(b.Name));
+    
+    res.json({ success: true, data: combined });
+  } catch (error) {
+    console.error('API error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.get('/api/category-addon-recommendations', async (req, res) => {
+  try {
+    const { category } = req.query;
+    
+    if (!category) {
+      return res.status(400).json({ success: false, error: 'Category is required' });
+    }
+    
+    const categoryRec = await req.db.collection('CategoryRecommendations').findOne({ category });
+    
+    if (!categoryRec || !categoryRec.recommendations) {
+      return res.json({ success: true, recommendations: [] });
+    }
+    
+    res.json({ success: true, recommendations: categoryRec.recommendations });
+  } catch (error) {
+    console.error('API error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.post('/api/category-addon-recommendations', async (req, res) => {
+  try {
+    const { category, recommendations } = req.body;
+    
+    if (!category || !Array.isArray(recommendations)) {
+      return res.status(400).json({ success: false, error: 'Invalid data' });
+    }
+    
+    await req.db.collection('CategoryRecommendations').updateOne(
+      { category },
+      { $set: { category, recommendations, updatedAt: new Date() } },
+      { upsert: true }
+    );
+    
+    res.json({ success: true, message: 'Recommendations saved' });
+  } catch (error) {
+    console.error('API error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
 });
 
 // Lightning-fast API endpoint with maximum optimizations
@@ -2782,7 +2841,7 @@ router.get('/analytics/export-performance', async (req, res) => {
                     <th>Costs</th>
                     <th>Profit</th>
                     <th>Orders</th>
-                    <th>Avg Order Value</th>
+                    <th>Average Sales per Order</th>
                 </tr>
             </thead>
             <tbody>
@@ -3221,6 +3280,13 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
         quantity: stats.quantity
       }));
 
+    // Calculate orders by source
+    const ordersBySource = orders.reduce((acc, order) => {
+      const source = order.Source || 'Unknown';
+      acc[source] = (acc[source] || 0) + 1;
+      return acc;
+    }, {});
+
     // Generate HTML for PDF
     const html = `
 <!DOCTYPE html>
@@ -3365,18 +3431,18 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
         </div>
         <div class="summary-card">
             <div class="summary-value">₱${totalRevenue.toLocaleString()}</div>
-            <div class="summary-label">Total Revenue</div>
+            <div class="summary-label">Total Sales Amount</div>
         </div>
         <div class="summary-card">
             <div class="summary-value">₱${(!isNaN(averageOrderValue) ? averageOrderValue.toFixed(2) : '0.00')}</div>
-            <div class="summary-label">Avg Order Value</div>
+            <div class="summary-label">Average Sales per Order</div>
         </div>
         <div class="summary-card">
             <div class="summary-value">₱${(() => {
                 const daysDiff = Math.max(Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)), 1);
                 return (totalRevenue / daysDiff).toFixed(2);
             })()}</div>
-            <div class="summary-label">Daily Revenue</div>
+            <div class="summary-label">Daily Sales Amount</div>
         </div>
         <div class="summary-card">
             <div class="summary-value">${totalDeliveryOrders.toLocaleString()}</div>
@@ -3402,12 +3468,28 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
     </div>
 
     <div class="section">
-        <div class="section-title">Top Selling Products (by Revenue)</div>
+        <div class="section-title">Orders by Source</div>
+        <div class="payment-methods">
+            ${Object.entries(ordersBySource).map(([source, count]) => {
+              const percentage = totalOrders > 0 ? ((count / totalOrders) * 100).toFixed(1) : '0.0';
+              return `
+                <div class="payment-method">
+                    <div class="payment-name">${source}</div>
+                    <div class="payment-amount">${count} orders</div>
+                    <div style="font-size: 12px; color: #666;">${percentage}% of total</div>
+                </div>
+              `;
+            }).join('')}
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Top Selling Products \(by Sales Amount\)</div>
         <table>
             <thead>
                 <tr>
                     <th style="width: 55%">Product Name</th>
-                    <th style="width: 22%">Total Revenue</th>
+                    <th style="width: 22%">Total Sales Amount</th>
                     <th style="width: 23%">Units Sold</th>
                 </tr>
             </thead>
@@ -3430,8 +3512,7 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
                 <tr>
                     <th>Date</th>
                     <th>Orders</th>
-                    <th>Revenue</th>
-                    <th>Average Order Value</th>
+                    <th>Sales</th>
                 </tr>
             </thead>
             <tbody>
@@ -3440,7 +3521,6 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
                         <td>${day.date ? new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}</td>
                         <td>${day.count}</td>
                         <td>₱${(day.total || 0).toLocaleString()}</td>
-                        <td>₱${day.count > 0 ? ((day.total || 0) / day.count).toFixed(2) : '0.00'}</td>
                     </tr>
                 `).join('')}
             </tbody>
@@ -3584,6 +3664,131 @@ router.post('/complete-order', isAuthorizedForOrderCompletion, async (req, res) 
   } catch (error) {
     console.error('Complete order error:', error);
     res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
+router.get('/api/page-management/carousel', async (req, res) => {
+  try {
+    let pageData = await req.db.collection('PageSettings').findOne({ pageId: 'home-carousel' });
+    
+    if (!pageData) {
+      pageData = {
+        pageId: 'home-carousel',
+        pageName: 'Home Carousel Banner',
+        slides: [
+          {
+            slideId: 'slide-1',
+            title: 'Blessings Cafe',
+            caption: 'Welcome to Blessings Cafe — your happy spot for good drinks and good vibes. Here, every cup is made with care and a little touch of joy. Because at Blessings Cafe, we believe there are "Blessings at Every Sip."',
+            bannerImage: '/resources/BannerBC.png',
+            buttonText: 'View Menu',
+            order: 1
+          },
+          {
+            slideId: 'slide-2',
+            title: 'Premium Coffee',
+            caption: 'Discover our freshly brewed premium coffee drinks, expertly crafted with passion and the finest beans. Every sip is a moment of pure bliss.',
+            bannerImage: '/resources/BannerBC.png',
+            buttonText: 'Explore Coffee',
+            order: 2
+          },
+          {
+            slideId: 'slide-3',
+            title: 'Refreshing Beverages',
+            caption: 'From creamy milk teas to cool frappes, explore our diverse selection of refreshing drinks perfect for any occasion.',
+            bannerImage: '/resources/BannerBC.png',
+            buttonText: 'View All Drinks',
+            order: 3
+          }
+        ],
+        supportedFormats: ['JPG', 'PNG', 'WebP'],
+        maxFileSize: '2MB'
+      };
+      
+      await req.db.collection('PageSettings').insertOne(pageData);
+    }
+    
+    res.json({ success: true, data: pageData });
+  } catch (error) {
+    console.error('Carousel fetch error:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch carousel data' });
+  }
+});
+
+router.post('/api/page-management/carousel/update', async (req, res) => {
+  try {
+    const { slides } = req.body;
+    
+    if (!Array.isArray(slides) || slides.length === 0) {
+      return res.status(400).json({ success: false, error: 'Invalid slides data' });
+    }
+
+    const updateData = {
+      slides: slides.map((slide, index) => ({
+        slideId: slide.slideId || `slide-${index + 1}`,
+        title: slide.title || '',
+        caption: slide.caption || '',
+        bannerImage: slide.bannerImage || '/resources/BannerBC.png',
+        buttonText: slide.buttonText || 'Learn More',
+        order: index + 1
+      })),
+      updatedAt: new Date()
+    };
+
+    const result = await req.db.collection('PageSettings').findOneAndUpdate(
+      { pageId: 'home-carousel' },
+      { $set: updateData },
+      { returnDocument: 'after' }
+    );
+
+    if (!result) {
+      return res.status(404).json({ success: false, error: 'Page settings not found' });
+    }
+
+    res.json({ success: true, message: 'Carousel updated successfully', data: result });
+  } catch (error) {
+    console.error('Carousel update error:', error);
+    res.status(500).json({ success: false, error: 'Failed to update carousel' });
+  }
+});
+
+router.post('/api/page-management/carousel/upload-image', async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'No image file provided' });
+    }
+
+    const file = req.file;
+    const maxSize = 2 * 1024 * 1024; // 2MB
+
+    if (file.size > maxSize) {
+      return res.status(400).json({ success: false, error: 'File size exceeds 2MB limit' });
+    }
+
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedMimes.includes(file.mimetype)) {
+      return res.status(400).json({ success: false, error: 'Invalid image format. Use JPG, PNG, or WebP' });
+    }
+
+    const fs = require('fs');
+    const path = require('path');
+    const ext = file.originalname.split('.').pop();
+    const filename = `banner-${Date.now()}.${ext}`;
+    const uploadPath = path.join(__dirname, `../public/resources/${filename}`);
+
+    fs.renameSync(file.path, uploadPath);
+
+    res.json({ 
+      success: true, 
+      message: 'Image uploaded successfully',
+      data: { 
+        filename: filename,
+        path: `/resources/${filename}`
+      }
+    });
+  } catch (error) {
+    console.error('Image upload error:', error);
+    res.status(500).json({ success: false, error: 'Failed to upload image' });
   }
 });
 

@@ -251,11 +251,40 @@ function addToOrder(name, price, size, category, productId, addons, imagelink, i
     };
     orderItems.push(orderItem);
     saveOrderItems();
-    showToast(`${quantity} x ${name}${size ? ' (' + size + ')' : ''} added to cart!`, 'success');
+
+    // Show cart side popup instead of toast
+    showCartSidePopup(orderItem);
+
+    // Reset selected options after adding to cart
+    document.querySelectorAll('.addon-checkbox').forEach(cb => { cb.checked = false; });
+    document.querySelectorAll('.ingredient-checkbox').forEach(cb => { cb.checked = false; });
+    selectedAddons.length = 0;
+    selectedIngredients.length = 0;
+    const quantityInput = document.getElementById('quantity');
+    if (quantityInput) quantityInput.value = 1;
+    document.querySelectorAll('input[name="size-radio"]').forEach(radio => { radio.checked = false; });
+    const badge = document.getElementById('ingredients-badge');
+    if (badge) {
+        badge.textContent = '';
+        badge.style.display = 'none';
+        badge.classList.add('hidden');
+        badge.style.visibility = 'hidden';
+        badge.style.opacity = '0';
+        badge.style.zIndex = '0';
+    }
+    updateIngredientsBadge();
 }
 
 // Fetch and display add-ons - try server-side data first, then API as fallback
 function loadAddons() {
+    // Check if add-ons are already rendered server-side
+    const addonOptionsContainer = document.querySelector('.addon-options');
+    if (addonOptionsContainer && addonOptionsContainer.children.length > 0) {
+        // Add-ons are already rendered, just set up event listeners
+        setupAddonEventListeners();
+        return;
+    }
+
     // Try server-side data first
     const addonsDataScript = document.getElementById('addons-data');
     let addons = [];
@@ -346,6 +375,27 @@ function displayAddons(addons) {
     } else {
         addonOptionsContainer.innerHTML = '<span style="font-size:12px;color:#999">No add-ons available.</span>';
     }
+}
+
+// Setup event listeners for server-side rendered add-ons
+function setupAddonEventListeners() {
+    const addonCheckboxes = document.querySelectorAll('.addon-checkbox');
+    addonCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                selectedAddons.push({
+                    AddOnID: this.dataset.addonId,
+                    Name: this.dataset.addonName,
+                    BasePrice: this.dataset.addonPrice
+                });
+            } else {
+                const index = selectedAddons.findIndex(a => a.AddOnID === this.dataset.addonId);
+                if (index > -1) {
+                    selectedAddons.splice(index, 1);
+                }
+            }
+        });
+    });
 }
 
 // Initialize function
@@ -663,6 +713,121 @@ function handleIngredientCheckboxChange(event) {
 document.addEventListener('DOMContentLoaded', function() {
     initializePage();
 });
+
+// Show cart side popup with item details
+function showCartSidePopup(orderItem) {
+        // Hide ingredients badge when cart-side-popup is shown
+        const badge = document.getElementById('ingredients-badge');
+        if (badge) {
+            badge.style.display = 'none';
+            badge.classList.add('hidden');
+            badge.style.visibility = 'hidden';
+            badge.style.opacity = '0';
+            badge.style.zIndex = '0';
+        }
+    // Update popup content
+    const itemNameElement = document.getElementById('cart-popup-name');
+    const itemPriceElement = document.getElementById('cart-popup-price');
+    const itemDetailsElement = document.getElementById('cart-popup-details');
+    const itemImageElement = document.getElementById('cart-popup-image');
+
+    if (itemNameElement) itemNameElement.textContent = orderItem.name;
+    if (itemPriceElement) itemPriceElement.textContent = `₱${(orderItem.price * orderItem.quantity).toFixed(2)}`;
+
+    // Update image if available
+    if (itemImageElement && orderItem.imagelink) {
+        itemImageElement.src = orderItem.imagelink;
+        itemImageElement.style.display = 'block';
+    }
+
+    // Build details string
+    if (itemDetailsElement) {
+        itemDetailsElement.innerHTML = '';
+        let details = [];
+
+        if (orderItem.size) details.push(`<span>Size: ${orderItem.size}</span>`);
+        if (orderItem.quantity > 1) details.push(`<span>Qty: ${orderItem.quantity}</span>`);
+        if (orderItem.addons && orderItem.addons.length > 0) {
+            const addonNames = orderItem.addons.map(addon => addon.Name || addon.name).join(', ');
+            details.push(`<span>Add-ons: ${addonNames}</span>`);
+        }
+
+        if (details.length > 0) {
+            itemDetailsElement.innerHTML = details.join('<br>');
+        }
+    }
+
+    // Show popup with animation
+    const popup = document.getElementById('cart-side-popup');
+    if (popup) {
+        popup.classList.add('show');
+
+        // Setup popup event listeners
+        setupCartSidePopup();
+    }
+}
+
+// Hide cart side popup
+function hideCartSidePopup() {
+    const popup = document.getElementById('cart-side-popup');
+    if (popup) {
+        popup.classList.remove('show');
+    }
+}
+
+// Setup cart side popup functionality
+function setupCartSidePopup() {
+    const popup = document.getElementById('cart-side-popup');
+    const closeBtn = document.getElementById('cart-popup-close');
+    const continueBtn = document.getElementById('cart-continue-btn');
+    const viewCartBtn = document.getElementById('cart-view-btn');
+    const checkoutBtn = document.getElementById('cart-checkout-btn');
+
+    if (!popup) return;
+
+    // Close button event listener
+    if (closeBtn) {
+        closeBtn.addEventListener('click', hideCartSidePopup);
+    }
+
+    // Continue shopping button
+    if (continueBtn) {
+        continueBtn.addEventListener('click', () => location.href = '/');
+    }
+
+    // View cart button
+    if (viewCartBtn) {
+        viewCartBtn.addEventListener('click', function() {
+            hideCartSidePopup();
+            // Navigate to cart page
+            window.location.href = '/cart';
+        });
+    }
+
+    // Checkout button
+    if (checkoutBtn) {
+        checkoutBtn.addEventListener('click', function() {
+            hideCartSidePopup();
+            // Navigate to checkout page
+            window.location.href = '/checkout';
+        });
+    }
+}
+
+// Remove item from cart (copied from cart.js for non-logged-in users)
+function removeItem(index) {
+    showConfirm('Are you sure you want to remove this item from your cart?', 'Remove Item',
+        () => {
+            orderItems.splice(index, 1);
+            saveOrderItems();
+            hideCartSidePopup();
+
+            if (typeof window.updateCartCount === 'function') {
+                window.updateCartCount();
+            }
+        }
+    );
+}
 
 // Re-export setupModal for potential external access (if needed)
 window.setupProductModal = setupModal;

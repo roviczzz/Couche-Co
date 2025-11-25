@@ -18,19 +18,21 @@
     <!-- Left Column -->
     <div class="left-column">
       <% if (order && order.FulfillmentStatus) { %>
-      <div class="order-progress-section">
-        <h2>Order Progress</h2>
+      <div class="order-progress-section" <% if (order.FulfillmentStatus === 'Completed') { %>id="completed-section"<% } %>>
+        <% if (order.FulfillmentStatus === 'Completed') { %>
+        <div class="confetti-container"></div>
+        <div class="completion-badge">✓</div>
+        <% } %>
+        <h2><%= order.FulfillmentStatus %></h2>
         <div class="progress-bar-container">
           <%
-// Define progress levels based on fulfillment method and status
-let progressPercentage = 10; // Default minimum progress
-let statusText = 'Order received';
+let progressPercentage = 10;
+let statusText = 'Preparing your order';
 
 const fulfillmentMethod = order.FulfillmentMethod || order.fulfillmentMethod || '';
 const isDelivery = fulfillmentMethod.toLowerCase() === 'delivery';
 
 if (isDelivery) {
-  // Delivery flow: Preparing -> In Progress -> Ready -> In Delivery -> Completed
   if (order.FulfillmentStatus === 'Preparing') {
     progressPercentage = 20;
     statusText = 'Preparing your order';
@@ -46,9 +48,11 @@ if (isDelivery) {
   } else if (order.FulfillmentStatus === 'Completed') {
     progressPercentage = 100;
     statusText = 'Order delivered successfully';
+  } else {
+    progressPercentage = 20;
+    statusText = 'Preparing your order';
   }
 } else {
-  // Pick-up flow: Preparing -> In Progress -> Ready -> Completed
   if (order.FulfillmentStatus === 'Preparing') {
     progressPercentage = 25;
     statusText = 'Preparing your order';
@@ -61,6 +65,9 @@ if (isDelivery) {
   } else if (order.FulfillmentStatus === 'Completed') {
     progressPercentage = 100;
     statusText = 'Order completed successfully';
+  } else {
+    progressPercentage = 25;
+    statusText = 'Preparing your order';
   }
 }
 %>
@@ -72,17 +79,17 @@ if (isDelivery) {
             <span class="status-message"><%= statusText %></span>
           </div>
         </div>
-        <div class="current-status">
-          <p><strong>Current Status:</strong> <%= order.FulfillmentStatus %></p>
-          <p><small>Status updates will be reflected here in real-time</small></p>
-        </div>
       </div>
       <% } %>
 
       <div class="order-details">
         <h3>Order Details</h3>
         <p><strong>Order ID:</strong> <%= orderId %></p>
+        <% if (order && order.Customer && order.Customer.Email) { %>
+        <p style="color: #28a745; font-weight: 500;">✓ A receipt has been sent to <strong><%= order.Customer.Email %></strong></p>
+        <% } else { %>
         <p>You will receive an email confirmation with your order details.</p>
+        <% } %>
         <%
         if (order && order.Total) {
         %>
@@ -126,8 +133,8 @@ const qrUrl = `${process.env.BASE_URL || 'http://localhost:3000'}/staff/complete
 
   <!-- Footer Section - Full Width -->
   <div class="success-actions">
-    <a href="/" class="btn btn-primary">Continue Shopping</a>
-    <a href="/cart" class="btn btn-secondary">Back to Cart</a>
+    <a href="/" class="btn btn-primary">Back to Menu</a>
+    <a href="/cart" class="btn btn-secondary">View Cart</a>
   </div>
 <!-- Hidden data for JavaScript -->
 <div id="order-data" data-order-id="<%= orderId %>" style="display:none;"></div>
@@ -388,6 +395,107 @@ const qrUrl = `${process.env.BASE_URL || 'http://localhost:3000'}/staff/complete
     padding: 5px;
   }
 
+  /* Order Completion Styles */
+  #completed-section {
+    position: relative;
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border: 2px solid #22c55e;
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+    animation: completionPulse 0.6s ease-out;
+  }
+
+  #completed-section h2 {
+    color: #16a34a;
+    font-weight: 700;
+  }
+
+  .completion-badge {
+    position: absolute;
+    top: 25px;
+    left: 160px;
+    width: 25px;
+    height: 25px;
+    background: #22c55e;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+    animation: badgeBounce 0.6s ease-out;
+    z-index: 10;
+  }
+
+  .confetti-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .confetti {
+    position: absolute;
+    pointer-events: none;
+    animation: confettiFall 2.5s ease-out forwards;
+  }
+
+  @keyframes completionPulse {
+    0% {
+      transform: scale(0.95);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.02);
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes badgeBounce {
+    0% {
+      transform: scale(0) rotate(-45deg);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.1) rotate(10deg);
+    }
+    100% {
+      transform: scale(1) rotate(0deg);
+      opacity: 1;
+    }
+  }
+
+  @keyframes confettiFall {
+    0% {
+      transform: translateY(-10px) translateX(0) rotate(0deg);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(100px) translateX(var(--tx)) rotate(360deg);
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #completed-section {
+      animation: none;
+    }
+    .completion-badge {
+      animation: none;
+    }
+    .confetti {
+      animation: none;
+    }
+  }
+
   /* Responsive Design */
   @media (max-width: 768px) {
     .success-container {
@@ -426,3 +534,67 @@ const qrUrl = `${process.env.BASE_URL || 'http://localhost:3000'}/staff/complete
     }
   }
 </style>
+
+<script>
+  function createConfetti() {
+    const progressSection = document.querySelector('.order-progress-section');
+    const confettiContainer = progressSection.querySelector('.confetti-container');
+    const colors = ['#22c55e', '#10b981', '#059669', '#fbbf24', '#f97316', '#ec4899', '#8b5cf6'];
+    
+    confettiContainer.innerHTML = '';
+    
+    for (let i = 0; i < 30; i++) {
+      const confetti = document.createElement('div');
+      confetti.className = 'confetti';
+      confetti.style.left = Math.random() * 100 + '%';
+      confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+      confetti.style.width = (Math.random() * 6 + 4) + 'px';
+      confetti.style.height = (Math.random() * 6 + 4) + 'px';
+      confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+      confetti.style.setProperty('--tx', (Math.random() - 0.5) * 100 + 'px');
+      confetti.style.animationDelay = Math.random() * 0.3 + 's';
+      confettiContainer.appendChild(confetti);
+    }
+  }
+  
+  function triggerConfetti() {
+    const progressSection = document.querySelector('.order-progress-section');
+    const progressPercentage = document.querySelector('.progress-percentage');
+    
+    if (!progressSection || !progressPercentage) return;
+    
+    const percentageText = progressPercentage.textContent.trim();
+    const percentage = parseInt(percentageText);
+    
+    if (percentage === 100 && progressSection.id !== 'completed-section') {
+      progressSection.id = 'completed-section';
+      
+      const h2 = progressSection.querySelector('h2');
+      if (h2) h2.textContent = 'Completed';
+      
+      let confettiContainer = progressSection.querySelector('.confetti-container');
+      let badge = progressSection.querySelector('.completion-badge');
+      
+      if (!confettiContainer) {
+        confettiContainer = document.createElement('div');
+        confettiContainer.className = 'confetti-container';
+        progressSection.insertBefore(confettiContainer, progressSection.firstChild);
+      }
+      
+      if (!badge) {
+        badge = document.createElement('div');
+        badge.className = 'completion-badge';
+        badge.textContent = '✓';
+        progressSection.insertBefore(badge, progressSection.firstChild);
+      }
+      
+      createConfetti();
+      console.log('Confetti triggered at 100%');
+    }
+  }
+  
+  document.addEventListener('DOMContentLoaded', function() {
+    triggerConfetti();
+    setInterval(triggerConfetti, 500);
+  });
+</script>
