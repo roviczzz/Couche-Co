@@ -1,3 +1,70 @@
+function displayOrderSummary(index) {
+  const order = orders[index];
+  if (!order) {
+    orderSummaryContent.innerHTML = '<p style="text-align: center; color: #999; padding: 40px 20px;">Order not found.</p>';
+    return;
+  }
+  currentOrder = order;
+  selectedRowIndex = index;
+  let customer = 'N/A';
+  if (order.Customer) {
+    if (typeof order.Customer === 'string') {
+      customer = order.Customer;
+    } else if (typeof order.Customer === 'object') {
+      customer = order.Customer.fullname || order.Customer.name || 'Unknown';
+    }
+  } else if (order.customer) {
+    if (typeof order.customer === 'string') {
+      customer = order.customer;
+    } else if (typeof order.customer === 'object') {
+      customer = order.customer.fullname || order.customer.name || 'Unknown';
+    }
+  }
+  let summaryHtml = `<div class='order-summary-header'>
+    <h2>Order #${order.OrderID || 'N/A'}</h2>
+    <div class='order-summary-customer'>${customer}</div>
+    <div class='order-summary-date'>${order.Date ? new Date(order.Date).toLocaleString() : (order.date ? new Date(order.date).toLocaleString() : '')}</div>
+  </div>`;
+  summaryHtml += `<div class='order-summary-details'>
+    <div><strong>Payment:</strong> ${order.PaymentStatus || order.paymentStatus || 'Unpaid'}</div>
+    <div><strong>Fulfillment:</strong> ${order.FulfillmentMethod || order.fulfillmentMethod || 'N/A'}</div>
+    <div><strong>Total:</strong> ₱ ${Number(order.Total || order.total || 0).toFixed(2)}</div>
+  </div>`;
+  const cart = order.Cart || order.cart || [];
+  if (cart.length > 0) {
+    summaryHtml += "<div class='order-summary-products'><h3>Items</h3><ul>";
+    cart.forEach((item, i) => {
+      let itemName = item.Name || item.name || '';
+      if (!itemName && item.ProductName) itemName = item.ProductName;
+      if (!itemName && item.productName) itemName = item.productName;
+      const size = item.Size || item.size;
+      const sizeDisplay = size ? ` (${size})` : '';
+      summaryHtml += `<li>${item.Quantity || item.quantity} × ${itemName}${sizeDisplay}`;
+      const addOns = item.AddOns || item.addOns || item.Addons || [];
+      if (addOns.length > 0) {
+        summaryHtml += '<div class="product-addons" style="margin-left: 20px; margin-top: 4px;">';
+        addOns.forEach(addon => {
+          let addonName = 'Unknown Add-on';
+          if (typeof addon === 'object') {
+            addonName = addon.name || addon.Name || addon.ProductName || addon.productName || 'Unknown Add-on';
+          } else if (typeof addon === 'string') {
+            addonName = addon;
+          }
+          summaryHtml += `<div style="font-size: 0.9em; color: #666;">+ ${addonName}</div>`;
+        });
+        summaryHtml += '</div>';
+      }
+      summaryHtml += '</li>';
+    });
+    summaryHtml += '</ul></div>';
+  }
+  orderSummaryContent.innerHTML = summaryHtml;
+  orderDetailButtons.style.display = 'flex';
+  orderDetailPanel.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+window.displayOrderSummary = displayOrderSummary;
 if (!window.apiPrefix) window.apiPrefix = '/admin';
 
 const ordersData = JSON.parse(document.getElementById('orders-data').textContent || '[]');
@@ -854,18 +921,10 @@ function showOrderDetails(order, rowIndex) {
 `;
 
   orderSummaryContent.innerHTML = summaryHtml;
-  
-  // Add click handlers to order items to show ingredient modal
-  const orderItems = orderSummaryContent.querySelectorAll('.order-item-clickable');
-  orderItems.forEach(item => {
-    item.addEventListener('click', (e) => {
-      const itemIndex = parseInt(item.dataset.itemIndex, 10);
-      const cart = currentOrder.Cart || currentOrder.cart;
-      if (cart && cart[itemIndex]) {
-        showIngredientModal(cart[itemIndex], currentOrder);
-      }
-    });
-  });
+  setTimeout(() => {
+    initExpandableCards();
+    initProductItemExpansion();
+  }, 100);
   orderDetailButtons.style.display = 'flex';
   orderDetailPanel.classList.add('show');
 
@@ -1073,6 +1132,10 @@ function renderOrdersTable(showAllOrders = false) {
   initRowEventListeners();
   renderCancelledOrders();
   renderCompletedOrders();
+
+  if (typeof window.orderMobileHandler !== 'undefined') {
+    window.orderMobileHandler.renderOrderCards(ordersToDisplay);
+  }
 }
 
 function clearSortArrows() {
@@ -1856,6 +1919,10 @@ function openCompletedOrdersModal() {
 
       modalCompletedOrdersList.appendChild(row);
     });
+  }
+
+  if (typeof window.orderMobileHandler !== 'undefined') {
+    window.orderMobileHandler.renderCompletedOrderCards(completedOrders);
   }
 
   completedOrdersModal.style.display = 'flex';

@@ -8,11 +8,87 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="/css/layout.css">
+    <link rel="stylesheet" href="/css/bottom-nav.css">
     <script src="/js/staff-layout.js"></script>
     <script src="/js/calculator.js"></script>
+    <script src="/js/bottom-nav.js" defer></script>
 </head>
 <body class="<%= typeof settings !== 'undefined' && settings.darkMode ? 'dark-theme' : '' %>">
     <div class="wrapper">
+        <div class="bottom-nav-mobile">
+            <a href="/staff/dashboard" class="bottom-nav-item" data-route="/staff/dashboard" title="Dashboard">
+                <i class="fa-solid fa-house"></i>
+                <span class="bottom-nav-label">Home</span>
+            </a>
+            <a href="/staff/order" class="bottom-nav-item" data-route="/staff/order" title="Orders">
+                <i class="fa-solid fa-cart-flatbed"></i>
+                <span class="bottom-nav-label">Orders</span>
+            </a>
+            <a href="/staff/menu" class="bottom-nav-item" data-route="/staff/menu" title="POS">
+                <i class="fa-solid fa-cash-register"></i>
+                <span class="bottom-nav-label">POS</span>
+            </a>
+            <button id="bottom-nav-more-btn" class="bottom-nav-item bottom-nav-more" title="More options">
+                <i class="fa-solid fa-ellipsis"></i>
+                <span id="more-badge" class="more-badge" style="display: none;"></span>
+                <span class="bottom-nav-label">More</span>
+            </button>
+        </div>
+
+        <div id="bottom-nav-drawer" class="bottom-nav-drawer" aria-hidden="true" role="dialog">
+            <div class="bottom-nav-drawer-header">
+                <h3>Menu</h3>
+                <button id="bottom-nav-drawer-close" class="bottom-nav-drawer-close" aria-label="Close menu">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="bottom-nav-drawer-content">
+                <div class="bottom-nav-group">
+                    <h4 class="bottom-nav-group-title">Communication</h4>
+                    <a href="/staff/messages" class="bottom-nav-drawer-item" data-route="/staff/messages">
+                        <i class="fa-solid fa-envelope"></i>
+                        <span>Messages</span>
+                        <span id="messages-badge-drawer" class="notification-badge" style="display: none;"></span>
+                    </a>
+                </div>
+
+                <div class="bottom-nav-group">
+                    <h4 class="bottom-nav-group-title">Tools</h4>
+                    <a href="/staff/analytics" class="bottom-nav-drawer-item" data-route="/staff/analytics">
+                        <i class="fa-solid fa-chart-line"></i>
+                        <span>Analytics</span>
+                    </a>
+                    <a href="/staff/stocks" class="bottom-nav-drawer-item" data-route="/staff/stocks">
+                        <i class="fa-solid fa-boxes-stacked"></i>
+                        <span>Stocks</span>
+                    </a>
+                    <button id="bottom-nav-calculator-btn" class="bottom-nav-drawer-item bottom-nav-action" type="button">
+                        <i class="fa-solid fa-calculator"></i>
+                        <span>Calculator</span>
+                    </button>
+                    <button id="bottom-nav-notifications-btn" class="bottom-nav-drawer-item bottom-nav-action" type="button">
+                        <i class="fa-solid fa-bell"></i>
+                        <span>Notifications</span>
+                        <span id="notification-badge-drawer" class="notification-badge" style="display: none;"></span>
+                    </button>
+                    <a href="/staff/settings" class="bottom-nav-drawer-item" data-route="/staff/settings">
+                        <i class="fa-solid fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+
+                <div class="bottom-nav-group">
+                    <h4 class="bottom-nav-group-title">Account</h4>
+                    <a href="/auth/logout" class="bottom-nav-drawer-item">
+                        <i class="fa-solid fa-door-open"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="bottom-nav-drawer-backdrop" class="bottom-nav-drawer-backdrop" aria-hidden="true"></div>
+
         <div class="sidebar sidebar-no-transition">
             <div class="sidebar-logo">
                 <img src="/resources/logo.png" alt="Logo" />
@@ -107,9 +183,6 @@
             </div>
         </div>
         <div class="main-content">
-            <button class="mobile-menu-toggle" aria-label="Toggle menu">
-                <i class="fa-solid fa-bars"></i>
-            </button>
             <% if (typeof success_msg !== 'undefined' && success_msg && success_msg.length > 0) { %>
                 <div class="alert alert-success alert-dismissible fade show" role="alert" style="background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 0.75rem 1.25rem; margin-bottom: 1rem; border-radius: 0.25rem;">
                     <%= success_msg %>

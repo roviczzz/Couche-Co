@@ -12,6 +12,32 @@ document.addEventListener('DOMContentLoaded', async function() {
   const checkStatusBtn = document.getElementById('checkPaymentStatusBtn');
   const closeModalBtn = document.getElementById('closePaymentModalBtn');
 
+  // Selected items tracking
+  let selectedItems = new Set();
+  let selectedOrderItems = [];
+
+  function loadSelectedItems() {
+    const saved = localStorage.getItem('selectedCartItems');
+    if (saved) {
+      selectedItems = new Set(JSON.parse(saved));
+    }
+  }
+
+  function generateItemKey(item, index) {
+    return `${index}-${item.productId}-${item.size || 'nosize'}`;
+  }
+
+  function getSelectedItems(allItems) {
+    selectedOrderItems = [];
+    allItems.forEach((item, index) => {
+      const itemKey = generateItemKey(item, index);
+      if (selectedItems.has(itemKey)) {
+        selectedOrderItems.push(item);
+      }
+    });
+    return selectedOrderItems;
+  }
+
   // Promo variables
   let currentDiscountPercentage = 0;
   let selectedPromoId = null;
@@ -111,6 +137,9 @@ document.addEventListener('DOMContentLoaded', async function() {
 
   // Load user data when page loads
   loadUserData();
+
+  // Detect mobile device
+  const isMobile = window.innerWidth <= 640 || /mobile|android|iphone/i.test(navigator.userAgent.toLowerCase());
 
   // Load cart data and update totals
   await loadCheckoutData();
@@ -299,11 +328,28 @@ document.addEventListener('DOMContentLoaded', async function() {
       processingMessage.textContent = 'Checking inventory availability...';
       paymentInstructions.style.display = 'none';
 
-      // Get order items from localStorage
-      const cartItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+      // Load selected items
+      loadSelectedItems();
+      let cartItems = [];
+      
+      if (window.user && window.user._id) {
+        try {
+          const response = await fetch('/api/cart');
+          if (response.ok) {
+            cartItems = await response.json();
+          }
+        } catch (error) {
+          console.error('Error loading cart:', error);
+          cartItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+        }
+      } else {
+        cartItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+      }
 
-      if (!cartItems || cartItems.length === 0) {
-        throw new Error('No items in cart');
+      const selectedCartItems = getSelectedItems(cartItems);
+
+      if (!selectedCartItems || selectedCartItems.length === 0) {
+        throw new Error('No items selected for checkout');
       }
 
       // Check inventory availability before creating order
@@ -314,7 +360,7 @@ document.addEventListener('DOMContentLoaded', async function() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ 
-          Cart: cartItems.map(item => ({
+          Cart: selectedCartItems.map(item => ({
             ProductName: item.name,
             ProductID: item.ProductID || item.productId,
             Size: item.size || null,
@@ -410,10 +456,10 @@ document.addEventListener('DOMContentLoaded', async function() {
 
       const paymentMethod = formData.get('paymentMethod');
 
-      // Get order items from localStorage
-      const orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+      // Use only selected items for the order
+      const orderItems = selectedCartItems;
 
-      // Calculate subtotals (cart items only)
+      // Calculate subtotals (selected items only)
       const subtotalAmount = orderItems.reduce((sum, item) => {
         if (item.isFree) return sum;
         const addonsTotal = item.addons ? item.addons.reduce((sum, ad) => sum + (ad.BasePrice || 0), 0) : 0;
@@ -529,40 +575,63 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Store payment URL for fallback
         paymentUrl = paymentData.invoice_url;
 
-        // Try to open in new tab
-        let paymentWindow;
-        try {
-          paymentWindow = window.open(paymentData.invoice_url, '_blank');
+        // For mobile devices, redirect directly to payment URL
+        if (isMobile) {
+          // On mobile, use direct redirect for better UX
+          setTimeout(() => {
+            processingMessage.style.display = 'none';
+            paymentInstructions.style.display = 'block';
+            paymentWindowStatus.textContent = 'Redirecting to payment gateway...';
+            paymentLinkContainer.style.display = 'block';
+            paymentUrlLink.href = paymentData.invoice_url;
+            
+            // Update progress to step 2 (Payment)
+            if (window.updateProgressStep) window.updateProgressStep(2);
+            
+            // Start automatic payment status checking
+            paymentStatusInterval = setInterval(checkPaymentStatus, 3000);
+            
+            // Auto-redirect after 2 seconds
+            setTimeout(() => {
+              window.location.href = paymentData.invoice_url;
+            }, 2000);
+          }, 500);
+        } else {
+          // Try to open in new tab for desktop
+          let paymentWindow;
+          try {
+            paymentWindow = window.open(paymentData.invoice_url, '_blank');
 
-          // Check if popup was blocked
-          if (!paymentWindow || paymentWindow.closed || typeof paymentWindow.closed === 'undefined') {
-            // Popup blocked - show fallback link
+            // Check if popup was blocked
+            if (!paymentWindow || paymentWindow.closed || typeof paymentWindow.closed === 'undefined') {
+              // Popup blocked - show fallback link
+              paymentWindowStatus.textContent = 'The payment window was blocked by your browser.';
+              paymentLinkContainer.style.display = 'block';
+              paymentUrlLink.href = paymentData.invoice_url;
+            } else {
+              paymentWindowStatus.textContent = 'Please complete your payment in the new tab that just opened.';
+            }
+          } catch (error) {
+            // Fallback if popup is blocked
             paymentWindowStatus.textContent = 'The payment window was blocked by your browser.';
             paymentLinkContainer.style.display = 'block';
             paymentUrlLink.href = paymentData.invoice_url;
-          } else {
-            paymentWindowStatus.textContent = 'Please complete your payment in the new tab that just opened.';
           }
-        } catch (error) {
-          // Fallback if popup is blocked
-          paymentWindowStatus.textContent = 'The payment window was blocked by your browser.';
+
+          // Always display the fallback link
           paymentLinkContainer.style.display = 'block';
           paymentUrlLink.href = paymentData.invoice_url;
+
+          // Show payment instructions
+          setTimeout(() => {
+            processingMessage.style.display = 'none';
+            paymentInstructions.style.display = 'block';
+            // Update progress to step 2 (Payment)
+            if (window.updateProgressStep) window.updateProgressStep(2);
+            // Start automatic payment status checking
+            paymentStatusInterval = setInterval(checkPaymentStatus, 3000);
+          }, 1000);
         }
-
-        // Always display the fallback link
-        paymentLinkContainer.style.display = 'block';
-        paymentUrlLink.href = paymentData.invoice_url;
-
-        // Show payment instructions
-        setTimeout(() => {
-          processingMessage.style.display = 'none';
-          paymentInstructions.style.display = 'block';
-          // Update progress to step 2 (Payment)
-          if (window.updateProgressStep) window.updateProgressStep(2);
-          // Start automatic payment status checking
-          paymentStatusInterval = setInterval(checkPaymentStatus, 3000); // Check every 3 seconds
-        }, 1000);
 
       } else {
         notificationSystem.success('Invoice created successfully. Please check your email for payment instructions.', 'Payment Setup Complete');
@@ -655,8 +724,10 @@ document.addEventListener('DOMContentLoaded', async function() {
       cartItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
     }
     
+    // Filter to selected items only
+    const selectedItems_arr = getSelectedItems(cartItems);
     const categories = new Set();
-    cartItems.forEach(item => {
+    selectedItems_arr.forEach(item => {
       if (item.category) {
         categories.add(item.category);
       }
@@ -785,9 +856,54 @@ document.addEventListener('DOMContentLoaded', async function() {
     }, 0);
   }
 
+  // Function to calculate subtotal from selected items only
+  async function calculateSelectedSubtotal() {
+    loadSelectedItems();
+    let cartItems = [];
+    
+    if (window.user && window.user._id) {
+      // For logged-in users, load from server first (with rate limiting)
+      const now = Date.now();
+      if (now - lastCartApiCall > CART_API_COOLDOWN && !cartApiInProgress) {
+        cartApiInProgress = true;
+        try {
+          const response = await fetch('/api/cart');
+          if (response.status === 200 && response.headers.get('content-type')?.includes('application/json')) {
+            cartItems = await response.json();
+            lastCartApiCall = now;
+          } else if (response.status === 429) {
+            console.warn('Rate limited, using localStorage fallback for subtotal');
+            cartItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+          } else {
+            console.error('Failed to load cart from server, status:', response.status);
+            cartItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+          }
+        } catch (error) {
+          console.error('Error loading cart from server:', error);
+          cartItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+        } finally {
+          cartApiInProgress = false;
+        }
+      } else {
+        console.log('Cart API rate limited or in progress, using cached data for subtotal');
+        cartItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+      }
+    } else {
+      // For guests, use localStorage
+      cartItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+    }
+    
+    const selectedItems_arr = getSelectedItems(cartItems);
+    return selectedItems_arr.reduce((sum, item) => {
+      if (item.isFree) return sum;
+      const addonsTotal = item.addons ? item.addons.reduce((sum, ad) => sum + (ad.BasePrice || 0), 0) : 0;
+      return sum + ((item.price + addonsTotal) * item.quantity);
+    }, 0);
+  }
+
   // Function to update total display
   async function updateTotalDisplay() {
-    const subtotal = await calculateSubtotal();
+    const subtotal = await calculateSelectedSubtotal();
     const deliveryMethod = document.getElementById('deliveryMethod').value;
     const deliveryFee = deliveryMethod === 'Delivery' ? 20 : 0;
     const discountAmount = subtotal * (currentDiscountPercentage / 100);

@@ -1,4 +1,5 @@
 <link rel="stylesheet" href="/css/checkout.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <div class="checkout-container">
   <div class="checkout-header">
     <h1>Checkout</h1>
@@ -188,7 +189,7 @@
           <span id="subtotal-amount">₱0.00</span>
         </div>
         <div class="promo-code-section">
-          <label for="promoCode">Promo Code</label>
+          <label for="promoCode">Available Promos</label>
           <div class="promo-input-row">
             <select id="promoCode">
               <option value="">No promo selected</option>
@@ -227,10 +228,10 @@
       <div class="payment-instructions" id="paymentInstructions" style="display: none;">
         <h3>Complete Your Payment</h3>
         <p id="paymentWindowStatus">Please complete your payment in the new tab that just opened.</p>
-        <p>The page will automatically update once payment is confirmed.</p>
+        <p style="font-size: 0.9rem; line-height: 1.4;">The page will automatically update once payment is confirmed.</p>
 
-        <div id="paymentLinkContainer" class="payment-link-container" style="display: none;">
-          <p><strong>If the payment window didn't open, click here:</strong></p>
+        <div id="paymentLinkContainer" class="payment-link-container" style="display: none; margin-top: 14px;">
+          <p style="font-size: 0.85rem; margin-bottom: 10px;"><strong>If the payment window didn't open, click here:</strong></p>
           <a id="paymentUrlLink" href="#" target="_blank" class="payment-url-btn">
             Open Payment Gateway
           </a>
@@ -238,7 +239,7 @@
 
         <div class="payment-actions">
           <button id="checkPaymentStatusBtn" class="check-status-btn">
-            Check Payment Status
+            Check Status
           </button>
           <button id="closePaymentModalBtn" class="close-modal-btn">
             Cancel & Return
@@ -246,7 +247,7 @@
         </div>
 
         <div class="payment-note">
-          <p><strong>Note:</strong> Don't close this window until payment is complete.</p>
+          <p style="font-size: 0.85rem;"><strong>Note:</strong> Don't close this window until payment is complete.</p>
         </div>
       </div>
     </div>
@@ -256,6 +257,16 @@
 <script>
 // Ensure cart data is available before checkout.js loads
 window.checkoutCartReady = false;
+
+// Load selected items from localStorage
+function getCheckoutSelectedItems() {
+  const saved = localStorage.getItem('selectedCartItems');
+  return saved ? new Set(JSON.parse(saved)) : new Set();
+}
+
+function generateCheckoutItemKey(item, index) {
+  return `${index}-${item.productId}-${item.size || 'nosize'}`;
+}
 
 // Load and display cart items dynamically
 async function loadCheckoutCart() {
@@ -294,11 +305,18 @@ async function loadCheckoutCart() {
     }
   }
   
-  displayCheckoutItems(orderItems);
-  updateCheckoutTotal(orderItems);
+  // Filter to selected items only
+  const selectedItems = getCheckoutSelectedItems();
+  const selectedOrderItems = orderItems.filter((item, index) => {
+    const itemKey = generateCheckoutItemKey(item, index);
+    return selectedItems.has(itemKey);
+  });
   
-  window.checkoutCartReady = orderItems.length > 0;
-  return orderItems;
+  displayCheckoutItems(selectedOrderItems);
+  updateCheckoutTotal(selectedOrderItems);
+  
+  window.checkoutCartReady = selectedOrderItems.length > 0;
+  return selectedOrderItems;
 }
 
 function displayCheckoutItems(orderItems) {
@@ -306,7 +324,7 @@ function displayCheckoutItems(orderItems) {
   const emptyMessage = document.getElementById('empty-cart-message');
   
   if (orderItems.length === 0) {
-    orderItemsContainer.innerHTML = '<div class="empty-cart-message"><p>No items in cart. <a href="/menu">Browse menu</a></p></div>';
+    orderItemsContainer.innerHTML = '<div class="empty-cart-message"><p>No items selected for checkout. <a href="/cart">Return to cart</a></p></div>';
     document.getElementById('order-total').style.display = 'none';
     return;
   }
@@ -330,19 +348,24 @@ function displayCheckoutItems(orderItems) {
     
     itemsHTML += `
       <div class="order-item" data-index="${index}">
-        <div class="item-info">
-          <h3>${item.name}</h3>
-          <p>Category: ${item.category || 'N/A'}</p>
-          ${item.size ? `<p>Size: ${item.size}</p>` : ''}
-          ${addonsList.length > 0 ? `
-            <div class="item-addons">
-              ${addonsList.map(addon => `<span class="addon">${addon}</span>`).join('')}
-            </div>
-          ` : ''}
-          <p class="quantity">Qty: ${item.quantity}</p>
+        <div class="order-item-image">
+          <img src="${item.imagelink || '/resources/coffee-icon.png'}" alt="${item.name}" />
         </div>
-        <div class="item-price">
-          ₱${itemTotal.toFixed(2)}
+        <div class="order-item-content">
+          <div class="item-info">
+            <h3>${item.name}</h3>
+            <p class="item-category">Category: ${item.category || 'N/A'}</p>
+            ${item.size ? `<p class="item-size">Size: ${item.size}</p>` : ''}
+            ${addonsList.length > 0 ? `
+              <div class="item-addons">
+                ${addonsList.map(addon => `<span class="addon">${addon}</span>`).join('')}
+              </div>
+            ` : ''}
+            <p class="quantity">Qty: ${item.quantity}</p>
+          </div>
+          <div class="item-price">
+            ₱${itemTotal.toFixed(2)}
+          </div>
         </div>
       </div>
     `;
