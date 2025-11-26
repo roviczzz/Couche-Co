@@ -61,6 +61,7 @@ const inventoryRoutes = require('./routes/inventory');
 const inventoryAdminRoutes = require('./routes/inventory-admin');
 const notificationRoutes = require('./routes/notifications');
 const webhooksRoutes = require('./routes/webhooks');
+const feedbackRoutes = require('./routes/feedback');
 
 // Import promo manager for automated deactivation
 const { initializePromoDeactivationCron } = require('./utils/promoManager');
@@ -232,6 +233,7 @@ app.set('layout', 'layout');
 
 // Use route modules
 app.use('/api', apiRoutes);
+app.use('/api', feedbackRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/admin/inventory', inventoryAdminRoutes);
 app.use('/api/webhooks', webhooksRoutes);

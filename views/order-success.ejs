@@ -136,6 +136,8 @@ if (isDelivery) {
     <a href="/" class="btn btn-primary">Back to Menu</a>
     <a href="/cart" class="btn btn-secondary">View Cart</a>
   </div>
+
+  <%- include('partials/feedback-section', { feedbackPage: 'order-success' }) %>
 <!-- Hidden data for JavaScript -->
 <div id="order-data" data-order-id="<%= orderId %>" style="display:none;"></div>
 

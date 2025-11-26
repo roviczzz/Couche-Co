@@ -289,7 +289,11 @@
 }
 
 .payment-method input[type="radio"] {
-  display: none;
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
 }
 
 .payment-label {
