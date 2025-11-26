@@ -587,9 +587,14 @@ function initPromoModalSettings() {
     const fileInput = document.getElementById('promoImageFile');
     const saveBtn = document.getElementById('savePromoBtn');
     const previewBtn = document.getElementById('previewPromoBtn');
+    const removeBtn = document.getElementById('removePromoBtn');
     const preview = document.querySelector('.promo-image-preview-container');
     const previewImg = document.getElementById('promoImagePreview');
     const uploadStatus = document.getElementById('uploadStatus');
+    const promoEnabled = document.getElementById('promoEnabled');
+    const promoStartDate = document.getElementById('promoStartDate');
+    const promoEndDate = document.getElementById('promoEndDate');
+    const promoDismissDuration = document.getElementById('promoDismissDuration');
 
     let uploadedImageUrl = null;
 
@@ -642,9 +647,6 @@ function initPromoModalSettings() {
         e.preventDefault();
 
         const imageUrl = uploadedImageUrl || previewImg.src;
-        console.log('Form submit - uploadedImageUrl:', uploadedImageUrl);
-        console.log('Form submit - previewImg.src:', previewImg.src);
-        console.log('Form submit - imageUrl:', imageUrl);
         
         if (!imageUrl) {
             alert('Please upload an image first');
@@ -657,8 +659,13 @@ function initPromoModalSettings() {
         btnLoader.style.display = 'inline';
 
         try {
-            const payload = { promoImageUrl: imageUrl };
-            console.log('Sending payload:', payload);
+            const payload = {
+                promoImageUrl: imageUrl,
+                promoEnabled: promoEnabled.checked,
+                promoStartDate: promoStartDate.value || null,
+                promoEndDate: promoEndDate.value || null,
+                promoDismissDuration: parseInt(promoDismissDuration.value) || 24
+            };
             
             const response = await fetch('/admin/settings/update-promo-modal', {
                 method: 'POST',
@@ -666,25 +673,62 @@ function initPromoModalSettings() {
                 body: JSON.stringify(payload)
             });
 
-            console.log('Response status:', response.status);
             const result = await response.json();
-            console.log('Response result:', result);
 
             if (result.success) {
-                alert('Promotional image saved successfully!');
+                alert('Promotional modal configuration saved successfully!');
                 fileInput.value = '';
                 uploadStatus.textContent = '';
                 uploadedImageUrl = null;
             } else {
-                alert('Error: ' + (result.message || 'Failed to save image'));
+                alert('Error: ' + (result.message || 'Failed to save configuration'));
             }
         } catch (error) {
             console.error('Save error:', error);
-            alert('Failed to save promotional image: ' + error.message);
+            alert('Failed to save promotional modal configuration: ' + error.message);
         } finally {
             btnText.style.display = 'inline';
             btnLoader.style.display = 'none';
         }
+    });
+
+    removeBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        if (!confirm('Are you sure you want to remove the promotional modal? This action cannot be undone.')) {
+            return;
+        }
+
+        const btnText = removeBtn.textContent;
+        removeBtn.disabled = true;
+        removeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Removing...';
+
+        fetch('/admin/settings/remove-promo-modal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                alert('Promotional modal removed successfully!');
+                fileInput.value = '';
+                uploadStatus.textContent = '';
+                uploadedImageUrl = null;
+                previewImg.src = '';
+                preview.style.display = 'none';
+                form.reset();
+            } else {
+                alert('Error: ' + (result.message || 'Failed to remove modal'));
+            }
+        })
+        .catch(error => {
+            console.error('Remove error:', error);
+            alert('Failed to remove promotional modal: ' + error.message);
+        })
+        .finally(() => {
+            removeBtn.disabled = false;
+            removeBtn.innerHTML = '<i class="fas fa-trash"></i> Remove Modal';
+        });
     });
 
     previewBtn.addEventListener('click', function(e) {
@@ -694,8 +738,8 @@ function initPromoModalSettings() {
         const imageUrl = uploadedImageUrl || previewImg.src;
         console.log('Image URL:', imageUrl);
         
-        if (!imageUrl) {
-            alert('Please upload an image first');
+        if (!imageUrl || imageUrl.trim() === '') {
+            alert('No image attached. Please upload an image before previewing.');
             return;
         }
 

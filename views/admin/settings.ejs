@@ -230,15 +230,43 @@
                                 </div>
                             </div>
 
-                            <div style="margin-top: 20px; display: flex; gap: 10px;">
-                                <button type="submit" class="btn-primary" id="savePromoBtn" style="flex: 1;">
-                                    <span class="btn-text">Save Promotional Image</span>
+                            <div class="form-group">
+                                <label for="promoEnabled">Enable Promotional Modal</label>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="promoEnabled" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="promoStartDate">Start Date & Time</label>
+                                <input type="datetime-local" id="promoStartDate" name="promoStartDate">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="promoEndDate">End Date & Time (Optional)</label>
+                                <p class="form-hint">Leave empty to display indefinitely</p>
+                                <input type="datetime-local" id="promoEndDate" name="promoEndDate">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="promoDismissDuration">Dismissal Duration (Hours)</label>
+                                <p class="form-hint">How many hours before showing again to dismissed users</p>
+                                <input type="number" id="promoDismissDuration" name="promoDismissDuration" min="1" max="720" value="24">
+                            </div>
+
+                            <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+                                <button type="submit" class="btn-primary" id="savePromoBtn" style="flex: 1; min-width: 150px;">
+                                    <span class="btn-text">Save Configuration</span>
                                     <span class="btn-loader" style="display: none;">
                                         <i class="fas fa-spinner fa-spin"></i>
                                     </span>
                                 </button>
-                                <button type="button" class="btn-secondary" id="previewPromoBtn" style="flex: 1;">
+                                <button type="button" class="btn-secondary" id="previewPromoBtn" style="flex: 1; min-width: 150px;">
                                     <i class="fas fa-eye"></i> Preview Modal
+                                </button>
+                                <button type="button" class="btn-danger" id="removePromoBtn" style="flex: 1; min-width: 150px;">
+                                    <i class="fas fa-trash"></i> Remove Modal
                                 </button>
                             </div>
                         </form>

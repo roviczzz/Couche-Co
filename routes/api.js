@@ -1912,13 +1912,38 @@ router.get('/promo-modal', async (req, res) => {
     );
 
     if (!pageSettings || !pageSettings.promoImageUrl) {
-      return res.json({ imageUrl: null });
+      return res.json({ enabled: false });
     }
 
-    res.json({ imageUrl: pageSettings.promoImageUrl });
+    // Check if modal is enabled
+    if (pageSettings.promoEnabled === false) {
+      return res.json({ enabled: false });
+    }
+
+    // Check start date
+    if (pageSettings.promoStartDate) {
+      const startDate = new Date(pageSettings.promoStartDate);
+      if (new Date() < startDate) {
+        return res.json({ enabled: false });
+      }
+    }
+
+    // Check end date
+    if (pageSettings.promoEndDate) {
+      const endDate = new Date(pageSettings.promoEndDate);
+      if (new Date() > endDate) {
+        return res.json({ enabled: false });
+      }
+    }
+
+    res.json({
+      enabled: true,
+      imageUrl: pageSettings.promoImageUrl,
+      dismissDuration: pageSettings.promoDismissDuration || 24
+    });
   } catch (error) {
     console.error('Error fetching promo modal:', error);
-    res.status(500).json({ imageUrl: null });
+    res.status(500).json({ enabled: false });
   }
 });
 

@@ -5,6 +5,7 @@ class PromoModal {
     this.closeButton = null;
     this.imageElement = null;
     this.promoData = null;
+    this.dismissDuration = 24;
   }
 
   async init() {
@@ -12,21 +13,23 @@ class PromoModal {
       this.cacheElements();
       if (!this.modalOverlay) return;
 
-      const today = new Date().toISOString().split('T')[0];
-      const dismissKey = `promoModalDismissed-${today}`;
+      await this.fetchPromoData();
+
+      if (!this.promoData || !this.promoData.enabled || !this.promoData.imageUrl) {
+        return;
+      }
+
+      this.dismissDuration = this.promoData.dismissDuration || 24;
+
+      const dismissKey = `promoModalDismissed-${this.getDismissKeyDate()}`;
 
       if (sessionStorage.getItem(dismissKey)) {
         return;
       }
 
       this.attachEventListeners();
-
-      await this.fetchPromoData();
-
-      if (this.promoData && this.promoData.imageUrl) {
-        this.setImage(this.promoData.imageUrl);
-        setTimeout(() => this.show(), 500);
-      }
+      this.setImage(this.promoData.imageUrl);
+      setTimeout(() => this.show(), 500);
     } catch (error) {
       console.error('Error initializing promo modal:', error);
     }
@@ -70,6 +73,12 @@ class PromoModal {
     this.promoData = await response.json();
   }
 
+  getDismissKeyDate() {
+    const now = new Date();
+    const dismissKey = new Date(now.getTime() + this.dismissDuration * 60 * 60 * 1000);
+    return dismissKey.toISOString().split('T')[0];
+  }
+
   setImage(imageUrl) {
     if (this.imageElement) {
       this.imageElement.src = imageUrl;
@@ -85,8 +94,7 @@ class PromoModal {
   }
 
   dismiss() {
-    const today = new Date().toISOString().split('T')[0];
-    const dismissKey = `promoModalDismissed-${today}`;
+    const dismissKey = `promoModalDismissed-${this.getDismissKeyDate()}`;
     sessionStorage.setItem(dismissKey, 'true');
 
     if (this.modalOverlay) {

@@ -2239,7 +2239,7 @@ router.post('/settings/preferences', async (req, res) => {
 
 router.post('/settings/update-promo-modal', ensureOwner, async (req, res) => {
   try {
-    const { promoImageUrl } = req.body;
+    const { promoImageUrl, promoEnabled, promoStartDate, promoEndDate, promoDismissDuration } = req.body;
 
     if (!promoImageUrl || !promoImageUrl.trim()) {
       return res.status(400).json({ success: false, message: 'Promotional image URL is required' });
@@ -2250,6 +2250,10 @@ router.post('/settings/update-promo-modal', ensureOwner, async (req, res) => {
       {
         $set: {
           promoImageUrl: promoImageUrl.trim(),
+          promoEnabled: promoEnabled !== false,
+          promoStartDate: promoStartDate ? new Date(promoStartDate) : null,
+          promoEndDate: promoEndDate ? new Date(promoEndDate) : null,
+          promoDismissDuration: promoDismissDuration || 24,
           updatedAt: new Date()
         },
         $setOnInsert: {
@@ -2262,10 +2266,24 @@ router.post('/settings/update-promo-modal', ensureOwner, async (req, res) => {
     );
 
     console.log('Promo modal updated:', result);
-    res.json({ success: true, message: 'Promotional image updated successfully' });
+    res.json({ success: true, message: 'Promotional modal configuration updated successfully' });
   } catch (error) {
     console.error('Promo modal update error:', error);
-    res.status(500).json({ success: false, message: 'Failed to update promotional image: ' + error.message });
+    res.status(500).json({ success: false, message: 'Failed to update promotional modal: ' + error.message });
+  }
+});
+
+router.post('/settings/remove-promo-modal', ensureOwner, async (req, res) => {
+  try {
+    const result = await req.db.collection('PageSettings').deleteOne(
+      { pageId: 'promo-modal' }
+    );
+
+    console.log('Promo modal removed:', result);
+    res.json({ success: true, message: 'Promotional modal removed successfully' });
+  } catch (error) {
+    console.error('Promo modal removal error:', error);
+    res.status(500).json({ success: false, message: 'Failed to remove promotional modal: ' + error.message });
   }
 });
 
