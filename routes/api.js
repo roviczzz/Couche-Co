@@ -1905,4 +1905,21 @@ router.get('/orders/:orderId/status', async (req, res) => {
   }
 });
 
+router.get('/promo-modal', async (req, res) => {
+  try {
+    const pageSettings = await req.db.collection('PageSettings').findOne(
+      { pageId: 'promo-modal' }
+    );
+
+    if (!pageSettings || !pageSettings.promoImageUrl) {
+      return res.json({ imageUrl: null });
+    }
+
+    res.json({ imageUrl: pageSettings.promoImageUrl });
+  } catch (error) {
+    console.error('Error fetching promo modal:', error);
+    res.status(500).json({ imageUrl: null });
+  }
+});
+
 module.exports = router;

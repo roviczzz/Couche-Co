@@ -572,4 +572,230 @@ document.addEventListener('DOMContentLoaded', function() {
     if (carouselTab) {
         new CarouselPageManager();
     }
+
+    setTimeout(() => {
+        const promoModalForm = document.getElementById('promoModalForm');
+        if (promoModalForm) {
+            console.log('Initializing promo modal settings');
+            initPromoModalSettings();
+        }
+    }, 0);
 });
+
+function initPromoModalSettings() {
+    const form = document.getElementById('promoModalForm');
+    const fileInput = document.getElementById('promoImageFile');
+    const saveBtn = document.getElementById('savePromoBtn');
+    const previewBtn = document.getElementById('previewPromoBtn');
+    const preview = document.querySelector('.promo-image-preview-container');
+    const previewImg = document.getElementById('promoImagePreview');
+    const uploadStatus = document.getElementById('uploadStatus');
+
+    let uploadedImageUrl = null;
+
+    loadPromoImageUrl();
+
+    fileInput.addEventListener('change', async function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (file.size > 5 * 1024 * 1024) {
+            uploadStatus.textContent = 'File size exceeds 5MB limit';
+            uploadStatus.style.color = '#dc3545';
+            return;
+        }
+
+        uploadStatus.textContent = 'Uploading...';
+        uploadStatus.style.color = '#007bff';
+
+        try {
+            const formData = new FormData();
+            formData.append('promoImage', file);
+
+            const response = await fetch('/admin/settings/upload-promo-image', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                uploadedImageUrl = result.data.path;
+                previewImg.src = uploadedImageUrl;
+                preview.style.display = 'block';
+                uploadStatus.textContent = 'Upload successful! Ready to save.';
+                uploadStatus.style.color = '#28a745';
+            } else {
+                uploadStatus.textContent = 'Upload failed: ' + result.error;
+                uploadStatus.style.color = '#dc3545';
+                uploadedImageUrl = null;
+            }
+        } catch (error) {
+            console.error('Upload error:', error);
+            uploadStatus.textContent = 'Upload failed. Please try again.';
+            uploadStatus.style.color = '#dc3545';
+            uploadedImageUrl = null;
+        }
+    });
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const imageUrl = uploadedImageUrl || previewImg.src;
+        console.log('Form submit - uploadedImageUrl:', uploadedImageUrl);
+        console.log('Form submit - previewImg.src:', previewImg.src);
+        console.log('Form submit - imageUrl:', imageUrl);
+        
+        if (!imageUrl) {
+            alert('Please upload an image first');
+            return;
+        }
+
+        const btnText = saveBtn.querySelector('.btn-text');
+        const btnLoader = saveBtn.querySelector('.btn-loader');
+        btnText.style.display = 'none';
+        btnLoader.style.display = 'inline';
+
+        try {
+            const payload = { promoImageUrl: imageUrl };
+            console.log('Sending payload:', payload);
+            
+            const response = await fetch('/admin/settings/update-promo-modal', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            console.log('Response status:', response.status);
+            const result = await response.json();
+            console.log('Response result:', result);
+
+            if (result.success) {
+                alert('Promotional image saved successfully!');
+                fileInput.value = '';
+                uploadStatus.textContent = '';
+                uploadedImageUrl = null;
+            } else {
+                alert('Error: ' + (result.message || 'Failed to save image'));
+            }
+        } catch (error) {
+            console.error('Save error:', error);
+            alert('Failed to save promotional image: ' + error.message);
+        } finally {
+            btnText.style.display = 'inline';
+            btnLoader.style.display = 'none';
+        }
+    });
+
+    previewBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        console.log('Preview button clicked');
+        
+        const imageUrl = uploadedImageUrl || previewImg.src;
+        console.log('Image URL:', imageUrl);
+        
+        if (!imageUrl) {
+            alert('Please upload an image first');
+            return;
+        }
+
+        const modalOverlay = document.getElementById('promoModalOverlay');
+        console.log('Modal overlay:', modalOverlay);
+        
+        if (!modalOverlay) {
+            alert('Modal not found on page');
+            return;
+        }
+
+        const img = modalOverlay.querySelector('.promo-modal-image');
+        const closeBtn = modalOverlay.querySelector('.promo-modal-close');
+        
+        if (!img || !closeBtn) {
+            alert('Modal elements not found');
+            return;
+        }
+
+        img.src = imageUrl;
+        modalOverlay.classList.add('show');
+        document.body.style.overflow = 'hidden';
+
+        const handleClose = () => {
+            modalOverlay.classList.remove('show');
+            document.body.style.overflow = '';
+        };
+
+        const handleBackdropClose = (e) => {
+            if (e.target === modalOverlay) {
+                handleClose();
+            }
+        };
+
+        const handleEscKey = (e) => {
+            if (e.key === 'Escape') {
+                handleClose();
+                document.removeEventListener('keydown', handleEscKey);
+            }
+        };
+
+        closeBtn.onclick = handleClose;
+        modalOverlay.onclick = handleBackdropClose;
+        document.addEventListener('keydown', handleEscKey);
+    });
+}
+
+// Settings category navigation
+document.addEventListener('DOMContentLoaded', function() {
+    const categoryItems = document.querySelectorAll('.category-item');
+    const sections = document.querySelectorAll('.settings-section');
+
+    // Set first category as active by default
+    if (categoryItems.length > 0) {
+        categoryItems[0].classList.add('active');
+        const firstCategory = categoryItems[0].getAttribute('data-category');
+        document.querySelector(`[data-category="${firstCategory}"]`)?.parentElement.classList.add('active');
+        sections.forEach(section => {
+            if (section.getAttribute('data-category') === firstCategory) {
+                section.classList.add('active');
+            }
+        });
+    }
+
+    // Add click handlers
+    categoryItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const category = this.getAttribute('data-category');
+            
+            // Update active category button
+            categoryItems.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Show corresponding section
+            sections.forEach(section => {
+                if (section.getAttribute('data-category') === category) {
+                    section.classList.add('active');
+                } else {
+                    section.classList.remove('active');
+                }
+            });
+            
+            // Scroll to top of content
+            document.querySelector('.settings-content').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+});
+async function loadPromoImageUrl() {
+    try {
+        const response = await fetch('/api/promo-modal');
+        const data = await response.json();
+
+        if (data.imageUrl) {
+            const previewImg = document.getElementById('promoImagePreview');
+            const preview = document.querySelector('.promo-image-preview-container');
+
+            previewImg.src = data.imageUrl;
+            preview.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading promo image:', error);
+    }
+}

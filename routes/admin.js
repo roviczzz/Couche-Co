@@ -2237,6 +2237,38 @@ router.post('/settings/preferences', async (req, res) => {
   }
 });
 
+router.post('/settings/update-promo-modal', ensureOwner, async (req, res) => {
+  try {
+    const { promoImageUrl } = req.body;
+
+    if (!promoImageUrl || !promoImageUrl.trim()) {
+      return res.status(400).json({ success: false, message: 'Promotional image URL is required' });
+    }
+
+    const result = await req.db.collection('PageSettings').updateOne(
+      { pageId: 'promo-modal' },
+      {
+        $set: {
+          promoImageUrl: promoImageUrl.trim(),
+          updatedAt: new Date()
+        },
+        $setOnInsert: {
+          pageId: 'promo-modal',
+          pageName: 'Promotional Modal',
+          createdAt: new Date()
+        }
+      },
+      { upsert: true }
+    );
+
+    console.log('Promo modal updated:', result);
+    res.json({ success: true, message: 'Promotional image updated successfully' });
+  } catch (error) {
+    console.error('Promo modal update error:', error);
+    res.status(500).json({ success: false, message: 'Failed to update promotional image: ' + error.message });
+  }
+});
+
 // Password change route
 router.post('/change-password', async (req, res) => {
   try {
@@ -3749,6 +3781,48 @@ router.post('/api/page-management/carousel/update', async (req, res) => {
   } catch (error) {
     console.error('Carousel update error:', error);
     res.status(500).json({ success: false, error: 'Failed to update carousel' });
+  }
+});
+
+router.post('/settings/upload-promo-image', upload.single('promoImage'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'No image file provided' });
+    }
+
+    const file = req.file;
+    const maxSize = 5 * 1024 * 1024;
+
+    if (file.size > maxSize) {
+      return res.status(400).json({ success: false, error: 'File size exceeds 5MB limit' });
+    }
+
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowedMimes.includes(file.mimetype)) {
+      return res.status(400).json({ success: false, error: 'Invalid image format. Use JPG, PNG, WebP, or GIF' });
+    }
+
+    const promotionalsDir = path.join(__dirname, '..', 'public', 'uploads', 'promotionals');
+    if (!fs.existsSync(promotionalsDir)) {
+      fs.mkdirSync(promotionalsDir, { recursive: true });
+    }
+
+    const ext = path.extname(file.originalname);
+    const filename = `promo-${Date.now()}${ext}`;
+    const finalPath = path.join(promotionalsDir, filename);
+    fs.renameSync(file.path, finalPath);
+
+    res.json({ 
+      success: true, 
+      message: 'Image uploaded successfully',
+      data: { 
+        filename: filename,
+        path: `/uploads/promotionals/${filename}`
+      }
+    });
+  } catch (error) {
+    console.error('Promo image upload error:', error);
+    res.status(500).json({ success: false, error: 'Failed to upload image' });
   }
 });
 

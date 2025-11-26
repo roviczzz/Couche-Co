@@ -9,100 +9,124 @@
         <p>Manage your account and preferences</p>
     </div>
 
-    <div class="settings-grid">
-        <div class="settings-main">
-            <div class="settings-card">
-                <div class="card-header">
-                    <h3>Profile Settings</h3>
+    <div class="settings-grid-layout">
+        <!-- Categories Sidebar -->
+        <div class="settings-categories">
+            <div class="category-item" data-category="account">
+                <i class="fas fa-user"></i>
+                <span>Account</span>
+            </div>
+            <div class="category-item" data-category="preferences">
+                <i class="fas fa-sliders-h"></i>
+                <span>Preferences</span>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="settings-content">
+            <!-- Account Section -->
+            <div class="settings-section" data-category="account">
+                <h3 class="section-title">Account</h3>
+                
+                <div class="settings-card">
+                    <div class="card-header">
+                        <h3>Profile Settings</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="profileForm" method="POST" action="/staff/settings">
+                            <div class="form-group">
+                                <label for="displayName">Display Name</label>
+                                <input type="text" id="displayName" name="displayName" value="<%= user.fullname ? user.fullname.split(' ')[0] : '' %>" placeholder="Enter your display name">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="email">Email Address</label>
+                                <input type="email" id="email" name="email" value="<%= user.email || '' %>" placeholder="Enter your email">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="phone">Phone Number</label>
+                                <input type="tel" id="phone" name="phone" value="<%= user.phone ? formatPhilippinesPhone(user.phone) : '' %>" placeholder="Enter your phone number">
+                            </div>
+
+                            <button type="submit" class="btn-primary">Save Profile</button>
+                        </form>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <form id="profileForm" method="POST" action="/staff/settings">
-                        <div class="form-group">
-                            <label for="displayName">Display Name</label>
-                            <input type="text" id="displayName" name="displayName" value="<%= user.fullname ? user.fullname.split(' ')[0] : '' %>" placeholder="Enter your display name">
-                        </div>
 
-                        <div class="form-group">
-                            <label for="email">Email Address</label>
-                            <input type="email" id="email" name="email" value="<%= user.email || '' %>" placeholder="Enter your email">
-                        </div>
+                <div class="settings-card">
+                    <div class="card-header">
+                        <h3>Security</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="passwordForm">
+                            <div class="form-group">
+                                <label for="currentPassword">Current Password</label>
+                                <input type="password" id="currentPassword" name="currentPassword" placeholder="Enter current password">
+                            </div>
 
-                        <div class="form-group">
-                            <label for="phone">Phone Number</label>
-                            <input type="tel" id="phone" name="phone" value="<%= user.phone ? formatPhilippinesPhone(user.phone) : '' %>" placeholder="Enter your phone number">
-                        </div>
+                            <div class="form-group">
+                                <label for="newPassword">New Password</label>
+                                <input type="password" id="newPassword" name="newPassword" placeholder="Enter new password">
+                            </div>
 
-                        <button type="submit" class="btn-primary">Save Profile</button>
-                    </form>
+                            <div class="form-group">
+                                <label for="confirmPassword">Confirm New Password</label>
+                                <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm new password">
+                            </div>
+
+                            <button type="submit" class="btn-secondary">Change Password</button>
+                        </form>
+                    </div>
                 </div>
             </div>
 
-            <div class="settings-card">
-                <div class="card-header">
-                    <h3>Preferences</h3>
-                </div>
-                <div class="card-body">
-                    <div class="preference-item">
-                        <div class="preference-info">
-                            <h4>Sound Notifications</h4>
-                            <p>Enable sound alerts for new orders and updates</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="soundEnabled" <%= settings.soundEnabled ? 'checked' : '' %>>
-                            <span class="slider"></span>
-                        </label>
+            <!-- Preferences Section -->
+            <div class="settings-section" data-category="preferences">
+                <h3 class="section-title">Preferences</h3>
+                
+                <div class="settings-card">
+                    <div class="card-header">
+                        <h3>General Preferences</h3>
                     </div>
-
-                    <div class="preference-item">
-                        <div class="preference-info">
-                            <h4>Auto Print Receipts</h4>
-                            <p>Automatically print receipts after order completion</p>
+                    <div class="card-body">
+                        <div class="preference-item">
+                            <div class="preference-info">
+                                <h4>Sound Notifications</h4>
+                                <p>Enable sound alerts for new orders and updates</p>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="soundEnabled" <%= settings.soundEnabled ? 'checked' : '' %>>
+                                <span class="slider"></span>
+                            </label>
                         </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="printReceipts" <%= settings.printReceipts ? 'checked' : '' %>>
-                            <span class="slider"></span>
-                        </label>
+
+                        <div class="preference-item">
+                            <div class="preference-info">
+                                <h4>Auto Print Receipts</h4>
+                                <p>Automatically print receipts after order completion</p>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="printReceipts" <%= settings.printReceipts ? 'checked' : '' %>>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="preference-item">
+                            <div class="preference-info">
+                                <h4>Low Stock Alert Range</h4>
+                                <p>Set the threshold for low stock alerts (5-100)</p>
+                            </div>
+                            <div class="number-input">
+                                <input type="number" id="lowStockAlertRange" min="5" max="100" value="<%= settings.lowStockAlertRange || 5 %>">
+                            </div>
+                        </div>
                     </div>
-
-                    <div class="preference-item">
-                        <div class="preference-info">
-                            <h4>Low Stock Alert Range</h4>
-                            <p>Set the threshold for low stock alerts (5-100)</p>
-                        </div>
-                        <div class="number-input">
-                            <input type="number" id="lowStockAlertRange" min="5" max="100" value="<%= settings.lowStockAlertRange || 5 %>">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="settings-card">
-                <div class="card-header">
-                    <h3>Security</h3>
-                </div>
-                <div class="card-body">
-                    <form id="passwordForm">
-                        <div class="form-group">
-                            <label for="currentPassword">Current Password</label>
-                            <input type="password" id="currentPassword" name="currentPassword" placeholder="Enter current password">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="newPassword">New Password</label>
-                            <input type="password" id="newPassword" name="newPassword" placeholder="Enter new password">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="confirmPassword">Confirm New Password</label>
-                            <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm new password">
-                        </div>
-
-                        <button type="submit" class="btn-secondary">Change Password</button>
-                    </form>
                 </div>
             </div>
         </div>
 
+        <!-- Info Sidebar -->
         <div class="settings-sidebar">
             <div class="info-card">
                 <div class="card-header">

@@ -28,6 +28,9 @@
     <link rel="stylesheet" href="<%= extraCSS %>">
   <% } %>
 
+  <!-- Promotional Modal CSS -->
+  <link rel="stylesheet" href="/css/promo-modal.css">
+
   <!-- Fallback: Load common page CSS based on current route -->
   <% if (currentPath === '/cart') { %>
     <link rel="stylesheet" href="/css/cart.css">
@@ -108,7 +111,16 @@
   <!-- Custom Notification System -->
   <div id="notification-container" class="notification-container"></div>
 
+  <!-- Promotional Modal -->
+  <div id="promoModalOverlay" class="promo-modal-overlay">
+    <div class="promo-modal-container">
+      <img class="promo-modal-image" src="" alt="Promotional Offer">
+      <button class="promo-modal-close" aria-label="Close promotional modal">&times;</button>
+    </div>
+  </div>
+
   <script src="/js/notifications.js" defer></script>
+  <script src="/js/promo-modal.js" defer></script>
 
   <% if (typeof user === 'undefined' || !user) { %>
     <script src="/js/navbar.js" defer></script>
