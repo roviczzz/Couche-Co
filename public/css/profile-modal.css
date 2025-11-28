@@ -17,7 +17,7 @@
   border-radius: 12px;
   max-width: 90vw;
   max-height: 90vh;
-  width: 1000px;
+  width: 1200px;
   height: 700px;
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
@@ -205,6 +205,113 @@
 .status-badge.status-pending {
   background: #f8d7da;
   color: #721c24;
+}
+
+/* Items Badge with Tooltip */
+.items-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: #f0f0f0;
+  color: #555;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: help;
+  position: relative;
+  white-space: nowrap;
+}
+
+.items-badge i {
+  font-size: 11px;
+  color: #888;
+}
+
+.items-badge:hover {
+  background: #e0e0e0;
+}
+
+.items-badge[title] {
+  position: relative;
+}
+
+.items-badge::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: pre-line;
+  text-align: left;
+  min-width: 150px;
+  max-width: 250px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  z-index: 1000;
+  pointer-events: none;
+  margin-bottom: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  line-height: 1.5;
+}
+
+.items-badge::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #333;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  z-index: 1001;
+  margin-bottom: -4px;
+}
+
+.items-badge:hover::after,
+.items-badge:hover::before {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Order Again Button */
+.order-again-btn {
+  font-family: 'Inter', sans-serif;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #a05c2f;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.order-again-btn:hover {
+  background: #8b4a26;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(160, 92, 47, 0.3);
+}
+
+.order-again-btn:active {
+  transform: translateY(0);
+}
+
+.order-again-btn i {
+  font-size: 11px;
 }
 
 /* No Orders State */

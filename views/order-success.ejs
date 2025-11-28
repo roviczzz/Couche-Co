@@ -133,11 +133,13 @@ if (isDelivery) {
 
   <!-- Footer Section - Full Width -->
   <div class="success-actions">
-    <a href="/" class="btn btn-primary">Back to Menu</a>
-    <a href="/cart" class="btn btn-secondary">View Cart</a>
+    <button type="button" class="btn btn-primary" onclick="window.location.href='/'">Back to Menu</button>
+    <button type="button" class="btn btn-secondary" onclick="window.location.href='/cart'">View Cart</button>
   </div>
+</div>
 
-  <%- include('partials/feedback-section', { feedbackPage: 'order-success' }) %>
+<%- include('partials/feedback-section', { feedbackPage: 'order-success' }) %>
+
 <!-- Hidden data for JavaScript -->
 <div id="order-data" data-order-id="<%= orderId %>" style="display:none;"></div>
 

@@ -33,6 +33,20 @@ router.get('/addons', async (req, res) => {
   }
 });
 
+router.get('/ingredients', async (req, res) => {
+  try {
+    const ingredients = await req.db.collection('Ingredients')
+      .find({ isEnabled: true })
+      .project({ IngredientID: 1, Name: 1, name: 1 })
+      .toArray();
+    
+    res.json(ingredients);
+  } catch (err) {
+    console.error('Error fetching ingredients:', err);
+    res.status(500).json([]);
+  }
+});
+
 // Check item availability for cart addition
 router.post('/check-availability', async (req, res) => {
   try {
@@ -85,6 +99,39 @@ router.get('/check-product-availability/:productId', async (req, res) => {
       available: false,
       reason: 'System error checking availability'
     });
+  }
+});
+
+router.get('/products/batch', async (req, res) => {
+  try {
+    const { ids } = req.query;
+    
+    if (!ids) {
+      return res.status(400).json({ error: 'Product IDs required' });
+    }
+    
+    const productIds = ids.split(',').map(id => id.trim()).filter(id => id);
+    
+    if (productIds.length === 0) {
+      return res.json([]);
+    }
+    
+    const products = await req.db.collection('Menu')
+      .find({ ProductID: { $in: productIds } })
+      .project({
+        ProductID: 1,
+        Name: 1,
+        Category: 1,
+        BasePrice: 1,
+        imagelink: 1,
+        Sizes: 1
+      })
+      .toArray();
+    
+    res.json(products);
+  } catch (error) {
+    console.error('Error fetching batch products:', error);
+    res.status(500).json({ error: 'Failed to fetch products' });
   }
 });
 

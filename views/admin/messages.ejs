@@ -36,6 +36,11 @@
     </div>
 </div>
 
+<!-- File inputs outside forms to prevent form submission -->
+<input type="file" id="composeFileInput" class="file-input" multiple style="display: none;">
+<input type="file" id="replyFileInput" class="file-input" multiple style="display: none;">
+<input type="file" id="modalFileInput" class="file-input" multiple style="display: none;">
+
 <!-- Compose Modal -->
 <div class="modal" id="composeModal">
     <div class="modal-content email-compose-modal">
@@ -87,7 +92,6 @@
                     </div>
                     <textarea id="messageTextarea" name="message" placeholder="Type your message..." rows="8"></textarea>
                     <div class="attachment-section">
-                        <input type="file" id="composeFileInput" class="file-input" multiple style="display: none;">
                         <button type="button" class="file-attach-btn" id="composeAttachBtn">
                             <i class="fas fa-paperclip"></i>
                             Attach Files (Max 10MB each)
@@ -155,7 +159,6 @@
                     <div class="reply-quote" id="replyQuote"></div>
                     <textarea id="replyTextarea" name="message" placeholder="Type your reply..." rows="6"></textarea>
                     <div class="attachment-section">
-                        <input type="file" id="replyFileInput" class="file-input" multiple style="display: none;">
                         <button type="button" class="file-attach-btn" id="replyAttachBtn">
                             <i class="fas fa-paperclip"></i>
                             Attach Files (Max 10MB each)
@@ -187,8 +190,8 @@
         <div class="modal-body">
             <form id="newConversationForm">
                 <div class="form-group">
-                    <label for="recipientSelect">Select Recipient</label>
-                    <select id="recipientSelect" name="recipientId" required>
+                    <label for="newConversationRecipientSelect">Select Recipient</label>
+                    <select id="newConversationRecipientSelect" name="recipientId" required>
                         <option value="">Choose a recipient...</option>
                         <!-- Users will be loaded here -->
                     </select>
@@ -211,7 +214,6 @@
                     </div>
                     <textarea id="initialMessage" name="message" placeholder="Type your message..." rows="4" required></textarea>
                     <div class="attachment-section">
-                        <input type="file" id="modalFileInput" class="file-input" multiple style="display: none;">
                         <button type="button" class="file-attach-btn" id="modalAttachBtn">
                             <i class="fas fa-paperclip"></i>
                             Attach Files

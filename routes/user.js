@@ -104,12 +104,14 @@ router.get('/profile', async (req, res) => {
       .find({ 'Customer.email': req.session.user.email })
       .project({
         OrderID: 1,
+        Date: 1,
         CreationTime: 1,
         Total: 1,
         FulfillmentStatus: 1,
-        'Customer.fullname': 1
+        'Customer.fullname': 1,
+        Cart: 1
       })
-      .sort({ CreationTime: -1 })
+      .sort({ Date: -1, CreationTime: -1 })
       .toArray();
 
     // Check if request expects JSON (AJAX request)

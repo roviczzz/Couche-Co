@@ -1,14 +1,21 @@
-// Global variables
+console.log('messages.js loaded');
+
 let currentConversationId = null;
 let currentRecipientId = null;
 let messages = [];
-// These will be set by the templates on window object
 let users = [];
 let conversations = [];
 let currentUserId = '';
-let apiBase = '/admin/messages/api'; // Default will be overridden by templates
+let apiBase = '/admin/messages/api';
 
-// Toast notification functions
+let attachedFiles = [];
+let modalAttachedFiles = [];
+let composeAttachedFiles = [];
+let replyAttachedFiles = [];
+
+let currentGalleryImages = [];
+let currentGalleryIndex = 0;
+
 function createToastContainer() {
     let container = document.getElementById('toast-container');
     if (!container) {
@@ -22,7 +29,6 @@ function createToastContainer() {
 
 function showToast(message, type = 'info', duration = 5000) {
     const container = createToastContainer();
-
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
 
@@ -40,7 +46,6 @@ function showToast(message, type = 'info', duration = 5000) {
 
     container.appendChild(toast);
 
-    // Auto-remove after duration
     setTimeout(() => {
         toast.classList.add('fade-out');
         setTimeout(() => {
@@ -51,30 +56,99 @@ function showToast(message, type = 'info', duration = 5000) {
     }, duration);
 }
 
-// Export the initialization function
+function formatMessageContent(content) {
+    if (!content) return '';
+    
+    let formatted = content
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    
+    formatted = formatted.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    formatted = formatted.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    formatted = formatted.replace(/&lt;u&gt;(.+?)&lt;\/u&gt;/g, '<u>$1</u>');
+    formatted = formatted.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+    formatted = formatted.replace(/^• (.+)$/gm, '<li>$1</li>');
+    formatted = formatted.replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>');
+    formatted = formatted.replace(/\n/g, '<br>');
+    
+    return formatted;
+}
+
+function formatMessage(content) {
+    return formatMessageContent(content);
+}
+
+function getInitials(name) {
+    if (!name) return 'U';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+}
+
+function formatTime(timestamp) {
+    if (!timestamp) return '';
+
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diff = now - date;
+
+    if (diff < 60000) return 'Just now';
+    if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+
+    return date.toLocaleDateString();
+}
+
+function getFileIcon(mimeType) {
+    if (!mimeType) return 'file';
+    if (mimeType.startsWith('image/')) return 'image';
+    if (mimeType.startsWith('video/')) return 'video';
+    if (mimeType.startsWith('audio/')) return 'music';
+    if (mimeType === 'application/pdf') return 'file-pdf';
+    if (mimeType.includes('word') || mimeType.includes('document')) return 'file-word';
+    if (mimeType.includes('excel') || mimeType.includes('spreadsheet')) return 'file-excel';
+    return 'file';
+}
+
 export function initMessaging() {
-    // Get data from window object set by template
     users = window.users || [];
     conversations = window.conversations || [];
     currentUserId = window.currentUserId || '';
     apiBase = window.apiBase || '/admin/messages/api';
 
-    // Initialize when DOM is loaded
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('submit', (e) => {
+        if (e.target.id !== 'composeForm' && e.target.id !== 'replyForm' && e.target.id !== 'newConversationForm') {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+        }
+    }, true);
+
+    document.addEventListener('click', (e) => {
+        if (e.target.tagName === 'A' && !e.target.target) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    }, true);
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeMessaging);
+    } else {
         initializeMessaging();
-    });
+    }
 }
 
 function initializeMessaging() {
-    // Use pre-loaded data instead of fetching
     populateRecipientSelect();
     renderConversations(conversations);
-    setupEventListeners();
+    
+    setTimeout(() => {
+        setupEventListeners();
+    }, 100);
+    
     setupAutoRefresh();
 }
 
 function setupEventListeners() {
-    // Compose modal
     const composeBtn = document.getElementById('composeBtn');
     if (composeBtn) {
         composeBtn.addEventListener('click', openComposeModal);
@@ -87,16 +161,22 @@ function setupEventListeners() {
 
     const cancelComposeBtn = document.getElementById('cancelCompose');
     if (cancelComposeBtn) {
-        cancelComposeBtn.addEventListener('click', closeComposeModal);
+        cancelComposeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            closeComposeModal();
+        });
     }
 
-    // Compose form
     const composeForm = document.getElementById('composeForm');
     if (composeForm) {
-        composeForm.addEventListener('submit', handleComposeMessage);
+        composeForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleComposeMessage(e);
+            return false;
+        });
     }
 
-    // Reply modal
     const closeReplyModalBtn = document.getElementById('closeReplyModal');
     if (closeReplyModalBtn) {
         closeReplyModalBtn.addEventListener('click', closeReplyModal);
@@ -104,16 +184,22 @@ function setupEventListeners() {
 
     const cancelReplyBtn = document.getElementById('cancelReply');
     if (cancelReplyBtn) {
-        cancelReplyBtn.addEventListener('click', closeReplyModal);
+        cancelReplyBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            closeReplyModal();
+        });
     }
 
-    // Reply form
     const replyForm = document.getElementById('replyForm');
     if (replyForm) {
-        replyForm.addEventListener('submit', handleReplyMessage);
+        replyForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleReplyMessage(e);
+            return false;
+        });
     }
 
-    // New conversation modal (legacy - make conditional)
     const newConversationBtn = document.getElementById('newConversationBtn');
     if (newConversationBtn) {
         newConversationBtn.addEventListener('click', openNewConversationModal);
@@ -126,27 +212,26 @@ function setupEventListeners() {
 
     const cancelNewConversationBtn = document.getElementById('cancelNewConversation');
     if (cancelNewConversationBtn) {
-        cancelNewConversationBtn.addEventListener('click', closeNewConversationModal);
+        cancelNewConversationBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            closeNewConversationModal();
+        });
     }
 
-    // New conversation form
     const newConversationForm = document.getElementById('newConversationForm');
     if (newConversationForm) {
-        newConversationForm.addEventListener('submit', handleNewConversation);
+        newConversationForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleNewConversation(e);
+            return false;
+        });
     }
 
-    // Format tools
     setupFormatTools();
+    setupAttachmentHandlers();
+    setupImageGallery();
 
-    // Modal file attachment
-    const modalAttachBtn = document.getElementById('modalAttachBtn');
-    const modalFileInput = document.getElementById('modalFileInput');
-    if (modalAttachBtn && modalFileInput) {
-        modalAttachBtn.addEventListener('click', () => modalFileInput.click());
-        modalFileInput.addEventListener('change', handleModalFileUpload);
-    }
-
-    // Message input (legacy chat interface - may not exist in email view)
     const messageInput = document.getElementById('messageInput');
     if (messageInput) {
         messageInput.addEventListener('keydown', function(e) {
@@ -162,61 +247,142 @@ function setupEventListeners() {
         });
     }
 
-    // Send button (legacy chat interface - may not exist in email view)
     const sendBtn = document.getElementById('sendBtn');
     if (sendBtn) {
         sendBtn.addEventListener('click', sendMessage);
     }
 
-    // File upload (legacy chat interface - may not exist in email view)
     const fileInput = document.getElementById('fileInput');
     if (fileInput) {
         fileInput.addEventListener('change', handleFileUpload);
     }
 }
 
-function setupAutoRefresh() {
-    // Refresh conversations every 30 seconds
-    setInterval(() => {
-        loadConversations().catch(error => {
-            console.error('Auto-refresh conversations error:', error);
+function setupAttachmentHandlers() {
+    const composeAttachBtn = document.getElementById('composeAttachBtn');
+    if (composeAttachBtn) {
+        composeAttachBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            openFileDialog('compose');
+            return false;
         });
+    }
+
+    const replyAttachBtn = document.getElementById('replyAttachBtn');
+    if (replyAttachBtn) {
+        replyAttachBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            openFileDialog('reply');
+            return false;
+        });
+    }
+
+    const modalAttachBtn = document.getElementById('modalAttachBtn');
+    if (modalAttachBtn) {
+        modalAttachBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            openFileDialog('modal');
+            return false;
+        });
+    }
+}
+
+function openFileDialog(type) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.multiple = true;
+    input.style.display = 'none';
+    input.style.visibility = 'hidden';
+    input.style.position = 'fixed';
+    input.style.top = '-9999px';
+    input.style.left = '-9999px';
+
+    let handled = false;
+
+    input.addEventListener('change', async (e) => {
+        if (handled) return;
+        handled = true;
+        
+        try {
+            const files = Array.from(input.files || []);
+            if (files.length === 0) return;
+
+            const uploaded = await uploadFiles(files);
+            
+            if (uploaded) {
+                if (type === 'compose') {
+                    composeAttachedFiles = [...composeAttachedFiles, ...uploaded];
+                    updateComposeAttachmentPreview();
+                } else if (type === 'reply') {
+                    replyAttachedFiles = [...replyAttachedFiles, ...uploaded];
+                    updateReplyAttachmentPreview();
+                } else if (type === 'modal') {
+                    modalAttachedFiles = [...modalAttachedFiles, ...uploaded];
+                    updateModalAttachmentPreview();
+                }
+            }
+        } finally {
+            document.body.removeChild(input);
+        }
+    }, { once: true });
+
+    document.body.appendChild(input);
+    input.click();
+}
+
+function setupImageGallery() {
+    const closeGalleryBtn = document.getElementById('closeImageGalleryModal');
+    if (closeGalleryBtn) {
+        closeGalleryBtn.addEventListener('click', closeImageGalleryModal);
+    }
+
+    const galleryModal = document.getElementById('imageGalleryModal');
+    if (galleryModal) {
+        galleryModal.addEventListener('click', function(e) {
+            if (e.target === galleryModal) {
+                closeImageGalleryModal();
+            }
+        });
+    }
+}
+
+function setupAutoRefresh() {
+    setInterval(() => {
+        loadConversations().catch(console.error);
     }, 30000);
 
-    // Refresh messages every 10 seconds if conversation is active
     setInterval(() => {
         if (currentConversationId) {
-            loadMessages(currentConversationId).catch(error => {
-                console.error('Auto-refresh messages error:', error);
-            });
+            loadMessages(currentConversationId).catch(console.error);
         }
     }, 10000);
 }
 
-async function loadUsers() {
-    try {
-        const response = await fetch(`${apiBase}/users`);
-        users = await response.json();
-        populateRecipientSelect();
-    } catch (error) {
-        console.error('Error loading users:', error);
-    }
-}
-
 function populateRecipientSelect() {
-    const select = document.getElementById('recipientSelect');
-    if (!select) return;
+    const selects = [
+        document.getElementById('recipientSelect'),
+        document.getElementById('newConversationRecipientSelect')
+    ];
 
-    // Clear existing options except the first one
-    while (select.children.length > 1) {
-        select.removeChild(select.lastChild);
-    }
+    selects.forEach(select => {
+        if (!select) return;
 
-    users.forEach(user => {
-        const option = document.createElement('option');
-        option.value = user._id;
-        option.textContent = `${user.fullname} (${user.role})`;
-        select.appendChild(option);
+        while (select.children.length > 1) {
+            select.removeChild(select.lastChild);
+        }
+
+        users.forEach(user => {
+            const option = document.createElement('option');
+            option.value = user._id;
+            option.textContent = `${user.fullname} (${user.role})`;
+            select.appendChild(option);
+        });
     });
 }
 
@@ -228,8 +394,6 @@ async function loadConversations() {
         if (response.ok) {
             conversations = newConversations;
             renderConversations(conversations);
-        } else {
-            console.error('Error loading conversations:', newConversations.error);
         }
     } catch (error) {
         console.error('Error loading conversations:', error);
@@ -256,14 +420,13 @@ function renderConversations(conversations) {
             <div class="conversation-avatar">${getInitials(conv.participantName || 'Unknown')}</div>
             <div class="conversation-info">
                 <div class="conversation-name">${conv.participantName || 'Unknown User'} ${conv.unreadCount > 0 ? '<span class="unread-badge">' + (conv.unreadCount > 99 ? '99+' : conv.unreadCount) + '</span>' : ''}</div>
-                <div class="conversation-last-message">${conv.lastMessage || 'Sent an attachment'}</div>
+                <div class="conversation-last-message">${conv.lastMessage ? formatMessage(conv.lastMessage) : 'Sent an attachment'}</div>
             </div>
             <div class="conversation-time">${formatTime(conv.lastMessageTime)}</div>
         </div>
     `).join('');
 }
 
-// Function to update sidebar badge (extracted from layout.ejs)
 async function updateSidebarBadge() {
     try {
         const response = await fetch(`${apiBase}/unread-count`);
@@ -280,16 +443,13 @@ async function updateSidebarBadge() {
             }
         }
     } catch (error) {
-        console.error('Error fetching unread message count for sidebar badge:', error);
+        console.error('Error fetching unread count:', error);
     }
 }
 
 function selectConversation(conversationId) {
-    console.log('selectConversation called with:', conversationId);
     currentConversationId = conversationId;
-    console.log('currentConversationId set to:', currentConversationId);
 
-    // Show loading feedback
     const container = document.getElementById('messageView');
     container.innerHTML = `
         <div class="message-loading">
@@ -299,16 +459,18 @@ function selectConversation(conversationId) {
     `;
 
     loadMessages(conversationId).then(() => {
-        loadConversations(); // Refresh to show active state and updated unread counts after messages are marked as read
-        // Update sidebar badge immediately
+        loadConversations();
         updateSidebarBadge();
     });
 }
 
-// Export functions to window for onclick handlers
 window.selectConversation = selectConversation;
 window.openReplyModal = openReplyModal;
 window.openImageGallery = openImageGallery;
+window.removeComposeAttachment = removeComposeAttachment;
+window.removeReplyAttachment = removeReplyAttachment;
+window.removeModalAttachment = removeModalAttachment;
+window.removeAttachment = removeAttachment;
 
 async function loadMessages(conversationId) {
     try {
@@ -316,10 +478,8 @@ async function loadMessages(conversationId) {
         const loadedMessages = await response.json();
 
         if (response.ok) {
-            messages = loadedMessages; // Update global messages variable
+            messages = loadedMessages;
             renderMessages(messages);
-        } else {
-            console.error('Error loading messages:', loadedMessages.error);
         }
     } catch (error) {
         console.error('Error loading messages:', error);
@@ -340,11 +500,6 @@ function renderMessages(messages) {
         return;
     }
 
-    // Find conversation participant
-    const conversation = conversations.find(c => c.conversationId === currentConversationId);
-    const participantName = conversation ? conversation.participantName : 'Unknown';
-    const participant = users.find(u => u._id === conversation?.participantId);
-
     container.innerHTML = `
         <div class="email-message-thread">
             ${messages.length === 0 ? `
@@ -363,266 +518,119 @@ function renderMessages(messages) {
         ` : ''}
     `;
 
-    // Scroll to bottom
     const messageThread = container.querySelector('.email-message-thread');
     if (messageThread) {
         messageThread.scrollTop = messageThread.scrollHeight;
     }
 }
 
-function renderMessage(message) {
+function renderEmailMessage(message, isLastMessage) {
     const isOwn = message.senderId === currentUserId;
-    const sender = users.find(u => u._id === message.senderId);
-    const senderName = sender ? sender.fullname : (isOwn ? 'You' : 'Unknown');
+    const conversation = conversations.find(c => c.conversationId === currentConversationId);
+    const participant = users.find(u => u._id === conversation?.participantId);
+    const recipientName = participant ? participant.fullname : (conversation?.participantName || 'Unknown');
+    const displayId = participant ? participant.staffId : '';
+
+    let attachmentHtml = '';
+    if (message.attachments && message.attachments.length > 0) {
+        attachmentHtml = `
+            <div class="email-message-attachments">
+                <h4><i class="fas fa-paperclip"></i> Attachments (${message.attachments.length})</h4>
+                <div class="attachment-list">
+                    ${message.attachments.map((att, index) => {
+                        const isImage = att.mimetype && att.mimetype.startsWith('image/');
+                        const imageUrl = att.url || '/uploads/messages/' + att.filename;
+                        if (isImage) {
+                            return `
+                                <div class="attachment-item image-preview" onclick="openImageGallery('${message._id}', ${index})">
+                                    <img src="${imageUrl}" alt="${att.originalName}" class="attachment-thumbnail" />
+                                    <div class="attachment-overlay">
+                                        <i class="fas fa-expand"></i>
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            return `
+                                <div class="attachment-item">
+                                    <i class="fas fa-${getFileIcon(att.mimetype)}"></i>
+                                    <a href="${imageUrl}" target="_blank" class="attachment-name">${att.originalName}</a>
+                                    <a href="${imageUrl}" target="_blank" class="attachment-download">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                </div>
+                            `;
+                        }
+                    }).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    const replyButton = !isOwn ? `
+        <button class="email-reply-btn" onclick="openReplyModal('${message._id}')">
+            <i class="fas fa-reply"></i>
+            Reply
+        </button>
+    ` : '';
 
     return `
-        <div class="message ${isOwn ? 'own' : ''}">
-            <div class="message-avatar">${getInitials(senderName)}</div>
-            <div class="message-content">
-                <p class="message-text">${formatMessage(message.content)}</p>
-                ${message.attachments ? message.attachments.map(att => `
-                    <div class="message-attachment">
-                        <i class="fas fa-${getFileIcon(att.mimetype)}"></i>
-                        <a href="${att.url || '/uploads/messages/' + att.filename}" target="_blank">${att.originalName}</a>
-                    </div>
-                `).join('') : ''}
-                <div class="message-time">${formatTime(message.timestamp)}</div>
-            </div>
-        </div>
-    `;
-}
-
-function setupMessageEventListeners() {
-    const messageInput = document.getElementById('messageInput');
-    const sendBtn = document.getElementById('sendBtn');
-    const fileInput = document.getElementById('fileInput');
-
-    if (messageInput) {
-        messageInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-            // Shift+Enter will add a new line (default behavior)
-        });
-
-        messageInput.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-        });
-    }
-
-    if (sendBtn) {
-        sendBtn.addEventListener('click', sendMessage);
-    }
-
-    if (fileInput) {
-        fileInput.addEventListener('change', handleFileUpload);
-    }
-}
-
-async function sendMessage() {
-    const messageInput = document.getElementById('messageInput');
-    if (!messageInput) return;
-
-    const content = messageInput.value.trim();
-    if (!content && !attachedFiles.length) return;
-
-    if (!currentConversationId) {
-        console.error('No conversation selected');
-        alert('Please select a conversation first');
-        return;
-    }
-
-    console.log('Sending message, currentConversationId:', currentConversationId);
-    console.log('currentUserId:', currentUserId);
-
-    try {
-        // Parse conversation ID to get recipient
-        const [user1, user2] = currentConversationId.split('_');
-        console.log('Parsed conversation users:', user1, user2);
-
-        const recipientId = user1 === currentUserId ? user2 : user1;
-        console.log('Recipient ID:', recipientId);
-
-        const response = await fetch(`${apiBase}/send`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-                body: JSON.stringify({
-                    recipientId: recipientId,
-                    content: content,
-                    attachments: attachedFiles
-                })
-        });
-
-        const result = await response.json();
-        console.log('Send message response:', result);
-
-        if (response.ok) {
-            attachedFiles = [];
-            messageInput.value = '';
-            messageInput.style.height = 'auto';
-
-            // Reload messages and conversations
-            loadMessages(currentConversationId);
-            loadConversations();
-        } else {
-            console.error('Error sending message:', result.error);
-            alert('Failed to send message. Please try again.');
-        }
-
-    } catch (error) {
-        console.error('Error sending message:', error);
-        showToast('Failed to send message. Please try again.', 'error');
-    }
-}
-
-let attachedFiles = [];
-
-async function handleFileUpload(e) {
-    const files = Array.from(e.target.files);
-    if (files.length === 0) return;
-
-    // Check file sizes (10MB limit)
-    const maxSize = 10 * 1024 * 1024; // 10MB
-    const oversizedFiles = files.filter(file => file.size > maxSize);
-
-    if (oversizedFiles.length > 0) {
-        alert(`Some files are too large. Maximum file size is 10MB.`);
-        e.target.value = '';
-        return;
-    }
-
-    try {
-        const formData = new FormData();
-        files.forEach(file => {
-            formData.append('files', file);
-        });
-
-        const response = await fetch(`${apiBase}/upload`, {
-            method: 'POST',
-            body: formData
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-            attachedFiles = result.files;
-            updateAttachedFilesDisplay();
-        } else {
-            console.error('Error uploading files:', result.error);
-            alert('Failed to upload files. Please try again.');
-        }
-    } catch (error) {
-        console.error('Error uploading files:', error);
-        alert('Failed to upload files. Please try again.');
-    }
-
-    // Clear the file input
-    e.target.value = '';
-}
-
-function updateAttachedFilesDisplay() {
-    const container = document.querySelector('.chat-input-area');
-    if (!container) return;
-
-    // Remove existing attachment preview
-    const existingPreview = container.querySelector('.attachment-preview');
-    if (existingPreview) {
-        existingPreview.remove();
-    }
-
-    if (attachedFiles.length === 0) return;
-
-    // Create attachment preview
-    const preview = document.createElement('div');
-    preview.className = 'attachment-preview';
-    preview.innerHTML = `
-        <div class="attachment-list">
-            ${attachedFiles.map((file, index) => `
-                <div class="attachment-item">
-                    <i class="fas fa-${getFileIcon(file.mimetype)}"></i>
-                    <span class="attachment-name">${file.originalName}</span>
-                    <button type="button" class="attachment-remove" onclick="removeAttachment(${index})">
-                        <i class="fas fa-times"></i>
-                    </button>
+        <div class="email-message">
+            <div class="email-message-header">
+                <div class="email-message-avatar">${getInitials(recipientName)}</div>
+                <div class="email-message-info">
+                    <div class="email-message-sender">${recipientName}</div>
+                    <div class="email-message-staff-id" style="font-size: 12px; color: #666; margin-top: 2px;">ID: ${displayId}</div>
+                    <div class="email-message-time">${formatTime(message.timestamp)}</div>
                 </div>
-            `).join('')}
+            </div>
+            ${message.subject ? '<div class="email-message-subject">' + message.subject + '</div>' : ''}
+            <div class="email-message-content">${(message.content && message.content.trim()) ? formatMessageContent(message.content) : (message.attachments && message.attachments.length > 0 ? 'Sent an attachment' : '&nbsp;')}</div>
+            ${attachmentHtml}
+            ${replyButton}
         </div>
     `;
-
-    // Insert before the chat form
-    const chatForm = container.querySelector('.chat-form');
-    if (chatForm) {
-        container.insertBefore(preview, chatForm);
-    }
 }
-
-function removeAttachment(index) {
-    attachedFiles.splice(index, 1);
-    updateAttachedFilesDisplay();
-}
-
-function openNewConversationModal() {
-    document.getElementById('newConversationModal').classList.add('show');
-}
-
-function closeNewConversationModal() {
-    document.getElementById('newConversationModal').classList.remove('show');
-    document.getElementById('newConversationForm').reset();
-    // Clear modal attachments
-    modalAttachedFiles = [];
-    updateModalAttachmentPreview();
-}
-
-let modalAttachedFiles = [];
 
 function setupFormatTools() {
-    // Setup compose modal format tools
     const composeFormatButtons = document.querySelectorAll('#composeModal .format-btn');
     const composeTextarea = document.getElementById('messageTextarea');
 
     composeFormatButtons.forEach(button => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
             const format = this.getAttribute('data-format');
             applyFormatting(composeTextarea, format);
         });
     });
 
-    // Setup reply modal format tools
     const replyFormatButtons = document.querySelectorAll('#replyModal .format-btn');
     const replyTextarea = document.getElementById('replyTextarea');
 
     replyFormatButtons.forEach(button => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
             const format = this.getAttribute('data-format');
             applyFormatting(replyTextarea, format);
         });
     });
 
-    // Setup legacy modal format tools
     const modalFormatButtons = document.querySelectorAll('#newConversationModal .format-btn');
     const modalTextarea = document.getElementById('initialMessage');
 
     modalFormatButtons.forEach(button => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
             const format = this.getAttribute('data-format');
             applyFormatting(modalTextarea, format);
         });
     });
 
-    // Setup chat format tools (will be set up when chat is rendered)
-    setupChatFormatTools();
-}
-
-function setupChatFormatTools() {
     const chatFormatButtons = document.querySelectorAll('.chat-format-tools .format-btn');
     const chatTextarea = document.getElementById('messageInput');
 
     chatFormatButtons.forEach(button => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
             const format = this.getAttribute('data-format');
             applyFormatting(chatTextarea, format);
         });
@@ -630,6 +638,8 @@ function setupChatFormatTools() {
 }
 
 function applyFormatting(textarea, format) {
+    if (!textarea) return;
+    
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const selectedText = textarea.value.substring(start, end);
@@ -651,6 +661,8 @@ function applyFormatting(textarea, format) {
         case 'link':
             replacement = `[${selectedText || 'link text'}](url)`;
             break;
+        default:
+            return;
     }
 
     textarea.value = textarea.value.substring(0, start) + replacement + textarea.value.substring(end);
@@ -658,223 +670,28 @@ function applyFormatting(textarea, format) {
     textarea.setSelectionRange(start + replacement.length, start + replacement.length);
 }
 
-
-async function handleModalFileUpload(e) {
-    const files = Array.from(e.target.files);
-    if (files.length === 0) return;
-
-    // Check file sizes (10MB limit)
-    const maxSize = 10 * 1024 * 1024; // 10MB
-    const oversizedFiles = files.filter(file => file.size > maxSize);
-
-    if (oversizedFiles.length > 0) {
-        alert(`Some files are too large. Maximum file size is 10MB.`);
-        e.target.value = '';
-        return;
-    }
-
-    try {
-        const formData = new FormData();
-        files.forEach(file => {
-            formData.append('files', file);
-        });
-
-        const response = await fetch(`${apiBase}/upload`, {
-            method: 'POST',
-            body: formData
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-            modalAttachedFiles = result.files;
-            updateModalAttachmentPreview();
-        } else {
-            console.error('Error uploading files:', result.error);
-            alert('Failed to upload files. Please try again.');
-        }
-    } catch (error) {
-        console.error('Error uploading files:', error);
-        alert('Failed to upload files. Please try again.');
-    }
-
-    // Clear the file input
-    e.target.value = '';
-}
-
-function updateModalAttachmentPreview() {
-    const preview = document.getElementById('modalAttachmentPreview');
-
-    if (modalAttachedFiles.length === 0) {
-        preview.style.display = 'none';
-        return;
-    }
-
-    preview.style.display = 'block';
-    preview.innerHTML = `
-        <div class="attachment-list">
-            ${modalAttachedFiles.map((file, index) => `
-                <div class="attachment-item">
-                    <i class="fas fa-${getFileIcon(file.mimetype)}"></i>
-                    <span class="attachment-name">${file.originalName}</span>
-                    <button type="button" class="attachment-remove" onclick="removeModalAttachment(${index})">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            `).join('')}
-        </div>
-    `;
-}
-
-function removeModalAttachment(index) {
-    modalAttachedFiles.splice(index, 1);
-    updateModalAttachmentPreview();
-}
-
-async function handleNewConversation(e) {
-    e.preventDefault();
-
-    const formData = new FormData(e.target);
-    const recipientId = formData.get('recipientId');
-    const message = formData.get('message');
-
-    if (!recipientId || (!message.trim() && modalAttachedFiles.length === 0)) return;
-
-    console.log('Creating new conversation with recipient:', recipientId);
-
-    try {
-        const response = await fetch(`${apiBase}/send`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                recipientId: recipientId,
-                content: message,
-                attachments: modalAttachedFiles
-            })
-        });
-
-        const result = await response.json();
-        console.log('New conversation response:', result);
-
-        if (response.ok) {
-            closeNewConversationModal();
-
-            // Reload conversations and select the new one
-            await loadConversations();
-            console.log('Conversations after reload:', conversations);
-
-            // Find the conversation that was just created
-            const newConversation = conversations.find(conv => conv.participantId === recipientId);
-            console.log('New conversation found:', newConversation);
-
-            if (newConversation) {
-                selectConversation(newConversation.conversationId);
-            } else {
-                // If conversation not found immediately, wait a bit and try again
-                setTimeout(async () => {
-                    await loadConversations();
-                    const retryConversation = conversations.find(conv => conv.participantId === recipientId);
-                    if (retryConversation) {
-                        selectConversation(retryConversation.conversationId);
-                    }
-                }, 500);
-            }
-        } else {
-            console.error('Error creating conversation:', result.error);
-            alert('Failed to start conversation. Please try again.');
-        }
-
-    } catch (error) {
-        console.error('Error creating conversation:', error);
-        alert('Failed to start conversation. Please try again.');
-    }
-}
-
-// Utility functions
-function getInitials(name) {
-    if (!name) return 'U';
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-}
-
-function formatTime(timestamp) {
-    if (!timestamp) return '';
-
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diff = now - date;
-
-    if (diff < 60000) return 'Just now';
-    if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
-    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
-
-    return date.toLocaleDateString();
-}
-
-function formatLastLogin(lastLogin) {
-    if (!lastLogin) return 'Unknown';
-
-    const date = new Date(lastLogin);
-    const now = new Date();
-    const diff = now - date;
-
-    // If last login was less than 5 minutes ago, show as "Active now"
-    if (diff < 300000) return 'Active now';
-
-    // If last login was today, show time
-    if (date.toDateString() === now.toDateString()) {
-        return `today at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-    }
-
-    // If last login was yesterday, show "yesterday"
-    const yesterday = new Date(now);
-    yesterday.setDate(yesterday.getDate() - 1);
-    if (date.toDateString() === yesterday.toDateString()) {
-        return `yesterday at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-    }
-
-    // If last login was within the last week, show day name
-    if (diff < 604800000) { // 7 days
-        return date.toLocaleDateString([], { weekday: 'long' });
-    }
-
-    // Otherwise show the date
-    return date.toLocaleDateString();
-}
-
-function formatMessage(content) {
-    // Simple message formatting - convert line breaks and basic markdown
-    return content
-        .replace(/\n/g, '<br>')
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/g, '<em>$1');
-}
-
-function getFileIcon(mimeType) {
-    if (mimeType.startsWith('image/')) return 'image';
-    if (mimeType.startsWith('video/')) return 'video';
-    if (mimeType.startsWith('audio/')) return 'music';
-    if (mimeType === 'application/pdf') return 'file-pdf';
-    if (mimeType.includes('word') || mimeType.includes('document')) return 'file-word';
-    if (mimeType.includes('excel') || mimeType.includes('spreadsheet')) return 'file-excel';
-    return 'file';
-}
-
-
 function openComposeModal() {
-    document.getElementById('composeModal').classList.add('show');
-    // Reset form
-    document.getElementById('composeForm').reset();
-    // Clear attachments
+    const modal = document.getElementById('composeModal');
+    if (modal) {
+        modal.classList.add('show');
+    }
+    const form = document.getElementById('composeForm');
+    if (form) {
+        form.reset();
+    }
     composeAttachedFiles = [];
     updateComposeAttachmentPreview();
 }
 
 function closeComposeModal() {
-    document.getElementById('composeModal').classList.remove('show');
-    document.getElementById('composeForm').reset();
-    // Clear attachments
+    const modal = document.getElementById('composeModal');
+    if (modal) {
+        modal.classList.remove('show');
+    }
+    const form = document.getElementById('composeForm');
+    if (form) {
+        form.reset();
+    }
     composeAttachedFiles = [];
     updateComposeAttachmentPreview();
 }
@@ -903,12 +720,10 @@ async function handleComposeMessage(e) {
     try {
         const response = await fetch(`${apiBase}/send`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                recipientId: recipientId,
-                subject: subject,
+                recipientId,
+                subject,
                 content: message,
                 attachments: composeAttachedFiles
             })
@@ -919,7 +734,6 @@ async function handleComposeMessage(e) {
         if (response.ok) {
             showToast('Message sent successfully!', 'success');
             closeComposeModal();
-            // Reload conversations and select the new one
             await loadConversations();
             const newConversation = conversations.find(conv => conv.participantId === recipientId);
             if (newConversation) {
@@ -930,7 +744,7 @@ async function handleComposeMessage(e) {
         }
     } catch (error) {
         console.error('Error sending message:', error);
-        alert('Failed to send message. Please try again.');
+        showToast('Failed to send message. Please try again.', 'error');
     }
 }
 
@@ -938,7 +752,6 @@ function openReplyModal(messageId) {
     const message = messages.find(msg => msg._id === messageId);
     if (!message) return;
 
-    // Set up reply form
     const replyRecipient = document.getElementById('replyRecipient');
     const replySubject = document.getElementById('replySubject');
     const replyQuote = document.getElementById('replyQuote');
@@ -959,12 +772,11 @@ function openReplyModal(messageId) {
         replyQuote.innerHTML = `
             <strong>On ${formatTime(message.timestamp)}, ${senderName} wrote:</strong><br>
             <blockquote style="margin: 8px 0; padding: 8px 12px; background: #f8f9fa; border-left: 3px solid #a05c2f;">
-                ${message.content.replace(/\n/g, '<br>')}
+                ${formatMessage(message.content)}
             </blockquote>
         `;
     }
 
-    // Clear attachments
     replyAttachedFiles = [];
     updateReplyAttachmentPreview();
 
@@ -974,7 +786,6 @@ function openReplyModal(messageId) {
 function closeReplyModal() {
     document.getElementById('replyModal').classList.remove('show');
     document.getElementById('replyForm').reset();
-    // Clear attachments
     replyAttachedFiles = [];
     updateReplyAttachmentPreview();
 }
@@ -1001,29 +812,23 @@ async function handleReplyMessage(e) {
     }
 
     try {
-        // Parse conversation ID to get recipient
         const [user1, user2] = currentConversationId.split('_');
         const recipientId = user1 === currentUserId ? user2 : user1;
 
         const response = await fetch(`${apiBase}/send`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                recipientId: recipientId,
-                subject: subject,
+                recipientId,
+                subject,
                 content: message,
                 attachments: replyAttachedFiles
             })
         });
 
-        const result = await response.json();
-
         if (response.ok) {
             showToast('Reply sent successfully!', 'success');
             closeReplyModal();
-            // Reload messages
             loadMessages(currentConversationId);
             loadConversations();
         } else {
@@ -1035,52 +840,188 @@ async function handleReplyMessage(e) {
     }
 }
 
-function renderEmailMessage(message, isLastMessage) {
-    const isOwn = message.senderId === currentUserId;
-    const conversation = conversations.find(c => c.conversationId === currentConversationId);
-    const participant = users.find(u => u._id === conversation?.participantId);
-    const recipientName = participant ? participant.fullname : (conversation?.participantName || 'Unknown');
-    const displayId = participant ? participant.staffId : '';
-
-    let attachmentHtml = '';
-    if (message.attachments && message.attachments.length > 0) {
-        attachmentHtml = '\n                <div class="email-message-attachments">\n                    <h4><i class="fas fa-paperclip"></i> Attachments (' + message.attachments.length + ')</h4>\n                    <div class="attachment-list">' +
-            message.attachments.map((att, index) => {
-                const isImage = att.mimetype && att.mimetype.startsWith('image/');
-                const imageUrl = att.url || '/uploads/messages/' + att.filename;
-                if (isImage) {
-                    return '\n                                    <div class="attachment-item image-preview" onclick="openImageGallery(\'' + message._id + '\', ' + index + ')">\n                                        <img src="' + imageUrl + '" alt="' + att.originalName + '" class="attachment-thumbnail" />\n                                        <div class="attachment-overlay">\n                                            <i class="fas fa-expand"></i>\n                                        </div>\n                                    </div>\n                                ';
-                } else {
-                    return '\n                                    <div class="attachment-item">\n                                        <i class="fas fa-' + getFileIcon(att.mimetype) + '"></i>\n                                        <a href="' + imageUrl + '" target="_blank" class="attachment-name">' + att.originalName + '</a>\n                                        <a href="' + imageUrl + '" target="_blank" class="attachment-download">\n                                            <i class="fas fa-download"></i>\n                                        </a>\n                                    </div>\n                                ';
-                }
-            }).join('') + '\n                    </div>\n                </div>\n            ';
-    }
-
-    const replyButton = !isOwn ? '\n                <button class="email-reply-btn" onclick="openReplyModal(\'' + message._id + '\')">\n                    <i class="fas fa-reply"></i>\n                    Reply\n                </button>\n            ' : '';
-
-    return `
-        <div class="email-message">
-            <div class="email-message-header">
-                <div class="email-message-avatar">${getInitials(recipientName)}</div>
-                <div class="email-message-info">
-                    <div class="email-message-sender">${recipientName}</div>
-                    <div class="email-message-staff-id" style="font-size: 12px; color: #666; margin-top: 2px;">ID: ${displayId}</div>
-                    <div class="email-message-time">${formatTime(message.timestamp)}</div>
-                </div>
-            </div>
-            ${message.subject ? '<div class="email-message-subject">' + message.subject + '</div>' : ''}
-            <div class="email-message-content">${(message.content && message.content.trim()) || (message.attachments && message.attachments.length > 0 ? 'Sent an attachment' : '&nbsp;')}</div>
-            ${attachmentHtml}
-            ${replyButton}
-        </div>
-    `;
+function openNewConversationModal() {
+    document.getElementById('newConversationModal').classList.add('show');
 }
 
-// Compose modal attachment handling
-let composeAttachedFiles = [];
+function closeNewConversationModal() {
+    document.getElementById('newConversationModal').classList.remove('show');
+    document.getElementById('newConversationForm').reset();
+    modalAttachedFiles = [];
+    updateModalAttachmentPreview();
+}
+
+async function handleNewConversation(e) {
+    e.preventDefault();
+
+    const formData = new FormData(e.target);
+    const recipientId = formData.get('recipientId');
+    const message = formData.get('message');
+
+    if (!recipientId || (!message.trim() && modalAttachedFiles.length === 0)) return;
+
+    try {
+        const response = await fetch(`${apiBase}/send`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                recipientId,
+                content: message,
+                attachments: modalAttachedFiles
+            })
+        });
+
+        if (response.ok) {
+            closeNewConversationModal();
+            await loadConversations();
+            const newConversation = conversations.find(conv => conv.participantId === recipientId);
+            if (newConversation) {
+                selectConversation(newConversation.conversationId);
+            }
+        } else {
+            showToast('Failed to start conversation. Please try again.', 'error');
+        }
+    } catch (error) {
+        console.error('Error creating conversation:', error);
+        showToast('Failed to start conversation. Please try again.', 'error');
+    }
+}
+
+async function sendMessage() {
+    const messageInput = document.getElementById('messageInput');
+    if (!messageInput) return;
+
+    const content = messageInput.value.trim();
+    if (!content && !attachedFiles.length) return;
+
+    if (!currentConversationId) {
+        showToast('Please select a conversation first', 'error');
+        return;
+    }
+
+    try {
+        const [user1, user2] = currentConversationId.split('_');
+        const recipientId = user1 === currentUserId ? user2 : user1;
+
+        const response = await fetch(`${apiBase}/send`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                recipientId,
+                content,
+                attachments: attachedFiles
+            })
+        });
+
+        if (response.ok) {
+            attachedFiles = [];
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+            loadMessages(currentConversationId);
+            loadConversations();
+        } else {
+            showToast('Failed to send message. Please try again.', 'error');
+        }
+    } catch (error) {
+        console.error('Error sending message:', error);
+        showToast('Failed to send message. Please try again.', 'error');
+    }
+}
+
+async function uploadFiles(files) {
+    const maxSize = 10 * 1024 * 1024;
+    const oversizedFiles = files.filter(file => file.size > maxSize);
+
+    if (oversizedFiles.length > 0) {
+        showToast('Some files are too large. Maximum file size is 10MB.', 'error');
+        return null;
+    }
+
+    try {
+        const formData = new FormData();
+        files.forEach(file => formData.append('files', file));
+
+        const response = await fetch(`${apiBase}/upload`, {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            return result.files;
+        } else {
+            showToast('Failed to upload files. Please try again.', 'error');
+            return null;
+        }
+    } catch (error) {
+        console.error('Error uploading files:', error);
+        showToast('Failed to upload files. Please try again.', 'error');
+        return null;
+    }
+}
+
+async function handleFileUpload(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    const uploaded = await uploadFiles(files);
+    if (uploaded) {
+        attachedFiles = uploaded;
+        updateAttachedFilesDisplay();
+    }
+    e.target.value = '';
+    return false;
+}
+
+async function handleComposeFileUpload(e) {
+    return false;
+}
+
+async function handleReplyFileUpload(e) {
+    return false;
+}
+
+async function handleModalFileUpload(e) {
+    return false;
+}
+
+function updateAttachedFilesDisplay() {
+    const container = document.querySelector('.chat-input-area');
+    if (!container) return;
+
+    const existingPreview = container.querySelector('.attachment-preview');
+    if (existingPreview) existingPreview.remove();
+
+    if (attachedFiles.length === 0) return;
+
+    const preview = document.createElement('div');
+    preview.className = 'attachment-preview';
+    preview.innerHTML = `
+        <div class="attachment-list">
+            ${attachedFiles.map((file, index) => `
+                <div class="attachment-item">
+                    <i class="fas fa-${getFileIcon(file.mimetype)}"></i>
+                    <span class="attachment-name">${file.originalName}</span>
+                    <button type="button" class="attachment-remove" onclick="removeAttachment(${index})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `).join('')}
+        </div>
+    `;
+
+    const chatForm = container.querySelector('.chat-form');
+    if (chatForm) {
+        container.insertBefore(preview, chatForm);
+    }
+}
 
 function updateComposeAttachmentPreview() {
     const preview = document.getElementById('composeAttachmentPreview');
+    if (!preview) return;
 
     if (composeAttachedFiles.length === 0) {
         preview.style.display = 'none';
@@ -1103,16 +1044,9 @@ function updateComposeAttachmentPreview() {
     `;
 }
 
-function removeComposeAttachment(index) {
-    composeAttachedFiles.splice(index, 1);
-    updateComposeAttachmentPreview();
-}
-
-// Reply modal attachment handling
-let replyAttachedFiles = [];
-
 function updateReplyAttachmentPreview() {
     const preview = document.getElementById('replyAttachmentPreview');
+    if (!preview) return;
 
     if (replyAttachedFiles.length === 0) {
         preview.style.display = 'none';
@@ -1135,131 +1069,66 @@ function updateReplyAttachmentPreview() {
     `;
 }
 
+function updateModalAttachmentPreview() {
+    const preview = document.getElementById('modalAttachmentPreview');
+    if (!preview) return;
+
+    if (modalAttachedFiles.length === 0) {
+        preview.style.display = 'none';
+        return;
+    }
+
+    preview.style.display = 'block';
+    preview.innerHTML = `
+        <div class="attachment-list">
+            ${modalAttachedFiles.map((file, index) => `
+                <div class="attachment-item">
+                    <i class="fas fa-${getFileIcon(file.mimetype)}"></i>
+                    <span class="attachment-name">${file.originalName}</span>
+                    <button type="button" class="attachment-remove" onclick="removeModalAttachment(${index})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+function removeAttachment(index) {
+    attachedFiles.splice(index, 1);
+    updateAttachedFilesDisplay();
+}
+
+function removeComposeAttachment(index) {
+    composeAttachedFiles.splice(index, 1);
+    updateComposeAttachmentPreview();
+}
+
 function removeReplyAttachment(index) {
     replyAttachedFiles.splice(index, 1);
     updateReplyAttachmentPreview();
 }
 
-// Event listeners for compose and reply attachments
-document.addEventListener('DOMContentLoaded', function() {
-    // Compose attachments
-    const composeAttachBtn = document.getElementById('composeAttachBtn');
-    const composeFileInput = document.getElementById('composeFileInput');
-    if (composeAttachBtn && composeFileInput) {
-        composeAttachBtn.addEventListener('click', () => composeFileInput.click());
-        composeFileInput.addEventListener('change', handleComposeFileUpload);
-    }
-
-    // Reply attachments
-    const replyAttachBtn = document.getElementById('replyAttachBtn');
-    const replyFileInput = document.getElementById('replyFileInput');
-    if (replyAttachBtn && replyFileInput) {
-        replyAttachBtn.addEventListener('click', () => replyFileInput.click());
-        replyFileInput.addEventListener('change', handleReplyFileUpload);
-    }
-});
-
-async function handleComposeFileUpload(e) {
-    const files = Array.from(e.target.files);
-    if (files.length === 0) return;
-
-    // Check file sizes (10MB limit)
-    const maxSize = 10 * 1024 * 1024; // 10MB
-    const oversizedFiles = files.filter(file => file.size > maxSize);
-
-    if (oversizedFiles.length > 0) {
-        alert(`Some files are too large. Maximum file size is 10MB.`);
-        e.target.value = '';
-        return;
-    }
-
-    try {
-        const formData = new FormData();
-        files.forEach(file => {
-            formData.append('files', file);
-        });
-
-        const response = await fetch(`${apiBase}/upload`, {
-            method: 'POST',
-            body: formData
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-            composeAttachedFiles = result.files;
-            updateComposeAttachmentPreview();
-        } else {
-            alert('Failed to upload files. Please try again.');
-        }
-    } catch (error) {
-        console.error('Error uploading files:', error);
-        alert('Failed to upload files. Please try again.');
-    }
-
-    // Clear the file input
-    e.target.value = '';
+function removeModalAttachment(index) {
+    modalAttachedFiles.splice(index, 1);
+    updateModalAttachmentPreview();
 }
-
-async function handleReplyFileUpload(e) {
-    const files = Array.from(e.target.files);
-    if (files.length === 0) return;
-
-    // Check file sizes (10MB limit)
-    const maxSize = 10 * 1024 * 1024; // 10MB
-    const oversizedFiles = files.filter(file => file.size > maxSize);
-
-    if (oversizedFiles.length > 0) {
-        alert(`Some files are too large. Maximum file size is 10MB.`);
-        e.target.value = '';
-        return;
-    }
-
-    try {
-        const formData = new FormData();
-        files.forEach(file => {
-            formData.append('files', file);
-        });
-
-        const response = await fetch(`${apiBase}/upload`, {
-            method: 'POST',
-            body: formData
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-            replyAttachedFiles = result.files;
-            updateReplyAttachmentPreview();
-        } else {
-            alert('Failed to upload files. Please try again.');
-        }
-    } catch (error) {
-        console.error('Error uploading files:', error);
-        alert('Failed to upload files. Please try again.');
-    }
-
-    // Clear the file input
-    e.target.value = '';
-}
-
-// Image Gallery functionality
-let currentGalleryImages = [];
-let currentGalleryIndex = 0;
 
 function openImageGallery(messageId, startIndex) {
     const message = messages.find(msg => msg._id === messageId);
     if (!message) return;
 
-    const attachments = message.attachments.map(a => ({ url: a.url || '/uploads/messages/' + a.filename, name: a.originalName, isImage: a.mimetype && a.mimetype.startsWith('image/') }));
+    const attachments = message.attachments.map(a => ({
+        url: a.url || '/uploads/messages/' + a.filename,
+        name: a.originalName,
+        isImage: a.mimetype && a.mimetype.startsWith('image/')
+    }));
 
-    // Filter only images from attachments
     currentGalleryImages = attachments.filter(att => att.isImage);
     currentGalleryIndex = startIndex;
 
     if (currentGalleryImages.length === 0) return;
 
-    // Update modal content
     const galleryImage = document.getElementById('galleryImage');
     const galleryCounter = document.getElementById('galleryCounter');
     const galleryFilename = document.getElementById('galleryFilename');
@@ -1269,21 +1138,17 @@ function openImageGallery(messageId, startIndex) {
     galleryCounter.textContent = `${currentGalleryIndex + 1} / ${currentGalleryImages.length}`;
     galleryFilename.textContent = currentGalleryImages[currentGalleryIndex].name;
 
-    // Show/hide navigation buttons
     const galleryPrev = document.getElementById('galleryPrev');
     const galleryNext = document.getElementById('galleryNext');
 
     galleryPrev.style.display = currentGalleryImages.length > 1 ? 'block' : 'none';
     galleryNext.style.display = currentGalleryImages.length > 1 ? 'block' : 'none';
 
-    // Show modal
     document.getElementById('imageGalleryModal').classList.add('show');
 
-    // Setup navigation event listeners
     galleryPrev.onclick = () => navigateGallery(-1);
     galleryNext.onclick = () => navigateGallery(1);
 
-    // Keyboard navigation
     document.addEventListener('keydown', handleGalleryKeydown);
 }
 
@@ -1331,21 +1196,3 @@ function closeImageGalleryModal() {
     currentGalleryImages = [];
     currentGalleryIndex = 0;
 }
-
-// Setup image gallery modal event listeners
-document.addEventListener('DOMContentLoaded', function() {
-    const closeGalleryBtn = document.getElementById('closeImageGalleryModal');
-    if (closeGalleryBtn) {
-        closeGalleryBtn.addEventListener('click', closeImageGalleryModal);
-    }
-
-    // Close modal when clicking outside
-    const galleryModal = document.getElementById('imageGalleryModal');
-    if (galleryModal) {
-        galleryModal.addEventListener('click', function(e) {
-            if (e.target === galleryModal) {
-                closeImageGalleryModal();
-            }
-        });
-    }
-});

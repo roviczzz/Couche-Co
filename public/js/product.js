@@ -527,7 +527,7 @@ function showEditModeBanner() {
     const addBtn = document.getElementById('add-to-cart-btn');
     const cancelBtn = document.getElementById('cancel-edit-btn');
     if (addBtn) {
-        addBtn.textContent = 'Update Cart';
+        addBtn.innerHTML = '<span class="update-cart-text">Update Cart</span><span class="update-cart-spinner" style="display: none;"></span>';
         addBtn.style.backgroundColor = '#8B4513';
         addBtn.style.boxShadow = '0 2px 8px rgba(139, 69, 19, 0.3)';
         addBtn.style.border = '2px solid #8B4513';
@@ -665,6 +665,17 @@ function updateCartItem() {
         showToast('Error: Cart item not found', 'error');
         setAddToCartLoading(false);
         return;
+    }
+
+    const updateBtn = document.getElementById('add-to-cart-btn');
+    if (updateBtn) {
+        updateBtn.disabled = true;
+        const textSpan = updateBtn.querySelector('.update-cart-text');
+        const spinnerSpan = updateBtn.querySelector('.update-cart-spinner');
+        if (textSpan && spinnerSpan) {
+            textSpan.style.display = 'none';
+            spinnerSpan.style.display = 'inline-block';
+        }
     }
 
     console.log('Updating item at index', editingCartItemIndex, {quantity, size, price, addonsCount: selectedAddons.length});

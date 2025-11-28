@@ -57,17 +57,43 @@ function populateModal(data) {
         <tr>
           <th>Order ID</th>
           <th>Date</th>
+          <th>Items</th>
           <th>Status</th>
           <th>Amount</th>
+          <th>Action</th>
         </tr>
       </thead>
       <tbody>`;
     data.orders.forEach(order => {
-      html += `<tr class="order-row" onclick="viewOrderDetails('${order.OrderID}')" style="cursor: pointer;">
-        <td>${order.OrderID}</td>
-        <td>${order.CreationTime ? new Date(order.CreationTime).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}</td>
-        <td><span class="status-badge status-${order.FulfillmentStatus ? order.FulfillmentStatus.toLowerCase().replace(' ', '-') : 'unknown'}">${order.FulfillmentStatus || 'Unknown'}</span></td>
-        <td>₱${order.Total ? order.Total.toFixed(2) : '0.00'}</td>
+      const orderDate = order.Date || order.CreationTime;
+      let formattedDate = 'N/A';
+      if (orderDate) {
+        const dateObj = new Date(orderDate);
+        if (!isNaN(dateObj.getTime())) {
+          formattedDate = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        } else if (typeof orderDate === 'string') {
+          formattedDate = orderDate;
+        }
+      }
+      
+      const cartItems = order.Cart || [];
+      const itemCount = cartItems.reduce((sum, item) => sum + (item.Quantity || 1), 0);
+      const itemsTooltip = cartItems.map(item => {
+        const size = item.Size ? ` (${item.Size})` : '';
+        return `${item.Quantity || 1}x ${item.ProductName || 'Item'}${size}`;
+      }).join('\n');
+      
+      const cartDataAttr = encodeURIComponent(JSON.stringify(cartItems));
+      
+      html += `<tr class="order-row">
+        <td onclick="viewOrderDetails('${order.OrderID}')" style="cursor: pointer;">${order.OrderID}</td>
+        <td onclick="viewOrderDetails('${order.OrderID}')" style="cursor: pointer;">${formattedDate}</td>
+        <td onclick="viewOrderDetails('${order.OrderID}')" style="cursor: pointer;">
+          <span class="items-badge" title="${itemsTooltip.replace(/"/g, '&quot;')}">${itemCount} item${itemCount !== 1 ? 's' : ''} <i class="fas fa-info-circle"></i></span>
+        </td>
+        <td onclick="viewOrderDetails('${order.OrderID}')" style="cursor: pointer;"><span class="status-badge status-${order.FulfillmentStatus ? order.FulfillmentStatus.toLowerCase().replace(' ', '-') : 'unknown'}">${order.FulfillmentStatus || 'Unknown'}</span></td>
+        <td onclick="viewOrderDetails('${order.OrderID}')" style="cursor: pointer;">₱${order.Total ? order.Total.toFixed(2) : '0.00'}</td>
+        <td><button type="button" class="order-again-btn" onclick="orderAgain(event, '${cartDataAttr}')"><i class="fas fa-redo"></i> Order Again</button></td>
       </tr>`;
     });
     html += `</tbody></table>`;
@@ -77,7 +103,7 @@ function populateModal(data) {
       <i class="fas fa-shopping-bag"></i>
       <h4>No orders found</h4>
       <p>You haven't placed any orders yet.</p>
-      <a href="/menu" class="btn-primary">Discover Our Blends</a>
+      <button type="button" class="btn-primary" onclick="window.location.href='/menu'">Discover Our Blends</button>
     </div>`;
   }
 
@@ -181,6 +207,158 @@ function switchSection(sectionName) {
 
 function viewOrderDetails(orderId) {
   window.location.href = `/order/success?orderId=${orderId}`;
+}
+
+async function orderAgain(event, cartDataEncoded) {
+  event.stopPropagation();
+  
+  const btn = event.currentTarget;
+  const originalHTML = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+  btn.disabled = true;
+  
+  try {
+    const cartItems = JSON.parse(decodeURIComponent(cartDataEncoded));
+    
+    const productIds = [...new Set(cartItems.map(item => item.ProductID))];
+    
+    let productsMap = {};
+    let addonsMap = {};
+    
+    try {
+      const [productsRes, addonsRes, ingredientsRes] = await Promise.all([
+        fetch(`/api/products/batch?ids=${productIds.join(',')}`),
+        fetch('/api/addons'),
+        fetch('/api/ingredients')
+      ]);
+      
+      if (productsRes.ok) {
+        const products = await productsRes.json();
+        products.forEach(p => {
+          productsMap[p.ProductID] = p;
+        });
+      }
+      
+      if (addonsRes.ok) {
+        const addons = await addonsRes.json();
+        addons.forEach(a => {
+          addonsMap[a.AddOnID] = a;
+          addonsMap[a.Name] = a;
+          if (a.name) addonsMap[a.name] = a;
+        });
+      }
+      
+      if (ingredientsRes.ok) {
+        const ingredients = await ingredientsRes.json();
+        ingredients.forEach(ing => {
+          const ingredientData = {
+            IngredientID: ing.IngredientID,
+            Name: ing.Name,
+            BasePrice: 15
+          };
+          addonsMap[ing.IngredientID] = ingredientData;
+          addonsMap[ing.Name] = ingredientData;
+          if (ing.name) addonsMap[ing.name] = ingredientData;
+        });
+      }
+    } catch (err) {
+      console.warn('Could not fetch product/addon details, using order data only');
+    }
+    
+    const newOrderItems = cartItems.map(item => {
+      const product = productsMap[item.ProductID] || {};
+      const key = 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      
+      const addons = (item.Addons || item.AddOns || item.addons || []).map(addon => {
+        let addonId = null;
+        let addonName = 'Add-on';
+        let addonPrice = 0;
+        
+        if (typeof addon === 'string') {
+          addonId = addon;
+          addonName = addon;
+          const foundAddon = addonsMap[addon];
+          if (foundAddon) {
+            addonName = foundAddon.Name || addon;
+            addonPrice = foundAddon.BasePrice || 15;
+          }
+        } else {
+          addonId = addon.AddOnID || addon.addOnID || addon.IngredientID || null;
+          addonName = addon.Name || addon.name || addonId || 'Add-on';
+          addonPrice = addon.BasePrice || addon.Price || addon.price || 0;
+          
+          if (addonPrice === 0) {
+            const foundAddon = addonsMap[addonId] || addonsMap[addonName];
+            if (foundAddon) {
+              addonPrice = foundAddon.BasePrice || 15;
+              addonName = foundAddon.Name || addonName;
+            } else {
+              addonPrice = 15;
+            }
+          }
+        }
+        
+        return {
+          name: addonName,
+          Name: addonName,
+          price: addonPrice,
+          Price: addonPrice,
+          BasePrice: addonPrice,
+          AddOnID: addonId,
+          IngredientID: addon.IngredientID || addonId
+        };
+      });
+      
+      let itemPrice = item.Price || item.BasePrice || 0;
+      if (itemPrice === 0 && product.Sizes && item.Size) {
+        const sizeObj = product.Sizes.find(s => s.Size === item.Size);
+        if (sizeObj) {
+          itemPrice = sizeObj.BasePrice || 0;
+        }
+      }
+      if (itemPrice === 0 && product.BasePrice) {
+        itemPrice = product.BasePrice;
+      }
+      
+      return {
+        key: key,
+        name: item.ProductName || product.Name || 'Unknown Product',
+        price: itemPrice,
+        quantity: item.Quantity || 1,
+        size: item.Size || null,
+        category: product.Category || '',
+        productId: item.ProductID,
+        addons: addons,
+        imagelink: product.imagelink || item.ImageLink || '/resources/coffee-icon.png',
+        isFree: false,
+        isB1T1: false
+      };
+    });
+    
+    const existingCart = JSON.parse(localStorage.getItem('orderItems') || '[]');
+    const mergedCart = [...existingCart, ...newOrderItems];
+    localStorage.setItem('orderItems', JSON.stringify(mergedCart));
+    
+    if (window.user && window.user._id) {
+      try {
+        await fetch('/api/cart', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(mergedCart)
+        });
+      } catch (err) {
+        console.warn('Could not sync cart to server');
+      }
+    }
+    
+    closeProfileModal();
+    window.location.href = '/cart';
+  } catch (error) {
+    console.error('Error adding items to cart:', error);
+    showMessage('Failed to add items to cart. Please try again.', 'error');
+    btn.innerHTML = originalHTML;
+    btn.disabled = false;
+  }
 }
 
 function showMessage(message, type = 'success') {

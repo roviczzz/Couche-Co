@@ -28,6 +28,7 @@
           name="name" 
           placeholder="Enter your name" 
           maxlength="100"
+          value="<%= typeof user !== 'undefined' && user && user.name ? user.name : '' %>"
         >
       </div>
 
@@ -39,6 +40,7 @@
           name="email" 
           placeholder="your@email.com" 
           maxlength="100"
+          value="<%= typeof user !== 'undefined' && user && user.email ? user.email : '' %>"
         >
       </div>
 

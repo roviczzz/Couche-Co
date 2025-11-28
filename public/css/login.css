@@ -36,16 +36,24 @@
     left: 10px;
     background: transparent;
     color: #a05c2f;
-    padding: 0;
-    border-radius: 0;
-    text-decoration: underline;
+    padding: 8px 12px;
+    border: 1px solid #a05c2f;
+    border-radius: 6px;
     font-size: 12px;
     font-weight: 500;
     font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .back-btn:hover {
-    text-decoration: underline;
+    background: #a05c2f;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(160, 92, 47, 0.2);
 }
 
 .logo {
@@ -75,6 +83,7 @@
 }
 
 .form-group input {
+    font-family: 'Inter', sans-serif;
     width: 100%;
     padding: 0.65rem 0.9rem;
     border: 1px solid var(--border);
@@ -141,6 +150,7 @@
 }
 
 .btn-primary {
+    font-family: 'Inter', sans-serif;
     background-color: var(--primary);
     color: white;
 }

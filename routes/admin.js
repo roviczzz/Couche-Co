@@ -1872,12 +1872,20 @@ const messageUpload = multer({
     fileSize: 10 * 1024 * 1024 // 10MB limit
   },
   fileFilter: function (req, file, cb) {
-    // Allow common file types
-    const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx|xls|xlsx|txt|zip|rar/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
+    const allowedExtensions = /jpeg|jpg|png|gif|pdf|doc|docx|xls|xlsx|txt|zip|rar/;
+    const allowedMimeTypes = [
+      'image/jpeg', 'image/jpg', 'image/png', 'image/gif',
+      'application/pdf',
+      'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'text/plain',
+      'application/zip', 'application/x-zip-compressed', 'application/x-rar-compressed'
+    ];
+    
+    const extname = allowedExtensions.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedMimeTypes.includes(file.mimetype);
 
-    if (mimetype && extname) {
+    if (mimetype || extname) {
       return cb(null, true);
     } else {
       cb(new Error('Invalid file type'));
@@ -2085,21 +2093,28 @@ router.get('/messages/api/unread-count', async (req, res) => {
 });
 
 // Upload files
-router.post('/messages/api/upload', messageUpload.array('files', 5), (req, res) => {
-  try {
-    const files = req.files.map(file => ({
-      originalName: file.originalname,
-      filename: file.filename,
-      mimetype: file.mimetype,
-      size: file.size,
-      url: `/uploads/messages/${file.filename}`
-    }));
+router.post('/messages/api/upload', (req, res) => {
+  messageUpload.array('files', 5)(req, res, function(err) {
+    if (err) {
+      console.error('Multer error:', err);
+      return res.status(400).json({ error: err.message || 'Failed to upload files' });
+    }
+    
+    try {
+      const files = req.files.map(file => ({
+        originalName: file.originalname,
+        filename: file.filename,
+        mimetype: file.mimetype,
+        size: file.size,
+        url: `/uploads/messages/${file.filename}`
+      }));
 
-    res.json({ success: true, files });
-  } catch (error) {
-    console.error('Error uploading files:', error);
-    res.status(500).json({ error: 'Failed to upload files' });
-  }
+      res.json({ success: true, files });
+    } catch (error) {
+      console.error('Error uploading files:', error);
+      res.status(500).json({ error: 'Failed to upload files' });
+    }
+  });
 });
 
 // Admin settings page
