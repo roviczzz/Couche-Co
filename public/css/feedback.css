@@ -1,5 +1,5 @@
 .feedback-section {
-  max-width: 800px;
+  max-width: 900px;
   margin: 40px auto;
   padding: 30px;
   background: #fff;
@@ -14,28 +14,87 @@
   text-align: center;
 }
 
-.feedback-content {
+.feedback-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: auto auto auto auto auto;
+  gap: 15px;
+}
+
+.feedback-stars {
+  grid-column: 1 / span 5;
+  grid-row: 1;
   display: flex;
-  gap: 30px;
-  align-items: flex-start;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.feedback-rating {
-  flex-shrink: 0;
-}
-
-.feedback-rating label {
-  display: block;
-  margin-bottom: 10px;
+.feedback-stars label {
   font-weight: 600;
   color: #333;
+}
+
+.feedback-name {
+  grid-column: 1 / span 2;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.feedback-email {
+  grid-column: 3 / span 3;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.feedback-comment {
+  grid-column: 1 / span 5;
+  grid-row: 3 / span 2;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.feedback-submit-container {
+  grid-column: 2 / span 3;
+  grid-row: 5;
+  display: flex;
+  justify-content: center;
+}
+
+.feedback-name label,
+.feedback-email label,
+.feedback-comment label {
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.feedback-name input,
+.feedback-email input {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.feedback-name input:focus,
+.feedback-email input:focus {
+  outline: none;
+  border-color: #8B4513;
+  box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
 }
 
 .star-rating {
   display: flex;
   gap: 8px;
   flex-direction: row-reverse;
-  justify-content: flex-end;
+  justify-content: left;
 }
 
 .star-rating input {
@@ -68,22 +127,9 @@
   border-radius: 4px;
 }
 
-.feedback-text {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.feedback-text label {
-  display: block;
-  margin-bottom: 10px;
-  font-weight: 600;
-  color: #333;
-}
-
-.feedback-text textarea {
+.feedback-comment textarea {
   width: 100%;
-  min-height: 100px;
+  min-height: 120px;
   padding: 12px;
   border: 1px solid #ddd;
   border-radius: 8px;
@@ -93,7 +139,7 @@
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.feedback-text textarea:focus {
+.feedback-comment textarea:focus {
   outline: none;
   border-color: #8B4513;
   box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);

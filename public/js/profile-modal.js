@@ -77,7 +77,7 @@ function populateModal(data) {
       <i class="fas fa-shopping-bag"></i>
       <h4>No orders found</h4>
       <p>You haven't placed any orders yet.</p>
-      <a href="/menu" class="btn-primary">Start Shopping</a>
+      <a href="/menu" class="btn-primary">Discover Our Blends</a>
     </div>`;
   }
 

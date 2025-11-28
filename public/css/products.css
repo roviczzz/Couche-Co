@@ -600,7 +600,7 @@ body {
   cursor: pointer;
   transition: background-color 0.3s;
   white-space: nowrap;
-  margin-left: 70rem;
+  margin-left: 1rem;
   font-weight: 600;
 }
 

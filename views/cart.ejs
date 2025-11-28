@@ -7,6 +7,7 @@
 
   <div id="cart-items" class="cart-main">
     <div class="loading-spinner">
+      <div class="loading-spinner-icon"></div>
       <div class="loading-spinner-text">Loading cart...</div>
     </div>
   </div>
@@ -35,7 +36,7 @@
           <span id="final-total">₱0.00</span>
         </div>
         <p style="margin: 12px 0 0 0; font-size: 0.85rem; color: var(--text-secondary); font-weight: 500;">Delivery calculated at checkout</p>
-        <button id="checkout-btn" class="checkout-btn">Proceed to Checkout</button>
+        <button id="checkout-btn" class="checkout-btn disabled" disabled aria-disabled="true">Proceed to Checkout</button>
         <button onclick="window.location.href='/'" class="continue-shopping-btn">Back to Menu</button>
       </div>
 

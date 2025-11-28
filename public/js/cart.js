@@ -70,6 +70,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     updateCartCount();
   }
 
+  updateCheckoutButtonState();
+
   const checkoutBtn = document.getElementById('checkout-btn');
   if (checkoutBtn) {
     checkoutBtn.addEventListener('click', async function() {
@@ -95,6 +97,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         window.location.href = '/checkout';
       }
     });
+    updateCheckoutButtonState();
   }
 });
 
@@ -118,12 +121,15 @@ function displayCartLayout() {
     `;
     if (layoutWrapper) layoutWrapper.style.display = 'none';
     if (checkoutBtn) checkoutBtn.style.display = 'none';
+    updateCheckoutButtonState();
     return;
   }
 
   cartItemsContainer.innerHTML = '';
   layoutWrapper.style.display = 'grid';
   if (checkoutBtn) checkoutBtn.style.display = 'block';
+
+  updateCheckoutButtonState();
 
   populateOrderInfoCard();
   populateCustomerInfoCard();
@@ -274,6 +280,7 @@ function attachCheckboxHandlers() {
       saveSelectedItems();
       displayCartLayout();
       updateCartTotal();
+      updateCheckoutButtonState();
     });
   });
 }
@@ -382,6 +389,21 @@ function removeItem(index) {
   }
 
   showCartRemoveNotification(itemToRemove);
+  updateCheckoutButtonState();
+}
+
+function updateCheckoutButtonState() {
+  const checkoutBtn = document.getElementById('checkout-btn');
+  if (!checkoutBtn) return;
+  if (selectedItems.size === 0) {
+    checkoutBtn.disabled = true;
+    checkoutBtn.classList.add('disabled');
+    checkoutBtn.setAttribute('aria-disabled', 'true');
+  } else {
+    checkoutBtn.disabled = false;
+    checkoutBtn.classList.remove('disabled');
+    checkoutBtn.removeAttribute('aria-disabled');
+  }
 }
 
 function updateCartTotal() {

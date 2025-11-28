@@ -1,5 +1,8 @@
-// Initialize orderItems array with data from localStorage
-var orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+// Get or initialize orderItems array from window or localStorage
+if (typeof window.orderItems === 'undefined') {
+    window.orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+}
+var orderItems = window.orderItems;
 
 var editingCartItem = null;
 var editingCartItemIndex = null;
@@ -260,13 +263,21 @@ function addToOrder(name, price, size, category, productId, addons, imagelink, i
     showCartSidePopup(orderItem);
 
     // Reset selected options after adding to cart
+    resetProductSelections();
+}
+
+// Reset all product form selections after adding to cart
+function resetProductSelections() {
+    // Uncheck all add-ons
     document.querySelectorAll('.addon-checkbox').forEach(cb => { cb.checked = false; });
+    // Uncheck all ingredients
     document.querySelectorAll('.ingredient-checkbox').forEach(cb => { cb.checked = false; });
-    selectedAddons.length = 0;
-    selectedIngredients.length = 0;
+    // Unselect all sizes
+    document.querySelectorAll('input[name="size-radio"]').forEach(radio => { radio.checked = false; });
+    // Reset quantity
     const quantityInput = document.getElementById('quantity');
     if (quantityInput) quantityInput.value = 1;
-    document.querySelectorAll('input[name="size-radio"]').forEach(radio => { radio.checked = false; });
+    // Hide ingredients badge
     const badge = document.getElementById('ingredients-badge');
     if (badge) {
         badge.textContent = '';
@@ -276,7 +287,15 @@ function addToOrder(name, price, size, category, productId, addons, imagelink, i
         badge.style.opacity = '0';
         badge.style.zIndex = '0';
     }
-    updateIngredientsBadge();
+    // Reset more-options modal checkboxes
+    const modal = document.getElementById('more-options-modal');
+    if (modal) {
+        modal.querySelectorAll('.ingredient-checkbox').forEach(cb => { cb.checked = false; });
+    }
+    // Remove any selected state from size-option-btn
+    document.querySelectorAll('.size-option-btn.selected').forEach(el => el.classList.remove('selected'));
+    // Enable/disable Add to Cart button based on size selection
+    updateAddToCartBtnState();
 }
 
 // Fetch and display add-ons - try server-side data first, then API as fallback
@@ -452,6 +471,9 @@ function initializePage() {
                 radio.checked = true;
                 this.classList.add('selected');
             }
+
+            // Enable/disable Add to Cart button based on size selection
+            updateAddToCartBtnState();
         });
     });
 
@@ -510,6 +532,8 @@ function showEditModeBanner() {
         addBtn.style.boxShadow = '0 2px 8px rgba(139, 69, 19, 0.3)';
         addBtn.style.border = '2px solid #8B4513';
         addBtn.style.marginBottom = '5px';
+        addBtn.disabled = false;
+        addBtn.removeAttribute('disabled');
     }
     if (cancelBtn) {
         cancelBtn.style.display = 'block';
@@ -605,6 +629,7 @@ function updateCartItem() {
     if (!isEditMode || editingCartItemIndex === null || editingCartItemIndex === undefined) {
         console.log('DEBUG: isEditMode=' + isEditMode + ', index=' + editingCartItemIndex);
         showToast('Error: Not in edit mode', 'error');
+        setAddToCartLoading(false);
         return;
     }
 
@@ -613,6 +638,7 @@ function updateCartItem() {
 
     if (product.Sizes && product.Sizes.length > 0 && !selectedRadio) {
         showToast('Please select a size before updating cart.', 'error');
+        setAddToCartLoading(false);
         return;
     }
 
@@ -622,12 +648,14 @@ function updateCartItem() {
     if (!orderItems || orderItems.length === 0) {
         console.log('ERROR: orderItems is empty');
         showToast('Error: Cart is empty', 'error');
+        setAddToCartLoading(false);
         return;
     }
 
     if (editingCartItemIndex >= orderItems.length) {
         console.log('ERROR: Index out of range - index:', editingCartItemIndex, 'length:', orderItems.length);
         showToast('Error: Cart item not found', 'error');
+        setAddToCartLoading(false);
         return;
     }
 
@@ -635,6 +663,7 @@ function updateCartItem() {
     if (!originalItem) {
         console.log('ERROR: Item not found at index', editingCartItemIndex);
         showToast('Error: Cart item not found', 'error');
+        setAddToCartLoading(false);
         return;
     }
 
@@ -890,6 +919,72 @@ function handleIngredientCheckboxChange(event) {
     // Update the badge immediately - this should work with the new logic
     updateIngredientsBadge();
 }
+
+// Add spinner to Add to Cart button
+function setAddToCartLoading(isLoading) {
+    const btn = document.getElementById('add-to-cart-btn');
+    if (!btn) return;
+    if (isLoading) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span>Adding...';
+    } else {
+        btn.disabled = false;
+        btn.innerHTML = 'Add to Cart';
+    }
+}
+
+// Patch add-to-cart button click
+(function patchAddToCartBtn() {
+    const btn = document.getElementById('add-to-cart-btn');
+    if (!btn) return;
+    btn.addEventListener('click', function(e) {
+        if (btn.disabled) return;
+        setAddToCartLoading(true);
+        // Let the normal add-to-cart logic run (which will call showCartSidePopup)
+    }, true);
+})();
+
+// Revert button when cart-side-popup is shown
+const origShowCartSidePopup = window.showCartSidePopup;
+window.showCartSidePopup = function(orderItem) {
+    setAddToCartLoading(false);
+    resetProductSelections();
+    if (typeof origShowCartSidePopup === 'function') {
+        origShowCartSidePopup(orderItem);
+    }
+}
+
+// Enable/disable Add to Cart button based on size selection (only when NOT editing)
+function updateAddToCartBtnState() {
+    const btn = document.getElementById('add-to-cart-btn');
+    if (!btn) return;
+    
+    // If in edit mode, always enable the button
+    if (isEditMode) {
+        btn.disabled = false;
+        return;
+    }
+    
+    const sizeRadios = document.querySelectorAll('input[name="size-radio"]');
+    if (sizeRadios.length > 0) {
+        // If any size radio exists, require one to be checked
+        const anyChecked = Array.from(sizeRadios).some(radio => radio.checked);
+        btn.disabled = !anyChecked;
+    } else {
+        // No size options, always enabled
+        btn.disabled = false;
+    }
+}
+
+// Listen for size radio changes
+(function patchSizeRadioListeners() {
+    const sizeRadios = document.querySelectorAll('input[name="size-radio"]');
+    sizeRadios.forEach(radio => {
+        radio.addEventListener('change', updateAddToCartBtnState);
+    });
+    // Initial state
+    updateAddToCartBtnState();
+})();
 
 // Ensure DOM is fully loaded before initializing
 document.addEventListener('DOMContentLoaded', function() {

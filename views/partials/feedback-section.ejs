@@ -3,8 +3,8 @@
 <section class="feedback-section">
   <h3>We'd Love Your Feedback</h3>
   <form id="feedback-form" data-page="<%= typeof feedbackPage !== 'undefined' ? feedbackPage : 'unknown' %>">
-    <div class="feedback-content">
-      <div class="feedback-rating">
+    <div class="feedback-grid">
+      <div class="feedback-stars">
         <label id="rating-label">Rate your experience</label>
         <div class="star-rating" role="radiogroup" aria-labelledby="rating-label">
           <input type="radio" id="star5" name="rating" value="5" aria-label="5 stars">
@@ -19,8 +19,31 @@
           <label for="star1" title="Poor">★</label>
         </div>
       </div>
-      <div class="feedback-text">
-        <label for="feedback-comment">Your comments (optional)</label>
+
+      <div class="feedback-name">
+        <label for="feedback-name">Your name (optional)</label>
+        <input 
+          type="text" 
+          id="feedback-name" 
+          name="name" 
+          placeholder="Enter your name" 
+          maxlength="100"
+        >
+      </div>
+
+      <div class="feedback-email">
+        <label for="feedback-email">Email address (optional)</label>
+        <input 
+          type="email" 
+          id="feedback-email" 
+          name="email" 
+          placeholder="your@email.com" 
+          maxlength="100"
+        >
+      </div>
+
+      <div class="feedback-comment">
+        <label for="feedback-comment">Your comments & suggestions</label>
         <textarea 
           id="feedback-comment" 
           name="comment" 
@@ -32,12 +55,13 @@
           <span class="char-count">500</span> characters remaining
         </div>
       </div>
-    </div>
-    <div class="feedback-actions">
-      <button type="submit" class="feedback-submit">
-        <span class="btn-text">Submit Feedback</span>
-        <span class="spinner"></span>
-      </button>
+
+      <div class="feedback-submit-container">
+        <button type="submit" class="feedback-submit">
+          <span class="btn-text">Submit Feedback</span>
+          <span class="spinner"></span>
+        </button>
+      </div>
     </div>
     <div class="feedback-message" role="alert" aria-live="polite"></div>
   </form>

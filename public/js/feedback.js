@@ -61,6 +61,8 @@
 
       const rating = parseInt(selectedRating.value);
       const comment = textarea ? textarea.value.trim() : '';
+      const name = form.querySelector('#feedback-name')?.value.trim() || '';
+      const email = form.querySelector('#feedback-email')?.value.trim() || '';
       const page = form.dataset.page || 'unknown';
 
       if (rating < 1 || rating > 5) {
@@ -77,7 +79,7 @@
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ rating, comment, page })
+          body: JSON.stringify({ rating, comment, name, email, page })
         });
 
         const data = await response.json();

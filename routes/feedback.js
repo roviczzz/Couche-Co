@@ -14,7 +14,7 @@ const sanitizeInput = (str) => {
 
 router.post('/feedback', async (req, res) => {
   try {
-    const { rating, comment, page } = req.body;
+    const { rating, comment, name, email, page } = req.body;
 
     if (!rating || typeof rating !== 'number' || rating < 1 || rating > 5) {
       return res.status(400).json({
@@ -32,10 +32,14 @@ router.post('/feedback', async (req, res) => {
     }
 
     const sanitizedComment = sanitizeInput(comment).substring(0, 500);
+    const sanitizedName = sanitizeInput(name).substring(0, 100);
+    const sanitizedEmail = sanitizeInput(email).substring(0, 100);
 
     const feedbackDocument = {
       rating: Math.floor(rating),
       comment: sanitizedComment,
+      name: sanitizedName,
+      email: sanitizedEmail,
       page,
       timestamp: new Date(),
       userAgent: req.headers['user-agent'] || null,
