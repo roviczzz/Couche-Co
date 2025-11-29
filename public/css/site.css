@@ -303,10 +303,10 @@ body {
   left: 8px;
   background: transparent;
   color: #a05c2f;
-  padding: 4px 8px;
+  padding: 8px 12px;
   border: 1px solid #a05c2f;
-  border-radius: 4px;
-  font-size: 10px;
+  border-radius: 6px;
+  font-size: 12px;
   font-weight: 500;
   font-family: 'Inter', sans-serif;
   cursor: pointer;
@@ -314,14 +314,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
 }
 
 .back-btn:hover {
-  background: #a05c2f;
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 2px 8px rgba(160, 92, 47, 0.2);
   background: #a05c2f;
   color: white;
   transform: translateY(-2px);
