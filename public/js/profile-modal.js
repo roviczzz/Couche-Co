@@ -520,4 +520,115 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     e.target.value = value;
   });
+
+  // Password change form submission
+  const passwordForm = document.getElementById('passwordForm');
+  if (passwordForm) {
+    passwordForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const currentPassword = document.getElementById('currentPassword').value;
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+
+      // Clear previous errors
+      ['currentPassword', 'newPassword', 'confirmPassword'].forEach(field => {
+        const errorEl = document.getElementById(`${field}-error`);
+        if (errorEl) {
+          errorEl.style.display = 'none';
+          errorEl.textContent = '';
+        }
+      });
+
+      let hasErrors = false;
+
+      if (!currentPassword) {
+        document.getElementById('currentPassword-error').textContent = 'Current password is required';
+        document.getElementById('currentPassword-error').style.display = 'block';
+        hasErrors = true;
+      }
+
+      if (!newPassword) {
+        document.getElementById('newPassword-error').textContent = 'New password is required';
+        document.getElementById('newPassword-error').style.display = 'block';
+        hasErrors = true;
+      } else if (newPassword.length < 8) {
+        document.getElementById('newPassword-error').textContent = 'Password must be at least 8 characters';
+        document.getElementById('newPassword-error').style.display = 'block';
+        hasErrors = true;
+      }
+
+      if (!confirmPassword) {
+        document.getElementById('confirmPassword-error').textContent = 'Please confirm your new password';
+        document.getElementById('confirmPassword-error').style.display = 'block';
+        hasErrors = true;
+      } else if (newPassword !== confirmPassword) {
+        document.getElementById('confirmPassword-error').textContent = 'Passwords do not match';
+        document.getElementById('confirmPassword-error').style.display = 'block';
+        hasErrors = true;
+      }
+
+      if (currentPassword === newPassword) {
+        document.getElementById('newPassword-error').textContent = 'New password must be different from current password';
+        document.getElementById('newPassword-error').style.display = 'block';
+        hasErrors = true;
+      }
+
+      if (hasErrors) return;
+
+      const changePasswordBtn = document.getElementById('changePasswordBtn');
+      const originalText = changePasswordBtn.innerHTML;
+      changePasswordBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Changing...';
+      changePasswordBtn.disabled = true;
+
+      try {
+        const response = await fetch('/user/change-password', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ currentPassword, newPassword })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          showMessage('Password changed successfully!', 'success');
+          passwordForm.reset();
+        } else {
+          if (result.field) {
+            const errorEl = document.getElementById(`${result.field}-error`);
+            if (errorEl) {
+              errorEl.textContent = result.message;
+              errorEl.style.display = 'block';
+            }
+          } else {
+            showMessage(result.message || 'Failed to change password', 'error');
+          }
+        }
+      } catch (error) {
+        console.error('Password change error:', error);
+        showMessage('An error occurred while changing your password', 'error');
+      } finally {
+        changePasswordBtn.innerHTML = originalText;
+        changePasswordBtn.disabled = false;
+      }
+    });
+  }
 });
+
+function togglePasswordVisibility(inputId) {
+  const input = document.getElementById(inputId);
+  const button = input.nextElementSibling;
+  const icon = button.querySelector('i');
+
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.classList.remove('fa-eye');
+    icon.classList.add('fa-eye-slash');
+  } else {
+    input.type = 'password';
+    icon.classList.remove('fa-eye-slash');
+    icon.classList.add('fa-eye');
+  }
+}

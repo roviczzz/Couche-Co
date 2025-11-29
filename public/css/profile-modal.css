@@ -18,12 +18,13 @@
   max-width: 90vw;
   max-height: 90vh;
   width: 1200px;
-  height: 700px;
+  height: 780px;
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
   font-family: 'Inter', sans-serif;
+  margin-bottom: 24px;
 }
 
 .modal-header {
@@ -339,6 +340,7 @@
 /* Settings Form */
 .settings-form-container {
   max-width: 600px;
+  padding-bottom: 2rem;
 }
 
 .settings-form .form-group {
@@ -863,5 +865,101 @@
   
   button {
     min-height: 48px;
+  }
+}
+
+/* Password Section */
+.password-section {
+  margin-top: 40px;
+  padding-top: 32px;
+  border-top: 1px solid #e1e5e9;
+}
+
+.password-section .section-header {
+  margin-bottom: 20px;
+}
+
+.password-section .section-header h3 {
+  margin: 0 0 8px 0;
+  color: #333;
+  font-size: 18px;
+}
+
+.password-section .section-header p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.password-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.password-input-wrapper input {
+  width: 100%;
+  padding: 12px 48px 12px 16px;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.password-input-wrapper input:focus {
+  outline: none;
+  border-color: #a05c2f;
+}
+
+.password-input-wrapper input::placeholder {
+  color: #999;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+  height: calc(100% - 8px);
+  border-radius: 6px;
+}
+
+.toggle-password:hover {
+  color: #a05c2f;
+  background: rgba(160, 92, 47, 0.1);
+}
+
+.toggle-password i {
+  font-size: 16px;
+}
+
+#passwordForm .form-group {
+  margin-bottom: 20px;
+}
+
+#passwordForm .form-actions {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: none;
+}
+
+@media (max-width: 600px) {
+  .password-section {
+    margin-top: 24px;
+    padding-top: 24px;
+  }
+
+  .password-input-wrapper input {
+    padding: 14px 48px 14px 14px;
+    font-size: 16px;
   }
 }

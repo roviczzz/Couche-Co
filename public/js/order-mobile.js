@@ -198,6 +198,16 @@ class OrderMobileHandler {
         this.showMobilePanel();
     }
 
+    showMobilePanel() {
+        if (this.orderDetailPanel) {
+            this.orderDetailPanel.classList.add('show');
+            if (this.mobileBackdrop) {
+                this.mobileBackdrop.style.display = 'block';
+            }
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
     closeMobilePanel() {
         if (this.orderDetailPanel) {
             this.orderDetailPanel.classList.remove('show');

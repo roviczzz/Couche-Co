@@ -1178,8 +1178,10 @@ function resetSort() {
   });
 
   // Force re-render with all orders (including cancelled/completed) in original order
-  renderOrdersTable(true); // Pass true to show all orders
-}orderHeaders.forEach(th => {
+  renderOrdersTable(true);
+}
+
+orderHeaders.forEach(th => {
   const columnKey = th.dataset.column;
   if (columnKey) {
     th.style.cursor = 'pointer';
