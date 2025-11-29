@@ -322,6 +322,10 @@ body {
   color: white;
   transform: translateY(-2px);
   box-shadow: 0 2px 8px rgba(160, 92, 47, 0.2);
+  background: #a05c2f;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(160, 92, 47, 0.2);
 }
 
 .login-box img {
