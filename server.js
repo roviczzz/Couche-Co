@@ -10,7 +10,7 @@ const cron = require('node-cron');
 const multer = require('multer');
 
 const app = express();
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 3000;
 if (process.env.NODE_ENV !== 'production') {
   const browserSync = require('browser-sync');
   const bs = browserSync.create();
