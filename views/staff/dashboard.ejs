@@ -100,7 +100,6 @@ data-user-low-stock-threshold="<%= (typeof userLowStockThreshold !== 'undefined'
                         <option value="14" selected>Last 14 Days</option>
                         <option value="30">Last 30 Days</option>
                     </select>
-                    <button id="export-performance" class="action-btn">Export data</button>
                 </div>
             </div>
             <div style="height:380px;width:100%;display:flex;align-items:center;position:relative;">
@@ -139,7 +138,7 @@ data-user-low-stock-threshold="<%= (typeof userLowStockThreshold !== 'undefined'
                     Alert when quantity drops below:
                 </label>
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <input type="range" id="low-stock-threshold" min="5" max="100" value="5" step="1" style="flex: 1;" />
+                    <input type="range" id="low-stock-threshold" min="5" max="1000" value="5" step="1" style="flex: 1;" />
                     <span id="threshold-value" style="min-width: 60px; text-align: center; font-weight: 600; color: #7a3f1c; font-size: 16px;">5 items</span>
                 </div>
             </div>

@@ -571,12 +571,13 @@ html, body {
 
 /* Dark theme for main page completed orders section */
 .dark-theme .orders-table-scroll .completed-orders-section {
-    background: var(--card-bg);
-    border-color: var(--border-color);
+    background: transparent;
+    border-color: transparent;
 }
 
 .dark-theme .orders-table-scroll .completed-orders-section .completed-orders-table {
     background: var(--card-bg);
+    border-color: var(--border-color);
 }
 
 .dark-theme .orders-table-scroll .completed-orders-section .completed-orders-table thead {
@@ -1541,20 +1542,27 @@ tbody tr.selected {
 
 /* Main page completed orders section (compact version) - overrides for the bottom section */
 .orders-table-scroll .completed-orders-section {
-    padding: 0;
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    margin-top: 24px;
-    margin-right: 20px;
-    overflow: hidden;
+    position: absolute;
+    bottom: 120px;
+    left: 0;
+    right: 0;
+    padding: 20px 20px 0;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    margin: 0;
+    overflow: visible;
     max-height: none;
+    z-index: 9;
 }
 
 .orders-table-scroll .completed-orders-section .completed-orders-table {
     width: 100%;
     border-collapse: collapse;
     background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 .orders-table-scroll .completed-orders-section .completed-orders-table thead {
@@ -1645,9 +1653,9 @@ tbody tr.selected {
 
 .orders-table-scroll .completed-orders-section .completed-orders-section-header {
     padding: 14px 16px;
-    background: #f8f9fa;
+    background: #ffffff;
     border-bottom: 1px solid #e5e7eb;
-    margin: 0;
+    margin: 0 0 12px 0;
 }
 
 .orders-table-scroll .completed-orders-section .completed-orders-section-header h3 {
@@ -1992,6 +2000,7 @@ tbody tr.selected {
     .orders-mobile-cards {
         display: block;
         padding: 0 12px;
+        padding-bottom: 12rem
     }
 
     .order-card {
@@ -2492,6 +2501,7 @@ tbody tr.selected {
 
     .orders-mobile-cards {
         padding: 0 8px;
+        padding-bottom: 8rem
     }
 
     .order-card {
@@ -2616,3 +2626,134 @@ tbody tr.selected {
         transition: none;
     }
 }
+
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #fafafa;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+}
+
+.pagination-btn {
+    padding: 8px 16px;
+    background-color: #a05c2f;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background-color: #8b4a23;
+}
+
+.pagination-btn:disabled {
+    background-color: #d3d3d3;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.pagination-info {
+    font-size: 14px;
+    color: #666;
+    font-weight: 500;
+    min-width: 100px;
+    text-align: center;
+}
+
+.pagination-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    padding: 15px 20px;
+    background-color: #fff;
+    border-top: 1px solid #e0e0e0;
+    z-index: 10;
+    box-sizing: border-box;
+}
+
+.pagination {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.pagination .page-btn {
+    padding: 8px 12px;
+    background-color: #ffffff;
+    color: #000000;
+    border: 1px solid #000000;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    min-width: 40px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pagination .page-btn:hover {
+    background-color: #000000;
+    color: #ffffff;
+    border-color: #000000;
+}
+
+.pagination .page-btn.active {
+    background-color: #000000;
+    color: #ffffff;
+    border-color: #000000;
+    font-weight: 600;
+}
+
+.pagination .page-btn.arrow-btn {
+    padding: 8px 10px;
+    min-width: auto;
+}
+
+.pagination .page-btn.arrow-btn i {
+    font-size: 16px;
+}
+
+.pagination .page-ellipsis {
+    color: #999;
+    padding: 0 8px;
+    user-select: none;
+}
+
+.dark-theme .pagination .page-btn {
+    background-color: #ffffff;
+    color: #000000;
+    border-color: #000000;
+}
+
+.dark-theme .pagination .page-btn:hover {
+    background-color: #000000;
+    color: #ffffff;
+    border-color: #000000;
+}
+
+.dark-theme .pagination .page-btn.active {
+    background-color: #000000;
+    color: #ffffff;
+    border-color: #000000;
+}
+
+.dark-theme .pagination-container {
+    background-color: #2d2d2d;
+    border-top-color: #444;
+}
+

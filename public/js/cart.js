@@ -82,12 +82,31 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
         return;
       }
+
+      // Get selected items
+      const selectedOrderItems = [];
+      orderItems.forEach((item, index) => {
+        const itemKey = generateItemKey(item, index);
+        if (selectedItems.has(itemKey)) {
+          selectedOrderItems.push(item);
+        }
+      });
+
+      // Validate selected items before proceeding
+      const validation = validateCartBeforeCheckout(selectedOrderItems);
+      if (!validation.valid) {
+        if (typeof notificationSystem !== 'undefined') {
+          notificationSystem.error(validation.error, 'Validation Failed');
+        }
+        return;
+      }
+
       if (!window.user) {
         try {
           await fetch('/checkout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ orderItems })
+            body: JSON.stringify({ orderItems: selectedOrderItems })
           });
           window.location.href = '/checkout';
         } catch (err) {
@@ -527,6 +546,58 @@ function hideCartRemoveNotification() {
       }
     }, 400);
   }
+}
+
+function validateCartBeforeCheckout(items) {
+  if (!items || !Array.isArray(items) || items.length === 0) {
+    return { valid: false, error: 'No items selected for checkout' };
+  }
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    
+    // Check required fields
+    if (!item.name) {
+      return { valid: false, error: `Item ${i + 1}: Product name is missing` };
+    }
+
+    if (!item.productId && !item.ProductID) {
+      return { valid: false, error: `Item ${i + 1} (${item.name}): Product ID is missing` };
+    }
+
+    if (typeof item.price !== 'number' || item.price < 0) {
+      return { valid: false, error: `Item ${i + 1} (${item.name}): Invalid price` };
+    }
+
+    if (typeof item.quantity !== 'number' || item.quantity < 1) {
+      return { valid: false, error: `Item ${i + 1} (${item.name}): Invalid quantity` };
+    }
+
+    // Validate add-ons if present
+    if (item.addons && Array.isArray(item.addons)) {
+      for (let j = 0; j < item.addons.length; j++) {
+        const addon = item.addons[j];
+        
+        if (!addon.Name && !addon.name && !addon.IngredientID && !addon.ingredientId) {
+          return {
+            valid: false,
+            error: `Item ${i + 1} (${item.name}), Add-on ${j + 1}: Invalid add-on data`
+          };
+        }
+
+        const addonPrice = addon.BasePrice || addon.basePrice;
+        if (typeof addonPrice !== 'number' || addonPrice < 0) {
+          const addonName = addon.Name || addon.name || 'Unknown';
+          return {
+            valid: false,
+            error: `Item ${i + 1} (${item.name}), Add-on "${addonName}": Invalid price`
+          };
+        }
+      }
+    }
+  }
+
+  return { valid: true };
 }
 
 function clearCart() {

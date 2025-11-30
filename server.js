@@ -122,12 +122,14 @@ app.use('/auth/register', authLimiter);
 
 // Session configuration with better settings
 app.use(session({
-  secret: '4eaf42844a1772cb12e90869666b3a929f785d5bbd6d0fc5402c95ebc8721c3bca4ac502cc2fa7ec8abcbec042202876',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false, // Changed to false for better performance
   cookie: { 
-    secure: false,
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    secure: process.env.NODE_ENV === 'production', // Enable secure cookies in production
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    httpOnly: true, // Prevent XSS attacks
+    sameSite: 'lax' // CSRF protection
   }
 }));
 

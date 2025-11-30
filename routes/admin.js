@@ -55,7 +55,7 @@ const multer = require('multer');
 const { createNewOrderNotification, createMessageNotification, createLowStockNotification } = require('../admin-helpers');
 
 
-router.post("/toggle-availability/:id", async (req, res) => {
+router.post("/toggle-availability/:id", ensureAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { isEnabled } = req.body;
@@ -916,8 +916,8 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// Add Product route
-router.post('/products/add', upload.single('imagelink'), async (req, res) => {
+// Add Product route - Restricted to admin/owner only
+router.post('/products/add', ensureAdmin, upload.single('imagelink'), async (req, res) => {
   const {
     categoryShortcut,
     productCode,
@@ -1200,7 +1200,7 @@ router.get('/api/products/:id', async (req, res) => {
 
 
 // ✅ Edit Product route (with local image upload)
-router.post('/products/edit/:id', upload.single('imagelink'), async (req, res) => {
+router.post('/products/edit/:id', ensureAdmin, upload.single('imagelink'), async (req, res) => {
   const { id } = req.params;
   const { description, Allergen, size16, size22, BasePrice, Quantity } = req.body;
 
@@ -1366,7 +1366,7 @@ router.get('/products/edit/:id', nocache, async (req, res) => {
 
 // DELETE Product Route (AJAX-friendly)
 // Delete Product route (JSON response)
-router.post('/delete-product/:id', async (req, res) => {
+router.post('/delete-product/:id', ensureAdmin, async (req, res) => {
   const productId = req.params.id;
 
   try {

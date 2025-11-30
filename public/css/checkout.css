@@ -497,6 +497,23 @@
   object-fit: cover;
 }
 
+.order-item-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex: 1;
+  gap: 16px;
+}
+
+.item-info {
+  flex: 1;
+}
+
+.item-price {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
 .item-info h3 {
   margin: 0 0 8px 0;
   color: #2c3e50;

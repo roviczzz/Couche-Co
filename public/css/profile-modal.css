@@ -952,6 +952,80 @@
   border-top: none;
 }
 
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+  padding: 16px 0;
+  border-top: 1px solid #e1e5e9;
+}
+
+.pagination-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  color: #a05c2f;
+  border: 1px solid #e1e5e9;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: #a05c2f;
+  color: white;
+  border-color: #a05c2f;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-numbers {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pagination-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0;
+  background: #f8f9fa;
+  color: #666;
+  border: 1px solid #e1e5e9;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+.pagination-number:hover {
+  background: #e9ecef;
+  border-color: #a05c2f;
+  color: #a05c2f;
+}
+
+.pagination-number.active {
+  background: #a05c2f;
+  color: white;
+  border-color: #a05c2f;
+  font-weight: 600;
+}
+
 @media (max-width: 600px) {
   .password-section {
     margin-top: 24px;
@@ -961,5 +1035,25 @@
   .password-input-wrapper input {
     padding: 14px 48px 14px 14px;
     font-size: 16px;
+  }
+
+  .pagination {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .pagination-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .pagination-numbers {
+    gap: 2px;
+  }
+
+  .pagination-number {
+    min-width: 32px;
+    height: 32px;
+    font-size: 12px;
   }
 }

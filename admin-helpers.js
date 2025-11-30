@@ -1289,14 +1289,16 @@ async function deleteNotification(db, notificationId) {
 
 async function createNewOrderNotification(db, orderData) {
   try {
-    console.log('🔔 Creating new order notification for order:', orderData.OrderID);
-    
+    const orderId = orderData.OrderID || orderData.orderId;
+    console.log('🔔 Creating new order notification for order:', orderId);
+
     const notification = await createNotification(db, {
       type: 'order',
       title: 'New Order Received',
-      message: `Order #${orderData.OrderID} received from ${orderData.Customer?.fullname || 'Customer'}`,
+      message: `Order #${orderId} received from ${orderData.Customer?.fullname || 'Customer'}`,
       data: {
-        orderId: orderData.OrderID,
+        orderId: orderId,
+        OrderID: orderId,
         customerName: orderData.Customer?.fullname || 'Unknown',
         total: orderData.Total,
         items: orderData.Cart?.length || 0
@@ -1305,7 +1307,7 @@ async function createNewOrderNotification(db, orderData) {
       priority: 'high',
       targetRoles: ['admin', 'staff']
     });
-    
+
     console.log('✅ New order notification created:', notification._id);
     return notification;
   } catch (error) {

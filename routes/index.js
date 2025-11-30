@@ -334,33 +334,59 @@ router.get('/product/:id', async (req, res) => {
     });
     
     let displayAddons = cachedAddons;
-    let displayIngredients = cachedIngredients;
+    let recommendedItems = [];
+    let remainingAddons = [];
+    let remainingIngredients = [];
     
     if (categoryRec && categoryRec.recommendations && categoryRec.recommendations.length > 0) {
+      const recommendedIds = new Set();
+      
       // Map recommendations to actual items with prices
-      const recommendedItems = categoryRec.recommendations.map(rec => {
+      recommendedItems = categoryRec.recommendations.map(rec => {
         if (rec.type === 'addon') {
-          return cachedAddons.find(a => a.AddOnID === rec.id);
+          const addon = cachedAddons.find(a => a.AddOnID === rec.id);
+          if (addon) {
+            recommendedIds.add(rec.id);
+            return addon;
+          }
         } else if (rec.type === 'ingredient') {
           const ingredient = cachedIngredients.find(i => i.IngredientID === rec.id);
           if (ingredient) {
-            return { ...ingredient, AddOnID: ingredient.IngredientID, Name: ingredient.Name, BasePrice: 15 };
+            recommendedIds.add(rec.id);
+            return { ...ingredient, AddOnID: ingredient.IngredientID, Name: ingredient.Name, BasePrice: ingredient.BasePrice || 15 };
           }
         }
         return null;
       }).filter(item => item !== null);
       
-      // All recommendations go to displayAddons (main section)
+      // Calculate remaining add-ons (not in recommendations)
+      remainingAddons = cachedAddons
+        .filter(addon => !recommendedIds.has(addon.AddOnID))
+        .sort((a, b) => a.Name.localeCompare(b.Name));
+      
+      // Calculate remaining ingredients (not in recommendations)
+      remainingIngredients = cachedIngredients
+        .filter(ing => !recommendedIds.has(ing.IngredientID))
+        .sort((a, b) => a.Name.localeCompare(b.Name));
+      
+      // Main section shows recommended items only
       if (recommendedItems.length > 0) {
         displayAddons = recommendedItems;
       }
+    } else {
+      // If no recommendations, all add-ons and ingredients go to modal
+      remainingAddons = cachedAddons.sort((a, b) => a.Name.localeCompare(b.Name));
+      remainingIngredients = cachedIngredients.sort((a, b) => a.Name.localeCompare(b.Name));
     }
 
     res.render('product', {
       isAvailable,
       product,
       addons: displayAddons,
-      ingredients: displayIngredients,
+      ingredients: cachedIngredients,
+      recommendedItems,
+      remainingAddons,
+      remainingIngredients,
       title: `${product.Name} | Blessings Cafe`,
       user: req.session?.user || null,
       extraCSS: '/css/product.css'

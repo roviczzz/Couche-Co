@@ -1,5 +1,8 @@
 let currentSection = 'orders';
-let isLoading = false; // Prevent multiple loading calls
+let isLoading = false;
+let allOrders = [];
+let currentPage = 1;
+const itemsPerPage = 10;
 
 async function openProfileModal() {
   // Prevent multiple simultaneous calls
@@ -46,58 +49,13 @@ async function openProfileModal() {
 }
 
 function populateModal(data) {
-  // Ensure loading state is cleared first
   hideLoadingSpinner();
   
-  // Populate orders
   const ordersContainer = document.querySelector('.orders-table-container');
   if (data.orders && data.orders.length > 0) {
-    let html = `<table class="orders-table">
-      <thead>
-        <tr>
-          <th>Order ID</th>
-          <th>Date</th>
-          <th>Items</th>
-          <th>Status</th>
-          <th>Amount</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody>`;
-    data.orders.forEach(order => {
-      const orderDate = order.Date || order.CreationTime;
-      let formattedDate = 'N/A';
-      if (orderDate) {
-        const dateObj = new Date(orderDate);
-        if (!isNaN(dateObj.getTime())) {
-          formattedDate = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-        } else if (typeof orderDate === 'string') {
-          formattedDate = orderDate;
-        }
-      }
-      
-      const cartItems = order.Cart || [];
-      const itemCount = cartItems.reduce((sum, item) => sum + (item.Quantity || 1), 0);
-      const itemsTooltip = cartItems.map(item => {
-        const size = item.Size ? ` (${item.Size})` : '';
-        return `${item.Quantity || 1}x ${item.ProductName || 'Item'}${size}`;
-      }).join('\n');
-      
-      const cartDataAttr = encodeURIComponent(JSON.stringify(cartItems));
-      
-      html += `<tr class="order-row">
-        <td onclick="viewOrderDetails('${order.OrderID}')" style="cursor: pointer;">${order.OrderID}</td>
-        <td onclick="viewOrderDetails('${order.OrderID}')" style="cursor: pointer;">${formattedDate}</td>
-        <td onclick="viewOrderDetails('${order.OrderID}')" style="cursor: pointer;">
-          <span class="items-badge" title="${itemsTooltip.replace(/"/g, '&quot;')}">${itemCount} item${itemCount !== 1 ? 's' : ''} <i class="fas fa-info-circle"></i></span>
-        </td>
-        <td onclick="viewOrderDetails('${order.OrderID}')" style="cursor: pointer;"><span class="status-badge status-${order.FulfillmentStatus ? order.FulfillmentStatus.toLowerCase().replace(' ', '-') : 'unknown'}">${order.FulfillmentStatus || 'Unknown'}</span></td>
-        <td onclick="viewOrderDetails('${order.OrderID}')" style="cursor: pointer;">₱${order.Total ? order.Total.toFixed(2) : '0.00'}</td>
-        <td><button type="button" class="order-again-btn" onclick="orderAgain(event, '${cartDataAttr}')"><i class="fas fa-redo"></i> Order Again</button></td>
-      </tr>`;
-    });
-    html += `</tbody></table>`;
-    ordersContainer.innerHTML = html;
+    allOrders = data.orders;
+    currentPage = 1;
+    renderOrdersPage();
   } else {
     ordersContainer.innerHTML = `<div class="no-orders">
       <i class="fas fa-shopping-bag"></i>
@@ -176,6 +134,90 @@ function hideLoadingSpinner() {
         spinner.remove();
       }
     });
+  }
+}
+
+function renderOrdersPage() {
+  const ordersContainer = document.querySelector('.orders-table-container');
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const pageOrders = allOrders.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(allOrders.length / itemsPerPage);
+  
+  let html = `<table class="orders-table">
+    <thead>
+      <tr>
+        <th>Order ID</th>
+        <th>Date</th>
+        <th>Items</th>
+        <th>Status</th>
+        <th>Amount</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>`;
+  
+  pageOrders.forEach(order => {
+    const orderDate = order.Date || order.CreationTime;
+    let formattedDate = 'N/A';
+    if (orderDate) {
+      const dateObj = new Date(orderDate);
+      if (!isNaN(dateObj.getTime())) {
+        formattedDate = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      } else if (typeof orderDate === 'string') {
+        formattedDate = orderDate;
+      }
+    }
+    
+    const cartItems = order.Cart || [];
+    const itemCount = cartItems.reduce((sum, item) => sum + (item.Quantity || 1), 0);
+    const itemsTooltip = cartItems.map(item => {
+      const size = item.Size ? ` (${item.Size})` : '';
+      return `${item.Quantity || 1}x ${item.ProductName || 'Item'}${size}`;
+    }).join('\n');
+    
+    const cartDataAttr = encodeURIComponent(JSON.stringify(cartItems));
+    
+    html += `<tr class="order-row">
+      <td onclick="viewOrderDetails('${order.OrderID}')" style="cursor: pointer;">${order.OrderID}</td>
+      <td onclick="viewOrderDetails('${order.OrderID}')" style="cursor: pointer;">${formattedDate}</td>
+      <td onclick="viewOrderDetails('${order.OrderID}')" style="cursor: pointer;">
+        <span class="items-badge" title="${itemsTooltip.replace(/"/g, '&quot;')}">${itemCount} item${itemCount !== 1 ? 's' : ''} <i class="fas fa-info-circle"></i></span>
+      </td>
+      <td onclick="viewOrderDetails('${order.OrderID}')" style="cursor: pointer;"><span class="status-badge status-${order.FulfillmentStatus ? order.FulfillmentStatus.toLowerCase().replace(' ', '-') : 'unknown'}">${order.FulfillmentStatus || 'Unknown'}</span></td>
+      <td onclick="viewOrderDetails('${order.OrderID}')" style="cursor: pointer;">₱${order.Total ? order.Total.toFixed(2) : '0.00'}</td>
+      <td><button type="button" class="order-again-btn" onclick="orderAgain(event, '${cartDataAttr}')"><i class="fas fa-redo"></i> Order Again</button></td>
+    </tr>`;
+  });
+  
+  html += `</tbody></table>`;
+  
+  if (totalPages > 1) {
+    html += `<div class="pagination">
+      <button class="pagination-btn prev-btn" onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+        <i class="fas fa-chevron-left"></i> Previous
+      </button>
+      <div class="pagination-numbers">`;
+    
+    for (let i = 1; i <= totalPages; i++) {
+      html += `<button class="pagination-number ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+    }
+    
+    html += `</div>
+      <button class="pagination-btn next-btn" onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+        Next <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>`;
+  }
+  
+  ordersContainer.innerHTML = html;
+}
+
+function goToPage(page) {
+  const totalPages = Math.ceil(allOrders.length / itemsPerPage);
+  if (page >= 1 && page <= totalPages) {
+    currentPage = page;
+    renderOrdersPage();
   }
 }
 

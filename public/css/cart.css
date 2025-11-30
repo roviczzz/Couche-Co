@@ -272,6 +272,7 @@
 }
 
 .quantity-input {
+  font-family: 'Inter', sans-serif;
   width: 40px;
   text-align: center;
   border: none;

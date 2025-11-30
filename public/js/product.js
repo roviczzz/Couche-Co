@@ -167,57 +167,15 @@ function initializeIngredientListeners() {
 
     if (modalIngredientsContainer) {
         // Remove any existing listeners to prevent duplicates
-        modalIngredientsContainer.removeEventListener('change', handleIngredientChange);
+        modalIngredientsContainer.removeEventListener('change', handleModalCheckboxChange);
         // Add event delegation listener for modal
-        modalIngredientsContainer.addEventListener('change', handleIngredientChange);
+        modalIngredientsContainer.addEventListener('change', handleModalCheckboxChange);
     }
 
     // No longer setting up direct listeners to prevent duplication with delegation
     // Event delegation handles all ingredient checkboxes within the modal
 }
 
-// Handle ingredient checkbox changes
-function handleIngredientChange(event) {
-    const checkbox = event.target;
-
-    // Only handle ingredient checkboxes
-    if (!checkbox.classList.contains('ingredient-checkbox')) {
-        return;
-    }
-
-    const ingredientId = checkbox.dataset.ingredientId;
-    const ingredientName = checkbox.dataset.ingredientName;
-    const ingredientPrice = parseFloat(checkbox.dataset.ingredientPrice) || 15;
-
-    if (checkbox.checked) {
-        // Add to selectedIngredients array
-        selectedIngredients.push({
-            IngredientID: ingredientId,
-            Name: ingredientName,
-            BasePrice: ingredientPrice
-        });
-        // Also add to selectedAddons for cart functionality
-        selectedAddons.push({
-            IngredientID: ingredientId,
-            Name: ingredientName,
-            BasePrice: ingredientPrice
-        });
-    } else {
-        // Remove from selectedIngredients array
-        const ingredientIndex = selectedIngredients.findIndex(a => a.IngredientID == ingredientId);
-        if (ingredientIndex > -1) {
-            selectedIngredients.splice(ingredientIndex, 1);
-        }
-        // Remove from selectedAddons array
-        const addonIndex = selectedAddons.findIndex(a => a.IngredientID == ingredientId);
-        if (addonIndex > -1) {
-            selectedAddons.splice(addonIndex, 1);
-        }
-    }
-
-    // Update the badge
-    updateIngredientsBadge();
-}
 
 // Save order to localStorage and update cart count
 function saveOrderItems() {
@@ -833,11 +791,11 @@ function loadIngredients() {
         }
     }
 
-    // Display ingredients in modal
-    displayIngredients(ingredients);
+    // Modal content is now rendered server-side, just ensure event listeners are set up
+    setupIngredientEventListeners();
 }
 
-// Display ingredients in modal
+// Display ingredients in modal (fallback for dynamic loading if needed)
 function displayIngredients(ingredients) {
     const ingredientsOptionsContainer = document.querySelector('.ingredients-options');
     if (!ingredientsOptionsContainer) {
@@ -845,58 +803,75 @@ function displayIngredients(ingredients) {
         return;
     }
 
-    // Check if ingredients already exist from EJS template
-    const existingIngredients = ingredientsOptionsContainer.querySelectorAll('.ingredient-checkbox-label');
-    if (existingIngredients.length > 0) {
-        // Event listeners handled by delegation
+    // Check if modal sections already exist from EJS template
+    const existingSections = ingredientsOptionsContainer.querySelectorAll('.modal-section');
+    if (existingSections.length > 0) {
+        // Content already rendered server-side, just ensure event listeners work
+        setupIngredientEventListeners();
         return;
     }
 
     ingredientsOptionsContainer.innerHTML = '';
 
     if (ingredients && Array.isArray(ingredients) && ingredients.length > 0) {
+        const section = document.createElement('div');
+        section.className = 'modal-section';
+
         ingredients.forEach(ingredient => {
             const ingredientLabel = document.createElement('label');
             ingredientLabel.className = 'ingredient-checkbox-label';
 
             const ingredientText = document.createElement('span');
             ingredientText.className = 'ingredient-text';
-            ingredientText.textContent = `${ingredient.Name} ₱15.00`;
+            const price = ingredient.BasePrice || 15;
+            ingredientText.textContent = `${ingredient.Name} - ₱${Number(price).toFixed(2)}`;
 
             const ingredientCheckbox = document.createElement('input');
             ingredientCheckbox.type = 'checkbox';
             ingredientCheckbox.className = 'ingredient-checkbox';
             ingredientCheckbox.dataset.ingredientId = ingredient.IngredientID;
             ingredientCheckbox.dataset.ingredientName = ingredient.Name;
-            ingredientCheckbox.dataset.ingredientPrice = 15;
+            ingredientCheckbox.dataset.ingredientPrice = price;
 
             ingredientLabel.appendChild(ingredientText);
             ingredientLabel.appendChild(ingredientCheckbox);
-            ingredientsOptionsContainer.appendChild(ingredientLabel);
+            section.appendChild(ingredientLabel);
         });
 
-        // Event listeners handled by event delegation on the container
+        ingredientsOptionsContainer.appendChild(section);
     } else {
-        ingredientsOptionsContainer.innerHTML = '<span style="font-size:12px;color:#999">No ingredients available.</span>';
+        ingredientsOptionsContainer.innerHTML = '<span style="font-size:12px;color:#999">No options available.</span>';
     }
 }
 
-// Setup ingredient event listeners
+// Setup ingredient event listeners using event delegation
 function setupIngredientEventListeners() {
-    const ingredientCheckboxes = document.querySelectorAll('.ingredient-checkbox');
+    const ingredientsOptionsContainer = document.querySelector('.ingredients-options');
+    
+    if (!ingredientsOptionsContainer) {
+        console.error('ingredients-options container not found');
+        return;
+    }
 
-    ingredientCheckboxes.forEach((checkbox) => {
-        // Remove existing listeners to prevent duplicates
-        checkbox.removeEventListener('change', handleIngredientCheckboxChange);
+    // Remove any existing listeners to prevent duplicates
+    ingredientsOptionsContainer.removeEventListener('change', handleModalCheckboxChange);
+    // Add event delegation listener for all checkboxes in the modal
+    ingredientsOptionsContainer.addEventListener('change', handleModalCheckboxChange);
+}
 
-        // Add new listener
-        checkbox.addEventListener('change', handleIngredientCheckboxChange);
-    });
+// Handle all checkbox changes in modal (ingredients and add-ons)
+function handleModalCheckboxChange(event) {
+    const checkbox = event.target;
+
+    if (checkbox.classList.contains('ingredient-checkbox')) {
+        handleIngredientCheckboxChange(checkbox);
+    } else if (checkbox.classList.contains('addon-checkbox')) {
+        handleAddonCheckboxChange(checkbox);
+    }
 }
 
 // Handle ingredient checkbox changes
-function handleIngredientCheckboxChange(event) {
-    const checkbox = event.target;
+function handleIngredientCheckboxChange(checkbox) {
     const ingredientId = checkbox.dataset.ingredientId;
     const ingredientName = checkbox.dataset.ingredientName;
     const ingredientPrice = parseFloat(checkbox.dataset.ingredientPrice) || 15;
@@ -927,7 +902,30 @@ function handleIngredientCheckboxChange(event) {
         }
     }
 
-    // Update the badge immediately - this should work with the new logic
+    // Update the badge immediately
+    updateIngredientsBadge();
+}
+
+// Handle add-on checkbox changes in modal
+function handleAddonCheckboxChange(checkbox) {
+    const addonId = checkbox.dataset.addonId;
+    const addonName = checkbox.dataset.addonName;
+    const addonPrice = parseFloat(checkbox.dataset.addonPrice) || 0;
+
+    if (checkbox.checked) {
+        selectedAddons.push({
+            AddOnID: addonId,
+            Name: addonName,
+            BasePrice: addonPrice
+        });
+    } else {
+        const index = selectedAddons.findIndex(a => a.AddOnID === addonId);
+        if (index > -1) {
+            selectedAddons.splice(index, 1);
+        }
+    }
+
+    // Update the badge immediately
     updateIngredientsBadge();
 }
 
@@ -935,12 +933,17 @@ function handleIngredientCheckboxChange(event) {
 function setAddToCartLoading(isLoading) {
     const btn = document.getElementById('add-to-cart-btn');
     if (!btn) return;
+    const textSpan = btn.querySelector('.add-to-cart-text');
+    const spinnerSpan = btn.querySelector('.add-to-cart-spinner');
+    
     if (isLoading) {
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner"></span>Adding...';
+        if (textSpan) textSpan.style.display = 'none';
+        if (spinnerSpan) spinnerSpan.style.display = 'inline-block';
     } else {
         btn.disabled = false;
-        btn.innerHTML = 'Add to Cart';
+        if (textSpan) textSpan.style.display = 'inline';
+        if (spinnerSpan) spinnerSpan.style.display = 'none';
     }
 }
 

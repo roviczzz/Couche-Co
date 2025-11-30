@@ -1016,8 +1016,13 @@ closePanelBtn.addEventListener('click', (e) => {
 const ordersTableBody = document.querySelector('.orders-table-container tbody');
 const orderHeaders = document.querySelectorAll('.orders-table-container thead th');
 let currentSort = { column: null, direction: 'asc' };
+let currentPage = 1;
+const ordersPerPage = 10;
+let hasFiltersApplied = false;
 
 function sortOrders(columnKey) {
+  hasFiltersApplied = true;
+  
   if (currentSort.column === columnKey) {
     currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
   } else {
@@ -1057,6 +1062,7 @@ function sortOrders(columnKey) {
     return currentSort.direction === 'asc' ? comp : -comp;
   });
 
+  currentPage = 1;
   renderOrdersTable();
   renderSortArrows();
 }
@@ -1068,22 +1074,26 @@ function renderOrdersTable(showAllOrders = false) {
     ordersTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 20px;">No orders found.</td></tr>`;
     renderCancelledOrders();
     renderCompletedOrders();
+    renderPagination(0);
     return;
   }
 
   let ordersToDisplay = orders;
 
-  if (!showAllOrders) {
-    // Filter to show only active orders (not cancelled and not completed)
-    ordersToDisplay = orders.filter(order => {
-      const isCancelled = (order.FulfillmentStatus === 'Cancelled' || order.fulfillmentStatus === 'Cancelled');
-      const paymentCompleted = (order.PaymentStatus || order.paymentStatus || '').toLowerCase() === 'completed';
-      const fulfillmentCompleted = (order.FulfillmentStatus || order.fulfillmentStatus || '').toLowerCase() === 'completed';
-      const bothCompleted = paymentCompleted && fulfillmentCompleted;
+  // Always filter out completed and cancelled orders from main table
+  ordersToDisplay = orders.filter(order => {
+    const isCancelled = (order.FulfillmentStatus === 'Cancelled' || order.fulfillmentStatus === 'Cancelled');
+    const paymentCompleted = (order.PaymentStatus || order.paymentStatus || '').toLowerCase() === 'completed';
+    const fulfillmentCompleted = (order.FulfillmentStatus || order.fulfillmentStatus || '').toLowerCase() === 'completed';
+    const bothCompleted = paymentCompleted && fulfillmentCompleted;
 
-      return !isCancelled && !bothCompleted;
-    });
-  }
+    return !isCancelled && !bothCompleted;
+  });
+
+  const totalOrders = ordersToDisplay.length;
+  const startIndex = (currentPage - 1) * ordersPerPage;
+  const endIndex = startIndex + ordersPerPage;
+  ordersToDisplay = ordersToDisplay.slice(startIndex, endIndex);
 
   ordersToDisplay.forEach((order, index) => {
     const paymentBadge = getPaymentStatusBadge(order.PaymentStatus || order.paymentStatus);
@@ -1132,11 +1142,71 @@ function renderOrdersTable(showAllOrders = false) {
   initRowEventListeners();
   renderCancelledOrders();
   renderCompletedOrders();
+  renderPagination(totalOrders);
 
   if (typeof window.orderMobileHandler !== 'undefined') {
     window.orderMobileHandler.renderOrderCards(ordersToDisplay);
   }
 }
+
+function renderPagination(totalOrders) {
+  const totalPages = Math.ceil(totalOrders / ordersPerPage);
+  let paginationContainer = document.querySelector('.pagination-container');
+  
+  if (!paginationContainer) {
+    paginationContainer = document.createElement('div');
+    paginationContainer.className = 'pagination-container';
+    const ordersTableContainer = document.getElementById('ordersTableContainer');
+    if (ordersTableContainer) {
+      ordersTableContainer.appendChild(paginationContainer);
+    }
+  }
+
+  if (totalPages <= 1) {
+    paginationContainer.innerHTML = '';
+    return;
+  }
+
+  let paginationHtml = '<div class="pagination">';
+  
+  paginationHtml += `<button class="page-btn arrow-btn" onclick="changePage(1)" title="First Page"><i class="fa-solid fa-angle-left"></i></button>`;
+  paginationHtml += `<button class="page-btn arrow-btn" onclick="changePage(${Math.max(1, currentPage - 1)})" title="Previous Page"><i class="fa-solid fa-chevron-left"></i></button>`;
+
+  const startPage = Math.max(1, currentPage - 2);
+  const endPage = Math.min(totalPages, currentPage + 2);
+
+  if (startPage > 1) {
+    paginationHtml += `<button class="page-btn" onclick="changePage(1)">1</button>`;
+    if (startPage > 2) {
+      paginationHtml += `<span class="page-ellipsis">...</span>`;
+    }
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    paginationHtml += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+  }
+
+  if (endPage < totalPages) {
+    if (endPage < totalPages - 1) {
+      paginationHtml += `<span class="page-ellipsis">...</span>`;
+    }
+    paginationHtml += `<button class="page-btn" onclick="changePage(${totalPages})">${totalPages}</button>`;
+  }
+
+  paginationHtml += `<button class="page-btn arrow-btn" onclick="changePage(${Math.min(totalPages, currentPage + 1)})" title="Next Page"><i class="fa-solid fa-chevron-right"></i></button>`;
+  paginationHtml += `<button class="page-btn arrow-btn" onclick="changePage(${totalPages})" title="Last Page"><i class="fa-solid fa-angle-right"></i></button>`;
+
+  paginationHtml += '</div>';
+  paginationContainer.innerHTML = paginationHtml;
+}
+
+function changePage(page) {
+  currentPage = page;
+  renderOrdersTable();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+window.changePage = changePage;
 
 function clearSortArrows() {
   orderHeaders.forEach(th => {
@@ -1162,23 +1232,23 @@ function renderSortArrows() {
 }
 
 function resetSort() {
-  // Restore the original order
+  if (!hasFiltersApplied) {
+    return;
+  }
+
   orders = [...ordersData];
-
-  // Reset sort state
   currentSort = { column: null, direction: 'asc' };
+  currentPage = 1;
+  hasFiltersApplied = false;
 
-  // Clear sort arrows from all headers
   clearSortArrows();
 
-  // Clear any filter inputs in table headers
   const filterInputs = document.querySelectorAll('thead input[type="text"], thead select');
   filterInputs.forEach(input => {
     input.value = '';
   });
 
-  // Force re-render with all orders (including cancelled/completed) in original order
-  renderOrdersTable(true);
+  renderOrdersTable();
 }
 
 orderHeaders.forEach(th => {

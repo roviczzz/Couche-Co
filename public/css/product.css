@@ -259,10 +259,12 @@
     gap: 8px;
 }
 
+.add-to-cart-text,
 .update-cart-text {
     display: inline;
 }
 
+.add-to-cart-spinner,
 .update-cart-spinner {
     display: none;
     width: 18px;
@@ -270,10 +272,10 @@
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-top: 2px solid white;
     border-radius: 50%;
-    animation: updateCartSpin 0.8s linear infinite;
+    animation: cartSpin 0.8s linear infinite;
 }
 
-@keyframes updateCartSpin {
+@keyframes cartSpin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
@@ -472,12 +474,40 @@
 
     .ingredients-options {
         padding: 2rem;
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
         flex: 1;
         overflow-y: auto;
         min-height: 0;
+    }
+
+    .modal-section {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 1rem;
+    }
+
+    .modal-section-header {
+        grid-column: 1 / -1;
+        margin: 0 0 0.5rem 0;
+        padding: 0.5rem 0;
+        border-bottom: 2px solid #f0f0f0;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .remaining-addons-section .modal-section-header {
+        color: #5B7C99;
+        border-bottom-color: #D4E1ED;
+    }
+
+    .remaining-ingredients-section .modal-section-header {
+        color: #4A7C6B;
+        border-bottom-color: #D0E4DD;
     }
 
     .modal-footer {
@@ -600,6 +630,10 @@
     }
 
     .ingredients-options {
+        padding: 1.5rem;
+    }
+
+    .modal-section {
         grid-template-columns: repeat(4, 1fr);
         gap: 0.75rem;
     }
@@ -681,6 +715,10 @@
 
     .ingredients-options {
         padding: 1.5rem;
+        gap: 1.5rem;
+    }
+
+    .modal-section {
         grid-template-columns: repeat(3, 1fr);
         gap: 0.75rem;
     }
@@ -720,9 +758,13 @@
     }
 
     .ingredients-options {
+        padding: 1rem;
+        gap: 1rem;
+    }
+
+    .modal-section {
         grid-template-columns: repeat(2, 1fr);
         gap: 0.5rem;
-        padding: 1rem;
     }
 
     .ingredient-checkbox-label {

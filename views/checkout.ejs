@@ -50,7 +50,7 @@
 
         <div class="form-group">
           <label for="email">Email</label>
-          <input type="email" id="email" name="email" placeholder="blessingscafe@yourmail.com" value="<%= user && user.email || '' %>" required>
+          <input type="email" id="email" name="email" placeholder="blessingscafe@yourmail.com" value="<%= (user && user.email) ? user.email : '' %>" required>
         </div>
 
         <div class="form-group">
