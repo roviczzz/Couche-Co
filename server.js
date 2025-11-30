@@ -14,6 +14,10 @@ const multer = require('multer');
 const app = express();
 const port = process.env.PORT || 3000;
 
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 let startBrowsersync = null;
 if (process.env.NODE_ENV !== 'production') {
   try {
@@ -130,12 +134,13 @@ app.use('/auth/register', authLimiter);
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
-  saveUninitialized: false, // Changed to false for better performance
+  saveUninitialized: false,
+  proxy: true,
   cookie: { 
-    secure: process.env.NODE_ENV === 'production', // Enable secure cookies in production
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    httpOnly: true, // Prevent XSS attacks
-    sameSite: 'lax' // CSRF protection
+    secure: process.env.NODE_ENV === 'production' ? 'auto' : false,
+    maxAge: 24 * 60 * 60 * 1000,
+    httpOnly: true,
+    sameSite: 'lax'
   }
 }));
 
