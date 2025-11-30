@@ -10,6 +10,7 @@ const rateLimit = require('express-rate-limit');
 const path = require('path');
 const cron = require('node-cron');
 const multer = require('multer');
+const MongoStore = require('connect-mongo');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -136,6 +137,10 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   proxy: true,
+  store: new MongoStore({
+    mongoUrl: process.env.MONGODB_URI,
+    touchAfter: 24 * 3600
+  }),
   cookie: { 
     secure: process.env.NODE_ENV === 'production' ? 'auto' : false,
     maxAge: 24 * 60 * 60 * 1000,
