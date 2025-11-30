@@ -423,24 +423,39 @@ router.get('/analytics/low-stock', nocache, async (req, res) => {
 
 router.get('/analytics/top-categories', nocache, async (req, res) => {
   try {
-    // Using shared DB connection from req.db
-
     const pipeline = [
       { $unwind: '$Cart' },
       {
         $match: {
-          PaymentStatus: { $ne: 'Cancelled' },
-          'Cart.Category': { $exists: true, $ne: null }
+          $and: [
+            { PaymentStatus: { $nin: ['Cancelled', 'cancelled'] } },
+            {
+              $or: [
+                { 'Cart.Category': { $exists: true, $ne: null, $ne: '' } },
+                { 'Cart.category': { $exists: true, $ne: null, $ne: '' } }
+              ]
+            }
+          ]
         }
       },
       {
         $group: {
-          _id: '$Cart.Category',
-          total: { $sum: { $multiply: ['$Cart.Price', '$Cart.Quantity'] } },
-          quantity: { $sum: '$Cart.Quantity' },
+          _id: { 
+            $ifNull: ['$Cart.Category', { $ifNull: ['$Cart.category', 'Uncategorized'] }]
+          },
+          total: { 
+            $sum: { 
+              $multiply: [
+                { $ifNull: ['$Cart.Price', { $ifNull: ['$Cart.price', 0] }] },
+                { $ifNull: ['$Cart.Quantity', { $ifNull: ['$Cart.quantity', 1] }] }
+              ] 
+            } 
+          },
+          quantity: { $sum: { $ifNull: ['$Cart.Quantity', { $ifNull: ['$Cart.quantity', 1] }] } },
           orderCount: { $sum: 1 }
         }
       },
+      { $match: { _id: { $ne: 'Uncategorized' } } },
       { $sort: { total: -1 } },
       { $limit: 8 }
     ];
@@ -818,24 +833,39 @@ router.get('/analytics/dashboard-stats', nocache, async (req, res) => {
 
 router.get('/analytics/top-categories', nocache, async (req, res) => {
   try {
-    // Using shared DB connection from req.db
-
     const pipeline = [
       { $unwind: '$Cart' },
       {
         $match: {
-          PaymentStatus: { $ne: 'Cancelled' },
-          'Cart.Category': { $exists: true, $ne: null }
+          $and: [
+            { PaymentStatus: { $nin: ['Cancelled', 'cancelled'] } },
+            {
+              $or: [
+                { 'Cart.Category': { $exists: true, $ne: null, $ne: '' } },
+                { 'Cart.category': { $exists: true, $ne: null, $ne: '' } }
+              ]
+            }
+          ]
         }
       },
       {
         $group: {
-          _id: '$Cart.Category',
-          total: { $sum: { $multiply: ['$Cart.Price', '$Cart.Quantity'] } },
-          quantity: { $sum: '$Cart.Quantity' },
+          _id: { 
+            $ifNull: ['$Cart.Category', { $ifNull: ['$Cart.category', 'Uncategorized'] }]
+          },
+          total: { 
+            $sum: { 
+              $multiply: [
+                { $ifNull: ['$Cart.Price', { $ifNull: ['$Cart.price', 0] }] },
+                { $ifNull: ['$Cart.Quantity', { $ifNull: ['$Cart.quantity', 1] }] }
+              ] 
+            } 
+          },
+          quantity: { $sum: { $ifNull: ['$Cart.Quantity', { $ifNull: ['$Cart.quantity', 1] }] } },
           orderCount: { $sum: 1 }
         }
       },
+      { $match: { _id: { $ne: 'Uncategorized' } } },
       { $sort: { total: -1 } },
       { $limit: 8 }
     ];

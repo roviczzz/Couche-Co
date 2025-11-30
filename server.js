@@ -95,15 +95,15 @@ app.use((req, res, next) => {
   next();
 });
 
-// Rate limiting for API endpoints
+// Rate limiting for API endpoints - disabled for development
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 10000,
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
   skip: (req) => {
-    return req.session?.user?.role === 'admin';
+    return true;
   }
 });
 

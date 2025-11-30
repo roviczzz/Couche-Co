@@ -28,7 +28,7 @@ data-user-low-stock-threshold="<%= (typeof userLowStockThreshold !== 'undefined'
                                 : '+0%' %>
                     </span>
                     <span id="total-sales-week"><%= typeof stats !== 'undefined' && typeof stats.totalSalesWeek !== 'undefined'
-                                ? stats.totalSalesWeek + ' this week'
+                                ? Number(stats.totalSalesWeek).toFixed(2) + ' this week'
                                 : '0 this week' %></span>
                 </div>
             </div>

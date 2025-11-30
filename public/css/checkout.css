@@ -135,6 +135,7 @@
   background-color: #fff;
   box-sizing: border-box;
   min-height: 44px; /* Touch-friendly minimum */
+  font-family: 'Inter', sans-serif;
 }
 
 /* Enhanced focus states for better accessibility */

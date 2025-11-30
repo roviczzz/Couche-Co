@@ -641,26 +641,41 @@ html, body {
 }
 
 .layout-container {
-    display: flex;
-    gap: 24px;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    grid-template-columns: 1fr auto;
+    gap: 0;
     margin-top: 20px;
     height: calc(100vh - 40px);
     box-sizing: border-box;
     overflow: hidden;
 }
 
+.header-section {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    flex-shrink: 0;
+    z-index: 100;
+}
+
 .orders-table-container {
   position: relative;
-  flex: 1;
+  grid-column: 1;
+  grid-row: 2;
   display: flex;
   flex-direction: column;
   height: 100%;
   overflow: hidden;
   min-width: 0;
-  margin-right: -20px;
+  margin-right: 0;
   max-width: 100%;
   box-sizing: border-box;
   transition: max-width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.order-detail-panel {
+    grid-column: 2;
+    grid-row: 2;
 }
 
 .orders-table-scroll {
@@ -1360,6 +1375,10 @@ tbody tr.selected {
     padding: 0;
 }
 
+.completed-orders-mobile-cards {
+    display: none;
+}
+
 .completed-orders-table {
     width: 100%;
     border-collapse: collapse;
@@ -1542,11 +1561,8 @@ tbody tr.selected {
 
 /* Main page completed orders section (compact version) - overrides for the bottom section */
 .orders-table-scroll .completed-orders-section {
-    position: absolute;
-    bottom: 120px;
-    left: 0;
-    right: 0;
-    padding: 20px 20px 0;
+    position: static;
+    padding: 30px 20px 0;
     background: transparent;
     border: none;
     border-radius: 0;
@@ -1554,6 +1570,10 @@ tbody tr.selected {
     overflow: visible;
     max-height: none;
     z-index: 9;
+}
+
+.orders-table-scroll .completed-orders-section:has(.empty-state-table:only-child) {
+    display: none;
 }
 
 .orders-table-scroll .completed-orders-section .completed-orders-table {
@@ -2000,7 +2020,6 @@ tbody tr.selected {
     .orders-mobile-cards {
         display: block;
         padding: 0 12px;
-        padding-bottom: 12rem
     }
 
     .order-card {
@@ -2501,7 +2520,6 @@ tbody tr.selected {
 
     .orders-mobile-cards {
         padding: 0 8px;
-        padding-bottom: 8rem
     }
 
     .order-card {
