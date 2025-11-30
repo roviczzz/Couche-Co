@@ -1,5 +1,3 @@
-require('dotenv').config();
-
 const express = require('express');
 const session = require('express-session');
 const expressLayouts = require('express-ejs-layouts');
@@ -10,39 +8,27 @@ const rateLimit = require('express-rate-limit');
 const path = require('path');
 const cron = require('node-cron');
 const multer = require('multer');
-const MongoStore = require('connect-mongo');
 
 const app = express();
-const port = process.env.PORT || 3000;
-
-if (process.env.NODE_ENV === 'production') {
-  app.set('trust proxy', 1);
-}
-
-let startBrowsersync = null;
+const port = process.env.PORT || 8080;
 if (process.env.NODE_ENV !== 'production') {
-  try {
-    const browserSync = require('browser-sync');
-    const bs = browserSync.create();
-    
-    startBrowsersync = () => {
-      bs.init({
-        proxy: `http://localhost:${port}`,
-        files: [
-          path.join(__dirname, 'views'),
-          path.join(__dirname, 'public')
-        ],
-        open: false,
-        notify: false,
-        port: 3000
-      });
-    };
-  } catch (error) {
-    console.warn('⚠️ browser-sync not available (devDependency)');
-  }
-}
-
-if (startBrowsersync) {
+  const browserSync = require('browser-sync');
+  const bs = browserSync.create();
+  
+  // Start Browsersync after Express server starts
+  const startBrowsersync = () => {
+    bs.init({
+      proxy: `http://localhost:${port}`,
+      files: [
+        path.join(__dirname, 'views'),
+        path.join(__dirname, 'public')
+      ],
+      open: false,
+      notify: false,
+      port: 3000
+    });
+  };
+  // Attach to app.locals for later use in startServer
   app.locals.startBrowsersync = startBrowsersync;
 }
 
@@ -58,6 +44,9 @@ if (process.env.NODE_ENV === 'production') {
     }
   }));
 }
+
+
+require('dotenv').config();
 
 const dbConnection = require('./utils/db');
 
@@ -135,17 +124,12 @@ app.use('/auth/register', authLimiter);
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
-  saveUninitialized: false,
-  proxy: true,
-  store: new MongoStore({
-    mongoUrl: process.env.MONGODB_URI,
-    touchAfter: 24 * 3600
-  }),
+  saveUninitialized: false, // Changed to false for better performance
   cookie: { 
-    secure: process.env.NODE_ENV === 'production' ? 'auto' : false,
-    maxAge: 24 * 60 * 60 * 1000,
-    httpOnly: true,
-    sameSite: 'lax'
+    secure: process.env.NODE_ENV === 'production', // Enable secure cookies in production
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    httpOnly: true, // Prevent XSS attacks
+    sameSite: 'lax' // CSRF protection
   }
 }));
 
