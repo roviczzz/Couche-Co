@@ -11,26 +11,31 @@ const multer = require('multer');
 
 const app = express();
 const port = process.env.PORT || 8080;
+
+let startBrowsersync = null;
 if (process.env.NODE_ENV !== 'production') {
-  const browserSync = require('browser-sync');
-  const bs = browserSync.create();
-  
-  // Start Browsersync after Express server starts
-  const startBrowsersync = () => {
-    bs.init({
-      proxy: `http://localhost:${port}`,
-      files: [
-        path.join(__dirname, 'views'),
-        path.join(__dirname, 'public')
-      ],
-      open: false,
-      notify: false,
-      port: 3000
-    });
-  };
-  // Attach to app.locals for later use in startServer
-  app.locals.startBrowsersync = startBrowsersync;
+  try {
+    const browserSync = require('browser-sync');
+    const bs = browserSync.create();
+    
+    startBrowsersync = () => {
+      bs.init({
+        proxy: `http://localhost:${port}`,
+        files: [
+          path.join(__dirname, 'views'),
+          path.join(__dirname, 'public')
+        ],
+        open: false,
+        notify: false,
+        port: 3000
+      });
+    };
+  } catch (err) {
+    console.log('Browser-sync not available, skipping...');
+  }
 }
+
+app.locals.startBrowsersync = startBrowsersync;
 
 if (process.env.NODE_ENV === 'production') {
   app.use(compression({
