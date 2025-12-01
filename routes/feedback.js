@@ -16,13 +16,6 @@ router.post('/feedback', async (req, res) => {
   try {
     const { rating, comment, name, email, page } = req.body;
 
-    if (!rating || typeof rating !== 'number' || rating < 1 || rating > 5) {
-      return res.status(400).json({
-        success: false,
-        error: 'Rating must be a number between 1 and 5'
-      });
-    }
-
     const validPages = ['contact', 'order-success'];
     if (!page || !validPages.includes(page)) {
       return res.status(400).json({
@@ -31,12 +24,28 @@ router.post('/feedback', async (req, res) => {
       });
     }
 
+    if (page === 'order-success') {
+      if (!rating || typeof rating !== 'number' || rating < 1 || rating > 5) {
+        return res.status(400).json({
+          success: false,
+          error: 'Rating must be a number between 1 and 5'
+        });
+      }
+    }
+
     const sanitizedComment = sanitizeInput(comment).substring(0, 500);
     const sanitizedName = sanitizeInput(name).substring(0, 100);
     const sanitizedEmail = sanitizeInput(email).substring(0, 100);
 
+    if (page === 'contact' && !sanitizedComment) {
+      return res.status(400).json({
+        success: false,
+        error: 'Please provide a comment'
+      });
+    }
+
     const feedbackDocument = {
-      rating: Math.floor(rating),
+      rating: rating ? Math.floor(rating) : null,
       comment: sanitizedComment,
       name: sanitizedName,
       email: sanitizedEmail,

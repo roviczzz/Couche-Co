@@ -53,20 +53,27 @@
     form.addEventListener('submit', async function(e) {
       e.preventDefault();
 
+      const page = form.dataset.page || 'unknown';
       const selectedRating = form.querySelector('input[name="rating"]:checked');
-      if (!selectedRating) {
+      const hasStarRating = form.querySelector('.star-rating') !== null;
+      
+      if (hasStarRating && !selectedRating) {
         showMessage(messageDiv, 'Please select a star rating', 'error');
         return;
       }
 
-      const rating = parseInt(selectedRating.value);
+      const rating = selectedRating ? parseInt(selectedRating.value) : null;
       const comment = textarea ? textarea.value.trim() : '';
       const name = form.querySelector('#feedback-name')?.value.trim() || '';
       const email = form.querySelector('#feedback-email')?.value.trim() || '';
-      const page = form.dataset.page || 'unknown';
 
-      if (rating < 1 || rating > 5) {
+      if (rating !== null && (rating < 1 || rating > 5)) {
         showMessage(messageDiv, 'Invalid rating selected', 'error');
+        return;
+      }
+
+      if (!comment && !rating) {
+        showMessage(messageDiv, 'Please provide a comment', 'error');
         return;
       }
 

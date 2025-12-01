@@ -1,0 +1,5589 @@
+[{
+  "_id": {
+    "$oid": "69269c9e084868a29cecc294"
+  },
+  "type": "stock",
+  "title": "🚨 Critical Low Stock Alert",
+  "message": "1 item(s) running low: Nata De Coco (-435 pieces remaining)",
+  "data": {
+    "lowStockItems": [
+      {
+        "name": "Nata De Coco (-435 pieces remaining)",
+        "amount": -435,
+        "type": "addon",
+        "id": "AD-NDC"
+      }
+    ],
+    "threshold": 10,
+    "totalItems": 1,
+    "criticalCount": 1,
+    "ingredients": 0,
+    "addons": 1
+  },
+  "actionUrl": "/admin/stocks",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T06:22:22.334Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69269c9e084868a29cecc295"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T06:22:22.524Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69269d2a9554c6b3e566dc1e"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T06:24:42.824Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69269da7360e714ab5022fcf"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T06:26:47.055Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69269dc8c4ac83fa94e120ab"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T06:27:20.716Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69269e6809ca3cf6dd745134"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T06:30:00.096Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69269e68c4ac83fa94e120ac"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T06:30:00.991Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69269eb5ceb881be52f0bde6"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T06:31:17.507Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69269f191a5050a8cc4e48e0"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T06:32:57.588Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69269fe4ef3827a11069a5e2"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T06:36:20.938Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69269fe8fd7ba871336cf506"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T06:36:24.538Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69269ff08b80978833d8dc83"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T06:36:32.330Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69269ff5f545b4f7dfc9159a"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T06:36:37.884Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926a0c4802f84b32cfb1c02"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T06:40:04.958Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926a296802f84b32cfb1c04"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #undefined received from Customer",
+  "data": {
+    "orderId": null,
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T06:47:50.912Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926a40e6b731dc2f762a05f"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T06:54:06.872Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926a493802f84b32cfb1c06"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #undefined received from Customer",
+  "data": {
+    "orderId": null,
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T06:56:19.458Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926a4d0ea31779578ad9179"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T06:57:20.132Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926a4f16a0c6d43e3adac5e"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T06:57:53.318Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926a5318a4ea0c3ec1d523a"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T06:58:57.012Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926a570802f84b32cfb1c07"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T07:00:00.401Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926a570802f84b32cfb1c08"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T07:00:00.452Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926a57009ca3cf6dd745135"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T07:00:00.191Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926a57009ca3cf6dd745136"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T07:00:00.268Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926a5708a4ea0c3ec1d523c"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T07:00:00.881Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926a5728a4ea0c3ec1d523d"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T07:00:02.794Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926a57ba23d262e85f8bf1c"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T07:00:11.508Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926a5acfa14ca9d80051b0c"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T07:01:00.034Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926a7d0e4ad42bb77d7d12d"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T07:10:08.842Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926a8641de520c87e64ab51"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T07:12:36.695Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926a91d6753c9cb2291c7f2"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T07:15:41.115Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926a9813a63b1bdcb4b9315"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T07:17:21.609Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926a98f3a63b1bdcb4b9317"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #undefined received from Customer",
+  "data": {
+    "orderId": null,
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T07:17:35.273Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926a9a03a63b1bdcb4b9319"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #undefined received from Customer",
+  "data": {
+    "orderId": null,
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T07:17:52.671Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926a9d93a63b1bdcb4b931b"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #undefined received from Customer",
+  "data": {
+    "orderId": null,
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T07:18:49.387Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926ac7809ca3cf6dd745137"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T07:30:00.110Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926ac78802f84b32cfb1c09"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T07:30:00.490Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926ac783a63b1bdcb4b931d"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T07:30:00.418Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926b38009ca3cf6dd745138"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T08:00:00.118Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926b38009ca3cf6dd745139"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T08:00:00.146Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926b380802f84b32cfb1c0a"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T08:00:00.391Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926b381802f84b32cfb1c0b"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T08:00:01.988Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926ba8809ca3cf6dd74513a"
+  },
+  "type": "stock",
+  "title": "🚨 Critical Low Stock Alert",
+  "message": "1 item(s) running low: Nata De Coco (-435 pieces remaining)",
+  "data": {
+    "lowStockItems": [
+      {
+        "name": "Nata De Coco (-435 pieces remaining)",
+        "amount": -435,
+        "type": "addon",
+        "id": "AD-NDC"
+      }
+    ],
+    "threshold": 10,
+    "totalItems": 1,
+    "criticalCount": 1,
+    "ingredients": 0,
+    "addons": 1
+  },
+  "actionUrl": "/admin/stocks",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T08:30:00.070Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926ba8809ca3cf6dd74513b"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T08:30:00.100Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926c17709ca3cf6dd74513d"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #undefined received from Customer",
+  "data": {
+    "orderId": null,
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T08:59:35.633Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926c19009ca3cf6dd74513e"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T09:00:00.130Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926c19009ca3cf6dd74513f"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T09:00:00.156Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926c89809ca3cf6dd745140"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T09:30:00.051Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926cfa009ca3cf6dd745141"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T10:00:00.085Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926cfa009ca3cf6dd745142"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T10:00:00.088Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926d6a809ca3cf6dd745143"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T10:30:00.054Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926ddb009ca3cf6dd745144"
+  },
+  "type": "stock",
+  "title": "🚨 Critical Low Stock Alert",
+  "message": "1 item(s) running low: Nata De Coco (-435 pieces remaining)",
+  "data": {
+    "lowStockItems": [
+      {
+        "name": "Nata De Coco (-435 pieces remaining)",
+        "amount": -435,
+        "type": "addon",
+        "id": "AD-NDC"
+      }
+    ],
+    "threshold": 10,
+    "totalItems": 1,
+    "criticalCount": 1,
+    "ingredients": 0,
+    "addons": 1
+  },
+  "actionUrl": "/admin/stocks",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T11:00:00.068Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926ddb009ca3cf6dd745145"
+  },
+  "type": "stock",
+  "title": "🚨 Critical Low Stock Alert",
+  "message": "1 item(s) running low: Nata De Coco (-435 pieces remaining)",
+  "data": {
+    "lowStockItems": [
+      {
+        "name": "Nata De Coco (-435 pieces remaining)",
+        "amount": -435,
+        "type": "addon",
+        "id": "AD-NDC"
+      }
+    ],
+    "threshold": 10,
+    "totalItems": 1,
+    "criticalCount": 1,
+    "ingredients": 0,
+    "addons": 1
+  },
+  "actionUrl": "/admin/stocks",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T11:00:00.070Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926ddb009ca3cf6dd745146"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T11:00:00.100Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926ddb009ca3cf6dd745147"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T11:00:00.104Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926e4b809ca3cf6dd745148"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T11:30:00.052Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926ebc009ca3cf6dd745149"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T12:00:00.076Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926ebc009ca3cf6dd74514a"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T12:00:00.077Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926ebc009ca3cf6dd74514b"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T12:00:00.132Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926f2c809ca3cf6dd74514c"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T12:30:00.074Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926f9d009ca3cf6dd74514e"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T13:00:00.064Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6926f9d009ca3cf6dd74514d"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T13:00:00.063Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692700d809ca3cf6dd74514f"
+  },
+  "type": "stock",
+  "title": "🚨 Critical Low Stock Alert",
+  "message": "1 item(s) running low: Nata De Coco (-435 pieces remaining)",
+  "data": {
+    "lowStockItems": [
+      {
+        "name": "Nata De Coco (-435 pieces remaining)",
+        "amount": -435,
+        "type": "addon",
+        "id": "AD-NDC"
+      }
+    ],
+    "threshold": 10,
+    "totalItems": 1,
+    "criticalCount": 1,
+    "ingredients": 0,
+    "addons": 1
+  },
+  "actionUrl": "/admin/stocks",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T13:30:00.043Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692700d809ca3cf6dd745150"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T13:30:00.077Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6927022a85b4207ba2a91388"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T13:35:38.313Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692707298d46fdf4480130db"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T13:56:57.220Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69270757ea004c41dd442638"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T13:57:43.921Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692707a2a09cb2d0cc47403d"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T13:58:58.318Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692707e009ca3cf6dd745151"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T14:00:00.072Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692707e009ca3cf6dd745152"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T14:00:00.123Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692707e0a09cb2d0cc47403e"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T14:00:00.872Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692707e0ea004c41dd442639"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T14:00:00.730Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692707e1ea004c41dd44263a"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T14:00:01.343Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692707e4a09cb2d0cc47403f"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T14:00:04.459Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692708555b8aada1fcef4ee0"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T14:01:57.818Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692708923887f8e51ed63107"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T14:02:58.947Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69270af22dea221e72a1a6fe"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T14:13:06.029Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69270b527836970421cc469d"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T14:14:42.718Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69270beb723c0f6221202aa2"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T14:17:15.437Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69270c1d09ca3cf6dd745154"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #undefined received from Customer",
+  "data": {
+    "orderId": null,
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T14:18:05.472Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69270cbe4824e6d6b6e97101"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T14:20:46.309Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69270d00d5a3da1ba217eb5f"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T14:21:52.636Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69270d13d73f7b5ef39588a3"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T14:22:11.556Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69270db08f55bfef261e067e"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T14:24:48.983Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69270e0176ec961dee36e493"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T14:26:09.292Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69270e29a8bd338ee1f4f907"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T14:26:49.718Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69270e2f8bd89427f46daa6d"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T14:26:55.941Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69270ee809ca3cf6dd745155"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T14:30:00.050Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69270ee8a09cb2d0cc474040"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T14:30:00.473Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69270ee88bd89427f46daa6e"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T14:30:00.550Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69270f29e0eaa3a2e2a86f9c"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T14:31:05.516Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69270f9d1ebd61738c06eb36"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T14:33:01.489Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69270fd0d768271089c1c885"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T14:33:52.997Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692710fad7f6d345c068920e"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T14:38:50.273Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6927127898182af1ebdcb989"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T14:45:12.823Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692712db6cac74801652a517"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T14:46:51.989Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6927137247fcadd287e69dfb"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T14:49:22.221Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6927138b421a11083d7dc965"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T14:49:47.967Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692714305ca3af30da4a424b"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T14:52:32.072Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692714db977ae57679b98a1a"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T14:55:23.889Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692715f009ca3cf6dd745156"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T15:00:00.055Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692715f009ca3cf6dd745157"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T15:00:00.109Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692715f0a09cb2d0cc474041"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T15:00:00.495Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692715f0a09cb2d0cc474042"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T15:00:00.828Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692715f0977ae57679b98a1b"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T15:00:00.515Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692715f3977ae57679b98a1c"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T15:00:03.164Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6927161f3d29b91180cc48d8"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T15:00:47.837Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69271677d6962a0b8bf3a8f3"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T15:02:15.263Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692718f8cb46f125627fa80d"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T15:12:56.453Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692719b09e89a9dc4fc1a955"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T15:16:00.398Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69271a1402933746ea27a936"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T15:17:40.390Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69271a6105cf012f15f15c70"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T15:18:57.371Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69271a6bb87ff3e3350893b1"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T15:19:07.370Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69271b288cf6ce46374c6e06"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T15:22:16.264Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69271b8a6d7c8aa1aa689708"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T15:23:54.678Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69271bbb6b2615b4287b3689"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T15:24:43.071Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69271bff7ae78a8c651632f1"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T15:25:51.470Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69271cf8cb46f125627fa80e"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T15:30:00.056Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69271cf8a09cb2d0cc474043"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T15:30:00.456Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69271cfa7ae78a8c651632f2"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T15:30:02.947Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69271e06e925b6f0282c525f"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T15:34:30.300Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6927204c7e230142ba1983d9"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T15:44:12.616Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69272400e925b6f0282c5260"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T16:00:00.135Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69272400e925b6f0282c5261"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T16:00:00.184Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69272400a09cb2d0cc474044"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T16:00:00.481Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69272400a09cb2d0cc474045"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T16:00:00.845Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69272400a09cb2d0cc474046"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T16:00:00.846Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69272b08e925b6f0282c5262"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T16:30:00.047Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69273210e925b6f0282c5263"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T17:00:00.070Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69273210e925b6f0282c5264"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T17:00:00.153Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69273918e925b6f0282c5265"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T17:30:00.055Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69274020e925b6f0282c5266"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T18:00:00.093Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69274020e925b6f0282c5267"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T18:00:00.094Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69274020e925b6f0282c5268"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T18:00:00.164Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69274728e925b6f0282c5269"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T18:30:00.069Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69274e30e925b6f0282c526a"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T19:00:00.084Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69274e30e925b6f0282c526b"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T19:00:00.086Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69275538e925b6f0282c526c"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T19:30:00.073Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69275c40e925b6f0282c526d"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T20:00:00.091Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69275c40e925b6f0282c526e"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T20:00:00.252Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69276348e925b6f0282c526f"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T20:30:00.053Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69276a50e925b6f0282c5270"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T21:00:00.063Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69276a50e925b6f0282c5271"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T21:00:00.111Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69277158e925b6f0282c5272"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T21:30:00.116Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69277860e925b6f0282c5273"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T22:00:00.084Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69277860e925b6f0282c5274"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T22:00:00.121Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69277f68e925b6f0282c5275"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T22:30:00.082Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69278670e925b6f0282c5276"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T23:00:00.113Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69278670e925b6f0282c5277"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T23:00:00.152Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69278d78e925b6f0282c5278"
+  },
+  "type": "promo",
+  "title": "Promotion Expiring Soon",
+  "message": "\"Cookie Promo\" expires in 1 day(s)",
+  "data": {
+    "promoId": {
+      "$oid": "690e0648ac339935973d4613"
+    },
+    "promoName": "Cookie Promo",
+    "expiryDate": {
+      "$date": "2025-11-27T00:00:00.000Z"
+    },
+    "daysLeft": 1
+  },
+  "actionUrl": "/admin/discounts",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-26T23:30:00.044Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6927e1e9e925b6f0282c527a"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #undefined received from Customer",
+  "data": {
+    "orderId": null,
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-27T05:30:17.615Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6927f181e925b6f0282c527c"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #undefined received from Customer",
+  "data": {
+    "orderId": null,
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-27T06:36:49.102Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6927f55ee925b6f0282c527e"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #undefined received from Customer",
+  "data": {
+    "orderId": null,
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-27T06:53:18.220Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6927f7b7e925b6f0282c527f"
+  },
+  "type": "stock",
+  "title": "🚨 Critical Low Stock Alert",
+  "message": "1 item(s) running low: Milk (0g remaining)",
+  "data": {
+    "lowStockItems": [
+      {
+        "name": "Milk (0g remaining)",
+        "amount": 0,
+        "type": "ingredient",
+        "id": "ING-MILK"
+      }
+    ],
+    "threshold": 10,
+    "totalItems": 1,
+    "criticalCount": 1,
+    "ingredients": 1,
+    "addons": 0
+  },
+  "actionUrl": "/admin/stocks",
+  "priority": "urgent",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-27T07:03:19.926Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6927fb94e925b6f0282c5282"
+  },
+  "type": "message",
+  "title": "New Message Received",
+  "message": "New message from Red Yabut",
+  "data": {
+    "messageId": {
+      "$oid": "6927fb94e925b6f0282c5281"
+    },
+    "senderName": "Red Yabut",
+    "subject": "hello"
+  },
+  "actionUrl": "/admin/messages",
+  "priority": "normal",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-27T07:19:48.567Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6928027de925b6f0282c5285"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #undefined received from Customer",
+  "data": {
+    "orderId": null,
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-27T07:49:17.036Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6928066ee925b6f0282c5287"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #undefined received from Customer",
+  "data": {
+    "orderId": null,
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-27T08:06:06.064Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6929626ae976c75d0ed42f8b"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #undefined received from Customer",
+  "data": {
+    "orderId": null,
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-28T08:50:50.403Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69296bf8f04e59a9e5ebe7e0"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #undefined received from Customer",
+  "data": {
+    "orderId": null,
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-28T09:31:36.932Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692977ae38d7d3cb7dbf8d33"
+  },
+  "type": "message",
+  "title": "New Message Received",
+  "message": "New message from Red Yabut",
+  "data": {
+    "messageId": {
+      "$oid": "692977ae38d7d3cb7dbf8d32"
+    },
+    "senderName": "Red Yabut",
+    "subject": "Re: hello"
+  },
+  "actionUrl": "/admin/messages",
+  "priority": "normal",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-28T10:21:34.593Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69297fc128deb316d85952e5"
+  },
+  "type": "message",
+  "title": "New Message Received",
+  "message": "New message from Red Yabut",
+  "data": {
+    "messageId": {
+      "$oid": "69297fc128deb316d85952e4"
+    },
+    "senderName": "Red Yabut",
+    "subject": "asd"
+  },
+  "actionUrl": "/admin/messages",
+  "priority": "normal",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-28T10:56:01.140Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:12:45.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69298849e9e26ab6d6ce180e"
+  },
+  "type": "message",
+  "title": "New Message Received",
+  "message": "New message from Red Yabut",
+  "data": {
+    "messageId": {
+      "$oid": "69298849e9e26ab6d6ce180d"
+    },
+    "senderName": "Red Yabut",
+    "subject": "Re: asd"
+  },
+  "actionUrl": "/admin/messages",
+  "priority": "normal",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-28T11:32:25.357Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-29T16:13:39.097Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6929893752ca44d3926a0daf"
+  },
+  "type": "message",
+  "title": "New Message Received",
+  "message": "New message from Maria Santos",
+  "data": {
+    "messageId": {
+      "$oid": "6929893752ca44d3926a0dae"
+    },
+    "senderName": "Maria Santos",
+    "subject": "test"
+  },
+  "actionUrl": "/staff/messages",
+  "priority": "normal",
+  "targetRoles": [
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-28T11:36:23.996Z"
+  },
+  "isRead": false
+},
+{
+  "_id": {
+    "$oid": "69298cc41fa89bbc83b2ed56"
+  },
+  "type": "message",
+  "title": "New Message Received",
+  "message": "New message from Maria Santos",
+  "data": {
+    "messageId": {
+      "$oid": "69298cc41fa89bbc83b2ed55"
+    },
+    "senderName": "Maria Santos",
+    "subject": "Re: test"
+  },
+  "actionUrl": "/staff/messages",
+  "priority": "normal",
+  "targetRoles": [
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-28T11:51:32.120Z"
+  },
+  "isRead": false
+},
+{
+  "_id": {
+    "$oid": "692bfea968ed84091b9644e9"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #undefined received from Customer",
+  "data": {
+    "orderId": null,
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-30T08:22:01.794Z"
+  },
+  "isRead": false
+},
+{
+  "_id": {
+    "$oid": "692bfef568ed84091b9644eb"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #undefined received from Customer",
+  "data": {
+    "orderId": null,
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-30T08:23:17.608Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-11-30T08:34:06.365Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692c05ce613d6c33749a1d3e"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #2511301652-BLESSINGSCAFE received from Customer",
+  "data": {
+    "orderId": "2511301652-BLESSINGSCAFE",
+    "OrderID": "2511301652-BLESSINGSCAFE",
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-30T08:52:30.046Z"
+  },
+  "isRead": false
+},
+{
+  "_id": {
+    "$oid": "692c0bce62bb00f8d0a8f0b1"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #2511301718-BLESSINGSCAFE received from Customer",
+  "data": {
+    "orderId": "2511301718-BLESSINGSCAFE",
+    "OrderID": "2511301718-BLESSINGSCAFE",
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-30T09:18:06.273Z"
+  },
+  "isRead": false
+},
+{
+  "_id": {
+    "$oid": "692c0c1662bb00f8d0a8f0b3"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #2511301719-BLESSINGSCAFE received from Customer",
+  "data": {
+    "orderId": "2511301719-BLESSINGSCAFE",
+    "OrderID": "2511301719-BLESSINGSCAFE",
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-30T09:19:18.292Z"
+  },
+  "isRead": false
+},
+{
+  "_id": {
+    "$oid": "692c0d5ea774d305db8af3f8"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #2511301724-BLESSINGSCAFE received from Customer",
+  "data": {
+    "orderId": "2511301724-BLESSINGSCAFE",
+    "OrderID": "2511301724-BLESSINGSCAFE",
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-30T09:24:46.826Z"
+  },
+  "isRead": false
+},
+{
+  "_id": {
+    "$oid": "692c0fb2377a7b7720903324"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #2511301734-BLESSINGSCAFE received from Customer",
+  "data": {
+    "orderId": "2511301734-BLESSINGSCAFE",
+    "OrderID": "2511301734-BLESSINGSCAFE",
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-30T09:34:42.231Z"
+  },
+  "isRead": false
+},
+{
+  "_id": {
+    "$oid": "692c1005377a7b7720903326"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #2511301736-BLESSINGSCAFE received from Customer",
+  "data": {
+    "orderId": "2511301736-BLESSINGSCAFE",
+    "OrderID": "2511301736-BLESSINGSCAFE",
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-30T09:36:05.537Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-12-01T09:28:34.458Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692c11e1eaa0916ebf7521e5"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #2511301744-BLESSINGSCAFE received from Customer",
+  "data": {
+    "orderId": "2511301744-BLESSINGSCAFE",
+    "OrderID": "2511301744-BLESSINGSCAFE",
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-30T09:44:01.361Z"
+  },
+  "isRead": false
+},
+{
+  "_id": {
+    "$oid": "692c120deaa0916ebf7521e7"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #2511301744-BLESSINGSCAFE received from Customer",
+  "data": {
+    "orderId": "2511301744-BLESSINGSCAFE",
+    "OrderID": "2511301744-BLESSINGSCAFE",
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-30T09:44:45.493Z"
+  },
+  "isRead": false
+},
+{
+  "_id": {
+    "$oid": "692c1217eaa0916ebf7521e9"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #2511301744-BLESSINGSCAFE received from Customer",
+  "data": {
+    "orderId": "2511301744-BLESSINGSCAFE",
+    "OrderID": "2511301744-BLESSINGSCAFE",
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-30T09:44:55.549Z"
+  },
+  "isRead": false
+},
+{
+  "_id": {
+    "$oid": "692c12beb3122faac2ffc72a"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #251130174741478-BLESSINGSCAFE received from Customer",
+  "data": {
+    "orderId": "251130174741478-BLESSINGSCAFE",
+    "OrderID": "251130174741478-BLESSINGSCAFE",
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-30T09:47:42.682Z"
+  },
+  "isRead": false
+},
+{
+  "_id": {
+    "$oid": "692c136bb3122faac2ffc72c"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #251130175034220-BLESSINGSCAFE received from Customer",
+  "data": {
+    "orderId": "251130175034220-BLESSINGSCAFE",
+    "OrderID": "251130175034220-BLESSINGSCAFE",
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-30T09:50:35.092Z"
+  },
+  "isRead": false
+},
+{
+  "_id": {
+    "$oid": "692c13df2752eb8d334bda55"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #251130175230407-BLESSINGSCAFE received from Customer",
+  "data": {
+    "orderId": "251130175230407-BLESSINGSCAFE",
+    "OrderID": "251130175230407-BLESSINGSCAFE",
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-30T09:52:31.422Z"
+  },
+  "isRead": false
+},
+{
+  "_id": {
+    "$oid": "692c142c2752eb8d334bda57"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #251130175348854-BLESSINGSCAFE received from Customer",
+  "data": {
+    "orderId": "251130175348854-BLESSINGSCAFE",
+    "OrderID": "251130175348854-BLESSINGSCAFE",
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-30T09:53:48.779Z"
+  },
+  "isRead": false
+},
+{
+  "_id": {
+    "$oid": "692c15a9edfafab6e027f223"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #251130180008449-BLESSINGSCAFE received from Customer",
+  "data": {
+    "orderId": "251130180008449-BLESSINGSCAFE",
+    "OrderID": "251130180008449-BLESSINGSCAFE",
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-30T10:00:09.472Z"
+  },
+  "isRead": false
+},
+{
+  "_id": {
+    "$oid": "692c172261757b093b7684af"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #251130180625426-BLESSINGSCAFE received from Customer",
+  "data": {
+    "orderId": "251130180625426-BLESSINGSCAFE",
+    "OrderID": "251130180625426-BLESSINGSCAFE",
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-30T10:06:26.053Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-12-01T09:00:49.674Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692c1a93bea858ea77a011e2"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #11301821-BLESSINGSCAFE received from Customer#30926",
+  "data": {
+    "orderId": "11301821-BLESSINGSCAFE",
+    "OrderID": "11301821-BLESSINGSCAFE",
+    "customerName": "Customer#30926",
+    "total": 45,
+    "items": 1
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-30T10:21:07.230Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-12-01T08:50:59.086Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692c4c7de925b6f0282c528a"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #undefined received from Customer",
+  "data": {
+    "orderId": null,
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-30T13:54:05.350Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-12-01T08:50:54.364Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692c6a0080fdb44305b58daf"
+  },
+  "type": "report",
+  "title": "Monthly Report Available",
+  "message": "Analytics report for December 2025 is now available for download",
+  "data": {
+    "reportMonth": "December",
+    "reportYear": 2025,
+    "generatedAt": {
+      "$date": "2025-11-30T16:00:00.300Z"
+    }
+  },
+  "actionUrl": "/admin/analytics",
+  "priority": "normal",
+  "targetRoles": [
+    "admin"
+  ],
+  "createdAt": {
+    "$date": "2025-11-30T16:00:00.304Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-12-01T09:36:12.040Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692cacc1b199d08a43c23948"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #12010444-BLESSINGSCAFE received from Customer#54459",
+  "data": {
+    "orderId": "12010444-BLESSINGSCAFE",
+    "OrderID": "12010444-BLESSINGSCAFE",
+    "customerName": "Customer#54459",
+    "total": 99,
+    "items": 2
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-30T20:44:49.464Z"
+  },
+  "isRead": false
+},
+{
+  "_id": {
+    "$oid": "692cb756067b66027273a224"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #12010529-BLESSINGSCAFE received from Customer#20079",
+  "data": {
+    "orderId": "12010529-BLESSINGSCAFE",
+    "OrderID": "12010529-BLESSINGSCAFE",
+    "customerName": "Customer#20079",
+    "total": 45,
+    "items": 1
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-30T21:29:58.850Z"
+  },
+  "isRead": false
+},
+{
+  "_id": {
+    "$oid": "692cb964067b66027273a226"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #251201053843916-BLESSINGSCAFE received from Customer",
+  "data": {
+    "orderId": "251201053843916-BLESSINGSCAFE",
+    "OrderID": "251201053843916-BLESSINGSCAFE",
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-11-30T21:38:44.025Z"
+  },
+  "isRead": false
+},
+{
+  "_id": {
+    "$oid": "692cf6dee313e035c8ec6a58"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #251201100100464-BLESSINGSCAFE received from Customer",
+  "data": {
+    "orderId": "251201100100464-BLESSINGSCAFE",
+    "OrderID": "251201100100464-BLESSINGSCAFE",
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-12-01T02:01:02.916Z"
+  },
+  "isRead": false
+},
+{
+  "_id": {
+    "$oid": "692d53a0b1928fec22c52689"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #12011636-BLESSINGSCAFE received from Customer#27919",
+  "data": {
+    "orderId": "12011636-BLESSINGSCAFE",
+    "OrderID": "12011636-BLESSINGSCAFE",
+    "customerName": "Customer#27919",
+    "total": 45,
+    "items": 1
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-12-01T08:36:48.661Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-12-01T09:06:47.242Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692d53e7e313e035c8ec6a5a"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #251201163756081-BLESSINGSCAFE received from Customer",
+  "data": {
+    "orderId": "251201163756081-BLESSINGSCAFE",
+    "OrderID": "251201163756081-BLESSINGSCAFE",
+    "customerName": "Unknown",
+    "total": null,
+    "items": 0
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-12-01T08:37:59.214Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-12-01T09:34:45.248Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692d5d6be3a8a0a1106c8e37"
+  },
+  "type": "order",
+  "title": "New Order Received",
+  "message": "Order #12011718-BLESSINGSCAFE received from Customer#46558",
+  "data": {
+    "orderId": "12011718-BLESSINGSCAFE",
+    "OrderID": "12011718-BLESSINGSCAFE",
+    "customerName": "Customer#46558",
+    "total": 44.1,
+    "items": 1
+  },
+  "actionUrl": "/admin/orders",
+  "priority": "high",
+  "targetRoles": [
+    "owner",
+    "admin",
+    "staff"
+  ],
+  "createdAt": {
+    "$date": "2025-12-01T09:18:35.314Z"
+  },
+  "isRead": true,
+  "readAt": {
+    "$date": "2025-12-01T09:35:28.876Z"
+  }
+}]

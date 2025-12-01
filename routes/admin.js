@@ -373,24 +373,24 @@ router.get('/analytics/low-stock', nocache, async (req, res) => {
 router.get('/analytics/top-categories', nocache, async (req, res) => {
   try {
     const pipeline = [
+      { $match: { PaymentStatus: { $nin: ['Cancelled', 'cancelled'] } } },
       { $unwind: '$Cart' },
       {
-        $match: {
-          $and: [
-            { PaymentStatus: { $nin: ['Cancelled', 'cancelled'] } },
-            {
-              $or: [
-                { 'Cart.Category': { $exists: true, $ne: null, $ne: '' } },
-                { 'Cart.category': { $exists: true, $ne: null, $ne: '' } }
-              ]
-            }
-          ]
+        $lookup: {
+          from: 'Menu',
+          localField: 'Cart.ProductID',
+          foreignField: 'ProductID',
+          as: 'menuItem'
         }
       },
+      { $unwind: { path: '$menuItem', preserveNullAndEmptyArrays: true } },
       {
         $group: {
           _id: { 
-            $ifNull: ['$Cart.Category', { $ifNull: ['$Cart.category', 'Uncategorized'] }]
+            $ifNull: [
+              '$Cart.Category',
+              { $ifNull: ['$Cart.category', { $ifNull: ['$menuItem.Category', 'Uncategorized'] }] }
+            ]
           },
           total: { 
             $sum: { 
@@ -404,7 +404,7 @@ router.get('/analytics/top-categories', nocache, async (req, res) => {
           orderCount: { $sum: 1 }
         }
       },
-      { $match: { _id: { $ne: 'Uncategorized' } } },
+      { $match: { _id: { $nin: ['Uncategorized', null, ''] } } },
       { $sort: { total: -1 } },
       { $limit: 8 }
     ];
@@ -736,6 +736,35 @@ router.get('/dashboard', nocache, async (req, res) => {
       console.error('Low stock data fetch error:', error);
     }
 
+    let recentFeedbacks = [];
+    let feedbackStats = { averageRating: 0, totalCount: 0 };
+    try {
+      recentFeedbacks = await req.db.collection('Feedback')
+        .find({})
+        .sort({ timestamp: -1 })
+        .limit(5)
+        .toArray();
+
+      const feedbackAggregation = await req.db.collection('Feedback').aggregate([
+        {
+          $group: {
+            _id: null,
+            averageRating: { $avg: '$rating' },
+            totalCount: { $sum: 1 }
+          }
+        }
+      ]).toArray();
+
+      if (feedbackAggregation.length > 0) {
+        feedbackStats = {
+          averageRating: feedbackAggregation[0].averageRating || 0,
+          totalCount: feedbackAggregation[0].totalCount || 0
+        };
+      }
+    } catch (error) {
+      console.error('Feedback data fetch error:', error);
+    }
+
     // Combine all stats into a single object for template consistency
     const combinedStats = {
       ...basicStats,
@@ -750,14 +779,16 @@ router.get('/dashboard', nocache, async (req, res) => {
       user: userData,
       currentPage: '/admin/dashboard',
       layout: 'admin/layout',
-      stats: combinedStats,  // Template expects 'stats' object
+      stats: combinedStats,
       analyticsStats,
       topCategories,
       paymentTypes,
       ordersBySource,
       salesPerformance,
       lowStockData,
-      userLowStockThreshold
+      userLowStockThreshold,
+      recentFeedbacks,
+      feedbackStats
     });
   } catch (error) {
     console.error('Dashboard error:', error);
@@ -777,59 +808,6 @@ router.get('/analytics/dashboard-stats', nocache, async (req, res) => {
   } catch (error) {
     console.error('Dashboard stats error:', error);
     res.status(500).json({ error: 'Failed to load dashboard stats' });
-  }
-});
-
-router.get('/analytics/top-categories', nocache, async (req, res) => {
-  try {
-    const pipeline = [
-      { $unwind: '$Cart' },
-      {
-        $match: {
-          $and: [
-            { PaymentStatus: { $nin: ['Cancelled', 'cancelled'] } },
-            {
-              $or: [
-                { 'Cart.Category': { $exists: true, $ne: null, $ne: '' } },
-                { 'Cart.category': { $exists: true, $ne: null, $ne: '' } }
-              ]
-            }
-          ]
-        }
-      },
-      {
-        $group: {
-          _id: { 
-            $ifNull: ['$Cart.Category', { $ifNull: ['$Cart.category', 'Uncategorized'] }]
-          },
-          total: { 
-            $sum: { 
-              $multiply: [
-                { $ifNull: ['$Cart.Price', { $ifNull: ['$Cart.price', 0] }] },
-                { $ifNull: ['$Cart.Quantity', { $ifNull: ['$Cart.quantity', 1] }] }
-              ] 
-            } 
-          },
-          quantity: { $sum: { $ifNull: ['$Cart.Quantity', { $ifNull: ['$Cart.quantity', 1] }] } },
-          orderCount: { $sum: 1 }
-        }
-      },
-      { $match: { _id: { $ne: 'Uncategorized' } } },
-      { $sort: { total: -1 } },
-      { $limit: 8 }
-    ];
-
-    const categories = await req.db.collection('Orders').aggregate(pipeline).toArray();
-
-    res.json(categories.map(cat => ({
-      name: cat._id,
-      value: cat.total,
-      quantity: cat.quantity,
-      orderCount: cat.orderCount
-    })));
-  } catch (error) {
-    console.error('Top categories error:', error);
-    res.status(500).json({ error: 'Failed to load top categories' });
   }
 });
 

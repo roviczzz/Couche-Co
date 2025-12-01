@@ -185,7 +185,7 @@ router.use((req, res, next) => {
   res.locals.sidebarItems = [
     { path: '/staff/dashboard', label: 'Dashboard', icon: 'house' },
     { path: '/staff/menu', label: 'POS Menu', icon: 'list' },
-    { path: '/staff/order', label: 'Orders', icon: 'box' },
+    { path: '/staff/orders', label: 'Orders', icon: 'box' },
     { path: '/staff/messages', label: 'Messages', icon: 'envelope' },
     { path: '/staff/calculator', label: 'Calculator', icon: 'calculator' },
     { path: '/staff/settings', label: 'Settings', icon: 'gear' },
@@ -272,6 +272,35 @@ router.get('/dashboard', async (req, res) => {
       console.error('Low stock data fetch error:', error);
     }
 
+    let recentFeedbacks = [];
+    let feedbackStats = { averageRating: 0, totalCount: 0 };
+    try {
+      recentFeedbacks = await req.db.collection('Feedback')
+        .find({})
+        .sort({ timestamp: -1 })
+        .limit(5)
+        .toArray();
+
+      const feedbackAggregation = await req.db.collection('Feedback').aggregate([
+        {
+          $group: {
+            _id: null,
+            averageRating: { $avg: '$rating' },
+            totalCount: { $sum: 1 }
+          }
+        }
+      ]).toArray();
+
+      if (feedbackAggregation.length > 0) {
+        feedbackStats = {
+          averageRating: feedbackAggregation[0].averageRating || 0,
+          totalCount: feedbackAggregation[0].totalCount || 0
+        };
+      }
+    } catch (error) {
+      console.error('Feedback data fetch error:', error);
+    }
+
     // Combine all stats into a single object for template consistency
     const combinedStats = {
       ...basicStats,
@@ -285,14 +314,16 @@ router.get('/dashboard', async (req, res) => {
       title: 'Staff Dashboard',
       layout: 'staff/layout',
       user: userData,
-      stats: combinedStats,  // Template expects 'stats' object
+      stats: combinedStats,
       analyticsStats,
       topCategories,
       paymentTypes,
       ordersBySource,
       salesPerformance,
       lowStockData,
-      userLowStockThreshold
+      userLowStockThreshold,
+      recentFeedbacks,
+      feedbackStats
     });
   } catch (error) {
     console.error('Staff Dashboard error:', error);
@@ -347,7 +378,7 @@ router.get('/menu', async (req, res) => {
   }
 });
 
-router.get('/order', async (req, res) => {
+router.get('/orders', async (req, res) => {
   try {
     // Using shared DB connection from req.db
     const ordersCollection = req.db.collection('Orders');

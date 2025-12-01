@@ -517,3 +517,245 @@
         padding: 12px 14px;
     }
 }
+
+.payment-feedback-row {
+    display: flex;
+    gap: 24px;
+    margin-top: 24px;
+}
+
+.payment-feedback-row .payment-types {
+    flex: 1;
+    min-width: 0;
+}
+
+.payment-feedback-row .feedback-list-card {
+    flex: 1;
+    min-width: 0;
+}
+
+.feedback-list-card {
+    min-height: 450px;
+}
+
+.feedback-stats-summary {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.feedback-avg-rating {
+    display: flex;
+    align-items: center;
+    font-size: 15px;
+    font-weight: 600;
+    color: #6b3e26;
+}
+
+.feedback-total-count {
+    font-size: 13px;
+    color: #999;
+}
+
+.feedback-list-container {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 400px;
+    padding-right: 8px;
+    margin-top: 16px;
+}
+
+.feedback-list-container::-webkit-scrollbar {
+    width: 4px;
+}
+
+.feedback-list-container::-webkit-scrollbar-thumb {
+    background: rgba(160, 92, 47, 0.3);
+    border-radius: 2px;
+}
+
+.feedback-item {
+    background: #faf8f5;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    border: 1px solid rgba(160, 92, 47, 0.1);
+    transition: all 0.2s ease;
+}
+
+.feedback-item:hover {
+    border-color: rgba(160, 92, 47, 0.25);
+    box-shadow: 0 2px 8px rgba(160, 92, 47, 0.08);
+}
+
+.feedback-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.feedback-user-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.feedback-user-name {
+    font-weight: 600;
+    color: #6b3e26;
+    font-size: 14px;
+}
+
+.feedback-source-badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+.feedback-source-badge.source-order {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.feedback-source-badge.source-contact {
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
+.feedback-rating {
+    display: flex;
+    gap: 2px;
+}
+
+.feedback-rating i {
+    color: #f5c518;
+    font-size: 12px;
+}
+
+.feedback-rating i.fa-regular {
+    color: #ddd;
+}
+
+.feedback-comment {
+    font-size: 13px;
+    color: #555;
+    line-height: 1.5;
+    margin-bottom: 8px;
+    word-wrap: break-word;
+}
+
+.feedback-timestamp {
+    font-size: 11px;
+    color: #999;
+}
+
+.feedback-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: #999;
+}
+
+.feedback-empty i {
+    font-size: 48px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+}
+
+.feedback-empty p {
+    font-size: 14px;
+    margin: 0;
+}
+
+.view-all-feedback-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 10px 20px;
+    background: #6b3e26;
+    color: #fff;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.view-all-feedback-btn:hover {
+    background: #8b5a3a;
+    transform: translateY(-1px);
+}
+
+.dark-theme .feedback-item {
+    background: var(--card-bg);
+    border-color: var(--border-color);
+}
+
+.dark-theme .feedback-item:hover {
+    border-color: rgba(160, 92, 47, 0.4);
+}
+
+.dark-theme .feedback-user-name {
+    color: var(--text-color);
+}
+
+.dark-theme .feedback-comment {
+    color: var(--sidebar-text);
+}
+
+.dark-theme .feedback-avg-rating {
+    color: var(--text-color);
+}
+
+.dark-theme .feedback-source-badge.source-order {
+    background: rgba(46, 125, 50, 0.15);
+}
+
+.dark-theme .feedback-source-badge.source-contact {
+    background: rgba(21, 101, 192, 0.15);
+}
+
+.dark-theme .view-all-feedback-btn {
+    background: #a05c2f;
+}
+
+.dark-theme .view-all-feedback-btn:hover {
+    background: #b87040;
+}
+
+@media (max-width: 1150px) {
+    .payment-feedback-row {
+        flex-direction: column;
+        gap: 22px;
+    }
+}
+
+@media (max-width: 768px) {
+    .feedback-stats-summary {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+    
+    .feedback-list-container {
+        max-height: 300px;
+    }
+}
+
+@media (max-width: 480px) {
+    .feedback-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .feedback-item {
+        padding: 12px;
+    }
+}

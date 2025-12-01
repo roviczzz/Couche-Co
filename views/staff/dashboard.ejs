@@ -8,6 +8,8 @@ data-low-stock-count="<%= (typeof lowStockData !== 'undefined' && lowStockData.q
 data-low-stock-name="<%= (typeof lowStockData !== 'undefined' && typeof lowStockData.name !== 'undefined' && lowStockData.name) ? lowStockData.name : 'All stocked' %>"
 data-low-stock-has-more="<%= (typeof lowStockData !== 'undefined' && lowStockData.hasMore) ? 'true' : 'false' %>"
 data-user-low-stock-threshold="<%= (typeof userLowStockThreshold !== 'undefined') ? userLowStockThreshold : '5' %>"
+data-recent-feedbacks="<%= (typeof recentFeedbacks !== 'undefined' && Array.isArray(recentFeedbacks)) ? JSON.stringify(recentFeedbacks) : '[]' %>"
+data-feedback-stats="<%= (typeof feedbackStats !== 'undefined' && feedbackStats) ? JSON.stringify(feedbackStats) : 'null' %>"
 ></div>
 <div class="dashboard-cards-grid">
 <div class="dashboard-tooltip"></div>
@@ -114,7 +116,7 @@ data-user-low-stock-threshold="<%= (typeof userLowStockThreshold !== 'undefined'
             <div id="sales-performance-info"></div>
         </div>
     </div>
-    <div class="payment-types-row">
+    <div class="payment-feedback-row">
         <div class="card payment-types" style="display:flex;flex-direction:column;">
             <div class="card-label">Most Orders by Payment Type</div>
             <div class="payment-types-chart-container" style="height:400px;width:100%;display:flex;align-items:center;justify-content:center;">
@@ -122,6 +124,57 @@ data-user-low-stock-threshold="<%= (typeof userLowStockThreshold !== 'undefined'
                 <div id="payment-types-loading-indicator" class="chart-loading">Loading payment types...</div>
             </div>
             <div id="payment-types-list" style="flex:1 1 0;margin-top:8px;max-height:280px;overflow-y:auto;width:100%;min-width:0;box-sizing:border-box;"></div>
+        </div>
+        <div class="card feedback-list-card" style="display:flex;flex-direction:column;">
+            <div class="card-header-row">
+                <span class="card-label"><i class="fa-solid fa-comments" style="margin-right:8px;"></i>Recent Customer Feedback</span>
+                <div class="feedback-stats-summary">
+                    <% if (typeof feedbackStats !== 'undefined' && feedbackStats) { %>
+                    <span class="feedback-avg-rating" title="Average Rating">
+                        <i class="fa-solid fa-star" style="color:#f5c518;margin-right:4px;"></i>
+                        <%= feedbackStats.averageRating ? feedbackStats.averageRating.toFixed(1) : '0.0' %>
+                    </span>
+                    <span class="feedback-total-count" title="Total Feedbacks">
+                        <%= feedbackStats.totalCount || 0 %> reviews
+                    </span>
+                    <% } %>
+                </div>
+            </div>
+            <div id="feedback-list-container" class="feedback-list-container">
+                <% if (typeof recentFeedbacks !== 'undefined' && Array.isArray(recentFeedbacks) && recentFeedbacks.length > 0) { %>
+                    <% recentFeedbacks.forEach(function(feedback) { %>
+                    <div class="feedback-item">
+                        <div class="feedback-header">
+                            <div class="feedback-user-info">
+                                <span class="feedback-user-name"><%= feedback.name || 'Anonymous' %></span>
+                                <span class="feedback-source-badge <%= feedback.page === 'order-success' ? 'source-order' : 'source-contact' %>">
+                                    <%= feedback.page === 'order-success' ? 'Order' : 'Contact' %>
+                                </span>
+                            </div>
+                            <% if (feedback.page === 'order-success') { %>
+                            <div class="feedback-rating">
+                                <% for (let i = 1; i <= 5; i++) { %>
+                                    <i class="fa-<%= i <= feedback.rating ? 'solid' : 'regular' %> fa-star"></i>
+                                <% } %>
+                            </div>
+                            <% } %>
+                        </div>
+                        <% if (feedback.comment) { %>
+                        <div class="feedback-comment"><%= feedback.comment %></div>
+                        <% } %>
+                        <div class="feedback-timestamp"><%= new Date(feedback.timestamp).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) %></div>
+                    </div>
+                    <% }); %>
+                <% } else { %>
+                    <div class="feedback-empty">
+                        <i class="fa-regular fa-comment-dots"></i>
+                        <p>No feedback received yet</p>
+                    </div>
+                <% } %>
+            </div>
+            <% if (typeof recentFeedbacks !== 'undefined' && Array.isArray(recentFeedbacks) && recentFeedbacks.length > 0) { %>
+            <a href="/staff/feedback" class="view-all-feedback-btn">View All Feedback <i class="fa-solid fa-arrow-right"></i></a>
+            <% } %>
         </div>
     </div>
 </div>

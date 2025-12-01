@@ -1,366 +1,1277 @@
 [{
   "_id": {
-    "$oid": "68ca093b2204c4ceffe743f5"
+    "$oid": "6926a296802f84b32cfb1c03"
   },
-  "OrderID": "0917090424-BLESSINGSCAFE",
-  "Date": "2025-09-17 08:53:06",
+  "OrderID": "2511261447-BLESSINGSCAFE",
+  "Date": "2025-11-26T06:47:49.198Z",
+  "Source": "Website",
   "Cart": [
     {
-      "ProductID": "BK-CUP",
-      "ProductName": "Cupcake",
-      "Quantity": 1,
-      "Size": null,
-      "BasePrice": 25
-    },
-    {
-      "ProductID": "CF-SCA",
-      "ProductName": "Salted Caramel",
-      "Quantity": 1,
-      "Size": "16oz",
-      "BasePrice": 59
-    },
-    {
-      "ProductID": "CF-SCA",
-      "ProductName": "Salted Caramel",
-      "Quantity": 1,
-      "Size": "16oz",
-      "BasePrice": 59
-    },
-    {
-      "ProductID": "BK-WAF",
-      "ProductName": "Waffles",
-      "Quantity": 1,
-      "Size": null,
-      "BasePrice": 120
-    },
-    {
-      "ProductID": "MT-TAR",
-      "ProductName": "Taro",
-      "Quantity": 1,
-      "Size": "16oz",
-      "BasePrice": 45
-    }
-  ],
-  "Customer": "24048945674713783",
-  "ContactNumber": "09232780957",
-  "PaymentStatus": "Completed",
-  "PaymentMode": "E-PAYMENT",
-  "Total": 25,
-  "ItemTotal": 5,
-  "DeliveryStatus": "Delivery",
-  "Address": "asd, Alapan I-A, Imus",
-  "Notes": "",
-  "FulfillmentStatus": "Preparing",
-  "Source": "Chatbot"
-},
-{
-  "_id": {
-    "$oid": "68ca0bc72204c4ceffe743f7"
-  },
-  "OrderID": "0917091521-BLESSINGSCAFE",
-  "Date": "2025-09-17 09:10:07",
-  "Cart": [
-    {
-      "ProductID": "BK-CUP",
-      "ProductName": "Cupcake",
-      "Quantity": 1,
-      "Size": null,
-      "BasePrice": 25
-    },
-    {
-      "ProductID": "CF-CAR",
-      "ProductName": "Caramel",
-      "Quantity": 1,
-      "Size": "16oz",
-      "BasePrice": 59
-    }
-  ],
-  "Customer": "24048945674713783",
-  "ContactNumber": "09232780597",
-  "PaymentStatus": "Completed",
-  "PaymentMode": "E-PAYMENT",
-  "Total": null,
-  "ItemTotal": 2,
-  "DeliveryStatus": "Delivery",
-  "Address": "skks, Buhay na Tubig, Imus",
-  "Notes": "",
-  "FulfillmentStatus": "Completed",
-  "Source": "Chatbot"
-},
-{
-  "_id": {
-    "$oid": "68dea0e6af986fc73aabe100"
-  },
-  "OrderID": "1002235726-BLESSINGSCAFE",
-  "Date": "2025-10-02 23:57:26",
-  "Cart": [
-    {
+      "ProductName": "Toffee Nut Coffee",
       "ProductID": "CF-TON",
-      "ProductName": "Toffee Nut",
+      "Size": "16oz",
+      "Addons": [
+        {
+          "AddOnID": "ING-TOFF",
+          "Name": "Toffee Nut",
+          "BasePrice": 15
+        }
+      ],
       "Quantity": 1,
+      "Price": 59,
+      "ImageLink": "https://blessingsateverysip.me/uploads/products/Toffee-Nut-Coffee-1763584766363.png"
+    }
+  ],
+  "Customer": {
+    "fullname": "Ken Test",
+    "email": "kentest123@gmail.com",
+    "contactnumber": "09297639163",
+    "deliveryMethod": "Delivery",
+    "city": "Alapan I-A, Imus",
+    "address": "Blk 4 Lot 9 Sesame Street"
+  },
+  "Total": 92.52,
+  "Notes": "near Aling Nena Sari sari store",
+  "PaymentStatus": "Paid",
+  "FulfillmentStatus": "Completed",
+  "FulfillmentMethod": "Delivery",
+  "PaymentMethod": "EWALLET",
+  "PaymentMode": "E-Payment",
+  "PromoEventApplied": "Coffee4Everyone",
+  "PromoDiscountAmount": 0.02,
+  "InventoryChecked": true,
+  "InventoryCheckedAt": {
+    "$date": "2025-11-26T06:47:50.532Z"
+  },
+  "PaymentUpdatedAt": {
+    "$date": "2025-11-26T06:49:03.070Z"
+  },
+  "XenditPaymentID": "6926a296cd1cd15c100f2b42",
+  "InventoryDeducted": true,
+  "InventoryDeductedAt": {
+    "$date": "2025-11-26T06:49:03.744Z"
+  },
+  "InventoryDeductions": [
+    {
+      "type": "ingredient",
+      "id": "ING-ESP",
+      "name": "Espresso",
+      "gramsDeducted": 50,
+      "gramsPerUnit": 50,
+      "orderItem": "Toffee Nut Coffee",
+      "size": "16oz",
+      "quantity": 1
+    },
+    {
+      "type": "ingredient",
+      "id": "ING-MILK",
+      "name": "Milk",
+      "gramsDeducted": 200,
+      "gramsPerUnit": 200,
+      "orderItem": "Toffee Nut Coffee",
+      "size": "16oz",
+      "quantity": 1
+    },
+    {
+      "type": "ingredient",
+      "id": "ING-TOFF",
+      "name": "Toffee Nut",
+      "gramsDeducted": 30,
+      "gramsPerUnit": 30,
+      "orderItem": "Toffee Nut Coffee",
+      "size": "16oz",
+      "quantity": 1
+    },
+    {
+      "type": "ingredient-addon",
+      "id": "ING-TOFF",
+      "name": "Toffee Nut",
+      "amountDeducted": 10,
+      "deductionQuantityGrams": 10
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "6926a493802f84b32cfb1c05"
+  },
+  "OrderID": "11261456-BLESSINGSCAFE",
+  "Date": "2025-11-26T06:56:18.199Z",
+  "Source": "POS",
+  "Cart": [
+    {
+      "ProductName": "Taro Milktea",
+      "ProductID": "MT-TARO",
       "Size": "22oz",
-      "BasePrice": 59,
-      "AddOns": []
+      "Addons": [],
+      "Quantity": 1,
+      "Price": 55,
+      "ImageLink": "/uploads/products/Taro-Milktea-1763544109211.png"
     },
     {
-      "ProductID": "CF-WCH",
-      "ProductName": "White Chocolate",
+      "ProductName": "Matcha Milktea (B1T1 FREE)",
+      "ProductID": "MT-MAT",
+      "Size": "22oz",
+      "Addons": [],
       "Quantity": 1,
-      "Size": "16oz",
-      "BasePrice": 59,
-      "AddOns": []
-    },
-    {
-      "ProductID": "CF-CF",
-      "ProductName": "Americano",
-      "Quantity": 1,
-      "Size": "16oz",
-      "BasePrice": 39,
-      "AddOns": []
+      "Price": 0,
+      "ImageLink": "/uploads/products/Matcha-Milktea-1763584678748.png"
     }
   ],
-  "Customer": "Customer#20582",
-  "ContactNumber": "",
-  "PaymentStatus": "Payment pending",
-  "PaymentMode": "Cash on Hand",
-  "Total": 143,
-  "ItemTotal": 3,
-  "DeliveryStatus": "Take-Out",
-  "Address": "",
-  "Notes": "",
-  "FulfillmentStatus": "Preparing",
-  "Source": "POS"
-},
-{
-  "_id": {
-    "$oid": "68dea3455bc60969827988ab"
+  "Customer": {
+    "fullname": "Juan Dela Cruz",
+    "email": "",
+    "contactnumber": "09273845162",
+    "deliveryMethod": "Pick-Up"
   },
-  "OrderID": "1003000734-BLESSINGSCAFE",
-  "Date": "2025-10-03 00:07:34",
-  "Cart": [
-    {
-      "ProductID": "CF-WCH",
-      "ProductName": "White Chocolate",
-      "Quantity": 1,
-      "Size": "16oz",
-      "BasePrice": 59,
-      "AddOns": []
-    }
-  ],
-  "Customer": "Customer#45122",
-  "ContactNumber": "",
-  "PaymentStatus": "Completed",
-  "PaymentMode": "Cash on Hand",
-  "Total": 59,
-  "ItemTotal": 1,
-  "DeliveryStatus": "Take-Out",
-  "Address": "",
+  "Total": 99,
   "Notes": "",
+  "PaymentStatus": "Paid",
   "FulfillmentStatus": "Completed",
-  "Source": "POS",
-  "cashierName": "asdf"
-},
-{
-  "_id": {
-    "$oid": "68dea3675bc60969827988ac"
-  },
-  "OrderID": "1003000808-BLESSINGSCAFE",
-  "Date": "2025-10-03 00:08:08",
-  "Cart": [
-    {
-      "ProductID": "CF-WCH",
-      "ProductName": "White Chocolate",
-      "Quantity": 1,
-      "Size": "16oz",
-      "BasePrice": 59,
-      "AddOns": []
-    }
-  ],
-  "Customer": "Customer#85317",
-  "ContactNumber": "",
-  "PaymentStatus": "Completed",
-  "PaymentMode": "Cash on Hand",
-  "Total": 59,
-  "ItemTotal": 1,
-  "DeliveryStatus": "Take-Out",
-  "Address": "",
-  "Notes": "",
-  "FulfillmentStatus": "Completed",
-  "Source": "POS",
-  "cashierName": "Red Yabut"
-},
-{
-  "_id": {
-    "$oid": "68dea4140031d409e379f594"
-  },
-  "OrderID": "1003001059-BLESSINGSCAFE",
-  "Date": "2025-10-03 00:10:59",
-  "Cart": [
-    {
-      "ProductID": "CF-WCH",
-      "ProductName": "White Chocolate",
-      "Quantity": 1,
-      "Size": "16oz",
-      "BasePrice": 59,
-      "AddOns": []
-    }
-  ],
-  "Customer": "Customer#35972",
-  "ContactNumber": "",
-  "PaymentStatus": "Completed",
+  "FulfillmentMethod": "Pick-Up",
+  "PaymentMethod": "EWALLET",
   "PaymentMode": "E-Payment",
-  "Total": 59,
-  "ItemTotal": 1,
-  "DeliveryStatus": "Take-Out",
-  "Address": "",
-  "Notes": "",
-  "FulfillmentStatus": "Completed",
-  "Source": "POS",
-  "cashierName": "Maria Santos",
-  "XenditPaymentID": "68dea4130119a81076d0b840",
-  "paymentStatus": "Completed",
-  "fulfillmentStatus": "Preparing"
+  "cashierName": "Admin",
+  "XenditPaymentID": "6926a493cd1cd15c100f308c",
+  "InventoryChecked": true,
+  "InventoryCheckedAt": {
+    "$date": "2025-11-26T06:56:19.345Z"
+  },
+  "PaymentUpdatedAt": {
+    "$date": "2025-11-26T06:56:36.905Z"
+  },
+  "InventoryDeducted": true,
+  "InventoryDeductedAt": {
+    "$date": "2025-11-26T06:56:38.421Z"
+  },
+  "InventoryDeductions": [
+    {
+      "type": "ingredient",
+      "id": "ING-TEA",
+      "name": "Tea",
+      "gramsDeducted": 200,
+      "gramsPerUnit": 200,
+      "orderItem": "Taro Milktea",
+      "size": "22oz",
+      "quantity": 1
+    },
+    {
+      "type": "ingredient",
+      "id": "ING-CREAMER",
+      "name": "Creamer",
+      "gramsDeducted": 40,
+      "gramsPerUnit": 40,
+      "orderItem": "Taro Milktea",
+      "size": "22oz",
+      "quantity": 1
+    },
+    {
+      "type": "ingredient",
+      "id": "ING-TARO",
+      "name": "Taro Powder",
+      "gramsDeducted": 50,
+      "gramsPerUnit": 50,
+      "orderItem": "Taro Milktea",
+      "size": "22oz",
+      "quantity": 1
+    },
+    {
+      "type": "menu-addon",
+      "id": "AD-BOB",
+      "name": "Boba",
+      "amountDeducted": 75,
+      "size": "22oz",
+      "quantity": 1
+    },
+    {
+      "type": "ingredient",
+      "id": "ING-TEA",
+      "name": "Tea",
+      "gramsDeducted": 200,
+      "gramsPerUnit": 200,
+      "orderItem": "Matcha Milktea (B1T1 FREE)",
+      "size": "22oz",
+      "quantity": 1
+    },
+    {
+      "type": "ingredient",
+      "id": "ING-CREAMER",
+      "name": "Creamer",
+      "gramsDeducted": 40,
+      "gramsPerUnit": 40,
+      "orderItem": "Matcha Milktea (B1T1 FREE)",
+      "size": "22oz",
+      "quantity": 1
+    },
+    {
+      "type": "ingredient",
+      "id": "ING-MATCHA",
+      "name": "Matcha Powder",
+      "gramsDeducted": 50,
+      "gramsPerUnit": 50,
+      "orderItem": "Matcha Milktea (B1T1 FREE)",
+      "size": "22oz",
+      "quantity": 1
+    },
+    {
+      "type": "menu-addon",
+      "id": "AD-BOB",
+      "name": "Boba",
+      "amountDeducted": 75,
+      "size": "22oz",
+      "quantity": 1
+    }
+  ]
 },
 {
   "_id": {
-    "$oid": "68deade69ec3ad366bfc398d"
+    "$oid": "6926a98f3a63b1bdcb4b9316"
   },
-  "OrderID": "1003005253-BLESSINGSCAFE",
-  "Date": "2025-09-03 00:52:53",
+  "OrderID": "2511261517-BLESSINGSCAFE",
+  "Date": "2025-11-26T07:17:34.860Z",
+  "Source": "Website",
   "Cart": [
     {
-      "ProductID": "CF-WCH",
-      "ProductName": "White Chocolate",
-      "Quantity": 1,
-      "Size": "16oz",
-      "BasePrice": 59,
-      "AddOns": []
-    },
-    {
+      "ProductName": "Toffee Nut Coffee",
       "ProductID": "CF-TON",
-      "ProductName": "Toffee Nut",
-      "Quantity": 1,
       "Size": "16oz",
-      "BasePrice": 59,
-      "AddOns": []
+      "Addons": [
+        {
+          "AddOnID": "ING-CARAMEL",
+          "Name": "Caramel Syrup",
+          "BasePrice": 15
+        }
+      ],
+      "Quantity": 1,
+      "Price": 59,
+      "ImageLink": "https://blessingsateverysip.me/uploads/products/Toffee-Nut-Coffee-1763584766363.png"
     }
   ],
-  "Customer": "Customer#80729",
-  "ContactNumber": "",
+  "Customer": {
+    "fullname": "ad",
+    "email": "asd@gmail.com",
+    "contactnumber": "09192389123",
+    "deliveryMethod": "Pick-up",
+    "city": null,
+    "address": null
+  },
+  "Total": 74,
+  "Notes": "",
   "PaymentStatus": "Completed",
-  "PaymentMode": "E-Payment",
-  "Total": 118,
-  "ItemTotal": 2,
-  "DeliveryStatus": "Take-Out",
-  "Address": "",
-  "Notes": "",
   "FulfillmentStatus": "Completed",
-  "Source": "POS",
-  "cashierName": "asdf",
-  "XenditPaymentID": "68deade50119a81076d0c790"
-},
-{
-  "_id": {
-    "$oid": "68f5f4fce8fd3e26db0d1dd9"
-  },
-  "OrderID": "2510201638-BLESSINGSCAFE",
-  "Date": "2025-10-20T08:38:19.620Z",
-  "Source": "Website",
-  "Cart": [
-    {
-      "ProductName": "Macademia Nut",
-      "ProductID": "CF-MAC",
-      "Size": "16oz",
-      "Addons": [],
-      "Quantity": 1,
-      "Price": 59,
-      "ImageLink": ""
-    }
-  ],
-  "Customer": {
-    "fullname": "rb@gmail.com",
-    "email": "rb@gmail.com",
-    "contactnumber": "09817256386",
-    "deliveryMethod": "Pick-up",
-    "city": null,
-    "address": null
-  },
-  "Total": 59,
-  "Notes": "",
-  "PaymentStatus": "Pending",
-  "FulfillmentStatus": "Ready",
   "FulfillmentMethod": "Pick-up",
-  "PaymentMethod": "PAYMAYA",
+  "PaymentMethod": "GCASH",
   "PaymentMode": "E-Payment",
-  "XenditPaymentID": "68f5f4fe4547571f9302fd42"
+  "PromoEventApplied": null,
+  "PromoDiscountAmount": null,
+  "InventoryChecked": true,
+  "InventoryCheckedAt": {
+    "$date": "2025-11-26T07:17:35.166Z"
+  },
+  "PaymentUpdatedAt": {
+    "$date": "2025-11-26T07:17:53.242Z"
+  },
+  "XenditPaymentID": "6926a9a19101a99ffda10a56"
 },
 {
   "_id": {
-    "$oid": "68f741db2438423f34e8fccd"
+    "$oid": "6926a9a03a63b1bdcb4b9318"
   },
-  "OrderID": "2510211618-BLESSINGSCAFE",
-  "Date": "2025-10-21T08:18:34.319Z",
+  "OrderID": "2511261517-BLESSINGSCAFE",
+  "Date": "2025-11-26T07:17:52.256Z",
   "Source": "Website",
   "Cart": [
     {
-      "ProductName": "Caramel",
-      "ProductID": "CF-CAR",
+      "ProductName": "Toffee Nut Coffee",
+      "ProductID": "CF-TON",
       "Size": "16oz",
-      "Addons": [],
+      "Addons": [
+        {
+          "AddOnID": "ING-CARAMEL",
+          "Name": "Caramel Syrup",
+          "BasePrice": 15
+        }
+      ],
       "Quantity": 1,
       "Price": 59,
-      "ImageLink": "https://iili.io/KqCjUrl.jpg"
+      "ImageLink": "https://blessingsateverysip.me/uploads/products/Toffee-Nut-Coffee-1763584766363.png"
     }
   ],
   "Customer": {
-    "fullname": "rb@gmail.com",
-    "email": "rb@gmail.com",
-    "contactnumber": "09172357612",
+    "fullname": "ad",
+    "email": "asd@gmail.com",
+    "contactnumber": "09192389123",
     "deliveryMethod": "Pick-up",
     "city": null,
     "address": null
   },
-  "Total": 59,
+  "Total": 74,
   "Notes": "",
   "PaymentStatus": "Pending",
   "FulfillmentStatus": "Preparing",
   "FulfillmentMethod": "Pick-up",
   "PaymentMethod": "GCASH",
   "PaymentMode": "E-Payment",
-  "XenditPaymentID": "68f741dccc9a22f738debac3"
+  "PromoEventApplied": null,
+  "PromoDiscountAmount": null,
+  "InventoryChecked": true,
+  "InventoryCheckedAt": {
+    "$date": "2025-11-26T07:17:52.556Z"
+  }
 },
 {
   "_id": {
-    "$oid": "68f7b143ab72ca633e9d4c7c"
+    "$oid": "6926a9d93a63b1bdcb4b931a"
   },
-  "OrderID": "2510220013-BLESSINGSCAFE",
-  "Date": "2025-10-21T16:13:54.057Z",
+  "OrderID": "2511261518-BLESSINGSCAFE",
+  "Date": "2025-11-26T07:18:48.921Z",
   "Source": "Website",
   "Cart": [
     {
-      "ProductName": "Caramel",
-      "ProductID": "CF-CAR",
+      "ProductName": "Toffee Nut Coffee",
+      "ProductID": "CF-TON",
       "Size": "16oz",
-      "Addons": [],
+      "Addons": [
+        {
+          "AddOnID": "ING-CARAMEL",
+          "Name": "Caramel Syrup",
+          "BasePrice": 15
+        }
+      ],
       "Quantity": 1,
       "Price": 59,
-      "ImageLink": "https://iili.io/KqCjUrl.jpg"
+      "ImageLink": "https://blessingsateverysip.me/uploads/products/Toffee-Nut-Coffee-1763584766363.png"
     }
   ],
   "Customer": {
     "fullname": "asd",
-    "email": "rb@gmail.com",
-    "contactnumber": "09123765726",
+    "email": "asd@gmail.com",
+    "contactnumber": "09891283781",
+    "deliveryMethod": "Pick-up",
+    "city": null,
+    "address": null
+  },
+  "Total": 72.52,
+  "Notes": "",
+  "PaymentStatus": "Paid",
+  "FulfillmentStatus": "Completed",
+  "FulfillmentMethod": "Pick-up",
+  "PaymentMethod": "EWALLET",
+  "PaymentMode": "E-Payment",
+  "PromoEventApplied": "Coffee4Everyone",
+  "PromoDiscountAmount": 0.02,
+  "InventoryChecked": true,
+  "InventoryCheckedAt": {
+    "$date": "2025-11-26T07:18:49.269Z"
+  },
+  "PaymentUpdatedAt": {
+    "$date": "2025-11-26T07:18:54.858Z"
+  },
+  "XenditPaymentID": "6926a9dacd1cd15c100f3b76",
+  "InventoryDeducted": true,
+  "InventoryDeductedAt": {
+    "$date": "2025-11-26T07:18:55.684Z"
+  },
+  "InventoryDeductions": [
+    {
+      "type": "ingredient",
+      "id": "ING-ESP",
+      "name": "Espresso",
+      "gramsDeducted": 50,
+      "gramsPerUnit": 50,
+      "orderItem": "Toffee Nut Coffee",
+      "size": "16oz",
+      "quantity": 1
+    },
+    {
+      "type": "ingredient",
+      "id": "ING-MILK",
+      "name": "Milk",
+      "gramsDeducted": 200,
+      "gramsPerUnit": 200,
+      "orderItem": "Toffee Nut Coffee",
+      "size": "16oz",
+      "quantity": 1
+    },
+    {
+      "type": "ingredient",
+      "id": "ING-TOFF",
+      "name": "Toffee Nut",
+      "gramsDeducted": 30,
+      "gramsPerUnit": 30,
+      "orderItem": "Toffee Nut Coffee",
+      "size": "16oz",
+      "quantity": 1
+    },
+    {
+      "type": "ingredient-addon",
+      "id": "ING-CARAMEL",
+      "name": "Caramel Syrup",
+      "amountDeducted": 10,
+      "deductionQuantityGrams": 10
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "6926c17709ca3cf6dd74513c"
+  },
+  "OrderID": "2511261659-BLESSINGSCAFE",
+  "Date": "2025-11-26T08:59:36.353Z",
+  "Source": "Website",
+  "Cart": [
+    {
+      "ProductName": "Matcha Milktea",
+      "ProductID": "MT-MAT",
+      "Size": "22oz",
+      "Addons": [
+        {
+          "AddOnID": "AD-BOB",
+          "Name": "Boba",
+          "BasePrice": 10
+        },
+        {
+          "AddOnID": "AD-CJL",
+          "Name": "Coffee Jelly",
+          "BasePrice": 10
+        },
+        {
+          "AddOnID": "ING-CAPPU",
+          "Name": "Cappuccino Powder",
+          "BasePrice": 15
+        }
+      ],
+      "Quantity": 1,
+      "Price": 55,
+      "ImageLink": "https://blessingsateverysip.me/uploads/products/Matcha-Milktea-1764144857269.webp"
+    },
+    {
+      "ProductName": "Crinkles",
+      "ProductID": "BK-CRN",
+      "Size": null,
+      "Addons": [],
+      "Quantity": 1,
+      "Price": 50,
+      "ImageLink": "https://blessingsateverysip.me/uploads/products/Crinkles-1763584989920.png"
+    }
+  ],
+  "Customer": {
+    "fullname": "Hjbnh kuhuk",
+    "email": "math.daenniel@yahoo.com",
+    "contactnumber": "088654954",
+    "deliveryMethod": "Delivery",
+    "city": "Bayan Luma 9, Imus",
+    "address": "Msiwowkdme"
+  },
+  "Total": 154.4,
+  "Notes": "Lsnwlzndqkdj",
+  "PaymentStatus": "Paid",
+  "FulfillmentStatus": "Completed",
+  "FulfillmentMethod": "Delivery",
+  "PaymentMethod": "EWALLET",
+  "PaymentMode": "E-Payment",
+  "PromoEventApplied": "Cookie Promo",
+  "PromoDiscountAmount": 0.04,
+  "InventoryChecked": true,
+  "InventoryCheckedAt": {
+    "$date": "2025-11-26T08:59:35.605Z"
+  },
+  "PaymentUpdatedAt": {
+    "$date": "2025-11-26T08:59:51.403Z"
+  },
+  "XenditPaymentID": "6926c177cd1cd15c100f6d30",
+  "InventoryDeducted": true,
+  "InventoryDeductedAt": {
+    "$date": "2025-11-26T08:59:51.491Z"
+  },
+  "InventoryDeductions": [
+    {
+      "type": "ingredient",
+      "id": "ING-TEA",
+      "name": "Tea",
+      "gramsDeducted": 200,
+      "gramsPerUnit": 200,
+      "orderItem": "Matcha Milktea",
+      "size": "22oz",
+      "quantity": 1
+    },
+    {
+      "type": "ingredient",
+      "id": "ING-CREAMER",
+      "name": "Creamer",
+      "gramsDeducted": 40,
+      "gramsPerUnit": 40,
+      "orderItem": "Matcha Milktea",
+      "size": "22oz",
+      "quantity": 1
+    },
+    {
+      "type": "ingredient",
+      "id": "ING-MATCHA",
+      "name": "Matcha Powder",
+      "gramsDeducted": 50,
+      "gramsPerUnit": 50,
+      "orderItem": "Matcha Milktea",
+      "size": "22oz",
+      "quantity": 1
+    },
+    {
+      "type": "addon",
+      "id": "AD-BOB",
+      "name": "Boba",
+      "amountDeducted": 10,
+      "deductionQuantityGrams": 10
+    },
+    {
+      "type": "addon",
+      "id": "AD-CJL",
+      "name": "Coffee Jelly",
+      "amountDeducted": 10,
+      "deductionQuantityGrams": 10
+    },
+    {
+      "type": "ingredient-addon",
+      "id": "ING-CAPPU",
+      "name": "Cappuccino Powder",
+      "amountDeducted": 10,
+      "deductionQuantityGrams": 10
+    },
+    {
+      "type": "menu-addon",
+      "id": "AD-BOB",
+      "name": "Boba",
+      "amountDeducted": 75,
+      "size": "22oz",
+      "quantity": 1
+    },
+    {
+      "type": "pastry",
+      "id": "BK-CRN",
+      "name": "Crinkles",
+      "quantityDeducted": 1,
+      "orderItem": "Crinkles",
+      "quantity": 1
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "69270c1d09ca3cf6dd745153"
+  },
+  "OrderID": "2511262220-BLESSINGSCAFE",
+  "Date": "2025-11-26T14:20:13.077Z",
+  "Source": "Website",
+  "Cart": [
+    {
+      "ProductName": "Toffee Nut Coffee",
+      "ProductID": "CF-TON",
+      "Size": "16oz",
+      "Addons": [
+        {
+          "AddOnID": "ING-COND",
+          "Name": "Condensed Milk",
+          "BasePrice": 15
+        },
+        {
+          "IngredientID": "ING-ESP",
+          "Name": "Espresso",
+          "BasePrice": 15
+        },
+        {
+          "IngredientID": "ING-CREAMER",
+          "Name": "Creamer",
+          "BasePrice": 15
+        },
+        {
+          "AddOnID": "ING-TEA",
+          "Name": "Tea",
+          "BasePrice": 15
+        },
+        {
+          "AddOnID": "ING-ESP",
+          "Name": "Espresso",
+          "BasePrice": 15
+        },
+        {
+          "AddOnID": "ING-MILK",
+          "Name": "Milk",
+          "BasePrice": 15
+        }
+      ],
+      "Quantity": 1,
+      "Price": 59,
+      "ImageLink": "https://blessingsateverysip.me/uploads/products/Toffee-Nut-Coffee-1764152055359.webp"
+    }
+  ],
+  "Customer": {
+    "fullname": "Mario",
+    "email": "mjsaguil99@gmail.com",
+    "contactnumber": "09624421162",
+    "deliveryMethod": "Pick-up",
+    "city": null,
+    "address": null
+  },
+  "Total": 149,
+  "Notes": "",
+  "PaymentStatus": "Paid",
+  "FulfillmentStatus": "Completed",
+  "FulfillmentMethod": "Pick-up",
+  "PaymentMethod": "EWALLET",
+  "PaymentMode": "E-Payment",
+  "PromoEventApplied": null,
+  "PromoDiscountAmount": null,
+  "InventoryChecked": true,
+  "InventoryCheckedAt": {
+    "$date": "2025-11-26T14:18:05.462Z"
+  },
+  "PaymentUpdatedAt": {
+    "$date": "2025-11-26T14:18:16.981Z"
+  },
+  "XenditPaymentID": "69270c1dcd1cd15c100fd9af",
+  "InventoryDeducted": true,
+  "InventoryDeductedAt": {
+    "$date": "2025-11-26T14:18:17.089Z"
+  },
+  "InventoryDeductions": [
+    {
+      "type": "ingredient",
+      "id": "ING-ESP",
+      "name": "Espresso",
+      "gramsDeducted": 50,
+      "gramsPerUnit": 50,
+      "orderItem": "Toffee Nut Coffee",
+      "size": "16oz",
+      "quantity": 1
+    },
+    {
+      "type": "ingredient",
+      "id": "ING-MILK",
+      "name": "Milk",
+      "gramsDeducted": 200,
+      "gramsPerUnit": 200,
+      "orderItem": "Toffee Nut Coffee",
+      "size": "16oz",
+      "quantity": 1
+    },
+    {
+      "type": "ingredient",
+      "id": "ING-TOFF",
+      "name": "Toffee Nut",
+      "gramsDeducted": 30,
+      "gramsPerUnit": 30,
+      "orderItem": "Toffee Nut Coffee",
+      "size": "16oz",
+      "quantity": 1
+    },
+    {
+      "type": "ingredient-addon",
+      "id": "ING-COND",
+      "name": "Condensed Milk",
+      "amountDeducted": 10,
+      "deductionQuantityGrams": 10
+    },
+    {
+      "type": "ingredient-addon",
+      "id": "ING-TEA",
+      "name": "Tea",
+      "amountDeducted": 10,
+      "deductionQuantityGrams": 10
+    },
+    {
+      "type": "ingredient-addon",
+      "id": "ING-ESP",
+      "name": "Espresso",
+      "amountDeducted": 10,
+      "deductionQuantityGrams": 10
+    },
+    {
+      "type": "ingredient-addon",
+      "id": "ING-MILK",
+      "name": "Milk",
+      "amountDeducted": 10,
+      "deductionQuantityGrams": 10
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "6927e1e9e925b6f0282c5279"
+  },
+  "OrderID": "2511271330-BLESSINGSCAFE",
+  "Date": "2025-11-27T05:30:15.595Z",
+  "Source": "Website",
+  "Cart": [
+    {
+      "ProductName": "Toffee Nut Coffee",
+      "ProductID": "CF-TON",
+      "Size": "16oz",
+      "Addons": [],
+      "Quantity": 1,
+      "Price": 59,
+      "ImageLink": "https://blessingsateverysip.me/uploads/products/Toffee-Nut-Coffee-1763584766363.png"
+    }
+  ],
+  "Customer": {
+    "fullname": "Ken Christian Divino",
+    "email": "kendivino6@gmail.com",
+    "contactnumber": "09131234562",
+    "deliveryMethod": "Delivery",
+    "city": "Bayan Luma 2, Imus",
+    "address": "sda"
+  },
+  "Total": 77.82,
+  "Notes": "asd",
+  "PaymentStatus": "Paid",
+  "FulfillmentStatus": "Completed",
+  "FulfillmentMethod": "Delivery",
+  "PaymentMethod": "EWALLET",
+  "PaymentMode": "E-Payment",
+  "PromoEventApplied": "Coffee4Everyone",
+  "PromoDiscountAmount": 0.02,
+  "InventoryChecked": true,
+  "InventoryCheckedAt": {
+    "$date": "2025-11-27T05:30:17.593Z"
+  },
+  "PaymentUpdatedAt": {
+    "$date": "2025-11-27T05:30:33.335Z"
+  },
+  "XenditPaymentID": "6927e1e94ef81a157c6449f8",
+  "InventoryDeducted": true,
+  "InventoryDeductedAt": {
+    "$date": "2025-11-27T05:30:33.392Z"
+  },
+  "InventoryDeductions": [
+    {
+      "type": "ingredient",
+      "id": "ING-ESP",
+      "name": "Espresso",
+      "gramsDeducted": 50,
+      "gramsPerUnit": 50,
+      "orderItem": "Toffee Nut Coffee",
+      "size": "16oz",
+      "quantity": 1
+    },
+    {
+      "type": "ingredient",
+      "id": "ING-MILK",
+      "name": "Milk",
+      "gramsDeducted": 200,
+      "gramsPerUnit": 200,
+      "orderItem": "Toffee Nut Coffee",
+      "size": "16oz",
+      "quantity": 1
+    },
+    {
+      "type": "ingredient",
+      "id": "ING-TOFF",
+      "name": "Toffee Nut",
+      "gramsDeducted": 30,
+      "gramsPerUnit": 30,
+      "orderItem": "Toffee Nut Coffee",
+      "size": "16oz",
+      "quantity": 1
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "6927f181e925b6f0282c527b"
+  },
+  "OrderID": "2511271436-BLESSINGSCAFE",
+  "Date": "2025-11-27T06:36:48.940Z",
+  "Source": "Website",
+  "Cart": [
+    {
+      "ProductName": "Cookies",
+      "ProductID": "BK-COO",
+      "Size": null,
+      "Addons": [],
+      "Quantity": 1,
+      "Price": 50,
+      "ImageLink": "https://blessingsateverysip.me/uploads/products/Cookies-1764152649138.webp"
+    }
+  ],
+  "Customer": {
+    "fullname": "seanipogi",
+    "email": "mema@gmail.com",
+    "contactnumber": "09871623812",
+    "deliveryMethod": "Pick-up",
+    "city": null,
+    "address": null
+  },
+  "Total": 50,
+  "Notes": "",
+  "PaymentStatus": "Paid",
+  "FulfillmentStatus": "Completed",
+  "FulfillmentMethod": "Pick-up",
+  "PaymentMethod": "EWALLET",
+  "PaymentMode": "E-Payment",
+  "PromoEventApplied": null,
+  "PromoDiscountAmount": null,
+  "InventoryChecked": true,
+  "InventoryCheckedAt": {
+    "$date": "2025-11-27T06:36:49.076Z"
+  },
+  "PaymentUpdatedAt": {
+    "$date": "2025-11-27T06:36:56.337Z"
+  },
+  "XenditPaymentID": "6927f1814ef81a157c6460f2",
+  "InventoryDeducted": true,
+  "InventoryDeductedAt": {
+    "$date": "2025-11-27T06:36:56.370Z"
+  },
+  "InventoryDeductions": [
+    {
+      "type": "pastry",
+      "id": "BK-COO",
+      "name": "Cookies",
+      "quantityDeducted": 1,
+      "orderItem": "Cookies",
+      "quantity": 1
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "6927f55ee925b6f0282c527d"
+  },
+  "OrderID": "2511271453-BLESSINGSCAFE",
+  "Date": "2025-11-27T06:53:16.497Z",
+  "Source": "Website",
+  "Cart": [
+    {
+      "ProductName": "Caramel Coffee",
+      "ProductID": "CF-CAR",
+      "Size": "16oz",
+      "Addons": [],
+      "Quantity": 1,
+      "Price": 59,
+      "ImageLink": "https://blessingsateverysip.me/uploads/products/Caramel-Coffee-1763584759894.png"
+    }
+  ],
+  "Customer": {
+    "fullname": "Earl Alonzo",
+    "email": "kendivino6@gmail.com",
+    "contactnumber": "09546786431",
+    "deliveryMethod": "Delivery",
+    "city": "Toclong, Kawit",
+    "address": "Imus Cavite, Imus, Cavite"
+  },
+  "Total": 77.82,
+  "Notes": "less ice near",
+  "PaymentStatus": "Paid",
+  "FulfillmentStatus": "Completed",
+  "FulfillmentMethod": "Delivery",
+  "PaymentMethod": "EWALLET",
+  "PaymentMode": "E-Payment",
+  "PromoEventApplied": "Coffee4Everyone",
+  "PromoDiscountAmount": 0.02,
+  "InventoryChecked": true,
+  "InventoryCheckedAt": {
+    "$date": "2025-11-27T06:53:18.197Z"
+  },
+  "PaymentUpdatedAt": {
+    "$date": "2025-11-27T06:54:06.965Z"
+  },
+  "XenditPaymentID": "6927f55e9101a99ffda3570d",
+  "InventoryDeducted": true,
+  "InventoryDeductedAt": {
+    "$date": "2025-11-27T06:54:07.015Z"
+  },
+  "InventoryDeductions": [
+    {
+      "type": "ingredient",
+      "id": "ING-HAZEL",
+      "name": "Hazelnut Syrup",
+      "gramsDeducted": 30,
+      "gramsPerUnit": 30,
+      "orderItem": "Caramel Coffee",
+      "size": "16oz",
+      "quantity": 1
+    },
+    {
+      "type": "ingredient",
+      "id": "ING-ESP",
+      "name": "Espresso",
+      "gramsDeducted": 50,
+      "gramsPerUnit": 50,
+      "orderItem": "Caramel Coffee",
+      "size": "16oz",
+      "quantity": 1
+    },
+    {
+      "type": "ingredient",
+      "id": "ING-MILK",
+      "name": "Milk",
+      "gramsDeducted": 200,
+      "gramsPerUnit": 200,
+      "orderItem": "Caramel Coffee",
+      "size": "16oz",
+      "quantity": 1
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "692b9ae83a09a9321c46356f"
+  },
+  "OrderID": "1130091603-BLESSINGSCAFE",
+  "Date": "2025-11-30 17:16:03",
+  "Source": "Chatbot",
+  "Cart": [
+    {
+      "ProductName": "Crinkles",
+      "ProductID": "BK-CRN",
+      "Size": null,
+      "Addons": [],
+      "Quantity": 1,
+      "Price": 50,
+      "ImageLink": ""
+    }
+  ],
+  "Customer": {
+    "userId": "24048945674713783",
+    "fullname": "Unknown",
+    "email": "",
+    "contactnumber": "",
+    "deliveryMethod": "Pick-Up",
+    "city": "",
+    "address": ","
+  },
+  "Total": 50,
+  "Notes": "",
+  "PaymentStatus": "Paid",
+  "FulfillmentStatus": "Completed",
+  "FulfillmentMethod": "Pick-Up",
+  "PaymentMethod": "EWALLET",
+  "PaymentMode": "E-PAYMENT",
+  "XenditPaymentID": "ewc_07d39436-9da1-40d9-8c4b-cf38b8b62232",
+  "PromoEventApplied": "",
+  "PromoDiscountAmount": 0
+},
+{
+  "_id": {
+    "$oid": "692cb963067b66027273a225"
+  },
+  "OrderID": "251201053843916-BLESSINGSCAFE",
+  "Date": "2025-11-30T21:38:43.401Z",
+  "Source": "Website",
+  "Cart": [
+    {
+      "ProductName": "Caramel Coffee",
+      "ProductID": "CF-CAR",
+      "Size": "16oz",
+      "Addons": [
+        {
+          "Name": "Condensed Milk",
+          "IngredientID": "ING-COND",
+          "BasePrice": 15,
+          "Category": "Ingredients"
+        }
+      ],
+      "Quantity": 1,
+      "Price": 59,
+      "ImageLink": "https://blessingsateverysip.me/uploads/products/Caramel-Coffee-1764152020732.webp"
+    }
+  ],
+  "Customer": {
+    "fullname": "Rovic Rod",
+    "email": "banggun10@gmail.com",
+    "contactnumber": "09871267836",
+    "deliveryMethod": "Pick-up",
+    "city": null,
+    "address": null
+  },
+  "Total": 74,
+  "Notes": "",
+  "PaymentStatus": "Paid",
+  "FulfillmentStatus": "Preparing",
+  "FulfillmentMethod": "Pick-up",
+  "PaymentMethod": "EWALLET",
+  "PaymentMode": "E-Payment",
+  "PromoEventApplied": null,
+  "PromoDiscountAmount": null,
+  "InventoryChecked": true,
+  "InventoryCheckedAt": {
+    "$date": "2025-11-30T21:38:43.910Z"
+  },
+  "PaymentUpdatedAt": {
+    "$date": "2025-11-30T21:38:50.675Z"
+  },
+  "XenditPaymentID": "692cb96593cb592c78a9276c",
+  "InventoryDeducted": true,
+  "InventoryDeductedAt": {
+    "$date": "2025-11-30T21:38:51.422Z"
+  },
+  "InventoryDeductions": [
+    {
+      "type": "ingredient",
+      "id": "ING-HAZEL",
+      "name": "Hazelnut Syrup",
+      "gramsDeducted": 30,
+      "gramsPerUnit": 30,
+      "orderItem": "Caramel Coffee",
+      "size": "16oz",
+      "quantity": 1
+    },
+    {
+      "type": "ingredient",
+      "id": "ING-ESP",
+      "name": "Espresso",
+      "gramsDeducted": 50,
+      "gramsPerUnit": 50,
+      "orderItem": "Caramel Coffee",
+      "size": "16oz",
+      "quantity": 1
+    },
+    {
+      "type": "ingredient",
+      "id": "ING-MILK",
+      "name": "Milk",
+      "gramsDeducted": 200,
+      "gramsPerUnit": 200,
+      "orderItem": "Caramel Coffee",
+      "size": "16oz",
+      "quantity": 1
+    },
+    {
+      "type": "ingredient-addon",
+      "id": "ING-COND",
+      "name": "Condensed Milk",
+      "amountDeducted": 10,
+      "deductionQuantityGrams": 10
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "692cf6dee313e035c8ec6a57"
+  },
+  "OrderID": "251201100100464-BLESSINGSCAFE",
+  "Date": "2025-12-01T02:01:00.791Z",
+  "Source": "Website",
+  "Cart": [
+    {
+      "ProductName": "Caramel Coffee",
+      "ProductID": "CF-CAR",
+      "Size": "16oz",
+      "Addons": [],
+      "Quantity": 1,
+      "Price": 59,
+      "ImageLink": "https://blessingsateverysip.me/uploads/products/Caramel-Coffee-1764152020732.webp"
+    }
+  ],
+  "Customer": {
+    "fullname": "Ken Christian",
+    "email": "kendivino6@gmail.com",
+    "contactnumber": "09546786431",
     "deliveryMethod": "Pick-up",
     "city": null,
     "address": null
   },
   "Total": 59,
   "Notes": "",
-  "PaymentStatus": "Pending",
+  "PaymentStatus": "Paid",
   "FulfillmentStatus": "Preparing",
   "FulfillmentMethod": "Pick-up",
-  "PaymentMethod": "GCASH",
+  "PaymentMethod": "EWALLET",
   "PaymentMode": "E-Payment",
-  "XenditPaymentID": "68f7b144f8651a2ea22972c2"
+  "PromoEventApplied": null,
+  "PromoDiscountAmount": null,
+  "InventoryChecked": true,
+  "InventoryCheckedAt": {
+    "$date": "2025-12-01T02:01:02.898Z"
+  },
+  "PaymentUpdatedAt": {
+    "$date": "2025-12-01T02:01:09.335Z"
+  },
+  "XenditPaymentID": "692cf6df93cb592c78a9690e",
+  "InventoryDeducted": true,
+  "InventoryDeductedAt": {
+    "$date": "2025-12-01T02:01:09.409Z"
+  },
+  "InventoryDeductions": [
+    {
+      "type": "ingredient",
+      "id": "ING-HAZEL",
+      "name": "Hazelnut Syrup",
+      "gramsDeducted": 30,
+      "gramsPerUnit": 30,
+      "orderItem": "Caramel Coffee",
+      "size": "16oz",
+      "quantity": 1
+    },
+    {
+      "type": "ingredient",
+      "id": "ING-ESP",
+      "name": "Espresso",
+      "gramsDeducted": 50,
+      "gramsPerUnit": 50,
+      "orderItem": "Caramel Coffee",
+      "size": "16oz",
+      "quantity": 1
+    },
+    {
+      "type": "ingredient",
+      "id": "ING-MILK",
+      "name": "Milk",
+      "gramsDeducted": 200,
+      "gramsPerUnit": 200,
+      "orderItem": "Caramel Coffee",
+      "size": "16oz",
+      "quantity": 1
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "692d53a0b1928fec22c52688"
+  },
+  "OrderID": "12011636-BLESSINGSCAFE",
+  "Date": "2025-12-01T08:36:46.418Z",
+  "Source": "POS",
+  "Cart": [
+    {
+      "ProductName": "Taro Milktea",
+      "ProductID": "MT-TARO",
+      "Size": "16oz",
+      "Addons": [],
+      "Quantity": 1,
+      "Price": 45,
+      "ImageLink": "/uploads/products/Taro-Milktea-1764144786232.webp"
+    }
+  ],
+  "Customer": {
+    "fullname": "Customer#27919",
+    "email": "",
+    "contactnumber": "",
+    "deliveryMethod": "Take-Out"
+  },
+  "Total": 45,
+  "Notes": "",
+  "PaymentStatus": "Payment pending",
+  "FulfillmentStatus": "Preparing",
+  "FulfillmentMethod": "Take-Out",
+  "PaymentMethod": "cash",
+  "PaymentMode": "Cash on Hand",
+  "cashierName": "Red",
+  "insertedAt": {
+    "$date": "2025-12-01T08:36:48.324Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "692d53e7e313e035c8ec6a59"
+  },
+  "OrderID": "251201163756081-BLESSINGSCAFE",
+  "Date": "2025-12-01T08:37:56.967Z",
+  "Source": "Website",
+  "Cart": [
+    {
+      "ProductName": "Caramel Coffee",
+      "ProductID": "CF-CAR",
+      "Size": "16oz",
+      "Addons": [],
+      "Quantity": 1,
+      "Price": 59,
+      "ImageLink": "/uploads/products/Caramel-Coffee-1764152020732.webp"
+    }
+  ],
+  "Customer": {
+    "fullname": "Ken Christian",
+    "email": "kendivino6@gmail.com",
+    "contactnumber": "09546786431",
+    "deliveryMethod": "Pick-up",
+    "city": null,
+    "address": null
+  },
+  "Total": 59,
+  "Notes": "",
+  "PaymentStatus": "Paid",
+  "FulfillmentStatus": "Preparing",
+  "FulfillmentMethod": "Pick-up",
+  "PaymentMethod": "EWALLET",
+  "PaymentMode": "E-Payment",
+  "PromoEventApplied": null,
+  "PromoDiscountAmount": null,
+  "InventoryChecked": true,
+  "InventoryCheckedAt": {
+    "$date": "2025-12-01T08:37:59.196Z"
+  },
+  "PaymentUpdatedAt": {
+    "$date": "2025-12-01T08:38:04.875Z"
+  },
+  "XenditPaymentID": "692d53e793cb592c78a9c333",
+  "InventoryDeducted": true,
+  "InventoryDeductedAt": {
+    "$date": "2025-12-01T08:38:04.937Z"
+  },
+  "InventoryDeductions": [
+    {
+      "type": "ingredient",
+      "id": "ING-HAZEL",
+      "name": "Hazelnut Syrup",
+      "gramsDeducted": 30,
+      "gramsPerUnit": 30,
+      "orderItem": "Caramel Coffee",
+      "size": "16oz",
+      "quantity": 1
+    },
+    {
+      "type": "ingredient",
+      "id": "ING-ESP",
+      "name": "Espresso",
+      "gramsDeducted": 50,
+      "gramsPerUnit": 50,
+      "orderItem": "Caramel Coffee",
+      "size": "16oz",
+      "quantity": 1
+    },
+    {
+      "type": "ingredient",
+      "id": "ING-MILK",
+      "name": "Milk",
+      "gramsDeducted": 200,
+      "gramsPerUnit": 200,
+      "orderItem": "Caramel Coffee",
+      "size": "16oz",
+      "quantity": 1
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "692d5d6ae3a8a0a1106c8e36"
+  },
+  "OrderID": "12011718-BLESSINGSCAFE",
+  "Date": "2025-12-01T09:18:30.347Z",
+  "Source": "POS",
+  "Cart": [
+    {
+      "ProductName": "Okinawa Milktea",
+      "ProductID": "MT-OKI",
+      "Size": "16oz",
+      "Addons": [],
+      "Quantity": 1,
+      "Price": 45,
+      "ImageLink": "https://blessingsateverysip.me/uploads/products/Okinawa-Milktea-1764151469389.webp"
+    }
+  ],
+  "Customer": {
+    "fullname": "Customer#46558",
+    "email": "",
+    "contactnumber": "",
+    "deliveryMethod": "Take-Out"
+  },
+  "Total": 44.1,
+  "Notes": "",
+  "PaymentStatus": "Payment pending",
+  "FulfillmentStatus": "Preparing",
+  "FulfillmentMethod": "Take-Out",
+  "PaymentMethod": "cash",
+  "PaymentMode": "Cash on Hand",
+  "cashierName": "Maria Santos",
+  "insertedAt": {
+    "$date": "2025-12-01T09:18:34.935Z"
+  }
 }]

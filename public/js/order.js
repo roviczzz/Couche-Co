@@ -756,6 +756,17 @@ function closeIngredientModal() {
 
 function showOrderDetails(order, rowIndex) {
   if (isTransitioning) return;
+  if (!order) {
+    console.error('❌ showOrderDetails called with no order');
+    return;
+  }
+  
+  if (!orderDetailPanel) {
+    console.error('❌ orderDetailPanel element not found!');
+    return;
+  }
+  
+  console.log('📋 showOrderDetails called for order:', order.OrderID, 'rowIndex:', rowIndex);
 
   isTransitioning = true;
   currentOrder = order;
@@ -763,7 +774,7 @@ function showOrderDetails(order, rowIndex) {
 
   document.querySelectorAll('.order-row').forEach(r => r.classList.remove('selected'));
 
-  const selectedRow = document.querySelectorAll('.order-row')[rowIndex];
+  const selectedRow = document.querySelector(`.order-row[data-idx="${rowIndex}"]`);
   if (selectedRow) {
     selectedRow.classList.add('selected');
   }
@@ -922,11 +933,14 @@ function showOrderDetails(order, rowIndex) {
 
   orderSummaryContent.innerHTML = summaryHtml;
   setTimeout(() => {
-    initExpandableCards();
-    initProductItemExpansion();
+    if (typeof initExpandableCards === 'function') initExpandableCards();
+    if (typeof initProductItemExpansion === 'function') initProductItemExpansion();
   }, 100);
   orderDetailButtons.style.display = 'flex';
+  
+  console.log('📋 Adding show class to orderDetailPanel');
   orderDetailPanel.classList.add('show');
+  document.body.style.overflow = 'hidden';
 
   const fulfillmentDropdown = document.getElementById('fulfillmentDropdown');
   const fulfillmentMethod = order.FulfillmentMethod || order.fulfillmentMethod || '';
@@ -969,9 +983,9 @@ function hideOrderDetails() {
     orderDetailButtons.style.display = 'none';
 
     if (selectedRowIndex !== null) {
-      const rows = document.querySelectorAll('.order-row');
-      if (rows[selectedRowIndex]) {
-        rows[selectedRowIndex].classList.remove('selected');
+      const selectedRow = document.querySelector(`.order-row[data-idx="${selectedRowIndex}"]`);
+      if (selectedRow) {
+        selectedRow.classList.remove('selected');
       }
       selectedRowIndex = null;
     }
@@ -989,20 +1003,20 @@ function hideOrderDetails() {
 }
 
 function initRowEventListeners() {
-  document.querySelectorAll('.order-row').forEach((row, index) => {
+  document.querySelectorAll('.order-row').forEach((row) => {
     row.addEventListener('click', () => {
       if (isTransitioning) return;
 
       const idx = parseInt(row.dataset.idx, 10);
 
-      if (selectedRowIndex === index) {
+      if (selectedRowIndex === idx) {
         hideOrderDetails();
         return;
       }
 
       if (idx >= 0 && idx < orders.length) {
         const order = orders[idx];
-        showOrderDetails(order, index);
+        showOrderDetails(order, idx);
       }
     });
   });
@@ -1098,9 +1112,10 @@ function renderOrdersTable(showAllOrders = false) {
   ordersToDisplay.forEach((order, index) => {
     const paymentBadge = getPaymentStatusBadge(order.PaymentStatus || order.paymentStatus);
     const fulfillmentBadge = getFulfillmentStatusBadge(order.FulfillmentStatus || order.fulfillmentStatus);
+    const orderIdx = orders.indexOf(order);
 
     ordersTableBody.innerHTML += `
-    <tr class="order-row ${selectedRowIndex === index ? 'selected' : ''}" data-idx="${orders.indexOf(order)}">
+    <tr class="order-row ${selectedRowIndex === orderIdx ? 'selected' : ''}" data-idx="${orderIdx}">
       <td>${order.OrderID || 'N/A'}</td>
       <td>${order.Date ? new Date(order.Date).toLocaleString()
             : order.date ? new Date(order.date).toLocaleString() : 'N/A'}</td>
@@ -2141,3 +2156,89 @@ setInterval(pollOrders, 5000);
 pollOrders();
 
 renderOrdersTable();
+
+// Check for orderId in URL after a short delay to ensure DOM is ready
+setTimeout(function checkUrlForOrderId() {
+    console.log('🚀 checkUrlForOrderId function STARTED');
+    console.log('🚀 Current URL:', window.location.href);
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderId = urlParams.get('orderId');
+    
+    console.log('🚀 Parsed orderId from URL:', orderId);
+    
+    if (!orderId) {
+        console.log('🚀 No orderId in URL, exiting');
+        return;
+    }
+    
+    console.log('🔔 Checking URL for orderId:', orderId);
+    console.log('🔔 Total orders in array:', orders.length);
+    console.log('🔔 First 5 OrderIDs:', orders.slice(0, 5).map(o => o.OrderID));
+    
+    const order = orders.find(o => {
+        const match = String(o.OrderID) === String(orderId);
+        if (match) console.log('✅ MATCH FOUND:', o.OrderID);
+        return match;
+    });
+    
+    if (!order) {
+        console.log('❌ Order not found. Looking for:', orderId);
+        console.log('❌ Available OrderIDs:', orders.map(o => o.OrderID));
+        window.history.replaceState({}, document.title, window.location.pathname);
+        return;
+    }
+    
+    console.log('✅ Order found:', order.OrderID);
+    
+    const orderIndex = orders.indexOf(order);
+    const isCancelled = (order.FulfillmentStatus === 'Cancelled' || order.fulfillmentStatus === 'Cancelled');
+    const paymentCompleted = (order.PaymentStatus || order.paymentStatus || '').toLowerCase() === 'completed';
+    const fulfillmentCompleted = (order.FulfillmentStatus || order.fulfillmentStatus || '').toLowerCase() === 'completed';
+    const isFullyCompleted = paymentCompleted && fulfillmentCompleted;
+    
+    if (isCancelled || isFullyCompleted) {
+        console.log('📋 Order is completed/cancelled, showing details directly');
+        setTimeout(() => {
+            showOrderDetails(order, orderIndex);
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }, 300);
+    } else {
+        const activeOrders = orders.filter(o => {
+            const cancelled = (o.FulfillmentStatus === 'Cancelled' || o.fulfillmentStatus === 'Cancelled');
+            const payComplete = (o.PaymentStatus || o.paymentStatus || '').toLowerCase() === 'completed';
+            const fullComplete = (o.FulfillmentStatus || o.fulfillmentStatus || '').toLowerCase() === 'completed';
+            return !cancelled && !(payComplete && fullComplete);
+        });
+        
+        const activeIndex = activeOrders.findIndex(o => String(o.OrderID) === String(order.OrderID));
+        
+        console.log('📋 Active order index:', activeIndex, 'of', activeOrders.length);
+        
+        if (activeIndex !== -1) {
+            const targetPage = Math.floor(activeIndex / ordersPerPage) + 1;
+            console.log('📄 Target page:', targetPage, 'Current page:', currentPage);
+            
+            if (targetPage !== currentPage) {
+                currentPage = targetPage;
+                renderOrdersTable();
+            }
+            
+            setTimeout(() => {
+                const row = document.querySelector(`.order-row[data-idx="${orderIndex}"]`);
+                console.log('📋 Looking for row with data-idx:', orderIndex, 'Found:', !!row);
+                if (row) {
+                    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                showOrderDetails(order, orderIndex);
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }, 300);
+        } else {
+            console.log('❌ Order not found in active orders, showing anyway');
+            setTimeout(() => {
+                showOrderDetails(order, orderIndex);
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }, 300);
+        }
+    }
+}, 500);

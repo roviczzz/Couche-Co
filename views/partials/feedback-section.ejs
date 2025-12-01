@@ -4,6 +4,7 @@
   <h3>We'd Love Your Feedback</h3>
   <form id="feedback-form" data-page="<%= typeof feedbackPage !== 'undefined' ? feedbackPage : 'unknown' %>">
     <div class="feedback-grid">
+      <% if (typeof feedbackPage !== 'undefined' && feedbackPage === 'order-success') { %>
       <div class="feedback-stars">
         <label id="rating-label">Rate your experience</label>
         <div class="star-rating" role="radiogroup" aria-labelledby="rating-label">
@@ -19,6 +20,7 @@
           <label for="star1" title="Poor">★</label>
         </div>
       </div>
+      <% } %>
 
       <div class="feedback-name">
         <label for="feedback-name">Your name (optional)</label>
