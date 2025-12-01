@@ -1002,3 +1002,358 @@
   }
 }
 
+/* B1T1 and Promo Styles */
+.cart-item-promos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border-color);
+}
+
+.promo-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.promo-btn.b1t1-btn {
+  background: linear-gradient(135deg, #8B4513, #a05c2f);
+  color: white;
+}
+
+.promo-btn.b1t1-btn:hover {
+  background: linear-gradient(135deg, #a05c2f, #b8714d);
+  transform: scale(1.02);
+}
+
+.promo-applied-badge {
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.promo-hint {
+  background: #fff8e1;
+  color: #f57c00;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid #ffe082;
+}
+
+.b1t1-free-badge,
+.b1t1-basis-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.b1t1-free-badge {
+  background: #27ae60;
+  color: white;
+}
+
+.b1t1-basis-badge {
+  background: #3498db;
+  color: white;
+}
+
+.cart-item.b1t1-free {
+  background: linear-gradient(135deg, #f0fff4, #e8f5e9);
+  border: 2px solid #27ae60;
+}
+
+.cart-item.b1t1-basis {
+  background: linear-gradient(135deg, #f0f8ff, #e3f2fd);
+  border: 2px solid #3498db;
+}
+
+/* B1T1 Modal Styles */
+.b1t1-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.b1t1-modal {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 450px;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.b1t1-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #8B4513, #a05c2f);
+  color: white;
+}
+
+.b1t1-modal-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.b1t1-modal-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.b1t1-modal-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.b1t1-modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.b1t1-basis-info {
+  background: #f8f4f0;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.b1t1-instruction {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.b1t1-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.b1t1-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #f9f9f9;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.b1t1-option:hover {
+  background: #fff;
+  border-color: var(--primary-color);
+  transform: translateX(4px);
+}
+
+.b1t1-option-img {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.b1t1-option-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.b1t1-option-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.b1t1-option-size {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.b1t1-option-price {
+  font-weight: 600;
+  color: var(--primary-color);
+  font-size: 0.9rem;
+}
+
+.b1t1-empty {
+  text-align: center;
+  padding: 30px 20px;
+  color: var(--text-secondary);
+}
+
+.b1t1-modal-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.b1t1-cancel-btn {
+  padding: 10px 24px;
+  background: #f0f0f0;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.b1t1-cancel-btn:hover {
+  background: #e0e0e0;
+}
+
+@media (max-width: 480px) {
+  .cart-item-promos {
+    flex-direction: column;
+  }
+
+  .promo-btn,
+  .promo-applied-badge,
+  .promo-hint {
+    width: 100%;
+    text-align: center;
+  }
+
+  .b1t1-modal {
+    max-height: 90vh;
+  }
+
+  .b1t1-option {
+    padding: 10px;
+  }
+
+  .b1t1-option-img {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* Promo Toast Notification */
+.promo-toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  color: white;
+  padding: 16px 24px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 8px 30px rgba(39, 174, 96, 0.4);
+  z-index: 10001;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  max-width: 90%;
+}
+
+.promo-toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+.promo-toast-icon {
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.promo-toast-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.promo-toast-title {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.promo-toast-message {
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+@media (max-width: 480px) {
+  .promo-toast {
+    bottom: 20px;
+    padding: 14px 18px;
+    gap: 12px;
+  }
+
+  .promo-toast-icon {
+    width: 30px;
+    height: 30px;
+    font-size: 1rem;
+  }
+
+  .promo-toast-title {
+    font-size: 0.9rem;
+  }
+
+  .promo-toast-message {
+    font-size: 0.8rem;
+  }
+}

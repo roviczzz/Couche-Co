@@ -227,13 +227,13 @@ function populateItemsCard() {
     const itemTotal = (parseFloat(item.price) + addonsTotal) * parseInt(item.quantity);
 
     itemsHTML += `
-      <div class="cart-item ${isSelected ? 'selected' : ''}" data-index="${index}" data-product-id="${item.productId}" data-item-key="${itemKey}">
+      <div class="cart-item ${isSelected ? 'selected' : ''} ${item.isB1T1 ? 'b1t1-free' : ''} ${item.b1t1Used ? 'b1t1-basis' : ''}" data-index="${index}" data-product-id="${item.productId}" data-item-key="${itemKey}">
         <div class="cart-item-checkbox-container">
           <input type="checkbox" class="cart-item-checkbox" ${isSelected ? 'checked' : ''} data-item-key="${itemKey}" aria-label="Select ${item.name}">
         </div>
         <img src="${item.imagelink || '/resources/coffee-icon.png'}" alt="${item.name}" class="cart-item-image">
         <div class="cart-item-info">
-          <h4>${item.name}</h4>
+          <h4>${item.name} ${item.isB1T1 ? '<span class="b1t1-free-badge">FREE (B1T1)</span>' : ''} ${item.b1t1Used ? '<span class="b1t1-basis-badge">B1T1 Basis</span>' : ''}</h4>
           <p>${item.category || 'N/A'}</p>
           ${item.size ? `<p>Size: <strong>${item.size}</strong></p>` : ''}
           ${addonsList.length > 0 ? `
@@ -255,6 +255,7 @@ function populateItemsCard() {
               <span>Item Total:</span>
               <span>₱${itemTotal.toFixed(2)}</span>
             </div>
+            ${getPromoButtons(item, index)}
           </div>
         </div>
         <div class="cart-item-actions">
@@ -291,11 +292,47 @@ function attachCheckboxHandlers() {
   checkboxes.forEach(checkbox => {
     checkbox.addEventListener('change', function() {
       const itemKey = this.dataset.itemKey;
+      const index = parseInt(this.closest('.cart-item').dataset.index);
+      const item = orderItems[index];
+
       if (this.checked) {
         selectedItems.add(itemKey);
+
+        if (item && item.b1t1Used && typeof item.b1t1PairIndex !== 'undefined') {
+          const pairItem = orderItems[item.b1t1PairIndex];
+          if (pairItem) {
+            const pairKey = generateItemKey(pairItem, item.b1t1PairIndex);
+            selectedItems.add(pairKey);
+          }
+        }
+
+        if (item && item.isB1T1 && typeof item.b1t1BasisIndex !== 'undefined') {
+          const basisItem = orderItems[item.b1t1BasisIndex];
+          if (basisItem) {
+            const basisKey = generateItemKey(basisItem, item.b1t1BasisIndex);
+            selectedItems.add(basisKey);
+          }
+        }
       } else {
         selectedItems.delete(itemKey);
+
+        if (item && item.b1t1Used && typeof item.b1t1PairIndex !== 'undefined') {
+          const pairItem = orderItems[item.b1t1PairIndex];
+          if (pairItem) {
+            const pairKey = generateItemKey(pairItem, item.b1t1PairIndex);
+            selectedItems.delete(pairKey);
+          }
+        }
+
+        if (item && item.isB1T1 && typeof item.b1t1BasisIndex !== 'undefined') {
+          const basisItem = orderItems[item.b1t1BasisIndex];
+          if (basisItem) {
+            const basisKey = generateItemKey(basisItem, item.b1t1BasisIndex);
+            selectedItems.delete(basisKey);
+          }
+        }
       }
+
       saveSelectedItems();
       displayCartLayout();
       updateCartTotal();
@@ -312,7 +349,9 @@ function attachCartItemClickHandlers() {
       if (event.target.closest('.remove-btn') ||
           event.target.closest('.quantity-btn') ||
           event.target.closest('.quantity-input') ||
-          event.target.closest('.cart-item-checkbox')) {
+          event.target.closest('.cart-item-checkbox') ||
+          event.target.closest('.promo-btn') ||
+          event.target.closest('.cart-item-promos')) {
         return;
       }
 
@@ -384,8 +423,44 @@ function removeItem(index) {
   const itemToRemove = orderItems[index];
   const itemKey = generateItemKey(itemToRemove, index);
 
+  // Handle B1T1 removal - clear paired item's B1T1 status
+  if (itemToRemove.b1t1Used && typeof itemToRemove.b1t1PairIndex !== 'undefined') {
+    const pairIndex = itemToRemove.b1t1PairIndex;
+    const pairedItem = orderItems[pairIndex];
+    if (pairedItem && pairedItem.isB1T1) {
+      pairedItem.isB1T1 = false;
+      pairedItem.isFree = false;
+      pairedItem.price = pairedItem.originalPrice || pairedItem.price;
+      delete pairedItem.originalPrice;
+      delete pairedItem.b1t1BasisIndex;
+    }
+  }
+
+  if (itemToRemove.isB1T1 && typeof itemToRemove.b1t1BasisIndex !== 'undefined') {
+    const basisIndex = itemToRemove.b1t1BasisIndex;
+    const basisItem = orderItems[basisIndex];
+    if (basisItem && basisItem.b1t1Used) {
+      basisItem.b1t1Used = false;
+      delete basisItem.b1t1PairIndex;
+    }
+  }
+
   orderItems.splice(index, 1);
   selectedItems.delete(itemKey);
+
+  // Update B1T1 pair indices after removal
+  orderItems.forEach((item, newIndex) => {
+    if (item.b1t1PairIndex !== undefined) {
+      if (item.b1t1PairIndex > index) {
+        item.b1t1PairIndex--;
+      }
+    }
+    if (item.b1t1BasisIndex !== undefined) {
+      if (item.b1t1BasisIndex > index) {
+        item.b1t1BasisIndex--;
+      }
+    }
+  });
 
   const newSelectedItems = new Set();
   orderItems.forEach((item, newIndex) => {
@@ -414,7 +489,16 @@ function removeItem(index) {
 function updateCheckoutButtonState() {
   const checkoutBtn = document.getElementById('checkout-btn');
   if (!checkoutBtn) return;
-  if (selectedItems.size === 0) {
+
+  let hasNonFreeItem = false;
+  orderItems.forEach((item, index) => {
+    const itemKey = generateItemKey(item, index);
+    if (selectedItems.has(itemKey) && !item.isB1T1 && !item.isFree) {
+      hasNonFreeItem = true;
+    }
+  });
+
+  if (selectedItems.size === 0 || !hasNonFreeItem) {
     checkoutBtn.disabled = true;
     checkoutBtn.classList.add('disabled');
     checkoutBtn.setAttribute('aria-disabled', 'true');
@@ -433,17 +517,359 @@ function updateCartTotal() {
 
   if (!totalEl) return;
 
-  let subtotal = 0;
+  const selectedOrderItems = [];
   orderItems.forEach((item, index) => {
     const itemKey = generateItemKey(item, index);
     if (selectedItems.has(itemKey) && !item.isFree) {
-      const addonsTotal = item.addons ? item.addons.reduce((sum, ad) => sum + (parseFloat(ad.BasePrice || ad.basePrice) || 0), 0) : 0;
-      subtotal += (parseFloat(item.price) + addonsTotal) * parseInt(item.quantity);
+      selectedOrderItems.push(item);
     }
   });
 
-  const finalTotal = subtotal;
+  const finalTotal = calculatePromotionalTotal(selectedOrderItems);
   totalEl.textContent = '₱' + finalTotal.toFixed(2);
+
+  const savings = calculateBuy3For143Savings(selectedOrderItems);
+  if (savings > 0) {
+    showPromoSavings(savings);
+  } else {
+    hidePromoSavings();
+  }
+}
+
+function checkBuy3For143(items) {
+  let milkteaCount = 0;
+  items.forEach(item => {
+    if (item.isB1T1 || item.b1t1Used) return;
+    if (item.category === 'Milktea') {
+      milkteaCount += item.quantity || 1;
+    }
+  });
+  return Math.floor(milkteaCount / 3);
+}
+
+function calculateBuy3For143Savings(items) {
+  const promoSets = checkBuy3For143(items);
+  if (promoSets === 0) return 0;
+
+  let milkteaItems = [];
+  items.forEach(item => {
+    if (item.isB1T1 || item.b1t1Used) return;
+    if (item.category === 'Milktea') {
+      milkteaItems.push(item);
+    }
+  });
+
+  let totalMilkteaCount = 0;
+  milkteaItems.forEach(item => {
+    totalMilkteaCount += item.quantity || 1;
+  });
+
+  const completeSets = Math.floor(totalMilkteaCount / 3);
+  if (completeSets === 0) return 0;
+
+  const allMilktea = [];
+  milkteaItems.forEach(item => {
+    for (let i = 0; i < (item.quantity || 1); i++) {
+      allMilktea.push({ price: parseFloat(item.price) || 0 });
+    }
+  });
+
+  allMilktea.sort((a, b) => a.price - b.price);
+
+  let totalSavings = 0;
+  for (let setIndex = 0; setIndex < completeSets; setIndex++) {
+    const setStart = setIndex * 3;
+    const setDrinks = allMilktea.slice(setStart, setStart + 3);
+    const normalSetPrice = setDrinks.reduce((sum, drink) => sum + drink.price, 0);
+    if (normalSetPrice > 143) {
+      totalSavings += normalSetPrice - 143;
+    }
+  }
+
+  return totalSavings;
+}
+
+function calculatePromotionalTotal(items) {
+  let total = 0;
+  const promoSets = checkBuy3For143(items);
+
+  if (promoSets > 0) {
+    let milkteaItems = [];
+    let otherItems = [];
+    let b1t1Items = [];
+
+    items.forEach(item => {
+      if (item.isB1T1 || item.b1t1Used) {
+        b1t1Items.push(item);
+      } else if (item.category === 'Milktea') {
+        milkteaItems.push(item);
+      } else {
+        otherItems.push(item);
+      }
+    });
+
+    let totalMilkteaCount = 0;
+    milkteaItems.forEach(item => {
+      totalMilkteaCount += item.quantity || 1;
+    });
+
+    const completeSets = Math.floor(totalMilkteaCount / 3);
+    let milkteaTotal = 0;
+
+    if (completeSets > 0) {
+      const allMilktea = [];
+      milkteaItems.forEach(item => {
+        const addonsTotal = item.addons ? item.addons.reduce((sum, ad) => sum + (parseFloat(ad.BasePrice || ad.basePrice) || 0), 0) : 0;
+        for (let i = 0; i < (item.quantity || 1); i++) {
+          allMilktea.push({
+            price: parseFloat(item.price) || 0,
+            addonsTotal: addonsTotal
+          });
+        }
+      });
+
+      allMilktea.sort((a, b) => a.price - b.price);
+
+      for (let setIndex = 0; setIndex < completeSets; setIndex++) {
+        const setStart = setIndex * 3;
+        const setDrinks = allMilktea.slice(setStart, setStart + 3);
+        const normalSetPrice = setDrinks.reduce((sum, drink) => sum + drink.price, 0);
+        const setAddonsTotal = setDrinks.reduce((sum, drink) => sum + drink.addonsTotal, 0);
+        if (normalSetPrice > 143) {
+          milkteaTotal += 143 + setAddonsTotal;
+        } else {
+          milkteaTotal += normalSetPrice + setAddonsTotal;
+        }
+      }
+
+      for (let i = completeSets * 3; i < allMilktea.length; i++) {
+        milkteaTotal += allMilktea[i].price + allMilktea[i].addonsTotal;
+      }
+    } else {
+      milkteaItems.forEach(item => {
+        const addonsTotal = item.addons ? item.addons.reduce((sum, ad) => sum + (parseFloat(ad.BasePrice || ad.basePrice) || 0), 0) : 0;
+        milkteaTotal += (parseFloat(item.price) + addonsTotal) * (item.quantity || 1);
+      });
+    }
+
+    otherItems.forEach(item => {
+      const addonsTotal = item.addons ? item.addons.reduce((sum, ad) => sum + (parseFloat(ad.BasePrice || ad.basePrice) || 0), 0) : 0;
+      total += (parseFloat(item.price) + addonsTotal) * (item.quantity || 1);
+    });
+
+    total += milkteaTotal;
+
+    b1t1Items.forEach(item => {
+      if (item.b1t1Used) {
+        const b1t1Price = item.size === '16oz' ? 79 : 99;
+        total += b1t1Price;
+      }
+    });
+  } else {
+    items.forEach(item => {
+      if (item.b1t1Used) {
+        const b1t1Price = item.size === '16oz' ? 79 : 99;
+        total += b1t1Price;
+      } else if (item.isB1T1) {
+        // Free drink
+      } else {
+        const addonsTotal = item.addons ? item.addons.reduce((sum, ad) => sum + (parseFloat(ad.BasePrice || ad.basePrice) || 0), 0) : 0;
+        total += (parseFloat(item.price) + addonsTotal) * (item.quantity || 1);
+      }
+    });
+  }
+
+  return total;
+}
+
+function showPromoSavings(savings) {
+  let savingsEl = document.getElementById('promo-savings');
+  if (!savingsEl) {
+    const totalEl = document.getElementById('final-total');
+    if (totalEl) {
+      savingsEl = document.createElement('div');
+      savingsEl.id = 'promo-savings';
+      savingsEl.style.cssText = 'color: #27ae60; font-size: 0.85rem; font-weight: 600; margin-top: 8px; display: flex; align-items: center; justify-content: flex-end; gap: 6px;';
+      totalEl.closest('.cart-total-row').insertAdjacentElement('afterend', savingsEl);
+    }
+  }
+  if (savingsEl) {
+    savingsEl.innerHTML = `🎉 Buy 3 for ₱143 - You save ₱${savings.toFixed(2)}!`;
+    savingsEl.style.display = 'flex';
+  }
+}
+
+function hidePromoSavings() {
+  const savingsEl = document.getElementById('promo-savings');
+  if (savingsEl) {
+    savingsEl.style.display = 'none';
+  }
+}
+
+function getPromoButtons(item, index) {
+  if (item.isB1T1 || item.b1t1Used) return '';
+
+  let buttons = '';
+  const isB1T1Eligible = (
+    (item.size === '16oz' && (item.category === 'Coffee' || item.category === 'Milktea')) ||
+    (item.size === '22oz' && item.category === 'Milktea')
+  );
+
+  if (isB1T1Eligible) {
+    const b1t1Price = item.size === '16oz' ? 79 : 99;
+    buttons += `<button class="promo-btn b1t1-btn" onclick="showB1T1Modal('${item.category}', '${item.size}', ${index})" title="Buy 1 Take 1">🛍️ B1T1 (Pair: ₱${b1t1Price})</button>`;
+  }
+
+  if (item.category === 'Milktea') {
+    const currentMilkteaCount = countMilkteaInCart();
+    if (currentMilkteaCount >= 3) {
+      buttons += `<div class="promo-applied-badge">🎉 Buy 3 for ₱143 Applied!</div>`;
+    } else {
+      const needed = 3 - currentMilkteaCount;
+      buttons += `<div class="promo-hint">Add ${needed} more Milktea for Buy 3 for ₱143!</div>`;
+    }
+  }
+
+  return buttons ? `<div class="cart-item-promos">${buttons}</div>` : '';
+}
+
+function countMilkteaInCart() {
+  let count = 0;
+  orderItems.forEach((item, index) => {
+    const itemKey = generateItemKey(item, index);
+    if (selectedItems.has(itemKey) && !item.isB1T1 && !item.b1t1Used && item.category === 'Milktea') {
+      count += item.quantity || 1;
+    }
+  });
+  return count;
+}
+
+function showB1T1Modal(category, basisSize, basisIndex) {
+  const basisItem = orderItems[basisIndex];
+  if (!basisItem) return;
+
+  const eligibleItems = [];
+  orderItems.forEach((item, idx) => {
+    if (idx === basisIndex) return;
+    if (item.isB1T1 || item.b1t1Used) return;
+    if (item.size !== basisSize) return;
+
+    let isEligible = false;
+    if (basisSize === '16oz') {
+      isEligible = item.category === 'Coffee' || item.category === 'Milktea';
+    } else if (basisSize === '22oz') {
+      isEligible = item.category === 'Milktea';
+    }
+
+    if (isEligible) {
+      eligibleItems.push({ item, index: idx });
+    }
+  });
+
+  const b1t1Price = basisSize === '16oz' ? 79 : 99;
+
+  let modalContent = `
+    <div class="b1t1-modal-overlay" id="b1t1-modal">
+      <div class="b1t1-modal">
+        <div class="b1t1-modal-header">
+          <h3>🛍️ Buy 1 Take 1 - ₱${b1t1Price}</h3>
+          <button class="b1t1-modal-close" onclick="closeB1T1Modal()">&times;</button>
+        </div>
+        <div class="b1t1-modal-body">
+          <p class="b1t1-basis-info">Basis: <strong>${basisItem.name}</strong> (${basisSize})</p>
+          <p class="b1t1-instruction">Select a drink to pair:</p>
+  `;
+
+  if (eligibleItems.length === 0) {
+    modalContent += `
+      <div class="b1t1-empty">
+        <p>No eligible items in your cart for B1T1 pairing.</p>
+        <p style="font-size: 0.85rem; color: var(--text-secondary);">Add another ${basisSize} ${basisSize === '22oz' ? 'Milktea' : 'Coffee or Milktea'} to your cart first.</p>
+      </div>
+    `;
+  } else {
+    modalContent += `<div class="b1t1-options">`;
+    eligibleItems.forEach(({ item, index }) => {
+      modalContent += `
+        <div class="b1t1-option" onclick="applyB1T1(${basisIndex}, ${index})">
+          <img src="${item.imagelink || '/resources/coffee-icon.png'}" alt="${item.name}" class="b1t1-option-img">
+          <div class="b1t1-option-info">
+            <span class="b1t1-option-name">${item.name}</span>
+            <span class="b1t1-option-size">${item.size} - ${item.category}</span>
+          </div>
+          <span class="b1t1-option-price">₱${parseFloat(item.price).toFixed(2)}</span>
+        </div>
+      `;
+    });
+    modalContent += `</div>`;
+  }
+
+  modalContent += `
+        </div>
+        <div class="b1t1-modal-footer">
+          <button class="b1t1-cancel-btn" onclick="closeB1T1Modal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', modalContent);
+}
+
+function closeB1T1Modal() {
+  const modal = document.getElementById('b1t1-modal');
+  if (modal) modal.remove();
+}
+
+function applyB1T1(basisIndex, freeIndex) {
+  const basisItem = orderItems[basisIndex];
+  const freeItem = orderItems[freeIndex];
+
+  if (!basisItem || !freeItem) {
+    closeB1T1Modal();
+    return;
+  }
+
+  basisItem.b1t1Used = true;
+  basisItem.b1t1PairIndex = freeIndex;
+
+  freeItem.isB1T1 = true;
+  freeItem.isFree = true;
+  freeItem.b1t1BasisIndex = basisIndex;
+  freeItem.originalPrice = freeItem.price;
+  freeItem.price = 0;
+
+  closeB1T1Modal();
+  saveCart();
+  displayCartLayout();
+  updateCartTotal();
+
+  showPromoToast('🎉 B1T1 Applied!', 'Your paired drink is now free.');
+}
+
+function showPromoToast(title, message) {
+  let toast = document.getElementById('promo-toast');
+  if (toast) toast.remove();
+
+  toast = document.createElement('div');
+  toast.id = 'promo-toast';
+  toast.className = 'promo-toast';
+  toast.innerHTML = `
+    <div class="promo-toast-icon">✓</div>
+    <div class="promo-toast-content">
+      <div class="promo-toast-title">${title}</div>
+      <div class="promo-toast-message">${message}</div>
+    </div>
+  `;
+
+  document.body.appendChild(toast);
+
+  setTimeout(() => toast.classList.add('show'), 10);
+
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
 }
 
 function saveCart() {

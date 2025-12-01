@@ -345,12 +345,13 @@ router.get('/menu', async (req, res) => {
     // Using shared DB connection from req.db
     const currentUser = await req.db.collection('users').findOne({ _id: new ObjectId(req.session.user._id) });
     
-    // Fetch menu items, addons, ingredients, and active promos
-    const [menu, addons, ingredients, activePromos] = await Promise.all([
+    // Fetch menu items, addons, ingredients, active promos, and category recommendations
+    const [menu, addons, ingredients, activePromos, categoryRecommendations] = await Promise.all([
       getMenu(req.db),
       req.db.collection('Add-ons').find({ isEnabled: true }).toArray(),
       req.db.collection('Ingredients').find({ isEnabled: true }).toArray(),
-      getActiveDiscounts(req.db)
+      getActiveDiscounts(req.db),
+      req.db.collection('CategoryRecommendations').find().toArray()
     ]);
 
     // Merge session data with fresh database data
@@ -366,7 +367,8 @@ router.get('/menu', async (req, res) => {
       menuItems: menu,
       addons,
       ingredients,
-      activePromos
+      activePromos,
+      categoryRecommendations
     });
   } catch (error) {
     console.error('Staff Menu error:', error);
