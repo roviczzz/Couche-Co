@@ -8,6 +8,24 @@ A capstone output for Blessings Cafe located in Imus City, Cavite. Presented to 
 
 [Blessings Cafe](https://blessingsateverysip.me/)
 
+## Deployment Instructions
+
+### Linux VPS Setup
+
+For PDF report generation to work on Linux VPS, you must install Chromium/Puppeteer system dependencies:
+
+```bash
+bash scripts/install-puppeteer-deps.sh
+```
+
+This script installs all required libraries for Puppeteer to launch headless Chrome, including:
+- libatk-1.0-0, libgtk-3-0, libnss3, libx11-6
+- And 30+ other system libraries
+
+Run this **once after provisioning your VPS**, before starting the Node.js server.
+
+### Local Development
+
 #### Deploying:
 
 1. Install prerequisite modules:
@@ -23,6 +41,8 @@ Create a `.env` file with:
 ```
 MONGODB_URI=your_mongodb_connection_string
 XENDIT_SECRET_KEY=your_xendit_key
+SESSION_SECRET=your_session_secret
+JWT_SECRET=your_jwt_secret
 ```
 
 3. Run website
