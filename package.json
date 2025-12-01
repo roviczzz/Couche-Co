@@ -13,6 +13,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@sendgrid/mail": "^8.1.6",
     "axios": "^1.13.2",
     "bcrypt": "^6.0.0",
     "chartjs-plugin-zoom": "^2.2.0",
@@ -26,12 +27,14 @@
     "express-session": "^1.18.2",
     "express-validator": "^7.2.1",
     "form-data": "^4.0.4",
+    "googleapis": "^166.0.0",
     "mongodb": "^6.17.0",
     "multer": "^2.0.2",
     "node-cron": "^4.2.1",
     "nodemailer": "^7.0.10",
     "puppeteer": "^24.29.1",
     "qrcode": "^1.5.4",
+    "resend": "^6.5.2",
     "serve-favicon": "^2.5.1"
   },
   "description": "",

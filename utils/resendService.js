@@ -186,154 +186,123 @@ const generateEmailTemplate = (order, customerName) => {
           margin: 30px 0;
           padding: 15px 20px;
           background-color: #faf8f6;
+          border-radius: 5px;
           border-left: 4px solid #a05c2f;
-          border-radius: 4px;
         }
         .fulfillment-label {
-          color: #8b4a26;
+          color: #999;
           font-size: 11px;
           text-transform: uppercase;
           margin-bottom: 6px;
           font-weight: 600;
+          letter-spacing: 0.5px;
         }
         .fulfillment-value {
+          color: #372b2a;
           font-size: 16px;
           font-weight: 600;
-          color: #372b2a;
         }
-        .qr-section {
+        .qr-code {
+          margin: 30px 0;
           text-align: center;
-          margin: 35px 0;
-          padding: 25px;
-          background-color: #faf8f6;
-          border-radius: 8px;
         }
-        .qr-section img {
-          width: 120px;
-          height: 120px;
+        .qr-code img {
+          width: 200px;
+          height: 200px;
+          border: 2px solid #a05c2f;
           border-radius: 8px;
-          border: 2px solid #e8e8e8;
-        }
-        .qr-label {
-          color: #8b4a26;
-          font-size: 12px;
-          margin-top: 12px;
-          font-weight: 600;
+          padding: 10px;
+          background: white;
         }
         .footer {
-          background-color: #372b2a;
-          padding: 30px;
+          background-color: #faf8f6;
+          padding: 20px;
           text-align: center;
-          border-top: 1px solid #e8e8e8;
           font-size: 12px;
-          color: #ccc;
-        }
-        .footer-brand {
-          margin: 0 0 15px 0;
-          color: #a05c2f;
-          font-size: 16px;
-          font-weight: 700;
-        }
-        .footer p {
-          margin: 8px 0;
-          line-height: 1.4;
-        }
-        .footer-note {
-          margin-top: 15px;
           color: #999;
-          font-size: 11px;
+          border-top: 1px solid #e8e8e8;
+          margin-top: 30px;
         }
-        @media (max-width: 480px) {
-          .content {
-            padding: 20px;
-          }
-          .header {
-            padding: 25px 20px;
-          }
-          .header h1 {
-            font-size: 24px;
-          }
-          .order-meta {
-            grid-template-columns: 1fr;
-            gap: 15px;
-          }
-          table {
-            font-size: 13px;
-          }
+        .footer a {
+          color: #a05c2f;
+          text-decoration: none;
+        }
+        .footer a:hover {
+          text-decoration: underline;
         }
       </style>
     </head>
     <body>
       <div class="container">
         <div class="header">
-          <h1>Blessings Café</h1>
-          <p class="header-subtitle">Order Receipt</p>
+          <h1>Order Confirmation</h1>
+          <div class="header-subtitle">Thank You for Your Order</div>
         </div>
-        
         <div class="content">
           <div class="greeting">
-            Hi <strong>${customerName}</strong>, thank you for your order!
+            Thank you <strong>${customerName}</strong> for your order! Your receipt is below.
           </div>
-          
           <div class="order-meta">
             <div class="meta-item">
-              <div class="meta-label">Order Number</div>
+              <div class="meta-label">Order ID</div>
               <div class="meta-value">#${order.OrderID}</div>
             </div>
             <div class="meta-item">
-              <div class="meta-label">Date</div>
-              <div class="meta-value date">${new Date(order.Date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+              <div class="meta-label">Status</div>
+              <div style="margin-top: 6px;"><span class="status-badge">${order.FulfillmentStatus}</span></div>
             </div>
             <div class="meta-item">
-              <div class="meta-label">Status</div>
-              <div style="margin-top: 8px;"><span class="status-badge">${order.FulfillmentStatus}</span></div>
+              <div class="meta-label">Order Date</div>
+              <div class="meta-value date">${new Date(order.CreatedAt).toLocaleDateString()}</div>
             </div>
           </div>
-
-          <h2 class="section-title">Order Items</h2>
+          <div class="section-title">Order Items</div>
           <table>
             <thead>
               <tr>
                 <th>Item</th>
-                <th class="text-center" style="width: 60px;">Qty</th>
-                <th class="text-right" style="width: 80px;">Price</th>
-                <th class="text-right" style="width: 80px;">Subtotal</th>
+                <th class="text-center">Qty</th>
+                <th class="text-right">Unit Price</th>
+                <th class="text-right">Subtotal</th>
               </tr>
             </thead>
             <tbody>
               ${itemsHTML}
             </tbody>
           </table>
-
           ${addOnsHTML}
-
-          <div class="summary">
-            <div class="summary-row subtotal">
-              <span class="label">Subtotal</span>
-              <span>₱${(order.Total || 0).toFixed(2)}</span>
-            </div>
-            <div class="summary-row total">
-              <span>Total Amount</span>
-              <span>₱${order.Total.toFixed(2)}</span>
-            </div>
-          </div>
-
           <div class="fulfillment">
             <div class="fulfillment-label">Fulfillment Method</div>
-            <div class="fulfillment-value">${fulfillmentMethod === 'Delivery' ? 'Delivery' : 'Pickup'}</div>
+            <div class="fulfillment-value">${fulfillmentMethod}</div>
           </div>
-
-          <div class="qr-section">
+          <div class="summary">
+            <div class="summary-row subtotal">
+              <span class="label">Subtotal:</span>
+              <span>₱${(order.Subtotal || order.Cart.reduce((sum, item) => sum + (item.Subtotal || item.Quantity * (item.Price || item.unitPrice)), 0)).toFixed(2)}</span>
+            </div>
+            ${order.DiscountAmount ? `<div class="summary-row"><span class="label">Discount:</span><span>-₱${order.DiscountAmount.toFixed(2)}</span></div>` : ''}
+            <div class="summary-row">
+              <span class="label">Delivery:</span>
+              <span>₱${(order.DeliveryFee || 0).toFixed(2)}</span>
+            </div>
+            <div class="summary-row total">
+              <span>Total</span>
+              <span>₱${(order.TotalPrice || order.Total).toFixed(2)}</span>
+            </div>
+          </div>
+          <div class="qr-code">
+            <div class="section-title" style="text-align: center; margin: 20px 0 15px 0;">Order QR Code</div>
             <img src="cid:qrcode" alt="Order QR Code">
-            <div class="qr-label">Scan QR to track your order</div>
+            <div style="margin-top: 10px; font-size: 12px; color: #999;">Scan to track your order</div>
           </div>
         </div>
-
         <div class="footer">
-          <div class="footer-brand">Blessings Café</div>
-          <p>We appreciate your order! Your satisfaction is our priority.</p>
-          <p style="margin-top: 20px; border-top: 1px solid #555; padding-top: 15px;">For inquiries or feedback, please contact us through the website.</p>
-          <p class="footer-note">This is an automated message. Please do not reply directly.</p>
+          <p style="margin: 0 0 10px 0;">
+            Questions? Contact us at <a href="mailto:support@blessingsateverysip.me">support@blessingsateverysip.me</a>
+          </p>
+          <p style="margin: 0;">
+            © 2024 Blessings Café. All rights reserved.
+          </p>
         </div>
       </div>
     </body>
@@ -356,11 +325,10 @@ const generateQRCode = async (orderId) => {
 
 const sendOrderReceipt = async (order, customerEmail, customerName) => {
   try {
-    console.log(`[EMAILSVC] Starting email send. Email: ${customerEmail}, Order: ${order.OrderID}, Customer: ${customerName}`);
+    console.log(`[RESEND] Starting email send. Email: ${customerEmail}, Order: ${order.OrderID}, Customer: ${customerName}`);
     
     if (!process.env.RESEND_API_KEY) {
-      console.error('[EMAILSVC] Resend API key not configured in environment variables');
-      console.error(`[EMAILSVC] RESEND_API_KEY: ${process.env.RESEND_API_KEY ? 'SET' : 'NOT SET'}`);
+      console.error('[RESEND] Resend API key not configured in environment variables');
       return {
         success: false,
         error: 'Email service not configured'
@@ -368,22 +336,24 @@ const sendOrderReceipt = async (order, customerEmail, customerName) => {
     }
 
     if (!process.env.RESEND_FROM_EMAIL) {
-      console.error('[EMAILSVC] Resend from email not configured in environment variables');
+      console.error('[RESEND] Resend from email not configured in environment variables');
       return {
         success: false,
         error: 'Email service not properly configured'
       };
     }
 
-    console.log(`[EMAILSVC] Generating QR code for order ${order.OrderID}`);
+    console.log(`[RESEND] Generating QR code for order ${order.OrderID}`);
     const qrCodeDataUrl = await generateQRCode(order.OrderID);
-    console.log(`[EMAILSVC] QR code generated successfully`);
+    console.log(`[RESEND] QR code generated successfully`);
     
-    console.log(`[EMAILSVC] Generating email template`);
+    console.log(`[RESEND] Generating email template`);
     const emailHTML = generateEmailTemplate(order, customerName);
-    console.log(`[EMAILSVC] Email template generated (length: ${emailHTML.length})`);
+    console.log(`[RESEND] Email template generated (length: ${emailHTML.length})`);
 
-    const mailOptions = {
+    console.log(`[RESEND] Attempting to send email via Resend...`);
+    
+    const response = await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL,
       to: customerEmail,
       subject: `Order Receipt #${order.OrderID} - Blessings Café`,
@@ -395,31 +365,28 @@ const sendOrderReceipt = async (order, customerEmail, customerName) => {
           encoding: 'base64'
         }
       ]
-    };
+    });
 
-    console.log(`[EMAILSVC] Attempting to send email via Resend...`);
-    const result = await resend.emails.send(mailOptions);
-    
-    if (result.error) {
-      console.error(`❌ [EMAILSVC] Resend error:`, result.error);
+    if (response.error) {
+      console.error(`❌ [RESEND] Error sending email:`, response.error);
       return {
         success: false,
-        error: result.error.message || 'Failed to send email'
+        error: response.error.message || 'Failed to send email'
       };
     }
 
-    console.log(`✅ [EMAILSVC] Email sent successfully! MessageID: ${result.data.id}`);
+    console.log(`✅ [RESEND] Email sent successfully! MessageID: ${response.data.id}`);
     console.log(`✅ Order receipt sent to ${customerEmail} for order ${order.OrderID}`);
     
     return {
       success: true,
-      messageId: result.data.id
+      messageId: response.data.id
     };
   } catch (error) {
-    console.error(`❌ [EMAILSVC] Error sending order receipt to ${customerEmail}:`, error);
-    console.error(`❌ [EMAILSVC] Error details:`, {
+    console.error(`❌ [RESEND] Error sending order receipt to ${customerEmail}:`, error);
+    console.error(`❌ [RESEND] Error details:`, {
       message: error.message,
-      code: error.code
+      stack: error.stack
     });
     return {
       success: false,
@@ -431,13 +398,13 @@ const sendOrderReceipt = async (order, customerEmail, customerName) => {
 const verifyEmailConnection = async () => {
   try {
     if (!process.env.RESEND_API_KEY) {
-      console.error('[EMAILSVC] Resend API key not configured');
+      console.error('Resend API key not configured');
       return false;
     }
-    console.log('[EMAILSVC] ✅ Email service (Resend) configured successfully');
+    console.log('✅ Email service (Resend) configured successfully');
     return true;
   } catch (error) {
-    console.error('[EMAILSVC] ❌ Email service verification failed:', error);
+    console.error('❌ Email service verification failed:', error);
     return false;
   }
 };

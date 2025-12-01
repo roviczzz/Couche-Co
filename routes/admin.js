@@ -4,30 +4,9 @@ const { ObjectId } = require('mongodb');
 const bcrypt = require('bcrypt');
 const { check, validationResult } = require('express-validator');
 const crypto = require('crypto');
-const nodemailer = require('nodemailer');
+const { sendPasswordResetEmail } = require('../utils/passwordResetService');
 
 const SALT_ROUNDS = 12;
-
-// Create nodemailer transporter with Docker-optimized settings
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASSWORD
-  },
-  pool: false, // Disable connection pooling for Docker
-  connectionTimeout: 10000, // 10 seconds
-  greetingTimeout: 5000, // 5 seconds
-  socketTimeout: 15000, // 15 seconds
-  tls: {
-    rejectUnauthorized: false,
-    ciphers: 'SSLv3'
-  },
-  debug: process.env.NODE_ENV !== 'production',
-  logger: process.env.NODE_ENV !== 'production'
-});
 
 // Generate staff ID based on role and user ID
 function generateStaffId(role, userId) {
@@ -298,49 +277,19 @@ router.post('/forgot-password',
 
       // Send reset email
       const resetUrl = `${process.env.BASE_URL}/auth/reset-password?token=${resetToken}`;
-      const mailOptions = {
-        from: process.env.GMAIL_USER,
-        to: user.email,
-        subject: 'Password Reset - Blessings Cafe Admin',
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #333;">Password Reset Request</h2>
-            <p>Hello ${user.fullname || user.name || 'Admin'},</p>
-            <p>You requested a password reset for your Blessings Cafe admin account.</p>
-            <p>Click the link below to reset your password:</p>
-            <a href="${resetUrl}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 10px 0;">Reset Password</a>
-            <p>This link will expire in 1 hour.</p>
-            <p>If you didn't request this reset, please ignore this email.</p>
-            <p>Best regards,<br>Blessings Cafe Team</p>
-          </div>
-        `
-      };
+      const emailResult = await sendPasswordResetEmail(
+        user.email,
+        user.fullname || user.name || 'Admin',
+        resetUrl,
+        true
+      );
 
-      // Add timeout wrapper for email sending
-      const sendEmailWithTimeout = new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          reject(new Error('Email sending timeout'));
-        }, 15000); // 15 second timeout
-
-        transporter.sendMail(mailOptions)
-          .then(result => {
-            clearTimeout(timeout);
-            resolve(result);
-          })
-          .catch(error => {
-            clearTimeout(timeout);
-            reject(error);
-          });
-      });
-
-      try {
-        await sendEmailWithTimeout;
+      if (emailResult.success) {
         console.log('✅ Admin password reset email sent successfully');
         res.json({ success: true, message: 'Password reset email sent. Please check your inbox.' });
-      } catch (emailError) {
-        console.error('❌ Admin email sending failed:', emailError.message);
+      } else {
+        console.error('❌ Admin email sending failed:', emailResult.error);
         
-        // Still create the reset token but show different message
         res.json({ success: true, message: 'Password reset link has been generated. Please contact support if you do not receive the email.' });
       }
     } catch (error) {
