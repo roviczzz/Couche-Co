@@ -1617,21 +1617,366 @@
     }
 }
 
-/* 768px - Tablet */
+/* =============================================== */
+/* ENHANCED MOBILE RESPONSIVE STYLES */
+/* =============================================== */
+
+.mobile-only {
+    display: none;
+}
+
+/* 768px - Tablet & Mobile */
 @media (max-width: 768px) {
-    .messages-container, .email-container {
-        flex-direction: row;
+    .mobile-only {
+        display: block !important;
     }
-    
-    .conversations-panel, .inbox-panel {
-        width: 200px;
+    .email-container {
+        padding: 16px;
+        height: auto;
+        min-height: calc(100vh - 140px);
+        padding-bottom: 80px;
+    }
+
+    .email-header {
+        margin-bottom: 16px;
+    }
+
+    .email-header h2 {
+        font-size: 22px;
+    }
+
+    .email-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        height: auto;
+    }
+
+    .inbox-panel {
+        width: 100%;
         max-height: none;
-        border-right: 1px solid #e1e5e9;
-        border-bottom: none;
+        border-radius: 12px;
+        display: block;
     }
-    
-    .chat-panel, .message-view {
-        width: calc(100% - 200px);
+
+    .email-grid.mobile-view-active .inbox-panel {
+        display: none;
+    }
+
+    .inbox-panel.collapsed {
+        max-height: 70px;
+        overflow: hidden;
+    }
+
+    .inbox-panel.collapsed .conversations-list {
+        display: none;
+    }
+
+    .inbox-header {
+        padding: 16px;
+        cursor: pointer;
+    }
+
+    .inbox-header h3 {
+        font-size: 16px;
+    }
+
+    .btn-compose {
+        padding: 8px 12px;
+        font-size: 13px;
+        width: auto;
+    }
+
+    .btn-compose i {
+        font-size: 14px;
+    }
+
+    .conversations-list {
+        max-height: 250px;
+        overflow-y: auto;
+    }
+
+    .conversation-item {
+        padding: 12px 16px;
+    }
+
+    .conversation-name {
+        font-size: 14px;
+    }
+
+    .conversation-last-message {
+        font-size: 12px;
+    }
+
+    .message-view {
+        width: 100%;
+        min-height: 400px;
+        flex: 1;
+        display: none;
+    }
+
+    .email-grid.mobile-view-active .message-view {
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 140px);
+    }
+
+    .message-placeholder {
+        padding: 40px 20px;
+    }
+
+    .message-placeholder i {
+        font-size: 48px;
+    }
+
+    .message-placeholder h3 {
+        font-size: 18px;
+    }
+
+    .message-placeholder p {
+        font-size: 14px;
+    }
+
+    /* Email message thread styles */
+    .email-messages-list {
+        padding: 16px;
+    }
+
+    .email-message {
+        padding: 16px;
+        margin-bottom: 12px;
+    }
+
+    .email-message-header {
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
+    }
+
+    .email-message-sender {
+        font-size: 14px;
+    }
+
+    .email-message-time {
+        font-size: 11px;
+    }
+
+    .email-message-content {
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    /* Reply area */
+    .reply-area {
+        padding: 16px;
+    }
+
+    .reply-textarea {
+        min-height: 100px;
+        font-size: 14px;
+    }
+
+    /* Messages grid padding */
+    .messages-grid {
+        padding-bottom: 80px;
+    }
+
+    .main-container {
+        padding-bottom: 80px;
+    }
+
+    /* Modal adjustments */
+    .modal-content {
+        width: 95%;
+        max-width: 100%;
+        margin: 10px auto;
+        max-height: calc(100vh - 100px);
+        overflow-y: auto;
+        border-radius: 12px;
+    }
+
+    .modal-header {
+        padding: 16px 20px;
+        position: sticky;
+        top: 0;
+        background: #fff;
+        z-index: 10;
+    }
+
+    .modal-header h3 {
+        font-size: 18px;
+    }
+
+    .modal-body {
+        padding: 16px 20px;
+    }
+
+    .email-compose-modal {
+        width: 95%;
+        max-height: calc(100vh - 80px);
+    }
+
+    .compose-toolbar {
+        flex-wrap: wrap;
+        gap: 4px;
+        padding: 8px;
+    }
+
+    .format-btn {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+    }
+
+    .form-group label {
+        font-size: 14px;
+        margin-bottom: 6px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        font-size: 16px;
+        padding: 12px;
+        min-height: 44px;
+    }
+
+    .form-group textarea {
+        min-height: 120px;
+    }
+
+    .form-actions {
+        flex-direction: column;
+        gap: 10px;
+        padding: 16px 0 0;
+    }
+
+    .form-actions button {
+        width: 100%;
+        padding: 14px;
+        font-size: 15px;
+        min-height: 48px;
+    }
+
+    .btn-primary, .btn-secondary {
+        justify-content: center;
+    }
+
+    /* Attachment section */
+    .attachment-section {
+        margin-top: 12px;
+    }
+
+    .file-attach-btn {
+        width: 100%;
+        padding: 12px;
+        justify-content: center;
+    }
+
+    .attachment-preview {
+        flex-direction: column;
+    }
+
+    .attachment-item {
+        width: 100%;
+    }
+
+    /* No conversations state */
+    .no-conversations {
+        padding: 30px 20px;
+    }
+
+    .no-conversations i {
+        font-size: 36px;
+    }
+
+    .no-conversations p {
+        font-size: 14px;
+    }
+
+    .no-conversations small {
+        font-size: 12px;
+    }
+}
+
+/* 480px - Small Mobile */
+@media (max-width: 480px) {
+    .email-container {
+        padding: 12px;
+        padding-bottom: 90px;
+    }
+
+    .email-header h2 {
+        font-size: 20px;
+    }
+
+    .email-grid {
+        gap: 12px;
+    }
+
+    .inbox-header {
+        padding: 12px;
+    }
+
+    .inbox-header h3 {
+        font-size: 15px;
+    }
+
+    .btn-compose {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+
+    .btn-compose span {
+        display: none;
+    }
+
+    .conversation-item {
+        padding: 10px 12px;
+    }
+
+    .conversation-avatar {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+    }
+
+    .message-view {
+        min-height: 350px;
+    }
+
+    .modal-content {
+        margin: 5px;
+        max-height: calc(100vh - 60px);
+    }
+
+    .compose-toolbar {
+        padding: 6px;
+    }
+
+    .format-btn {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+    }
+
+    .toolbar-separator {
+        display: none;
+    }
+
+    /* Image gallery */
+    .image-gallery-modal {
+        width: 100%;
+        height: 100%;
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: 0;
+        margin: 0;
+    }
+
+    .gallery-nav {
+        width: 40px;
+        height: 40px;
     }
 }
 
@@ -1646,5 +1991,23 @@
         font-size: 16px;
         min-height: 48px;
         padding: 12px;
+    }
+
+    .conversation-item {
+        min-height: 60px;
+    }
+
+    .btn-compose {
+        min-height: 44px;
+    }
+
+    .format-btn {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    .modal-close {
+        min-height: 44px;
+        min-width: 44px;
     }
 }

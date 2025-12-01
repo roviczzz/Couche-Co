@@ -2666,4 +2666,111 @@ router.post('/stocks/delete/:id', async (req, res) => {
   }
 });
 
+router.get('/feedback', isStaffLoggedIn, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const skip = (page - 1) * limit;
+
+    const feedbacks = await req.db.collection('Feedback')
+      .find({})
+      .sort({ timestamp: -1 })
+      .skip(skip)
+      .limit(limit)
+      .toArray();
+
+    const totalCount = await req.db.collection('Feedback').countDocuments();
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayCount = await req.db.collection('Feedback').countDocuments({
+      timestamp: { $gte: today }
+    });
+
+    const positiveCount = await req.db.collection('Feedback').countDocuments({
+      rating: { $gte: 4 }
+    });
+
+    const ratingAggregation = await req.db.collection('Feedback').aggregate([
+      { $group: { _id: '$rating', count: { $sum: 1 } } }
+    ]).toArray();
+
+    const ratingDistribution = {};
+    ratingAggregation.forEach(item => {
+      if (item._id) ratingDistribution[item._id] = item.count;
+    });
+
+    const avgRatingResult = await req.db.collection('Feedback').aggregate([
+      { $group: { _id: null, averageRating: { $avg: '$rating' } } }
+    ]).toArray();
+
+    const stats = {
+      totalCount,
+      todayCount,
+      positiveCount,
+      averageRating: avgRatingResult.length > 0 ? avgRatingResult[0].averageRating : 0
+    };
+
+    res.render('staff/feedback', {
+      title: 'Customer Feedback | Blessings Cafe',
+      user: req.session.user,
+      currentPage: '/staff/feedback',
+      layout: 'staff/layout',
+      feedbacks,
+      stats,
+      ratingDistribution,
+      pagination: {
+        page,
+        limit,
+        total: totalCount,
+        totalPages: Math.ceil(totalCount / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Feedback page error:', error);
+    res.status(500).render('error', {
+      title: 'Server Error',
+      message: 'Failed to load feedback',
+      status: 500
+    });
+  }
+});
+
+router.get('/api/feedback', isStaffLoggedIn, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const skip = (page - 1) * limit;
+    const rating = req.query.rating ? parseInt(req.query.rating) : null;
+    const source = req.query.source || null;
+
+    const filter = {};
+    if (rating) filter.rating = rating;
+    if (source) filter.page = source;
+
+    const feedbacks = await req.db.collection('Feedback')
+      .find(filter)
+      .sort({ timestamp: -1 })
+      .skip(skip)
+      .limit(limit)
+      .toArray();
+
+    const totalCount = await req.db.collection('Feedback').countDocuments(filter);
+
+    res.json({
+      success: true,
+      data: feedbacks,
+      pagination: {
+        page,
+        limit,
+        total: totalCount,
+        totalPages: Math.ceil(totalCount / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Feedback API error:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch feedback' });
+  }
+});
+
 module.exports = router;

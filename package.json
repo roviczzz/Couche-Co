@@ -19,6 +19,7 @@
     "chartjs-plugin-zoom": "^2.2.0",
     "compression": "^1.8.1",
     "connect-flash": "^0.1.1",
+    "connect-mongo": "^5.1.0",
     "dotenv": "^17.2.2",
     "ejs": "^3.1.10",
     "express": "^5.1.0",

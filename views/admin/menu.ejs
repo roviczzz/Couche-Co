@@ -14,24 +14,24 @@ menuItems.forEach(item => {
     <div class="header-section">
       <h1>POS Menu</h1>
     </div>
-        <div id="all-products" style="overflow-y: auto; padding-right: 8px; box-sizing: border-box;">
+        <div id="all-products">
             <div class="section-title">Choose Category</div>
-            <div style="display:flex;gap:12px;margin-bottom:32px; height:150px;">
-                <div onclick="scrollToCategory('Coffee')" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:110px;padding:18px 20px 10px 20px;background:#fff;border-radius:10px;box-shadow:0 1px 8px rgba(0,0,0,0.09);border:1px solid #e1e1e1;cursor:pointer;">
-                    <img src="/resources/coffee-icon.png" style="width:40px;height:40px;margin-bottom:8px;" alt="Coffee">
-                    <span style="font-weight:600;font-size:15px;color:black;">Coffee</span>
+            <div class="category-nav">
+                <div class="category-card" onclick="scrollToCategory('Coffee')">
+                    <img src="/resources/coffee-icon.png" alt="Coffee">
+                    <span>Coffee</span>
                 </div>
-                <div onclick="scrollToCategory('Fruit Tea')" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:110px;padding:18px 20px 10px 20px;background:#fff;border-radius:10px;box-shadow:0 1px 8px rgba(0,0,0,0.09);border:1px solid #e1e1e1;cursor:pointer;">
-                    <img src="/resources/fruittea-icon.png" style="width:40px;height:40px;margin-bottom:8px;" alt="Fruit Tea">
-                    <span style="font-weight:600;font-size:15px;color:black;">Fruit Tea</span>
+                <div class="category-card" onclick="scrollToCategory('Fruit Tea')">
+                    <img src="/resources/fruittea-icon.png" alt="Fruit Tea">
+                    <span>Fruit Tea</span>
                 </div>
-                <div onclick="scrollToCategory('Milktea')" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:110px;padding:18px 20px 10px 20px;background:#fff;border-radius:10px;box-shadow:0 1px 8px rgba(0,0,0,0.09);border:1px solid #e1e1e1;cursor:pointer;">
-                    <img src="/resources/milktea-icon.png" style="width:40px;height:40px;margin-bottom:8px;" alt="Milktea">
-                    <span style="font-weight:600;font-size:15px;color:black;">Milktea</span>
+                <div class="category-card" onclick="scrollToCategory('Milktea')">
+                    <img src="/resources/milktea-icon.png" alt="Milktea">
+                    <span>Milktea</span>
                 </div>
-                <div onclick="scrollToCategory('Pastries')" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:110px;padding:18px 20px 10px 20px;background:#fff;border-radius:10px;box-shadow:0 1px 8px rgba(0,0,0,0.09);border:1px solid #e1e1e1;cursor:pointer;">
-                    <img src="/resources/pastries-icon.png" style="width:40px;height:40px;margin-bottom:8px;" alt="Pastries">
-                    <span style="font-weight:600;font-size:15px;color:black;">Pastries</span>
+                <div class="category-card" onclick="scrollToCategory('Pastries')">
+                    <img src="/resources/pastries-icon.png" alt="Pastries">
+                    <span>Pastries</span>
                 </div>
             </div>
             <% Object.keys(grouped).forEach(category => { %>

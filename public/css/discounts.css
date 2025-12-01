@@ -2197,6 +2197,7 @@ textarea,
 @media (max-width: 768px) {
   .stocks-container {
     padding: 16px;
+    padding-bottom: 80px;
   }
   
   .table-controls-container {
@@ -2217,6 +2218,34 @@ textarea,
     flex: 1;
     min-width: 70px;
     min-height: 44px;
+  }
+
+  .promo-sections-container {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .main-container {
+    padding-bottom: 80px;
+  }
+
+  .fab-btn {
+    bottom: 80px;
+    right: 20px;
+  }
+
+  .modal-content,
+  .promo-modal-content {
+    width: 95%;
+    max-width: 100%;
+    margin: 10px;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+  }
+
+  .header-section {
+    margin-left: 0;
+    margin-top: 20px;
   }
 }
 

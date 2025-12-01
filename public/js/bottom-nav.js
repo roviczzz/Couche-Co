@@ -45,13 +45,20 @@ class BottomNavigation {
         }
 
         if (this.notificationsBtn) {
-            this.notificationsBtn.addEventListener('click', () => {
+            this.notificationsBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
                 this.closeDrawer();
-                const notificationPopup = document.getElementById('notification-popup');
-                if (notificationPopup) {
-                    notificationPopup.setAttribute('aria-hidden', 'false');
-                    notificationPopup.style.display = 'block';
-                }
+                setTimeout(() => {
+                    if (window.notificationManager) {
+                        window.notificationManager.openNotificationPopup();
+                    } else {
+                        const notificationPopup = document.getElementById('notification-popup');
+                        if (notificationPopup) {
+                            notificationPopup.setAttribute('aria-hidden', 'false');
+                            notificationPopup.style.display = 'block';
+                        }
+                    }
+                }, 50);
             });
         }
 

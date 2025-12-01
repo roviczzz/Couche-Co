@@ -1,5 +1,6 @@
 const express = require('express');
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
 const expressLayouts = require('express-ejs-layouts');
 const flash = require('connect-flash');
 const favicon = require('serve-favicon');
@@ -122,18 +123,34 @@ const authLimiter = rateLimit({
 app.use('/login', authLimiter);
 app.use('/auth/register', authLimiter);
 
-// Session configuration with better settings
+// Session configuration with MongoDB store for persistence
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
-  saveUninitialized: false, // Changed to false for better performance
+  saveUninitialized: false,
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI,
+    dbName: 'blessingscafe',
+    collectionName: 'sessions',
+    ttl: 24 * 60 * 60,
+    autoRemove: 'native',
+    touchAfter: 24 * 3600
+  }),
   cookie: { 
-    secure: process.env.NODE_ENV === 'production', // Enable secure cookies in production
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    httpOnly: true, // Prevent XSS attacks
-    sameSite: 'lax' // CSRF protection
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 24 * 60 * 60 * 1000,
+    httpOnly: true,
+    sameSite: 'lax'
   }
 }));
+
+// Session touch middleware - extends session expiry on each authenticated request
+app.use((req, res, next) => {
+  if (req.session && req.session.user) {
+    req.session.touch();
+  }
+  next();
+});
 
 app.use(flash());
 app.use((req, res, next) => {

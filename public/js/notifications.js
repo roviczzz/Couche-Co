@@ -46,8 +46,11 @@ class NotificationManager {
         document.addEventListener('click', (e) => {
             const popup = document.getElementById('notification-popup');
             const bell = document.getElementById('notification-bell');
+            const mobileNotifBtn = document.getElementById('bottom-nav-notifications-btn');
             
-            if (this.isPopupOpen && popup && !popup.contains(e.target) && !bell.contains(e.target)) {
+            if (this.isPopupOpen && popup && !popup.contains(e.target) && 
+                (!bell || !bell.contains(e.target)) && 
+                (!mobileNotifBtn || !mobileNotifBtn.contains(e.target))) {
                 this.closeNotificationPopup();
             }
         });

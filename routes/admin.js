@@ -299,8 +299,8 @@ router.post('/forgot-password',
   }
 );
 
-// Analytics Endpoints (before auth middleware)
-router.get('/analytics/dashboard-stats', nocache, async (req, res) => {
+// Analytics Endpoints (protected - require login and admin/owner role)
+router.get('/analytics/dashboard-stats', isLoggedIn, ensureAdmin, nocache, async (req, res) => {
   try {
     const stats = await getDashboardAnalyticsStats(req.db);
     res.json(stats);
@@ -310,7 +310,7 @@ router.get('/analytics/dashboard-stats', nocache, async (req, res) => {
   }
 });
 
-router.get('/analytics/low-stock', nocache, async (req, res) => {
+router.get('/analytics/low-stock', isLoggedIn, ensureAdmin, nocache, async (req, res) => {
   try {
     const threshold = parseInt(req.query.threshold) || 5; // Default to 5, can be 5-100
 
@@ -370,7 +370,7 @@ router.get('/analytics/low-stock', nocache, async (req, res) => {
   }
 });
 
-router.get('/analytics/top-categories', nocache, async (req, res) => {
+router.get('/analytics/top-categories', isLoggedIn, ensureAdmin, nocache, async (req, res) => {
   try {
     const pipeline = [
       { $match: { PaymentStatus: { $nin: ['Cancelled', 'cancelled'] } } },
@@ -423,7 +423,7 @@ router.get('/analytics/top-categories', nocache, async (req, res) => {
   }
 });
 
-router.get('/analytics/payment-types', nocache, async (req, res) => {
+router.get('/analytics/payment-types', isLoggedIn, ensureAdmin, nocache, async (req, res) => {
   try {
     // Using shared DB connection from req.db
 
@@ -467,7 +467,7 @@ router.get('/analytics/payment-types', nocache, async (req, res) => {
   }
 });
 
-router.get('/analytics/orders-by-source', nocache, async (req, res) => {
+router.get('/analytics/orders-by-source', isLoggedIn, ensureAdmin, nocache, async (req, res) => {
   try {
     // Using shared DB connection from req.db
 
@@ -3853,6 +3853,113 @@ router.post('/api/page-management/carousel/upload-image', async (req, res) => {
   } catch (error) {
     console.error('Image upload error:', error);
     res.status(500).json({ success: false, error: 'Failed to upload image' });
+  }
+});
+
+router.get('/feedback', nocache, ensureAdmin, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const skip = (page - 1) * limit;
+
+    const feedbacks = await req.db.collection('Feedback')
+      .find({})
+      .sort({ timestamp: -1 })
+      .skip(skip)
+      .limit(limit)
+      .toArray();
+
+    const totalCount = await req.db.collection('Feedback').countDocuments();
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayCount = await req.db.collection('Feedback').countDocuments({
+      timestamp: { $gte: today }
+    });
+
+    const positiveCount = await req.db.collection('Feedback').countDocuments({
+      rating: { $gte: 4 }
+    });
+
+    const ratingAggregation = await req.db.collection('Feedback').aggregate([
+      { $group: { _id: '$rating', count: { $sum: 1 } } }
+    ]).toArray();
+
+    const ratingDistribution = {};
+    ratingAggregation.forEach(item => {
+      if (item._id) ratingDistribution[item._id] = item.count;
+    });
+
+    const avgRatingResult = await req.db.collection('Feedback').aggregate([
+      { $group: { _id: null, averageRating: { $avg: '$rating' } } }
+    ]).toArray();
+
+    const stats = {
+      totalCount,
+      todayCount,
+      positiveCount,
+      averageRating: avgRatingResult.length > 0 ? avgRatingResult[0].averageRating : 0
+    };
+
+    res.render('admin/feedback', {
+      title: 'Customer Feedback | Blessings Cafe',
+      user: req.session.user,
+      currentPage: '/admin/feedback',
+      layout: 'admin/layout',
+      feedbacks,
+      stats,
+      ratingDistribution,
+      pagination: {
+        page,
+        limit,
+        total: totalCount,
+        totalPages: Math.ceil(totalCount / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Feedback page error:', error);
+    res.status(500).render('error', {
+      title: 'Server Error',
+      message: 'Failed to load feedback',
+      status: 500
+    });
+  }
+});
+
+router.get('/api/feedback', nocache, ensureAdmin, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const skip = (page - 1) * limit;
+    const rating = req.query.rating ? parseInt(req.query.rating) : null;
+    const source = req.query.source || null;
+
+    const filter = {};
+    if (rating) filter.rating = rating;
+    if (source) filter.page = source;
+
+    const feedbacks = await req.db.collection('Feedback')
+      .find(filter)
+      .sort({ timestamp: -1 })
+      .skip(skip)
+      .limit(limit)
+      .toArray();
+
+    const totalCount = await req.db.collection('Feedback').countDocuments(filter);
+
+    res.json({
+      success: true,
+      data: feedbacks,
+      pagination: {
+        page,
+        limit,
+        total: totalCount,
+        totalPages: Math.ceil(totalCount / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Feedback API error:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch feedback' });
   }
 });
 

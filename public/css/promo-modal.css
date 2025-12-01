@@ -30,7 +30,6 @@
   overflow: hidden;
   transform: scale(0.9) translateY(-20px);
   transition: transform 0.3s ease;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
 }
 
 .promo-modal-overlay.show .promo-modal-container {

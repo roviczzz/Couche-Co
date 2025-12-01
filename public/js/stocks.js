@@ -184,10 +184,16 @@ document.addEventListener('DOMContentLoaded', function() {
   // ===============================================
 
   function setupFixedNavbar() {
+    if (window.innerWidth <= 768) {
+      console.log(`[2025-10-15 17:45:23] Mobile view detected, skipping fixed navbar setup by MathDaenniel`);
+      return;
+    }
+    
     console.log(`[2025-10-15 17:45:23] Setting up fixed navbar with content-only scrolling by MathDaenniel`);
 
     const navbarSelectors = [
-      'nav', '.navbar', '.nav', '.header-nav', '.main-nav',
+      '.navbar:not(.bottom-nav-mobile)', '.nav:not(.bottom-nav-mobile)', 
+      '.header-nav', '.main-nav', 'nav:not(.bottom-nav-mobile)',
       'header', '.header', '.site-header', '.page-header',
       '.navigation', '.top-nav', '.primary-nav'
     ];
@@ -196,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     for (const selector of navbarSelectors) {
       const element = document.querySelector(selector);
-      if (element) {
+      if (element && !element.classList.contains('bottom-nav-mobile')) {
         navbar = element;
         break;
       }
@@ -255,9 +261,9 @@ document.addEventListener('DOMContentLoaded', function() {
   // ENHANCED SCROLL BEHAVIOR FOR CONTENT ONLY
   // ===============================================
   const scrollContainer = document.querySelector('.stocks-container');
-  const navbar = document.querySelector('.navbar-fixed, nav, .navbar, header');
+  const navbar = document.querySelector('.navbar-fixed:not(.bottom-nav-mobile), .navbar:not(.bottom-nav-mobile), header');
 
-  if (scrollContainer) {
+  if (scrollContainer && navbar && window.innerWidth > 768) {
     scrollContainer.addEventListener('scroll', function() {
       const scrollTop = scrollContainer.scrollTop;
 

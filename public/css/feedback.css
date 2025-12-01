@@ -45,7 +45,6 @@
 .feedback-email {
   grid-column: 3 / span 3;
   grid-row: 2;
-  display: flex;
   flex-direction: column;
   gap: 8px;
 }
@@ -260,55 +259,178 @@
 
 @media (max-width: 768px) {
   .feedback-section {
-    margin: 20px 15px;
-    padding: 20px;
+    margin: 1.5rem 1rem;
+    padding: 1.25rem;
+    border-radius: 10px;
   }
 
-  .feedback-content {
+  .feedback-section h3 {
+    font-size: 1.15rem;
+    margin-bottom: 1rem;
+  }
+
+  .feedback-grid {
+    display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 0.875rem;
   }
 
-  .feedback-rating {
-    width: 100%;
-    text-align: center;
+  .feedback-stars {
+    gap: 0.5rem;
+  }
+
+  .feedback-stars label {
+    font-size: 0.85rem;
   }
 
   .star-rating {
-    justify-content: center;
+    justify-content: flex-start;
+    gap: 0.375rem;
   }
 
   .star-rating label {
-    font-size: 2.5rem;
-    padding: 5px;
+    font-size: 1.75rem;
+    padding: 0;
   }
 
-  .feedback-text {
-    width: 100%;
+  .feedback-name,
+  .feedback-email,
+  .feedback-comment {
+    gap: 0.375rem;
   }
 
-  .feedback-text textarea {
-    min-height: 120px;
+  .feedback-name label,
+  .feedback-email label,
+  .feedback-comment label {
+    font-size: 0.85rem;
+  }
+
+  .feedback-name input,
+  .feedback-email input {
+    padding: 0.625rem 0.75rem;
+    font-size: 0.9rem;
+    border-radius: 6px;
+  }
+
+  .feedback-comment textarea {
+    min-height: 90px;
+    padding: 0.625rem 0.75rem;
+    font-size: 0.9rem;
+    border-radius: 6px;
+  }
+
+  .char-counter {
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+  }
+
+  .feedback-submit-container {
+    margin-top: 0.25rem;
   }
 
   .feedback-submit {
     width: 100%;
     justify-content: center;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+    border-radius: 6px;
+  }
+
+  .feedback-message {
+    margin-top: 0.75rem;
+    padding: 0.625rem 1rem;
+    font-size: 0.85rem;
+    border-radius: 6px;
+  }
+
+  .feedback-submitted {
+    padding: 1.5rem;
+  }
+
+  .feedback-submitted .check-icon {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .feedback-submitted h4 {
+    font-size: 1rem;
+  }
+
+  .feedback-submitted p {
+    font-size: 0.85rem;
   }
 }
 
 @media (max-width: 480px) {
   .feedback-section {
-    margin: 15px 10px;
-    padding: 15px;
+    margin: 1rem 0.75rem;
+    padding: 1rem;
+    border-radius: 8px;
   }
 
   .feedback-section h3 {
-    font-size: 1.25rem;
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .feedback-grid {
+    gap: 0.75rem;
+  }
+
+  .feedback-stars label {
+    font-size: 0.8rem;
   }
 
   .star-rating label {
-    font-size: 2.2rem;
+    font-size: 1.5rem;
+  }
+
+  .feedback-name label,
+  .feedback-email label,
+  .feedback-comment label {
+    font-size: 0.8rem;
+  }
+
+  .feedback-name input,
+  .feedback-email input {
+    padding: 0.5rem 0.625rem;
+    font-size: 0.85rem;
+  }
+
+  .feedback-comment textarea {
+    min-height: 80px;
+    padding: 0.5rem 0.625rem;
+    font-size: 0.85rem;
+  }
+
+  .char-counter {
+    font-size: 0.7rem;
+  }
+
+  .feedback-submit {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.85rem;
+  }
+
+  .feedback-message {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .feedback-submitted {
+    padding: 1.25rem;
+  }
+
+  .feedback-submitted .check-icon {
+    font-size: 1.75rem;
+  }
+
+  .feedback-submitted h4 {
+    font-size: 0.9rem;
+  }
+
+  .feedback-submitted p {
+    font-size: 0.8rem;
   }
 }
 

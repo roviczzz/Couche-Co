@@ -1,18 +1,27 @@
 @media (max-width: 768px) {
     .bottom-nav-mobile {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
+        position: fixed !important;
+        bottom: 0 !important;
+        top: auto !important;
+        left: 0 !important;
+        right: 0 !important;
         height: 60px;
-        background: #ffffff;
+        background: #ffffff !important;
         border-top: 1px solid #e0e0e0;
-        display: flex;
+        display: flex !important;
         justify-content: space-around;
         align-items: center;
-        z-index: 1980;
-        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
+        z-index: 9999 !important;
+        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08) !important;
         padding-bottom: max(0px, env(safe-area-inset-bottom));
+        backdrop-filter: none !important;
+        width: 100% !important;
+    }
+    
+    .bottom-nav-mobile.navbar-fixed {
+        position: fixed !important;
+        bottom: 0 !important;
+        top: auto !important;
     }
 
     .bottom-nav-item {
@@ -83,7 +92,7 @@
         bottom: 0;
         background: rgba(0, 0, 0, 0);
         backdrop-filter: blur(0px);
-        z-index: 1970;
+        z-index: 9998;
         opacity: 0;
         visibility: hidden;
         transition: all 0.3s ease;
@@ -104,7 +113,7 @@
         max-height: 80vh;
         background: #ffffff;
         border-radius: 16px 16px 0 0;
-        z-index: 1975;
+        z-index: 10000;
         display: flex;
         flex-direction: column;
         transform: translateY(100%);
@@ -131,6 +140,7 @@
         font-size: 18px;
         font-weight: 600;
         color: #2c3e50;
+        white-space: nowrap;
     }
 
     .bottom-nav-drawer-close {
@@ -246,6 +256,24 @@
         padding-bottom: 60px;
         padding-bottom: calc(60px + max(0px, env(safe-area-inset-bottom)));
     }
+    
+    .main-container {
+        padding-bottom: 70px;
+    }
+    
+    .stocks-container {
+        padding-bottom: 80px !important;
+    }
+
+    .fab-btn {
+        bottom: 80px;
+        bottom: calc(80px + max(0px, env(safe-area-inset-bottom)));
+    }
+
+    .calculator-modal {
+        max-height: calc(100vh - 140px);
+        bottom: 70px;
+    }
 }
 
 @media (min-width: 769px) {
@@ -281,6 +309,7 @@
     .bottom-nav-drawer-header h3 {
         font-size: 16px;
         margin-left: 2vh;
+        white-space: nowrap;
     }
 
     .bottom-nav-drawer-item {

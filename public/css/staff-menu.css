@@ -616,4 +616,100 @@
         font-size: 20px;
         min-height: 48px;
     }
+    
+    .category-card {
+        min-height: 56px;
+    }
+}
+
+/* Mobile-first layout fixes */
+@media (max-width: 768px) {
+    .main-container {
+        flex-direction: column;
+        height: auto;
+        padding-bottom: 80px;
+    }
+    
+    .content {
+        order: 1;
+        flex: 1;
+    }
+    
+    .summary-panel {
+        order: 2;
+        width: 100%;
+        max-height: none;
+        position: relative;
+        top: auto;
+        margin-bottom: 80px;
+    }
+    
+    #all-products {
+        padding: 10px;
+        overflow-y: visible;
+    }
+    
+    .category-nav {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding: 0 10px 10px;
+        margin: 0 -10px 15px;
+    }
+    
+    .category-card {
+        flex-shrink: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    #all-products {
+        padding: 8px;
+    }
+    
+    .category-nav {
+        gap: 6px;
+        margin-bottom: 12px;
+    }
+    
+    .category-card {
+        min-width: 75px;
+        padding: 10px 10px 6px;
+    }
+    
+    .category-card img {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .category-card span {
+        font-size: 11px;
+    }
+}
+
+/* Ensure bottom nav space on all mobile views */
+@media (max-width: 768px) {
+    .main-container {
+        padding-bottom: 80px;
+    }
+
+    .summary-panel {
+        margin-bottom: 80px;
+    }
+
+    .proceed-btn {
+        margin-bottom: 20px;
+    }
+
+    /* Modal adjustments for mobile */
+    #size-modal .product-modal-content {
+        width: 95%;
+        max-width: 100%;
+        margin: 10px;
+        max-height: calc(100vh - 100px);
+    }
+
+    .pos-calculator-modal .pos-calculator-container {
+        max-width: 95%;
+        max-height: calc(100vh - 100px);
+    }
 }

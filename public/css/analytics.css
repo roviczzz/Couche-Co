@@ -999,11 +999,12 @@ tr:hover td {
     grid-template-columns: 1fr;
   }
   
+  body:not(.sidebar-collapsed) .container,
   .container {
-    max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 1rem;
-  transition: margin-left 0.3s ease, padding 0.3s ease;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0 1rem;
+    transition: margin-left 0.3s ease, padding 0.3s ease;
   }
   
   h1 {
@@ -1124,7 +1125,7 @@ tr:hover td {
     font-size: 20px;
   }
   
-  .analytics-container {
+  .container {
     padding: 8px;
   }
   
@@ -1159,7 +1160,7 @@ tr:hover td {
     font-size: 24px;
   }
   
-  .analytics-container {
+  .container {
     padding: 12px;
   }
   
@@ -1201,7 +1202,7 @@ tr:hover td {
     margin-left: 0;
   }
   
-  .analytics-container {
+  .container {
     padding: 14px;
   }
   
@@ -1224,8 +1225,9 @@ tr:hover td {
     font-size: 28px;
   }
   
-  .analytics-container {
+  .container {
     padding: 16px;
+    padding-bottom: 80px;
   }
   
   .insights-grid {
@@ -1236,12 +1238,25 @@ tr:hover td {
   .fab-btn {
     width: 56px;
     height: 56px;
-    bottom: 24px;
+    bottom: 80px;
     right: 24px;
   }
   
   .filter-buttons {
     flex-wrap: wrap;
+  }
+
+  .report-modal-content,
+  .modal-content {
+    width: 95%;
+    max-width: 100%;
+    margin: 10px;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+  }
+
+  .main-container {
+    padding-bottom: 80px;
   }
 }
 

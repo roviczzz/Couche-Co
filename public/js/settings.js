@@ -628,6 +628,8 @@ function initPromoModalSettings() {
                 uploadedImageUrl = result.data.path;
                 previewImg.src = uploadedImageUrl;
                 preview.style.display = 'block';
+                const previewLabel = preview.querySelector('.promo-preview-label');
+                if (previewLabel) previewLabel.style.display = 'block';
                 uploadStatus.textContent = 'Upload successful! Ready to save.';
                 uploadStatus.style.color = '#28a745';
             } else {
@@ -835,9 +837,11 @@ async function loadPromoImageUrl() {
         if (data.imageUrl) {
             const previewImg = document.getElementById('promoImagePreview');
             const preview = document.querySelector('.promo-image-preview-container');
+            const previewLabel = preview.querySelector('.promo-preview-label');
 
             previewImg.src = data.imageUrl;
             preview.style.display = 'block';
+            if (previewLabel) previewLabel.style.display = 'block';
         }
     } catch (error) {
         console.error('Error loading promo image:', error);

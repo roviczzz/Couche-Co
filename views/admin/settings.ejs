@@ -216,37 +216,41 @@
                     </div>
                     <div class="card-body">
                         <form id="promoModalForm">
-                            <div class="form-group">
-                                <label for="promoImageFile">Upload Promotional Image</label>
-                                <p class="form-hint">Max file size: 5MB</p>
-                                <input type="file" id="promoImageFile" name="promoImageFile" accept="image/*" required>
-                                <small class="upload-status" id="uploadStatus"></small>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="promoImageFile">Upload Promotional Image</label>
+                                    <p class="form-hint">Max file size: 5MB</p>
+                                    <input type="file" id="promoImageFile" name="promoImageFile" accept="image/*" required>
+                                    <small class="upload-status" id="uploadStatus"></small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="promoEnabled">Enable Promotional Modal</label>
+                                    <label class="toggle-switch" style="margin-top: 8px;">
+                                        <input type="checkbox" id="promoEnabled" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
                             </div>
 
                             <div class="promo-image-preview-container" style="display: none;">
-                                <label>Image Preview</label>
+                                <label class="promo-preview-label" style="display: none;">Image Preview</label>
                                 <div class="promo-image-preview">
                                     <img id="promoImagePreview" src="" alt="Promo preview" style="max-width: 100%; max-height: 400px; object-fit: contain;">
                                 </div>
                             </div>
 
-                            <div class="form-group">
-                                <label for="promoEnabled">Enable Promotional Modal</label>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="promoEnabled" checked>
-                                    <span class="slider"></span>
-                                </label>
-                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="promoStartDate">Start Date & Time</label>
+                                    <input type="datetime-local" id="promoStartDate" name="promoStartDate">
+                                </div>
 
-                            <div class="form-group">
-                                <label for="promoStartDate">Start Date & Time</label>
-                                <input type="datetime-local" id="promoStartDate" name="promoStartDate">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="promoEndDate">End Date & Time (Optional)</label>
-                                <p class="form-hint">Leave empty to display indefinitely</p>
-                                <input type="datetime-local" id="promoEndDate" name="promoEndDate">
+                                <div class="form-group">
+                                    <label for="promoEndDate">End Date & Time (Optional)</label>
+                                    <p class="form-hint">Leave empty to display indefinitely</p>
+                                    <input type="datetime-local" id="promoEndDate" name="promoEndDate">
+                                </div>
                             </div>
 
                             <div class="form-group">
@@ -327,8 +331,8 @@
                 </div>
                 <div class="card-body">
                     <div class="service-item">
-                        <span class="service-label">Facebook Login</span>
-                        <button class="service-btn" onclick="window.open('https://www.facebook.com/login', '_blank')">
+                        <span class="service-label">Facebook Page</span>
+                        <button class="service-btn" onclick="window.open('https://www.facebook.com/Blessingsateverysip', '_blank')">
                             <i class="fab fa-facebook"></i> Login
                         </button>
                     </div>
@@ -344,12 +348,6 @@
                             <i class="fas fa-database"></i> Open
                         </button>
                     </div>
-                    <div class="service-item">
-                        <span class="service-label">ImageBB</span>
-                        <button class="service-btn" onclick="window.open('https://blessingscafe.imgbb.com/')">
-                            <i class="fas fa-image"></i> Open
-                        </button>
-                    </div>
                 </div>
             </div>
         </div>
@@ -357,6 +355,15 @@
 </div>
 
 <link rel="stylesheet" href="/css/settings.css">
+<link rel="stylesheet" href="/css/settings-mobile.css">
+<link rel="stylesheet" href="/css/promo-modal.css">
+
+<div id="promoModalOverlay" class="promo-modal-overlay">
+    <div class="promo-modal-container">
+        <img class="promo-modal-image" src="" alt="Promotional Offer">
+        <button class="promo-modal-close" aria-label="Close promotional modal">&times;</button>
+    </div>
+</div>
 
 <script>
     // Load current settings from server-side rendered values

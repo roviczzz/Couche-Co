@@ -450,6 +450,12 @@ async function updateSidebarBadge() {
 function selectConversation(conversationId) {
     currentConversationId = conversationId;
 
+    // Add class for mobile view toggling
+    const emailGrid = document.querySelector('.email-grid');
+    if (emailGrid) {
+        emailGrid.classList.add('mobile-view-active');
+    }
+
     const container = document.getElementById('messageView');
     container.innerHTML = `
         <div class="message-loading">
@@ -464,7 +470,32 @@ function selectConversation(conversationId) {
     });
 }
 
+function closeMessageView() {
+    const emailGrid = document.querySelector('.email-grid');
+    if (emailGrid) {
+        emailGrid.classList.remove('mobile-view-active');
+    }
+    currentConversationId = null;
+    
+    // Reset message view to placeholder
+    const container = document.getElementById('messageView');
+    if (container) {
+        container.innerHTML = `
+            <div class="message-placeholder">
+                <i class="fas fa-envelope-open-text"></i>
+                <h3>Select a message</h3>
+                <p>Choose a conversation from the inbox to view messages</p>
+            </div>
+        `;
+    }
+    
+    // Remove active class from conversation items
+    const activeItems = document.querySelectorAll('.conversation-item.active');
+    activeItems.forEach(item => item.classList.remove('active'));
+}
+
 window.selectConversation = selectConversation;
+window.closeMessageView = closeMessageView;
 window.openReplyModal = openReplyModal;
 window.openImageGallery = openImageGallery;
 window.removeComposeAttachment = removeComposeAttachment;
@@ -501,6 +532,11 @@ function renderMessages(messages) {
     }
 
     container.innerHTML = `
+        <div class="message-view-header mobile-only" style="display: none; padding: 10px; border-bottom: 1px solid #eee; margin-bottom: 10px;">
+            <button class="btn-back" onclick="closeMessageView()" style="background: none; border: none; font-size: 16px; color: #333; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-arrow-left"></i> Back to Inbox
+            </button>
+        </div>
         <div class="email-message-thread">
             ${messages.length === 0 ? `
                 <div class="no-messages">
