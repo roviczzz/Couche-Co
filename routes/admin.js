@@ -2343,13 +2343,28 @@ router.post('/migrate-passwords', async (req, res) => {
 // STOCKS ROUTES
 router.post('/stocks', async (req, res) => {
   try {
-    // Check if this is an add-on by looking for addon-specific fields
-    const isAddon = req.body.AddOnID || req.body.AddOnPrefix || req.body.AddOnSuffix || req.body.BasePrice;
+    if (!req.body || typeof req.body !== 'object') {
+      console.error('❌ Invalid request body received');
+      return res.status(400).json({ success: false, error: 'Invalid request body' });
+    }
+    
+    console.log('📦 /stocks POST request received. req.body keys:', Object.keys(req.body));
+    console.log('📦 Full req.body:', req.body);
+    
+    // Check if this is an ingredient first (more specific check)
+    const isIngredient = req.body.IngredientID || req.body.IngredientPrefix || req.body.IngredientSuffix;
+    // Only treat as add-on if NOT an ingredient and has add-on specific fields
+    const isAddon = !isIngredient && (req.body.AddOnID || req.body.AddOnPrefix || req.body.AddOnSuffix);
 
     // Using shared DB connection from req.db
 
     if (isAddon) {
       // Handle Add-On with correct field formatting
+
+      if (!req.body.AddOnID) {
+        console.error('❌ AddOnID is missing in request body');
+        return res.status(400).json({ success: false, error: 'AddOnID is required' });
+      }
 
       // Check for existing add-on with same ID and Name combination
       const existingAddon = await req.db.collection('Add-ons').findOne({

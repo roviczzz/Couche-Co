@@ -111,8 +111,8 @@ function createAddonRow(data) {
   const unit = amountPerPack[1] || 'g';
   
   tr.innerHTML = `
-    <td class="addon-id-cell">
-      <div class="addon-id-group-table">
+    <td class="ingredient-id-cell">
+      <div class="ingredient-id-group-table">
         <div class="prefix-display-table">AD</div>
         <input type="text" name="AddOnSuffix" value="${suffix}" class="table-input suffix-input" data-field="suffix" data-original="${suffix}" required>
       </div>
@@ -129,7 +129,7 @@ function createAddonRow(data) {
       </div>
     </td>
     <td>Add-Ons</td>
-    <td><input type="number" name="BasePrice" value="${data.BasePrice || 10}" class="table-input" data-field="baseprice" data-original="${data.BasePrice || 10}" required></td>
+    <td><input type="text" name="Allergen" value="${data.Allergen || ''}" class="table-input" data-field="allergen" data-original="${data.Allergen || ''}" required></td>
     <td>
       <label class="toggle-switch">
         <input type="checkbox" name="isEnabled" data-field="enabled" data-original="${data.isEnabled || false}" ${data.isEnabled ? 'checked' : ''}>
@@ -985,7 +985,7 @@ document.addEventListener('DOMContentLoaded', function() {
         data.AddOnID = fullId;
         data.AddOnPrefix = prefix;
         data.AddOnSuffix = suffix;
-        data.BasePrice = basePrice;
+        data.BasePrice = parseInt(basePrice, 10) || 10;
       }
       
       const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
@@ -1153,6 +1153,10 @@ document.addEventListener('DOMContentLoaded', function() {
       const prefix = 'ING';
       const suffix = ingredientModalForm.querySelector('input[name="IngredientSuffix"]').value.trim();
       const fullId = `${prefix}-${suffix}`;
+      
+      // Capture isEnabled state early before any form modifications
+      const enabledSwitchElement = ingredientModalForm.querySelector('input[name="isEnabledStock"]');
+      const isEnabledValue = enabledSwitchElement ? enabledSwitchElement.checked : true;
 
     // Remove any existing hidden fields first (only remove hidden ones, keep visible form inputs)
     ['IngredientID', 'IngredientPrefix', 'AmountPerPack', 'Category', 'isAvailable', 'isEnabled', 'DeductionQuantityGrams'].forEach(fieldName => {
@@ -1221,14 +1225,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
       console.log(`[2025-10-15 17:45:23] Adding new ingredient with ID: ${fullId}, AmountPerPack: ${amountPerPack}, Amount: ${amount}, Unit: ${unit} by MathDaenniel`);
       
-      // Submit via AJAX
+      // Submit via AJAX - Convert FormData to JSON for proper parsing
       const formData = new FormData(ingredientModalForm);
+      const jsonData = {};
+      formData.forEach((value, key) => {
+        jsonData[key] = value;
+      });
       const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
       
       try {
         const response = await fetch(`${basePath}/stocks`, {
           method: 'POST',
-          body: formData
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(jsonData)
         });
         
         if (response.ok) {
@@ -1243,7 +1255,7 @@ document.addEventListener('DOMContentLoaded', function() {
             AmountPerPack: amountPerPack,
             Unit: unit,
             Allergen: ingredientModalForm.querySelector('input[name="Allergen"]').value.trim(),
-            isEnabled: enabledSwitch.checked
+            isEnabled: isEnabledValue
           });
           
           // Remove "No ingredients found" row if it exists
@@ -1255,7 +1267,7 @@ document.addEventListener('DOMContentLoaded', function() {
           tbody.insertBefore(newRow, tbody.firstChild);
           
           // Close modal and reset form
-          closeIngredientModal();
+          hideIngredientModal();
           ingredientModalForm.reset();
           
           // Trigger dashboard refresh
@@ -1291,6 +1303,10 @@ document.addEventListener('DOMContentLoaded', function() {
       const prefix = 'AD';
       const suffix = addonModalForm.querySelector('input[name="AddOnSuffix"]').value.trim();
       const fullId = `${prefix}-${suffix}`;
+      
+      // Capture isEnabled state early before any form modifications
+      const enabledSwitchElement = addonModalForm.querySelector('input[name="isEnabledStock"]');
+      const isEnabledValue = enabledSwitchElement ? enabledSwitchElement.checked : true;
 
       // Remove any existing hidden fields first (only remove hidden ones, keep visible form inputs)
       ['AddOnID', 'AddOnPrefix', 'AmountPerPack', 'Category', 'BasePrice', 'isEnabled', 'DeductionQuantityGrams'].forEach(fieldName => {
@@ -1336,7 +1352,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const hiddenBasePrice = document.createElement('input');
       hiddenBasePrice.type = 'hidden';
       hiddenBasePrice.name = 'BasePrice';
-      hiddenBasePrice.value = parseFloat(basePrice) || 10;
+      hiddenBasePrice.value = parseInt(basePrice, 10) || 10;
       addonModalForm.appendChild(hiddenBasePrice);
 
       // Handle isEnabled switch
@@ -1360,14 +1376,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
       console.log(`[2025-10-15 17:45:23] Adding new add-on with ID: ${fullId}, AmountPerPack: ${amountPerPack}, BasePrice: ${basePrice} by MathDaenniel`);
       
-      // Submit via AJAX
+      // Submit via AJAX - Convert FormData to JSON for proper parsing
       const formData = new FormData(addonModalForm);
+      const jsonData = {};
+      formData.forEach((value, key) => {
+        jsonData[key] = value;
+      });
+      // Ensure BasePrice is an integer
+      if (jsonData.BasePrice) {
+        jsonData.BasePrice = parseInt(jsonData.BasePrice, 10) || 10;
+      }
       const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
       
       try {
         const response = await fetch(`${basePath}/stocks`, {
           method: 'POST',
-          body: formData
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(jsonData)
         });
         
         if (response.ok) {
@@ -1381,8 +1409,8 @@ document.addEventListener('DOMContentLoaded', function() {
             Amount: parseInt(amount),
             AmountPerPack: amountPerPack,
             Unit: unit,
-            BasePrice: parseFloat(basePrice) || 10,
-            isEnabled: enabledSwitch.checked
+            Allergen: addonModalForm.querySelector('input[name="Allergen"]')?.value?.trim() || 'None',
+            isEnabled: isEnabledValue
           });
           
           // Remove "No add-ons found" row if it exists
@@ -1394,7 +1422,7 @@ document.addEventListener('DOMContentLoaded', function() {
           tbody.insertBefore(newRow, tbody.firstChild);
           
           // Close modal and reset form
-          closeAddonModal();
+          hideAddonModal();
           addonModalForm.reset();
           
           // Trigger dashboard refresh
@@ -2005,7 +2033,7 @@ document.addEventListener('DOMContentLoaded', function() {
       data.AddOnID = fullId;
       data.AddOnPrefix = prefix;
       data.AddOnSuffix = suffix;
-      data.BasePrice = basePrice;
+      data.BasePrice = parseInt(basePrice, 10) || 10;
     }
 
     const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';

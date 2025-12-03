@@ -2514,7 +2514,10 @@ router.get('/stocks', async (req, res) => {
 
 router.post('/stocks', async (req, res) => {
   try {
-    const isAddon = req.body.AddOnID || req.body.AddOnPrefix || req.body.AddOnSuffix || req.body.BasePrice;
+    // Check if this is an ingredient first (more specific check)
+    const isIngredient = req.body.IngredientID || req.body.IngredientPrefix || req.body.IngredientSuffix;
+    // Only treat as add-on if NOT an ingredient and has add-on specific fields
+    const isAddon = !isIngredient && (req.body.AddOnID || req.body.AddOnPrefix || req.body.AddOnSuffix);
 
     if (isAddon) {
       const existingAddon = await req.db.collection('Add-ons').findOne({
