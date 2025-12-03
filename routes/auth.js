@@ -59,13 +59,27 @@ router.get('/logout', (req, res) => {
     }
     console.log(`✅ Session destroyed successfully for user: ${username}`);
     
-    if (userRole === 'admin' || userRole === 'owner') {
-      res.redirect('/admin/login');
-    } else if (userRole === 'staff') {
-      res.redirect('/staff/login');
-    } else {
-      res.redirect('/');
-    }
+    const redirectUrl = userRole === 'admin' || userRole === 'owner' 
+      ? '/admin/login' 
+      : userRole === 'staff' 
+      ? '/staff/login' 
+      : '/';
+    
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Logging out...</title>
+      </head>
+      <body>
+        <script>
+          localStorage.removeItem('orderItems');
+          localStorage.removeItem('selectedCartItems');
+          window.location.href = '${redirectUrl}';
+        </script>
+      </body>
+      </html>
+    `);
   });
 });
 

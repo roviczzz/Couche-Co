@@ -20,6 +20,21 @@ function generateItemKey(item, index) {
 }
 
 document.addEventListener('DOMContentLoaded', async function() {
+  const storedUserId = localStorage.getItem('cartUserId');
+  const currentUserId = window.user ? window.user._id : null;
+
+  if (storedUserId && !currentUserId) {
+    localStorage.removeItem('orderItems');
+    localStorage.removeItem('selectedCartItems');
+    localStorage.removeItem('cartUserId');
+  } else if (storedUserId && currentUserId && storedUserId !== currentUserId) {
+    localStorage.removeItem('orderItems');
+    localStorage.removeItem('selectedCartItems');
+    localStorage.setItem('cartUserId', currentUserId);
+  } else if (currentUserId) {
+    localStorage.setItem('cartUserId', currentUserId);
+  }
+
   if (window.user && window.user._id) {
     const now = Date.now();
     if (now - cartLastLoaded > CART_LOAD_COOLDOWN && !cartLoadInProgress) {

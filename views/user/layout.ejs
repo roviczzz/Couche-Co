@@ -113,8 +113,23 @@
             <!-- Order History Section -->
             <div class="profile-section" id="orders-section">
               <div class="section-header">
-                <h3>Order History</h3>
-                <p>View all your previous orders</p>
+                <div class="section-header-row">
+                  <div class="section-header-text">
+                    <h3>Order History</h3>
+                    <p>View all your previous orders</p>
+                  </div>
+                  <div class="order-filter">
+                    <label for="orderDaysFilter">Show:</label>
+                    <select id="orderDaysFilter" onchange="filterOrdersByDays(this.value)">
+                      <option value="all">All Orders</option>
+                      <option value="7">Last 7 Days</option>
+                      <option value="30">Last 30 Days</option>
+                      <option value="90">Last 90 Days</option>
+                      <option value="180">Last 6 Months</option>
+                      <option value="365">Last Year</option>
+                    </select>
+                  </div>
+                </div>
               </div>
 
               <div class="orders-table-container">

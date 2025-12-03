@@ -95,6 +95,7 @@
   color: #666;
   font-size: 16px;
   transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
 }
 
 .nav-item:hover {
@@ -125,6 +126,61 @@
 
 .section-header {
   margin-bottom: 24px;
+}
+
+.section-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.section-header-text h3 {
+  margin: 0 0 8px 0;
+  color: #333;
+  font-size: 20px;
+}
+
+.section-header-text p {
+  margin: 0;
+  color: #666;
+}
+
+.order-filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.order-filter label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #555;
+  white-space: nowrap;
+}
+
+.order-filter select {
+  padding: 8px 12px;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  color: #333;
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  min-width: 140px;
+}
+
+.order-filter select:hover {
+  border-color: #ccc;
+}
+
+.order-filter select:focus {
+  outline: none;
+  border-color: #a05c2f;
+  box-shadow: 0 0 0 3px rgba(160, 92, 47, 0.1);
 }
 
 .section-header h3 {
@@ -364,6 +420,7 @@
   font-size: 14px;
   transition: border-color 0.2s;
   box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
 }
 
 .settings-form textarea {
@@ -518,6 +575,19 @@
     width: 100%;
     justify-content: center;
   }
+
+  .section-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .order-filter {
+    width: 100%;
+  }
+
+  .order-filter select {
+    flex: 1;
+  }
 }
 
 @media (max-width: 480px) {
@@ -533,6 +603,16 @@
 
   .section-header h3 {
     font-size: 18px;
+  }
+
+  .order-filter {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .order-filter select {
+    width: 100%;
   }
 }
 

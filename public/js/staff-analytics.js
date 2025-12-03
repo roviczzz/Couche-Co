@@ -1,3 +1,51 @@
+// Notification System
+function showNotification(message, type = 'success', duration = 3000) {
+  const container = document.querySelector('.notification-container') || createNotificationContainer();
+
+  const notification = document.createElement('div');
+  notification.className = `analytics-notification ${type}`;
+
+  const icons = {
+    success: '✓',
+    error: '✕',
+    warning: '⚠',
+    info: 'ⓘ'
+  };
+
+  notification.innerHTML = `
+    <div class="notification-icon">${icons[type] || icons.info}</div>
+    <div class="notification-content">
+      <div class="notification-message">${message}</div>
+    </div>
+    <button class="notification-close">×</button>
+  `;
+
+  container.appendChild(notification);
+
+  setTimeout(() => notification.classList.add('show'), 10);
+
+  const closeBtn = notification.querySelector('.notification-close');
+  closeBtn.addEventListener('click', () => removeNotification(notification));
+
+  if (duration > 0) {
+    setTimeout(() => removeNotification(notification), duration);
+  }
+
+  return notification;
+}
+
+function createNotificationContainer() {
+  const container = document.createElement('div');
+  container.className = 'notification-container';
+  document.body.appendChild(container);
+  return container;
+}
+
+function removeNotification(notification) {
+  notification.classList.remove('show');
+  setTimeout(() => notification.remove(), 300);
+}
+
 // Enhanced chart configuration with Shopify-inspired styling
 Chart.defaults.font.family = 'Inter';
 Chart.defaults.font.size = 12;
@@ -580,11 +628,11 @@ async function handleReportGeneration(event) {
   // Validate inputs
   if (dateRange === 'custom') {
     if (!fromDate || !toDate) {
-      alert('Please select both from and to dates');
+      showNotification('Please select both from and to dates', 'warning');
       return;
     }
-    if (new Date(fromDate) > new Date(toDate)) {
-      alert('From date must be earlier than to date');
+    if (new Date(fromDate) >= new Date(toDate)) {
+      showNotification('From date must be earlier than to date', 'error');
       return;
     }
   }
@@ -615,14 +663,14 @@ async function handleReportGeneration(event) {
 
     // Show success message
     setTimeout(() => {
-      alert('Report downloaded successfully!');
+      showNotification('Report downloaded successfully!', 'success');
       event.target.querySelector('#generatePdfBtn').textContent = originalButtonText;
       event.target.querySelector('#generatePdfBtn').disabled = false;
     }, 2000);
 
   } catch (error) {
     console.error('Report generation error:', error);
-    alert('Failed to generate report. Please try again.');
+    showNotification('Failed to generate report. Please try again.', 'error');
     event.target.querySelector('#generatePdfBtn').textContent = originalButtonText;
     event.target.querySelector('#generatePdfBtn').disabled = false;
   }

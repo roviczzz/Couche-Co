@@ -1,8 +1,33 @@
 let currentSection = 'orders';
 let isLoading = false;
 let allOrders = [];
+let filteredOrders = [];
 let currentPage = 1;
 const itemsPerPage = 10;
+let currentDaysFilter = 'all';
+
+function filterOrdersByDays(days) {
+  currentDaysFilter = days;
+  currentPage = 1;
+  
+  if (days === 'all') {
+    filteredOrders = [...allOrders];
+  } else {
+    const daysNum = parseInt(days);
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - daysNum);
+    cutoffDate.setHours(0, 0, 0, 0);
+    
+    filteredOrders = allOrders.filter(order => {
+      const orderDate = order.Date || order.CreationTime;
+      if (!orderDate) return false;
+      const dateObj = new Date(orderDate);
+      return !isNaN(dateObj.getTime()) && dateObj >= cutoffDate;
+    });
+  }
+  
+  renderOrdersPage();
+}
 
 async function openProfileModal() {
   // Prevent multiple simultaneous calls
@@ -52,8 +77,13 @@ function populateModal(data) {
   hideLoadingSpinner();
   
   const ordersContainer = document.querySelector('.orders-table-container');
+  const filterSelect = document.getElementById('orderDaysFilter');
+  if (filterSelect) filterSelect.value = 'all';
+  currentDaysFilter = 'all';
+  
   if (data.orders && data.orders.length > 0) {
     allOrders = data.orders;
+    filteredOrders = [...allOrders];
     currentPage = 1;
     renderOrdersPage();
   } else {
@@ -139,10 +169,21 @@ function hideLoadingSpinner() {
 
 function renderOrdersPage() {
   const ordersContainer = document.querySelector('.orders-table-container');
+  
+  if (filteredOrders.length === 0) {
+    ordersContainer.innerHTML = `<div class="no-orders">
+      <i class="fas fa-search"></i>
+      <h4>No orders found</h4>
+      <p>No orders match the selected time period.</p>
+      <button type="button" class="btn-secondary" onclick="filterOrdersByDays('all'); document.getElementById('orderDaysFilter').value='all';">Show All Orders</button>
+    </div>`;
+    return;
+  }
+  
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const pageOrders = allOrders.slice(startIndex, endIndex);
-  const totalPages = Math.ceil(allOrders.length / itemsPerPage);
+  const pageOrders = filteredOrders.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
   
   let html = `<table class="orders-table">
     <thead>
@@ -214,7 +255,7 @@ function renderOrdersPage() {
 }
 
 function goToPage(page) {
-  const totalPages = Math.ceil(allOrders.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
   if (page >= 1 && page <= totalPages) {
     currentPage = page;
     renderOrdersPage();
