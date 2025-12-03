@@ -3873,6 +3873,123 @@ router.post('/api/page-management/carousel/upload-image', async (req, res) => {
   }
 });
 
+router.get('/api/chatbot-settings/categories', async (req, res) => {
+  try {
+    let categoriesData = await req.db.collection('Chatbot-Settings').findOne({ pageId: 'chatbot-categories' });
+    
+    if (!categoriesData) {
+      categoriesData = {
+        pageId: 'chatbot-categories',
+        pageName: 'Chatbot Category Images',
+        categories: [
+          { categoryId: 'popular-items', name: 'Popular Items', imageUrl: '/uploads/chatbot/popular-items.webp' },
+          { categoryId: 'fruit-teas', name: 'Fruit Teas', imageUrl: '/uploads/chatbot/fruit-teas.webp' },
+          { categoryId: 'milk-teas', name: 'Milk Teas', imageUrl: '/uploads/chatbot/milk-teas.webp' },
+          { categoryId: 'signatures', name: 'Signatures', imageUrl: '/uploads/chatbot/signatures.webp' },
+          { categoryId: 'bites', name: 'Bites', imageUrl: '/uploads/chatbot/bites.webp' }
+        ],
+        supportedFormats: ['JPG', 'PNG', 'WebP'],
+        maxFileSize: '2MB',
+        updatedAt: new Date()
+      };
+      
+      await req.db.collection('Chatbot-Settings').insertOne(categoriesData);
+    }
+    
+    res.json({ success: true, data: categoriesData });
+  } catch (error) {
+    console.error('Chatbot categories fetch error:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch chatbot categories' });
+  }
+});
+
+router.post('/api/chatbot-settings/categories/update', async (req, res) => {
+  try {
+    const { categories } = req.body;
+    
+    if (!Array.isArray(categories) || categories.length !== 5) {
+      return res.status(400).json({ success: false, error: 'Invalid categories data. Must have exactly 5 categories.' });
+    }
+
+    const updateData = {
+      categories: categories.map(cat => ({
+        categoryId: cat.categoryId,
+        name: cat.name,
+        imageUrl: cat.imageUrl
+      })),
+      updatedAt: new Date()
+    };
+
+    const result = await req.db.collection('Chatbot-Settings').findOneAndUpdate(
+      { pageId: 'chatbot-categories' },
+      { $set: updateData },
+      { returnDocument: 'after', upsert: true }
+    );
+
+    res.json({ success: true, message: 'Chatbot categories updated successfully', data: result });
+  } catch (error) {
+    console.error('Chatbot categories update error:', error);
+    res.status(500).json({ success: false, error: 'Failed to update chatbot categories' });
+  }
+});
+
+router.post('/api/chatbot-settings/categories/upload-image', async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'No image file provided' });
+    }
+
+    const { categoryId } = req.body;
+    if (!categoryId) {
+      return res.status(400).json({ success: false, error: 'Category ID is required' });
+    }
+
+    const file = req.file;
+    const maxSize = 2 * 1024 * 1024;
+
+    if (file.size > maxSize) {
+      fs.unlinkSync(file.path);
+      return res.status(400).json({ success: false, error: 'File size exceeds 2MB limit' });
+    }
+
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedMimes.includes(file.mimetype)) {
+      fs.unlinkSync(file.path);
+      return res.status(400).json({ success: false, error: 'Invalid image format. Use JPG, PNG, or WebP' });
+    }
+
+    const chatbotDir = path.join(__dirname, '..', 'public', 'uploads', 'chatbot');
+    if (!fs.existsSync(chatbotDir)) {
+      fs.mkdirSync(chatbotDir, { recursive: true });
+    }
+
+    const sharp = require('sharp');
+    const filename = `${categoryId}.webp`;
+    const outputPath = path.join(chatbotDir, filename);
+
+    await sharp(file.path)
+      .webp({ quality: 85 })
+      .toFile(outputPath);
+
+    fs.unlinkSync(file.path);
+
+    res.json({ 
+      success: true, 
+      message: 'Image uploaded and converted to WebP successfully',
+      data: { 
+        filename: filename,
+        path: `/uploads/chatbot/${filename}`
+      }
+    });
+  } catch (error) {
+    console.error('Chatbot image upload error:', error);
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    res.status(500).json({ success: false, error: 'Failed to upload and convert image' });
+  }
+});
+
 router.get('/feedback', nocache, ensureAdmin, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;

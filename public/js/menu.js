@@ -46,6 +46,20 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!window.cartItems) {
         window.cartItems = [];
     }
+
+    const contactNumberInput = document.getElementById('contact-number');
+    if (contactNumberInput) {
+        contactNumberInput.addEventListener('input', function() {
+            let val = this.value.replace(/\D/g, '');
+            if (val.match(/^[1-8]/)) {
+                val = '09' + val;
+            } else if (val.startsWith('9') && val.length >= 1) {
+                val = '0' + val;
+            }
+            val = val.substring(0, 11);
+            this.value = val;
+        });
+    }
 });
 
 // Handle promo selection

@@ -241,6 +241,7 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
 });
 app.use('/admin/api/page-management', upload.single('bannerImage'));
+app.use('/admin/api/chatbot-settings', upload.single('categoryImage'));
 
 // Static files with caching
 app.use(express.static(__dirname + '/public', {

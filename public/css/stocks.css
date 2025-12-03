@@ -245,6 +245,45 @@ main {
   box-shadow: var(--shadow-md), 0 2px 8px rgba(40, 167, 69, 0.4);
 }
 
+/* Update All Stocks Button */
+.btn-update-all {
+  padding: 10px 16px;
+  border-radius: 6px;
+  background-color: #28a745;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(40, 167, 69, 0.2);
+  transition: background 0.2s ease, transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  margin-right: -20rem;
+}
+
+.btn-update-all:hover {
+  background-color: #218838;
+  transform: translateY(-1px);
+}
+
+.btn-update-all:active {
+  transform: translateY(0);
+}
+
+.btn-update-all i {
+  font-size: 13px;
+}
+
+/* Search Container - flex layout for search input and update button */
+.search-container {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
 /* Reset Sort FAB Button - positioned on the left side */
 .reset-sort-btn {
   left: 30px;

@@ -6,7 +6,7 @@
 // NOTIFICATION SYSTEM
 // ===============================================
 
-function showNotification(message, type = 'success') {
+function showNotification(message, type = 'success', duration = 3000) {
   const container = document.querySelector('.notification-container') || createNotificationContainer();
   
   const notification = document.createElement('div');
@@ -34,7 +34,11 @@ function showNotification(message, type = 'success') {
   const closeBtn = notification.querySelector('.notification-close');
   closeBtn.addEventListener('click', () => removeNotification(notification));
   
-  setTimeout(() => removeNotification(notification), 3000);
+  if (duration > 0) {
+    setTimeout(() => removeNotification(notification), duration);
+  }
+  
+  return notification;
 }
 
 function createNotificationContainer() {
@@ -2254,6 +2258,220 @@ document.addEventListener('DOMContentLoaded', function() {
       e.stopPropagation();
       console.log(`[2025-10-15 17:45:23] Bulk delete button clicked by MathDaenniel`);
       showConfirmationModal('bulk_delete', null, 'all');
+    });
+  }
+
+  const updateAllIngredientsBtn = document.getElementById('updateAllIngredientsBtn');
+  if (updateAllIngredientsBtn) {
+    updateAllIngredientsBtn.addEventListener('click', async function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log(`[2025-10-15 17:45:23] Update All Ingredients clicked by MathDaenniel`);
+      
+      const ingredientRows = document.querySelectorAll('tr[data-type="ingredient"][data-item-id]');
+      if (ingredientRows.length === 0) {
+        showNotification('No ingredients to update', 'warning');
+        return;
+      }
+      
+      const updatingNotification = showNotification('Updating all ingredients...', 'info', 0);
+      
+      let successful = 0;
+      let failed = 0;
+      
+      for (const row of ingredientRows) {
+        const itemId = row.getAttribute('data-item-id');
+        try {
+          const suffix = row.querySelector('input[name="IngredientSuffix"]')?.value?.trim();
+          const name = row.querySelector('input[name="Name"]')?.value?.trim();
+          const amount = row.querySelector('.amount-pack-group input[name="Amount"]')?.value?.trim();
+          const unit = row.querySelector('.amount-pack-group select[name="Unit"]')?.value?.trim();
+          const allergen = row.querySelector('input[name="Allergen"]')?.value?.trim() || 'None';
+          const enabled = row.querySelector('input[name="isEnabled"][type="checkbox"]')?.checked ? 'true' : 'false';
+          
+          if (!suffix || !name || !amount || !unit) {
+            failed++;
+            continue;
+          }
+          
+          const amountPerPack = `${amount} ${unit}`;
+          const fullId = `ING-${suffix}`;
+          
+          const data = {
+            IngredientID: fullId,
+            IngredientPrefix: 'ING',
+            IngredientSuffix: suffix,
+            Name: name,
+            Amount: amount,
+            AmountPerPack: amountPerPack,
+            Category: 'Ingredients',
+            Allergen: allergen,
+            isEnabled: enabled,
+            DeductionQuantityGrams: '10'
+          };
+          
+          const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
+          
+          const response = await fetch(`${basePath}/stocks/edit/${itemId}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify(data)
+          });
+          
+          if (response.ok) {
+            row.querySelectorAll('[data-original]').forEach(field => {
+              field.setAttribute('data-original', field.value);
+            });
+            successful++;
+          } else {
+            failed++;
+          }
+        } catch (error) {
+          console.error(`Error updating ingredient ${itemId}:`, error);
+          failed++;
+        }
+      }
+      
+      removeNotification(updatingNotification);
+      
+      if (successful > 0) {
+        const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
+        try {
+          const response = await fetch(`${basePath}/stocks`);
+          const html = await response.text();
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, 'text/html');
+          
+          for (const row of ingredientRows) {
+            const itemId = row.getAttribute('data-item-id');
+            const updatedRow = doc.querySelector(`tr[data-item-id="${itemId}"]`);
+            if (updatedRow && row.cells[2] && updatedRow.cells[2]) {
+              row.cells[2].textContent = updatedRow.cells[2].textContent;
+            }
+          }
+        } catch (e) {
+          console.error('Error refreshing table:', e);
+        }
+      }
+      
+      if (failed === 0) {
+        showNotification(`Successfully updated ${successful} ingredients`, 'success');
+      } else {
+        showNotification(`Updated ${successful} ingredients, ${failed} failed`, 'warning');
+      }
+      
+      triggerDashboardRefresh();
+    });
+  }
+
+  const updateAllAddonsBtn = document.getElementById('updateAllAddonsBtn');
+  if (updateAllAddonsBtn) {
+    updateAllAddonsBtn.addEventListener('click', async function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log(`[2025-10-15 17:45:23] Update All Add-ons clicked by MathDaenniel`);
+      
+      const addonRows = document.querySelectorAll('tr[data-type="addon"][data-item-id]');
+      if (addonRows.length === 0) {
+        showNotification('No add-ons to update', 'warning');
+        return;
+      }
+      
+      const updatingNotification = showNotification('Updating all add-ons...', 'info', 0);
+      
+      let successful = 0;
+      let failed = 0;
+      
+      for (const row of addonRows) {
+        const itemId = row.getAttribute('data-item-id');
+        try {
+          const suffix = row.querySelector('input[name="AddOnSuffix"]')?.value?.trim();
+          const name = row.querySelector('input[name="Name"]')?.value?.trim();
+          const amount = row.querySelector('.amount-pack-group input[name="Amount"]')?.value?.trim();
+          const unit = row.querySelector('.amount-pack-group select[name="Unit"]')?.value?.trim();
+          const allergen = row.querySelector('input[name="Allergen"]')?.value?.trim() || 'None';
+          const enabled = row.querySelector('input[name="isEnabled"][type="checkbox"]')?.checked ? 'true' : 'false';
+          const basePrice = row.querySelector('input[name="BasePrice"]')?.value?.trim() || '10';
+          
+          if (!suffix || !name || !amount || !unit) {
+            failed++;
+            continue;
+          }
+          
+          const amountPerPack = `${amount} ${unit}`;
+          const fullId = `AD-${suffix}`;
+          
+          const data = {
+            AddOnID: fullId,
+            AddOnPrefix: 'AD',
+            AddOnSuffix: suffix,
+            Name: name,
+            Amount: amount,
+            AmountPerPack: amountPerPack,
+            Category: 'Add-Ons',
+            Allergen: allergen,
+            isEnabled: enabled,
+            BasePrice: parseInt(basePrice, 10) || 10,
+            DeductionQuantityGrams: '10'
+          };
+          
+          const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
+          
+          const response = await fetch(`${basePath}/stocks/edit/${itemId}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify(data)
+          });
+          
+          if (response.ok) {
+            row.querySelectorAll('[data-original]').forEach(field => {
+              field.setAttribute('data-original', field.value);
+            });
+            successful++;
+          } else {
+            failed++;
+          }
+        } catch (error) {
+          console.error(`Error updating addon ${itemId}:`, error);
+          failed++;
+        }
+      }
+      
+      removeNotification(updatingNotification);
+      
+      if (successful > 0) {
+        const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
+        try {
+          const response = await fetch(`${basePath}/stocks`);
+          const html = await response.text();
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, 'text/html');
+          
+          for (const row of addonRows) {
+            const itemId = row.getAttribute('data-item-id');
+            const updatedRow = doc.querySelector(`tr[data-item-id="${itemId}"]`);
+            if (updatedRow && row.cells[2] && updatedRow.cells[2]) {
+              row.cells[2].textContent = updatedRow.cells[2].textContent;
+            }
+          }
+        } catch (e) {
+          console.error('Error refreshing table:', e);
+        }
+      }
+      
+      if (failed === 0) {
+        showNotification(`Successfully updated ${successful} add-ons`, 'success');
+      } else {
+        showNotification(`Updated ${successful} add-ons, ${failed} failed`, 'warning');
+      }
+      
+      triggerDashboardRefresh();
     });
   }
 

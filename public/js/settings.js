@@ -567,10 +567,171 @@ class CarouselPageManager {
     }
 }
 
+class ChatbotCategoriesManager {
+    constructor() {
+        this.categoriesData = null;
+        this.fixedCategories = [
+            { categoryId: 'popular-items', name: 'Popular Items' },
+            { categoryId: 'fruit-teas', name: 'Fruit Teas' },
+            { categoryId: 'milk-teas', name: 'Milk Teas' },
+            { categoryId: 'signatures', name: 'Signatures' },
+            { categoryId: 'bites', name: 'Bites' }
+        ];
+        this.init();
+    }
+
+    async init() {
+        try {
+            await this.loadCategoriesData();
+            this.renderCategories();
+            this.attachEventListeners();
+        } catch (error) {
+            console.error('Failed to initialize chatbot categories manager:', error);
+        }
+    }
+
+    async loadCategoriesData() {
+        const response = await fetch('/admin/api/chatbot-settings/categories');
+        if (!response.ok) throw new Error('Failed to load chatbot categories');
+        const result = await response.json();
+        this.categoriesData = result.data;
+    }
+
+    renderCategories() {
+        const categoriesList = document.getElementById('chatbotCategoriesList');
+        if (!categoriesList || !this.categoriesData) return;
+
+        categoriesList.innerHTML = this.categoriesData.categories.map((category, index) => `
+            <div class="carousel-slide-card" data-category-id="${category.categoryId}">
+                <div class="slide-thumbnail">
+                    <img src="${category.imageUrl}" alt="${category.name}" onerror="this.src='/resources/BannerBC.png'">
+                    <div class="slide-overlay">
+                        <button type="button" class="btn-upload-category-image" data-category-id="${category.categoryId}" title="Upload image">
+                            <i class="fas fa-upload"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="slide-info">
+                    <h4>${category.name}</h4>
+                    <p class="slide-preview">${category.categoryId}.webp</p>
+                </div>
+                <input type="file" class="category-image-upload" data-category-id="${category.categoryId}" accept="image/*" style="display: none;">
+            </div>
+        `).join('');
+    }
+
+    attachEventListeners() {
+        const categoriesList = document.getElementById('chatbotCategoriesList');
+        
+        categoriesList.querySelectorAll('.btn-upload-category-image').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const categoryId = btn.dataset.categoryId;
+                const fileInput = document.querySelector(`.category-image-upload[data-category-id="${categoryId}"]`);
+                fileInput.click();
+            });
+        });
+
+        categoriesList.querySelectorAll('.category-image-upload').forEach(input => {
+            input.addEventListener('change', (e) => {
+                const categoryId = input.dataset.categoryId;
+                this.handleImageUpload(e, categoryId);
+            });
+        });
+
+        const saveBtn = document.getElementById('saveChatbotCategoriesBtn');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.saveCategories();
+            });
+        }
+    }
+
+    async handleImageUpload(e, categoryId) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (file.size > 2 * 1024 * 1024) {
+            alert('File size exceeds 2MB limit');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('categoryImage', file);
+        formData.append('categoryId', categoryId);
+
+        try {
+            const response = await fetch('/admin/api/chatbot-settings/categories/upload-image', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                const categoryIndex = this.categoriesData.categories.findIndex(c => c.categoryId === categoryId);
+                if (categoryIndex !== -1) {
+                    this.categoriesData.categories[categoryIndex].imageUrl = result.data.path;
+                }
+                
+                const imgElement = document.querySelector(`[data-category-id="${categoryId}"] .slide-thumbnail img`);
+                if (imgElement) {
+                    imgElement.src = result.data.path + '?t=' + Date.now();
+                }
+                
+                alert('Image uploaded and converted to WebP successfully!');
+            } else {
+                alert('Error uploading image: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Image upload error:', error);
+            alert('Failed to upload image');
+        }
+    }
+
+    async saveCategories() {
+        const saveBtn = document.getElementById('saveChatbotCategoriesBtn');
+        const btnText = saveBtn.querySelector('.btn-text');
+        const btnLoader = saveBtn.querySelector('.btn-loader');
+
+        btnText.style.display = 'none';
+        btnLoader.style.display = 'inline';
+
+        try {
+            const response = await fetch('/admin/api/chatbot-settings/categories/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ categories: this.categoriesData.categories })
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                alert('Chatbot category images saved successfully!');
+                await this.loadCategoriesData();
+                this.renderCategories();
+                this.attachEventListeners();
+            } else {
+                alert('Error saving categories: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Categories save error:', error);
+            alert('Failed to save categories');
+        } finally {
+            btnText.style.display = 'inline';
+            btnLoader.style.display = 'none';
+        }
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const carouselTab = document.getElementById('carousel-tab');
     if (carouselTab) {
         new CarouselPageManager();
+    }
+
+    const chatbotCategoriesList = document.getElementById('chatbotCategoriesList');
+    if (chatbotCategoriesList) {
+        new ChatbotCategoriesManager();
     }
 
     setTimeout(() => {
@@ -793,29 +954,42 @@ function initPromoModalSettings() {
 document.addEventListener('DOMContentLoaded', function() {
     const categoryItems = document.querySelectorAll('.category-item');
     const sections = document.querySelectorAll('.settings-section');
+    const STORAGE_KEY = 'settings-active-category';
 
-    // Set first category as active by default
-    if (categoryItems.length > 0) {
-        categoryItems[0].classList.add('active');
-        const firstCategory = categoryItems[0].getAttribute('data-category');
-        document.querySelector(`[data-category="${firstCategory}"]`)?.parentElement.classList.add('active');
+    const savedCategory = localStorage.getItem(STORAGE_KEY);
+    let initialCategory = savedCategory;
+
+    if (!initialCategory || !document.querySelector(`.category-item[data-category="${initialCategory}"]`)) {
+        initialCategory = categoryItems.length > 0 ? categoryItems[0].getAttribute('data-category') : null;
+    }
+
+    if (initialCategory) {
+        categoryItems.forEach(item => {
+            if (item.getAttribute('data-category') === initialCategory) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+
         sections.forEach(section => {
-            if (section.getAttribute('data-category') === firstCategory) {
+            if (section.getAttribute('data-category') === initialCategory) {
                 section.classList.add('active');
+            } else {
+                section.classList.remove('active');
             }
         });
     }
 
-    // Add click handlers
     categoryItems.forEach(item => {
         item.addEventListener('click', function() {
             const category = this.getAttribute('data-category');
             
-            // Update active category button
+            localStorage.setItem(STORAGE_KEY, category);
+            
             categoryItems.forEach(btn => btn.classList.remove('active'));
             this.classList.add('active');
             
-            // Show corresponding section
             sections.forEach(section => {
                 if (section.getAttribute('data-category') === category) {
                     section.classList.add('active');
@@ -824,7 +998,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
             
-            // Scroll to top of content
             document.querySelector('.settings-content').scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
     });

@@ -49,6 +49,7 @@ router.post('/login', (req, res) => {
 // Logout route
 router.get('/logout', (req, res) => {
   const username = req.session.user?.username;
+  const userRole = req.session.user?.role;
   console.log(`🚪 User logout: ${username} at ${new Date().toISOString()}`);
 
   req.session.destroy((err) => {
@@ -57,7 +58,14 @@ router.get('/logout', (req, res) => {
       return res.status(500).send('Error during logout');
     }
     console.log(`✅ Session destroyed successfully for user: ${username}`);
-    res.redirect('/');
+    
+    if (userRole === 'admin' || userRole === 'owner') {
+      res.redirect('/admin/login');
+    } else if (userRole === 'staff') {
+      res.redirect('/staff/login');
+    } else {
+      res.redirect('/');
+    }
   });
 });
 
