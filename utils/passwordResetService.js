@@ -1,24 +1,24 @@
-const { Resend } = require('resend');
+const nodemailer = require('nodemailer');
+const fs = require('fs');
+const path = require('path');
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASSWORD
+  }
+});
 
 const sendPasswordResetEmail = async (userEmail, userName, resetUrl, isAdmin = false) => {
   try {
     console.log(`[RESETMAIL] Sending password reset email to ${userEmail}`);
     
-    if (!process.env.RESEND_API_KEY) {
-      console.error('[RESETMAIL] Resend API key not configured');
+    if (!process.env.GMAIL_USER || !process.env.GMAIL_PASSWORD) {
+      console.error('[RESETMAIL] Gmail credentials not configured');
       return {
         success: false,
         error: 'Email service not configured'
-      };
-    }
-
-    if (!process.env.RESEND_FROM_EMAIL) {
-      console.error('[RESETMAIL] Resend from email not configured');
-      return {
-        success: false,
-        error: 'Email service not properly configured'
       };
     }
 
@@ -28,7 +28,10 @@ const sendPasswordResetEmail = async (userEmail, userName, resetUrl, isAdmin = f
     const html = `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f3f0; padding: 20px;">
         <div style="background-color: #ffffff; border-radius: 8px; padding: 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
-          <div style="background: linear-gradient(135deg, #a05c2f 0%, #8b4a26 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; margin: -40px -40px 30px -40px; text-align: center;">
+          <div style="text-align: center; margin: -40px -40px 20px -40px; padding-top: 20px;">
+            <img src="cid:logo" alt="Blessings Café" style="width: 120px; height: auto; margin-bottom: -10px;" />
+          </div>
+          <div style="background: linear-gradient(135deg, #a05c2f 0%, #8b4a26 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; margin: 0 -40px 30px -40px; text-align: center;">
             <h1 style="margin: 0; font-size: 24px; font-weight: 700;">Password Reset</h1>
             <p style="margin: 8px 0 0 0; font-size: 13px; opacity: 0.95; text-transform: uppercase; letter-spacing: 1px;">Secure Your Account</p>
           </div>
@@ -51,32 +54,33 @@ const sendPasswordResetEmail = async (userEmail, userName, resetUrl, isAdmin = f
           <hr style="border: none; border-top: 1px solid #e8e8e8; margin: 30px 0;">
 
           <p style="color: #999; font-size: 12px; text-align: center; margin: 0;">
-            © 2024 Blessings Café. All rights reserved.<br>
-            Questions? Contact us at <a href="mailto:support@blessingsateverysip.me" style="color: #a05c2f; text-decoration: none;">support@blessingsateverysip.me</a>
+            © ${new Date().getFullYear()} Blessings Café. All rights reserved.<br>
+            Questions? Contact us at <a href="mailto:blessingscafe1@gmail.com" style="color: #a05c2f; text-decoration: none;">support@blessingsateverysip.me</a>
           </p>
         </div>
       </div>
     `;
 
-    const response = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL,
+    const logoPath = path.join(__dirname, '../public/resources/Blessings-Logo.png');
+    
+    const response = await transporter.sendMail({
+      from: `Blessings Café <${process.env.GMAIL_USER}>`,
       to: userEmail,
       subject: `Password Reset - ${accountType}`,
-      html: html
+      html: html,
+      attachments: [
+        {
+          filename: 'logo.png',
+          path: logoPath,
+          cid: 'logo'
+        }
+      ]
     });
 
-    if (response.error) {
-      console.error(`❌ [RESETMAIL] Resend error:`, response.error);
-      return {
-        success: false,
-        error: response.error.message || 'Failed to send email'
-      };
-    }
-
-    console.log(`✅ [RESETMAIL] Password reset email sent to ${userEmail} (MessageID: ${response.data.id})`);
+    console.log(`✅ [RESETMAIL] Password reset email sent to ${userEmail} (MessageID: ${response.messageId})`);
     return {
       success: true,
-      messageId: response.data.id
+      messageId: response.messageId
     };
   } catch (error) {
     console.error(`❌ [RESETMAIL] Error sending password reset email:`, error.message);

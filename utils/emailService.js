@@ -1,7 +1,14 @@
-const { Resend } = require('resend');
+const nodemailer = require('nodemailer');
 const QRCode = require('qrcode');
+const path = require('path');
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASSWORD
+  }
+});
 
 const generateEmailTemplate = (order, customerName) => {
   const itemsHTML = order.Cart.map(item => `
@@ -265,6 +272,9 @@ const generateEmailTemplate = (order, customerName) => {
     </head>
     <body>
       <div class="container">
+        <div style="text-align: center; padding: 20px 0;">
+          <img src="cid:logo" alt="Blessings Café" style="width: 120px; height: auto;" />
+        </div>
         <div class="header">
           <h1>Blessings Café</h1>
           <p class="header-subtitle">Order Receipt</p>
@@ -332,7 +342,7 @@ const generateEmailTemplate = (order, customerName) => {
         <div class="footer">
           <div class="footer-brand">Blessings Café</div>
           <p>We appreciate your order! Your satisfaction is our priority.</p>
-          <p style="margin-top: 20px; border-top: 1px solid #555; padding-top: 15px;">For inquiries or feedback, please contact us through the website.</p>
+          <p style="margin-top: 20px; border-top: 1px solid #555; padding-top: 15px;">© ${new Date().getFullYear()} Blessings Café. For inquiries or feedback, please contact us through the website.</p>
           <p class="footer-note">This is an automated message. Please do not reply directly.</p>
         </div>
       </div>
@@ -358,20 +368,13 @@ const sendOrderReceipt = async (order, customerEmail, customerName) => {
   try {
     console.log(`[EMAILSVC] Starting email send. Email: ${customerEmail}, Order: ${order.OrderID}, Customer: ${customerName}`);
     
-    if (!process.env.RESEND_API_KEY) {
-      console.error('[EMAILSVC] Resend API key not configured in environment variables');
-      console.error(`[EMAILSVC] RESEND_API_KEY: ${process.env.RESEND_API_KEY ? 'SET' : 'NOT SET'}`);
+    if (!process.env.GMAIL_USER || !process.env.GMAIL_PASSWORD) {
+      console.error('[EMAILSVC] Gmail credentials not configured in environment variables');
+      console.error(`[EMAILSVC] GMAIL_USER: ${process.env.GMAIL_USER ? 'SET' : 'NOT SET'}`);
+      console.error(`[EMAILSVC] GMAIL_PASSWORD: ${process.env.GMAIL_PASSWORD ? 'SET' : 'NOT SET'}`);
       return {
         success: false,
         error: 'Email service not configured'
-      };
-    }
-
-    if (!process.env.RESEND_FROM_EMAIL) {
-      console.error('[EMAILSVC] Resend from email not configured in environment variables');
-      return {
-        success: false,
-        error: 'Email service not properly configured'
       };
     }
 
@@ -383,8 +386,10 @@ const sendOrderReceipt = async (order, customerEmail, customerName) => {
     const emailHTML = generateEmailTemplate(order, customerName);
     console.log(`[EMAILSVC] Email template generated (length: ${emailHTML.length})`);
 
+    const logoPath = path.join(__dirname, '../public/resources/Blessings-Logo.png');
+    
     const mailOptions = {
-      from: process.env.RESEND_FROM_EMAIL,
+      from: `Blessings Café <${process.env.GMAIL_USER}>`,
       to: customerEmail,
       subject: `Order Receipt #${order.OrderID} - Blessings Café`,
       html: emailHTML,
@@ -392,28 +397,26 @@ const sendOrderReceipt = async (order, customerEmail, customerName) => {
         {
           filename: 'qrcode.png',
           content: qrCodeDataUrl.split(',')[1],
-          encoding: 'base64'
+          encoding: 'base64',
+          cid: 'qrcode'
+        },
+        {
+          filename: 'logo.png',
+          path: logoPath,
+          cid: 'logo'
         }
       ]
     };
 
-    console.log(`[EMAILSVC] Attempting to send email via Resend...`);
-    const result = await resend.emails.send(mailOptions);
-    
-    if (result.error) {
-      console.error(`❌ [EMAILSVC] Resend error:`, result.error);
-      return {
-        success: false,
-        error: result.error.message || 'Failed to send email'
-      };
-    }
+    console.log(`[EMAILSVC] Attempting to send email via Gmail SMTP...`);
+    const result = await transporter.sendMail(mailOptions);
 
-    console.log(`✅ [EMAILSVC] Email sent successfully! MessageID: ${result.data.id}`);
+    console.log(`✅ [EMAILSVC] Email sent successfully! MessageID: ${result.messageId}`);
     console.log(`✅ Order receipt sent to ${customerEmail} for order ${order.OrderID}`);
     
     return {
       success: true,
-      messageId: result.data.id
+      messageId: result.messageId
     };
   } catch (error) {
     console.error(`❌ [EMAILSVC] Error sending order receipt to ${customerEmail}:`, error);
@@ -430,14 +433,15 @@ const sendOrderReceipt = async (order, customerEmail, customerName) => {
 
 const verifyEmailConnection = async () => {
   try {
-    if (!process.env.RESEND_API_KEY) {
-      console.error('[EMAILSVC] Resend API key not configured');
+    if (!process.env.GMAIL_USER || !process.env.GMAIL_PASSWORD) {
+      console.error('[EMAILSVC] Gmail credentials not configured');
       return false;
     }
-    console.log('[EMAILSVC] ✅ Email service (Resend) configured successfully');
+    await transporter.verify();
+    console.log('[EMAILSVC] ✅ Email service (Gmail SMTP) configured and verified successfully');
     return true;
   } catch (error) {
-    console.error('[EMAILSVC] ❌ Email service verification failed:', error);
+    console.error('[EMAILSVC] ❌ Email service verification failed:', error.message);
     return false;
   }
 };
