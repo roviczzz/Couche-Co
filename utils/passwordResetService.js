@@ -1,24 +1,26 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 const fs = require('fs');
 const path = require('path');
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASSWORD
-  }
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const sendPasswordResetEmail = async (userEmail, userName, resetUrl, isAdmin = false) => {
   try {
     console.log(`[RESETMAIL] Sending password reset email to ${userEmail}`);
     
-    if (!process.env.GMAIL_USER || !process.env.GMAIL_PASSWORD) {
-      console.error('[RESETMAIL] Gmail credentials not configured');
+    if (!process.env.RESEND_API_KEY) {
+      console.error('[RESETMAIL] Resend API key not configured');
       return {
         success: false,
         error: 'Email service not configured'
+      };
+    }
+
+    if (!process.env.RESEND_FROM_EMAIL) {
+      console.error('[RESETMAIL] Resend from email not configured');
+      return {
+        success: false,
+        error: 'Email service not properly configured'
       };
     }
 
@@ -62,25 +64,33 @@ const sendPasswordResetEmail = async (userEmail, userName, resetUrl, isAdmin = f
     `;
 
     const logoPath = path.join(__dirname, '../public/resources/Blessings-Logo.png');
+    const logoBase64 = fs.readFileSync(logoPath).toString('base64');
     
-    const response = await transporter.sendMail({
-      from: `Blessings Café <${process.env.GMAIL_USER}>`,
+    const response = await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL,
       to: userEmail,
       subject: `Password Reset - ${accountType}`,
       html: html,
       attachments: [
         {
           filename: 'logo.png',
-          path: logoPath,
-          cid: 'logo'
+          content: logoBase64
         }
       ]
     });
 
-    console.log(`✅ [RESETMAIL] Password reset email sent to ${userEmail} (MessageID: ${response.messageId})`);
+    if (response.error) {
+      console.error(`❌ [RESETMAIL] Resend error:`, response.error);
+      return {
+        success: false,
+        error: response.error.message || 'Failed to send email'
+      };
+    }
+
+    console.log(`✅ [RESETMAIL] Password reset email sent to ${userEmail} (MessageID: ${response.data.id})`);
     return {
       success: true,
-      messageId: response.messageId
+      messageId: response.data.id
     };
   } catch (error) {
     console.error(`❌ [RESETMAIL] Error sending password reset email:`, error.message);
