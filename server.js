@@ -1,5 +1,6 @@
 const express = require('express');
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
 const expressLayouts = require('express-ejs-layouts');
 const flash = require('connect-flash');
 const favicon = require('serve-favicon');
@@ -11,26 +12,28 @@ const multer = require('multer');
 
 const app = express();
 const port = process.env.PORT || 8080;
+let startBrowsersync = null;
 if (process.env.NODE_ENV !== 'production') {
-  const browserSync = require('browser-sync');
-  const bs = browserSync.create();
-  
-  // Start Browsersync after Express server starts
-  const startBrowsersync = () => {
-    bs.init({
-      proxy: `http://localhost:${port}`,
-      files: [
-        path.join(__dirname, 'views'),
-        path.join(__dirname, 'public')
-      ],
-      open: false,
-      notify: false,
-      port: 3000
-    });
-  };
-  // Attach to app.locals for later use in startServer
-  app.locals.startBrowsersync = startBrowsersync;
+  try {
+    const browserSync = require('browser-sync');
+    const bs = browserSync.create();
+    startBrowsersync = () => {
+      bs.init({
+        proxy: `http://localhost:${port}`,
+        files: [
+          path.join(__dirname, 'views'),
+          path.join(__dirname, 'public')
+        ],
+        open: false,
+        notify: false,
+        port: 3000
+      });
+    };
+  } catch (err) {
+    console.log('Browser-sync not available, skipping...');
+  }
 }
+app.locals.startBrowsersync = startBrowsersync;
 
 if (process.env.NODE_ENV === 'production') {
   app.use(compression({
@@ -61,6 +64,7 @@ const inventoryRoutes = require('./routes/inventory');
 const inventoryAdminRoutes = require('./routes/inventory-admin');
 const notificationRoutes = require('./routes/notifications');
 const webhooksRoutes = require('./routes/webhooks');
+const feedbackRoutes = require('./routes/feedback');
 
 // Import promo manager for automated deactivation
 const { initializePromoDeactivationCron } = require('./utils/promoManager');
@@ -94,15 +98,15 @@ app.use((req, res, next) => {
   next();
 });
 
-// Rate limiting for API endpoints
+// Rate limiting for API endpoints - disabled for development
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 10000,
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
   skip: (req) => {
-    return req.session?.user?.role === 'admin';
+    return true;
   }
 });
 
@@ -119,16 +123,34 @@ const authLimiter = rateLimit({
 app.use('/login', authLimiter);
 app.use('/auth/register', authLimiter);
 
-// Session configuration with better settings
+// Session configuration with MongoDB store for persistence
 app.use(session({
-  secret: '4eaf42844a1772cb12e90869666b3a929f785d5bbd6d0fc5402c95ebc8721c3bca4ac502cc2fa7ec8abcbec042202876',
+  secret: process.env.SESSION_SECRET,
   resave: false,
-  saveUninitialized: false, // Changed to false for better performance
+  saveUninitialized: false,
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI,
+    dbName: 'blessingscafe',
+    collectionName: 'sessions',
+    ttl: 24 * 60 * 60,
+    autoRemove: 'native',
+    touchAfter: 24 * 3600
+  }),
   cookie: { 
-    secure: false,
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 24 * 60 * 60 * 1000,
+    httpOnly: true,
+    sameSite: 'lax'
   }
 }));
+
+// Session touch middleware - extends session expiry on each authenticated request
+app.use((req, res, next) => {
+  if (req.session && req.session.user) {
+    req.session.touch();
+  }
+  next();
+});
 
 app.use(flash());
 app.use((req, res, next) => {
@@ -219,6 +241,7 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
 });
 app.use('/admin/api/page-management', upload.single('bannerImage'));
+app.use('/admin/api/chatbot-settings', upload.single('categoryImage'));
 
 // Static files with caching
 app.use(express.static(__dirname + '/public', {
@@ -232,6 +255,7 @@ app.set('layout', 'layout');
 
 // Use route modules
 app.use('/api', apiRoutes);
+app.use('/api', feedbackRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/admin/inventory', inventoryAdminRoutes);
 app.use('/api/webhooks', webhooksRoutes);

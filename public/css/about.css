@@ -194,6 +194,19 @@
     margin-bottom: 4rem;
 }
 
+.section-header .team-name {
+    display: inline-block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #8B4513;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 0.5rem;
+    padding: 0.35rem 1rem;
+    background: rgba(139, 69, 19, 0.1);
+    border-radius: 20px;
+}
+
 .section-header h2 {
     color: #2c3e50;
     font-size: 2.5rem;
@@ -340,42 +353,72 @@
 
 @media (max-width: 768px) {
     .hero {
-        padding: 5rem 1.5rem 3rem;
+        padding: 3.5rem 1rem 2rem;
     }
 
     .hero h1 {
-        font-size: 3rem;
+        font-size: 2.2rem;
     }
 
     .hero p {
-        font-size: 1.2rem;
+        font-size: 0.95rem;
     }
 
     .about-section {
-        padding: 4rem 1.5rem;
+        padding: 2.5rem 1rem;
+    }
+
+    .about-section::before {
+        width: 60px;
+        height: 3px;
     }
 
     .about-grid {
         grid-template-columns: 1fr;
-        gap: 2rem;
-        margin-top: 3rem;
+        gap: 1rem;
+        margin-top: 1.5rem;
     }
 
     .about-card {
-        padding: 2.5rem 2rem;
+        padding: 1.5rem 1.25rem;
+        min-height: auto;
+        border-radius: 16px;
     }
 
     .about-card h3 {
-        font-size: 1.6rem;
+        font-size: 1.25rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .about-card h3::after {
+        bottom: -6px;
+        width: 35px;
+    }
+
+    .about-card p {
+        font-size: 0.9rem;
+        line-height: 1.5;
     }
 
     .developers-section {
-        padding: 4rem 1.5rem;
+        padding: 2.5rem 1rem;
+    }
+
+    .section-header {
+        margin-bottom: 1.5rem;
+    }
+
+    .section-header h2 {
+        font-size: 1.75rem;
+    }
+
+    .section-header p {
+        font-size: 0.9rem;
     }
 
     .developers-grid {
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 2rem;
+        grid-template-columns: 1fr;
+        gap: 1rem;
     }
 
     .developer-card {
@@ -403,67 +446,96 @@
 
 @media (max-width: 480px) {
     .hero {
-        padding: 4rem 1rem 2.5rem;
+        padding: 2.5rem 0.75rem 1.5rem;
     }
 
     .hero h1 {
-        font-size: 2.5rem;
+        font-size: 1.75rem;
     }
 
     .hero p {
-        font-size: 1.1rem;
+        font-size: 0.85rem;
     }
 
     .about-section {
-        padding: 3rem 1rem;
+        padding: 2rem 0.75rem;
+    }
+
+    .about-grid {
+        gap: 0.75rem;
+        margin-top: 1rem;
     }
 
     .about-card {
-        padding: 2rem 1.5rem;
+        padding: 1.25rem 1rem;
+        border-radius: 12px;
+    }
+
+    .about-card h3 {
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .about-card p {
+        font-size: 0.85rem;
     }
 
     .developers-section {
-        padding: 3rem 1rem;
+        padding: 2rem 0.75rem;
     }
 
-    .section-header h2 {
-        font-size: 2rem;
-    }
-
-    .developers-grid {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-    }
-
-    .developer-card {
-        padding: 1.5rem;
-    }
-
-    .developer-image {
-        width: 90px;
-        height: 90px;
+    .section-header {
         margin-bottom: 1rem;
     }
 
+    .section-header h2 {
+        font-size: 1.5rem;
+    }
+
+    .section-header p {
+        font-size: 0.85rem;
+    }
+
+    .developers-grid {
+        gap: 0.75rem;
+    }
+
+    .developer-card {
+        padding: 1rem;
+        border-radius: 12px;
+    }
+
+    .developer-image {
+        width: 70px;
+        height: 70px;
+        margin-bottom: 0.75rem;
+    }
+
     .developer-info h3 {
-        font-size: 1.3rem;
+        font-size: 1rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .developer-info p {
+        font-size: 0.8rem;
+        margin-bottom: 0.5rem;
     }
 
     .developer-email {
-        font-size: 0.9rem;
-        padding: 0.4rem 0.8rem;
+        font-size: 0.75rem;
+        padding: 0.35rem 0.6rem;
     }
 
     .stats-grid {
         grid-template-columns: 1fr;
-        gap: 1rem;
+        gap: 0.75rem;
     }
 
     .stat-item h4 {
-        font-size: 2rem;
+        font-size: 1.75rem;
     }
 
     .stat-item p {
-        font-size: 1rem;
+        font-size: 0.85rem;
     }
 }

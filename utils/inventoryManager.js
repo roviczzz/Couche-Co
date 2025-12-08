@@ -6,7 +6,7 @@ const dbConnection = require('./db');
 class InventoryManager {
   
   static async deductIngredients(orderItems) {
-        const deductionLog = [];
+    const deductionLog = [];
 
     try {
       const db = dbConnection.getDb();
@@ -15,15 +15,22 @@ class InventoryManager {
       const ingredientsCollection = db.collection('Ingredients');
       const addonsCollection = db.collection('Add-ons');
 
-      console.log(`[INVENTORY DEBUG] Starting deduction for ${orderItems.length} order items`);
+      console.log(`[INVENTORY DEDUCTION] ========================================`);
+      console.log(`[INVENTORY DEDUCTION] Starting deduction for ${orderItems.length} order items`);
+      console.log(`[INVENTORY DEDUCTION] ========================================`);
 
       for (const item of orderItems) {
         if (item.isFree) {
-          console.log(`[INVENTORY DEBUG] Skipping free item: ${item.ProductName}`);
+          console.log(`[INVENTORY DEDUCTION] Skipping free item: ${item.ProductName}`);
           continue;
         }
 
-        console.log(`[INVENTORY DEBUG] Processing order item:`, JSON.stringify(item, null, 2));
+        console.log(`[INVENTORY DEDUCTION] ----------------------------------------`);
+        console.log(`[INVENTORY DEDUCTION] Processing: ${item.ProductName}`);
+        console.log(`[INVENTORY DEDUCTION] - ProductID: ${item.ProductID}`);
+        console.log(`[INVENTORY DEDUCTION] - Quantity: ${item.Quantity}`);
+        console.log(`[INVENTORY DEDUCTION] - Size: ${item.Size || 'N/A'}`);
+        console.log(`[INVENTORY DEDUCTION] - User Add-ons: ${item.Addons ? item.Addons.length : 0}`);
 
         // Find menu item by ProductID or Name
         const menuItem = await menuCollection.findOne({
@@ -64,18 +71,41 @@ class InventoryManager {
 
         // Then process menu-defined add-ons (like boba for milktea)
         if (menuItem.AddOns && Array.isArray(menuItem.AddOns)) {
+          console.log(`[INVENTORY DEDUCTION] Processing ${menuItem.AddOns.length} menu-defined add-ons for ${item.ProductName}`);
           await this.processMenuAddons(
             menuItem.AddOns,
             item,
             addonsCollection,
             deductionLog
           );
+        } else {
+          console.log(`[INVENTORY DEDUCTION] No menu-defined add-ons for ${item.ProductName}`);
         }
       }
 
-      console.log(`[INVENTORY SUCCESS] Completed deduction for ${orderItems.length} items. Total deductions: ${deductionLog.length}`);
-      console.log('[INVENTORY DEBUG] Detailed deduction log:', JSON.stringify(deductionLog, null, 2));
-      return { success: true, deductions: deductionLog };
+      console.log(`[INVENTORY DEDUCTION] ========================================`);
+      console.log(`[INVENTORY DEDUCTION] DEDUCTION SUMMARY`);
+      console.log(`[INVENTORY DEDUCTION] ========================================`);
+      console.log(`[INVENTORY DEDUCTION] Processed ${orderItems.length} order items`);
+      console.log(`[INVENTORY DEDUCTION] Total deductions made: ${deductionLog.length}`);
+      
+      const summary = {
+        ingredients: deductionLog.filter(d => d.type === 'ingredient').length,
+        addons: deductionLog.filter(d => d.type === 'addon').length,
+        ingredientAddons: deductionLog.filter(d => d.type === 'ingredient-addon').length,
+        menuAddons: deductionLog.filter(d => d.type === 'menu-addon').length,
+        pastries: deductionLog.filter(d => d.type === 'pastry').length
+      };
+      
+      console.log(`[INVENTORY DEDUCTION] - Ingredients: ${summary.ingredients}`);
+      console.log(`[INVENTORY DEDUCTION] - Add-ons: ${summary.addons}`);
+      console.log(`[INVENTORY DEDUCTION] - Ingredient Add-ons: ${summary.ingredientAddons}`);
+      console.log(`[INVENTORY DEDUCTION] - Menu Add-ons: ${summary.menuAddons}`);
+      console.log(`[INVENTORY DEDUCTION] - Pastries: ${summary.pastries}`);
+      console.log(`[INVENTORY DEDUCTION] ========================================`);
+      console.log('[INVENTORY DEDUCTION] Detailed deduction log:', JSON.stringify(deductionLog, null, 2));
+      
+      return { success: true, deductions: deductionLog, summary };
 
     } catch (error) {
       console.error('[INVENTORY ERROR] Failed to deduct ingredients:', error);
@@ -115,7 +145,7 @@ class InventoryManager {
           );
           
           if (result.modifiedCount > 0) {
-            console.log(`[INVENTORY DEBUG] Successfully deducted ${totalGrams}g of ${name || ingredientID}`);
+            console.log(`[INVENTORY DEDUCTION] ✓ Deducted ${totalGrams}g of ${name || ingredientID}`);
             deductionLog.push({
               type: 'ingredient',
               id: ingredientID,
@@ -127,7 +157,7 @@ class InventoryManager {
               quantity: orderItem.Quantity
             });
           } else {
-            console.warn(`[INVENTORY DEBUG] Failed to update ingredient ${ingredientID} - ingredient not found or already at minimum`);
+            console.error(`[INVENTORY DEDUCTION] ✗ FAILED to deduct ingredient ${ingredientID} (${name || 'Unknown'}) - not found in database`);
           }
         }
       } catch (error) {
@@ -180,7 +210,7 @@ class InventoryManager {
 
     for (const addon of addons) {
       try {
-        const addonId = addon.AddOnID || addon.addOnID || addon.id;
+        const addonId = addon.AddOnID || addon.addOnID || addon.IngredientID || addon.id;
         const addonName = addon.Name || addon.name || 'Unknown Add-on';
 
         if (!addonId) {
@@ -223,7 +253,7 @@ class InventoryManager {
         );
 
         if (result.modifiedCount > 0) {
-          console.log(`[INVENTORY DEBUG] Successfully deducted ${deductionAmount}g of ${addonName}`);
+          console.log(`[INVENTORY DEDUCTION] ✓ Deducted ${deductionAmount}g of ${isIngredientAddon ? 'ingredient add-on' : 'add-on'}: ${addonName}`);
           deductionLog.push({
             type: isIngredientAddon ? 'ingredient-addon' : 'addon',
             id: addonId,
@@ -232,7 +262,7 @@ class InventoryManager {
             deductionQuantityGrams: deductionAmount
           });
         } else {
-          console.warn(`[INVENTORY DEBUG] Failed to update ${isIngredientAddon ? 'ingredient' : 'add-on'} ${addonId} - item not found or insufficient amount`);
+          console.error(`[INVENTORY DEDUCTION] ✗ FAILED to deduct ${isIngredientAddon ? 'ingredient' : 'add-on'} ${addonId} (${addonName}) - not found or insufficient stock`);
         }
       } catch (error) {
         console.error('[INVENTORY DEBUG] Error processing add-on:', addon, error);
@@ -286,7 +316,7 @@ class InventoryManager {
         );
 
         if (result.modifiedCount > 0) {
-          console.log(`[INVENTORY DEBUG] Successfully deducted ${totalUsage}g of menu add-on ${addonName}`);
+          console.log(`[INVENTORY DEDUCTION] ✓ Deducted ${totalUsage}g of menu add-on: ${addonName} (${orderSize})`);
           deductionLog.push({
             type: 'menu-addon',
             id: addonId,
@@ -296,7 +326,7 @@ class InventoryManager {
             quantity: orderItem.Quantity
           });
         } else {
-          console.warn(`[INVENTORY DEBUG] Failed to update menu add-on ${addonId} - add-on not found or insufficient amount`);
+          console.error(`[INVENTORY DEDUCTION] ✗ FAILED to deduct menu add-on ${addonId} (${addonName}) - not found or insufficient stock`);
         }
       } catch (error) {
         console.error('[INVENTORY DEBUG] Error processing menu add-on:', menuAddon, error);

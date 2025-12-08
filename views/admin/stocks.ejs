@@ -68,6 +68,7 @@
     <div class="table-controls-container">
       <div class="search-container">
         <input type="text" id="ingredientSearchInput" placeholder="Search ingredients..." class="search-input">
+        <button type="button" class="stocks-btn update" id="updateAllIngredientsBtn">Update All Ingredients</button>
       </div>
 
       <div class="sort-buttons-container">
@@ -150,6 +151,7 @@
   <div class="table-controls-container">
     <div class="search-container">
       <input type="text" id="addonSearchInput" placeholder="Search add-ons..." class="search-input">
+      <button type="button" class="stocks-btn update" id="updateAllAddonsBtn">Update All Add-ons</button>
     </div>
 
     <div class="sort-buttons-container">
@@ -258,6 +260,10 @@
         <div class="form-group">
           <label for="Allergen">Allergen:</label>
           <input type="text" id="Allergen" name="Allergen" required placeholder="e.g., Dairy">
+        </div>
+        <div class="form-group">
+          <label for="BasePrice">Base Price:</label>
+          <input type="number" id="BasePrice" name="BasePrice" required min="0" step="0.01" placeholder="10.00">
         </div>
         <div class="form-group switch-group">
           <label class="switch-label">

@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="/css/layout.css">
+    <link rel="stylesheet" href="/css/bottom-nav.css">
     <script src="/js/staff-layout.js"></script>
     <script src="/js/calculator.js"></script>
 </head>
@@ -28,14 +29,15 @@
                            label: 'Main',
                            items: [
                              { path: '/staff/dashboard', label: 'Dashboard', icon: 'house' },
-                             { path: '/staff/order', label: 'Orders', icon: 'cart-flatbed' },
+                             { path: '/staff/orders', label: 'Orders', icon: 'cart-flatbed' },
                              { path: '/staff/menu', label: 'POS', icon: 'cash-register' }
                            ]
                          },
                          {
                            label: 'Communication',
                            items: [
-                             { path: '/staff/messages', label: 'Messages', icon: 'envelope' }
+                             { path: '/staff/messages', label: 'Messages', icon: 'envelope' },
+                             { path: '/staff/feedback', label: 'Feedback', icon: 'comments' }
                            ]
                          },
                          {
@@ -169,6 +171,86 @@
             </div>
         </div>
     </div>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="bottom-nav-mobile" aria-label="Mobile navigation">
+        <a href="/staff/dashboard" class="bottom-nav-item" data-route="/staff/dashboard">
+            <i class="fa-solid fa-house"></i>
+            <span class="bottom-nav-label">Home</span>
+        </a>
+        <a href="/staff/orders" class="bottom-nav-item" data-route="/staff/order">
+            <i class="fa-solid fa-cart-flatbed"></i>
+            <span class="bottom-nav-label">Orders</span>
+        </a>
+        <a href="/staff/menu" class="bottom-nav-item" data-route="/staff/menu">
+            <i class="fa-solid fa-cash-register"></i>
+            <span class="bottom-nav-label">POS</span>
+        </a>
+        <a href="/staff/stocks" class="bottom-nav-item" data-route="/staff/stocks">
+            <i class="fa-solid fa-boxes-stacked"></i>
+            <span class="bottom-nav-label">Stocks</span>
+        </a>
+        <button class="bottom-nav-item" id="bottom-nav-more-btn" aria-expanded="false" aria-controls="bottom-nav-drawer">
+            <i class="fa-solid fa-ellipsis"></i>
+            <span class="bottom-nav-label">More</span>
+            <span class="more-badge" id="more-badge" style="display: none;"></span>
+        </button>
+    </nav>
+
+    <!-- Bottom Nav Drawer Backdrop -->
+    <div class="bottom-nav-drawer-backdrop" id="bottom-nav-drawer-backdrop" aria-hidden="true"></div>
+
+    <!-- Bottom Nav Drawer -->
+    <div class="bottom-nav-drawer" id="bottom-nav-drawer" aria-hidden="true" role="dialog" aria-label="More options">
+        <div class="bottom-nav-drawer-header">
+            <h3>More Options</h3>
+            <button class="bottom-nav-drawer-close" id="bottom-nav-drawer-close" aria-label="Close drawer">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="bottom-nav-drawer-content">
+            <div class="bottom-nav-group">
+                <h4 class="bottom-nav-group-title">Communication</h4>
+                <a href="/staff/messages" class="bottom-nav-drawer-item" data-route="/staff/messages">
+                    <i class="fa-solid fa-envelope"></i>
+                    <span>Messages</span>
+                    <span class="notification-badge" id="messages-badge-drawer" style="display: none;"></span>
+                </a>
+                <a href="/staff/feedback" class="bottom-nav-drawer-item" data-route="/staff/feedback">
+                    <i class="fa-solid fa-comments"></i>
+                    <span>Feedback</span>
+                </a>
+            </div>
+            <div class="bottom-nav-group">
+                <h4 class="bottom-nav-group-title">Tools</h4>
+                <a href="/staff/analytics" class="bottom-nav-drawer-item" data-route="/staff/analytics">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Analytics</span>
+                </a>
+                <button class="bottom-nav-drawer-item bottom-nav-action" id="bottom-nav-calculator-btn">
+                    <i class="fa-solid fa-calculator"></i>
+                    <span>Calculator</span>
+                </button>
+                <button class="bottom-nav-drawer-item bottom-nav-action" id="bottom-nav-notifications-btn">
+                    <i class="fa-solid fa-bell"></i>
+                    <span>Notifications</span>
+                    <span class="notification-badge" id="notification-badge-drawer" style="display: none;"></span>
+                </button>
+            </div>
+            <div class="bottom-nav-group">
+                <h4 class="bottom-nav-group-title">Account</h4>
+                <a href="/staff/settings" class="bottom-nav-drawer-item" data-route="/staff/settings">
+                    <i class="fa-solid fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+                <a href="/auth/logout" class="bottom-nav-drawer-item">
+                    <i class="fa-solid fa-door-open"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
+<script src="/js/bottom-nav.js"></script>
 </body>
 </html>

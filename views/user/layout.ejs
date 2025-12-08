@@ -75,7 +75,6 @@
               </svg>
             </button>
           </div>
-          <button id="search-close" class="search-close-btn">&times;</button>
         </div>
         <div id="search-results" class="search-dropdown"></div>
       </div>
@@ -114,8 +113,23 @@
             <!-- Order History Section -->
             <div class="profile-section" id="orders-section">
               <div class="section-header">
-                <h3>Order History</h3>
-                <p>View all your previous orders</p>
+                <div class="section-header-row">
+                  <div class="section-header-text">
+                    <h3>Order History</h3>
+                    <p>View all your previous orders</p>
+                  </div>
+                  <div class="order-filter">
+                    <label for="orderDaysFilter">Show:</label>
+                    <select id="orderDaysFilter" onchange="filterOrdersByDays(this.value)">
+                      <option value="all">All Orders</option>
+                      <option value="7">Last 7 Days</option>
+                      <option value="30">Last 30 Days</option>
+                      <option value="90">Last 90 Days</option>
+                      <option value="180">Last 6 Months</option>
+                      <option value="365">Last Year</option>
+                    </select>
+                  </div>
+                </div>
               </div>
 
               <div class="orders-table-container">
@@ -179,6 +193,54 @@
                     </button>
                   </div>
                 </form>
+
+                <div class="password-section">
+                  <div class="section-header">
+                    <h3>Change Password</h3>
+                    <p>Update your account password</p>
+                  </div>
+
+                  <form id="passwordForm" class="settings-form">
+                    <div class="form-group">
+                      <label for="currentPassword">Current Password</label>
+                      <div class="password-input-wrapper">
+                        <input type="password" id="currentPassword" name="currentPassword" placeholder="Enter current password" required>
+                        <button type="button" class="toggle-password" onclick="togglePasswordVisibility('currentPassword')">
+                          <i class="fas fa-eye"></i>
+                        </button>
+                      </div>
+                      <div class="field-error" id="currentPassword-error"></div>
+                    </div>
+
+                    <div class="form-group">
+                      <label for="newPassword">New Password</label>
+                      <div class="password-input-wrapper">
+                        <input type="password" id="newPassword" name="newPassword" placeholder="Enter new password (min. 8 characters)" required minlength="8">
+                        <button type="button" class="toggle-password" onclick="togglePasswordVisibility('newPassword')">
+                          <i class="fas fa-eye"></i>
+                        </button>
+                      </div>
+                      <div class="field-error" id="newPassword-error"></div>
+                    </div>
+
+                    <div class="form-group">
+                      <label for="confirmPassword">Confirm New Password</label>
+                      <div class="password-input-wrapper">
+                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm new password" required minlength="8">
+                        <button type="button" class="toggle-password" onclick="togglePasswordVisibility('confirmPassword')">
+                          <i class="fas fa-eye"></i>
+                        </button>
+                      </div>
+                      <div class="field-error" id="confirmPassword-error"></div>
+                    </div>
+
+                    <div class="form-actions">
+                      <button type="submit" class="btn-primary" id="changePasswordBtn">
+                        <i class="fas fa-key"></i> Change Password
+                      </button>
+                    </div>
+                  </form>
+                </div>
               </div>
             </div>
           </div>

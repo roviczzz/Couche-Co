@@ -992,7 +992,6 @@ html, body {
 /* RESPONSIVE DESIGN FOR MENU PAGE */
 /* =============================================== */
 
-/* Tablet and Mobile Adjustments */
 @media (max-width: 1024px) {
     .main-container {
         height: auto;
@@ -1029,28 +1028,26 @@ html, body {
         bottom: 10px;
     }
 
-    /* Category navigation responsive */
-    .content > div:first-child {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
+    .category-nav {
+        gap: 10px;
     }
 
-    .content > div:first-child::-webkit-scrollbar {
-        display: none;
+    .category-card {
+        min-width: 95px;
+        padding: 14px 16px 8px;
     }
 
-    .content > div:first-child > div {
-        display: flex;
-        gap: 12px;
-        min-width: max-content;
-        padding-bottom: 8px;
+    .category-card img {
+        width: 34px;
+        height: 34px;
+    }
+
+    .category-card span {
+        font-size: 13px;
     }
 }
 
 @media (max-width: 768px) {
-    /* Stack layout vertically on tablets and mobile */
     .main-container {
         flex-direction: column;
         height: auto;
@@ -1059,7 +1056,7 @@ html, body {
 
     .content {
         flex: none;
-        order: 2;
+        order: 1;
         padding: 15px;
         overflow: visible;
     }
@@ -1068,11 +1065,11 @@ html, body {
         width: 100%;
         border-left: none;
         border-top: 1px solid #ddd;
-        order: 1;
-        max-height: 300px;
-        position: sticky;
-        top: 60px;
-        z-index: 10;
+        order: 2;
+        max-height: none;
+        position: relative;
+        top: auto;
+        z-index: 1;
         border-radius: 0;
     }
 
@@ -1081,7 +1078,6 @@ html, body {
         margin-bottom: 15px;
     }
 
-    /* Adjust header for mobile */
     .header-section {
         margin-left: 15px;
         margin-right: 15px;
@@ -1093,7 +1089,6 @@ html, body {
         font-size: 28px;
     }
 
-    /* Product grid for tablets */
     .products-grid {
         grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
         gap: 8px;
@@ -1125,25 +1120,26 @@ html, body {
         bottom: 8px;
     }
 
-    /* Category navigation mobile */
-    .content > div:first-child {
-        margin-bottom: 20px;
-        padding: 0 15px;
-    }
-
-    .content > div:first-child > div {
+    .category-nav {
         gap: 8px;
-        padding: 0;
+        margin-bottom: 20px;
     }
 
-    .content > div:first-child > div > div {
-        min-width: 100px;
-        flex: 0 0 auto;
-        padding: 14px 16px 8px 16px;
-        font-size: 14px;
+    .category-card {
+        min-width: 90px;
+        padding: 12px 14px 8px;
     }
 
-    /* Cart/order items mobile optimization */
+    .category-card img {
+        width: 32px;
+        height: 32px;
+        margin-bottom: 6px;
+    }
+
+    .category-card span {
+        font-size: 13px;
+    }
+
     .order-item {
         padding: 12px 0;
         margin-bottom: 12px;
@@ -1521,7 +1517,7 @@ html, body {
 /* Touch-friendly improvements for mobile */
 @media (max-width: 768px) {
     .product-card {
-        min-height: 44px; /* Ensure touch targets are adequate */
+        min-height: 44px;
         cursor: pointer;
     }
 
@@ -1529,7 +1525,7 @@ html, body {
     .modal-cancel-btn,
     .modal-add-btn,
     .proceed-btn {
-        min-height: 44px; /* iOS/Android touch target minimum */
+        min-height: 44px;
         cursor: pointer;
     }
 
@@ -1545,16 +1541,11 @@ html, body {
         cursor: pointer;
     }
 
-    /* Category buttons touch-friendly */
-    .content > div:first-child > div > div {
+    .category-card {
         min-height: 44px;
         cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
     }
 
-    /* Form inputs touch-friendly */
     .customer-details-section input,
     .customer-details-section select,
     .promo-availability-section select {
@@ -1582,10 +1573,17 @@ html, body {
         height: 60px;
     }
 
-    /* Landscape category navigation */
-    .content > div:first-child > div > div {
+    .category-card {
         min-width: 80px;
-        padding: 10px 12px 4px 12px;
+        padding: 10px 12px 6px;
+    }
+
+    .category-card img {
+        width: 28px;
+        height: 28px;
+    }
+
+    .category-card span {
         font-size: 12px;
     }
 }
@@ -1618,10 +1616,24 @@ html, body {
         bottom: 4px;
     }
 
-    /* Very small category buttons */
-    .content > div:first-child > div > div {
+    .category-nav {
+        gap: 8px;
+        margin-bottom: 16px;
+        padding-bottom: 8px;
+    }
+
+    .category-card {
         min-width: 70px;
-        padding: 8px 10px 2px 10px;
+        padding: 10px 12px 6px;
+    }
+
+    .category-card img {
+        width: 28px;
+        height: 28px;
+        margin-bottom: 4px;
+    }
+
+    .category-card span {
         font-size: 11px;
     }
 
@@ -1637,4 +1649,326 @@ html, body {
         padding: 10px;
         font-size: 14px;
     }
+}
+
+.category-nav {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+}
+
+.category-nav::-webkit-scrollbar {
+    height: 4px;
+}
+
+.category-nav::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+.category-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 100px;
+    padding: 16px 18px 10px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.09);
+    border: 1px solid #e1e1e1;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    flex-shrink: 0;
+}
+
+.category-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.category-card:active {
+    transform: translateY(0);
+}
+
+.category-card img {
+    width: 36px;
+    height: 36px;
+    margin-bottom: 8px;
+    object-fit: contain;
+}
+
+.category-card span {
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+    white-space: nowrap;
+}
+
+#all-products {
+    overflow-y: auto;
+    padding-right: 8px;
+    box-sizing: border-box;
+}
+
+[data-theme="dark"] .category-card {
+    background: #2d2d2d;
+    border-color: #444;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .category-card span {
+    color: #fff;
+}
+
+[data-theme="dark"] .category-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* =============================================== */
+/* ENHANCED MOBILE RESPONSIVE STYLES */
+/* =============================================== */
+
+/* 768px - Tablet & Mobile */
+@media (max-width: 768px) {
+  .main-container {
+    flex-direction: column;
+    height: auto;
+    min-height: calc(100vh - 70px);
+    padding-bottom: 80px;
+  }
+
+  html, body {
+    overflow: auto;
+  }
+
+  .content {
+    flex: 1;
+    order: 1;
+    padding: 15px;
+    padding-bottom: 0;
+    overflow: visible;
+    height: auto;
+  }
+
+  .summary-panel {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid #ddd;
+    order: 2;
+    max-height: none;
+    position: relative;
+    top: auto;
+    z-index: 1;
+    border-radius: 0;
+    margin-bottom: 80px;
+  }
+
+  .header-section {
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 10px;
+    margin-bottom: 15px;
+  }
+
+  .header-section h1 {
+    font-size: 24px;
+  }
+
+  .products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+  }
+
+  .product-card {
+    min-height: 160px;
+    padding: 8px;
+  }
+
+  .product-image img {
+    width: 70px;
+    height: 70px;
+  }
+
+  .product-name {
+    font-size: 12px;
+  }
+
+  .category-nav {
+    gap: 8px;
+    padding: 0 10px 8px 10px;
+  }
+
+  .category-card {
+    min-width: 80px;
+    padding: 10px 12px 8px;
+  }
+
+  .category-card img {
+    width: 28px;
+    height: 28px;
+  }
+
+  .category-card span {
+    font-size: 11px;
+  }
+
+  #all-products {
+    padding: 10px 0 0 0;
+    overflow: visible;
+  }
+
+  .section-title {
+    font-size: 16px;
+    margin-left: 10px;
+    margin-bottom: 10px;
+  }
+
+  /* Summary Panel Mobile Styles */
+  .summary-title {
+    font-size: 18px;
+    padding: 15px;
+  }
+
+  .summary-totals {
+    padding: 15px;
+  }
+
+  .customer-details-section {
+    padding: 0 15px;
+  }
+
+  .payment-section {
+    padding: 15px;
+  }
+
+  .proceed-btn {
+    margin: 15px;
+    width: calc(100% - 30px);
+  }
+
+  /* Modal Styles */
+  #size-modal .product-modal-content,
+  #order-confirm-modal .modal-content,
+  #xendit-gateway-modal .modal-content,
+  #xendit-payment-modal > div {
+    width: 95%;
+    max-width: 100%;
+    margin: 10px;
+    max-height: calc(100vh - 100px);
+    border-radius: 12px;
+  }
+
+  #b1t1-modal > div {
+    width: 95%;
+    max-height: calc(100vh - 100px);
+  }
+}
+
+/* 480px - Small Mobile */
+@media (max-width: 480px) {
+  .header-section h1 {
+    font-size: 20px;
+  }
+
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .product-card {
+    min-height: 140px;
+    padding: 6px;
+  }
+
+  .product-image img {
+    width: 60px;
+    height: 60px;
+  }
+
+  .product-name {
+    font-size: 11px;
+  }
+
+  .category-card {
+    min-width: 70px;
+    padding: 8px 10px 6px;
+  }
+
+  .category-card img {
+    width: 24px;
+    height: 24px;
+  }
+
+  .category-card span {
+    font-size: 10px;
+  }
+
+  .order-item {
+    padding: 10px 0;
+  }
+
+  .order-item-name {
+    font-size: 13px;
+  }
+
+  .total-row {
+    font-size: 14px;
+  }
+
+  .total-row.final {
+    font-size: 16px;
+  }
+}
+
+/* 320px - Extra Small Mobile */
+@media (max-width: 320px) {
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+
+  .product-card {
+    min-height: 120px;
+    padding: 4px;
+  }
+
+  .product-image img {
+    width: 50px;
+    height: 50px;
+  }
+
+  .category-nav {
+    gap: 6px;
+  }
+
+  .category-card {
+    min-width: 60px;
+    padding: 6px 8px 4px;
+  }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .product-card {
+    min-height: 48px;
+  }
+
+  .category-card {
+    min-height: 48px;
+  }
+
+  .proceed-btn {
+    min-height: 48px;
+  }
+
+  .modal-add-btn,
+  .modal-cancel-btn {
+    min-height: 48px;
+    padding: 12px 20px;
+  }
 }

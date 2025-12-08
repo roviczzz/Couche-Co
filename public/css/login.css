@@ -24,28 +24,35 @@
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     width: 100%;
-    max-width: 510px;
-    padding: 2.5rem 2rem;
+    max-width: 420px;
+    padding: 2rem 1.75rem;
     text-align: center;
     position: relative;
 }
 
 .back-btn {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    background: transparent;
-    color: #a05c2f;
-    padding: 0;
-    border-radius: 0;
-    text-decoration: underline;
-    font-size: 12px;
-    font-weight: 500;
-    font-family: 'Inter', sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #a05c2f;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  background: rgba(160, 92, 47, 0.1);
+  border: none;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  max-width: 12vh;
 }
 
 .back-btn:hover {
-    text-decoration: underline;
+    background: #a05c2f;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(160, 92, 47, 0.2);
 }
 
 .logo {
@@ -55,38 +62,75 @@
 .login-container h1 {
     font-family: TNR Regular, serif;
     letter-spacing: -0.3vh;
-    font-size: 3rem;
-    margin-bottom: 1.3rem;
+    font-size: 2.3rem;
+    margin-bottom: 1rem;
     font-weight: 600;
     color: var(--text);
 }
 
 .form-group {
-    margin-bottom: 1.25rem;
+    margin-bottom: 0.9rem;
     text-align: left;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 0.5rem;
-    font-size: 0.875rem;
+    margin-bottom: 0.35rem;
+    font-size: 0.8rem;
     font-weight: 500;
     color: var(--text);
 }
 
 .form-group input {
-    width: 90%;
-    padding: 0.75rem 1rem;
+    font-family: 'Inter', sans-serif;
+    width: 100%;
+    padding: 0.65rem 0.9rem;
     border: 1px solid var(--border);
-    border-radius: 8px;
-    font-size: 0.9375rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
     transition: all 0.2s ease;
+    box-sizing: border-box;
+    min-height: 40px;
 }
 
 .form-group input:focus {
     outline: none;
     border-color: var(--primary);
     box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-input-wrapper input {
+    flex: 1;
+    padding-right: 2.5rem;
+}
+
+.show-password-btn {
+    position: absolute;
+    right: 0.9rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-light);
+    font-size: 0.9rem;
+    padding: 0.25rem 0.5rem;
+    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.show-password-btn:hover {
+    color: var(--primary);
+}
+
+.show-password-btn:active {
+    transform: scale(0.95);
 }
 
 .btn {
@@ -101,9 +145,11 @@
     transition: background-color 0.2s ease;
     text-decoration: none;
     text-align: center;
+    min-height: 44px;
 }
 
 .btn-primary {
+    font-family: 'Inter', sans-serif;
     background-color: var(--primary);
     color: white;
 }
@@ -145,6 +191,26 @@
 .login-flash-error {
     margin-bottom: 1rem;
     text-align: center;
+}
+
+.token-expired-message {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.token-expired-message p {
+    color: #856404;
+    font-size: 0.9rem;
+    margin: 0 0 1rem 0;
+}
+
+.token-expired-message .register-link {
+    margin-top: 0;
 }
 
 .divider {
@@ -206,7 +272,8 @@
 }
 
 .name-input input {
-    width: 80%;
+    width: 90%;
+    box-sizing: border-box;
 }
 
 .address-row {
@@ -223,6 +290,11 @@
     width: 95%;
     height: 2.875rem;
     box-sizing: border-box;
+    min-height: 40px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    border: 1px solid var(--border);
+    padding: 0.65rem 0.9rem;
 }
 
 /* Success Modal */
@@ -327,29 +399,6 @@
     }
 }
 
-/* Responsive Design - Mobile and Tablet */
-@media (max-width: 1024px) {
-    .login-body {
-        padding: 1.5rem;
-    }
-
-    .login-container {
-        max-width: 450px;
-        padding: 2rem 1.5rem;
-    }
-
-    .login-container h1 {
-        font-size: 2.5rem;
-        margin-bottom: 1rem;
-    }
-
-    .back-btn {
-        font-size: 13px;
-        top: 15px;
-        left: 15px;
-    }
-}
-
 @media (max-width: 768px) {
     .login-body {
         padding: 1rem;
@@ -382,7 +431,7 @@
     .form-group input {
         width: 88%;
         padding: 12px 14px;
-        font-size: 14px;
+        font-size: 16px;
         min-height: 44px;
         border-radius: 6px;
     }
@@ -394,7 +443,7 @@
 
     .btn {
         padding: 12px;
-        font-size: 14px;
+        font-size: 16px;
         min-height: 44px;
         border-radius: 6px;
     }
@@ -433,7 +482,6 @@
         padding: 6px 0;
     }
 
-    /* Name row responsive */
     .name-row {
         flex-direction: column;
         gap: 1rem;
@@ -443,7 +491,6 @@
         width: 88%;
     }
 
-    /* Address row responsive */
     .address-row {
         flex-direction: column;
         gap: 1rem;
@@ -456,7 +503,6 @@
         box-sizing: border-box;
     }
 
-    /* Form spacing for mobile */
     .form-group:last-child {
         margin-bottom: 0.5rem;
     }
@@ -471,11 +517,17 @@
     }
 
     .login-container {
+        font-family: 'Inter', sans-serif;
         max-width: 100%;
         width: 100%;
         padding: 1.25rem;
         border-radius: 8px;
         margin: 0;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-58.5%, -60%);
+        scale: 0.85;
     }
 
     .logo {
@@ -499,6 +551,7 @@
         font-size: 16px; /* Prevents zoom on iOS */
         border-radius: 5px;
         box-sizing: border-box;
+        min-height: 44px;
     }
 
     .form-group label {
@@ -571,6 +624,17 @@
     .address-input select {
         width: 96%;
         height: 48px;
+        min-height: 44px;
+    }
+
+    .name-row {
+        flex-direction: column;
+        gap: 0.875rem;
+    }
+
+    .address-row {
+        flex-direction: column;
+        gap: 0.875rem;
     }
 
     .btn-admin {
@@ -580,7 +644,6 @@
         font-size: 16px;
     }
 
-    /* Touch-friendly spacing */
     .btn-text:hover {
         transform: none;
         color: var(--primary);
@@ -627,6 +690,22 @@
     .address-input input,
     .address-input select {
         width: 98%;
+    }
+
+    .name-row {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .address-row {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .address-input input,
+    .address-input select {
+        height: 42px;
+        min-height: 42px;
     }
 }
 

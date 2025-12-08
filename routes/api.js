@@ -2,11 +2,33 @@ const express = require('express');
 const router = express.Router();
 const { ObjectId } = require('mongodb');
 const { checkInventoryAvailability, deductInventoryAfterPayment } = require('../middleware/inventoryMiddleware');
+const { validateCartItems, validateOrderTotal } = require('../middleware/cartValidator');
 const InventoryManager = require('../utils/inventoryManager');
 
 console.log('API routes module loaded');
 router.get('/', (req, res) => {
   res.json({ message: 'API routes work' });
+});
+
+router.post('/check-email-exists', async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email || typeof email !== 'string') {
+      return res.status(400).json({ success: false, error: 'Email is required' });
+    }
+    
+    const trimmed = email.trim().toLowerCase();
+    const user = await req.db.collection('users').findOne(
+      { email: trimmed, role: 'user' },
+      { projection: { _id: 1 } }
+    );
+    
+    res.json({ success: true, exists: !!user });
+  } catch (error) {
+    console.error('Error checking email existence:', error);
+    res.status(500).json({ success: false, error: 'Failed to check email' });
+  }
 });
 
 // Xendit configuration
@@ -29,6 +51,20 @@ router.get('/addons', async (req, res) => {
     res.json(addOns);
   } catch (err) {
     console.error('Error fetching add-ons:', err);
+    res.status(500).json([]);
+  }
+});
+
+router.get('/ingredients', async (req, res) => {
+  try {
+    const ingredients = await req.db.collection('Ingredients')
+      .find({ isEnabled: true })
+      .project({ IngredientID: 1, Name: 1, name: 1 })
+      .toArray();
+    
+    res.json(ingredients);
+  } catch (err) {
+    console.error('Error fetching ingredients:', err);
     res.status(500).json([]);
   }
 });
@@ -88,6 +124,39 @@ router.get('/check-product-availability/:productId', async (req, res) => {
   }
 });
 
+router.get('/products/batch', async (req, res) => {
+  try {
+    const { ids } = req.query;
+    
+    if (!ids) {
+      return res.status(400).json({ error: 'Product IDs required' });
+    }
+    
+    const productIds = ids.split(',').map(id => id.trim()).filter(id => id);
+    
+    if (productIds.length === 0) {
+      return res.json([]);
+    }
+    
+    const products = await req.db.collection('Menu')
+      .find({ ProductID: { $in: productIds } })
+      .project({
+        ProductID: 1,
+        Name: 1,
+        Category: 1,
+        BasePrice: 1,
+        imagelink: 1,
+        Sizes: 1
+      })
+      .toArray();
+    
+    res.json(products);
+  } catch (error) {
+    console.error('Error fetching batch products:', error);
+    res.status(500).json({ error: 'Failed to fetch products' });
+  }
+});
+
 router.get('/orders/preparing-customers', async (req, res) => {
   try {
     const docs = await req.db.collection('Orders')
@@ -118,6 +187,35 @@ router.get('/orders', async (req, res) => {
 
 router.post('/xendit/create-payment', async (req, res) => {
   try {
+    // Require authentication for payment creation
+    // Allow both logged-in users and verified guest orders
+    const { external_id } = req.body;
+    
+    // Verify order exists before creating payment
+    if (!external_id) {
+      return res.status(400).json({
+        error: 'Invalid request',
+        message: 'Order ID is required'
+      });
+    }
+
+    const order = await req.db.collection('Orders').findOne({ OrderID: external_id });
+    if (!order) {
+      return res.status(404).json({
+        error: 'Order not found',
+        message: 'Cannot create payment for non-existent order'
+      });
+    }
+
+    // Verify payment hasn't already been created
+    if (order.XenditPaymentID) {
+      return res.status(400).json({
+        error: 'Payment already exists',
+        message: 'A payment link has already been created for this order',
+        invoice_url: order.PaymentLink || null
+      });
+    }
+
     const invoicePayload = req.body
 
     // Check API configuration
@@ -327,12 +425,36 @@ async function updateOrderAfterPayment(db, externalId) {
   }
 }
 
-router.post('/orders', checkInventoryAvailability, async (req, res) => {
+router.post('/orders', validateCartItems, validateOrderTotal, checkInventoryAvailability, async (req, res) => {
   try {
     const orderData = req.body;
 
     if (!orderData || !orderData.OrderID || !orderData.Date || !orderData.Cart || !orderData.Customer) {
       return res.status(400).json({ success: false, error: 'Missing required order fields' });
+    }
+
+    // Validate customer information
+    if (!orderData.Customer.fullname || !orderData.Customer.email || !orderData.Customer.contactnumber) {
+      return res.status(400).json({ success: false, error: 'Missing required customer information' });
+    }
+
+    // Validate payment method
+    const validPaymentMethods = ['GCASH', 'PAYMAYA', 'SHOPEEPAY', 'cash'];
+    if (!validPaymentMethods.includes(orderData.PaymentMethod)) {
+      return res.status(400).json({ success: false, error: 'Invalid payment method' });
+    }
+
+    // Validate delivery method
+    const validDeliveryMethods = ['Pick-up', 'Delivery'];
+    if (!validDeliveryMethods.includes(orderData.Customer.deliveryMethod)) {
+      return res.status(400).json({ success: false, error: 'Invalid delivery method' });
+    }
+
+    // Validate delivery address for delivery orders
+    if (orderData.Customer.deliveryMethod === 'Delivery') {
+      if (!orderData.Customer.address || !orderData.Customer.city) {
+        return res.status(400).json({ success: false, error: 'Delivery address and city are required for delivery orders' });
+      }
     }
 
     // Using shared DB connection from req.db
@@ -399,6 +521,7 @@ router.post('/orders', checkInventoryAvailability, async (req, res) => {
       const { triggerBusinessEventNotification } = require('../admin-helpers');
       await triggerBusinessEventNotification(req.db, 'new-order', {
         orderId: orderData.OrderID,
+        OrderID: orderData.OrderID,
         customer: orderData.Customer,
         total: orderData.Total || 0
       });
@@ -449,9 +572,28 @@ router.post('/orders/update-payment-status', async (req, res) => {
   if (!paymentId || !invoiceId || !status) {
     return res.status(400).json({ success: false, error: 'Missing paymentId, invoiceId or status.' });
   }
+
+  // Validate status value
+  const validStatuses = ['Paid', 'Pending', 'Failed', 'Expired'];
+  if (!validStatuses.includes(status)) {
+    return res.status(400).json({ success: false, error: 'Invalid payment status' });
+  }
+
   try {
     // Using shared DB connection from req.db
     const orders = req.db.collection('Orders');
+
+    // Verify order exists and payment hasn't been updated already
+    const existingOrder = await orders.findOne({ OrderID: paymentId });
+    if (!existingOrder) {
+      return res.status(404).json({ success: false, error: 'Order not found.' });
+    }
+
+    // Prevent duplicate payment confirmations
+    if (existingOrder.PaymentStatus === 'Paid' && status === 'Paid') {
+      console.log(`⚠️ Duplicate payment confirmation attempt for order ${paymentId}`);
+      return res.json({ success: true, message: 'Payment already confirmed' });
+    }
     
     // Build update object
     const updateFields = { 
@@ -1902,6 +2044,48 @@ router.get('/orders/:orderId/status', async (req, res) => {
   } catch (error) {
     console.error('Status polling error:', error);
     res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
+router.get('/promo-modal', async (req, res) => {
+  try {
+    const pageSettings = await req.db.collection('PageSettings').findOne(
+      { pageId: 'promo-modal' }
+    );
+
+    if (!pageSettings || !pageSettings.promoImageUrl) {
+      return res.json({ enabled: false });
+    }
+
+    // Check if modal is enabled
+    if (pageSettings.promoEnabled === false) {
+      return res.json({ enabled: false });
+    }
+
+    // Check start date
+    if (pageSettings.promoStartDate) {
+      const startDate = new Date(pageSettings.promoStartDate);
+      if (new Date() < startDate) {
+        return res.json({ enabled: false });
+      }
+    }
+
+    // Check end date
+    if (pageSettings.promoEndDate) {
+      const endDate = new Date(pageSettings.promoEndDate);
+      if (new Date() > endDate) {
+        return res.json({ enabled: false });
+      }
+    }
+
+    res.json({
+      enabled: true,
+      imageUrl: pageSettings.promoImageUrl,
+      dismissDuration: pageSettings.promoDismissDuration || 24
+    });
+  } catch (error) {
+    console.error('Error fetching promo modal:', error);
+    res.status(500).json({ enabled: false });
   }
 });
 

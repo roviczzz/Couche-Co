@@ -185,7 +185,7 @@ router.use((req, res, next) => {
   res.locals.sidebarItems = [
     { path: '/staff/dashboard', label: 'Dashboard', icon: 'house' },
     { path: '/staff/menu', label: 'POS Menu', icon: 'list' },
-    { path: '/staff/order', label: 'Orders', icon: 'box' },
+    { path: '/staff/orders', label: 'Orders', icon: 'box' },
     { path: '/staff/messages', label: 'Messages', icon: 'envelope' },
     { path: '/staff/calculator', label: 'Calculator', icon: 'calculator' },
     { path: '/staff/settings', label: 'Settings', icon: 'gear' },
@@ -272,6 +272,35 @@ router.get('/dashboard', async (req, res) => {
       console.error('Low stock data fetch error:', error);
     }
 
+    let recentFeedbacks = [];
+    let feedbackStats = { averageRating: 0, totalCount: 0 };
+    try {
+      recentFeedbacks = await req.db.collection('Feedback')
+        .find({})
+        .sort({ timestamp: -1 })
+        .limit(5)
+        .toArray();
+
+      const feedbackAggregation = await req.db.collection('Feedback').aggregate([
+        {
+          $group: {
+            _id: null,
+            averageRating: { $avg: '$rating' },
+            totalCount: { $sum: 1 }
+          }
+        }
+      ]).toArray();
+
+      if (feedbackAggregation.length > 0) {
+        feedbackStats = {
+          averageRating: feedbackAggregation[0].averageRating || 0,
+          totalCount: feedbackAggregation[0].totalCount || 0
+        };
+      }
+    } catch (error) {
+      console.error('Feedback data fetch error:', error);
+    }
+
     // Combine all stats into a single object for template consistency
     const combinedStats = {
       ...basicStats,
@@ -285,14 +314,16 @@ router.get('/dashboard', async (req, res) => {
       title: 'Staff Dashboard',
       layout: 'staff/layout',
       user: userData,
-      stats: combinedStats,  // Template expects 'stats' object
+      stats: combinedStats,
       analyticsStats,
       topCategories,
       paymentTypes,
       ordersBySource,
       salesPerformance,
       lowStockData,
-      userLowStockThreshold
+      userLowStockThreshold,
+      recentFeedbacks,
+      feedbackStats
     });
   } catch (error) {
     console.error('Staff Dashboard error:', error);
@@ -314,12 +345,13 @@ router.get('/menu', async (req, res) => {
     // Using shared DB connection from req.db
     const currentUser = await req.db.collection('users').findOne({ _id: new ObjectId(req.session.user._id) });
     
-    // Fetch menu items, addons, ingredients, and active promos
-    const [menu, addons, ingredients, activePromos] = await Promise.all([
+    // Fetch menu items, addons, ingredients, active promos, and category recommendations
+    const [menu, addons, ingredients, activePromos, categoryRecommendations] = await Promise.all([
       getMenu(req.db),
       req.db.collection('Add-ons').find({ isEnabled: true }).toArray(),
       req.db.collection('Ingredients').find({ isEnabled: true }).toArray(),
-      getActiveDiscounts(req.db)
+      getActiveDiscounts(req.db),
+      req.db.collection('CategoryRecommendations').find().toArray()
     ]);
 
     // Merge session data with fresh database data
@@ -335,7 +367,8 @@ router.get('/menu', async (req, res) => {
       menuItems: menu,
       addons,
       ingredients,
-      activePromos
+      activePromos,
+      categoryRecommendations
     });
   } catch (error) {
     console.error('Staff Menu error:', error);
@@ -347,7 +380,7 @@ router.get('/menu', async (req, res) => {
   }
 });
 
-router.get('/order', async (req, res) => {
+router.get('/orders', async (req, res) => {
   try {
     // Using shared DB connection from req.db
     const ordersCollection = req.db.collection('Orders');
@@ -769,12 +802,20 @@ const upload = multer({
     fileSize: 10 * 1024 * 1024 // 10MB limit
   },
   fileFilter: function (req, file, cb) {
-    // Allow common file types
-    const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx|xls|xlsx|txt|zip|rar/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
+    const allowedExtensions = /jpeg|jpg|png|gif|pdf|doc|docx|xls|xlsx|txt|zip|rar/;
+    const allowedMimeTypes = [
+      'image/jpeg', 'image/jpg', 'image/png', 'image/gif',
+      'application/pdf',
+      'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'text/plain',
+      'application/zip', 'application/x-zip-compressed', 'application/x-rar-compressed'
+    ];
+    
+    const extname = allowedExtensions.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedMimeTypes.includes(file.mimetype);
 
-    if (mimetype && extname) {
+    if (mimetype || extname) {
       return cb(null, true);
     } else {
       cb(new Error('Invalid file type'));
@@ -2327,21 +2368,28 @@ router.get('/analytics/export-performance', async (req, res) => {
 });
 
 // Upload files
-router.post('/messages/api/upload', upload.array('files', 5), (req, res) => {
-  try {
-    const files = req.files.map(file => ({
-      originalName: file.originalname,
-      filename: file.filename,
-      mimetype: file.mimetype,
-      size: file.size,
-      url: `/uploads/messages/${file.filename}`
-    }));
+router.post('/messages/api/upload', (req, res) => {
+  upload.array('files', 5)(req, res, function(err) {
+    if (err) {
+      console.error('Multer error:', err);
+      return res.status(400).json({ error: err.message || 'Failed to upload files' });
+    }
+    
+    try {
+      const files = req.files.map(file => ({
+        originalName: file.originalname,
+        filename: file.filename,
+        mimetype: file.mimetype,
+        size: file.size,
+        url: `/uploads/messages/${file.filename}`
+      }));
 
-    res.json({ success: true, files });
-  } catch (error) {
-    console.error('Error uploading files:', error);
-    res.status(500).json({ error: 'Failed to upload files' });
-  }
+      res.json({ success: true, files });
+    } catch (error) {
+      console.error('Error uploading files:', error);
+      res.status(500).json({ error: 'Failed to upload files' });
+    }
+  });
 });
 
 // Staff endpoint to complete order (for QR code)
@@ -2466,7 +2514,10 @@ router.get('/stocks', async (req, res) => {
 
 router.post('/stocks', async (req, res) => {
   try {
-    const isAddon = req.body.AddOnID || req.body.AddOnPrefix || req.body.AddOnSuffix || req.body.BasePrice;
+    // Check if this is an ingredient first (more specific check)
+    const isIngredient = req.body.IngredientID || req.body.IngredientPrefix || req.body.IngredientSuffix;
+    // Only treat as add-on if NOT an ingredient and has add-on specific fields
+    const isAddon = !isIngredient && (req.body.AddOnID || req.body.AddOnPrefix || req.body.AddOnSuffix);
 
     if (isAddon) {
       const existingAddon = await req.db.collection('Add-ons').findOne({
@@ -2617,6 +2668,113 @@ router.post('/stocks/delete/:id', async (req, res) => {
     } else {
       res.status(500).send('Failed to delete item');
     }
+  }
+});
+
+router.get('/feedback', isStaffLoggedIn, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const skip = (page - 1) * limit;
+
+    const feedbacks = await req.db.collection('Feedback')
+      .find({})
+      .sort({ timestamp: -1 })
+      .skip(skip)
+      .limit(limit)
+      .toArray();
+
+    const totalCount = await req.db.collection('Feedback').countDocuments();
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayCount = await req.db.collection('Feedback').countDocuments({
+      timestamp: { $gte: today }
+    });
+
+    const positiveCount = await req.db.collection('Feedback').countDocuments({
+      rating: { $gte: 4 }
+    });
+
+    const ratingAggregation = await req.db.collection('Feedback').aggregate([
+      { $group: { _id: '$rating', count: { $sum: 1 } } }
+    ]).toArray();
+
+    const ratingDistribution = {};
+    ratingAggregation.forEach(item => {
+      if (item._id) ratingDistribution[item._id] = item.count;
+    });
+
+    const avgRatingResult = await req.db.collection('Feedback').aggregate([
+      { $group: { _id: null, averageRating: { $avg: '$rating' } } }
+    ]).toArray();
+
+    const stats = {
+      totalCount,
+      todayCount,
+      positiveCount,
+      averageRating: avgRatingResult.length > 0 ? avgRatingResult[0].averageRating : 0
+    };
+
+    res.render('staff/feedback', {
+      title: 'Customer Feedback | Blessings Cafe',
+      user: req.session.user,
+      currentPage: '/staff/feedback',
+      layout: 'staff/layout',
+      feedbacks,
+      stats,
+      ratingDistribution,
+      pagination: {
+        page,
+        limit,
+        total: totalCount,
+        totalPages: Math.ceil(totalCount / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Feedback page error:', error);
+    res.status(500).render('error', {
+      title: 'Server Error',
+      message: 'Failed to load feedback',
+      status: 500
+    });
+  }
+});
+
+router.get('/api/feedback', isStaffLoggedIn, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const skip = (page - 1) * limit;
+    const rating = req.query.rating ? parseInt(req.query.rating) : null;
+    const source = req.query.source || null;
+
+    const filter = {};
+    if (rating) filter.rating = rating;
+    if (source) filter.page = source;
+
+    const feedbacks = await req.db.collection('Feedback')
+      .find(filter)
+      .sort({ timestamp: -1 })
+      .skip(skip)
+      .limit(limit)
+      .toArray();
+
+    const totalCount = await req.db.collection('Feedback').countDocuments(filter);
+
+    res.json({
+      success: true,
+      data: feedbacks,
+      pagination: {
+        page,
+        limit,
+        total: totalCount,
+        totalPages: Math.ceil(totalCount / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Feedback API error:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch feedback' });
   }
 });
 

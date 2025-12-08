@@ -5,21 +5,22 @@
   "IngredientSuffix": "WCH",
   "Name": "White Choco Syrup",
   "Unit": "g",
-  "Amount": 24,
+  "Amount": 10000,
   "Allergen": "None",
   "isEnabled": true,
   "IngredientID": "ING-WCH",
-  "AmountPerPack": "950 g",
+  "AmountPerPack": "10000 g",
   "createdAt": {
     "$date": "2025-10-30T09:21:16.162Z"
   },
   "lastModified": {
-    "$date": "2025-11-07T16:33:10.048Z"
+    "$date": "2025-11-26T15:27:57.629Z"
   },
   "Category": "Ingredients",
   "IngredientPrefix": "ING",
   "isAvailable": "true",
-  "DeductionQuantityGrams": 10
+  "DeductionQuantityGrams": 10,
+  "BasePrice": 15
 },
 {
   "_id": {
@@ -28,21 +29,22 @@
   "IngredientSuffix": "MACAD",
   "Name": "Macademia Nut",
   "Unit": "g",
-  "Amount": 1000,
+  "Amount": 9940,
   "Allergen": "Nuts",
   "isEnabled": true,
   "IngredientID": "ING-MACAD",
-  "AmountPerPack": "1000 g",
+  "AmountPerPack": "10000 g",
   "createdAt": {
     "$date": "2025-10-30T09:23:35.830Z"
   },
   "lastModified": {
-    "$date": "2025-11-07T06:17:41.019Z"
+    "$date": "2025-11-26T00:47:58.853Z"
   },
   "Category": "Ingredients",
   "IngredientPrefix": "ING",
   "isAvailable": "true",
-  "DeductionQuantityGrams": 10
+  "DeductionQuantityGrams": 10,
+  "BasePrice": 15
 },
 {
   "_id": {
@@ -51,21 +53,22 @@
   "IngredientSuffix": "TOFF",
   "Name": "Toffee Nut",
   "Unit": "g",
-  "Amount": 1000,
+  "Amount": 9840,
   "Allergen": "Nuts",
   "isEnabled": true,
   "IngredientID": "ING-TOFF",
-  "AmountPerPack": "1000 g",
+  "AmountPerPack": "10000 g",
   "createdAt": {
     "$date": "2025-10-30T09:24:37.486Z"
   },
   "lastModified": {
-    "$date": "2025-11-07T06:17:41.078Z"
+    "$date": "2025-11-27T05:30:33.364Z"
   },
   "Category": "Ingredients",
   "IngredientPrefix": "ING",
-  "isAvailable": "true",
-  "DeductionQuantityGrams": 10
+  "isAvailable": false,
+  "DeductionQuantityGrams": 10,
+  "BasePrice": 15
 },
 {
   "_id": {
@@ -74,21 +77,22 @@
   "IngredientSuffix": "MOALMON",
   "Name": "Mocha Almond Syrup",
   "Unit": "g",
-  "Amount": 1000,
+  "Amount": 10000,
   "Allergen": "Nuts",
   "isEnabled": true,
   "IngredientID": "ING-MOALMON",
-  "AmountPerPack": "1000 g",
+  "AmountPerPack": "10000 g",
   "createdAt": {
     "$date": "2025-10-30T12:46:31.393Z"
   },
   "lastModified": {
-    "$date": "2025-11-07T06:17:41.129Z"
+    "$date": "2025-11-25T07:42:15.740Z"
   },
   "Category": "Ingredients",
   "IngredientPrefix": "ING",
   "isAvailable": "true",
-  "DeductionQuantityGrams": 10
+  "DeductionQuantityGrams": 10,
+  "BasePrice": 15
 },
 {
   "_id": {
@@ -97,21 +101,22 @@
   "IngredientSuffix": "BFOREST",
   "Name": "Black Forest Powder",
   "Unit": "g",
-  "Amount": 500,
+  "Amount": 9900,
   "Allergen": "None",
   "isEnabled": true,
   "IngredientID": "ING-BFOREST",
-  "AmountPerPack": "500 g",
+  "AmountPerPack": "10000 g",
   "createdAt": {
     "$date": "2025-10-30T12:52:47.342Z"
   },
   "lastModified": {
-    "$date": "2025-11-07T06:17:41.183Z"
+    "$date": "2025-11-26T00:40:51.960Z"
   },
   "Category": "Ingredients",
   "IngredientPrefix": "ING",
   "isAvailable": "true",
-  "DeductionQuantityGrams": 10
+  "DeductionQuantityGrams": 10,
+  "BasePrice": 15
 },
 {
   "_id": {
@@ -120,21 +125,22 @@
   "IngredientSuffix": "STRAW",
   "Name": "Strawberry Syrup",
   "Unit": "g",
-  "Amount": 2500,
+  "Amount": 9990,
   "Allergen": "None",
   "isEnabled": true,
   "IngredientID": "ING-STRAW",
-  "AmountPerPack": "2500 mL",
+  "AmountPerPack": "10000 mL",
   "createdAt": {
     "$date": "2025-10-30T12:54:42.104Z"
   },
   "lastModified": {
-    "$date": "2025-11-07T06:17:41.249Z"
+    "$date": "2025-11-26T00:47:59.002Z"
   },
   "Category": "Ingredients",
   "IngredientPrefix": "ING",
   "isAvailable": "true",
-  "DeductionQuantityGrams": 10
+  "DeductionQuantityGrams": 10,
+  "BasePrice": 15
 },
 {
   "_id": {
@@ -143,21 +149,22 @@
   "IngredientSuffix": "GREENAPP",
   "Name": "Green Apple Syrup",
   "Unit": "g",
-  "Amount": 2500,
+  "Amount": 8670,
   "Allergen": "None",
   "isEnabled": true,
   "IngredientID": "ING-GREENAPP",
-  "AmountPerPack": "2500 mL",
+  "AmountPerPack": "10000 mL",
   "createdAt": {
     "$date": "2025-10-30T12:55:20.104Z"
   },
   "lastModified": {
-    "$date": "2025-11-07T06:17:41.312Z"
+    "$date": "2025-11-26T00:47:59.067Z"
   },
   "Category": "Ingredients",
   "IngredientPrefix": "ING",
   "isAvailable": "true",
-  "DeductionQuantityGrams": 10
+  "DeductionQuantityGrams": 10,
+  "BasePrice": 15
 },
 {
   "_id": {
@@ -166,21 +173,22 @@
   "IngredientSuffix": "MANGO",
   "Name": "Mango Syrup",
   "Unit": "g",
-  "Amount": 2480,
+  "Amount": 10000,
   "Allergen": "None",
   "isEnabled": true,
   "IngredientID": "ING-MANGO",
-  "AmountPerPack": "2500 mL",
+  "AmountPerPack": "10000 mL",
   "createdAt": {
     "$date": "2025-10-30T12:55:38.952Z"
   },
   "lastModified": {
-    "$date": "2025-10-30T12:57:28.502Z"
+    "$date": "2025-11-25T07:42:42.183Z"
   },
   "Category": "Ingredients",
   "IngredientPrefix": "ING",
   "isAvailable": "true",
-  "DeductionQuantityGrams": 10
+  "DeductionQuantityGrams": 10,
+  "BasePrice": 15
 },
 {
   "_id": {
@@ -189,21 +197,22 @@
   "IngredientSuffix": "PASSFRUIT",
   "Name": "Passion Fruit Syrup",
   "Unit": "g",
-  "Amount": 2500,
+  "Amount": 10000,
   "Allergen": "None",
   "isEnabled": true,
   "IngredientID": "ING-PASSFRUIT",
-  "AmountPerPack": "2500 mL",
+  "AmountPerPack": "10000 mL",
   "createdAt": {
     "$date": "2025-10-30T12:56:03.478Z"
   },
   "lastModified": {
-    "$date": "2025-11-07T06:17:41.366Z"
+    "$date": "2025-11-25T07:42:51.376Z"
   },
   "Category": "Ingredients",
   "IngredientPrefix": "ING",
   "isAvailable": "true",
-  "DeductionQuantityGrams": 10
+  "DeductionQuantityGrams": 10,
+  "BasePrice": 15
 },
 {
   "_id": {
@@ -212,21 +221,22 @@
   "IngredientSuffix": "MOCHA",
   "Name": "Mocha Syrup",
   "Unit": "g",
-  "Amount": 1000,
+  "Amount": 9990,
   "Allergen": "None",
   "isEnabled": true,
   "IngredientID": "ING-MOCHA",
-  "AmountPerPack": "1000 g",
+  "AmountPerPack": "10000 g",
   "createdAt": {
     "$date": "2025-10-31T12:48:32.154Z"
   },
   "lastModified": {
-    "$date": "2025-11-07T06:17:41.423Z"
+    "$date": "2025-11-26T00:47:58.863Z"
   },
   "Category": "Ingredients",
   "IngredientPrefix": "ING",
   "isAvailable": "true",
-  "DeductionQuantityGrams": 10
+  "DeductionQuantityGrams": 10,
+  "BasePrice": 15
 },
 {
   "_id": {
@@ -236,8 +246,8 @@
   "IngredientPrefix": "ING",
   "IngredientSuffix": "COOKNCR",
   "Name": "Cookies'n Cream Powder",
-  "AmountPerPack": "1000 g",
-  "Amount": 1000,
+  "AmountPerPack": "10000 g",
+  "Amount": 10000,
   "Unit": "g",
   "Category": "Ingredients",
   "Allergen": "None",
@@ -247,9 +257,10 @@
     "$date": "2025-11-04T14:09:47.519Z"
   },
   "lastModified": {
-    "$date": "2025-11-04T14:09:47.519Z"
+    "$date": "2025-11-25T07:43:02.346Z"
   },
-  "DeductionQuantityGrams": 10
+  "DeductionQuantityGrams": 10,
+  "BasePrice": 15
 },
 {
   "_id": {
@@ -259,8 +270,8 @@
   "IngredientPrefix": "ING",
   "IngredientSuffix": "DALGONA",
   "Name": "Dalgona Powder",
-  "AmountPerPack": "1000 g",
-  "Amount": 1000,
+  "AmountPerPack": "10000 g",
+  "Amount": 10000,
   "Unit": "g",
   "Category": "Ingredients",
   "Allergen": "None",
@@ -270,9 +281,10 @@
     "$date": "2025-11-04T14:12:30.810Z"
   },
   "lastModified": {
-    "$date": "2025-11-04T14:12:30.810Z"
+    "$date": "2025-11-25T07:43:08.604Z"
   },
-  "DeductionQuantityGrams": 10
+  "DeductionQuantityGrams": 10,
+  "BasePrice": 15
 },
 {
   "_id": {
@@ -282,8 +294,8 @@
   "IngredientPrefix": "ING",
   "IngredientSuffix": "TARO",
   "Name": "Taro Powder",
-  "AmountPerPack": "1000 g",
-  "Amount": 917,
+  "AmountPerPack": "10000 g",
+  "Amount": 9950,
   "Unit": "g",
   "Category": "Ingredients",
   "Allergen": "None",
@@ -293,9 +305,10 @@
     "$date": "2025-11-04T14:19:03.438Z"
   },
   "lastModified": {
-    "$date": "2025-11-07T14:54:36.037Z"
+    "$date": "2025-11-26T06:56:37.773Z"
   },
-  "DeductionQuantityGrams": 10
+  "DeductionQuantityGrams": 10,
+  "BasePrice": 15
 },
 {
   "_id": {
@@ -305,8 +318,8 @@
   "IngredientPrefix": "ING",
   "IngredientSuffix": "ESP",
   "Name": "Espresso",
-  "AmountPerPack": "2500 g",
-  "Amount": 2500,
+  "AmountPerPack": "10000 g",
+  "Amount": 9180,
   "Unit": "g",
   "Category": "Ingredients",
   "Allergen": "None",
@@ -316,9 +329,10 @@
     "$date": "2025-11-04T14:19:50.478Z"
   },
   "lastModified": {
-    "$date": "2025-11-04T14:19:50.478Z"
+    "$date": "2025-11-30T08:23:23.663Z"
   },
-  "DeductionQuantityGrams": 10
+  "DeductionQuantityGrams": 10,
+  "BasePrice": 15
 },
 {
   "_id": {
@@ -328,8 +342,8 @@
   "IngredientPrefix": "ING",
   "IngredientSuffix": "CREAMER",
   "Name": "Creamer",
-  "AmountPerPack": "1000 g",
-  "Amount": 404,
+  "AmountPerPack": "10000 g",
+  "Amount": 9682,
   "Unit": "g",
   "Category": "Ingredients",
   "Allergen": "None",
@@ -339,9 +353,10 @@
     "$date": "2025-11-04T14:22:27.456Z"
   },
   "lastModified": {
-    "$date": "2025-11-07T14:54:35.987Z"
+    "$date": "2025-11-26T08:59:51.421Z"
   },
-  "DeductionQuantityGrams": 10
+  "DeductionQuantityGrams": 10,
+  "BasePrice": 15
 },
 {
   "_id": {
@@ -351,20 +366,21 @@
   "IngredientPrefix": "ING",
   "IngredientSuffix": "TEA",
   "Name": "Tea",
-  "AmountPerPack": "600 g",
-  "Amount": 650,
+  "AmountPerPack": "10000 g",
+  "Amount": 6430,
   "Unit": "g",
   "Category": "Ingredients",
   "Allergen": "None",
   "isEnabled": true,
-  "isAvailable": true,
+  "isAvailable": "true",
   "createdAt": {
     "$date": "2025-11-04T14:22:53.972Z"
   },
   "lastModified": {
-    "$date": "2025-11-07T14:54:35.937Z"
+    "$date": "2025-11-26T14:18:17.034Z"
   },
-  "DeductionQuantityGrams": 10
+  "DeductionQuantityGrams": 10,
+  "BasePrice": 15
 },
 {
   "_id": {
@@ -373,9 +389,9 @@
   "IngredientID": "ING-VANILLA",
   "IngredientPrefix": "ING",
   "IngredientSuffix": "VANILLA",
-  "Name": "Vanilla Syrup ",
-  "AmountPerPack": "1000 g",
-  "Amount": 1000,
+  "Name": "Vanilla Syrup",
+  "AmountPerPack": "10000 g",
+  "Amount": 10000,
   "Unit": "g",
   "Category": "Ingredients",
   "Allergen": "None",
@@ -385,32 +401,10 @@
     "$date": "2025-11-04T15:00:52.015Z"
   },
   "lastModified": {
-    "$date": "2025-11-04T15:00:52.015Z"
+    "$date": "2025-11-25T07:43:39.053Z"
   },
-  "DeductionQuantityGrams": 10
-},
-{
-  "_id": {
-    "$oid": "690a15259292a49492b18918"
-  },
-  "IngredientID": "ING-VANILLA",
-  "IngredientPrefix": "ING",
-  "IngredientSuffix": "VANILLA",
-  "Name": "Vanilla Syrup ",
-  "AmountPerPack": "1000 g",
-  "Amount": 1000,
-  "Unit": "g",
-  "Category": "Ingredients",
-  "Allergen": "None",
-  "isEnabled": true,
-  "isAvailable": true,
-  "createdAt": {
-    "$date": "2025-11-04T15:00:53.672Z"
-  },
-  "lastModified": {
-    "$date": "2025-11-04T15:00:53.672Z"
-  },
-  "DeductionQuantityGrams": 10
+  "DeductionQuantityGrams": 10,
+  "BasePrice": 15
 },
 {
   "_id": {
@@ -420,8 +414,8 @@
   "IngredientPrefix": "ING",
   "IngredientSuffix": "MILK",
   "Name": "Milk",
-  "AmountPerPack": "1000 g",
-  "Amount": 990,
+  "AmountPerPack": "10000 g",
+  "Amount": 9000,
   "Unit": "g",
   "Category": "Ingredients",
   "Allergen": "Dairy",
@@ -431,9 +425,10 @@
     "$date": "2025-11-04T15:01:23.755Z"
   },
   "lastModified": {
-    "$date": "2025-11-04T15:01:23.755Z"
+    "$date": "2025-11-30T08:23:23.715Z"
   },
-  "DeductionQuantityGrams": 10
+  "DeductionQuantityGrams": 10,
+  "BasePrice": 15
 },
 {
   "_id": {
@@ -443,8 +438,8 @@
   "IngredientPrefix": "ING",
   "IngredientSuffix": "DFOREST",
   "Name": "Dark Forest Powder",
-  "AmountPerPack": "1000 g",
-  "Amount": 1000,
+  "AmountPerPack": "10000 g",
+  "Amount": 10000,
   "Unit": "g",
   "Category": "Ingredients",
   "Allergen": "None",
@@ -454,9 +449,10 @@
     "$date": "2025-11-04T15:03:02.019Z"
   },
   "lastModified": {
-    "$date": "2025-11-04T15:03:02.019Z"
+    "$date": "2025-11-25T07:43:49.857Z"
   },
-  "DeductionQuantityGrams": 10
+  "DeductionQuantityGrams": 10,
+  "BasePrice": 15
 },
 {
   "_id": {
@@ -466,8 +462,8 @@
   "IngredientPrefix": "ING",
   "IngredientSuffix": "HAZEL",
   "Name": "Hazelnut Syrup",
-  "AmountPerPack": "1000 g",
-  "Amount": 1000,
+  "AmountPerPack": "10000 g",
+  "Amount": 9760,
   "Unit": "g",
   "Category": "Ingredients",
   "Allergen": "Nuts",
@@ -477,9 +473,10 @@
     "$date": "2025-11-04T15:05:31.723Z"
   },
   "lastModified": {
-    "$date": "2025-11-04T15:05:31.723Z"
+    "$date": "2025-11-30T08:23:23.611Z"
   },
-  "DeductionQuantityGrams": 10
+  "DeductionQuantityGrams": 10,
+  "BasePrice": 15
 },
 {
   "_id": {
@@ -489,8 +486,8 @@
   "IngredientPrefix": "ING",
   "IngredientSuffix": "SCPWDR",
   "Name": "Salted Caramel Powder",
-  "AmountPerPack": "1000 g",
-  "Amount": 1000,
+  "AmountPerPack": "10000 g",
+  "Amount": 10000,
   "Unit": "g",
   "Category": "Ingredients",
   "Allergen": "None",
@@ -500,9 +497,10 @@
     "$date": "2025-11-04T15:06:05.498Z"
   },
   "lastModified": {
-    "$date": "2025-11-04T15:06:05.498Z"
+    "$date": "2025-11-25T07:44:11.054Z"
   },
-  "DeductionQuantityGrams": 10
+  "DeductionQuantityGrams": 10,
+  "BasePrice": 15
 },
 {
   "_id": {
@@ -512,8 +510,8 @@
   "IngredientPrefix": "ING",
   "IngredientSuffix": "SCARMEL",
   "Name": "Salted Caramel Syrup",
-  "AmountPerPack": "1000 g",
-  "Amount": 1000,
+  "AmountPerPack": "10000 g",
+  "Amount": 10000,
   "Unit": "g",
   "Category": "Ingredients",
   "Allergen": "None",
@@ -523,8 +521,10 @@
     "$date": "2025-11-04T15:07:52.147Z"
   },
   "lastModified": {
-    "$date": "2025-11-04T15:07:52.147Z"
-  }
+    "$date": "2025-11-25T07:44:16.012Z"
+  },
+  "DeductionQuantityGrams": 10,
+  "BasePrice": 15
 },
 {
   "_id": {
@@ -534,8 +534,8 @@
   "IngredientPrefix": "ING",
   "IngredientSuffix": "CAPPU",
   "Name": "Cappuccino Powder",
-  "AmountPerPack": "950 g",
-  "Amount": 950,
+  "AmountPerPack": "10000 g",
+  "Amount": 9990,
   "Unit": "g",
   "Category": "Ingredients",
   "Allergen": "None",
@@ -545,9 +545,10 @@
     "$date": "2025-11-04T15:08:22.554Z"
   },
   "lastModified": {
-    "$date": "2025-11-04T15:08:22.554Z"
+    "$date": "2025-11-26T08:59:51.454Z"
   },
-  "DeductionQuantityGrams": 10
+  "DeductionQuantityGrams": 10,
+  "BasePrice": 15
 },
 {
   "_id": {
@@ -557,8 +558,8 @@
   "IngredientPrefix": "ING",
   "IngredientSuffix": "HERSHEYS",
   "Name": "Hershey's Powder",
-  "AmountPerPack": "500 g",
-  "Amount": 500,
+  "AmountPerPack": "10000 g",
+  "Amount": 9990,
   "Unit": "g",
   "Category": "Ingredients",
   "Allergen": "None",
@@ -568,9 +569,10 @@
     "$date": "2025-11-04T15:10:16.315Z"
   },
   "lastModified": {
-    "$date": "2025-11-04T15:10:16.315Z"
+    "$date": "2025-11-26T00:40:51.937Z"
   },
-  "DeductionQuantityGrams": 10
+  "DeductionQuantityGrams": 10,
+  "BasePrice": 15
 },
 {
   "_id": {
@@ -580,20 +582,21 @@
   "IngredientPrefix": "ING",
   "IngredientSuffix": "MATCHA",
   "Name": "Matcha Powder",
-  "AmountPerPack": "1000 g",
-  "Amount": 335,
+  "AmountPerPack": "10000 g",
+  "Amount": 9867,
   "Unit": "g",
   "Category": "Ingredients",
   "Allergen": "None",
   "isEnabled": true,
-  "isAvailable": true,
+  "isAvailable": false,
   "createdAt": {
     "$date": "2025-11-04T15:10:39.846Z"
   },
   "lastModified": {
-    "$date": "2025-11-04T15:10:39.846Z"
+    "$date": "2025-11-26T08:59:51.426Z"
   },
-  "DeductionQuantityGrams": 10
+  "DeductionQuantityGrams": 10,
+  "BasePrice": 15
 },
 {
   "_id": {
@@ -603,8 +606,8 @@
   "IngredientPrefix": "ING",
   "IngredientSuffix": "COND",
   "Name": "Condensed Milk",
-  "AmountPerPack": "545 g",
-  "Amount": 545,
+  "AmountPerPack": "10000 g",
+  "Amount": 9970,
   "Unit": "g",
   "Category": "Ingredients",
   "Allergen": "Dairy",
@@ -614,9 +617,10 @@
     "$date": "2025-11-04T15:11:11.593Z"
   },
   "lastModified": {
-    "$date": "2025-11-04T15:11:11.593Z"
+    "$date": "2025-11-28T09:31:46.499Z"
   },
-  "DeductionQuantityGrams": 10
+  "DeductionQuantityGrams": 10,
+  "BasePrice": 15
 },
 {
   "_id": {
@@ -626,20 +630,21 @@
   "IngredientPrefix": "ING",
   "IngredientSuffix": "OKI",
   "Name": "Okinawa Powder",
-  "AmountPerPack": "1000 g",
-  "Amount": 1000,
+  "AmountPerPack": "10000 g",
+  "Amount": 9917,
   "Unit": "g",
   "Category": "Ingredients",
   "Allergen": "None",
   "isEnabled": true,
-  "isAvailable": true,
+  "isAvailable": "true",
   "createdAt": {
     "$date": "2025-11-04T15:12:59.178Z"
   },
   "lastModified": {
-    "$date": "2025-11-04T15:12:59.178Z"
+    "$date": "2025-11-25T13:32:21.508Z"
   },
-  "DeductionQuantityGrams": 10
+  "DeductionQuantityGrams": 10,
+  "BasePrice": 15
 },
 {
   "_id": {
@@ -649,20 +654,21 @@
   "IngredientPrefix": "ING",
   "IngredientSuffix": "WMOCHA",
   "Name": "White Mocha Syrup",
-  "AmountPerPack": "1000 g",
-  "Amount": 1000,
+  "AmountPerPack": "10000 g",
+  "Amount": 9990,
   "Unit": "g",
   "Category": "Ingredients",
   "Allergen": "None",
   "isEnabled": true,
-  "isAvailable": true,
+  "isAvailable": "true",
   "createdAt": {
     "$date": "2025-11-04T15:13:28.491Z"
   },
   "lastModified": {
-    "$date": "2025-11-04T15:13:28.491Z"
+    "$date": "2025-11-26T00:47:58.875Z"
   },
-  "DeductionQuantityGrams": 10
+  "DeductionQuantityGrams": 10,
+  "BasePrice": 15
 },
 {
   "_id": {
@@ -672,20 +678,21 @@
   "IngredientPrefix": "ING",
   "IngredientSuffix": "WINTER",
   "Name": "Wintermelon Powder",
-  "AmountPerPack": "500 g",
-  "Amount": 500,
+  "AmountPerPack": "10000 g",
+  "Amount": 9967,
   "Unit": "g",
   "Category": "Ingredients",
   "Allergen": "None",
   "isEnabled": true,
-  "isAvailable": true,
+  "isAvailable": "true",
   "createdAt": {
     "$date": "2025-11-04T15:14:00.111Z"
   },
   "lastModified": {
-    "$date": "2025-11-04T15:14:00.111Z"
+    "$date": "2025-11-25T10:19:48.631Z"
   },
-  "DeductionQuantityGrams": 10
+  "DeductionQuantityGrams": 10,
+  "BasePrice": 15
 },
 {
   "_id": {
@@ -695,20 +702,21 @@
   "IngredientPrefix": "ING",
   "IngredientSuffix": "SPANISH",
   "Name": "Spanish Syrup",
-  "AmountPerPack": "950 g",
-  "Amount": 950,
+  "AmountPerPack": "10000 g",
+  "Amount": 10000,
   "Unit": "g",
   "Category": "Ingredients",
   "Allergen": "None",
   "isEnabled": true,
-  "isAvailable": true,
+  "isAvailable": "true",
   "createdAt": {
     "$date": "2025-11-04T15:14:45.885Z"
   },
   "lastModified": {
-    "$date": "2025-11-07T16:00:56.956Z"
+    "$date": "2025-11-25T07:44:51.414Z"
   },
-  "DeductionQuantityGrams": 10
+  "DeductionQuantityGrams": 10,
+  "BasePrice": 15
 },
 {
   "_id": {
@@ -718,8 +726,8 @@
   "IngredientPrefix": "ING",
   "IngredientSuffix": "CARAMEL",
   "Name": "Caramel Syrup",
-  "AmountPerPack": "1000 g",
-  "Amount": 1000,
+  "AmountPerPack": "10000 g",
+  "Amount": 9980,
   "Unit": "g",
   "Category": "Ingredients",
   "Allergen": "None",
@@ -729,7 +737,8 @@
     "$date": "2025-11-07T16:18:20.294Z"
   },
   "lastModified": {
-    "$date": "2025-11-07T16:31:17.129Z"
+    "$date": "2025-11-26T07:18:55.335Z"
   },
-  "DeductionQuantityGrams": 10
+  "DeductionQuantityGrams": 10,
+  "BasePrice": 15
 }]

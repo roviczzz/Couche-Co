@@ -1,0 +1,74 @@
+<link rel="stylesheet" href="/css/feedback.css">
+
+<section class="feedback-section">
+  <h3>We'd Love Your Feedback</h3>
+  <form id="feedback-form" data-page="<%= typeof feedbackPage !== 'undefined' ? feedbackPage : 'unknown' %>">
+    <div class="feedback-grid">
+      <% if (typeof feedbackPage !== 'undefined' && feedbackPage === 'order-success') { %>
+      <div class="feedback-stars">
+        <label id="rating-label">Rate your experience</label>
+        <div class="star-rating" role="radiogroup" aria-labelledby="rating-label">
+          <input type="radio" id="star5" name="rating" value="5" aria-label="5 stars">
+          <label for="star5" title="Excellent">★</label>
+          <input type="radio" id="star4" name="rating" value="4" aria-label="4 stars">
+          <label for="star4" title="Good">★</label>
+          <input type="radio" id="star3" name="rating" value="3" aria-label="3 stars">
+          <label for="star3" title="Average">★</label>
+          <input type="radio" id="star2" name="rating" value="2" aria-label="2 stars">
+          <label for="star2" title="Fair">★</label>
+          <input type="radio" id="star1" name="rating" value="1" aria-label="1 star">
+          <label for="star1" title="Poor">★</label>
+        </div>
+      </div>
+      <% } %>
+
+      <div class="feedback-name">
+        <label for="feedback-name">Your name (optional)</label>
+        <input 
+          type="text" 
+          id="feedback-name" 
+          name="name" 
+          placeholder="Enter your name" 
+          maxlength="100"
+          value="<%= typeof user !== 'undefined' && user && user.name ? user.name : '' %>"
+        >
+      </div>
+
+      <div class="feedback-email">
+        <label for="feedback-email">Email address (optional)</label>
+        <input 
+          type="email" 
+          id="feedback-email" 
+          name="email" 
+          placeholder="your@email.com" 
+          maxlength="100"
+          value="<%= typeof user !== 'undefined' && user && user.email ? user.email : '' %>"
+        >
+      </div>
+
+      <div class="feedback-comment">
+        <label for="feedback-comment">Your comments & suggestions</label>
+        <textarea 
+          id="feedback-comment" 
+          name="comment" 
+          placeholder="Share your thoughts..." 
+          maxlength="500"
+          aria-describedby="char-counter"
+        ></textarea>
+        <div class="char-counter" id="char-counter">
+          <span class="char-count">500</span> characters remaining
+        </div>
+      </div>
+
+      <div class="feedback-submit-container">
+        <button type="submit" class="feedback-submit">
+          <span class="btn-text">Submit Feedback</span>
+          <span class="spinner"></span>
+        </button>
+      </div>
+    </div>
+    <div class="feedback-message" role="alert" aria-live="polite"></div>
+  </form>
+</section>
+
+<script src="/js/feedback.js"></script>

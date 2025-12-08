@@ -4,30 +4,9 @@ const { ObjectId } = require('mongodb');
 const bcrypt = require('bcrypt');
 const { check, validationResult } = require('express-validator');
 const crypto = require('crypto');
-const nodemailer = require('nodemailer');
+const { sendPasswordResetEmail } = require('../utils/passwordResetService');
 
 const SALT_ROUNDS = 12;
-
-// Create nodemailer transporter with Docker-optimized settings
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASSWORD
-  },
-  pool: false, // Disable connection pooling for Docker
-  connectionTimeout: 10000, // 10 seconds
-  greetingTimeout: 5000, // 5 seconds
-  socketTimeout: 15000, // 15 seconds
-  tls: {
-    rejectUnauthorized: false,
-    ciphers: 'SSLv3'
-  },
-  debug: process.env.NODE_ENV !== 'production',
-  logger: process.env.NODE_ENV !== 'production'
-});
 
 // Generate staff ID based on role and user ID
 function generateStaffId(role, userId) {
@@ -55,7 +34,7 @@ const multer = require('multer');
 const { createNewOrderNotification, createMessageNotification, createLowStockNotification } = require('../admin-helpers');
 
 
-router.post("/toggle-availability/:id", async (req, res) => {
+router.post("/toggle-availability/:id", ensureAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { isEnabled } = req.body;
@@ -298,49 +277,19 @@ router.post('/forgot-password',
 
       // Send reset email
       const resetUrl = `${process.env.BASE_URL}/auth/reset-password?token=${resetToken}`;
-      const mailOptions = {
-        from: process.env.GMAIL_USER,
-        to: user.email,
-        subject: 'Password Reset - Blessings Cafe Admin',
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #333;">Password Reset Request</h2>
-            <p>Hello ${user.fullname || user.name || 'Admin'},</p>
-            <p>You requested a password reset for your Blessings Cafe admin account.</p>
-            <p>Click the link below to reset your password:</p>
-            <a href="${resetUrl}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 10px 0;">Reset Password</a>
-            <p>This link will expire in 1 hour.</p>
-            <p>If you didn't request this reset, please ignore this email.</p>
-            <p>Best regards,<br>Blessings Cafe Team</p>
-          </div>
-        `
-      };
+      const emailResult = await sendPasswordResetEmail(
+        user.email,
+        user.fullname || user.name || 'Admin',
+        resetUrl,
+        true
+      );
 
-      // Add timeout wrapper for email sending
-      const sendEmailWithTimeout = new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          reject(new Error('Email sending timeout'));
-        }, 15000); // 15 second timeout
-
-        transporter.sendMail(mailOptions)
-          .then(result => {
-            clearTimeout(timeout);
-            resolve(result);
-          })
-          .catch(error => {
-            clearTimeout(timeout);
-            reject(error);
-          });
-      });
-
-      try {
-        await sendEmailWithTimeout;
+      if (emailResult.success) {
         console.log('✅ Admin password reset email sent successfully');
         res.json({ success: true, message: 'Password reset email sent. Please check your inbox.' });
-      } catch (emailError) {
-        console.error('❌ Admin email sending failed:', emailError.message);
+      } else {
+        console.error('❌ Admin email sending failed:', emailResult.error);
         
-        // Still create the reset token but show different message
         res.json({ success: true, message: 'Password reset link has been generated. Please contact support if you do not receive the email.' });
       }
     } catch (error) {
@@ -350,8 +299,8 @@ router.post('/forgot-password',
   }
 );
 
-// Analytics Endpoints (before auth middleware)
-router.get('/analytics/dashboard-stats', nocache, async (req, res) => {
+// Analytics Endpoints (protected - require login and admin/owner role)
+router.get('/analytics/dashboard-stats', isLoggedIn, ensureAdmin, nocache, async (req, res) => {
   try {
     const stats = await getDashboardAnalyticsStats(req.db);
     res.json(stats);
@@ -361,7 +310,7 @@ router.get('/analytics/dashboard-stats', nocache, async (req, res) => {
   }
 });
 
-router.get('/analytics/low-stock', nocache, async (req, res) => {
+router.get('/analytics/low-stock', isLoggedIn, ensureAdmin, nocache, async (req, res) => {
   try {
     const threshold = parseInt(req.query.threshold) || 5; // Default to 5, can be 5-100
 
@@ -421,26 +370,41 @@ router.get('/analytics/low-stock', nocache, async (req, res) => {
   }
 });
 
-router.get('/analytics/top-categories', nocache, async (req, res) => {
+router.get('/analytics/top-categories', isLoggedIn, ensureAdmin, nocache, async (req, res) => {
   try {
-    // Using shared DB connection from req.db
-
     const pipeline = [
+      { $match: { PaymentStatus: { $nin: ['Cancelled', 'cancelled'] } } },
       { $unwind: '$Cart' },
       {
-        $match: {
-          PaymentStatus: { $ne: 'Cancelled' },
-          'Cart.Category': { $exists: true, $ne: null }
+        $lookup: {
+          from: 'Menu',
+          localField: 'Cart.ProductID',
+          foreignField: 'ProductID',
+          as: 'menuItem'
         }
       },
+      { $unwind: { path: '$menuItem', preserveNullAndEmptyArrays: true } },
       {
         $group: {
-          _id: '$Cart.Category',
-          total: { $sum: { $multiply: ['$Cart.Price', '$Cart.Quantity'] } },
-          quantity: { $sum: '$Cart.Quantity' },
+          _id: { 
+            $ifNull: [
+              '$Cart.Category',
+              { $ifNull: ['$Cart.category', { $ifNull: ['$menuItem.Category', 'Uncategorized'] }] }
+            ]
+          },
+          total: { 
+            $sum: { 
+              $multiply: [
+                { $ifNull: ['$Cart.Price', { $ifNull: ['$Cart.price', 0] }] },
+                { $ifNull: ['$Cart.Quantity', { $ifNull: ['$Cart.quantity', 1] }] }
+              ] 
+            } 
+          },
+          quantity: { $sum: { $ifNull: ['$Cart.Quantity', { $ifNull: ['$Cart.quantity', 1] }] } },
           orderCount: { $sum: 1 }
         }
       },
+      { $match: { _id: { $nin: ['Uncategorized', null, ''] } } },
       { $sort: { total: -1 } },
       { $limit: 8 }
     ];
@@ -459,7 +423,7 @@ router.get('/analytics/top-categories', nocache, async (req, res) => {
   }
 });
 
-router.get('/analytics/payment-types', nocache, async (req, res) => {
+router.get('/analytics/payment-types', isLoggedIn, ensureAdmin, nocache, async (req, res) => {
   try {
     // Using shared DB connection from req.db
 
@@ -503,7 +467,7 @@ router.get('/analytics/payment-types', nocache, async (req, res) => {
   }
 });
 
-router.get('/analytics/orders-by-source', nocache, async (req, res) => {
+router.get('/analytics/orders-by-source', isLoggedIn, ensureAdmin, nocache, async (req, res) => {
   try {
     // Using shared DB connection from req.db
 
@@ -772,6 +736,35 @@ router.get('/dashboard', nocache, async (req, res) => {
       console.error('Low stock data fetch error:', error);
     }
 
+    let recentFeedbacks = [];
+    let feedbackStats = { averageRating: 0, totalCount: 0 };
+    try {
+      recentFeedbacks = await req.db.collection('Feedback')
+        .find({})
+        .sort({ timestamp: -1 })
+        .limit(5)
+        .toArray();
+
+      const feedbackAggregation = await req.db.collection('Feedback').aggregate([
+        {
+          $group: {
+            _id: null,
+            averageRating: { $avg: '$rating' },
+            totalCount: { $sum: 1 }
+          }
+        }
+      ]).toArray();
+
+      if (feedbackAggregation.length > 0) {
+        feedbackStats = {
+          averageRating: feedbackAggregation[0].averageRating || 0,
+          totalCount: feedbackAggregation[0].totalCount || 0
+        };
+      }
+    } catch (error) {
+      console.error('Feedback data fetch error:', error);
+    }
+
     // Combine all stats into a single object for template consistency
     const combinedStats = {
       ...basicStats,
@@ -786,14 +779,16 @@ router.get('/dashboard', nocache, async (req, res) => {
       user: userData,
       currentPage: '/admin/dashboard',
       layout: 'admin/layout',
-      stats: combinedStats,  // Template expects 'stats' object
+      stats: combinedStats,
       analyticsStats,
       topCategories,
       paymentTypes,
       ordersBySource,
       salesPerformance,
       lowStockData,
-      userLowStockThreshold
+      userLowStockThreshold,
+      recentFeedbacks,
+      feedbackStats
     });
   } catch (error) {
     console.error('Dashboard error:', error);
@@ -813,44 +808,6 @@ router.get('/analytics/dashboard-stats', nocache, async (req, res) => {
   } catch (error) {
     console.error('Dashboard stats error:', error);
     res.status(500).json({ error: 'Failed to load dashboard stats' });
-  }
-});
-
-router.get('/analytics/top-categories', nocache, async (req, res) => {
-  try {
-    // Using shared DB connection from req.db
-
-    const pipeline = [
-      { $unwind: '$Cart' },
-      {
-        $match: {
-          PaymentStatus: { $ne: 'Cancelled' },
-          'Cart.Category': { $exists: true, $ne: null }
-        }
-      },
-      {
-        $group: {
-          _id: '$Cart.Category',
-          total: { $sum: { $multiply: ['$Cart.Price', '$Cart.Quantity'] } },
-          quantity: { $sum: '$Cart.Quantity' },
-          orderCount: { $sum: 1 }
-        }
-      },
-      { $sort: { total: -1 } },
-      { $limit: 8 }
-    ];
-
-    const categories = await req.db.collection('Orders').aggregate(pipeline).toArray();
-
-    res.json(categories.map(cat => ({
-      name: cat._id,
-      value: cat.total,
-      quantity: cat.quantity,
-      orderCount: cat.orderCount
-    })));
-  } catch (error) {
-    console.error('Top categories error:', error);
-    res.status(500).json({ error: 'Failed to load top categories' });
   }
 });
 
@@ -916,8 +873,8 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// Add Product route
-router.post('/products/add', upload.single('imagelink'), async (req, res) => {
+// Add Product route - Restricted to admin/owner only
+router.post('/products/add', ensureAdmin, upload.single('imagelink'), async (req, res) => {
   const {
     categoryShortcut,
     productCode,
@@ -1200,7 +1157,7 @@ router.get('/api/products/:id', async (req, res) => {
 
 
 // ✅ Edit Product route (with local image upload)
-router.post('/products/edit/:id', upload.single('imagelink'), async (req, res) => {
+router.post('/products/edit/:id', ensureAdmin, upload.single('imagelink'), async (req, res) => {
   const { id } = req.params;
   const { description, Allergen, size16, size22, BasePrice, Quantity } = req.body;
 
@@ -1366,7 +1323,7 @@ router.get('/products/edit/:id', nocache, async (req, res) => {
 
 // DELETE Product Route (AJAX-friendly)
 // Delete Product route (JSON response)
-router.post('/delete-product/:id', async (req, res) => {
+router.post('/delete-product/:id', ensureAdmin, async (req, res) => {
   const productId = req.params.id;
 
   try {
@@ -1569,12 +1526,13 @@ router.get('/menu', nocache, async (req, res) => {
     // Using shared DB connection from req.db
     const currentUser = await req.db.collection('users').findOne({ _id: new ObjectId(req.session.user._id) });
     
-    // Fetch menu items, addons, ingredients, and active promos
-    const [menuItems, addons, ingredients, activePromos] = await Promise.all([
+    // Fetch menu items, addons, ingredients, active promos, and category recommendations
+    const [menuItems, addons, ingredients, activePromos, categoryRecommendations] = await Promise.all([
       getMenu(req.db),
       req.db.collection('Add-ons').find({ isEnabled: true }).toArray(),
       req.db.collection('Ingredients').find({ isEnabled: true }).toArray(),
-      getActiveDiscounts(req.db)
+      getActiveDiscounts(req.db),
+      req.db.collection('CategoryRecommendations').find().toArray()
     ]);
 
     // Merge session data with fresh database data
@@ -1591,7 +1549,8 @@ router.get('/menu', nocache, async (req, res) => {
       menuItems,
       addons,
       ingredients,
-      activePromos
+      activePromos,
+      categoryRecommendations
     });
   } catch (error) {
     console.error('Menu error:', error);
@@ -1872,12 +1831,20 @@ const messageUpload = multer({
     fileSize: 10 * 1024 * 1024 // 10MB limit
   },
   fileFilter: function (req, file, cb) {
-    // Allow common file types
-    const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx|xls|xlsx|txt|zip|rar/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
+    const allowedExtensions = /jpeg|jpg|png|gif|pdf|doc|docx|xls|xlsx|txt|zip|rar/;
+    const allowedMimeTypes = [
+      'image/jpeg', 'image/jpg', 'image/png', 'image/gif',
+      'application/pdf',
+      'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'text/plain',
+      'application/zip', 'application/x-zip-compressed', 'application/x-rar-compressed'
+    ];
+    
+    const extname = allowedExtensions.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedMimeTypes.includes(file.mimetype);
 
-    if (mimetype && extname) {
+    if (mimetype || extname) {
       return cb(null, true);
     } else {
       cb(new Error('Invalid file type'));
@@ -2085,21 +2052,28 @@ router.get('/messages/api/unread-count', async (req, res) => {
 });
 
 // Upload files
-router.post('/messages/api/upload', messageUpload.array('files', 5), (req, res) => {
-  try {
-    const files = req.files.map(file => ({
-      originalName: file.originalname,
-      filename: file.filename,
-      mimetype: file.mimetype,
-      size: file.size,
-      url: `/uploads/messages/${file.filename}`
-    }));
+router.post('/messages/api/upload', (req, res) => {
+  messageUpload.array('files', 5)(req, res, function(err) {
+    if (err) {
+      console.error('Multer error:', err);
+      return res.status(400).json({ error: err.message || 'Failed to upload files' });
+    }
+    
+    try {
+      const files = req.files.map(file => ({
+        originalName: file.originalname,
+        filename: file.filename,
+        mimetype: file.mimetype,
+        size: file.size,
+        url: `/uploads/messages/${file.filename}`
+      }));
 
-    res.json({ success: true, files });
-  } catch (error) {
-    console.error('Error uploading files:', error);
-    res.status(500).json({ error: 'Failed to upload files' });
-  }
+      res.json({ success: true, files });
+    } catch (error) {
+      console.error('Error uploading files:', error);
+      res.status(500).json({ error: 'Failed to upload files' });
+    }
+  });
 });
 
 // Admin settings page
@@ -2237,6 +2211,56 @@ router.post('/settings/preferences', async (req, res) => {
   }
 });
 
+router.post('/settings/update-promo-modal', ensureOwner, async (req, res) => {
+  try {
+    const { promoImageUrl, promoEnabled, promoStartDate, promoEndDate, promoDismissDuration } = req.body;
+
+    if (!promoImageUrl || !promoImageUrl.trim()) {
+      return res.status(400).json({ success: false, message: 'Promotional image URL is required' });
+    }
+
+    const result = await req.db.collection('PageSettings').updateOne(
+      { pageId: 'promo-modal' },
+      {
+        $set: {
+          promoImageUrl: promoImageUrl.trim(),
+          promoEnabled: promoEnabled !== false,
+          promoStartDate: promoStartDate ? new Date(promoStartDate) : null,
+          promoEndDate: promoEndDate ? new Date(promoEndDate) : null,
+          promoDismissDuration: promoDismissDuration || 24,
+          updatedAt: new Date()
+        },
+        $setOnInsert: {
+          pageId: 'promo-modal',
+          pageName: 'Promotional Modal',
+          createdAt: new Date()
+        }
+      },
+      { upsert: true }
+    );
+
+    console.log('Promo modal updated:', result);
+    res.json({ success: true, message: 'Promotional modal configuration updated successfully' });
+  } catch (error) {
+    console.error('Promo modal update error:', error);
+    res.status(500).json({ success: false, message: 'Failed to update promotional modal: ' + error.message });
+  }
+});
+
+router.post('/settings/remove-promo-modal', ensureOwner, async (req, res) => {
+  try {
+    const result = await req.db.collection('PageSettings').deleteOne(
+      { pageId: 'promo-modal' }
+    );
+
+    console.log('Promo modal removed:', result);
+    res.json({ success: true, message: 'Promotional modal removed successfully' });
+  } catch (error) {
+    console.error('Promo modal removal error:', error);
+    res.status(500).json({ success: false, message: 'Failed to remove promotional modal: ' + error.message });
+  }
+});
+
 // Password change route
 router.post('/change-password', async (req, res) => {
   try {
@@ -2319,13 +2343,28 @@ router.post('/migrate-passwords', async (req, res) => {
 // STOCKS ROUTES
 router.post('/stocks', async (req, res) => {
   try {
-    // Check if this is an add-on by looking for addon-specific fields
-    const isAddon = req.body.AddOnID || req.body.AddOnPrefix || req.body.AddOnSuffix || req.body.BasePrice;
+    if (!req.body || typeof req.body !== 'object') {
+      console.error('❌ Invalid request body received');
+      return res.status(400).json({ success: false, error: 'Invalid request body' });
+    }
+    
+    console.log('📦 /stocks POST request received. req.body keys:', Object.keys(req.body));
+    console.log('📦 Full req.body:', req.body);
+    
+    // Check if this is an ingredient first (more specific check)
+    const isIngredient = req.body.IngredientID || req.body.IngredientPrefix || req.body.IngredientSuffix;
+    // Only treat as add-on if NOT an ingredient and has add-on specific fields
+    const isAddon = !isIngredient && (req.body.AddOnID || req.body.AddOnPrefix || req.body.AddOnSuffix);
 
     // Using shared DB connection from req.db
 
     if (isAddon) {
       // Handle Add-On with correct field formatting
+
+      if (!req.body.AddOnID) {
+        console.error('❌ AddOnID is missing in request body');
+        return res.status(400).json({ success: false, error: 'AddOnID is required' });
+      }
 
       // Check for existing add-on with same ID and Name combination
       const existingAddon = await req.db.collection('Add-ons').findOne({
@@ -3752,6 +3791,48 @@ router.post('/api/page-management/carousel/update', async (req, res) => {
   }
 });
 
+router.post('/settings/upload-promo-image', upload.single('promoImage'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'No image file provided' });
+    }
+
+    const file = req.file;
+    const maxSize = 5 * 1024 * 1024;
+
+    if (file.size > maxSize) {
+      return res.status(400).json({ success: false, error: 'File size exceeds 5MB limit' });
+    }
+
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowedMimes.includes(file.mimetype)) {
+      return res.status(400).json({ success: false, error: 'Invalid image format. Use JPG, PNG, WebP, or GIF' });
+    }
+
+    const promotionalsDir = path.join(__dirname, '..', 'public', 'uploads', 'promotionals');
+    if (!fs.existsSync(promotionalsDir)) {
+      fs.mkdirSync(promotionalsDir, { recursive: true });
+    }
+
+    const ext = path.extname(file.originalname);
+    const filename = `promo-${Date.now()}${ext}`;
+    const finalPath = path.join(promotionalsDir, filename);
+    fs.renameSync(file.path, finalPath);
+
+    res.json({ 
+      success: true, 
+      message: 'Image uploaded successfully',
+      data: { 
+        filename: filename,
+        path: `/uploads/promotionals/${filename}`
+      }
+    });
+  } catch (error) {
+    console.error('Promo image upload error:', error);
+    res.status(500).json({ success: false, error: 'Failed to upload image' });
+  }
+});
+
 router.post('/api/page-management/carousel/upload-image', async (req, res) => {
   try {
     if (!req.file) {
@@ -3789,6 +3870,230 @@ router.post('/api/page-management/carousel/upload-image', async (req, res) => {
   } catch (error) {
     console.error('Image upload error:', error);
     res.status(500).json({ success: false, error: 'Failed to upload image' });
+  }
+});
+
+router.get('/api/chatbot-settings/categories', async (req, res) => {
+  try {
+    let categoriesData = await req.db.collection('Chatbot-Settings').findOne({ pageId: 'chatbot-categories' });
+    
+    if (!categoriesData) {
+      categoriesData = {
+        pageId: 'chatbot-categories',
+        pageName: 'Chatbot Category Images',
+        categories: [
+          { categoryId: 'popular-items', name: 'Popular Items', imageUrl: '/uploads/chatbot/popular-items.webp' },
+          { categoryId: 'fruit-teas', name: 'Fruit Teas', imageUrl: '/uploads/chatbot/fruit-teas.webp' },
+          { categoryId: 'milk-teas', name: 'Milk Teas', imageUrl: '/uploads/chatbot/milk-teas.webp' },
+          { categoryId: 'signatures', name: 'Signatures', imageUrl: '/uploads/chatbot/signatures.webp' },
+          { categoryId: 'bites', name: 'Bites', imageUrl: '/uploads/chatbot/bites.webp' }
+        ],
+        supportedFormats: ['JPG', 'PNG', 'WebP'],
+        maxFileSize: '2MB',
+        updatedAt: new Date()
+      };
+      
+      await req.db.collection('Chatbot-Settings').insertOne(categoriesData);
+    }
+    
+    res.json({ success: true, data: categoriesData });
+  } catch (error) {
+    console.error('Chatbot categories fetch error:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch chatbot categories' });
+  }
+});
+
+router.post('/api/chatbot-settings/categories/update', async (req, res) => {
+  try {
+    const { categories } = req.body;
+    
+    if (!Array.isArray(categories) || categories.length !== 5) {
+      return res.status(400).json({ success: false, error: 'Invalid categories data. Must have exactly 5 categories.' });
+    }
+
+    const updateData = {
+      categories: categories.map(cat => ({
+        categoryId: cat.categoryId,
+        name: cat.name,
+        imageUrl: cat.imageUrl
+      })),
+      updatedAt: new Date()
+    };
+
+    const result = await req.db.collection('Chatbot-Settings').findOneAndUpdate(
+      { pageId: 'chatbot-categories' },
+      { $set: updateData },
+      { returnDocument: 'after', upsert: true }
+    );
+
+    res.json({ success: true, message: 'Chatbot categories updated successfully', data: result });
+  } catch (error) {
+    console.error('Chatbot categories update error:', error);
+    res.status(500).json({ success: false, error: 'Failed to update chatbot categories' });
+  }
+});
+
+router.post('/api/chatbot-settings/categories/upload-image', async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'No image file provided' });
+    }
+
+    const { categoryId } = req.body;
+    if (!categoryId) {
+      return res.status(400).json({ success: false, error: 'Category ID is required' });
+    }
+
+    const file = req.file;
+    const maxSize = 2 * 1024 * 1024;
+
+    if (file.size > maxSize) {
+      fs.unlinkSync(file.path);
+      return res.status(400).json({ success: false, error: 'File size exceeds 2MB limit' });
+    }
+
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedMimes.includes(file.mimetype)) {
+      fs.unlinkSync(file.path);
+      return res.status(400).json({ success: false, error: 'Invalid image format. Use JPG, PNG, or WebP' });
+    }
+
+    const chatbotDir = path.join(__dirname, '..', 'public', 'uploads', 'chatbot');
+    if (!fs.existsSync(chatbotDir)) {
+      fs.mkdirSync(chatbotDir, { recursive: true });
+    }
+
+    const sharp = require('sharp');
+    const filename = `${categoryId}.webp`;
+    const outputPath = path.join(chatbotDir, filename);
+
+    await sharp(file.path)
+      .webp({ quality: 85 })
+      .toFile(outputPath);
+
+    fs.unlinkSync(file.path);
+
+    res.json({ 
+      success: true, 
+      message: 'Image uploaded and converted to WebP successfully',
+      data: { 
+        filename: filename,
+        path: `/uploads/chatbot/${filename}`
+      }
+    });
+  } catch (error) {
+    console.error('Chatbot image upload error:', error);
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    res.status(500).json({ success: false, error: 'Failed to upload and convert image' });
+  }
+});
+
+router.get('/feedback', nocache, ensureAdmin, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const skip = (page - 1) * limit;
+
+    const feedbacks = await req.db.collection('Feedback')
+      .find({})
+      .sort({ timestamp: -1 })
+      .skip(skip)
+      .limit(limit)
+      .toArray();
+
+    const totalCount = await req.db.collection('Feedback').countDocuments();
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayCount = await req.db.collection('Feedback').countDocuments({
+      timestamp: { $gte: today }
+    });
+
+    const positiveCount = await req.db.collection('Feedback').countDocuments({
+      rating: { $gte: 4 }
+    });
+
+    const ratingAggregation = await req.db.collection('Feedback').aggregate([
+      { $group: { _id: '$rating', count: { $sum: 1 } } }
+    ]).toArray();
+
+    const ratingDistribution = {};
+    ratingAggregation.forEach(item => {
+      if (item._id) ratingDistribution[item._id] = item.count;
+    });
+
+    const avgRatingResult = await req.db.collection('Feedback').aggregate([
+      { $group: { _id: null, averageRating: { $avg: '$rating' } } }
+    ]).toArray();
+
+    const stats = {
+      totalCount,
+      todayCount,
+      positiveCount,
+      averageRating: avgRatingResult.length > 0 ? avgRatingResult[0].averageRating : 0
+    };
+
+    res.render('admin/feedback', {
+      title: 'Customer Feedback | Blessings Cafe',
+      user: req.session.user,
+      currentPage: '/admin/feedback',
+      layout: 'admin/layout',
+      feedbacks,
+      stats,
+      ratingDistribution,
+      pagination: {
+        page,
+        limit,
+        total: totalCount,
+        totalPages: Math.ceil(totalCount / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Feedback page error:', error);
+    res.status(500).render('error', {
+      title: 'Server Error',
+      message: 'Failed to load feedback',
+      status: 500
+    });
+  }
+});
+
+router.get('/api/feedback', nocache, ensureAdmin, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const skip = (page - 1) * limit;
+    const rating = req.query.rating ? parseInt(req.query.rating) : null;
+    const source = req.query.source || null;
+
+    const filter = {};
+    if (rating) filter.rating = rating;
+    if (source) filter.page = source;
+
+    const feedbacks = await req.db.collection('Feedback')
+      .find(filter)
+      .sort({ timestamp: -1 })
+      .skip(skip)
+      .limit(limit)
+      .toArray();
+
+    const totalCount = await req.db.collection('Feedback').countDocuments(filter);
+
+    res.json({
+      success: true,
+      data: feedbacks,
+      pagination: {
+        page,
+        limit,
+        total: totalCount,
+        totalPages: Math.ceil(totalCount / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Feedback API error:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch feedback' });
   }
 });
 

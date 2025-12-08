@@ -176,7 +176,7 @@ function initializeRealTimeUpdates() {
         // Update summary cards with animations
         animateValueUpdate('total-sales-value', '₱' + (stats.totalSales || 0).toLocaleString('en-PH', {minimumFractionDigits:2}));
         animateValueUpdate('total-sales-trend', (stats.totalSalesPercent > 0 ? '+' : '') + (stats.totalSalesPercent || 0) + '%');
-        animateValueUpdate('total-sales-week', (stats.totalSalesWeek || 0) + ' this week');
+        animateValueUpdate('total-sales-week', (stats.totalSalesWeek || 0).toFixed(2) + ' this week');
 
         document.getElementById('total-sales-trend').className = `trend-${stats.totalSalesPercent >= 0 ? 'up' : 'down'}`;
 
@@ -438,7 +438,7 @@ window.ordersBySource = (dataEl.dataset.ordersBySource && dataEl.dataset.ordersB
             document.getElementById('total-sales-value').innerText = '₱' + (stats.totalSales || 0).toLocaleString('en-PH', {minimumFractionDigits:2});
             document.getElementById('total-sales-trend').innerText = (stats.totalSalesPercent > 0 ? '+' : '') + (stats.totalSalesPercent || 0) + '%';
             document.getElementById('total-sales-trend').className = stats.totalSalesPercent >= 0 ? 'trend-up' : 'trend-down';
-            document.getElementById('total-sales-week').innerText = (stats.totalSalesWeek || 0) + ' this week';
+            document.getElementById('total-sales-week').innerText = (stats.totalSalesWeek || 0).toFixed(2) + ' this week';
 
             document.getElementById('incoming-orders-value').innerText = stats.incomingOrders || 0;
             document.getElementById('incoming-orders-trend').innerText = (stats.incomingOrdersPercent > 0 ? '+' : '') + (stats.incomingOrdersPercent || 0) + '%';

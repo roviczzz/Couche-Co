@@ -8,6 +8,7 @@
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
       <link rel="icon" href="/favicon.ico" type="image/x-icon">
       <link rel="stylesheet" href="/css/layout.css">
+      <link rel="stylesheet" href="/css/bottom-nav.css">
   </head>
   <script src="/js/admin-layout.js"></script>
   <script src="/js/calculator.js"></script>
@@ -42,7 +43,8 @@
                       {
                         label: 'Analytics',
                         items: [
-                          { path: '/admin/analytics', label: 'Analytics', icon: 'chart-line' }
+                          { path: '/admin/analytics', label: 'Analytics', icon: 'chart-line' },
+                          { path: '/admin/feedback', label: 'Feedback', icon: 'comments' }
                         ]
                       },
                       {
@@ -117,6 +119,7 @@
           <%- body %>
       </div>
       
+      <div id="notification-container" class="notification-container"></div>
       <script src="/js/notifications.js"></script>
       <div class="calculator-modal" id="calculator-modal" aria-hidden="true">
           <div class="calculator" id="calculator">
@@ -162,6 +165,90 @@
               </div>
           </div>
       </div>
+
+      <!-- Mobile Bottom Navigation -->
+      <nav class="bottom-nav-mobile" aria-label="Mobile navigation">
+          <a href="/admin/dashboard" class="bottom-nav-item" data-route="/admin/dashboard">
+              <i class="fa-solid fa-house"></i>
+              <span class="bottom-nav-label">Home</span>
+          </a>
+          <a href="/admin/orders" class="bottom-nav-item" data-route="/admin/orders">
+              <i class="fa-solid fa-cart-flatbed"></i>
+              <span class="bottom-nav-label">Orders</span>
+          </a>
+          <a href="/admin/menu" class="bottom-nav-item" data-route="/admin/menu">
+              <i class="fa-solid fa-cash-register"></i>
+              <span class="bottom-nav-label">POS</span>
+          </a>
+          <a href="/admin/stocks" class="bottom-nav-item" data-route="/admin/stocks">
+              <i class="fa-solid fa-boxes-stacked"></i>
+              <span class="bottom-nav-label">Stocks</span>
+          </a>
+          <button class="bottom-nav-item" id="bottom-nav-more-btn" aria-expanded="false" aria-controls="bottom-nav-drawer">
+              <i class="fa-solid fa-ellipsis"></i>
+              <span class="bottom-nav-label">More</span>
+              <span class="more-badge" id="more-badge" style="display: none;"></span>
+          </button>
+      </nav>
+
+      <!-- Bottom Nav Drawer Backdrop -->
+      <div class="bottom-nav-drawer-backdrop" id="bottom-nav-drawer-backdrop" aria-hidden="true"></div>
+
+      <!-- Bottom Nav Drawer -->
+      <div class="bottom-nav-drawer" id="bottom-nav-drawer" aria-hidden="true" role="dialog" aria-label="More options">
+          <div class="bottom-nav-drawer-header">
+              <h3>More Options</h3>
+              <button class="bottom-nav-drawer-close" id="bottom-nav-drawer-close" aria-label="Close drawer">
+                  <i class="fa-solid fa-xmark"></i>
+              </button>
+          </div>
+          <div class="bottom-nav-drawer-content">
+              <div class="bottom-nav-group">
+                  <h4 class="bottom-nav-group-title">Management</h4>
+                  <a href="/admin/products" class="bottom-nav-drawer-item" data-route="/admin/products">
+                      <i class="fa-solid fa-list-check"></i>
+                      <span>Products</span>
+                  </a>
+                  <a href="/admin/analytics" class="bottom-nav-drawer-item" data-route="/admin/analytics">
+                      <i class="fa-solid fa-chart-line"></i>
+                      <span>Analytics</span>
+                  </a>
+                  <a href="/admin/discounts" class="bottom-nav-drawer-item" data-route="/admin/discounts">
+                      <i class="fa-solid fa-percent"></i>
+                      <span>Discounts</span>
+                  </a>
+                  <a href="/admin/messages" class="bottom-nav-drawer-item" data-route="/admin/messages">
+                      <i class="fa-solid fa-envelope"></i>
+                      <span>Messages</span>
+                      <span class="notification-badge" id="messages-badge-drawer" style="display: none;"></span>
+                  </a>
+              </div>
+              <div class="bottom-nav-group">
+                  <h4 class="bottom-nav-group-title">Tools</h4>
+                  <button class="bottom-nav-drawer-item bottom-nav-action" id="bottom-nav-calculator-btn">
+                      <i class="fa-solid fa-calculator"></i>
+                      <span>Calculator</span>
+                  </button>
+                  <button class="bottom-nav-drawer-item bottom-nav-action" id="bottom-nav-notifications-btn">
+                      <i class="fa-solid fa-bell"></i>
+                      <span>Notifications</span>
+                      <span class="notification-badge" id="notification-badge-drawer" style="display: none;"></span>
+                  </button>
+              </div>
+              <div class="bottom-nav-group">
+                  <h4 class="bottom-nav-group-title">Account</h4>
+                  <a href="/admin/settings" class="bottom-nav-drawer-item" data-route="/admin/settings">
+                      <i class="fa-solid fa-cog"></i>
+                      <span>Settings</span>
+                  </a>
+                  <a href="/auth/logout" class="bottom-nav-drawer-item">
+                      <i class="fa-solid fa-door-open"></i>
+                      <span>Logout</span>
+                  </a>
+              </div>
+          </div>
+      </div>
   </div>
+  <script src="/js/bottom-nav.js"></script>
   </body>
   </html>

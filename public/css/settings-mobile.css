@@ -1,0 +1,131 @@
+/* Mobile Settings Styles */
+@media (max-width: 768px) {
+    .settings-container {
+        padding: 16px;
+    }
+
+    .settings-header {
+        margin-bottom: 20px;
+    }
+
+    .settings-header h2 {
+        font-size: 24px;
+    }
+
+    .settings-grid-layout {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        min-height: auto;
+    }
+
+    /* Categories as horizontal scroll */
+    .settings-categories {
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+        white-space: nowrap;
+        padding-bottom: 12px;
+        border-right: none;
+        border-bottom: 1px solid #eee;
+        margin-bottom: 8px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; /* Firefox */
+    }
+    
+    .settings-categories::-webkit-scrollbar {
+        display: none; /* Chrome/Safari */
+    }
+
+    .category-item {
+        flex: 0 0 auto;
+        padding: 10px 16px;
+        margin-right: 8px;
+        border-radius: 20px;
+        background: #f5f5f5;
+        margin-bottom: 0;
+        border: 1px solid transparent;
+        font-size: 14px;
+    }
+
+    .category-item.active {
+        background: #8b5a2b; /* Theme color based on analytics.css */
+        color: white;
+        font-weight: 500;
+    }
+    
+    .category-item:hover {
+        background: #e0e0e0;
+    }
+    
+    .category-item.active:hover {
+        background: #7a4e2b;
+        color: white;
+    }
+    
+    .category-item i {
+        margin-right: 6px;
+    }
+
+    /* Content Area */
+    .settings-content {
+        width: 100%;
+    }
+
+    /* Sidebar (Info) */
+    .settings-sidebar {
+        width: 100%;
+        order: 3; /* Put it at the bottom */
+        margin-top: 16px;
+    }
+
+    /* Adjust cards */
+    .settings-card, .info-card {
+        padding: 16px;
+        border-radius: 12px;
+    }
+    
+    .card-header {
+        padding-bottom: 12px;
+        margin-bottom: 16px;
+    }
+    
+    .card-header h3 {
+        font-size: 18px;
+    }
+
+    /* Form elements */
+    .form-group {
+        margin-bottom: 16px;
+    }
+    
+    .form-group label {
+        font-size: 14px;
+    }
+    
+    input, select, button {
+        font-size: 16px !important; /* Prevent zoom on iOS */
+        min-height: 44px; /* Touch target size */
+    }
+    
+    .action-btn {
+        width: 100%;
+        justify-content: center;
+        margin-top: 8px;
+    }
+    
+    /* Dark theme adjustments */
+    .dark-theme .category-item {
+        background: #2d2d30;
+        color: #ccc;
+    }
+    
+    .dark-theme .category-item.active {
+        background: #8b5a2b;
+        color: white;
+    }
+    
+    .dark-theme .settings-categories {
+        border-bottom-color: #333;
+    }
+}

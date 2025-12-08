@@ -18,6 +18,7 @@
     "chartjs-plugin-zoom": "^2.2.0",
     "compression": "^1.8.1",
     "connect-flash": "^0.1.1",
+    "connect-mongo": "^5.1.0",
     "dotenv": "^17.2.2",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
@@ -26,13 +27,15 @@
     "express-session": "^1.18.2",
     "express-validator": "^7.2.1",
     "form-data": "^4.0.4",
+    "googleapis": "^166.0.0",
     "mongodb": "^6.17.0",
     "multer": "^2.0.2",
     "node-cron": "^4.2.1",
     "nodemailer": "^7.0.10",
     "puppeteer": "^24.29.1",
     "qrcode": "^1.5.4",
-    "serve-favicon": "^2.5.1"
+    "serve-favicon": "^2.5.1",
+    "sharp": "^0.34.5"
   },
   "description": "",
   "devDependencies": {

@@ -3,15 +3,10 @@ const QRCode = require('qrcode');
 const path = require('path');
 
 const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true,
+  service: 'gmail',
   auth: {
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_PASSWORD
-  },
-  tls: {
-    rejectUnauthorized: false
   }
 });
 
@@ -277,6 +272,9 @@ const generateEmailTemplate = (order, customerName) => {
     </head>
     <body>
       <div class="container">
+        <div style="text-align: center; padding: 20px 0;">
+          <img src="cid:logo" alt="Blessings Café" style="width: 120px; height: auto;" />
+        </div>
         <div class="header">
           <h1>Blessings Café</h1>
           <p class="header-subtitle">Order Receipt</p>
@@ -344,7 +342,7 @@ const generateEmailTemplate = (order, customerName) => {
         <div class="footer">
           <div class="footer-brand">Blessings Café</div>
           <p>We appreciate your order! Your satisfaction is our priority.</p>
-          <p style="margin-top: 20px; border-top: 1px solid #555; padding-top: 15px;">For inquiries or feedback, please contact us through the website.</p>
+          <p style="margin-top: 20px; border-top: 1px solid #555; padding-top: 15px;">© ${new Date().getFullYear()} Blessings Café. For inquiries or feedback, please contact us through the website.</p>
           <p class="footer-note">This is an automated message. Please do not reply directly.</p>
         </div>
       </div>
@@ -356,7 +354,7 @@ const generateEmailTemplate = (order, customerName) => {
 const generateQRCode = async (orderId) => {
   const baseUrl = process.env.BASE_URL || 'http://localhost:8080';
   const qrCodeUrl = `${baseUrl}/order/success?orderId=${orderId}`;
-  const qrImage = await QRCode.toBuffer(qrCodeUrl, {
+  const qrImage = await QRCode.toDataURL(qrCodeUrl, {
     errorCorrectionLevel: 'H',
     type: 'image/png',
     quality: 0.92,
@@ -381,30 +379,38 @@ const sendOrderReceipt = async (order, customerEmail, customerName) => {
     }
 
     console.log(`[EMAILSVC] Generating QR code for order ${order.OrderID}`);
-    const qrCodeBuffer = await generateQRCode(order.OrderID);
+    const qrCodeDataUrl = await generateQRCode(order.OrderID);
     console.log(`[EMAILSVC] QR code generated successfully`);
     
     console.log(`[EMAILSVC] Generating email template`);
     const emailHTML = generateEmailTemplate(order, customerName);
     console.log(`[EMAILSVC] Email template generated (length: ${emailHTML.length})`);
 
+    const logoPath = path.join(__dirname, '../public/resources/Blessings-Logo.png');
+    
     const mailOptions = {
-      from: process.env.GMAIL_USER,
+      from: `Blessings Café <${process.env.GMAIL_USER}>`,
       to: customerEmail,
       subject: `Order Receipt #${order.OrderID} - Blessings Café`,
       html: emailHTML,
       attachments: [
         {
           filename: 'qrcode.png',
-          content: qrCodeBuffer,
+          content: qrCodeDataUrl.split(',')[1],
+          encoding: 'base64',
           cid: 'qrcode'
+        },
+        {
+          filename: 'logo.png',
+          path: logoPath,
+          cid: 'logo'
         }
       ]
     };
 
-    console.log(`[EMAILSVC] Attempting to send email...`);
+    console.log(`[EMAILSVC] Attempting to send email via Gmail SMTP...`);
     const result = await transporter.sendMail(mailOptions);
-    
+
     console.log(`✅ [EMAILSVC] Email sent successfully! MessageID: ${result.messageId}`);
     console.log(`✅ Order receipt sent to ${customerEmail} for order ${order.OrderID}`);
     
@@ -416,8 +422,7 @@ const sendOrderReceipt = async (order, customerEmail, customerName) => {
     console.error(`❌ [EMAILSVC] Error sending order receipt to ${customerEmail}:`, error);
     console.error(`❌ [EMAILSVC] Error details:`, {
       message: error.message,
-      code: error.code,
-      command: error.command
+      code: error.code
     });
     return {
       success: false,
@@ -428,11 +433,15 @@ const sendOrderReceipt = async (order, customerEmail, customerName) => {
 
 const verifyEmailConnection = async () => {
   try {
+    if (!process.env.GMAIL_USER || !process.env.GMAIL_PASSWORD) {
+      console.error('[EMAILSVC] Gmail credentials not configured');
+      return false;
+    }
     await transporter.verify();
-    console.log('Email service connected successfully');
+    console.log('[EMAILSVC] ✅ Email service (Gmail SMTP) configured and verified successfully');
     return true;
   } catch (error) {
-    console.error('Email service connection failed:', error);
+    console.error('[EMAILSVC] ❌ Email service verification failed:', error.message);
     return false;
   }
 };
@@ -441,6 +450,5 @@ module.exports = {
   sendOrderReceipt,
   generateEmailTemplate,
   generateQRCode,
-  verifyEmailConnection,
-  transporter
+  verifyEmailConnection
 };

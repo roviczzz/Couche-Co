@@ -1,5 +1,33 @@
 let currentSection = 'orders';
-let isLoading = false; // Prevent multiple loading calls
+let isLoading = false;
+let allOrders = [];
+let filteredOrders = [];
+let currentPage = 1;
+const itemsPerPage = 10;
+let currentDaysFilter = 'all';
+
+function filterOrdersByDays(days) {
+  currentDaysFilter = days;
+  currentPage = 1;
+  
+  if (days === 'all') {
+    filteredOrders = [...allOrders];
+  } else {
+    const daysNum = parseInt(days);
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - daysNum);
+    cutoffDate.setHours(0, 0, 0, 0);
+    
+    filteredOrders = allOrders.filter(order => {
+      const orderDate = order.Date || order.CreationTime;
+      if (!orderDate) return false;
+      const dateObj = new Date(orderDate);
+      return !isNaN(dateObj.getTime()) && dateObj >= cutoffDate;
+    });
+  }
+  
+  renderOrdersPage();
+}
 
 async function openProfileModal() {
   // Prevent multiple simultaneous calls
@@ -46,38 +74,24 @@ async function openProfileModal() {
 }
 
 function populateModal(data) {
-  // Ensure loading state is cleared first
   hideLoadingSpinner();
   
-  // Populate orders
   const ordersContainer = document.querySelector('.orders-table-container');
+  const filterSelect = document.getElementById('orderDaysFilter');
+  if (filterSelect) filterSelect.value = 'all';
+  currentDaysFilter = 'all';
+  
   if (data.orders && data.orders.length > 0) {
-    let html = `<table class="orders-table">
-      <thead>
-        <tr>
-          <th>Order ID</th>
-          <th>Date</th>
-          <th>Status</th>
-          <th>Amount</th>
-        </tr>
-      </thead>
-      <tbody>`;
-    data.orders.forEach(order => {
-      html += `<tr class="order-row" onclick="viewOrderDetails('${order.OrderID}')" style="cursor: pointer;">
-        <td>${order.OrderID}</td>
-        <td>${order.CreationTime ? new Date(order.CreationTime).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}</td>
-        <td><span class="status-badge status-${order.FulfillmentStatus ? order.FulfillmentStatus.toLowerCase().replace(' ', '-') : 'unknown'}">${order.FulfillmentStatus || 'Unknown'}</span></td>
-        <td>₱${order.Total ? order.Total.toFixed(2) : '0.00'}</td>
-      </tr>`;
-    });
-    html += `</tbody></table>`;
-    ordersContainer.innerHTML = html;
+    allOrders = data.orders;
+    filteredOrders = [...allOrders];
+    currentPage = 1;
+    renderOrdersPage();
   } else {
     ordersContainer.innerHTML = `<div class="no-orders">
       <i class="fas fa-shopping-bag"></i>
       <h4>No orders found</h4>
       <p>You haven't placed any orders yet.</p>
-      <a href="/menu" class="btn-primary">Start Shopping</a>
+      <button type="button" class="btn-primary" onclick="window.location.href='/menu'">Discover Our Blends</button>
     </div>`;
   }
 
@@ -153,6 +167,101 @@ function hideLoadingSpinner() {
   }
 }
 
+function renderOrdersPage() {
+  const ordersContainer = document.querySelector('.orders-table-container');
+  
+  if (filteredOrders.length === 0) {
+    ordersContainer.innerHTML = `<div class="no-orders">
+      <i class="fas fa-search"></i>
+      <h4>No orders found</h4>
+      <p>No orders match the selected time period.</p>
+      <button type="button" class="btn-secondary" onclick="filterOrdersByDays('all'); document.getElementById('orderDaysFilter').value='all';">Show All Orders</button>
+    </div>`;
+    return;
+  }
+  
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const pageOrders = filteredOrders.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  
+  let html = `<table class="orders-table">
+    <thead>
+      <tr>
+        <th>Order ID</th>
+        <th>Date</th>
+        <th>Items</th>
+        <th>Status</th>
+        <th>Amount</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>`;
+  
+  pageOrders.forEach(order => {
+    const orderDate = order.Date || order.CreationTime;
+    let formattedDate = 'N/A';
+    if (orderDate) {
+      const dateObj = new Date(orderDate);
+      if (!isNaN(dateObj.getTime())) {
+        formattedDate = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      } else if (typeof orderDate === 'string') {
+        formattedDate = orderDate;
+      }
+    }
+    
+    const cartItems = order.Cart || [];
+    const itemCount = cartItems.reduce((sum, item) => sum + (item.Quantity || 1), 0);
+    const itemsTooltip = cartItems.map(item => {
+      const size = item.Size ? ` (${item.Size})` : '';
+      return `${item.Quantity || 1}x ${item.ProductName || 'Item'}${size}`;
+    }).join('\n');
+    
+    const cartDataAttr = encodeURIComponent(JSON.stringify(cartItems));
+    
+    html += `<tr class="order-row">
+      <td onclick="viewOrderDetails('${order.OrderID}')" style="cursor: pointer;">${order.OrderID}</td>
+      <td onclick="viewOrderDetails('${order.OrderID}')" style="cursor: pointer;">${formattedDate}</td>
+      <td onclick="viewOrderDetails('${order.OrderID}')" style="cursor: pointer;">
+        <span class="items-badge" title="${itemsTooltip.replace(/"/g, '&quot;')}">${itemCount} item${itemCount !== 1 ? 's' : ''} <i class="fas fa-info-circle"></i></span>
+      </td>
+      <td onclick="viewOrderDetails('${order.OrderID}')" style="cursor: pointer;"><span class="status-badge status-${order.FulfillmentStatus ? order.FulfillmentStatus.toLowerCase().replace(' ', '-') : 'unknown'}">${order.FulfillmentStatus || 'Unknown'}</span></td>
+      <td onclick="viewOrderDetails('${order.OrderID}')" style="cursor: pointer;">₱${order.Total ? order.Total.toFixed(2) : '0.00'}</td>
+      <td><button type="button" class="order-again-btn" onclick="orderAgain(event, '${cartDataAttr}')"><i class="fas fa-redo"></i> Order Again</button></td>
+    </tr>`;
+  });
+  
+  html += `</tbody></table>`;
+  
+  if (totalPages > 1) {
+    html += `<div class="pagination">
+      <button class="pagination-btn prev-btn" onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+        <i class="fas fa-chevron-left"></i> Previous
+      </button>
+      <div class="pagination-numbers">`;
+    
+    for (let i = 1; i <= totalPages; i++) {
+      html += `<button class="pagination-number ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+    }
+    
+    html += `</div>
+      <button class="pagination-btn next-btn" onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+        Next <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>`;
+  }
+  
+  ordersContainer.innerHTML = html;
+}
+
+function goToPage(page) {
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  if (page >= 1 && page <= totalPages) {
+    currentPage = page;
+    renderOrdersPage();
+  }
+}
+
 function closeProfileModal() {
   document.getElementById('profileModal').style.opacity = '0';
   setTimeout(() => {
@@ -181,6 +290,158 @@ function switchSection(sectionName) {
 
 function viewOrderDetails(orderId) {
   window.location.href = `/order/success?orderId=${orderId}`;
+}
+
+async function orderAgain(event, cartDataEncoded) {
+  event.stopPropagation();
+  
+  const btn = event.currentTarget;
+  const originalHTML = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+  btn.disabled = true;
+  
+  try {
+    const cartItems = JSON.parse(decodeURIComponent(cartDataEncoded));
+    
+    const productIds = [...new Set(cartItems.map(item => item.ProductID))];
+    
+    let productsMap = {};
+    let addonsMap = {};
+    
+    try {
+      const [productsRes, addonsRes, ingredientsRes] = await Promise.all([
+        fetch(`/api/products/batch?ids=${productIds.join(',')}`),
+        fetch('/api/addons'),
+        fetch('/api/ingredients')
+      ]);
+      
+      if (productsRes.ok) {
+        const products = await productsRes.json();
+        products.forEach(p => {
+          productsMap[p.ProductID] = p;
+        });
+      }
+      
+      if (addonsRes.ok) {
+        const addons = await addonsRes.json();
+        addons.forEach(a => {
+          addonsMap[a.AddOnID] = a;
+          addonsMap[a.Name] = a;
+          if (a.name) addonsMap[a.name] = a;
+        });
+      }
+      
+      if (ingredientsRes.ok) {
+        const ingredients = await ingredientsRes.json();
+        ingredients.forEach(ing => {
+          const ingredientData = {
+            IngredientID: ing.IngredientID,
+            Name: ing.Name,
+            BasePrice: 15
+          };
+          addonsMap[ing.IngredientID] = ingredientData;
+          addonsMap[ing.Name] = ingredientData;
+          if (ing.name) addonsMap[ing.name] = ingredientData;
+        });
+      }
+    } catch (err) {
+      console.warn('Could not fetch product/addon details, using order data only');
+    }
+    
+    const newOrderItems = cartItems.map(item => {
+      const product = productsMap[item.ProductID] || {};
+      const key = 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      
+      const addons = (item.Addons || item.AddOns || item.addons || []).map(addon => {
+        let addonId = null;
+        let addonName = 'Add-on';
+        let addonPrice = 0;
+        
+        if (typeof addon === 'string') {
+          addonId = addon;
+          addonName = addon;
+          const foundAddon = addonsMap[addon];
+          if (foundAddon) {
+            addonName = foundAddon.Name || addon;
+            addonPrice = foundAddon.BasePrice || 15;
+          }
+        } else {
+          addonId = addon.AddOnID || addon.addOnID || addon.IngredientID || null;
+          addonName = addon.Name || addon.name || addonId || 'Add-on';
+          addonPrice = addon.BasePrice || addon.Price || addon.price || 0;
+          
+          if (addonPrice === 0) {
+            const foundAddon = addonsMap[addonId] || addonsMap[addonName];
+            if (foundAddon) {
+              addonPrice = foundAddon.BasePrice || 15;
+              addonName = foundAddon.Name || addonName;
+            } else {
+              addonPrice = 15;
+            }
+          }
+        }
+        
+        return {
+          name: addonName,
+          Name: addonName,
+          price: addonPrice,
+          Price: addonPrice,
+          BasePrice: addonPrice,
+          AddOnID: addonId,
+          IngredientID: addon.IngredientID || addonId
+        };
+      });
+      
+      let itemPrice = item.Price || item.BasePrice || 0;
+      if (itemPrice === 0 && product.Sizes && item.Size) {
+        const sizeObj = product.Sizes.find(s => s.Size === item.Size);
+        if (sizeObj) {
+          itemPrice = sizeObj.BasePrice || 0;
+        }
+      }
+      if (itemPrice === 0 && product.BasePrice) {
+        itemPrice = product.BasePrice;
+      }
+      
+      return {
+        key: key,
+        name: item.ProductName || product.Name || 'Unknown Product',
+        price: itemPrice,
+        quantity: item.Quantity || 1,
+        size: item.Size || null,
+        category: product.Category || '',
+        productId: item.ProductID,
+        addons: addons,
+        imagelink: product.imagelink || item.ImageLink || '/resources/coffee-icon.png',
+        isFree: false,
+        isB1T1: false
+      };
+    });
+    
+    const existingCart = JSON.parse(localStorage.getItem('orderItems') || '[]');
+    const mergedCart = [...existingCart, ...newOrderItems];
+    localStorage.setItem('orderItems', JSON.stringify(mergedCart));
+    
+    if (window.user && window.user._id) {
+      try {
+        await fetch('/api/cart', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(mergedCart)
+        });
+      } catch (err) {
+        console.warn('Could not sync cart to server');
+      }
+    }
+    
+    closeProfileModal();
+    window.location.href = '/cart';
+  } catch (error) {
+    console.error('Error adding items to cart:', error);
+    showMessage('Failed to add items to cart. Please try again.', 'error');
+    btn.innerHTML = originalHTML;
+    btn.disabled = false;
+  }
 }
 
 function showMessage(message, type = 'success') {
@@ -342,4 +603,115 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     e.target.value = value;
   });
+
+  // Password change form submission
+  const passwordForm = document.getElementById('passwordForm');
+  if (passwordForm) {
+    passwordForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const currentPassword = document.getElementById('currentPassword').value;
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+
+      // Clear previous errors
+      ['currentPassword', 'newPassword', 'confirmPassword'].forEach(field => {
+        const errorEl = document.getElementById(`${field}-error`);
+        if (errorEl) {
+          errorEl.style.display = 'none';
+          errorEl.textContent = '';
+        }
+      });
+
+      let hasErrors = false;
+
+      if (!currentPassword) {
+        document.getElementById('currentPassword-error').textContent = 'Current password is required';
+        document.getElementById('currentPassword-error').style.display = 'block';
+        hasErrors = true;
+      }
+
+      if (!newPassword) {
+        document.getElementById('newPassword-error').textContent = 'New password is required';
+        document.getElementById('newPassword-error').style.display = 'block';
+        hasErrors = true;
+      } else if (newPassword.length < 8) {
+        document.getElementById('newPassword-error').textContent = 'Password must be at least 8 characters';
+        document.getElementById('newPassword-error').style.display = 'block';
+        hasErrors = true;
+      }
+
+      if (!confirmPassword) {
+        document.getElementById('confirmPassword-error').textContent = 'Please confirm your new password';
+        document.getElementById('confirmPassword-error').style.display = 'block';
+        hasErrors = true;
+      } else if (newPassword !== confirmPassword) {
+        document.getElementById('confirmPassword-error').textContent = 'Passwords do not match';
+        document.getElementById('confirmPassword-error').style.display = 'block';
+        hasErrors = true;
+      }
+
+      if (currentPassword === newPassword) {
+        document.getElementById('newPassword-error').textContent = 'New password must be different from current password';
+        document.getElementById('newPassword-error').style.display = 'block';
+        hasErrors = true;
+      }
+
+      if (hasErrors) return;
+
+      const changePasswordBtn = document.getElementById('changePasswordBtn');
+      const originalText = changePasswordBtn.innerHTML;
+      changePasswordBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Changing...';
+      changePasswordBtn.disabled = true;
+
+      try {
+        const response = await fetch('/user/change-password', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ currentPassword, newPassword })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          showMessage('Password changed successfully!', 'success');
+          passwordForm.reset();
+        } else {
+          if (result.field) {
+            const errorEl = document.getElementById(`${result.field}-error`);
+            if (errorEl) {
+              errorEl.textContent = result.message;
+              errorEl.style.display = 'block';
+            }
+          } else {
+            showMessage(result.message || 'Failed to change password', 'error');
+          }
+        }
+      } catch (error) {
+        console.error('Password change error:', error);
+        showMessage('An error occurred while changing your password', 'error');
+      } finally {
+        changePasswordBtn.innerHTML = originalText;
+        changePasswordBtn.disabled = false;
+      }
+    });
+  }
 });
+
+function togglePasswordVisibility(inputId) {
+  const input = document.getElementById(inputId);
+  const button = input.nextElementSibling;
+  const icon = button.querySelector('i');
+
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.classList.remove('fa-eye');
+    icon.classList.add('fa-eye-slash');
+  } else {
+    input.type = 'password';
+    icon.classList.remove('fa-eye-slash');
+    icon.classList.add('fa-eye');
+  }
+}

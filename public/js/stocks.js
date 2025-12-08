@@ -6,7 +6,7 @@
 // NOTIFICATION SYSTEM
 // ===============================================
 
-function showNotification(message, type = 'success') {
+function showNotification(message, type = 'success', duration = 3000) {
   const container = document.querySelector('.notification-container') || createNotificationContainer();
   
   const notification = document.createElement('div');
@@ -34,7 +34,11 @@ function showNotification(message, type = 'success') {
   const closeBtn = notification.querySelector('.notification-close');
   closeBtn.addEventListener('click', () => removeNotification(notification));
   
-  setTimeout(() => removeNotification(notification), 3000);
+  if (duration > 0) {
+    setTimeout(() => removeNotification(notification), duration);
+  }
+  
+  return notification;
 }
 
 function createNotificationContainer() {
@@ -111,8 +115,8 @@ function createAddonRow(data) {
   const unit = amountPerPack[1] || 'g';
   
   tr.innerHTML = `
-    <td class="addon-id-cell">
-      <div class="addon-id-group-table">
+    <td class="ingredient-id-cell">
+      <div class="ingredient-id-group-table">
         <div class="prefix-display-table">AD</div>
         <input type="text" name="AddOnSuffix" value="${suffix}" class="table-input suffix-input" data-field="suffix" data-original="${suffix}" required>
       </div>
@@ -129,7 +133,7 @@ function createAddonRow(data) {
       </div>
     </td>
     <td>Add-Ons</td>
-    <td><input type="number" name="BasePrice" value="${data.BasePrice || 10}" class="table-input" data-field="baseprice" data-original="${data.BasePrice || 10}" required></td>
+    <td><input type="text" name="Allergen" value="${data.Allergen || ''}" class="table-input" data-field="allergen" data-original="${data.Allergen || ''}" required></td>
     <td>
       <label class="toggle-switch">
         <input type="checkbox" name="isEnabled" data-field="enabled" data-original="${data.isEnabled || false}" ${data.isEnabled ? 'checked' : ''}>
@@ -184,10 +188,16 @@ document.addEventListener('DOMContentLoaded', function() {
   // ===============================================
 
   function setupFixedNavbar() {
+    if (window.innerWidth <= 768) {
+      console.log(`[2025-10-15 17:45:23] Mobile view detected, skipping fixed navbar setup by MathDaenniel`);
+      return;
+    }
+    
     console.log(`[2025-10-15 17:45:23] Setting up fixed navbar with content-only scrolling by MathDaenniel`);
 
     const navbarSelectors = [
-      'nav', '.navbar', '.nav', '.header-nav', '.main-nav',
+      '.navbar:not(.bottom-nav-mobile)', '.nav:not(.bottom-nav-mobile)', 
+      '.header-nav', '.main-nav', 'nav:not(.bottom-nav-mobile)',
       'header', '.header', '.site-header', '.page-header',
       '.navigation', '.top-nav', '.primary-nav'
     ];
@@ -196,7 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     for (const selector of navbarSelectors) {
       const element = document.querySelector(selector);
-      if (element) {
+      if (element && !element.classList.contains('bottom-nav-mobile')) {
         navbar = element;
         break;
       }
@@ -255,9 +265,9 @@ document.addEventListener('DOMContentLoaded', function() {
   // ENHANCED SCROLL BEHAVIOR FOR CONTENT ONLY
   // ===============================================
   const scrollContainer = document.querySelector('.stocks-container');
-  const navbar = document.querySelector('.navbar-fixed, nav, .navbar, header');
+  const navbar = document.querySelector('.navbar-fixed:not(.bottom-nav-mobile), .navbar:not(.bottom-nav-mobile), header');
 
-  if (scrollContainer) {
+  if (scrollContainer && navbar && window.innerWidth > 768) {
     scrollContainer.addEventListener('scroll', function() {
       const scrollTop = scrollContainer.scrollTop;
 
@@ -979,7 +989,7 @@ document.addEventListener('DOMContentLoaded', function() {
         data.AddOnID = fullId;
         data.AddOnPrefix = prefix;
         data.AddOnSuffix = suffix;
-        data.BasePrice = basePrice;
+        data.BasePrice = parseInt(basePrice, 10) || 10;
       }
       
       const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
@@ -1147,6 +1157,10 @@ document.addEventListener('DOMContentLoaded', function() {
       const prefix = 'ING';
       const suffix = ingredientModalForm.querySelector('input[name="IngredientSuffix"]').value.trim();
       const fullId = `${prefix}-${suffix}`;
+      
+      // Capture isEnabled state early before any form modifications
+      const enabledSwitchElement = ingredientModalForm.querySelector('input[name="isEnabledStock"]');
+      const isEnabledValue = enabledSwitchElement ? enabledSwitchElement.checked : true;
 
     // Remove any existing hidden fields first (only remove hidden ones, keep visible form inputs)
     ['IngredientID', 'IngredientPrefix', 'AmountPerPack', 'Category', 'isAvailable', 'isEnabled', 'DeductionQuantityGrams'].forEach(fieldName => {
@@ -1215,14 +1229,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
       console.log(`[2025-10-15 17:45:23] Adding new ingredient with ID: ${fullId}, AmountPerPack: ${amountPerPack}, Amount: ${amount}, Unit: ${unit} by MathDaenniel`);
       
-      // Submit via AJAX
+      // Submit via AJAX - Convert FormData to JSON for proper parsing
       const formData = new FormData(ingredientModalForm);
+      const jsonData = {};
+      formData.forEach((value, key) => {
+        jsonData[key] = value;
+      });
       const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
       
       try {
         const response = await fetch(`${basePath}/stocks`, {
           method: 'POST',
-          body: formData
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(jsonData)
         });
         
         if (response.ok) {
@@ -1237,7 +1259,7 @@ document.addEventListener('DOMContentLoaded', function() {
             AmountPerPack: amountPerPack,
             Unit: unit,
             Allergen: ingredientModalForm.querySelector('input[name="Allergen"]').value.trim(),
-            isEnabled: enabledSwitch.checked
+            isEnabled: isEnabledValue
           });
           
           // Remove "No ingredients found" row if it exists
@@ -1249,7 +1271,7 @@ document.addEventListener('DOMContentLoaded', function() {
           tbody.insertBefore(newRow, tbody.firstChild);
           
           // Close modal and reset form
-          closeIngredientModal();
+          hideIngredientModal();
           ingredientModalForm.reset();
           
           // Trigger dashboard refresh
@@ -1285,6 +1307,10 @@ document.addEventListener('DOMContentLoaded', function() {
       const prefix = 'AD';
       const suffix = addonModalForm.querySelector('input[name="AddOnSuffix"]').value.trim();
       const fullId = `${prefix}-${suffix}`;
+      
+      // Capture isEnabled state early before any form modifications
+      const enabledSwitchElement = addonModalForm.querySelector('input[name="isEnabledStock"]');
+      const isEnabledValue = enabledSwitchElement ? enabledSwitchElement.checked : true;
 
       // Remove any existing hidden fields first (only remove hidden ones, keep visible form inputs)
       ['AddOnID', 'AddOnPrefix', 'AmountPerPack', 'Category', 'BasePrice', 'isEnabled', 'DeductionQuantityGrams'].forEach(fieldName => {
@@ -1330,7 +1356,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const hiddenBasePrice = document.createElement('input');
       hiddenBasePrice.type = 'hidden';
       hiddenBasePrice.name = 'BasePrice';
-      hiddenBasePrice.value = parseFloat(basePrice) || 10;
+      hiddenBasePrice.value = parseInt(basePrice, 10) || 10;
       addonModalForm.appendChild(hiddenBasePrice);
 
       // Handle isEnabled switch
@@ -1354,14 +1380,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
       console.log(`[2025-10-15 17:45:23] Adding new add-on with ID: ${fullId}, AmountPerPack: ${amountPerPack}, BasePrice: ${basePrice} by MathDaenniel`);
       
-      // Submit via AJAX
+      // Submit via AJAX - Convert FormData to JSON for proper parsing
       const formData = new FormData(addonModalForm);
+      const jsonData = {};
+      formData.forEach((value, key) => {
+        jsonData[key] = value;
+      });
+      // Ensure BasePrice is an integer
+      if (jsonData.BasePrice) {
+        jsonData.BasePrice = parseInt(jsonData.BasePrice, 10) || 10;
+      }
       const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
       
       try {
         const response = await fetch(`${basePath}/stocks`, {
           method: 'POST',
-          body: formData
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(jsonData)
         });
         
         if (response.ok) {
@@ -1375,8 +1413,8 @@ document.addEventListener('DOMContentLoaded', function() {
             Amount: parseInt(amount),
             AmountPerPack: amountPerPack,
             Unit: unit,
-            BasePrice: parseFloat(basePrice) || 10,
-            isEnabled: enabledSwitch.checked
+            Allergen: addonModalForm.querySelector('input[name="Allergen"]')?.value?.trim() || 'None',
+            isEnabled: isEnabledValue
           });
           
           // Remove "No add-ons found" row if it exists
@@ -1388,7 +1426,7 @@ document.addEventListener('DOMContentLoaded', function() {
           tbody.insertBefore(newRow, tbody.firstChild);
           
           // Close modal and reset form
-          closeAddonModal();
+          hideAddonModal();
           addonModalForm.reset();
           
           // Trigger dashboard refresh
@@ -1999,7 +2037,7 @@ document.addEventListener('DOMContentLoaded', function() {
       data.AddOnID = fullId;
       data.AddOnPrefix = prefix;
       data.AddOnSuffix = suffix;
-      data.BasePrice = basePrice;
+      data.BasePrice = parseInt(basePrice, 10) || 10;
     }
 
     const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
@@ -2220,6 +2258,220 @@ document.addEventListener('DOMContentLoaded', function() {
       e.stopPropagation();
       console.log(`[2025-10-15 17:45:23] Bulk delete button clicked by MathDaenniel`);
       showConfirmationModal('bulk_delete', null, 'all');
+    });
+  }
+
+  const updateAllIngredientsBtn = document.getElementById('updateAllIngredientsBtn');
+  if (updateAllIngredientsBtn) {
+    updateAllIngredientsBtn.addEventListener('click', async function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log(`[2025-10-15 17:45:23] Update All Ingredients clicked by MathDaenniel`);
+      
+      const ingredientRows = document.querySelectorAll('tr[data-type="ingredient"][data-item-id]');
+      if (ingredientRows.length === 0) {
+        showNotification('No ingredients to update', 'warning');
+        return;
+      }
+      
+      const updatingNotification = showNotification('Updating all ingredients...', 'info', 0);
+      
+      let successful = 0;
+      let failed = 0;
+      
+      for (const row of ingredientRows) {
+        const itemId = row.getAttribute('data-item-id');
+        try {
+          const suffix = row.querySelector('input[name="IngredientSuffix"]')?.value?.trim();
+          const name = row.querySelector('input[name="Name"]')?.value?.trim();
+          const amount = row.querySelector('.amount-pack-group input[name="Amount"]')?.value?.trim();
+          const unit = row.querySelector('.amount-pack-group select[name="Unit"]')?.value?.trim();
+          const allergen = row.querySelector('input[name="Allergen"]')?.value?.trim() || 'None';
+          const enabled = row.querySelector('input[name="isEnabled"][type="checkbox"]')?.checked ? 'true' : 'false';
+          
+          if (!suffix || !name || !amount || !unit) {
+            failed++;
+            continue;
+          }
+          
+          const amountPerPack = `${amount} ${unit}`;
+          const fullId = `ING-${suffix}`;
+          
+          const data = {
+            IngredientID: fullId,
+            IngredientPrefix: 'ING',
+            IngredientSuffix: suffix,
+            Name: name,
+            Amount: amount,
+            AmountPerPack: amountPerPack,
+            Category: 'Ingredients',
+            Allergen: allergen,
+            isEnabled: enabled,
+            DeductionQuantityGrams: '10'
+          };
+          
+          const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
+          
+          const response = await fetch(`${basePath}/stocks/edit/${itemId}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify(data)
+          });
+          
+          if (response.ok) {
+            row.querySelectorAll('[data-original]').forEach(field => {
+              field.setAttribute('data-original', field.value);
+            });
+            successful++;
+          } else {
+            failed++;
+          }
+        } catch (error) {
+          console.error(`Error updating ingredient ${itemId}:`, error);
+          failed++;
+        }
+      }
+      
+      removeNotification(updatingNotification);
+      
+      if (successful > 0) {
+        const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
+        try {
+          const response = await fetch(`${basePath}/stocks`);
+          const html = await response.text();
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, 'text/html');
+          
+          for (const row of ingredientRows) {
+            const itemId = row.getAttribute('data-item-id');
+            const updatedRow = doc.querySelector(`tr[data-item-id="${itemId}"]`);
+            if (updatedRow && row.cells[2] && updatedRow.cells[2]) {
+              row.cells[2].textContent = updatedRow.cells[2].textContent;
+            }
+          }
+        } catch (e) {
+          console.error('Error refreshing table:', e);
+        }
+      }
+      
+      if (failed === 0) {
+        showNotification(`Successfully updated ${successful} ingredients`, 'success');
+      } else {
+        showNotification(`Updated ${successful} ingredients, ${failed} failed`, 'warning');
+      }
+      
+      triggerDashboardRefresh();
+    });
+  }
+
+  const updateAllAddonsBtn = document.getElementById('updateAllAddonsBtn');
+  if (updateAllAddonsBtn) {
+    updateAllAddonsBtn.addEventListener('click', async function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log(`[2025-10-15 17:45:23] Update All Add-ons clicked by MathDaenniel`);
+      
+      const addonRows = document.querySelectorAll('tr[data-type="addon"][data-item-id]');
+      if (addonRows.length === 0) {
+        showNotification('No add-ons to update', 'warning');
+        return;
+      }
+      
+      const updatingNotification = showNotification('Updating all add-ons...', 'info', 0);
+      
+      let successful = 0;
+      let failed = 0;
+      
+      for (const row of addonRows) {
+        const itemId = row.getAttribute('data-item-id');
+        try {
+          const suffix = row.querySelector('input[name="AddOnSuffix"]')?.value?.trim();
+          const name = row.querySelector('input[name="Name"]')?.value?.trim();
+          const amount = row.querySelector('.amount-pack-group input[name="Amount"]')?.value?.trim();
+          const unit = row.querySelector('.amount-pack-group select[name="Unit"]')?.value?.trim();
+          const allergen = row.querySelector('input[name="Allergen"]')?.value?.trim() || 'None';
+          const enabled = row.querySelector('input[name="isEnabled"][type="checkbox"]')?.checked ? 'true' : 'false';
+          const basePrice = row.querySelector('input[name="BasePrice"]')?.value?.trim() || '10';
+          
+          if (!suffix || !name || !amount || !unit) {
+            failed++;
+            continue;
+          }
+          
+          const amountPerPack = `${amount} ${unit}`;
+          const fullId = `AD-${suffix}`;
+          
+          const data = {
+            AddOnID: fullId,
+            AddOnPrefix: 'AD',
+            AddOnSuffix: suffix,
+            Name: name,
+            Amount: amount,
+            AmountPerPack: amountPerPack,
+            Category: 'Add-Ons',
+            Allergen: allergen,
+            isEnabled: enabled,
+            BasePrice: parseInt(basePrice, 10) || 10,
+            DeductionQuantityGrams: '10'
+          };
+          
+          const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
+          
+          const response = await fetch(`${basePath}/stocks/edit/${itemId}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify(data)
+          });
+          
+          if (response.ok) {
+            row.querySelectorAll('[data-original]').forEach(field => {
+              field.setAttribute('data-original', field.value);
+            });
+            successful++;
+          } else {
+            failed++;
+          }
+        } catch (error) {
+          console.error(`Error updating addon ${itemId}:`, error);
+          failed++;
+        }
+      }
+      
+      removeNotification(updatingNotification);
+      
+      if (successful > 0) {
+        const basePath = window.location.pathname.startsWith('/staff/') ? '/staff' : '/admin';
+        try {
+          const response = await fetch(`${basePath}/stocks`);
+          const html = await response.text();
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, 'text/html');
+          
+          for (const row of addonRows) {
+            const itemId = row.getAttribute('data-item-id');
+            const updatedRow = doc.querySelector(`tr[data-item-id="${itemId}"]`);
+            if (updatedRow && row.cells[2] && updatedRow.cells[2]) {
+              row.cells[2].textContent = updatedRow.cells[2].textContent;
+            }
+          }
+        } catch (e) {
+          console.error('Error refreshing table:', e);
+        }
+      }
+      
+      if (failed === 0) {
+        showNotification(`Successfully updated ${successful} add-ons`, 'success');
+      } else {
+        showNotification(`Updated ${successful} add-ons, ${failed} failed`, 'warning');
+      }
+      
+      triggerDashboardRefresh();
     });
   }
 

@@ -594,14 +594,16 @@ body {
   background-color: #a05c2f;
   color: white;
   border: none;
-  padding: 8px 16px;
+  padding: 6px 12px;
   border-radius: 6px;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   cursor: pointer;
   transition: background-color 0.3s;
   white-space: nowrap;
   margin-left: 1rem;
   font-weight: 600;
+  width: auto;
+  max-width: fit-content;
 }
 
 .addon-recommendation-btn:hover {

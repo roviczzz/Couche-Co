@@ -30,6 +30,7 @@
                     <div class="form-group">
                         <label for="confirmPassword">Confirm Password</label>
                         <input type="password" id="confirmPassword" name="confirmPassword" required>
+                        <span id="passwordMismatchError" class="error" style="display: none;">Passwords do not match!</span>
                     </div>
 
                     <div class="form-group">
@@ -187,17 +188,23 @@
 document.getElementById('staffRegisterForm').addEventListener('submit', function(e) {
     const password = document.getElementById('password').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
+    const passwordMismatchError = document.getElementById('passwordMismatchError');
+    let hasErrors = false;
+
+    passwordMismatchError.style.display = 'none';
 
     if (password !== confirmPassword) {
         e.preventDefault();
-        alert('Passwords do not match!');
-        return false;
+        passwordMismatchError.style.display = 'block';
+        hasErrors = true;
     }
 
     if (password.length < 6) {
         e.preventDefault();
         alert('Password must be at least 6 characters long!');
-        return false;
+        hasErrors = true;
     }
+
+    return !hasErrors;
 });
 </script>

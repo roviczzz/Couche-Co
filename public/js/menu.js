@@ -46,6 +46,20 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!window.cartItems) {
         window.cartItems = [];
     }
+
+    const contactNumberInput = document.getElementById('contact-number');
+    if (contactNumberInput) {
+        contactNumberInput.addEventListener('input', function() {
+            let val = this.value.replace(/\D/g, '');
+            if (val.match(/^[1-8]/)) {
+                val = '09' + val;
+            } else if (val.startsWith('9') && val.length >= 1) {
+                val = '0' + val;
+            }
+            val = val.substring(0, 11);
+            this.value = val;
+        });
+    }
 });
 
 // Handle promo selection
@@ -324,21 +338,61 @@ async function populateAddonOptions() {
     addonOptionsContainer.innerHTML = '<span style="font-size:12px;color:#999;">Loading add-ons...</span>';
 
     try {
-        // Get addons and ingredients from the data passed by the server
         const addonsData = JSON.parse(document.getElementById('addons-data').textContent);
         const ingredientsData = JSON.parse(document.getElementById('ingredients-data').textContent);
+        const categoryRecommendationsData = JSON.parse(document.getElementById('categoryRecommendations-data')?.textContent || '[]');
+
+        const currentCategory = window.currentModalItem?.Category || null;
+        const categoryRec = categoryRecommendationsData.find(rec => rec.category === currentCategory);
 
         let html = '';
+        let recommendedIds = new Set();
 
-        // Regular addons section
-        if (addonsData && addonsData.length > 0) {
+        if (categoryRec && categoryRec.recommendations && categoryRec.recommendations.length > 0) {
+            html += '<div class="addon-group"><h5>Recommended for ' + currentCategory + '</h5><div class="options-grid">';
+            
+            categoryRec.recommendations.forEach(rec => {
+                if (rec.type === 'addon') {
+                    const addon = addonsData.find(a => a.AddOnID === rec.id);
+                    if (addon) {
+                        recommendedIds.add(rec.id);
+                        const addonName = addon.Name || addon.name || 'Unknown Add-on';
+                        const addonPrice = addon.BasePrice || addon.Price || addon.price || 0;
+                        const addonId = addon.AddOnID || addon._id || addon.id;
+                        html += `
+                            <label class="addon-option recommended">
+                                <input type="checkbox" class="addon-checkbox" data-addon-id="${addonId}" data-addon-name="${addonName}" data-addon-price="${addonPrice}">
+                                <span class="addon-label">⭐ ${addonName} - ₱${Number(addonPrice).toFixed(2)}</span>
+                            </label>
+                        `;
+                    }
+                } else if (rec.type === 'ingredient') {
+                    const ingredient = ingredientsData.find(i => i.IngredientID === rec.id);
+                    if (ingredient) {
+                        recommendedIds.add(rec.id);
+                        const ingredientName = ingredient.Name || ingredient.name || 'Unknown Ingredient';
+                        const ingredientPrice = ingredient.BasePrice || 20;
+                        const ingredientId = ingredient.IngredientID || ingredient._id || ingredient.id;
+                        html += `
+                            <label class="addon-option recommended">
+                                <input type="checkbox" class="ingredient-checkbox" data-ingredient-id="${ingredientId}" data-ingredient-name="${ingredientName}" data-ingredient-price="${ingredientPrice}">
+                                <span class="addon-label">⭐ ${ingredientName} - ₱${Number(ingredientPrice).toFixed(2)}</span>
+                            </label>
+                        `;
+                    }
+                }
+            });
+            html += '</div></div>';
+        }
+
+        const remainingAddons = addonsData.filter(addon => !recommendedIds.has(addon.AddOnID));
+        if (remainingAddons && remainingAddons.length > 0) {
             html += '<div class="addon-group"><h5>Add-ons</h5><div class="options-grid">';
-            addonsData.forEach(addon => {
+            remainingAddons.forEach(addon => {
                 const addonName = addon.Name || addon.name || 'Unknown Add-on';
                 const addonPrice = addon.BasePrice || addon.Price || addon.price || 0;
                 const addonId = addon.AddOnID || addon._id || addon.id;
 
-                // Skip addon if no proper ID is available
                 if (!addonId) {
                     console.warn(`Skipping add-on "${addonName}" - missing AddOnID, _id, or id`);
                     return;
@@ -354,15 +408,14 @@ async function populateAddonOptions() {
             html += '</div></div>';
         }
 
-        // Additional ingredients section
-        if (ingredientsData && ingredientsData.length > 0) {
-            html += '<div class="addon-group"><h5>Additional Ingredients</h5><div class="options-grid">';
-            ingredientsData.forEach(ingredient => {
+        const remainingIngredients = ingredientsData.filter(ing => !recommendedIds.has(ing.IngredientID));
+        if (remainingIngredients && remainingIngredients.length > 0) {
+            html += '<div class="addon-group"><h5>Additional Flavors</h5><div class="options-grid">';
+            remainingIngredients.forEach(ingredient => {
                 const ingredientName = ingredient.Name || ingredient.name || 'Unknown Ingredient';
-                const ingredientPrice = 20; // Fixed price for ingredients
+                const ingredientPrice = ingredient.BasePrice || 20;
                 const ingredientId = ingredient.IngredientID || ingredient._id || ingredient.id;
 
-                // Skip ingredient if no proper ID is available
                 if (!ingredientId) {
                     console.warn(`Skipping ingredient "${ingredientName}" - missing IngredientID, _id, or id`);
                     return;
@@ -371,7 +424,7 @@ async function populateAddonOptions() {
                 html += `
                     <label class="addon-option">
                         <input type="checkbox" class="ingredient-checkbox" data-ingredient-id="${ingredientId}" data-ingredient-name="${ingredientName}" data-ingredient-price="${ingredientPrice}">
-                        <span class="addon-label">${ingredientName} - ₱${ingredientPrice}.00</span>
+                        <span class="addon-label">${ingredientName} - ₱${Number(ingredientPrice).toFixed(2)}</span>
                     </label>
                 `;
             });
@@ -709,12 +762,17 @@ function updateCartDisplay() {
                         if (!item.isB1T1 && !item.b1t1Used) {
                             const menuData = JSON.parse(document.getElementById('menu-data').textContent);
                             const menuItem = menuData.find(mItem => mItem._id === item.ProductID || mItem.id === item.ProductID || mItem.Name === item.ProductName);
-                            if (menuItem && menuItem.Category === 'Milktea' && item.Size === '22oz') {
+                            const isB1T1Eligible = menuItem && (
+                                (item.Size === '16oz' && (menuItem.Category === 'Coffee' || menuItem.Category === 'Milktea')) ||
+                                (item.Size === '22oz' && menuItem.Category === 'Milktea')
+                            );
+                            if (isB1T1Eligible) {
+                                const b1t1Price = item.Size === '16oz' ? 79 : 99;
                                 return `<button class="b1t1-btn" onclick="showB1T1Modal('${menuItem.Category.replace(/'/g, "\\'")}', '${item.Size.replace(/'/g, "\\'")}', ${index})"
                                         style="margin-top: 8px; padding: 8px 12px; background: #8B4513; color: white; border: none; border-radius: 8px; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; transition: all 0.2s ease;"
                                         onmouseover="this.style.backgroundColor='#a05c2f'; this.style.transform='scale(1.05)';"
                                         onmouseout="this.style.backgroundColor='#8B4513'; this.style.transform='scale(1)';"
-                                        title="Buy 1 Take 1">🛍️ B1T1 (Pair: ₱99)</button>`;
+                                        title="Buy 1 Take 1">🛍️ B1T1 (Pair: ₱${b1t1Price})</button>`;
                             }
                         }
                         return '';
@@ -744,6 +802,12 @@ function updateCartDisplay() {
     }
 
     if (hasB1T1Pair) {
+        const b1t1Items = window.cartItems.filter(item => item.b1t1Used);
+        let b1t1Message = '';
+        b1t1Items.forEach(item => {
+            const pairPrice = item.Size === '16oz' ? 79 : 99;
+            b1t1Message += `${item.Size} pair: ₱${pairPrice} `;
+        });
         html += `
             <div style="background: #fff3e0; border: 1px solid #ff9800; border-radius: 8px; padding: 12px; margin: 12px 0;">
                 <div style="display: flex; align-items: center; gap: 8px; color: #f57c00; font-weight: 600; font-size: 14px;">
@@ -751,7 +815,7 @@ function updateCartDisplay() {
                     <span>Buy 1 Take 1 Applied!</span>
                 </div>
                 <div style="color: #f57c00; font-size: 12px; margin-top: 4px;">
-                    Your drink pair totals ₱99.00 (great value!)
+                    ${b1t1Message.trim()} (great value!)
                 </div>
             </div>
         `;
@@ -1082,17 +1146,18 @@ function getMenuItem(productID, productName) {
     return menuData.find(item => item._id === productID || item.id === productID || item.Name === productName);
 }
 
-// Promotion functions - Buy 3 for ₱143 (EXCLUDES PASTRIES)
+// Promotion functions - Buy 3 for ₱143 (MILKTEA ONLY, EXCLUDES B1T1 ITEMS)
 function checkBuy3For143(cart) {
     let drinkCount = 0;
     cart.forEach(item => {
         // Get menu item to check category
         const menuItem = getMenuItem(item.ProductID, item.ProductName);
 
-        // Only count drinks (non-pastries) for the promotion
-        if (item.ProductName &&
-            item.ProductName.toLowerCase().indexOf('pastry') === -1 &&
-            (!menuItem || menuItem.Category !== 'Pastries')) {
+        // Exclude B1T1 items from Buy 3 for 143 to prevent double-discounting
+        if (item.isB1T1 || item.b1t1Used) return;
+
+        // Only count Milktea items for the Buy 3 for 143 promotion
+        if (menuItem && menuItem.Category === 'Milktea') {
             drinkCount += item.Quantity || 1;
         }
     });
@@ -1107,13 +1172,14 @@ function calculateBuy3For143Savings(cart) {
 
     let drinkItems = [];
     cart.forEach(item => {
+        // Exclude B1T1 items from Buy 3 for 143 to prevent double-discounting
+        if (item.isB1T1 || item.b1t1Used) return;
+
         // Get menu item to check category
         const menuItem = getMenuItem(item.ProductID, item.ProductName);
 
-        // Only include drinks (non-pastries) for savings calculation
-        if (item.ProductName &&
-            item.ProductName.toLowerCase().indexOf('pastry') === -1 &&
-            (!menuItem || menuItem.Category !== 'Pastries')) {
+        // Only include Milktea items for Buy 3 for 143 savings calculation
+        if (menuItem && menuItem.Category === 'Milktea') {
             drinkItems.push(item);
         }
     });
@@ -1180,7 +1246,13 @@ function getMenuDrinksWithSize(category, basisSize) {
     const menuData = JSON.parse(document.getElementById('menu-data').textContent);
     let availableDrinks = [];
     menuData.forEach(menuItem => {
-        if (menuItem.Category === category && category === 'Milktea') {
+        let isEligible = false;
+        if (basisSize === '16oz') {
+            isEligible = menuItem.Category === 'Coffee' || menuItem.Category === 'Milktea';
+        } else if (basisSize === '22oz') {
+            isEligible = menuItem.Category === 'Milktea';
+        }
+        if (isEligible) {
             const sizeObj = menuItem.Sizes ? menuItem.Sizes.find(s => (s.SizeName || s.Size) === basisSize) : null;
             if (sizeObj) {
                 availableDrinks.push({ menuItem, sizeObj });
@@ -2420,88 +2492,116 @@ function calculatePromotionalTotal(cart) {
     const promoSets = checkBuy3For143(cart);
 
     if (promoSets > 0) {
-        // Apply Buy 3 for 143 pricing
-        let drinkItems = [];
-        let nonDrinkItems = [];
+        // Apply Buy 3 for 143 pricing (Milktea only)
+        let milkteaItems = [];
+        let otherItems = [];
+        let b1t1Items = [];
 
         cart.forEach(item => {
-            if (item.ProductName && item.ProductName.toLowerCase().indexOf('pastry') === -1) {
-                drinkItems.push(item);
+            // Separate B1T1 items - they are calculated separately
+            if (item.isB1T1 || item.b1t1Used) {
+                b1t1Items.push(item);
             } else {
-                nonDrinkItems.push(item);
+                const menuItem = getMenuItem(item.ProductID, item.ProductName);
+                if (menuItem && menuItem.Category === 'Milktea') {
+                    milkteaItems.push(item);
+                } else {
+                    otherItems.push(item);
+                }
             }
         });
 
-        // Calculate total drinks count
-        let totalDrinkCount = 0;
-        drinkItems.forEach(item => {
-            totalDrinkCount += item.Quantity || 1;
+        // Calculate total Milktea drinks count
+        let totalMilkteaCount = 0;
+        milkteaItems.forEach(item => {
+            totalMilkteaCount += item.Quantity || 1;
         });
 
-        // Calculate promotional pricing for drinks
-        const completeSets = Math.floor(totalDrinkCount / 3);
-        const remainingDrinks = totalDrinkCount % 3;
+        // Calculate promotional pricing for Milktea drinks
+        const completeSets = Math.floor(totalMilkteaCount / 3);
 
-        let drinkTotal = 0;
+        let milkteaTotal = 0;
 
-        // Process complete sets of 3 drinks
+        // Process complete sets of 3 Milktea drinks
         if (completeSets > 0) {
-            // Sort all drinks by price to apply promotion optimally
-            const allDrinks = [];
-            drinkItems.forEach(item => {
+            // Sort all Milktea drinks by price to apply promotion optimally
+            const allMilktea = [];
+            milkteaItems.forEach(item => {
+                const addonsTotal = item.AddOns ? item.AddOns.reduce((sum, addon) => sum + (parseFloat(addon.BasePrice || addon.basePrice) || 0), 0) : 0;
                 for (let i = 0; i < (item.Quantity || 1); i++) {
-                    allDrinks.push({
+                    allMilktea.push({
                         price: item.BasePrice || 0,
+                        addonsTotal: addonsTotal,
                         name: item.ProductName
                     });
                 }
             });
 
             // Sort by price ascending (cheapest first)
-            allDrinks.sort((a, b) => a.price - b.price);
+            allMilktea.sort((a, b) => a.price - b.price);
 
             // Process drinks in groups of 3
             for (let setIndex = 0; setIndex < completeSets; setIndex++) {
                 const setStart = setIndex * 3;
-                const setDrinks = allDrinks.slice(setStart, setStart + 3);
+                const setDrinks = allMilktea.slice(setStart, setStart + 3);
 
                 // Calculate normal price for this set of 3
                 const normalSetPrice = setDrinks.reduce((sum, drink) => sum + drink.price, 0);
+                const setAddonsTotal = setDrinks.reduce((sum, drink) => sum + drink.addonsTotal, 0);
 
                 // Only apply ₱143 if normal price is more than ₱143
                 if (normalSetPrice > 143) {
-                    drinkTotal += 143;
+                    milkteaTotal += 143 + setAddonsTotal;
                 } else {
-                    drinkTotal += normalSetPrice;
+                    milkteaTotal += normalSetPrice + setAddonsTotal;
                 }
             }
 
-            // Add remaining drinks (not part of complete sets)
-            for (let i = completeSets * 3; i < allDrinks.length; i++) {
-                drinkTotal += allDrinks[i].price;
+            // Add remaining Milktea drinks (not part of complete sets)
+            for (let i = completeSets * 3; i < allMilktea.length; i++) {
+                milkteaTotal += allMilktea[i].price + allMilktea[i].addonsTotal;
             }
+        } else {
+            // No complete sets, add all Milktea items at regular price
+            milkteaItems.forEach(item => {
+                const addonsTotal = item.AddOns ? item.AddOns.reduce((sum, addon) => sum + (parseFloat(addon.BasePrice || addon.basePrice) || 0), 0) : 0;
+                milkteaTotal += (parseFloat(item.BasePrice) + addonsTotal) * (item.Quantity || 1);
+            });
         }
 
-        // Calculate non-drink items normally
-        nonDrinkItems.forEach(item => {
-            total += (item.BasePrice || 0) * (item.Quantity || 1);
+        // Calculate other items (non-Milktea) normally
+        otherItems.forEach(item => {
+            const addonsTotal = item.AddOns ? item.AddOns.reduce((sum, addon) => sum + (parseFloat(addon.BasePrice || addon.basePrice) || 0), 0) : 0;
+            total += (parseFloat(item.BasePrice) + addonsTotal) * (item.Quantity || 1);
         });
 
-        total += drinkTotal;
+        total += milkteaTotal;
+
+        // Add B1T1 items with size-based promotional pricing
+        // B1T1 16oz = ₱79, B1T1 22oz = ₱99
+        b1t1Items.forEach(item => {
+            if (item.b1t1Used) {
+                const b1t1Price = item.Size === '16oz' ? 79 : 99;
+                total += b1t1Price;
+            } else if (item.isB1T1) {
+                // Free drink - already priced at 0, no need to add
+            }
+        });
     } else {
-        // No promotion, calculate normally
+        // No Buy 3 for 143 promotion, calculate normally
         cart.forEach(item => {
-            total += (item.BasePrice || 0) * (item.Quantity || 1);
+            if (item.b1t1Used) {
+                // B1T1 basis item - use promotional price
+                const b1t1Price = item.Size === '16oz' ? 79 : 99;
+                total += b1t1Price;
+            } else if (item.isB1T1) {
+                // Free drink - already priced at 0
+            } else {
+                const addonsTotal = item.AddOns ? item.AddOns.reduce((sum, addon) => sum + (parseFloat(addon.BasePrice || addon.basePrice) || 0), 0) : 0;
+                total += (parseFloat(item.BasePrice) + addonsTotal) * (item.Quantity || 1);
+            }
         });
     }
-
-    // Apply B1T1 promotion adjustment
-    cart.forEach(item => {
-      if (item.b1t1Used) {
-        total -= item.BasePrice;
-        total += 99;
-      }
-    });
 
     return total;
 }

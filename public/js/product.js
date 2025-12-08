@@ -1,5 +1,12 @@
-// Initialize orderItems array with data from localStorage
-var orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+// Get or initialize orderItems array from window or localStorage
+if (typeof window.orderItems === 'undefined') {
+    window.orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
+}
+var orderItems = window.orderItems;
+
+var editingCartItem = null;
+var editingCartItemIndex = null;
+var isEditMode = false;
 
 // Get product data from EJS
 try {
@@ -160,57 +167,15 @@ function initializeIngredientListeners() {
 
     if (modalIngredientsContainer) {
         // Remove any existing listeners to prevent duplicates
-        modalIngredientsContainer.removeEventListener('change', handleIngredientChange);
+        modalIngredientsContainer.removeEventListener('change', handleModalCheckboxChange);
         // Add event delegation listener for modal
-        modalIngredientsContainer.addEventListener('change', handleIngredientChange);
+        modalIngredientsContainer.addEventListener('change', handleModalCheckboxChange);
     }
 
     // No longer setting up direct listeners to prevent duplication with delegation
     // Event delegation handles all ingredient checkboxes within the modal
 }
 
-// Handle ingredient checkbox changes
-function handleIngredientChange(event) {
-    const checkbox = event.target;
-
-    // Only handle ingredient checkboxes
-    if (!checkbox.classList.contains('ingredient-checkbox')) {
-        return;
-    }
-
-    const ingredientId = checkbox.dataset.ingredientId;
-    const ingredientName = checkbox.dataset.ingredientName;
-    const ingredientPrice = parseFloat(checkbox.dataset.ingredientPrice) || 15;
-
-    if (checkbox.checked) {
-        // Add to selectedIngredients array
-        selectedIngredients.push({
-            IngredientID: ingredientId,
-            Name: ingredientName,
-            BasePrice: ingredientPrice
-        });
-        // Also add to selectedAddons for cart functionality
-        selectedAddons.push({
-            IngredientID: ingredientId,
-            Name: ingredientName,
-            BasePrice: ingredientPrice
-        });
-    } else {
-        // Remove from selectedIngredients array
-        const ingredientIndex = selectedIngredients.findIndex(a => a.IngredientID == ingredientId);
-        if (ingredientIndex > -1) {
-            selectedIngredients.splice(ingredientIndex, 1);
-        }
-        // Remove from selectedAddons array
-        const addonIndex = selectedAddons.findIndex(a => a.IngredientID == ingredientId);
-        if (addonIndex > -1) {
-            selectedAddons.splice(addonIndex, 1);
-        }
-    }
-
-    // Update the badge
-    updateIngredientsBadge();
-}
 
 // Save order to localStorage and update cart count
 function saveOrderItems() {
@@ -256,13 +221,21 @@ function addToOrder(name, price, size, category, productId, addons, imagelink, i
     showCartSidePopup(orderItem);
 
     // Reset selected options after adding to cart
+    resetProductSelections();
+}
+
+// Reset all product form selections after adding to cart
+function resetProductSelections() {
+    // Uncheck all add-ons
     document.querySelectorAll('.addon-checkbox').forEach(cb => { cb.checked = false; });
+    // Uncheck all ingredients
     document.querySelectorAll('.ingredient-checkbox').forEach(cb => { cb.checked = false; });
-    selectedAddons.length = 0;
-    selectedIngredients.length = 0;
+    // Unselect all sizes
+    document.querySelectorAll('input[name="size-radio"]').forEach(radio => { radio.checked = false; });
+    // Reset quantity
     const quantityInput = document.getElementById('quantity');
     if (quantityInput) quantityInput.value = 1;
-    document.querySelectorAll('input[name="size-radio"]').forEach(radio => { radio.checked = false; });
+    // Hide ingredients badge
     const badge = document.getElementById('ingredients-badge');
     if (badge) {
         badge.textContent = '';
@@ -272,7 +245,15 @@ function addToOrder(name, price, size, category, productId, addons, imagelink, i
         badge.style.opacity = '0';
         badge.style.zIndex = '0';
     }
-    updateIngredientsBadge();
+    // Reset more-options modal checkboxes
+    const modal = document.getElementById('more-options-modal');
+    if (modal) {
+        modal.querySelectorAll('.ingredient-checkbox').forEach(cb => { cb.checked = false; });
+    }
+    // Remove any selected state from size-option-btn
+    document.querySelectorAll('.size-option-btn.selected').forEach(el => el.classList.remove('selected'));
+    // Enable/disable Add to Cart button based on size selection
+    updateAddToCartBtnState();
 }
 
 // Fetch and display add-ons - try server-side data first, then API as fallback
@@ -358,7 +339,7 @@ function displayAddons(addons) {
                     selectedAddons.push({
                         AddOnID: addon.AddOnID,
                         Name: addon.Name,
-                        BasePrice: addon.BasePrice
+                        BasePrice: parseFloat(addon.BasePrice) || 0
                     });
                 } else {
                     const index = selectedAddons.findIndex(a => a.AddOnID === addon.AddOnID);
@@ -386,7 +367,7 @@ function setupAddonEventListeners() {
                 selectedAddons.push({
                     AddOnID: this.dataset.addonId,
                     Name: this.dataset.addonName,
-                    BasePrice: this.dataset.addonPrice
+                    BasePrice: parseFloat(this.dataset.addonPrice) || 0
                 });
             } else {
                 const index = selectedAddons.findIndex(a => a.AddOnID === this.dataset.addonId);
@@ -400,6 +381,8 @@ function setupAddonEventListeners() {
 
 // Initialize function
 function initializePage() {
+    detectAndLoadEditMode();
+
     // Load add-ons
     loadAddons();
 
@@ -415,10 +398,12 @@ function initializePage() {
     // Initialize badge state - ensure it's hidden on load
     initializeBadge();
 
-    // Ensure all size options are unselected on load
-    document.querySelectorAll('input[name="size-radio"]').forEach(rb => {
-        rb.checked = false;
-    });
+    // Ensure all size options are unselected on load (unless in edit mode, handled by detectAndLoadEditMode)
+    if (!isEditMode) {
+        document.querySelectorAll('input[name="size-radio"]').forEach(rb => {
+            rb.checked = false;
+        });
+    }
 
     // Add event listeners to size option buttons to handle selection
     const sizeOptionBtns = document.querySelectorAll('.size-option-btn');
@@ -444,42 +429,237 @@ function initializePage() {
                 radio.checked = true;
                 this.classList.add('selected');
             }
+
+            // Enable/disable Add to Cart button based on size selection
+            updateAddToCartBtnState();
         });
     });
 
-    // Add to cart button event listener
+    // Add to cart button event listener (modified for edit mode)
     const addToCartBtn = document.getElementById('add-to-cart-btn');
     if (addToCartBtn) {
         addToCartBtn.addEventListener('click', async function() {
-            const quantity = document.getElementById('quantity').value;
-            const selectedRadio = document.querySelector('input[name="size-radio"]:checked');
-
-            // Validate size selection for products that have sizes
-            if (product.Sizes && product.Sizes.length > 0 && !selectedRadio) {
-                showToast('Please select a size before adding to cart.', 'error');
-                return;
+            if (isEditMode) {
+                updateCartItem();
+            } else {
+                addNewCartItem();
             }
-
-            // Check product availability first
-            try {
-                const availabilityResponse = await fetch(`/api/check-product-availability/${product.ProductID}`);
-                const availabilityData = await availabilityResponse.json();
-
-                if (!availabilityData.available) {
-                    showCenteredError(availabilityData.reason || 'This product is currently unavailable');
-                    return;
-                }
-            } catch (error) {
-                console.error('Error checking product availability:', error);
-                // Continue with adding to cart if availability check fails (fail-safe)
-            }
-
-            let size = selectedRadio ? selectedRadio.value : null;
-            let price = selectedRadio ? parseFloat(selectedRadio.closest('.size-option-btn').dataset.price) : parseFloat(product.BasePrice || 0);
-
-            addToOrder(product.Name, price, size, product.Category, product.ProductID, selectedAddons.slice(), product.imagelink, false, null, quantity);
         });
     }
+
+    // Cancel edit button event listener
+    const cancelEditBtn = document.getElementById('cancel-edit-btn');
+    if (cancelEditBtn) {
+        cancelEditBtn.addEventListener('click', cancelEditMode);
+    }
+}
+
+function detectAndLoadEditMode() {
+    const editData = sessionStorage.getItem('editingCartItem');
+    if (!editData) {
+        isEditMode = false;
+        return;
+    }
+
+    try {
+        editingCartItem = JSON.parse(editData);
+        editingCartItemIndex = editingCartItem.cartItemIndex;
+        isEditMode = true;
+
+        showEditModeBanner();
+        prePopulateFormWithEditData();
+
+        sessionStorage.removeItem('editingCartItem');
+    } catch (error) {
+        console.error('Error loading edit mode data:', error);
+        isEditMode = false;
+    }
+}
+
+function showEditModeBanner() {
+    const banner = document.getElementById('edit-mode-banner');
+    if (banner) {
+        banner.style.display = 'block';
+    }
+
+    const addBtn = document.getElementById('add-to-cart-btn');
+    const cancelBtn = document.getElementById('cancel-edit-btn');
+    if (addBtn) {
+        addBtn.innerHTML = '<span class="update-cart-text">Update Cart</span><span class="update-cart-spinner" style="display: none;"></span>';
+        addBtn.style.backgroundColor = '#8B4513';
+        addBtn.style.boxShadow = '0 2px 8px rgba(139, 69, 19, 0.3)';
+        addBtn.style.border = '2px solid #8B4513';
+        addBtn.style.marginBottom = '5px';
+        addBtn.disabled = false;
+        addBtn.removeAttribute('disabled');
+    }
+    if (cancelBtn) {
+        cancelBtn.style.display = 'block';
+    }
+}
+
+function prePopulateFormWithEditData() {
+    if (!editingCartItem) return;
+
+    const quantity = parseInt(editingCartItem.quantity) || 1;
+    const quantityInput = document.getElementById('quantity');
+    if (quantityInput) {
+        quantityInput.value = quantity;
+    }
+
+    if (editingCartItem.selectedSize) {
+        const sizeRadio = document.querySelector(`input[name="size-radio"][value="${editingCartItem.selectedSize}"]`);
+        if (sizeRadio) {
+            sizeRadio.checked = true;
+            const sizeBtn = sizeRadio.closest('.size-option-btn');
+            if (sizeBtn) {
+                sizeBtn.classList.add('selected');
+            }
+        }
+    }
+
+    selectedAddons.length = 0;
+    selectedIngredients.length = 0;
+
+    if (editingCartItem.addons && Array.isArray(editingCartItem.addons) && editingCartItem.addons.length > 0) {
+        const addonCheckboxes = document.querySelectorAll('.addon-checkbox');
+        addonCheckboxes.forEach(checkbox => {
+            const addonId = checkbox.dataset.addonId;
+            const isSelected = editingCartItem.addons.some(addon => 
+                addon.AddOnID === addonId
+            );
+            checkbox.checked = isSelected;
+        });
+
+        const ingredientCheckboxes = document.querySelectorAll('.ingredient-checkbox');
+        ingredientCheckboxes.forEach(checkbox => {
+            const ingredientId = checkbox.dataset.ingredientId;
+            const isSelected = editingCartItem.addons.some(addon => 
+                addon.IngredientID === ingredientId
+            );
+            checkbox.checked = isSelected;
+        });
+
+        selectedAddons = editingCartItem.addons.slice();
+        selectedIngredients = editingCartItem.addons.filter(addon => addon.IngredientID).slice();
+    } else {
+        const addonCheckboxes = document.querySelectorAll('.addon-checkbox');
+        addonCheckboxes.forEach(cb => cb.checked = false);
+
+        const ingredientCheckboxes = document.querySelectorAll('.ingredient-checkbox');
+        ingredientCheckboxes.forEach(cb => cb.checked = false);
+    }
+
+    updateIngredientsBadge();
+}
+
+async function addNewCartItem() {
+    const quantity = document.getElementById('quantity').value;
+    const selectedRadio = document.querySelector('input[name="size-radio"]:checked');
+
+    // Validate size selection for products that have sizes
+    if (product.Sizes && product.Sizes.length > 0 && !selectedRadio) {
+        showToast('Please select a size before adding to cart.', 'error');
+        return;
+    }
+
+    // Check product availability first
+    try {
+        const availabilityResponse = await fetch(`/api/check-product-availability/${product.ProductID}`);
+        const availabilityData = await availabilityResponse.json();
+
+        if (!availabilityData.available) {
+            showCenteredError(availabilityData.reason || 'This product is currently unavailable');
+            return;
+        }
+    } catch (error) {
+        console.error('Error checking product availability:', error);
+        // Continue with adding to cart if availability check fails (fail-safe)
+    }
+
+    let size = selectedRadio ? selectedRadio.value : null;
+    let price = selectedRadio ? parseFloat(selectedRadio.closest('.size-option-btn').dataset.price) : parseFloat(product.BasePrice || 0);
+
+    addToOrder(product.Name, price, size, product.Category, product.ProductID, selectedAddons.slice(), product.imagelink, false, null, quantity);
+}
+
+function updateCartItem() {
+    if (!isEditMode || editingCartItemIndex === null || editingCartItemIndex === undefined) {
+        console.log('DEBUG: isEditMode=' + isEditMode + ', index=' + editingCartItemIndex);
+        showToast('Error: Not in edit mode', 'error');
+        setAddToCartLoading(false);
+        return;
+    }
+
+    const quantity = parseInt(document.getElementById('quantity').value) || 1;
+    const selectedRadio = document.querySelector('input[name="size-radio"]:checked');
+
+    if (product.Sizes && product.Sizes.length > 0 && !selectedRadio) {
+        showToast('Please select a size before updating cart.', 'error');
+        setAddToCartLoading(false);
+        return;
+    }
+
+    let size = selectedRadio ? selectedRadio.value : null;
+    let price = selectedRadio ? parseFloat(selectedRadio.closest('.size-option-btn').dataset.price) : parseFloat(product.BasePrice || 0);
+
+    if (!orderItems || orderItems.length === 0) {
+        console.log('ERROR: orderItems is empty');
+        showToast('Error: Cart is empty', 'error');
+        setAddToCartLoading(false);
+        return;
+    }
+
+    if (editingCartItemIndex >= orderItems.length) {
+        console.log('ERROR: Index out of range - index:', editingCartItemIndex, 'length:', orderItems.length);
+        showToast('Error: Cart item not found', 'error');
+        setAddToCartLoading(false);
+        return;
+    }
+
+    const originalItem = orderItems[editingCartItemIndex];
+    if (!originalItem) {
+        console.log('ERROR: Item not found at index', editingCartItemIndex);
+        showToast('Error: Cart item not found', 'error');
+        setAddToCartLoading(false);
+        return;
+    }
+
+    const updateBtn = document.getElementById('add-to-cart-btn');
+    if (updateBtn) {
+        updateBtn.disabled = true;
+        const textSpan = updateBtn.querySelector('.update-cart-text');
+        const spinnerSpan = updateBtn.querySelector('.update-cart-spinner');
+        if (textSpan && spinnerSpan) {
+            textSpan.style.display = 'none';
+            spinnerSpan.style.display = 'inline-block';
+        }
+    }
+
+    console.log('Updating item at index', editingCartItemIndex, {quantity, size, price, addonsCount: selectedAddons.length});
+
+    originalItem.quantity = quantity;
+    originalItem.size = size;
+    originalItem.price = price;
+    originalItem.addons = selectedAddons && Array.isArray(selectedAddons) ? selectedAddons.slice() : [];
+
+    saveOrderItems();
+
+    showToast('Cart item updated successfully!', 'success');
+
+    setTimeout(() => {
+        window.location.href = '/cart';
+    }, 1500);
+}
+
+function cancelEditMode() {
+    isEditMode = false;
+    editingCartItem = null;
+    editingCartItemIndex = null;
+
+    sessionStorage.removeItem('editingCartItem');
+
+    window.location.href = '/cart';
 }
 
 // Setup modal functionality with enhanced UX
@@ -611,11 +791,11 @@ function loadIngredients() {
         }
     }
 
-    // Display ingredients in modal
-    displayIngredients(ingredients);
+    // Modal content is now rendered server-side, just ensure event listeners are set up
+    setupIngredientEventListeners();
 }
 
-// Display ingredients in modal
+// Display ingredients in modal (fallback for dynamic loading if needed)
 function displayIngredients(ingredients) {
     const ingredientsOptionsContainer = document.querySelector('.ingredients-options');
     if (!ingredientsOptionsContainer) {
@@ -623,58 +803,75 @@ function displayIngredients(ingredients) {
         return;
     }
 
-    // Check if ingredients already exist from EJS template
-    const existingIngredients = ingredientsOptionsContainer.querySelectorAll('.ingredient-checkbox-label');
-    if (existingIngredients.length > 0) {
-        // Event listeners handled by delegation
+    // Check if modal sections already exist from EJS template
+    const existingSections = ingredientsOptionsContainer.querySelectorAll('.modal-section');
+    if (existingSections.length > 0) {
+        // Content already rendered server-side, just ensure event listeners work
+        setupIngredientEventListeners();
         return;
     }
 
     ingredientsOptionsContainer.innerHTML = '';
 
     if (ingredients && Array.isArray(ingredients) && ingredients.length > 0) {
+        const section = document.createElement('div');
+        section.className = 'modal-section';
+
         ingredients.forEach(ingredient => {
             const ingredientLabel = document.createElement('label');
             ingredientLabel.className = 'ingredient-checkbox-label';
 
             const ingredientText = document.createElement('span');
             ingredientText.className = 'ingredient-text';
-            ingredientText.textContent = `${ingredient.Name} ₱15.00`;
+            const price = ingredient.BasePrice || 15;
+            ingredientText.textContent = `${ingredient.Name} - ₱${Number(price).toFixed(2)}`;
 
             const ingredientCheckbox = document.createElement('input');
             ingredientCheckbox.type = 'checkbox';
             ingredientCheckbox.className = 'ingredient-checkbox';
             ingredientCheckbox.dataset.ingredientId = ingredient.IngredientID;
             ingredientCheckbox.dataset.ingredientName = ingredient.Name;
-            ingredientCheckbox.dataset.ingredientPrice = 15;
+            ingredientCheckbox.dataset.ingredientPrice = price;
 
             ingredientLabel.appendChild(ingredientText);
             ingredientLabel.appendChild(ingredientCheckbox);
-            ingredientsOptionsContainer.appendChild(ingredientLabel);
+            section.appendChild(ingredientLabel);
         });
 
-        // Event listeners handled by event delegation on the container
+        ingredientsOptionsContainer.appendChild(section);
     } else {
-        ingredientsOptionsContainer.innerHTML = '<span style="font-size:12px;color:#999">No ingredients available.</span>';
+        ingredientsOptionsContainer.innerHTML = '<span style="font-size:12px;color:#999">No options available.</span>';
     }
 }
 
-// Setup ingredient event listeners
+// Setup ingredient event listeners using event delegation
 function setupIngredientEventListeners() {
-    const ingredientCheckboxes = document.querySelectorAll('.ingredient-checkbox');
+    const ingredientsOptionsContainer = document.querySelector('.ingredients-options');
+    
+    if (!ingredientsOptionsContainer) {
+        console.error('ingredients-options container not found');
+        return;
+    }
 
-    ingredientCheckboxes.forEach((checkbox) => {
-        // Remove existing listeners to prevent duplicates
-        checkbox.removeEventListener('change', handleIngredientCheckboxChange);
+    // Remove any existing listeners to prevent duplicates
+    ingredientsOptionsContainer.removeEventListener('change', handleModalCheckboxChange);
+    // Add event delegation listener for all checkboxes in the modal
+    ingredientsOptionsContainer.addEventListener('change', handleModalCheckboxChange);
+}
 
-        // Add new listener
-        checkbox.addEventListener('change', handleIngredientCheckboxChange);
-    });
+// Handle all checkbox changes in modal (ingredients and add-ons)
+function handleModalCheckboxChange(event) {
+    const checkbox = event.target;
+
+    if (checkbox.classList.contains('ingredient-checkbox')) {
+        handleIngredientCheckboxChange(checkbox);
+    } else if (checkbox.classList.contains('addon-checkbox')) {
+        handleAddonCheckboxChange(checkbox);
+    }
 }
 
 // Handle ingredient checkbox changes
-function handleIngredientCheckboxChange(event) {
-    const checkbox = event.target;
+function handleIngredientCheckboxChange(checkbox) {
     const ingredientId = checkbox.dataset.ingredientId;
     const ingredientName = checkbox.dataset.ingredientName;
     const ingredientPrice = parseFloat(checkbox.dataset.ingredientPrice) || 15;
@@ -705,9 +902,103 @@ function handleIngredientCheckboxChange(event) {
         }
     }
 
-    // Update the badge immediately - this should work with the new logic
+    // Update the badge immediately
     updateIngredientsBadge();
 }
+
+// Handle add-on checkbox changes in modal
+function handleAddonCheckboxChange(checkbox) {
+    const addonId = checkbox.dataset.addonId;
+    const addonName = checkbox.dataset.addonName;
+    const addonPrice = parseFloat(checkbox.dataset.addonPrice) || 0;
+
+    if (checkbox.checked) {
+        selectedAddons.push({
+            AddOnID: addonId,
+            Name: addonName,
+            BasePrice: addonPrice
+        });
+    } else {
+        const index = selectedAddons.findIndex(a => a.AddOnID === addonId);
+        if (index > -1) {
+            selectedAddons.splice(index, 1);
+        }
+    }
+
+    // Update the badge immediately
+    updateIngredientsBadge();
+}
+
+// Add spinner to Add to Cart button
+function setAddToCartLoading(isLoading) {
+    const btn = document.getElementById('add-to-cart-btn');
+    if (!btn) return;
+    const textSpan = btn.querySelector('.add-to-cart-text');
+    const spinnerSpan = btn.querySelector('.add-to-cart-spinner');
+    
+    if (isLoading) {
+        btn.disabled = true;
+        if (textSpan) textSpan.style.display = 'none';
+        if (spinnerSpan) spinnerSpan.style.display = 'inline-block';
+    } else {
+        btn.disabled = false;
+        if (textSpan) textSpan.style.display = 'inline';
+        if (spinnerSpan) spinnerSpan.style.display = 'none';
+    }
+}
+
+// Patch add-to-cart button click
+(function patchAddToCartBtn() {
+    const btn = document.getElementById('add-to-cart-btn');
+    if (!btn) return;
+    btn.addEventListener('click', function(e) {
+        if (btn.disabled) return;
+        setAddToCartLoading(true);
+        // Let the normal add-to-cart logic run (which will call showCartSidePopup)
+    }, true);
+})();
+
+// Revert button when cart-side-popup is shown
+const origShowCartSidePopup = window.showCartSidePopup;
+window.showCartSidePopup = function(orderItem) {
+    setAddToCartLoading(false);
+    resetProductSelections();
+    if (typeof origShowCartSidePopup === 'function') {
+        origShowCartSidePopup(orderItem);
+    }
+}
+
+// Enable/disable Add to Cart button based on size selection (only when NOT editing)
+function updateAddToCartBtnState() {
+    const btn = document.getElementById('add-to-cart-btn');
+    if (!btn) return;
+    
+    // If in edit mode, always enable the button
+    if (isEditMode) {
+        btn.disabled = false;
+        return;
+    }
+    
+    const sizeRadios = document.querySelectorAll('input[name="size-radio"]');
+    if (sizeRadios.length > 0) {
+        // If any size radio exists, require one to be checked
+        const anyChecked = Array.from(sizeRadios).some(radio => radio.checked);
+        btn.disabled = !anyChecked;
+    } else {
+        // No size options, always enabled
+        btn.disabled = false;
+    }
+}
+
+// Listen for size radio changes
+(function patchSizeRadioListeners() {
+    const sizeRadios = document.querySelectorAll('input[name="size-radio"]');
+    sizeRadios.forEach(radio => {
+        radio.addEventListener('change', updateAddToCartBtnState);
+    });
+    // Initial state
+    updateAddToCartBtnState();
+})();
 
 // Ensure DOM is fully loaded before initializing
 document.addEventListener('DOMContentLoaded', function() {

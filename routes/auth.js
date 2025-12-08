@@ -4,31 +4,10 @@ const { ObjectId } = require('mongodb');
 const { check, validationResult } = require('express-validator');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
-const nodemailer = require('nodemailer');
+const { sendPasswordResetEmail } = require('../utils/passwordResetService');
 
 
 const SALT_ROUNDS = 12;
-
-// Create nodemailer transporter with Docker-optimized settings
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASSWORD
-  },
-  pool: false, // Disable connection pooling for Docker
-  connectionTimeout: 10000, // 10 seconds
-  greetingTimeout: 5000, // 5 seconds
-  socketTimeout: 15000, // 15 seconds
-  tls: {
-    rejectUnauthorized: false,
-    ciphers: 'SSLv3'
-  },
-  debug: process.env.NODE_ENV !== 'production',
-  logger: process.env.NODE_ENV !== 'production'
-});
 
 // Generate staff ID based on role and user ID
 function generateStaffId(role, userId) {
@@ -70,6 +49,7 @@ router.post('/login', (req, res) => {
 // Logout route
 router.get('/logout', (req, res) => {
   const username = req.session.user?.username;
+  const userRole = req.session.user?.role;
   console.log(`🚪 User logout: ${username} at ${new Date().toISOString()}`);
 
   req.session.destroy((err) => {
@@ -78,7 +58,28 @@ router.get('/logout', (req, res) => {
       return res.status(500).send('Error during logout');
     }
     console.log(`✅ Session destroyed successfully for user: ${username}`);
-    res.redirect('/');
+    
+    const redirectUrl = userRole === 'admin' || userRole === 'owner' 
+      ? '/admin/login' 
+      : userRole === 'staff' 
+      ? '/staff/login' 
+      : '/';
+    
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Logging out...</title>
+      </head>
+      <body>
+        <script>
+          localStorage.removeItem('orderItems');
+          localStorage.removeItem('selectedCartItems');
+          window.location.href = '${redirectUrl}';
+        </script>
+      </body>
+      </html>
+    `);
   });
 });
 
@@ -362,43 +363,14 @@ router.post('/forgot-password',
 
       // Send reset email
       const resetUrl = `${process.env.BASE_URL}/auth/reset-password?token=${resetToken}`;
-      const mailOptions = {
-        from: process.env.GMAIL_USER,
-        to: user.email,
-        subject: 'Password Reset - Blessings Cafe',
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #333;">Password Reset Request</h2>
-            <p>Hello ${user.fullname || user.name || 'User'},</p>
-            <p>You requested a password reset for your Blessings Cafe account.</p>
-            <p>Click the link below to reset your password:</p>
-            <a href="${resetUrl}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 10px 0;">Reset Password</a>
-            <p>This link will expire in 1 hour.</p>
-            <p>If you didn't request this reset, please ignore this email.</p>
-            <p>Best regards,<br>Blessings Cafe Team</p>
-          </div>
-        `
-      };
+      const emailResult = await sendPasswordResetEmail(
+        user.email,
+        user.fullname || user.name || 'User',
+        resetUrl,
+        false
+      );
 
-      // Add timeout wrapper for email sending
-      const sendEmailWithTimeout = new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          reject(new Error('Email sending timeout'));
-        }, 15000); // 15 second timeout
-
-        transporter.sendMail(mailOptions)
-          .then(result => {
-            clearTimeout(timeout);
-            resolve(result);
-          })
-          .catch(error => {
-            clearTimeout(timeout);
-            reject(error);
-          });
-      });
-
-      try {
-        await sendEmailWithTimeout;
+      if (emailResult.success) {
         console.log('✅ Password reset email sent successfully');
         
         res.render('forgot-password', {
@@ -408,10 +380,9 @@ router.post('/forgot-password',
           error: null,
           formData: req.body
         });
-      } catch (emailError) {
-        console.error('❌ Email sending failed:', emailError.message);
+      } else {
+        console.error('❌ Email sending failed:', emailResult.error);
         
-        // Still create the reset token but show different message
         res.render('forgot-password', {
           success: 'Password reset link has been generated. Please contact support if you do not receive the email.',
           layout: false,

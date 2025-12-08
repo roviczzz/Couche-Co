@@ -778,7 +778,8 @@ async function addDiscount(db, discountData) {
       ...discountData,
       createdAt: new Date(),
       lastModified: new Date(),
-      isActive: discountData.isActive !== false
+      isActive: discountData.isActive !== false,
+      applicableToAll: discountData.applicableToAll === true || discountData.category === ''
     };
 
     const result = await db.collection('Promos').insertOne(newDiscount);
@@ -985,48 +986,38 @@ async function getAverageSalesPerDay(db) {
 async function getTopCategories(db) {
   try {
     const pipeline = [
+      { $match: { PaymentStatus: { $nin: ['Cancelled', 'cancelled'] } } },
       { $unwind: '$Cart' },
-      {
-        $match: {
-          PaymentStatus: { $ne: 'Cancelled' }
-        }
-      },
       {
         $lookup: {
           from: 'Menu',
-          let: { productId: '$Cart.ProductID' },
-          pipeline: [
-            {
-              $match: {
-                $expr: { $eq: ['$ProductID', '$$productId'] }
-              }
-            },
-            {
-              $project: { Category: 1, _id: 0 }
-            }
-          ],
+          localField: 'Cart.ProductID',
+          foreignField: 'ProductID',
           as: 'menuItem'
         }
       },
-      {
-        $unwind: {
-          path: '$menuItem',
-          preserveNullAndEmptyArrays: false
-        }
-      },
-      {
-        $match: {
-          'menuItem.Category': { $exists: true, $ne: null, $ne: '' }
-        }
-      },
+      { $unwind: { path: '$menuItem', preserveNullAndEmptyArrays: true } },
       {
         $group: {
-          _id: '$menuItem.Category',
-          total: { $sum: { $multiply: ['$Cart.BasePrice', '$Cart.Quantity'] } },
-          quantity: { $sum: '$Cart.Quantity' },
+          _id: { 
+            $ifNull: [
+              '$Cart.Category',
+              { $ifNull: ['$Cart.category', { $ifNull: ['$menuItem.Category', 'Uncategorized'] }] }
+            ]
+          },
+          total: { 
+            $sum: { 
+              $multiply: [
+                { $ifNull: ['$Cart.Price', { $ifNull: ['$Cart.price', 0] }] },
+                { $ifNull: ['$Cart.Quantity', { $ifNull: ['$Cart.quantity', 1] }] }
+              ] 
+            } 
+          },
+          quantity: { $sum: { $ifNull: ['$Cart.Quantity', { $ifNull: ['$Cart.quantity', 1] }] } },
           orderCount: { $sum: 1 }
         }
       },
+      { $match: { _id: { $nin: ['Uncategorized', null, ''] } } },
       { $sort: { total: -1 } },
       { $limit: 8 }
     ];
@@ -1202,7 +1193,7 @@ async function createNotification(db, notificationData) {
       isRead: false,
       type: notificationData.type || 'info', // 'order', 'message', 'stock', 'report', 'promo'
       priority: notificationData.priority || 'normal', // 'urgent', 'high', 'normal', 'low'
-      targetRoles: notificationData.targetRoles || ['admin', 'staff'] // who can see this notification
+      targetRoles: notificationData.targetRoles || ['owner', 'admin', 'staff'] // who can see this notification
     };
     
     const result = await db.collection('Notifications').insertOne(notification);
@@ -1217,8 +1208,9 @@ async function createNotification(db, notificationData) {
 async function getNotifications(db, userRole, limit = 50) {
   try {
     console.log('🔍 getNotifications called with db type:', typeof db, 'hasCollection:', typeof db?.collection);
+    const rolesToCheck = userRole === 'owner' ? ['owner', 'admin'] : [userRole];
     const notifications = await db.collection('Notifications').find({
-      targetRoles: { $in: [userRole] }
+      targetRoles: { $in: rolesToCheck }
     })
     .sort({ createdAt: -1 })
     .limit(limit)
@@ -1232,8 +1224,9 @@ async function getNotifications(db, userRole, limit = 50) {
 
 async function getUnreadNotificationCount(db, userRole) {
   try {
+    const rolesToCheck = userRole === 'owner' ? ['owner', 'admin'] : [userRole];
     const count = await db.collection('Notifications').countDocuments({
-      targetRoles: { $in: [userRole] },
+      targetRoles: { $in: rolesToCheck },
       isRead: false
     });
     return count;
@@ -1258,9 +1251,10 @@ async function markNotificationAsRead(db, notificationId) {
 
 async function markAllNotificationsAsRead(db, userRole) {
   try {
+    const rolesToCheck = userRole === 'owner' ? ['owner', 'admin'] : [userRole];
     const result = await db.collection('Notifications').updateMany(
       { 
-        targetRoles: { $in: [userRole] },
+        targetRoles: { $in: rolesToCheck },
         isRead: false 
       },
       { $set: { isRead: true, readAt: new Date() } }
@@ -1288,23 +1282,25 @@ async function deleteNotification(db, notificationId) {
 
 async function createNewOrderNotification(db, orderData) {
   try {
-    console.log('🔔 Creating new order notification for order:', orderData.OrderID);
-    
+    const orderId = orderData.OrderID || orderData.orderId;
+    console.log('🔔 Creating new order notification for order:', orderId);
+
     const notification = await createNotification(db, {
       type: 'order',
       title: 'New Order Received',
-      message: `Order #${orderData.OrderID} received from ${orderData.Customer?.fullname || 'Customer'}`,
+      message: `Order #${orderId} received from ${orderData.Customer?.fullname || 'Customer'}`,
       data: {
-        orderId: orderData.OrderID,
+        orderId: orderId,
+        OrderID: orderId,
         customerName: orderData.Customer?.fullname || 'Unknown',
         total: orderData.Total,
         items: orderData.Cart?.length || 0
       },
       actionUrl: '/admin/orders',
       priority: 'high',
-      targetRoles: ['admin', 'staff']
+      targetRoles: ['owner', 'admin', 'staff']
     });
-    
+
     console.log('✅ New order notification created:', notification._id);
     return notification;
   } catch (error) {
@@ -1424,7 +1420,7 @@ async function createLowStockNotification(db, stockData, userSettings = {}) {
       },
       actionUrl: '/admin/stocks',
       priority: priority,
-      targetRoles: ['admin', 'staff']
+      targetRoles: ['owner', 'admin', 'staff']
     });
     
     console.log(`🔔 Created low stock notification: ${items.length} items below threshold (${effectiveThreshold})`);
@@ -1439,8 +1435,9 @@ async function createLowStockNotification(db, stockData, userSettings = {}) {
 
 async function createMonthlyReportNotification(db) {
   const now = new Date();
-  const month = now.toLocaleString('default', { month: 'long' });
-  const year = now.getFullYear();
+  const previousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const month = previousMonth.toLocaleString('default', { month: 'long' });
+  const year = previousMonth.getFullYear();
   
   return await createNotification(db, {
     type: 'report',
@@ -1453,7 +1450,7 @@ async function createMonthlyReportNotification(db) {
     },
     actionUrl: '/admin/analytics',
     priority: 'normal',
-    targetRoles: ['admin']
+    targetRoles: ['owner', 'admin']
   });
 }
 
@@ -1472,7 +1469,7 @@ async function createPromoExpiryNotification(db, promoData) {
     },
     actionUrl: '/admin/discounts',
     priority: daysUntilExpiry <= 1 ? 'urgent' : daysUntilExpiry <= 3 ? 'high' : 'normal',
-    targetRoles: ['admin']
+    targetRoles: ['owner', 'admin']
   });
 }
 

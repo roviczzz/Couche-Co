@@ -1,15 +1,34 @@
 [{
   "_id": {
+    "$oid": "685f9ea26911e4021868ee1f"
+  },
+  "AddOnID": "AD-NDC",
+  "Name": "Nata De Coco",
+  "Category": "Add-Ons",
+  "Allergen": "none",
+  "BasePrice": "10",
+  "isEnabled": true,
+  "lastModified": {
+    "$date": "2025-11-26T15:28:04.146Z"
+  },
+  "AddOnPrefix": "AD",
+  "AddOnSuffix": "NDC",
+  "AmountPerPack": "1000 g",
+  "Amount": 1000,
+  "DeductionQuantityGrams": 10
+},
+{
+  "_id": {
     "$oid": "685f9ea26911e4021868ee1d"
   },
   "AddOnID": "AD-BOB",
   "Name": "Boba",
   "Category": "Add-Ons",
   "Allergen": "none",
-  "BasePrice": 10,
+  "BasePrice": "10",
   "isEnabled": true,
   "lastModified": {
-    "$date": "2025-11-07T16:35:03.620Z"
+    "$date": "2025-11-26T15:28:06.007Z"
   },
   "metadata": {
     "lastModifiedBy": "BlessingsAdmin",
@@ -31,32 +50,13 @@
   "Name": "Coffee Jelly",
   "Category": "Add-Ons",
   "Allergen": "None",
-  "BasePrice": 10,
+  "BasePrice": "10",
   "isEnabled": true,
   "lastModified": {
-    "$date": "2025-10-30T08:23:17.588Z"
+    "$date": "2025-11-26T15:28:07.779Z"
   },
   "AddOnPrefix": "AD",
   "AddOnSuffix": "CJL",
-  "AmountPerPack": "1000 g",
-  "Amount": 1000,
-  "DeductionQuantityGrams": 10
-},
-{
-  "_id": {
-    "$oid": "685f9ea26911e4021868ee1f"
-  },
-  "AddOnID": "AD-NDC",
-  "Name": "Nata De Coco",
-  "Category": "Add-Ons",
-  "Allergen": "None",
-  "BasePrice": 10,
-  "isEnabled": true,
-  "lastModified": {
-    "$date": "2025-11-07T16:36:13.199Z"
-  },
-  "AddOnPrefix": "AD",
-  "AddOnSuffix": "NDC",
   "AmountPerPack": "1000 g",
   "Amount": 1000,
   "DeductionQuantityGrams": 10

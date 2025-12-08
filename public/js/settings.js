@@ -567,9 +567,456 @@ class CarouselPageManager {
     }
 }
 
+class ChatbotCategoriesManager {
+    constructor() {
+        this.categoriesData = null;
+        this.fixedCategories = [
+            { categoryId: 'popular-items', name: 'Popular Items' },
+            { categoryId: 'fruit-teas', name: 'Fruit Teas' },
+            { categoryId: 'milk-teas', name: 'Milk Teas' },
+            { categoryId: 'signatures', name: 'Signatures' },
+            { categoryId: 'bites', name: 'Bites' }
+        ];
+        this.init();
+    }
+
+    async init() {
+        try {
+            await this.loadCategoriesData();
+            this.renderCategories();
+            this.attachEventListeners();
+        } catch (error) {
+            console.error('Failed to initialize chatbot categories manager:', error);
+        }
+    }
+
+    async loadCategoriesData() {
+        const response = await fetch('/admin/api/chatbot-settings/categories');
+        if (!response.ok) throw new Error('Failed to load chatbot categories');
+        const result = await response.json();
+        this.categoriesData = result.data;
+    }
+
+    renderCategories() {
+        const categoriesList = document.getElementById('chatbotCategoriesList');
+        if (!categoriesList || !this.categoriesData) return;
+
+        categoriesList.innerHTML = this.categoriesData.categories.map((category, index) => `
+            <div class="carousel-slide-card" data-category-id="${category.categoryId}">
+                <div class="slide-thumbnail">
+                    <img src="${category.imageUrl}" alt="${category.name}" onerror="this.src='/resources/BannerBC.png'">
+                    <div class="slide-overlay">
+                        <button type="button" class="btn-upload-category-image" data-category-id="${category.categoryId}" title="Upload image">
+                            <i class="fas fa-upload"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="slide-info">
+                    <h4>${category.name}</h4>
+                    <p class="slide-preview">${category.categoryId}.webp</p>
+                </div>
+                <input type="file" class="category-image-upload" data-category-id="${category.categoryId}" accept="image/*" style="display: none;">
+            </div>
+        `).join('');
+    }
+
+    attachEventListeners() {
+        const categoriesList = document.getElementById('chatbotCategoriesList');
+        
+        categoriesList.querySelectorAll('.btn-upload-category-image').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const categoryId = btn.dataset.categoryId;
+                const fileInput = document.querySelector(`.category-image-upload[data-category-id="${categoryId}"]`);
+                fileInput.click();
+            });
+        });
+
+        categoriesList.querySelectorAll('.category-image-upload').forEach(input => {
+            input.addEventListener('change', (e) => {
+                const categoryId = input.dataset.categoryId;
+                this.handleImageUpload(e, categoryId);
+            });
+        });
+
+        const saveBtn = document.getElementById('saveChatbotCategoriesBtn');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.saveCategories();
+            });
+        }
+    }
+
+    async handleImageUpload(e, categoryId) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (file.size > 2 * 1024 * 1024) {
+            alert('File size exceeds 2MB limit');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('categoryImage', file);
+        formData.append('categoryId', categoryId);
+
+        try {
+            const response = await fetch('/admin/api/chatbot-settings/categories/upload-image', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                const categoryIndex = this.categoriesData.categories.findIndex(c => c.categoryId === categoryId);
+                if (categoryIndex !== -1) {
+                    this.categoriesData.categories[categoryIndex].imageUrl = result.data.path;
+                }
+                
+                const imgElement = document.querySelector(`[data-category-id="${categoryId}"] .slide-thumbnail img`);
+                if (imgElement) {
+                    imgElement.src = result.data.path + '?t=' + Date.now();
+                }
+                
+                alert('Image uploaded and converted to WebP successfully!');
+            } else {
+                alert('Error uploading image: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Image upload error:', error);
+            alert('Failed to upload image');
+        }
+    }
+
+    async saveCategories() {
+        const saveBtn = document.getElementById('saveChatbotCategoriesBtn');
+        const btnText = saveBtn.querySelector('.btn-text');
+        const btnLoader = saveBtn.querySelector('.btn-loader');
+
+        btnText.style.display = 'none';
+        btnLoader.style.display = 'inline';
+
+        try {
+            const response = await fetch('/admin/api/chatbot-settings/categories/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ categories: this.categoriesData.categories })
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                alert('Chatbot category images saved successfully!');
+                await this.loadCategoriesData();
+                this.renderCategories();
+                this.attachEventListeners();
+            } else {
+                alert('Error saving categories: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Categories save error:', error);
+            alert('Failed to save categories');
+        } finally {
+            btnText.style.display = 'inline';
+            btnLoader.style.display = 'none';
+        }
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const carouselTab = document.getElementById('carousel-tab');
     if (carouselTab) {
         new CarouselPageManager();
     }
+
+    const chatbotCategoriesList = document.getElementById('chatbotCategoriesList');
+    if (chatbotCategoriesList) {
+        new ChatbotCategoriesManager();
+    }
+
+    setTimeout(() => {
+        const promoModalForm = document.getElementById('promoModalForm');
+        if (promoModalForm) {
+            console.log('Initializing promo modal settings');
+            initPromoModalSettings();
+        }
+    }, 0);
 });
+
+function initPromoModalSettings() {
+    const form = document.getElementById('promoModalForm');
+    const fileInput = document.getElementById('promoImageFile');
+    const saveBtn = document.getElementById('savePromoBtn');
+    const previewBtn = document.getElementById('previewPromoBtn');
+    const removeBtn = document.getElementById('removePromoBtn');
+    const preview = document.querySelector('.promo-image-preview-container');
+    const previewImg = document.getElementById('promoImagePreview');
+    const uploadStatus = document.getElementById('uploadStatus');
+    const promoEnabled = document.getElementById('promoEnabled');
+    const promoStartDate = document.getElementById('promoStartDate');
+    const promoEndDate = document.getElementById('promoEndDate');
+    const promoDismissDuration = document.getElementById('promoDismissDuration');
+
+    let uploadedImageUrl = null;
+
+    loadPromoImageUrl();
+
+    fileInput.addEventListener('change', async function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (file.size > 5 * 1024 * 1024) {
+            uploadStatus.textContent = 'File size exceeds 5MB limit';
+            uploadStatus.style.color = '#dc3545';
+            return;
+        }
+
+        uploadStatus.textContent = 'Uploading...';
+        uploadStatus.style.color = '#007bff';
+
+        try {
+            const formData = new FormData();
+            formData.append('promoImage', file);
+
+            const response = await fetch('/admin/settings/upload-promo-image', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                uploadedImageUrl = result.data.path;
+                previewImg.src = uploadedImageUrl;
+                preview.style.display = 'block';
+                const previewLabel = preview.querySelector('.promo-preview-label');
+                if (previewLabel) previewLabel.style.display = 'block';
+                uploadStatus.textContent = 'Upload successful! Ready to save.';
+                uploadStatus.style.color = '#28a745';
+            } else {
+                uploadStatus.textContent = 'Upload failed: ' + result.error;
+                uploadStatus.style.color = '#dc3545';
+                uploadedImageUrl = null;
+            }
+        } catch (error) {
+            console.error('Upload error:', error);
+            uploadStatus.textContent = 'Upload failed. Please try again.';
+            uploadStatus.style.color = '#dc3545';
+            uploadedImageUrl = null;
+        }
+    });
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const imageUrl = uploadedImageUrl || previewImg.src;
+        
+        if (!imageUrl) {
+            alert('Please upload an image first');
+            return;
+        }
+
+        const btnText = saveBtn.querySelector('.btn-text');
+        const btnLoader = saveBtn.querySelector('.btn-loader');
+        btnText.style.display = 'none';
+        btnLoader.style.display = 'inline';
+
+        try {
+            const payload = {
+                promoImageUrl: imageUrl,
+                promoEnabled: promoEnabled.checked,
+                promoStartDate: promoStartDate.value || null,
+                promoEndDate: promoEndDate.value || null,
+                promoDismissDuration: parseInt(promoDismissDuration.value) || 24
+            };
+            
+            const response = await fetch('/admin/settings/update-promo-modal', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                alert('Promotional modal configuration saved successfully!');
+                fileInput.value = '';
+                uploadStatus.textContent = '';
+                uploadedImageUrl = null;
+            } else {
+                alert('Error: ' + (result.message || 'Failed to save configuration'));
+            }
+        } catch (error) {
+            console.error('Save error:', error);
+            alert('Failed to save promotional modal configuration: ' + error.message);
+        } finally {
+            btnText.style.display = 'inline';
+            btnLoader.style.display = 'none';
+        }
+    });
+
+    removeBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        if (!confirm('Are you sure you want to remove the promotional modal? This action cannot be undone.')) {
+            return;
+        }
+
+        const btnText = removeBtn.textContent;
+        removeBtn.disabled = true;
+        removeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Removing...';
+
+        fetch('/admin/settings/remove-promo-modal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                alert('Promotional modal removed successfully!');
+                fileInput.value = '';
+                uploadStatus.textContent = '';
+                uploadedImageUrl = null;
+                previewImg.src = '';
+                preview.style.display = 'none';
+                form.reset();
+            } else {
+                alert('Error: ' + (result.message || 'Failed to remove modal'));
+            }
+        })
+        .catch(error => {
+            console.error('Remove error:', error);
+            alert('Failed to remove promotional modal: ' + error.message);
+        })
+        .finally(() => {
+            removeBtn.disabled = false;
+            removeBtn.innerHTML = '<i class="fas fa-trash"></i> Remove Modal';
+        });
+    });
+
+    previewBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        console.log('Preview button clicked');
+        
+        const imageUrl = uploadedImageUrl || previewImg.src;
+        console.log('Image URL:', imageUrl);
+        
+        if (!imageUrl || imageUrl.trim() === '') {
+            alert('No image attached. Please upload an image before previewing.');
+            return;
+        }
+
+        const modalOverlay = document.getElementById('promoModalOverlay');
+        console.log('Modal overlay:', modalOverlay);
+        
+        if (!modalOverlay) {
+            alert('Modal not found on page');
+            return;
+        }
+
+        const img = modalOverlay.querySelector('.promo-modal-image');
+        const closeBtn = modalOverlay.querySelector('.promo-modal-close');
+        
+        if (!img || !closeBtn) {
+            alert('Modal elements not found');
+            return;
+        }
+
+        img.src = imageUrl;
+        modalOverlay.classList.add('show');
+        document.body.style.overflow = 'hidden';
+
+        const handleClose = () => {
+            modalOverlay.classList.remove('show');
+            document.body.style.overflow = '';
+        };
+
+        const handleBackdropClose = (e) => {
+            if (e.target === modalOverlay) {
+                handleClose();
+            }
+        };
+
+        const handleEscKey = (e) => {
+            if (e.key === 'Escape') {
+                handleClose();
+                document.removeEventListener('keydown', handleEscKey);
+            }
+        };
+
+        closeBtn.onclick = handleClose;
+        modalOverlay.onclick = handleBackdropClose;
+        document.addEventListener('keydown', handleEscKey);
+    });
+}
+
+// Settings category navigation
+document.addEventListener('DOMContentLoaded', function() {
+    const categoryItems = document.querySelectorAll('.category-item');
+    const sections = document.querySelectorAll('.settings-section');
+    const STORAGE_KEY = 'settings-active-category';
+
+    const savedCategory = localStorage.getItem(STORAGE_KEY);
+    let initialCategory = savedCategory;
+
+    if (!initialCategory || !document.querySelector(`.category-item[data-category="${initialCategory}"]`)) {
+        initialCategory = categoryItems.length > 0 ? categoryItems[0].getAttribute('data-category') : null;
+    }
+
+    if (initialCategory) {
+        categoryItems.forEach(item => {
+            if (item.getAttribute('data-category') === initialCategory) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+
+        sections.forEach(section => {
+            if (section.getAttribute('data-category') === initialCategory) {
+                section.classList.add('active');
+            } else {
+                section.classList.remove('active');
+            }
+        });
+    }
+
+    categoryItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const category = this.getAttribute('data-category');
+            
+            localStorage.setItem(STORAGE_KEY, category);
+            
+            categoryItems.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            
+            sections.forEach(section => {
+                if (section.getAttribute('data-category') === category) {
+                    section.classList.add('active');
+                } else {
+                    section.classList.remove('active');
+                }
+            });
+            
+            document.querySelector('.settings-content').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+});
+async function loadPromoImageUrl() {
+    try {
+        const response = await fetch('/api/promo-modal');
+        const data = await response.json();
+
+        if (data.imageUrl) {
+            const previewImg = document.getElementById('promoImagePreview');
+            const preview = document.querySelector('.promo-image-preview-container');
+            const previewLabel = preview.querySelector('.promo-preview-label');
+
+            previewImg.src = data.imageUrl;
+            preview.style.display = 'block';
+            if (previewLabel) previewLabel.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading promo image:', error);
+    }
+}

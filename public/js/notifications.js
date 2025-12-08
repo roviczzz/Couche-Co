@@ -46,8 +46,11 @@ class NotificationManager {
         document.addEventListener('click', (e) => {
             const popup = document.getElementById('notification-popup');
             const bell = document.getElementById('notification-bell');
+            const mobileNotifBtn = document.getElementById('bottom-nav-notifications-btn');
             
-            if (this.isPopupOpen && popup && !popup.contains(e.target) && !bell.contains(e.target)) {
+            if (this.isPopupOpen && popup && !popup.contains(e.target) && 
+                (!bell || !bell.contains(e.target)) && 
+                (!mobileNotifBtn || !mobileNotifBtn.contains(e.target))) {
                 this.closeNotificationPopup();
             }
         });
@@ -230,12 +233,15 @@ class NotificationManager {
             const timeAgo = this.getTimeAgo(new Date(notification.createdAt));
             const priorityClass = this.getPriorityClass(notification.priority);
             const typeIcon = this.getTypeIcon(notification.type);
+            const orderId = notification.data?.orderId || notification.data?.OrderID || '';
             
             return `
                 <div class="notification-popup-item ${notification.isRead ? 'read' : 'unread'} ${priorityClass}" 
                      data-id="${notification._id}" 
                      data-action-url="${notification.actionUrl || ''}"
-                     onclick="notificationManager.handleNotificationClick('${notification._id}', '${notification.actionUrl || ''}')">
+                     data-type="${notification.type || ''}"
+                     data-order-id="${orderId}"
+                     onclick="notificationManager.handleNotificationClick('${notification._id}', '${notification.actionUrl || ''}', '${notification.type || ''}', '${orderId}')">
                     <div class="notification-icon">
                         <i class="${typeIcon}"></i>
                     </div>
@@ -265,17 +271,28 @@ class NotificationManager {
         }
     }
     
-    async handleNotificationClick(notificationId, actionUrl) {
+    async handleNotificationClick(notificationId, actionUrl, notificationType, orderId) {
         try {
-            // Mark as read
+            console.log('🔔 Notification clicked:', { notificationId, actionUrl, notificationType, orderId });
+            
             await this.markAsRead(notificationId);
             
-            // Navigate to action URL if provided
             if (actionUrl) {
-                window.location.href = actionUrl;
+                const currentPath = window.location.pathname;
+                let adjustedUrl = actionUrl;
+                
+                if (currentPath.startsWith('/staff/')) {
+                    adjustedUrl = actionUrl.replace('/admin/', '/staff/');
+                }
+                
+                if (notificationType === 'order' && orderId) {
+                    adjustedUrl += (adjustedUrl.includes('?') ? '&' : '?') + 'orderId=' + orderId;
+                }
+                
+                console.log('🔗 Redirecting to:', adjustedUrl);
+                window.location.href = adjustedUrl;
             }
             
-            // Close popup
             this.closeNotificationPopup();
         } catch (error) {
             console.error('Error handling notification click:', error);
@@ -386,115 +403,189 @@ window.addEventListener('beforeunload', () => {
     if (window.notificationManager) {
         window.notificationManager.stopPolling();
     }
-});// Custom Notification System
+});
+
 class NotificationSystem {
-    constructor() {
+    constructor(options = {}) {
+        this.maxNotifications = options.maxNotifications || 5;
+        this.defaultDuration = options.defaultDuration || 5000;
+        this.notifications = [];
+        this.notificationId = 0;
+        
         this.container = document.getElementById('notification-container');
         if (!this.container) {
-            console.error('Notification container not found');
-            return;
+            this.container = document.createElement('div');
+            this.container.id = 'notification-container';
+            this.container.className = 'notification-container';
+            document.body.appendChild(this.container);
         }
-        this.notifications = [];
     }
 
-    // Show a notification
-    show(message, type = 'info', title = '', duration = 5000) {
-        if (!this.container) return;
+    show(message, type = 'info', title = '', duration = null) {
+        if (!this.container) return null;
+        
+        duration = duration !== null ? duration : this.defaultDuration;
 
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-
-        // Create icon based on type
-        let icon = '';
-        switch (type) {
-            case 'success':
-                icon = '<i class="fas fa-check-circle"></i>';
-                if (!title) title = 'Success';
-                break;
-            case 'error':
-                icon = '<i class="fas fa-exclamation-circle"></i>';
-                if (!title) title = 'Error';
-                break;
-            case 'warning':
-                icon = '<i class="fas fa-exclamation-triangle"></i>';
-                if (!title) title = 'Warning';
-                break;
-            case 'info':
-            default:
-                icon = '<i class="fas fa-info-circle"></i>';
-                if (!title) title = 'Information';
-                break;
+        while (this.notifications.length >= this.maxNotifications) {
+            const oldest = this.notifications[0];
+            if (oldest) this.close(oldest.element, true);
         }
 
+        const id = ++this.notificationId;
+        const notification = document.createElement('div');
+        notification.className = `toast-notification toast-${type}`;
+        notification.dataset.id = id;
+
+        const icons = {
+            success: 'fa-check-circle',
+            error: 'fa-times-circle',
+            warning: 'fa-exclamation-triangle',
+            info: 'fa-info-circle'
+        };
+
+        const titles = {
+            success: 'Success',
+            error: 'Error',
+            warning: 'Warning',
+            info: 'Info'
+        };
+
+        const displayTitle = title || titles[type] || 'Notification';
+        const iconClass = icons[type] || icons.info;
+
         notification.innerHTML = `
-            <div class="notification-icon">${icon}</div>
-            <div class="notification-content">
-                <div class="notification-title">${title}</div>
-                <div class="notification-message">${message}</div>
+            <div class="toast-icon">
+                <i class="fas ${iconClass}"></i>
             </div>
-            <button class="notification-close" onclick="notificationSystem.close(this.parentElement)">&times;</button>
+            <div class="toast-body">
+                <div class="toast-title">${displayTitle}</div>
+                <div class="toast-message">${message}</div>
+            </div>
+            <button class="toast-close" aria-label="Close">
+                <i class="fas fa-times"></i>
+            </button>
+            ${duration > 0 ? '<div class="toast-progress"><div class="toast-progress-bar"></div></div>' : ''}
         `;
+
+        const closeBtn = notification.querySelector('.toast-close');
+        closeBtn.addEventListener('click', () => this.close(notification));
+
+        notification.addEventListener('mouseenter', () => this.pauseTimer(id));
+        notification.addEventListener('mouseleave', () => this.resumeTimer(id));
 
         this.container.appendChild(notification);
 
-        // Trigger animation
-        setTimeout(() => {
-            notification.classList.add('show');
-        }, 10);
+        requestAnimationFrame(() => {
+            notification.classList.add('toast-visible');
+        });
 
-        // Auto-hide after duration
+        const notificationData = {
+            id,
+            element: notification,
+            duration,
+            remainingTime: duration,
+            timer: null,
+            startTime: null,
+            paused: false
+        };
+
+        this.notifications.push(notificationData);
+
         if (duration > 0) {
-            setTimeout(() => {
-                this.close(notification);
-            }, duration);
+            this.startTimer(notificationData);
         }
 
-        this.notifications.push(notification);
         return notification;
     }
 
-    // Close a notification
-    close(notification) {
+    startTimer(notificationData) {
+        const progressBar = notificationData.element.querySelector('.toast-progress-bar');
+        
+        notificationData.startTime = Date.now();
+        notificationData.paused = false;
+
+        if (progressBar) {
+            progressBar.style.transition = `width ${notificationData.remainingTime}ms linear`;
+            requestAnimationFrame(() => {
+                progressBar.style.width = '0%';
+            });
+        }
+
+        notificationData.timer = setTimeout(() => {
+            this.close(notificationData.element);
+        }, notificationData.remainingTime);
+    }
+
+    pauseTimer(id) {
+        const notificationData = this.notifications.find(n => n.id === id);
+        if (!notificationData || notificationData.paused || notificationData.duration <= 0) return;
+
+        clearTimeout(notificationData.timer);
+        notificationData.paused = true;
+
+        const elapsed = Date.now() - notificationData.startTime;
+        notificationData.remainingTime = Math.max(0, notificationData.remainingTime - elapsed);
+
+        const progressBar = notificationData.element.querySelector('.toast-progress-bar');
+        if (progressBar) {
+            const computedWidth = window.getComputedStyle(progressBar).width;
+            progressBar.style.transition = 'none';
+            progressBar.style.width = computedWidth;
+        }
+    }
+
+    resumeTimer(id) {
+        const notificationData = this.notifications.find(n => n.id === id);
+        if (!notificationData || !notificationData.paused || notificationData.duration <= 0) return;
+
+        this.startTimer(notificationData);
+    }
+
+    close(notification, immediate = false) {
         if (!notification) return;
 
-        notification.classList.remove('show');
+        const id = parseInt(notification.dataset.id);
+        const notificationData = this.notifications.find(n => n.id === id);
+        
+        if (notificationData) {
+            clearTimeout(notificationData.timer);
+            this.notifications = this.notifications.filter(n => n.id !== id);
+        }
+
+        notification.classList.remove('toast-visible');
+        notification.classList.add('toast-hidden');
+
+        const removeDelay = immediate ? 0 : 300;
         setTimeout(() => {
             if (notification.parentElement) {
                 notification.parentElement.removeChild(notification);
             }
-            this.notifications = this.notifications.filter(n => n !== notification);
-        }, 300);
+        }, removeDelay);
     }
 
-    // Close all notifications
     closeAll() {
-        this.notifications.forEach(notification => {
-            this.close(notification);
-        });
+        [...this.notifications].forEach(n => this.close(n.element, true));
     }
 
-    // Convenience methods
-    success(message, title = 'Success', duration = 5000) {
+    success(message, title = '', duration = 4000) {
         return this.show(message, 'success', title, duration);
     }
 
-    error(message, title = 'Error', duration = 7000) {
+    error(message, title = '', duration = 6000) {
         return this.show(message, 'error', title, duration);
     }
 
-    warning(message, title = 'Warning', duration = 6000) {
+    warning(message, title = '', duration = 5000) {
         return this.show(message, 'warning', title, duration);
     }
 
-    info(message, title = 'Information', duration = 5000) {
+    info(message, title = '', duration = 4000) {
         return this.show(message, 'info', title, duration);
     }
 }
 
-// Create global instance
-const notificationSystem = new NotificationSystem();
+const notificationSystem = new NotificationSystem({ maxNotifications: 5 });
 
-// Make it globally available
 window.notificationSystem = notificationSystem;
 
 // Override alert function to use notifications

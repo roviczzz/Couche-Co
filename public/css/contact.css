@@ -590,29 +590,6 @@
 /* Responsive Design */
 @media (max-width: 1024px) {
     .hero h1 {
-        font-size: 3.5rem;
-    }
-
-    .hero p {
-        font-size: 1rem;
-    }
-
-    .contact-showcase {
-        gap: 2rem;
-    }
-
-    .main-contact-card,
-    .social-connect-card {
-        padding: 2.5rem;
-    }
-}
-
-@media (max-width: 768px) {
-    .hero {
-        padding: 5rem 1.5rem 3rem;
-    }
-
-    .hero h1 {
         font-size: 3rem;
     }
 
@@ -624,142 +601,191 @@
         padding: 4rem 1.5rem;
     }
 
-    .contact-hero h2 {
-        font-size: 2rem;
-    }
-
-    .contact-hero p {
-        font-size: 1.1rem;
-    }
-
     .contact-showcase {
-        padding: 0 1rem;
+        max-width: 100%;
     }
 
-    .main-contact-card,
-    .social-connect-card {
+    .main-contact-card {
         padding: 2rem;
-    }
-
-    .card-header {
-        flex-direction: column;
-        text-align: center;
-        gap: 1rem;
-    }
-
-    .card-header h3 {
-        font-size: 1.6rem;
-    }
-
-    .detail-item {
-        flex-direction: column;
-        text-align: center;
-        gap: 0.75rem;
-    }
-
-    .detail-item i {
-        margin-top: 0;
-        align-self: center;
-    }
-
-    .social-platform-card {
-        flex-direction: column;
-        text-align: center;
-        gap: 0.75rem;
-    }
-
-    .social-platform-card .social-link {
-        margin-left: 0;
-        margin-top: 0.5rem;
     }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 768px) {
     .hero {
         padding: 4rem 1rem 2.5rem;
     }
 
     .hero h1 {
-        font-size: 2.5rem;
-    }
-
-    .hero p {
-        font-size: 0.95rem;
-    }
-
-    .contact-section {
-        padding: 3rem 1rem;
-    }
-
-    .contact-hero {
-        margin-bottom: 3rem;
-    }
-
-    .contact-hero h2 {
-        font-size: 1.8rem;
-    }
-
-    .contact-hero p {
-        font-size: 1rem;
-    }
-
-    .contact-showcase {
-        gap: 2rem;
-    }
-
-    .main-contact-card,
-    .social-connect-card {
-        padding: 1.5rem;
-    }
-
-    .card-header i {
-        width: 60px;
-        height: 60px;
         font-size: 2rem;
     }
 
-    .card-header h3 {
-        font-size: 1.4rem;
-    }
-
-    .card-body p {
-        font-size: 1rem;
-        margin-bottom: 2rem;
-    }
-
-    .detail-item {
-        padding: 1.25rem;
-        gap: 0.5rem;
-    }
-
-    .detail-item strong {
-        font-size: 0.95rem;
-    }
-
-    .detail-item span {
+    .hero p {
         font-size: 0.9rem;
     }
 
-    .social-platform-card {
+    .contact-section {
+        padding: 2rem 1rem;
+    }
+
+    .contact-section::before {
+        width: 50px;
+        height: 3px;
+    }
+
+    .contact-hero {
+        margin-bottom: 1.5rem;
+    }
+
+    .contact-hero h2 {
+        font-size: 1.4rem;
+    }
+
+    .contact-hero h2::after {
+        width: 40px;
+        height: 2px;
+        bottom: -6px;
+    }
+
+    .main-contact-card {
         padding: 1.25rem;
+        border-radius: 12px;
     }
 
-    .social-platform-card .platform-icon {
-        width: 45px;
-        height: 45px;
-        font-size: 1.3rem;
+    .main-contact-card::before {
+        height: 4px;
     }
 
-    .social-platform-card .platform-info h4 {
-        font-size: 1.1rem;
+    .card-header {
+        gap: 0.75rem;
+        margin-bottom: 1rem;
     }
 
-    .social-platform-card .platform-info p {
+    .card-header i {
+        width: 44px;
+        height: 44px;
+        font-size: 1.25rem;
+    }
+
+    .card-header h3 {
+        font-size: 1.15rem;
+    }
+
+    .card-body p {
         font-size: 0.85rem;
+        line-height: 1.5;
+        margin-bottom: 1.25rem;
     }
 
-    .social-cta-btn {
-        padding: 0.875rem 2rem;
+    .contact-details {
+        gap: 0.625rem;
+    }
+
+    .detail-item {
+        padding: 0.875rem;
+        gap: 0.625rem;
+        border-radius: 10px;
+    }
+
+    .detail-item i {
         font-size: 1rem;
+        min-width: 16px;
+    }
+
+    .detail-item strong {
+        font-size: 0.8rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .detail-item span {
+        font-size: 0.8rem;
+        line-height: 1.4;
+    }
+
+    .location-link,
+    .social-link-text {
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+    }
+
+    .social-detail {
+        border-left-width: 3px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero {
+        padding: 3rem 0.75rem 1.5rem;
+    }
+
+    .hero h1 {
+        font-size: 1.5rem;
+    }
+
+    .hero p {
+        font-size: 0.8rem;
+    }
+
+    .contact-section {
+        padding: 1.5rem 0.75rem;
+    }
+
+    .contact-hero {
+        margin-bottom: 1rem;
+    }
+
+    .contact-hero h2 {
+        font-size: 1.2rem;
+    }
+
+    .main-contact-card {
+        padding: 1rem;
+        border-radius: 10px;
+    }
+
+    .card-header {
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .card-header i {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+    }
+
+    .card-header h3 {
+        font-size: 1rem;
+    }
+
+    .card-body p {
+        font-size: 0.8rem;
+        margin-bottom: 1rem;
+    }
+
+    .contact-details {
+        gap: 0.5rem;
+    }
+
+    .detail-item {
+        padding: 0.75rem;
+        gap: 0.5rem;
+        border-radius: 8px;
+    }
+
+    .detail-item i {
+        font-size: 0.9rem;
+    }
+
+    .detail-item strong {
+        font-size: 0.75rem;
+    }
+
+    .detail-item span {
+        font-size: 0.75rem;
+    }
+
+    .location-link,
+    .social-link-text {
+        font-size: 0.7rem;
     }
 }

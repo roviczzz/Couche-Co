@@ -1,0 +1,589 @@
+<link rel="stylesheet" href="/css/feedback.css">
+
+<div class="feedback-management-container">
+  <div class="header-section">
+    <h1><i class="fas fa-comments"></i> Customer Feedback</h1>
+  </div>
+
+  <div class="feedback-stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon"><i class="fas fa-star"></i></div>
+      <div class="stat-content">
+        <div class="stat-value" id="avgRating"><%= typeof stats !== 'undefined' && stats.averageRating ? stats.averageRating.toFixed(1) : '0.0' %></div>
+        <div class="stat-label">Average Rating</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon"><i class="fas fa-chart-bar"></i></div>
+      <div class="stat-content">
+        <div class="stat-value" id="totalFeedback"><%= typeof stats !== 'undefined' && stats.totalCount ? stats.totalCount : 0 %></div>
+        <div class="stat-label">Total Responses</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon"><i class="fas fa-smile"></i></div>
+      <div class="stat-content">
+        <div class="stat-value" id="positiveCount"><%= typeof stats !== 'undefined' && stats.positiveCount ? stats.positiveCount : 0 %></div>
+        <div class="stat-label">Positive (4-5 ★)</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon"><i class="fas fa-calendar-day"></i></div>
+      <div class="stat-content">
+        <div class="stat-value" id="todayCount"><%= typeof stats !== 'undefined' && stats.todayCount ? stats.todayCount : 0 %></div>
+        <div class="stat-label">Today</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="feedback-content-grid">
+    <div class="rating-distribution-card">
+      <div class="card-header">
+        <h3><i class="fas fa-chart-pie"></i> Rating Distribution</h3>
+      </div>
+      <div class="rating-bars" id="ratingBars">
+        <% [5, 4, 3, 2, 1].forEach(rating => { 
+          const count = typeof ratingDistribution !== 'undefined' && ratingDistribution[rating] ? ratingDistribution[rating] : 0;
+          const total = typeof stats !== 'undefined' && stats.totalCount ? stats.totalCount : 1;
+          const percentage = total > 0 ? (count / total * 100).toFixed(1) : 0;
+        %>
+          <div class="rating-bar-row">
+            <span class="rating-label"><%= rating %> <i class="fas fa-star"></i></span>
+            <div class="rating-bar-container">
+              <div class="rating-bar" style="width: <%= percentage %>%"></div>
+            </div>
+            <span class="rating-count"><%= count %></span>
+          </div>
+        <% }); %>
+      </div>
+    </div>
+
+    <div class="feedback-list-card">
+      <div class="card-header">
+        <h3><i class="fas fa-list"></i> Recent Feedback</h3>
+        <div class="filter-controls">
+          <select id="filterRating" class="filter-select">
+            <option value="">All Ratings</option>
+            <option value="5">5 Stars</option>
+            <option value="4">4 Stars</option>
+            <option value="3">3 Stars</option>
+            <option value="2">2 Stars</option>
+            <option value="1">1 Star</option>
+          </select>
+          <select id="filterPage" class="filter-select">
+            <option value="">All Sources</option>
+            <option value="order-success">Order Success</option>
+            <option value="contact">Contact Page</option>
+          </select>
+        </div>
+      </div>
+      <div class="feedback-list" id="feedbackList">
+        <% if (typeof feedbacks !== 'undefined' && feedbacks.length > 0) { %>
+          <% feedbacks.forEach(feedback => { %>
+            <div class="feedback-item" data-rating="<%= feedback.rating %>" data-page="<%= feedback.page %>">
+              <div class="feedback-header">
+                <div class="feedback-user">
+                  <span class="user-name"><%= feedback.name || 'Anonymous' %></span>
+                  <span class="feedback-source"><%= feedback.page === 'order-success' ? 'Order' : 'Contact' %></span>
+                </div>
+                <div class="feedback-rating">
+                  <% for (let i = 1; i <= 5; i++) { %>
+                    <i class="<%= i <= feedback.rating ? 'fas' : 'far' %> fa-star"></i>
+                  <% } %>
+                </div>
+              </div>
+              <% if (feedback.comment) { %>
+                <div class="feedback-comment"><%= feedback.comment %></div>
+              <% } %>
+              <div class="feedback-meta">
+                <span class="feedback-date">
+                  <i class="fas fa-clock"></i>
+                  <%= new Date(feedback.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) %>
+                </span>
+                <% if (feedback.email) { %>
+                  <span class="feedback-email">
+                    <i class="fas fa-envelope"></i>
+                    <%= feedback.email %>
+                  </span>
+                <% } %>
+              </div>
+            </div>
+          <% }); %>
+        <% } else { %>
+          <div class="no-feedback">
+            <i class="fas fa-inbox"></i>
+            <p>No feedback received yet</p>
+          </div>
+        <% } %>
+      </div>
+      <div class="pagination-controls" id="paginationControls">
+        <button class="btn-pagination" id="prevPage" disabled><i class="fas fa-chevron-left"></i> Previous</button>
+        <span class="page-info" id="pageInfo">Page 1</span>
+        <button class="btn-pagination" id="nextPage"><i class="fas fa-chevron-right"></i> Next</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const filterRating = document.getElementById('filterRating');
+  const filterPage = document.getElementById('filterPage');
+  const feedbackItems = document.querySelectorAll('.feedback-item');
+  
+  function applyFilters() {
+    const selectedRating = filterRating.value;
+    const selectedPage = filterPage.value;
+    
+    feedbackItems.forEach(item => {
+      const itemRating = item.dataset.rating;
+      const itemPage = item.dataset.page;
+      
+      const matchesRating = !selectedRating || itemRating === selectedRating;
+      const matchesPage = !selectedPage || itemPage === selectedPage;
+      
+      item.style.display = matchesRating && matchesPage ? 'block' : 'none';
+    });
+  }
+  
+  filterRating.addEventListener('change', applyFilters);
+  filterPage.addEventListener('change', applyFilters);
+});
+</script>
+
+<style>
+.feedback-management-container {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header-section {
+  margin-bottom: 24px;
+}
+
+.header-section h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-section h1 i {
+  color: #8B4513;
+}
+
+.feedback-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+.stat-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #8B4513, #a0522d);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 1.25rem;
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.feedback-content-grid {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 24px;
+}
+
+.rating-distribution-card,
+.feedback-list-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.card-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.card-header h3 i {
+  color: #8B4513;
+}
+
+.rating-bars {
+  padding: 20px;
+}
+
+.rating-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.rating-bar-row:last-child {
+  margin-bottom: 0;
+}
+
+.rating-label {
+  min-width: 50px;
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.rating-label i {
+  color: #ffc107;
+}
+
+.rating-bar-container {
+  flex: 1;
+  height: 8px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.rating-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #ffc107, #ffca2c);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.rating-count {
+  min-width: 30px;
+  text-align: right;
+  font-size: 0.875rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.filter-controls {
+  display: flex;
+  gap: 10px;
+}
+
+.filter-select {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  background: #fff;
+  cursor: pointer;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #8B4513;
+}
+
+.feedback-list {
+  padding: 16px 20px;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.feedback-item {
+  padding: 16px;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  transition: border-color 0.2s;
+}
+
+.feedback-item:last-child {
+  margin-bottom: 0;
+}
+
+.feedback-item:hover {
+  border-color: #8B4513;
+}
+
+.feedback-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.feedback-user {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.user-name {
+  font-weight: 600;
+  color: #333;
+}
+
+.feedback-source {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  color: #666;
+  display: inline-block;
+}
+
+.feedback-rating {
+  display: flex;
+  gap: 2px;
+}
+
+.feedback-rating i {
+  color: #ffc107;
+  font-size: 0.875rem;
+}
+
+.feedback-rating i.far {
+  color: #ddd;
+}
+
+.feedback-comment {
+  font-size: 0.9rem;
+  color: #444;
+  line-height: 1.5;
+  margin-bottom: 10px;
+  padding: 10px;
+  background: #f9f9f9;
+  border-radius: 6px;
+}
+
+.feedback-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.feedback-meta i {
+  margin-right: 4px;
+}
+
+.no-feedback {
+  text-align: center;
+  padding: 40px 20px;
+  color: #888;
+}
+
+.no-feedback i {
+  font-size: 3rem;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.pagination-controls {
+  padding: 16px 20px;
+  border-top: 1px solid #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.btn-pagination {
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.btn-pagination:hover:not(:disabled) {
+  background: #8B4513;
+  color: #fff;
+  border-color: #8B4513;
+}
+
+.btn-pagination:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.page-info {
+  font-size: 0.875rem;
+  color: #666;
+}
+
+@media (max-width: 1024px) {
+  .feedback-content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .feedback-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .filter-controls {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .feedback-stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .feedback-meta {
+    flex-direction: column;
+    gap: 6px;
+  }
+}
+
+.dark-theme .feedback-management-container {
+  color: #e0e0e0;
+}
+
+.dark-theme .header-section h1 {
+  color: #e0e0e0;
+}
+
+.dark-theme .stat-card,
+.dark-theme .rating-distribution-card,
+.dark-theme .feedback-list-card {
+  background: #2a2a2a;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.dark-theme .stat-value {
+  color: #e0e0e0;
+}
+
+.dark-theme .stat-label {
+  color: #aaa;
+}
+
+.dark-theme .card-header {
+  border-bottom-color: #444;
+}
+
+.dark-theme .card-header h3 {
+  color: #e0e0e0;
+}
+
+.dark-theme .filter-select {
+  background: #333;
+  border-color: #444;
+  color: #e0e0e0;
+}
+
+.dark-theme .rating-label {
+  color: #aaa;
+}
+
+.dark-theme .rating-bar-container {
+  background: #444;
+}
+
+.dark-theme .rating-count {
+  color: #aaa;
+}
+
+.dark-theme .feedback-item {
+  border-color: #444;
+  background: #333;
+}
+
+.dark-theme .feedback-item:hover {
+  border-color: #8B4513;
+}
+
+.dark-theme .user-name {
+  color: #e0e0e0;
+}
+
+.dark-theme .feedback-source {
+  background: #444;
+  color: #aaa;
+}
+
+.dark-theme .feedback-comment {
+  background: #2a2a2a;
+  color: #ccc;
+}
+
+.dark-theme .feedback-meta {
+  color: #888;
+}
+
+.dark-theme .no-feedback {
+  color: #888;
+}
+
+.dark-theme .pagination-controls {
+  border-top-color: #444;
+}
+
+.dark-theme .btn-pagination {
+  background: #333;
+  border-color: #444;
+  color: #e0e0e0;
+}
+
+.dark-theme .page-info {
+  color: #aaa;
+}
+</style>

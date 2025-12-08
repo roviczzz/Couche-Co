@@ -177,11 +177,19 @@ function updateCartCount() {
   const cartCount = document.getElementById('cart-count');
   if (!cartCount) return;
 
+  const storedUserId = localStorage.getItem('cartUserId');
+  const currentUserId = window.user ? window.user._id : null;
+
+  if (storedUserId && !currentUserId) {
+    localStorage.removeItem('orderItems');
+    localStorage.removeItem('selectedCartItems');
+    localStorage.removeItem('cartUserId');
+  }
+
   const orderItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
   const totalItems = orderItems.reduce((sum, item) => sum + item.quantity, 0);
   cartCount.textContent = totalItems.toString();
 
-  // Hide badge if zero
   cartCount.style.display = totalItems > 0 ? 'flex' : 'none';
 }
 

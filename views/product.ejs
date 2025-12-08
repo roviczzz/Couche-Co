@@ -5,6 +5,11 @@
 <script id="product-data" type="application/json"><%- JSON.stringify(product) %></script>
 <script id="addons-data" type="application/json"><%- JSON.stringify(addons || []) %></script>
 <script id="ingredients-data" type="application/json"><%- JSON.stringify(ingredients || []) %></script>
+<div id="edit-mode-banner" class="edit-mode-banner" style="display: none;">
+  <div class="edit-mode-banner-content">
+    <span>Editing Cart Item - Modify and click 'Update Cart' to save changes</span>
+  </div>
+</div>
 
   <main class="product-page">
     <% if (!isAvailable) { %>
@@ -70,7 +75,11 @@
         </div>
 
         <button id="add-to-cart-btn" class="add-to-cart-btn" <%= !isAvailable ? 'disabled' : '' %>>
-          <%= !isAvailable ? 'Currently Unavailable' : 'Add to Cart' %>
+          <span class="add-to-cart-text"><%= !isAvailable ? 'Currently Unavailable' : 'Add to Cart' %></span>
+          <span class="add-to-cart-spinner" style="display: none;"></span>
+        </button>
+        <button id="cancel-edit-btn" class="add-to-cart-btn cancel-edit-btn" style="display: none; background-color: #999;">
+          Cancel Edit
         </button>
       </div>
     </div>
@@ -85,12 +94,29 @@
       </div>
       <div class="modal-body">
         <div class="ingredients-options">
-          <% (ingredients || []).forEach((ingredient) => { %>
-            <label class="ingredient-checkbox-label">
-              <input type="checkbox" class="ingredient-checkbox" data-ingredient-id="<%= ingredient.IngredientID %>" data-ingredient-name="<%= ingredient.Name %>" data-ingredient-price="15">
-              <span class="ingredient-text"><%= ingredient.Name %> - ₱15.00</span>
-            </label>
-          <% }); %>
+          <% if (remainingAddons && remainingAddons.length > 0) { %>
+            <div class="modal-section remaining-addons-section">
+              <h5 class="modal-section-header">More Add-ons</h5>
+              <% remainingAddons.forEach((addon) => { %>
+                <label class="addon-checkbox-label">
+                  <input type="checkbox" class="addon-checkbox" data-addon-id="<%= addon.AddOnID %>" data-addon-name="<%= addon.Name %>" data-addon-price="<%= addon.BasePrice %>">
+                  <span class="addon-text"><%= addon.Name %> - ₱<%= Number(addon.BasePrice).toFixed(2) %></span>
+                </label>
+              <% }); %>
+            </div>
+          <% } %>
+
+          <% if (remainingIngredients && remainingIngredients.length > 0) { %>
+            <div class="modal-section remaining-ingredients-section">
+              <h5 class="modal-section-header">Additional Flavors</h5>
+              <% remainingIngredients.forEach((ingredient) => { %>
+                <label class="ingredient-checkbox-label">
+                  <input type="checkbox" class="ingredient-checkbox" data-ingredient-id="<%= ingredient.IngredientID %>" data-ingredient-name="<%= ingredient.Name %>" data-ingredient-price="<%= ingredient.BasePrice || 15 %>">
+                  <span class="ingredient-text"><%= ingredient.Name %> - ₱<%= Number(ingredient.BasePrice || 15).toFixed(2) %></span>
+                </label>
+              <% }); %>
+            </div>
+          <% } %>
         </div>
       </div>
       <div class="modal-footer">

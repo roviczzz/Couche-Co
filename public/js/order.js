@@ -1,3 +1,70 @@
+function displayOrderSummary(index) {
+  const order = orders[index];
+  if (!order) {
+    orderSummaryContent.innerHTML = '<p style="text-align: center; color: #999; padding: 40px 20px;">Order not found.</p>';
+    return;
+  }
+  currentOrder = order;
+  selectedRowIndex = index;
+  let customer = 'N/A';
+  if (order.Customer) {
+    if (typeof order.Customer === 'string') {
+      customer = order.Customer;
+    } else if (typeof order.Customer === 'object') {
+      customer = order.Customer.fullname || order.Customer.name || 'Unknown';
+    }
+  } else if (order.customer) {
+    if (typeof order.customer === 'string') {
+      customer = order.customer;
+    } else if (typeof order.customer === 'object') {
+      customer = order.customer.fullname || order.customer.name || 'Unknown';
+    }
+  }
+  let summaryHtml = `<div class='order-summary-header'>
+    <h2>Order #${order.OrderID || 'N/A'}</h2>
+    <div class='order-summary-customer'>${customer}</div>
+    <div class='order-summary-date'>${order.Date ? new Date(order.Date).toLocaleString() : (order.date ? new Date(order.date).toLocaleString() : '')}</div>
+  </div>`;
+  summaryHtml += `<div class='order-summary-details'>
+    <div><strong>Payment:</strong> ${order.PaymentStatus || order.paymentStatus || 'Unpaid'}</div>
+    <div><strong>Fulfillment:</strong> ${order.FulfillmentMethod || order.fulfillmentMethod || 'N/A'}</div>
+    <div><strong>Total:</strong> ₱ ${Number(order.Total || order.total || 0).toFixed(2)}</div>
+  </div>`;
+  const cart = order.Cart || order.cart || [];
+  if (cart.length > 0) {
+    summaryHtml += "<div class='order-summary-products'><h3>Items</h3><ul>";
+    cart.forEach((item, i) => {
+      let itemName = item.Name || item.name || '';
+      if (!itemName && item.ProductName) itemName = item.ProductName;
+      if (!itemName && item.productName) itemName = item.productName;
+      const size = item.Size || item.size;
+      const sizeDisplay = size ? ` (${size})` : '';
+      summaryHtml += `<li>${item.Quantity || item.quantity} × ${itemName}${sizeDisplay}`;
+      const addOns = item.AddOns || item.addOns || item.Addons || [];
+      if (addOns.length > 0) {
+        summaryHtml += '<div class="product-addons" style="margin-left: 20px; margin-top: 4px;">';
+        addOns.forEach(addon => {
+          let addonName = 'Unknown Add-on';
+          if (typeof addon === 'object') {
+            addonName = addon.name || addon.Name || addon.ProductName || addon.productName || 'Unknown Add-on';
+          } else if (typeof addon === 'string') {
+            addonName = addon;
+          }
+          summaryHtml += `<div style="font-size: 0.9em; color: #666;">+ ${addonName}</div>`;
+        });
+        summaryHtml += '</div>';
+      }
+      summaryHtml += '</li>';
+    });
+    summaryHtml += '</ul></div>';
+  }
+  orderSummaryContent.innerHTML = summaryHtml;
+  orderDetailButtons.style.display = 'flex';
+  orderDetailPanel.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+window.displayOrderSummary = displayOrderSummary;
 if (!window.apiPrefix) window.apiPrefix = '/admin';
 
 const ordersData = JSON.parse(document.getElementById('orders-data').textContent || '[]');
@@ -689,6 +756,17 @@ function closeIngredientModal() {
 
 function showOrderDetails(order, rowIndex) {
   if (isTransitioning) return;
+  if (!order) {
+    console.error('❌ showOrderDetails called with no order');
+    return;
+  }
+  
+  if (!orderDetailPanel) {
+    console.error('❌ orderDetailPanel element not found!');
+    return;
+  }
+  
+  console.log('📋 showOrderDetails called for order:', order.OrderID, 'rowIndex:', rowIndex);
 
   isTransitioning = true;
   currentOrder = order;
@@ -696,7 +774,7 @@ function showOrderDetails(order, rowIndex) {
 
   document.querySelectorAll('.order-row').forEach(r => r.classList.remove('selected'));
 
-  const selectedRow = document.querySelectorAll('.order-row')[rowIndex];
+  const selectedRow = document.querySelector(`.order-row[data-idx="${rowIndex}"]`);
   if (selectedRow) {
     selectedRow.classList.add('selected');
   }
@@ -854,20 +932,15 @@ function showOrderDetails(order, rowIndex) {
 `;
 
   orderSummaryContent.innerHTML = summaryHtml;
-  
-  // Add click handlers to order items to show ingredient modal
-  const orderItems = orderSummaryContent.querySelectorAll('.order-item-clickable');
-  orderItems.forEach(item => {
-    item.addEventListener('click', (e) => {
-      const itemIndex = parseInt(item.dataset.itemIndex, 10);
-      const cart = currentOrder.Cart || currentOrder.cart;
-      if (cart && cart[itemIndex]) {
-        showIngredientModal(cart[itemIndex], currentOrder);
-      }
-    });
-  });
+  setTimeout(() => {
+    if (typeof initExpandableCards === 'function') initExpandableCards();
+    if (typeof initProductItemExpansion === 'function') initProductItemExpansion();
+  }, 100);
   orderDetailButtons.style.display = 'flex';
+  
+  console.log('📋 Adding show class to orderDetailPanel');
   orderDetailPanel.classList.add('show');
+  document.body.style.overflow = 'hidden';
 
   const fulfillmentDropdown = document.getElementById('fulfillmentDropdown');
   const fulfillmentMethod = order.FulfillmentMethod || order.fulfillmentMethod || '';
@@ -910,9 +983,9 @@ function hideOrderDetails() {
     orderDetailButtons.style.display = 'none';
 
     if (selectedRowIndex !== null) {
-      const rows = document.querySelectorAll('.order-row');
-      if (rows[selectedRowIndex]) {
-        rows[selectedRowIndex].classList.remove('selected');
+      const selectedRow = document.querySelector(`.order-row[data-idx="${selectedRowIndex}"]`);
+      if (selectedRow) {
+        selectedRow.classList.remove('selected');
       }
       selectedRowIndex = null;
     }
@@ -930,20 +1003,20 @@ function hideOrderDetails() {
 }
 
 function initRowEventListeners() {
-  document.querySelectorAll('.order-row').forEach((row, index) => {
+  document.querySelectorAll('.order-row').forEach((row) => {
     row.addEventListener('click', () => {
       if (isTransitioning) return;
 
       const idx = parseInt(row.dataset.idx, 10);
 
-      if (selectedRowIndex === index) {
+      if (selectedRowIndex === idx) {
         hideOrderDetails();
         return;
       }
 
       if (idx >= 0 && idx < orders.length) {
         const order = orders[idx];
-        showOrderDetails(order, index);
+        showOrderDetails(order, idx);
       }
     });
   });
@@ -957,8 +1030,13 @@ closePanelBtn.addEventListener('click', (e) => {
 const ordersTableBody = document.querySelector('.orders-table-container tbody');
 const orderHeaders = document.querySelectorAll('.orders-table-container thead th');
 let currentSort = { column: null, direction: 'asc' };
+let currentPage = 1;
+const ordersPerPage = 10;
+let hasFiltersApplied = false;
 
 function sortOrders(columnKey) {
+  hasFiltersApplied = true;
+  
   if (currentSort.column === columnKey) {
     currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
   } else {
@@ -998,6 +1076,7 @@ function sortOrders(columnKey) {
     return currentSort.direction === 'asc' ? comp : -comp;
   });
 
+  currentPage = 1;
   renderOrdersTable();
   renderSortArrows();
 }
@@ -1009,29 +1088,34 @@ function renderOrdersTable(showAllOrders = false) {
     ordersTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 20px;">No orders found.</td></tr>`;
     renderCancelledOrders();
     renderCompletedOrders();
+    renderPagination(0);
     return;
   }
 
   let ordersToDisplay = orders;
 
-  if (!showAllOrders) {
-    // Filter to show only active orders (not cancelled and not completed)
-    ordersToDisplay = orders.filter(order => {
-      const isCancelled = (order.FulfillmentStatus === 'Cancelled' || order.fulfillmentStatus === 'Cancelled');
-      const paymentCompleted = (order.PaymentStatus || order.paymentStatus || '').toLowerCase() === 'completed';
-      const fulfillmentCompleted = (order.FulfillmentStatus || order.fulfillmentStatus || '').toLowerCase() === 'completed';
-      const bothCompleted = paymentCompleted && fulfillmentCompleted;
+  // Always filter out completed and cancelled orders from main table
+  ordersToDisplay = orders.filter(order => {
+    const isCancelled = (order.FulfillmentStatus === 'Cancelled' || order.fulfillmentStatus === 'Cancelled');
+    const paymentCompleted = (order.PaymentStatus || order.paymentStatus || '').toLowerCase() === 'completed';
+    const fulfillmentCompleted = (order.FulfillmentStatus || order.fulfillmentStatus || '').toLowerCase() === 'completed';
+    const bothCompleted = paymentCompleted && fulfillmentCompleted;
 
-      return !isCancelled && !bothCompleted;
-    });
-  }
+    return !isCancelled && !bothCompleted;
+  });
+
+  const totalOrders = ordersToDisplay.length;
+  const startIndex = (currentPage - 1) * ordersPerPage;
+  const endIndex = startIndex + ordersPerPage;
+  ordersToDisplay = ordersToDisplay.slice(startIndex, endIndex);
 
   ordersToDisplay.forEach((order, index) => {
     const paymentBadge = getPaymentStatusBadge(order.PaymentStatus || order.paymentStatus);
     const fulfillmentBadge = getFulfillmentStatusBadge(order.FulfillmentStatus || order.fulfillmentStatus);
+    const orderIdx = orders.indexOf(order);
 
     ordersTableBody.innerHTML += `
-    <tr class="order-row ${selectedRowIndex === index ? 'selected' : ''}" data-idx="${orders.indexOf(order)}">
+    <tr class="order-row ${selectedRowIndex === orderIdx ? 'selected' : ''}" data-idx="${orderIdx}">
       <td>${order.OrderID || 'N/A'}</td>
       <td>${order.Date ? new Date(order.Date).toLocaleString()
             : order.date ? new Date(order.date).toLocaleString() : 'N/A'}</td>
@@ -1073,7 +1157,71 @@ function renderOrdersTable(showAllOrders = false) {
   initRowEventListeners();
   renderCancelledOrders();
   renderCompletedOrders();
+  renderPagination(totalOrders);
+
+  if (typeof window.orderMobileHandler !== 'undefined') {
+    window.orderMobileHandler.renderOrderCards(ordersToDisplay);
+  }
 }
+
+function renderPagination(totalOrders) {
+  const totalPages = Math.ceil(totalOrders / ordersPerPage);
+  let paginationContainer = document.querySelector('.pagination-container');
+  
+  if (!paginationContainer) {
+    paginationContainer = document.createElement('div');
+    paginationContainer.className = 'pagination-container';
+    const ordersTableContainer = document.getElementById('ordersTableContainer');
+    if (ordersTableContainer) {
+      ordersTableContainer.appendChild(paginationContainer);
+    }
+  }
+
+  if (totalPages <= 1) {
+    paginationContainer.innerHTML = '';
+    return;
+  }
+
+  let paginationHtml = '<div class="pagination">';
+  
+  paginationHtml += `<button class="page-btn arrow-btn" onclick="changePage(1)" title="First Page"><i class="fa-solid fa-angle-left"></i></button>`;
+  paginationHtml += `<button class="page-btn arrow-btn" onclick="changePage(${Math.max(1, currentPage - 1)})" title="Previous Page"><i class="fa-solid fa-chevron-left"></i></button>`;
+
+  const startPage = Math.max(1, currentPage - 2);
+  const endPage = Math.min(totalPages, currentPage + 2);
+
+  if (startPage > 1) {
+    paginationHtml += `<button class="page-btn" onclick="changePage(1)">1</button>`;
+    if (startPage > 2) {
+      paginationHtml += `<span class="page-ellipsis">...</span>`;
+    }
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    paginationHtml += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+  }
+
+  if (endPage < totalPages) {
+    if (endPage < totalPages - 1) {
+      paginationHtml += `<span class="page-ellipsis">...</span>`;
+    }
+    paginationHtml += `<button class="page-btn" onclick="changePage(${totalPages})">${totalPages}</button>`;
+  }
+
+  paginationHtml += `<button class="page-btn arrow-btn" onclick="changePage(${Math.min(totalPages, currentPage + 1)})" title="Next Page"><i class="fa-solid fa-chevron-right"></i></button>`;
+  paginationHtml += `<button class="page-btn arrow-btn" onclick="changePage(${totalPages})" title="Last Page"><i class="fa-solid fa-angle-right"></i></button>`;
+
+  paginationHtml += '</div>';
+  paginationContainer.innerHTML = paginationHtml;
+}
+
+function changePage(page) {
+  currentPage = page;
+  renderOrdersTable();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+window.changePage = changePage;
 
 function clearSortArrows() {
   orderHeaders.forEach(th => {
@@ -1099,24 +1247,26 @@ function renderSortArrows() {
 }
 
 function resetSort() {
-  // Restore the original order
+  if (!hasFiltersApplied) {
+    return;
+  }
+
   orders = [...ordersData];
-
-  // Reset sort state
   currentSort = { column: null, direction: 'asc' };
+  currentPage = 1;
+  hasFiltersApplied = false;
 
-  // Clear sort arrows from all headers
   clearSortArrows();
 
-  // Clear any filter inputs in table headers
   const filterInputs = document.querySelectorAll('thead input[type="text"], thead select');
   filterInputs.forEach(input => {
     input.value = '';
   });
 
-  // Force re-render with all orders (including cancelled/completed) in original order
-  renderOrdersTable(true); // Pass true to show all orders
-}orderHeaders.forEach(th => {
+  renderOrdersTable();
+}
+
+orderHeaders.forEach(th => {
   const columnKey = th.dataset.column;
   if (columnKey) {
     th.style.cursor = 'pointer';
@@ -1858,6 +2008,10 @@ function openCompletedOrdersModal() {
     });
   }
 
+  if (typeof window.orderMobileHandler !== 'undefined') {
+    window.orderMobileHandler.renderCompletedOrderCards(completedOrders);
+  }
+
   completedOrdersModal.style.display = 'flex';
   document.body.style.overflow = 'hidden';
 }
@@ -2002,3 +2156,89 @@ setInterval(pollOrders, 5000);
 pollOrders();
 
 renderOrdersTable();
+
+// Check for orderId in URL after a short delay to ensure DOM is ready
+setTimeout(function checkUrlForOrderId() {
+    console.log('🚀 checkUrlForOrderId function STARTED');
+    console.log('🚀 Current URL:', window.location.href);
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderId = urlParams.get('orderId');
+    
+    console.log('🚀 Parsed orderId from URL:', orderId);
+    
+    if (!orderId) {
+        console.log('🚀 No orderId in URL, exiting');
+        return;
+    }
+    
+    console.log('🔔 Checking URL for orderId:', orderId);
+    console.log('🔔 Total orders in array:', orders.length);
+    console.log('🔔 First 5 OrderIDs:', orders.slice(0, 5).map(o => o.OrderID));
+    
+    const order = orders.find(o => {
+        const match = String(o.OrderID) === String(orderId);
+        if (match) console.log('✅ MATCH FOUND:', o.OrderID);
+        return match;
+    });
+    
+    if (!order) {
+        console.log('❌ Order not found. Looking for:', orderId);
+        console.log('❌ Available OrderIDs:', orders.map(o => o.OrderID));
+        window.history.replaceState({}, document.title, window.location.pathname);
+        return;
+    }
+    
+    console.log('✅ Order found:', order.OrderID);
+    
+    const orderIndex = orders.indexOf(order);
+    const isCancelled = (order.FulfillmentStatus === 'Cancelled' || order.fulfillmentStatus === 'Cancelled');
+    const paymentCompleted = (order.PaymentStatus || order.paymentStatus || '').toLowerCase() === 'completed';
+    const fulfillmentCompleted = (order.FulfillmentStatus || order.fulfillmentStatus || '').toLowerCase() === 'completed';
+    const isFullyCompleted = paymentCompleted && fulfillmentCompleted;
+    
+    if (isCancelled || isFullyCompleted) {
+        console.log('📋 Order is completed/cancelled, showing details directly');
+        setTimeout(() => {
+            showOrderDetails(order, orderIndex);
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }, 300);
+    } else {
+        const activeOrders = orders.filter(o => {
+            const cancelled = (o.FulfillmentStatus === 'Cancelled' || o.fulfillmentStatus === 'Cancelled');
+            const payComplete = (o.PaymentStatus || o.paymentStatus || '').toLowerCase() === 'completed';
+            const fullComplete = (o.FulfillmentStatus || o.fulfillmentStatus || '').toLowerCase() === 'completed';
+            return !cancelled && !(payComplete && fullComplete);
+        });
+        
+        const activeIndex = activeOrders.findIndex(o => String(o.OrderID) === String(order.OrderID));
+        
+        console.log('📋 Active order index:', activeIndex, 'of', activeOrders.length);
+        
+        if (activeIndex !== -1) {
+            const targetPage = Math.floor(activeIndex / ordersPerPage) + 1;
+            console.log('📄 Target page:', targetPage, 'Current page:', currentPage);
+            
+            if (targetPage !== currentPage) {
+                currentPage = targetPage;
+                renderOrdersTable();
+            }
+            
+            setTimeout(() => {
+                const row = document.querySelector(`.order-row[data-idx="${orderIndex}"]`);
+                console.log('📋 Looking for row with data-idx:', orderIndex, 'Found:', !!row);
+                if (row) {
+                    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                showOrderDetails(order, orderIndex);
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }, 300);
+        } else {
+            console.log('❌ Order not found in active orders, showing anyway');
+            setTimeout(() => {
+                showOrderDetails(order, orderIndex);
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }, 300);
+        }
+    }
+}, 500);

@@ -1,28 +1,57 @@
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="/css/cart.css">
 <link rel="stylesheet" href="/css/site-public.css">
 
 <div class="cart-container">
   <h2>Your Cart</h2>
-  <div id="cart-items" class="cart-items">
+
+  <div id="cart-items" class="cart-main">
     <div class="loading-spinner">
+      <div class="loading-spinner-icon"></div>
       <div class="loading-spinner-text">Loading cart...</div>
     </div>
   </div>
-  <div id="cart-total" class="cart-total">
-  </div>
-<% if (!user) { %>
-  <div class="cart-login-prompt">
-    <h3 style="color: black">Have an account?</h3>
-    <p style="color: black"><a href="/auth/login">Log in</a> to check out faster.</p>
-  </div>
-<% } %>
-  <div class="cart-actions">
-    <button onclick="window.location.href='/'" class="continue-shopping-btn">Back to Menu</button>
-    <button id="checkout-btn" class="checkout-btn" style="display: none;">Proceed to Checkout</button>
+
+  <div class="cart-layout" id="cart-layout-wrapper" style="display: none;">
+    <div class="cart-main">
+
+      <div id="items-card" class="cart-card">
+        <div class="cart-card-header">
+          <div class="cart-card-header-title">
+            <h3 class="cart-card-title-text">Items Ordered</h3>
+          </div>
+        </div>
+        <div class="cart-card-content">
+          <div class="cart-card-body" id="items-body">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div id="cart-total" class="cart-total">
+        <h3>Order Summary</h3>
+        <div class="cart-total-row final">
+          <span>Total:</span>
+          <span id="final-total">₱0.00</span>
+        </div>
+        <p style="margin: 12px 0 0 0; font-size: 0.85rem; color: var(--text-secondary); font-weight: 500;">Delivery calculated at checkout</p>
+        <button id="checkout-btn" class="checkout-btn disabled" disabled aria-disabled="true">Proceed to Checkout</button>
+        <button onclick="window.location.href='/'" class="continue-shopping-btn">Back to Menu</button>
+      </div>
+
+      <% if (!user) { %>
+        <div class="cart-total" style="background: #fef6f0; border: 2px solid var(--primary-color); margin-top: 12px;">
+          <h3 style="margin-bottom: 8px; color: var(--text-primary);">Guest Checkout</h3>
+          <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.4;">
+            <a href="/auth/login" style="color: var(--primary-color); font-weight: 600; text-decoration: none;">Log in</a> to check out faster with saved addresses.
+          </p>
+        </div>
+      <% } %>
+    </div>
   </div>
 </div>
 
-<!-- Confirmation Modal -->
 <div id="confirmationModal" class="modal-overlay confirmation-modal">
   <div class="confirmation-container">
     <div class="confirmation-header">
@@ -37,6 +66,3 @@
     </div>
   </div>
 </div>
-
-<!-- Remove the conflicting script that's causing the error -->
-<!-- The cart functionality is now handled by cart.js which is included in the layout -->

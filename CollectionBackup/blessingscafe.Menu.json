@@ -17,7 +17,7 @@
   ],
   "Category": "Milktea",
   "Allergen": "",
-  "imagelink": "/uploads/products/Taro-Milktea-1763133930786.png",
+  "imagelink": "https://blessingsateverysip.me/uploads/products/Taro-Milktea-1764144786232.webp",
   "isEnabled": false,
   "AddOns": [
     {
@@ -73,7 +73,7 @@
   ],
   "Category": "Milktea",
   "Allergen": "",
-  "imagelink": "https://i.ibb.co/SD7CMgbv/781f64717216.png",
+  "imagelink": "https://blessingsateverysip.me/uploads/products/Matcha-Milktea-1764144857269.webp",
   "isEnabled": true,
   "AddOns": [
     {
@@ -129,7 +129,7 @@
   ],
   "Category": "Milktea",
   "Allergen": "",
-  "imagelink": "https://i.ibb.co/ynG74QKt/2d5ba5c48447.png",
+  "imagelink": "https://blessingsateverysip.me/uploads/products/Okinawa-Milktea-1764151469389.webp",
   "isEnabled": true,
   "AddOns": [
     {
@@ -185,7 +185,7 @@
   ],
   "Category": "Milktea",
   "Allergen": "",
-  "imagelink": "https://i.ibb.co/C4xb6ZH/a2281154065e.png",
+  "imagelink": "https://blessingsateverysip.me/uploads/products/Dalgona-Milktea-1764151665239.webp",
   "isEnabled": true,
   "AddOns": [
     {
@@ -241,7 +241,7 @@
   ],
   "Category": "Milktea",
   "Allergen": "",
-  "imagelink": "https://i.ibb.co/pvN9fT0x/e7bac153da3d.png",
+  "imagelink": "https://blessingsateverysip.me/uploads/products/Hershey-s-Milktea-1764151673370.webp",
   "isEnabled": true,
   "AddOns": [
     {
@@ -297,7 +297,7 @@
   ],
   "Category": "Milktea",
   "Allergen": "",
-  "imagelink": "https://i.ibb.co/3yhggj3X/01feda850fc9.png",
+  "imagelink": "https://blessingsateverysip.me/uploads/products/Wintermelon-Milktea-1764151687143.webp",
   "isEnabled": true,
   "AddOns": [
     {
@@ -353,7 +353,7 @@
   ],
   "Category": "Milktea",
   "Allergen": "",
-  "imagelink": "https://i.ibb.co/rKJ72GM5/e5d8ffca3ff9.png",
+  "imagelink": "https://blessingsateverysip.me/uploads/products/Salted-Caramel-Milktea-1764151705272.webp",
   "isEnabled": true,
   "AddOns": [
     {
@@ -409,7 +409,7 @@
   ],
   "Category": "Milktea",
   "Allergen": "",
-  "imagelink": "https://i.ibb.co/k2DPr88j/4e8150d76c6c.png",
+  "imagelink": "https://blessingsateverysip.me/uploads/products/Cookies--N-Cream-Milktea-1764151721957.webp",
   "isEnabled": true,
   "AddOns": [
     {
@@ -452,7 +452,7 @@
   },
   "ProductID": "CF-CAR",
   "Name": "Caramel Coffee",
-  "description": "A decadent blend of rich chocolate, creamy milk tea, and a hint of cherry flavor — a dessert-like indulgence in every sip.\r\n",
+  "description": "A smooth fusion of bold brewed coffee, buttery caramel, and creamy milk — a warm, comforting indulgence with sweet caramel notes in every sip.",
   "Sizes": [
     {
       "Size": "16oz",
@@ -461,7 +461,7 @@
   ],
   "Category": "Coffee",
   "Allergen": "Peanut",
-  "imagelink": "https://i.ibb.co/Xktdkrq2/e7e94e01b928.png",
+  "imagelink": "https://blessingsateverysip.me/uploads/products/Caramel-Coffee-1764152020732.webp",
   "isEnabled": true,
   "Ingredients": [
     {
@@ -496,7 +496,7 @@
   ],
   "Category": "Coffee",
   "Allergen": "Peanut",
-  "imagelink": "https://i.ibb.co/ynW2yPKS/b1d4fdcfb97d.png",
+  "imagelink": "https://blessingsateverysip.me/uploads/products/Toffee-Nut-Coffee-1764152055359.webp",
   "isEnabled": true,
   "Ingredients": [
     {
@@ -531,7 +531,7 @@
   ],
   "Category": "Coffee",
   "Allergen": "Peanut",
-  "imagelink": "https://i.ibb.co/fzY1mV5M/0ae764d03543.png",
+  "imagelink": "https://blessingsateverysip.me/uploads/products/Macademia-Nut-Coffee-1764152070088.webp",
   "isEnabled": true,
   "Ingredients": [
     {
@@ -566,7 +566,7 @@
   ],
   "Category": "Coffee",
   "Allergen": "",
-  "imagelink": "https://i.ibb.co/G4C2jcxs/3493683be66a.png",
+  "imagelink": "https://blessingsateverysip.me/uploads/products/Spanish-Latte-Coffee-1764152466035.webp",
   "isEnabled": true,
   "Ingredients": [
     {
@@ -601,7 +601,7 @@
   ],
   "Category": "Coffee",
   "Allergen": "",
-  "imagelink": "https://i.ibb.co/nqk74kXg/67e51224ec03.png",
+  "imagelink": "https://blessingsateverysip.me/uploads/products/Salted-Caramel-Coffee-1764152478793.webp",
   "isEnabled": true,
   "Ingredients": [
     {
@@ -636,7 +636,7 @@
   ],
   "Category": "Fruit Tea",
   "Allergen": "",
-  "imagelink": "https://i.ibb.co/gMtb26kq/fa609ee67bf8.png",
+  "imagelink": "https://blessingsateverysip.me/uploads/products/Mango-Fruit-Tea-1764152506272.webp",
   "isEnabled": true,
   "AddOns": [
     {
@@ -674,7 +674,7 @@
   ],
   "Category": "Fruit Tea",
   "Allergen": "",
-  "imagelink": "https://i.ibb.co/B52vF9CX/57410f68240f.png",
+  "imagelink": "https://blessingsateverysip.me/uploads/products/Passion-Fruit-Tea-1764152515840.webp",
   "isEnabled": true,
   "Ingredients": [
     {
@@ -704,7 +704,7 @@
   ],
   "Category": "Fruit Tea",
   "Allergen": "",
-  "imagelink": "https://i.ibb.co/1GTMJLq2/20bbf5ab9f29.png",
+  "imagelink": "https://blessingsateverysip.me/uploads/products/Strawberry-Fruit-Tea-1764152616414.webp",
   "isEnabled": true,
   "AddOns": [
     {
@@ -737,12 +737,12 @@
   "Sizes": null,
   "Category": "Pastries",
   "Allergen": "",
-  "imagelink": "https://i.ibb.co/YBNt6kCX/6d80c221fbcf.png",
+  "imagelink": "https://blessingsateverysip.me/uploads/products/Cupcake-1764152637319.webp",
   "isEnabled": true,
-  "Quantity": 988,
+  "Quantity": 985,
   "BasePrice": 25,
   "lastModified": {
-    "$date": "2025-11-11T07:06:22.790Z"
+    "$date": "2025-11-25T06:34:31.332Z"
   },
   "quantity": -1
 },
@@ -756,10 +756,13 @@
   "Sizes": null,
   "Category": "Pastries",
   "Allergen": "",
-  "imagelink": "https://i.ibb.co/prR9vQ2G/87d5b2467999.png",
+  "imagelink": "https://blessingsateverysip.me/uploads/products/Cookies-1764152649138.webp",
   "isEnabled": true,
-  "Quantity": 999,
-  "BasePrice": 50
+  "Quantity": 993,
+  "BasePrice": 50,
+  "lastModified": {
+    "$date": "2025-11-27T06:36:56.350Z"
+  }
 },
 {
   "_id": {
@@ -771,7 +774,7 @@
   "Sizes": null,
   "Category": "Pastries",
   "Allergen": "",
-  "imagelink": "https://i.ibb.co/7xjrFbwF/632a6974461a.png",
+  "imagelink": "https://blessingsateverysip.me/uploads/products/Waffles-1764152660872.webp",
   "isEnabled": true,
   "Quantity": 999,
   "BasePrice": 120
@@ -786,12 +789,12 @@
   "Sizes": null,
   "Category": "Pastries",
   "Allergen": "",
-  "imagelink": "https://i.ibb.co/6JBVSRL4/9d68ff42dc07.png",
+  "imagelink": "https://blessingsateverysip.me/uploads/products/Crinkles-1764152669772.webp",
   "isEnabled": true,
-  "Quantity": 982,
+  "Quantity": 850,
   "BasePrice": 50,
   "lastModified": {
-    "$date": "2025-11-15T07:16:07.926Z"
+    "$date": "2025-11-27T08:06:14.951Z"
   }
 },
 {
@@ -813,7 +816,7 @@
   ],
   "Category": "Milktea",
   "Allergen": "",
-  "imagelink": "https://i.ibb.co/ymYmKHKP/05b7b84ab2cf.png",
+  "imagelink": "https://blessingsateverysip.me/uploads/products/Black-Forest-Milktea-1764151796574.webp",
   "isEnabled": true,
   "AddOns": [
     {
@@ -865,7 +868,7 @@
   ],
   "Category": "Fruit Tea",
   "Allergen": "",
-  "imagelink": "https://i.ibb.co/S46vhJG8/ee2e1bfeab24.png",
+  "imagelink": "https://blessingsateverysip.me/uploads/products/Green-Apple-Fruit-Tea-1764152626477.webp",
   "isEnabled": true,
   "AddOns": [
     {
@@ -903,7 +906,7 @@
   ],
   "Category": "Coffee",
   "Allergen": "",
-  "imagelink": "https://i.ibb.co/CpzqyfN8/ef08513930fa.png",
+  "imagelink": "https://blessingsateverysip.me/uploads/products/White-Chocolate-Coffee-1764152490240.webp",
   "isEnabled": true,
   "Ingredients": [
     {

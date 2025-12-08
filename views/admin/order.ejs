@@ -1,13 +1,14 @@
 <link rel="stylesheet" href="/css/order.css">
 
 <div class="layout-container">
-  <div class="orders-table-container" id="ordersTableContainer">
-    <div class="header-section">
+      <div class="header-section">
       <h1>Orders List</h1>
       <button class="reset-sort-btn" id="resetSortBtn" title="Reset Sort Filters">
         <i class="fa-solid fa-arrows-rotate"></i>
       </button>
     </div>
+  <div class="orders-table-container" id="ordersTableContainer">
+    <div class="orders-mobile-cards" id="ordersMobileCards"></div>
     <div class="orders-table-scroll">
       <table>
         <thead>
@@ -156,6 +157,8 @@
     </div>
   </div>
 
+  <div id="mobileBackdrop" class="order-detail-panel mobile-open-backdrop" style="display:none;"></div>
+
   <aside class="order-detail-panel" id="orderDetailPanel">
     <div class="panel-header">
       <h2>
@@ -214,6 +217,7 @@
         <span class="orders-count-badge" id="ordersCountBadge">0 Orders</span>
       </div>
       <div class="completed-orders-list">
+        <div class="completed-orders-mobile-cards" id="completedOrdersMobileCards"></div>
         <table class="completed-orders-table" id="completedOrdersTable">
           <thead>
             <tr>
@@ -257,4 +261,6 @@
 <script type="application/json" id="orders-data"><%- JSON.stringify(orders || []) %></script>
 <script type="application/json" id="menu-data"><%- JSON.stringify(menu || []) %></script>
 
-<script src="/js/order.js"></script>
+<script>window.apiPrefix = '/admin';</script>
+<script src="/js/order-mobile.js" defer></script>
+<script src="/js/order.js" defer></script>

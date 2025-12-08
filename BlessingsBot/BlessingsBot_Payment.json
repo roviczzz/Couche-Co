@@ -353,7 +353,7 @@
       "parameters": {
         "operation": "delete",
         "collection": "Chatbot-Cart",
-        "query": "={ \"transactionId\": \"{{ $('insert to Orders [Order Confirmation]').first().json.OrderID }}\" }"
+        "query": "={ \"transactionId\": \"{{ $('find userId Cart [Order Confirmation]').first().json.transactionId }}\" }"
       },
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
@@ -827,7 +827,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const currentItems = $input.all().map(i => i.json);\nconst deductionItems = $('Calculate Deduction [Ingredients]').all().map(i => i.json);\n\nconst processedIngredients = new Set();\nconst results = [];\n\ncurrentItems.forEach(currentItem => {\n  if (!processedIngredients.has(currentItem.IngredientID)) {\n    const deductionItem = deductionItems.find(d => d.IngredientID === currentItem.IngredientID);\n    const deduction = deductionItem ? deductionItem.deduction : 0;\n    \n    if (deduction > 0) {\n      const newQuantity = currentItem.Amount - deduction;\n      \n      results.push({\n        json: {\n          IngredientID: currentItem.IngredientID,\n          newQuantity: newQuantity,\n          currentQuantity: currentItem.Amount,\n          deduction: deduction\n        }\n      });\n      \n      processedIngredients.add(currentItem.IngredientID);\n    }\n  }\n});\n\nreturn results;"
+        "jsCode": "const currentItems = $input.all().map(i => i.json);\n\nconst processedIngredients = new Set();\nconst results = [];\n\ncurrentItems.forEach(currentItem => {\n  if (!processedIngredients.has(currentItem.IngredientID)) {\n    const deduction = currentItem.DeductionQuantityGrams || 0;\n    \n    if (deduction > 0) {\n      const newQuantity = currentItem.Amount - deduction;\n      \n      results.push({\n        json: {\n          IngredientID: currentItem.IngredientID,\n          newQuantity: newQuantity,\n          currentQuantity: currentItem.Amount,\n          deduction: deduction\n        }\n      });\n      \n      processedIngredients.add(currentItem.IngredientID);\n    }\n  }\n});\n\nreturn results;"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1311,7 +1311,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $('Success Message with QR').item.json.userId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"image\",\n      \"payload\": {\n        \"url\": \"{{ $('Upload QR ImgBB').item.json.data.image.url }}\",\n\"is_reusable\": true\n      }\n    }\n  }\n}",
+        "jsonBody": "={\n  \"messaging_type\": \"RESPONSE\",\n  \"recipient\": {\n    \"id\": \"{{ $('Success Message with QR').first().json.userId }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"image\",\n      \"payload\": {\n        \"url\": \"{{ $('Upload QR ImgBB').first().json.data.image.url }}\",\n        \"is_reusable\": true\n      }\n    }\n  }\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -2067,7 +2067,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "d18fdb37-3383-4379-9a58-ddaf92767a3e",
+  "versionId": "fb7cbe76-b125-4bda-ae82-28fd49968b8a",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "c9a539eddbbcc53188d09f0c160cdca467499addf0ec993ff0d9c5b9cab4ef78"
