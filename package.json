@@ -34,6 +34,7 @@
     "nodemailer": "^7.0.10",
     "puppeteer": "^24.29.1",
     "qrcode": "^1.5.4",
+    "resend": "^6.5.2",
     "serve-favicon": "^2.5.1",
     "sharp": "^0.34.5"
   },

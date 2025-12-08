@@ -1,14 +1,8 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 const QRCode = require('qrcode');
 const path = require('path');
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASSWORD
-  }
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const generateEmailTemplate = (order, customerName) => {
   const itemsHTML = order.Cart.map(item => `
@@ -334,11 +328,19 @@ const sendOrderReceipt = async (order, customerEmail, customerName) => {
   try {
     console.log(`[RESEND] Starting email send. Email: ${customerEmail}, Order: ${order.OrderID}, Customer: ${customerName}`);
     
-    if (!process.env.GMAIL_USER || !process.env.GMAIL_PASSWORD) {
-      console.error('[RESEND] Gmail credentials not configured in environment variables');
+    if (!process.env.RESEND_API_KEY) {
+      console.error('[RESEND] Resend API key not configured in environment variables');
       return {
         success: false,
         error: 'Email service not configured'
+      };
+    }
+
+    if (!process.env.RESEND_FROM_EMAIL) {
+      console.error('[RESEND] Resend from email not configured in environment variables');
+      return {
+        success: false,
+        error: 'Email service not properly configured'
       };
     }
 
@@ -350,36 +352,43 @@ const sendOrderReceipt = async (order, customerEmail, customerName) => {
     const emailHTML = generateEmailTemplate(order, customerName);
     console.log(`[RESEND] Email template generated (length: ${emailHTML.length})`);
 
-    console.log(`[RESEND] Attempting to send email via Gmail SMTP...`);
+    console.log(`[RESEND] Attempting to send email via Resend...`);
     
     const logoPath = path.join(__dirname, '../public/resources/Blessings-Logo.png');
+    const fs = require('fs');
+    const logoBase64 = fs.readFileSync(logoPath).toString('base64');
     
-    const response = await transporter.sendMail({
-      from: `Blessings Café <${process.env.GMAIL_USER}>`,
+    const response = await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL,
       to: customerEmail,
       subject: `Order Receipt #${order.OrderID} - Blessings Café`,
       html: emailHTML,
       attachments: [
         {
           filename: 'qrcode.png',
-          content: qrCodeDataUrl.split(',')[1],
-          encoding: 'base64',
-          cid: 'qrcode'
+          content: qrCodeDataUrl.split(',')[1]
         },
         {
           filename: 'logo.png',
-          path: logoPath,
-          cid: 'logo'
+          content: logoBase64
         }
       ]
     });
 
-    console.log(`✅ [RESEND] Email sent successfully! MessageID: ${response.messageId}`);
+    if (response.error) {
+      console.error(`❌ [RESEND] Error sending email:`, response.error);
+      return {
+        success: false,
+        error: response.error.message || 'Failed to send email'
+      };
+    }
+
+    console.log(`✅ [RESEND] Email sent successfully! MessageID: ${response.data.id}`);
     console.log(`✅ Order receipt sent to ${customerEmail} for order ${order.OrderID}`);
     
     return {
       success: true,
-      messageId: response.messageId
+      messageId: response.data.id
     };
   } catch (error) {
     console.error(`❌ [RESEND] Error sending order receipt to ${customerEmail}:`, error);
@@ -396,15 +405,14 @@ const sendOrderReceipt = async (order, customerEmail, customerName) => {
 
 const verifyEmailConnection = async () => {
   try {
-    if (!process.env.GMAIL_USER || !process.env.GMAIL_PASSWORD) {
-      console.error('Gmail credentials not configured');
+    if (!process.env.RESEND_API_KEY) {
+      console.error('Resend API key not configured');
       return false;
     }
-    await transporter.verify();
-    console.log('✅ Email service (Gmail SMTP) configured and verified successfully');
+    console.log('✅ Email service (Resend) configured successfully');
     return true;
   } catch (error) {
-    console.error('❌ Email service verification failed:', error.message);
+    console.error('❌ Email service verification failed:', error);
     return false;
   }
 };

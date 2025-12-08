@@ -1,14 +1,8 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 const QRCode = require('qrcode');
 const path = require('path');
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASSWORD
-  }
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const generateEmailTemplate = (order, customerName) => {
   const itemsHTML = order.Cart.map(item => `
@@ -368,13 +362,20 @@ const sendOrderReceipt = async (order, customerEmail, customerName) => {
   try {
     console.log(`[EMAILSVC] Starting email send. Email: ${customerEmail}, Order: ${order.OrderID}, Customer: ${customerName}`);
     
-    if (!process.env.GMAIL_USER || !process.env.GMAIL_PASSWORD) {
-      console.error('[EMAILSVC] Gmail credentials not configured in environment variables');
-      console.error(`[EMAILSVC] GMAIL_USER: ${process.env.GMAIL_USER ? 'SET' : 'NOT SET'}`);
-      console.error(`[EMAILSVC] GMAIL_PASSWORD: ${process.env.GMAIL_PASSWORD ? 'SET' : 'NOT SET'}`);
+    if (!process.env.RESEND_API_KEY) {
+      console.error('[EMAILSVC] Resend API key not configured in environment variables');
+      console.error(`[EMAILSVC] RESEND_API_KEY: ${process.env.RESEND_API_KEY ? 'SET' : 'NOT SET'}`);
       return {
         success: false,
         error: 'Email service not configured'
+      };
+    }
+
+    if (!process.env.RESEND_FROM_EMAIL) {
+      console.error('[EMAILSVC] Resend from email not configured in environment variables');
+      return {
+        success: false,
+        error: 'Email service not properly configured'
       };
     }
 
@@ -387,36 +388,43 @@ const sendOrderReceipt = async (order, customerEmail, customerName) => {
     console.log(`[EMAILSVC] Email template generated (length: ${emailHTML.length})`);
 
     const logoPath = path.join(__dirname, '../public/resources/Blessings-Logo.png');
+    const fs = require('fs');
+    const logoBase64 = fs.readFileSync(logoPath).toString('base64');
     
     const mailOptions = {
-      from: `Blessings Café <${process.env.GMAIL_USER}>`,
+      from: process.env.RESEND_FROM_EMAIL,
       to: customerEmail,
       subject: `Order Receipt #${order.OrderID} - Blessings Café`,
       html: emailHTML,
       attachments: [
         {
           filename: 'qrcode.png',
-          content: qrCodeDataUrl.split(',')[1],
-          encoding: 'base64',
-          cid: 'qrcode'
+          content: qrCodeDataUrl.split(',')[1]
         },
         {
           filename: 'logo.png',
-          path: logoPath,
-          cid: 'logo'
+          content: logoBase64
         }
       ]
     };
 
-    console.log(`[EMAILSVC] Attempting to send email via Gmail SMTP...`);
-    const result = await transporter.sendMail(mailOptions);
+    console.log(`[EMAILSVC] Attempting to send email via Resend...`);
+    const result = await resend.emails.send(mailOptions);
+    
+    if (result.error) {
+      console.error(`❌ [EMAILSVC] Resend error:`, result.error);
+      return {
+        success: false,
+        error: result.error.message || 'Failed to send email'
+      };
+    }
 
-    console.log(`✅ [EMAILSVC] Email sent successfully! MessageID: ${result.messageId}`);
+    console.log(`✅ [EMAILSVC] Email sent successfully! MessageID: ${result.data.id}`);
     console.log(`✅ Order receipt sent to ${customerEmail} for order ${order.OrderID}`);
     
     return {
       success: true,
-      messageId: result.messageId
+      messageId: result.data.id
     };
   } catch (error) {
     console.error(`❌ [EMAILSVC] Error sending order receipt to ${customerEmail}:`, error);
@@ -433,15 +441,14 @@ const sendOrderReceipt = async (order, customerEmail, customerName) => {
 
 const verifyEmailConnection = async () => {
   try {
-    if (!process.env.GMAIL_USER || !process.env.GMAIL_PASSWORD) {
-      console.error('[EMAILSVC] Gmail credentials not configured');
+    if (!process.env.RESEND_API_KEY) {
+      console.error('[EMAILSVC] Resend API key not configured');
       return false;
     }
-    await transporter.verify();
-    console.log('[EMAILSVC] ✅ Email service (Gmail SMTP) configured and verified successfully');
+    console.log('[EMAILSVC] ✅ Email service (Resend) configured successfully');
     return true;
   } catch (error) {
-    console.error('[EMAILSVC] ❌ Email service verification failed:', error.message);
+    console.error('[EMAILSVC] ❌ Email service verification failed:', error);
     return false;
   }
 };
