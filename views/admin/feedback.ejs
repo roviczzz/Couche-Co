@@ -117,9 +117,30 @@
         <% } %>
       </div>
       <div class="pagination-controls" id="paginationControls">
-        <button class="btn-pagination" id="prevPage" disabled><i class="fas fa-chevron-left"></i> Previous</button>
-        <span class="page-info" id="pageInfo">Page 1</span>
-        <button class="btn-pagination" id="nextPage"><i class="fas fa-chevron-right"></i> Next</button>
+        <div class="pagination-left">
+          <select id="itemsPerPage" class="items-per-page">
+            <option value="5">5 per page</option>
+            <option value="10" selected>10 per page</option>
+            <option value="20">20 per page</option>
+            <option value="50">50 per page</option>
+          </select>
+          <span class="pagination-info" id="paginationInfo">Showing 1-10 of 0</span>
+        </div>
+        <div class="pagination-right">
+          <button class="btn-pagination btn-first" id="firstPage" disabled>
+            <i class="fas fa-angle-double-left"></i>
+          </button>
+          <button class="btn-pagination btn-prev" id="prevPage" disabled>
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <div class="page-numbers" id="pageNumbers"></div>
+          <button class="btn-pagination btn-next" id="nextPage">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+          <button class="btn-pagination btn-last" id="lastPage">
+            <i class="fas fa-angle-double-right"></i>
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -130,24 +151,148 @@ document.addEventListener('DOMContentLoaded', function() {
   const filterRating = document.getElementById('filterRating');
   const filterPage = document.getElementById('filterPage');
   const feedbackItems = document.querySelectorAll('.feedback-item');
+  const itemsPerPageSelect = document.getElementById('itemsPerPage');
+  const paginationInfo = document.getElementById('paginationInfo');
+  const pageNumbersContainer = document.getElementById('pageNumbers');
+  const prevPageBtn = document.getElementById('prevPage');
+  const nextPageBtn = document.getElementById('nextPage');
+  const firstPageBtn = document.getElementById('firstPage');
+  const lastPageBtn = document.getElementById('lastPage');
+  
+  let currentPage = 1;
+  let itemsPerPage = 10;
+  let filteredItems = [];
   
   function applyFilters() {
     const selectedRating = filterRating.value;
-    const selectedPage = filterPage.value;
+    const selectedSource = filterPage.value;
     
-    feedbackItems.forEach(item => {
+    filteredItems = Array.from(feedbackItems).filter(item => {
       const itemRating = item.dataset.rating;
       const itemPage = item.dataset.page;
       
       const matchesRating = !selectedRating || itemRating === selectedRating;
-      const matchesPage = !selectedPage || itemPage === selectedPage;
+      const matchesSource = !selectedSource || itemPage === selectedSource;
       
-      item.style.display = matchesRating && matchesPage ? 'block' : 'none';
+      return matchesRating && matchesSource;
     });
+    
+    currentPage = 1;
+    updatePagination();
+  }
+  
+  function updatePagination() {
+    const totalItems = filteredItems.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+    
+    feedbackItems.forEach(item => item.style.display = 'none');
+    
+    filteredItems.forEach((item, index) => {
+      if (index >= startIndex && index < endIndex) {
+        item.style.display = 'block';
+      }
+    });
+    
+    paginationInfo.textContent = totalItems > 0 
+      ? `Showing ${startIndex + 1}-${endIndex} of ${totalItems}`
+      : 'No feedback to display';
+    
+    prevPageBtn.disabled = currentPage === 1;
+    nextPageBtn.disabled = currentPage === totalPages;
+    firstPageBtn.disabled = currentPage === 1;
+    lastPageBtn.disabled = currentPage === totalPages;
+    
+    renderPageNumbers(totalPages);
+  }
+  
+  function renderPageNumbers(totalPages) {
+    pageNumbersContainer.innerHTML = '';
+    
+    const maxVisible = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+    
+    if (endPage - startPage < maxVisible - 1) {
+      startPage = Math.max(1, endPage - maxVisible + 1);
+    }
+    
+    if (startPage > 1) {
+      const btn = createPageButton(1);
+      pageNumbersContainer.appendChild(btn);
+      if (startPage > 2) {
+        const ellipsis = document.createElement('span');
+        ellipsis.className = 'page-ellipsis';
+        ellipsis.textContent = '...';
+        pageNumbersContainer.appendChild(ellipsis);
+      }
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+      const btn = createPageButton(i);
+      pageNumbersContainer.appendChild(btn);
+    }
+    
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        const ellipsis = document.createElement('span');
+        ellipsis.className = 'page-ellipsis';
+        ellipsis.textContent = '...';
+        pageNumbersContainer.appendChild(ellipsis);
+      }
+      const btn = createPageButton(totalPages);
+      pageNumbersContainer.appendChild(btn);
+    }
+  }
+  
+  function createPageButton(pageNum) {
+    const btn = document.createElement('button');
+    btn.className = 'btn-page-number' + (pageNum === currentPage ? ' active' : '');
+    btn.textContent = pageNum;
+    btn.addEventListener('click', () => {
+      currentPage = pageNum;
+      updatePagination();
+    });
+    return btn;
   }
   
   filterRating.addEventListener('change', applyFilters);
   filterPage.addEventListener('change', applyFilters);
+  
+  itemsPerPageSelect.addEventListener('change', function() {
+    itemsPerPage = parseInt(this.value);
+    currentPage = 1;
+    updatePagination();
+  });
+  
+  prevPageBtn.addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      updatePagination();
+    }
+  });
+  
+  nextPageBtn.addEventListener('click', () => {
+    const totalPages = Math.ceil(filteredItems.length / itemsPerPage) || 1;
+    if (currentPage < totalPages) {
+      currentPage++;
+      updatePagination();
+    }
+  });
+  
+  firstPageBtn.addEventListener('click', () => {
+    currentPage = 1;
+    updatePagination();
+  });
+  
+  lastPageBtn.addEventListener('click', () => {
+    const totalPages = Math.ceil(filteredItems.length / itemsPerPage) || 1;
+    currentPage = totalPages;
+    updatePagination();
+  });
+  
+  applyFilters();
 });
 </script>
 
@@ -427,37 +572,116 @@ document.addEventListener('DOMContentLoaded', function() {
   border-top: 1px solid #eee;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   gap: 16px;
+  flex-wrap: wrap;
+}
+
+.pagination-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pagination-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.items-per-page {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  background: #fff;
+  cursor: pointer;
+  color: #333;
+}
+
+.items-per-page:focus {
+  outline: none;
+  border-color: #8B4513;
+}
+
+.pagination-info {
+  font-size: 0.875rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.page-numbers {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .btn-pagination {
-  padding: 8px 16px;
-  border: 1px solid #ddd;
+  min-width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid #8B4513;
   border-radius: 8px;
-  background: #fff;
+  background: #8B4513;
+  color: #fff;
   cursor: pointer;
   font-size: 0.875rem;
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
   transition: all 0.2s;
 }
 
 .btn-pagination:hover:not(:disabled) {
-  background: #8B4513;
+  background: #a05c2f;
   color: #fff;
-  border-color: #8B4513;
+  border-color: #a05c2f;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(160, 92, 47, 0.3);
 }
 
 .btn-pagination:disabled {
-  opacity: 0.5;
+  opacity: 0.3;
   cursor: not-allowed;
+  background: #ddd;
+  border-color: #ddd;
+  color: #999;
 }
 
-.page-info {
+.btn-page-number {
+  min-width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+  color: #333;
+  cursor: pointer;
   font-size: 0.875rem;
-  color: #666;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btn-page-number:hover {
+  background: #f0f0f0;
+  border-color: #8B4513;
+  color: #8B4513;
+}
+
+.btn-page-number.active {
+  background: #8B4513;
+  border-color: #8B4513;
+  color: #fff;
+  font-weight: 600;
+}
+
+.page-ellipsis {
+  padding: 0 8px;
+  color: #999;
+  font-size: 0.875rem;
 }
 
 @media (max-width: 1024px) {
@@ -480,6 +704,18 @@ document.addEventListener('DOMContentLoaded', function() {
     flex-direction: column;
     align-items: flex-start;
   }
+  
+  .pagination-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  
+  .pagination-left,
+  .pagination-right {
+    justify-content: center;
+    width: 100%;
+  }
 }
 
 @media (max-width: 480px) {
@@ -490,6 +726,16 @@ document.addEventListener('DOMContentLoaded', function() {
   .feedback-meta {
     flex-direction: column;
     gap: 6px;
+  }
+  
+  .btn-first,
+  .btn-last {
+    display: none;
+  }
+  
+  .page-numbers {
+    max-width: 200px;
+    overflow-x: auto;
   }
 }
 
