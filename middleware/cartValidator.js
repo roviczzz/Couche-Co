@@ -218,13 +218,13 @@ async function validateCartItems(req, res, next) {
  */
 function validateOrderTotal(req, res, next) {
   try {
-    const { Cart, Total } = req.body;
+    const { Cart, Total, PromoDiscountAmount, Customer } = req.body;
 
     if (!Cart || !Array.isArray(Cart)) {
       return next();
     }
 
-    let calculatedTotal = 0;
+    let calculatedSubtotal = 0;
 
     Cart.forEach(item => {
       const itemPrice = parseFloat(item.Price || 0);
@@ -239,8 +239,20 @@ function validateOrderTotal(req, res, next) {
         itemTotal += addonsTotal * quantity;
       }
 
-      calculatedTotal += itemTotal;
+      calculatedSubtotal += itemTotal;
     });
+
+    // Apply promo discount if present
+    let calculatedTotal = calculatedSubtotal;
+    if (PromoDiscountAmount && typeof PromoDiscountAmount === 'number') {
+      const discountAmount = calculatedSubtotal * PromoDiscountAmount;
+      calculatedTotal = calculatedSubtotal - discountAmount;
+    }
+
+    // Add delivery fee if delivery method is Delivery
+    if (Customer && Customer.deliveryMethod === 'Delivery') {
+      calculatedTotal += 20;
+    }
 
     // Allow small floating point differences
     if (Math.abs(calculatedTotal - Total) > 0.01) {
