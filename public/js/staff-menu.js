@@ -2313,9 +2313,12 @@ function calculatePromotionalTotal(cart) {
         // Apply Buy 3 for 143 pricing
         let drinkItems = [];
         let nonDrinkItems = [];
+        let b1t1Items = [];
 
         cart.forEach(item => {
-            if (item.ProductName && item.ProductName.toLowerCase().indexOf('pastry') === -1) {
+            if (item.isB1T1 || item.b1t1Used) {
+                b1t1Items.push(item);
+            } else if (item.ProductName && item.ProductName.toLowerCase().indexOf('pastry') === -1) {
                 drinkItems.push(item);
             } else {
                 nonDrinkItems.push(item);
@@ -2377,11 +2380,28 @@ function calculatePromotionalTotal(cart) {
             total += (item.BasePrice || 0) * (item.Quantity || 1);
         });
 
+        // Calculate B1T1 items: Milktea = ₱99, Coffee 16oz = ₱79
+        b1t1Items.forEach(item => {
+            if (item.b1t1Used) {
+                const menuItem = getMenuItem(item.ProductID, item.ProductName);
+                const b1t1Price = (menuItem && menuItem.Category === 'Milktea') ? 99 : (item.Size === '16oz' ? 79 : 99);
+                total += b1t1Price;
+            }
+        });
+
         total += drinkTotal;
     } else {
         // No promotion, calculate normally
         cart.forEach(item => {
-            total += (item.BasePrice || 0) * (item.Quantity || 1);
+            if (item.b1t1Used) {
+                const menuItem = getMenuItem(item.ProductID, item.ProductName);
+                const b1t1Price = (menuItem && menuItem.Category === 'Milktea') ? 99 : (item.Size === '16oz' ? 79 : 99);
+                total += b1t1Price;
+            } else if (item.isB1T1) {
+                // Free drink - no cost
+            } else {
+                total += (item.BasePrice || 0) * (item.Quantity || 1);
+            }
         });
     }
 

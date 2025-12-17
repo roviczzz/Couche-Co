@@ -676,14 +676,14 @@ function calculatePromotionalTotal(items) {
 
     b1t1Items.forEach(item => {
       if (item.b1t1Used) {
-        const b1t1Price = item.size === '16oz' ? 79 : 99;
+        const b1t1Price = item.category === 'Milktea' ? 99 : (item.size === '16oz' ? 79 : 99);
         total += b1t1Price;
       }
     });
   } else {
     items.forEach(item => {
       if (item.b1t1Used) {
-        const b1t1Price = item.size === '16oz' ? 79 : 99;
+        const b1t1Price = item.category === 'Milktea' ? 99 : (item.size === '16oz' ? 79 : 99);
         total += b1t1Price;
       } else if (item.isB1T1) {
         // Free drink
@@ -731,7 +731,7 @@ function getPromoButtons(item, index) {
   );
 
   if (isB1T1Eligible) {
-    const b1t1Price = item.size === '16oz' ? 79 : 99;
+    const b1t1Price = item.category === 'Milktea' ? 99 : (item.size === '16oz' ? 79 : 99);
     buttons += `<button class="promo-btn b1t1-btn" onclick="showB1T1Modal('${item.category}', '${item.size}', ${index})" title="Buy 1 Take 1">🛍️ B1T1 (Pair: ₱${b1t1Price})</button>`;
   }
 
@@ -768,20 +768,12 @@ function showB1T1Modal(category, basisSize, basisIndex) {
     if (idx === basisIndex) return;
     if (item.isB1T1 || item.b1t1Used) return;
     if (item.size !== basisSize) return;
+    if (item.category !== category) return;
 
-    let isEligible = false;
-    if (basisSize === '16oz') {
-      isEligible = item.category === 'Coffee' || item.category === 'Milktea';
-    } else if (basisSize === '22oz') {
-      isEligible = item.category === 'Milktea';
-    }
-
-    if (isEligible) {
-      eligibleItems.push({ item, index: idx });
-    }
+    eligibleItems.push({ item, index: idx });
   });
 
-  const b1t1Price = basisSize === '16oz' ? 79 : 99;
+  const b1t1Price = category === 'Milktea' ? 99 : (basisSize === '16oz' ? 79 : 99);
 
   let modalContent = `
     <div class="b1t1-modal-overlay" id="b1t1-modal">
@@ -799,7 +791,7 @@ function showB1T1Modal(category, basisSize, basisIndex) {
     modalContent += `
       <div class="b1t1-empty">
         <p>No eligible items in your cart for B1T1 pairing.</p>
-        <p style="font-size: 0.85rem; color: var(--text-secondary);">Add another ${basisSize} ${basisSize === '22oz' ? 'Milktea' : 'Coffee or Milktea'} to your cart first.</p>
+        <p style="font-size: 0.85rem; color: var(--text-secondary);">Add another ${basisSize} ${category} to your cart first.</p>
       </div>
     `;
   } else {

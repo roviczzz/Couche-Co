@@ -767,7 +767,7 @@ function updateCartDisplay() {
                                 (item.Size === '22oz' && menuItem.Category === 'Milktea')
                             );
                             if (isB1T1Eligible) {
-                                const b1t1Price = item.Size === '16oz' ? 79 : 99;
+                                const b1t1Price = menuItem.Category === 'Milktea' ? 99 : (item.Size === '16oz' ? 79 : 99);
                                 return `<button class="b1t1-btn" onclick="showB1T1Modal('${menuItem.Category.replace(/'/g, "\\'")}', '${item.Size.replace(/'/g, "\\'")}', ${index})"
                                         style="margin-top: 8px; padding: 8px 12px; background: #8B4513; color: white; border: none; border-radius: 8px; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; transition: all 0.2s ease;"
                                         onmouseover="this.style.backgroundColor='#a05c2f'; this.style.transform='scale(1.05)';"
@@ -1246,13 +1246,7 @@ function getMenuDrinksWithSize(category, basisSize) {
     const menuData = JSON.parse(document.getElementById('menu-data').textContent);
     let availableDrinks = [];
     menuData.forEach(menuItem => {
-        let isEligible = false;
-        if (basisSize === '16oz') {
-            isEligible = menuItem.Category === 'Coffee' || menuItem.Category === 'Milktea';
-        } else if (basisSize === '22oz') {
-            isEligible = menuItem.Category === 'Milktea';
-        }
-        if (isEligible) {
+        if (menuItem.Category === category && menuItem.Category !== 'Pastries') {
             const sizeObj = menuItem.Sizes ? menuItem.Sizes.find(s => (s.SizeName || s.Size) === basisSize) : null;
             if (sizeObj) {
                 availableDrinks.push({ menuItem, sizeObj });
@@ -2578,10 +2572,11 @@ function calculatePromotionalTotal(cart) {
         total += milkteaTotal;
 
         // Add B1T1 items with size-based promotional pricing
-        // B1T1 16oz = ₱79, B1T1 22oz = ₱99
+        // B1T1: Milktea = ₱99, Coffee 16oz = ₱79
         b1t1Items.forEach(item => {
             if (item.b1t1Used) {
-                const b1t1Price = item.Size === '16oz' ? 79 : 99;
+                const menuItem = getMenuItem(item.ProductID, item.ProductName);
+                const b1t1Price = (menuItem && menuItem.Category === 'Milktea') ? 99 : (item.Size === '16oz' ? 79 : 99);
                 total += b1t1Price;
             } else if (item.isB1T1) {
                 // Free drink - already priced at 0, no need to add
@@ -2591,8 +2586,9 @@ function calculatePromotionalTotal(cart) {
         // No Buy 3 for 143 promotion, calculate normally
         cart.forEach(item => {
             if (item.b1t1Used) {
-                // B1T1 basis item - use promotional price
-                const b1t1Price = item.Size === '16oz' ? 79 : 99;
+                // B1T1 basis item - use promotional price (Milktea = ₱99, Coffee 16oz = ₱79)
+                const menuItem = getMenuItem(item.ProductID, item.ProductName);
+                const b1t1Price = (menuItem && menuItem.Category === 'Milktea') ? 99 : (item.Size === '16oz' ? 79 : 99);
                 total += b1t1Price;
             } else if (item.isB1T1) {
                 // Free drink - already priced at 0
