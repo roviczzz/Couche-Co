@@ -11,6 +11,10 @@ let selectedPaymentMethod = null;
 let selectedPromo = null;
 let activePromos = [];
 
+// Global senior/PWD discount variables
+let seniorPWDDiscountEnabled = false;
+let seniorPWDDiscountItemIndex = null;
+
 // Initialize delivery type handling
 document.addEventListener('DOMContentLoaded', function() {
     // Get active promos data
@@ -65,9 +69,14 @@ document.addEventListener('DOMContentLoaded', function() {
 // Handle promo selection
 function handlePromoSelection() {
     const promoSelect = document.getElementById('promo-select');
+    const seniorPWDToggle = document.getElementById('senior-pwd-discount-toggle');
     
     if (promoSelect.value === '') {
         selectedPromo = null;
+        seniorPWDToggle.disabled = false;
+        seniorPWDToggle.checked = false;
+        seniorPWDDiscountEnabled = false;
+        seniorPWDDiscountItemIndex = null;
         
         // Hide promo applied section when no promotion is selected
         const promoAppliedElement = document.getElementById('promo-applied');
@@ -96,16 +105,22 @@ function handlePromoSelection() {
             showFeedbackMessage(`This promotion is only applicable to ${promoData.category} items. Please add ${promoData.category.toLowerCase()} items to your cart.`, 'info');
             promoSelect.value = '';
             selectedPromo = null;
+            seniorPWDToggle.disabled = false;
             updateCartDisplay();
             return;
         }
 
         selectedPromo = promoData;
+        seniorPWDToggle.disabled = true;
+        seniorPWDToggle.checked = false;
+        seniorPWDDiscountEnabled = false;
+        seniorPWDDiscountItemIndex = null;
         updateCartDisplay();
         
     } catch (error) {
         console.error('Error parsing promo data:', error);
         selectedPromo = null;
+        seniorPWDToggle.disabled = false;
     }
 }
 
@@ -166,6 +181,84 @@ function updatePromoAvailability() {
         const promoDetailsElement = document.getElementById('promo-details');
         if (promoAppliedElement) promoAppliedElement.textContent = '';
         if (promoDetailsElement) promoDetailsElement.style.display = 'none';
+    }
+}
+
+function handleSeniorPWDToggle() {
+    const toggle = document.getElementById('senior-pwd-discount-toggle');
+    const promoSelect = document.getElementById('promo-select');
+    seniorPWDDiscountEnabled = toggle.checked;
+    
+    if (!seniorPWDDiscountEnabled) {
+        seniorPWDDiscountItemIndex = null;
+        promoSelect.disabled = false;
+    } else {
+        promoSelect.disabled = true;
+        promoSelect.value = '';
+        selectedPromo = null;
+        
+        if (!window.cartItems || window.cartItems.length === 0) {
+            toggle.checked = false;
+            seniorPWDDiscountEnabled = false;
+            promoSelect.disabled = false;
+            showFeedbackMessage('Please add items to cart before applying discount', 'info');
+            updateCartDisplay();
+            return;
+        }
+        
+        if (window.cartItems.length === 1) {
+            seniorPWDDiscountItemIndex = 0;
+        } else {
+            showSeniorPWDItemSelection();
+        }
+    }
+    
+    updateCartDisplay();
+}
+
+function showSeniorPWDItemSelection() {
+    const modal = document.createElement('div');
+    modal.id = 'senior-pwd-select-modal';
+    modal.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);z-index:2010;display:flex;align-items:center;justify-content:center;';
+    
+    let itemsHTML = '';
+    window.cartItems.forEach((item, idx) => {
+        const itemTotal = item.BasePrice * item.Quantity;
+        itemsHTML += `
+            <div style="padding:12px;border:1px solid #ddd;border-radius:8px;margin:8px;cursor:pointer;background:#fff;transition:all 0.2s ease;" 
+                 onmouseover="this.style.background='#f0f0f0';" 
+                 onmouseout="this.style.background='#fff';"
+                 onclick="selectSeniorPWDItem(${idx})">
+                <div style="font-weight:600;">${item.ProductName}</div>
+                <div style="font-size:12px;color:#666;">${item.Size}</div>
+                <div style="font-weight:600;margin-top:4px;">₱${itemTotal.toFixed(2)}</div>
+            </div>
+        `;
+    });
+    
+    modal.innerHTML = `
+        <div style="background:white;border-radius:12px;width:90%;max-width:400px;padding:24px;box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+            <h3 style="margin:0 0 16px 0;">Select Item for Senior/PWD Discount</h3>
+            <div style="max-height:300px;overflow-y:auto;margin-bottom:20px;">
+                ${itemsHTML}
+            </div>
+            <button onclick="closeSeniorPWDModal()" style="width:100%;padding:12px;background:#ccc;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Cancel</button>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+function selectSeniorPWDItem(index) {
+    seniorPWDDiscountItemIndex = index;
+    closeSeniorPWDModal();
+    updateCartDisplay();
+}
+
+function closeSeniorPWDModal() {
+    const modal = document.getElementById('senior-pwd-select-modal');
+    if (modal) {
+        modal.remove();
     }
 }
 
@@ -230,14 +323,14 @@ function handleDeliveryTypeChange() {
 }
 
 // Product click handler
-function handleProductClick(item) {
-    console.log('Product clicked:', item);
+function handleProductClick(item, categoryType) {
+    console.log('Product clicked:', item, 'Category Type:', categoryType);
 
-    // Show size modal for items with multiple sizes or add-ons
-    if ((item.Sizes && item.Sizes.length > 1) || item.Category !== 'Pastries') {
+    if (categoryType === 'food') {
+        addToCart(item);
+    } else if ((item.Sizes && item.Sizes.length > 1) || item.Category !== 'Pastries') {
         showSizeModal(item);
     } else {
-        // Direct add to cart for pastries or single-size items
         addToCart(item);
     }
 }
@@ -884,11 +977,31 @@ function updateCartDisplay() {
     const subtotalAfterPromo = subtotal - promoDiscount;
     subtotalElement.textContent = `₱ ${subtotalAfterPromo.toFixed(2)}`;
 
-    // Calculate promotional total (including selected promo discount)
+    // Calculate senior/PWD discount (20% on one item)
+    let seniorPWDDiscount = 0;
+    if (seniorPWDDiscountEnabled && seniorPWDDiscountItemIndex !== null && window.cartItems[seniorPWDDiscountItemIndex]) {
+        const discountedItem = window.cartItems[seniorPWDDiscountItemIndex];
+        seniorPWDDiscount = (discountedItem.BasePrice * discountedItem.Quantity) * 0.20;
+    }
+
+    // Show/hide senior/PWD discount row
+    const seniorPWDDiscountRow = document.getElementById('senior-pwd-discount-row');
+    const seniorPWDDiscountElement = document.getElementById('senior-pwd-discount');
+    
+    if (seniorPWDDiscount > 0) {
+        if (seniorPWDDiscountRow) seniorPWDDiscountRow.style.display = 'flex';
+        if (seniorPWDDiscountElement) seniorPWDDiscountElement.textContent = `-₱ ${seniorPWDDiscount.toFixed(2)}`;
+    } else {
+        if (seniorPWDDiscountRow) seniorPWDDiscountRow.style.display = 'none';
+    }
+
+    // Calculate promotional total (including selected promo discount and senior/PWD discount)
     let promotionalTotal = calculatePromotionalTotal(window.cartItems);
     
     // Apply selected promo discount to promotional total
     promotionalTotal -= promoDiscount;
+    // Apply senior/PWD discount to promotional total
+    promotionalTotal -= seniorPWDDiscount;
     
     totalElement.textContent = `₱ ${promotionalTotal.toFixed(2)}`;
 
@@ -927,6 +1040,16 @@ function updateQuantity(index, change) {
         // Now remove the main item
         window.cartItems.splice(index, 1);
         
+        // Reset senior/PWD discount if the selected item was removed
+        if (seniorPWDDiscountItemIndex === index) {
+            seniorPWDDiscountEnabled = false;
+            seniorPWDDiscountItemIndex = null;
+            const toggle = document.getElementById('senior-pwd-discount-toggle');
+            if (toggle) toggle.checked = false;
+        } else if (seniorPWDDiscountItemIndex > index) {
+            seniorPWDDiscountItemIndex--;
+        }
+        
         // Check if promo is still valid after removal, reset if not
         if (selectedPromo && !isPromoApplicableToCart(selectedPromo)) {
             selectedPromo = null;
@@ -959,6 +1082,16 @@ function removeFromCart(index) {
         if (basisItem) {
             basisItem.b1t1Used = false;
         }
+    }
+
+    // Reset senior/PWD discount if the selected item was removed
+    if (seniorPWDDiscountItemIndex === index) {
+        seniorPWDDiscountEnabled = false;
+        seniorPWDDiscountItemIndex = null;
+        const toggle = document.getElementById('senior-pwd-discount-toggle');
+        if (toggle) toggle.checked = false;
+    } else if (seniorPWDDiscountItemIndex > index) {
+        seniorPWDDiscountItemIndex--;
     }
 
     // Now remove the main item
@@ -1001,8 +1134,16 @@ function submitOrder() {
         });
     }
 
-    // Subtract promo discount from total
+    // Apply senior/PWD discount (20% on one item)
+    let seniorPWDDiscountAmount = 0;
+    if (seniorPWDDiscountEnabled && seniorPWDDiscountItemIndex !== null && cart[seniorPWDDiscountItemIndex]) {
+        const discountedItem = cart[seniorPWDDiscountItemIndex];
+        seniorPWDDiscountAmount = (discountedItem.BasePrice * discountedItem.Quantity) * 0.20;
+    }
+
+    // Subtract discounts from total
     total -= promoDiscountAmount;
+    total -= seniorPWDDiscountAmount;
 
     // Add delivery fee for delivery orders
     if (deliveryType === 'Delivery') {
@@ -1044,7 +1185,9 @@ function submitOrder() {
         FulfillmentMethod: deliveryType,
         PaymentMethod: paymentMethod,
         PaymentMode: paymentMethod === "cash" ? "Cash on Hand" : "E-Payment",
-        cashierName: user ? (user.fullname || getRoleBasedName(user.role)) : "Staff"
+        cashierName: user ? (user.fullname || getRoleBasedName(user.role)) : "Staff",
+        PromoEventApplied: selectedPromo ? selectedPromo.name : (seniorPWDDiscountEnabled ? "Senior/PWD Discount" : "None"),
+        PromoDiscountAmount: seniorPWDDiscountEnabled ? seniorPWDDiscountAmount : promoDiscountAmount
     };
 
     // Add XenditPaymentID if e-payment is selected
@@ -1572,7 +1715,13 @@ function showOrderConfirmation() {
   </div>
 `;
 
-    const totalDiscounts = promoDiscountAmount + buy3Savings;
+    let seniorPWDDiscountAmount = 0;
+    if (seniorPWDDiscountEnabled && seniorPWDDiscountItemIndex !== null && cartItems[seniorPWDDiscountItemIndex]) {
+        const discountedItem = cartItems[seniorPWDDiscountItemIndex];
+        seniorPWDDiscountAmount = (discountedItem.BasePrice * discountedItem.Quantity) * 0.20;
+    }
+
+    const totalDiscounts = promoDiscountAmount + buy3Savings + seniorPWDDiscountAmount;
     if (totalDiscounts > 0) {
         confirmHTML += `
   <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: #4caf50; font-weight: 600;">
@@ -1593,7 +1742,7 @@ function showOrderConfirmation() {
 `;
     }
 
-    let finalTotal = promotionalTotal + deliveryFee - promoDiscountAmount;
+    let finalTotal = promotionalTotal + deliveryFee - promoDiscountAmount - seniorPWDDiscountAmount;
 
     confirmHTML += `</div>
 

@@ -11,11 +11,7 @@
       <!-- Category -->
       <label class="form-label">Category</label>
       <select class="form-input" name="categoryShortcut" id="categorySelect" required>
-        <option value="">-- Select Category --</option>
-        <option value="CF">Coffee</option>
-        <option value="MT">Milktea</option>
-        <option value="FT">Fruit Tea</option>
-        <option value="BK">Pastries</option>
+        <option value="">-- Loading Categories --</option>
       </select>
 
       <!-- Product Code -->
@@ -77,6 +73,32 @@
     </form>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  fetch('/admin/api/categories')
+    .then(response => response.json())
+    .then(data => {
+      if (data.success && data.data.length > 0) {
+        const select = document.getElementById('categorySelect');
+        select.innerHTML = '<option value="">-- Select Category --</option>';
+        
+        data.data.forEach(category => {
+          const option = document.createElement('option');
+          option.value = category.shortcode;
+          option.textContent = category.name;
+          select.appendChild(option);
+        });
+      } else {
+        document.getElementById('categorySelect').innerHTML = '<option value="">No categories available</option>';
+      }
+    })
+    .catch(error => {
+      console.error('Error loading categories:', error);
+      document.getElementById('categorySelect').innerHTML = '<option value="">Error loading categories</option>';
+    });
+});
+</script>
 
 <!-- External Add Product JavaScript -->
 <script src="/js/add-product.js"></script>

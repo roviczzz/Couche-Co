@@ -124,7 +124,7 @@
                   </div>
                 </td>
                 <td>Ingredients</td>
-                <td><input type="text" name="Allergen" value="<%= i && i.Allergen ? i.Allergen : '' %>" class="table-input" data-field="allergen" data-original="<%= i && i.Allergen ? i.Allergen : '' %>" required></td>
+                <td><input type="text" name="Allergens" value="<%= i && (i.Allergens ? (Array.isArray(i.Allergens) ? i.Allergens.join(', ') : i.Allergens) : i.Allergen || '') %>" class="table-input" data-field="allergen" data-original="<%= i && (i.Allergens ? (Array.isArray(i.Allergens) ? i.Allergens.join(', ') : i.Allergens) : i.Allergen || '') %>" required></td>
                 <td>
                   <label class="toggle-switch">
                     <input type="checkbox" name="isEnabled" data-field="enabled" data-original="<%= i && i.isEnabled ? i.isEnabled : false %>" <%= (i && i.isEnabled) ? 'checked' : '' %>>
@@ -207,7 +207,7 @@
                   </div>
                 </td>
                 <td>Add-Ons</td>
-                <td><input type="text" name="Allergen" value="<%= a && a.Allergen ? a.Allergen : '' %>" class="table-input" data-field="allergen" data-original="<%= a && a.Allergen ? a.Allergen : '' %>" required></td>
+                <td><input type="text" name="Allergens" value="<%= a && (a.Allergens ? (Array.isArray(a.Allergens) ? a.Allergens.join(', ') : a.Allergens) : a.Allergen || '') %>" class="table-input" data-field="allergen" data-original="<%= a && (a.Allergens ? (Array.isArray(a.Allergens) ? a.Allergens.join(', ') : a.Allergens) : a.Allergen || '') %>" required></td>
                 <td>
                   <label class="toggle-switch">
                     <input type="checkbox" name="isEnabled" data-field="enabled" data-original="<%= a && a.isEnabled ? a.isEnabled : false %>" <%= (a && a.isEnabled) ? 'checked' : '' %>>
@@ -258,8 +258,13 @@
           </div>
         </div>
         <div class="form-group">
-          <label for="Allergen">Allergen:</label>
-          <input type="text" id="Allergen" name="Allergen" required placeholder="e.g., Dairy">
+          <label for="Allergen">Allergens:</label>
+          <div class="chip-container" id="ingredientAllergensChipContainer">
+            <input type="text" id="ingredientAllergensChipInput" class="chip-input" placeholder="Type allergen...">
+            <div id="ingredientAllergensSuggestions"></div>
+          </div>
+          <input type="hidden" name="Allergens" id="ingredientHiddenAllergens">
+          <small>Common: Dairy, Nuts, Peanuts, Shellfish, Soy, Gluten, Eggs, Fish, Sesame</small>
         </div>
         <div class="form-group">
           <label for="BasePrice">Base Price:</label>
@@ -316,8 +321,13 @@
           <input type="number" id="BasePrice" name="BasePrice" required min="0" step="0.01" placeholder="10.00" value="10">
         </div>
         <div class="form-group">
-          <label for="Allergen">Allergen:</label>
-          <input type="text" id="Allergen" name="Allergen" required placeholder="e.g., None">
+          <label for="Allergen">Allergens:</label>
+          <div class="chip-container" id="addonAllergensChipContainer">
+            <input type="text" id="addonAllergensChipInput" class="chip-input" placeholder="Type allergen...">
+            <div id="addonAllergensSuggestions"></div>
+          </div>
+          <input type="hidden" name="Allergens" id="addonHiddenAllergens">
+          <small>Common: Dairy, Nuts, Peanuts, Shellfish, Soy, Gluten, Eggs, Fish, Sesame</small>
         </div>
         <div class="form-group switch-group">
           <label class="switch-label">
@@ -346,8 +356,7 @@
       <input type="hidden" name="Amount" value="">
       <input type="hidden" name="AmountPerPack" value="">
       <input type="hidden" name="Category" value="Ingredients">
-      <input type="hidden" name="Allergen" value="">
-      <input type="hidden" name="isAvailable" value="true">
+      <input type="hidden" name="Allergens" value="">
       <input type="hidden" name="isEnabled" value="">
       <input type="hidden" name="DeductionQuantityGrams" value="10">
     </form>
@@ -365,7 +374,7 @@
       <input type="hidden" name="Amount" value="">
       <input type="hidden" name="AmountPerPack" value="">
       <input type="hidden" name="Category" value="Add-Ons">
-      <input type="hidden" name="Allergen" value="">
+      <input type="hidden" name="Allergens" value="">
       <input type="hidden" name="isEnabled" value="">
       <input type="hidden" name="DeductionQuantityGrams" value="10">
     </form>

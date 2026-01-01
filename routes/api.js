@@ -2089,4 +2089,91 @@ router.get('/promo-modal', async (req, res) => {
   }
 });
 
+router.get('/allergens', async (req, res) => {
+  try {
+    const standardAllergens = [
+      'Dairy',
+      'Nuts',
+      'Peanuts',
+      'Shellfish',
+      'Soy',
+      'Gluten',
+      'Eggs',
+      'Fish',
+      'Sesame',
+      'Wheat',
+      'Tree Nuts'
+    ];
+    
+    res.json({ success: true, allergens: standardAllergens });
+  } catch (error) {
+    console.error('Error fetching allergens:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch allergens' });
+  }
+});
+
+router.get('/product-allergens/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await req.db.collection('Menu').findOne({ _id: new ObjectId(id) });
+    
+    if (!product) {
+      return res.status(404).json({ success: false, error: 'Product not found' });
+    }
+    
+    const allergens = new Set();
+    
+    const productAllergens = product.Allergens || product.allergens || (product.Allergen ? [product.Allergen] : []);
+    const allergenArray = Array.isArray(productAllergens) ? productAllergens : (productAllergens ? [productAllergens] : []);
+    allergenArray.forEach(a => {
+      if (a && a.trim() && a.toLowerCase() !== 'none') {
+        allergens.add(a.trim());
+      }
+    });
+    
+    if (product.Ingredients && Array.isArray(product.Ingredients)) {
+      const ingredientIds = product.Ingredients.map(i => i.ingredientID || i.IngredientID).filter(Boolean);
+      const ingredients = await req.db.collection('Ingredients')
+        .find({ IngredientID: { $in: ingredientIds } })
+        .toArray();
+      
+      ingredients.forEach(ing => {
+        const ingAllergens = ing.Allergens || ing.allergens || (ing.Allergen ? [ing.Allergen] : []);
+        const ingAllergenArray = Array.isArray(ingAllergens) ? ingAllergens : (ingAllergens ? [ingAllergens] : []);
+        ingAllergenArray.forEach(a => {
+          if (a && a.trim() && a.toLowerCase() !== 'none') {
+            allergens.add(a.trim());
+          }
+        });
+      });
+    }
+    
+    if (product.AddOns && Array.isArray(product.AddOns)) {
+      const addonIds = product.AddOns.map(a => a.addOnID || a.AddOnID).filter(Boolean);
+      const addons = await req.db.collection('Add-ons')
+        .find({ AddOnID: { $in: addonIds } })
+        .toArray();
+      
+      addons.forEach(addon => {
+        const addonAllergens = addon.Allergens || addon.allergens || (addon.Allergen ? [addon.Allergen] : []);
+        const addonAllergenArray = Array.isArray(addonAllergens) ? addonAllergens : (addonAllergens ? [addonAllergens] : []);
+        addonAllergenArray.forEach(a => {
+          if (a && a.trim() && a.toLowerCase() !== 'none') {
+            allergens.add(a.trim());
+          }
+        });
+      });
+    }
+    
+    res.json({ 
+      success: true, 
+      allergens: Array.from(allergens),
+      productName: product.Name
+    });
+  } catch (error) {
+    console.error('Error fetching product allergens:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch product allergens' });
+  }
+});
+
 module.exports = router;

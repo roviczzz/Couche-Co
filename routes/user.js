@@ -54,13 +54,11 @@ router.use(nocache);
 // User home route
 router.get('/home', async (req, res) => {
   try {
-    // Using shared DB connection from req.db
     const menuCollection = req.db.collection('Menu');
+    const categoriesCollection = req.db.collection('Categories');
 
-    // Get all menu items for gallery display
     const allItems = await menuCollection.find().toArray();
 
-    // Categorize items
     const categorizedItems = {};
     allItems.forEach(item => {
       const category = item.Category || 'Others';
@@ -70,14 +68,21 @@ router.get('/home', async (req, res) => {
       categorizedItems[category].push(item);
     });
 
-    // Define category order
-    const categoryOrder = ['Coffee', 'Milktea', 'Fruit Tea', 'Pastries'];
+    const categories = await categoriesCollection
+      .find({ isEnabled: true })
+      .sort({ order: 1 })
+      .toArray();
+
+    const categoryOrder = (categories && categories.length > 0)
+      ? categories.map(cat => cat.name)
+      : ['Coffee', 'Milktea', 'Fruit Tea', 'Pastries'];
 
     res.render('home', {
       title: 'Home | Blessings Cafe',
       user: req.session.user,
       categorizedItems: categorizedItems,
-      categoryOrder: categoryOrder
+      categoryOrder: categoryOrder,
+      categories: categories || []
     });
   } catch (err) {
     console.error('User home error:', err);
@@ -304,7 +309,7 @@ router.post('/products/add', async (req, res) => {
     size16,
     size22,
     Ingredients,
-    Allergen,
+    Allergens,
     imagelink,
     isEnabled,
     BasePrice,
@@ -362,7 +367,7 @@ router.post('/products/add', async (req, res) => {
     Sizes: Sizes.length > 0 ? Sizes : null,
     Ingredients: ingredientsArray,
     Category,
-    Allergen: Allergen || null,
+    Allergens: Allergens ? (typeof Allergens === 'string' ? JSON.parse(Allergens).filter(a => a && a.trim() && a.toLowerCase() !== 'none') : Array.isArray(Allergens) ? Allergens.filter(a => a && a.trim() && a.toLowerCase() !== 'none') : []) : [],
     imagelink: imagelink || 'placeholder',
     isEnabled: isEnabled === 'true'
   };
@@ -402,7 +407,7 @@ router.post('/products/edit/:id', async (req, res) => {
     BasePrice,
     size16,
     size22,
-    Allergen,
+    Allergens,
     isEnabled
   } = req.body;
 
@@ -414,7 +419,7 @@ router.post('/products/edit/:id', async (req, res) => {
       Name,
       Category,
       imagelink,
-      Allergen: Allergen || '',
+      Allergens: Allergens ? (typeof Allergens === 'string' ? JSON.parse(Allergens).filter(a => a && a.trim() && a.toLowerCase() !== 'none') : Array.isArray(Allergens) ? Allergens.filter(a => a && a.trim() && a.toLowerCase() !== 'none') : []) : [],
       isEnabled: isEnabled === 'true',
     };
 

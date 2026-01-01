@@ -23,7 +23,14 @@
                 <div class="success-modal-content">
                     <div class="success-icon"></div>
                     <div class="success-message">Registration Successful!</div>
-                    <div class="success-submessage">You will be redirected to login shortly...</div>
+                    <% if (verificationEmailSent) { %>
+                        <div class="success-submessage">
+                            A verification email has been sent to your inbox.<br>
+                            <strong>Please verify your email before logging in.</strong>
+                        </div>
+                    <% } else { %>
+                        <div class="success-submessage">You will be redirected to login shortly...</div>
+                    <% } %>
                     <div class="success-loader">
                         <div class="success-progress"></div>
                     </div>

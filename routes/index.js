@@ -47,6 +47,7 @@ router.get('/', async (req, res) => {
   try {
     // Using shared DB connection from req.db
     const menuCollection = req.db.collection('Menu');
+    const categoriesCollection = req.db.collection('Categories');
 
     // Always fetch fresh menu items for real-time availability checking
     const allItems = await menuCollection.find().toArray();
@@ -85,8 +86,16 @@ router.get('/', async (req, res) => {
       categorizedItems[category].push(item);
     });
 
+    // Fetch categories from database
+    const categories = await categoriesCollection
+      .find({ isEnabled: true })
+      .sort({ order: 1 })
+      .toArray();
+
     // Define category order
-    const categoryOrder = ['Coffee', 'Milktea', 'Fruit Tea', 'Pastries'];
+    const categoryOrder = (categories && categories.length > 0)
+      ? categories.map(cat => cat.name)
+      : ['Coffee', 'Milktea', 'Fruit Tea', 'Pastries'];
 
     if (req.session.user) {
       if (req.session.user.role === 'admin') {
@@ -96,22 +105,25 @@ router.get('/', async (req, res) => {
         title: 'Home | Blessings Cafe',
         user: req.session.user,
         categorizedItems: categorizedItems,
-        categoryOrder: categoryOrder
+        categoryOrder: categoryOrder,
+        categories: categories || []
       });
     }
     return res.render('home', {
       title: 'Home | Blessings Cafe',
       user: null,
       categorizedItems: categorizedItems,
-      categoryOrder: categoryOrder
+      categoryOrder: categoryOrder,
+      categories: categories || []
     });
   } catch (err) {
     console.error('Home page error:', err);
     res.render('home', {
       title: 'Home | Blessings Cafe',
       user: null,
-      featuredItems: [],
-      layout: 'layout'
+      categorizedItems: {},
+      categoryOrder: ['Coffee', 'Milktea', 'Fruit Tea', 'Pastries'],
+      categories: []
     });
   }
 });
@@ -152,7 +164,8 @@ router.get('/login', (req, res) => {
       layout: false,
       errors: {},
       error: null,
-      formData: {}
+      formData: {},
+      unverifiedEmail: null
     });
   } catch (error) {
     console.error('Error rendering login page:', error);
@@ -174,7 +187,8 @@ router.post('/login',
         layout: false,
         errors: errors.mapped(),
         error: 'Please fix the errors below',
-        formData: req.body
+        formData: req.body,
+        unverifiedEmail: null
       });
     }
 
@@ -187,7 +201,20 @@ router.post('/login',
           layout: false,
           errors: {},
           error: 'Invalid email or password',
-          formData: req.body
+          formData: req.body,
+          unverifiedEmail: null
+        });
+      }
+
+      // Check if email is verified
+      if (!user.emailVerified) {
+        return res.render('login', {
+          title: 'Login | Blessings Cafe',
+          layout: false,
+          errors: {},
+          error: 'Please verify your email before logging in. Check your inbox for the verification link.',
+          formData: req.body,
+          unverifiedEmail: user.email
         });
       }
 
@@ -198,7 +225,8 @@ router.post('/login',
           layout: false,
           errors: {},
           error: 'Invalid email or password',
-          formData: req.body
+          formData: req.body,
+          unverifiedEmail: null
         });
       }
 
@@ -230,7 +258,8 @@ router.post('/login',
         layout: false,
         errors: {},
         error: 'An error occurred during login',
-        formData: req.body
+        formData: req.body,
+        unverifiedEmail: null
       });
     }
   }
@@ -379,9 +408,16 @@ router.get('/product/:id', async (req, res) => {
       remainingIngredients = cachedIngredients.sort((a, b) => a.Name.localeCompare(b.Name));
     }
 
+    // Fetch category details including type
+    const category = await req.db.collection('Categories').findOne({ 
+      name: product.Category 
+    });
+    const categoryType = category?.type || 'drink';
+
     res.render('product', {
       isAvailable,
       product,
+      categoryType,
       addons: displayAddons,
       ingredients: cachedIngredients,
       recommendedItems,

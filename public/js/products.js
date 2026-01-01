@@ -193,6 +193,122 @@ document.addEventListener("DOMContentLoaded", () => {
   const ingredientsSystem = ChipSystem.init("chipContainer", "chipInput", "hiddenIngredients", "suggestions");
   const addOnsSystem = ChipSystem.init("addOnsChipContainer", "addOnsChipInput", "hiddenAddOns", "addOnsSuggestions", true);
 
+  // ========== ALLERGEN CHIP SYSTEM ==========
+  const AllergenChipSystem = {
+    standardAllergens: ['Dairy', 'Nuts', 'Peanuts', 'Shellfish', 'Soy', 'Gluten', 'Eggs', 'Fish', 'Sesame', 'Wheat', 'Tree Nuts'],
+
+    init(containerId, inputId, hiddenId, suggestionsId, context = 'add') {
+      const container = $(containerId);
+      const input = $(inputId);
+      const hidden = $(hiddenId);
+      const suggestions = $(suggestionsId);
+
+      if (!container || !input || !hidden) return null;
+
+      let allergens = [];
+
+      const updateHidden = () => {
+        hidden.value = JSON.stringify(allergens);
+      };
+
+      const createChip = (allergenName) => {
+        if (!allergenName || allergens.includes(allergenName)) return;
+
+        allergens.push(allergenName);
+        const chip = document.createElement("div");
+        chip.className = "chip allergen-chip";
+        chip.innerHTML = `
+          <span class="chip-name">${allergenName}</span>
+          <span class="chip-remove">&times;</span>
+        `;
+
+        chip.querySelector(".chip-remove").addEventListener("click", () => {
+          const index = allergens.indexOf(allergenName);
+          if (index > -1) allergens.splice(index, 1);
+          chip.remove();
+          updateHidden();
+        });
+
+        container.insertBefore(chip, input);
+        input.value = "";
+        updateHidden();
+      };
+
+      input.addEventListener("input", () => {
+        const query = input.value.trim();
+        suggestions.innerHTML = "";
+        
+        if (query.includes(',')) {
+          const parts = query.split(',').map(s => s.trim()).filter(Boolean);
+          parts.forEach(part => {
+            if (part && !allergens.includes(part)) {
+              const properCase = part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+              createChip(properCase);
+            }
+          });
+          input.value = "";
+          return;
+        }
+
+        const lowerQuery = query.toLowerCase();
+        if (!lowerQuery) return;
+
+        const filtered = this.standardAllergens.filter(allergen => 
+          allergen.toLowerCase().includes(lowerQuery) && !allergens.includes(allergen)
+        );
+
+        filtered.forEach(allergen => {
+          const div = document.createElement("div");
+          div.textContent = allergen;
+          div.className = "suggestion-item";
+          div.addEventListener("click", () => {
+            createChip(allergen);
+            suggestions.innerHTML = "";
+          });
+          suggestions.appendChild(div);
+        });
+      });
+
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          const value = input.value.trim();
+          if (value) {
+            const parts = value.split(',').map(s => s.trim()).filter(Boolean);
+            if (parts.length > 1) {
+              parts.forEach(part => {
+                const properCase = part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+                createChip(properCase);
+              });
+            } else {
+              const properCase = value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+              createChip(properCase);
+            }
+            suggestions.innerHTML = "";
+          }
+        }
+      });
+
+      document.addEventListener("click", (e) => {
+        if (e.target !== input) suggestions.innerHTML = "";
+      });
+
+      return { 
+        createChip, 
+        updateHidden, 
+        clear: () => {
+          allergens = [];
+          container.querySelectorAll('.allergen-chip').forEach(chip => chip.remove());
+          updateHidden();
+        },
+        getAllergens: () => allergens
+      };
+    }
+  };
+
+  const allergensSystem = AllergenChipSystem.init("allergensChipContainer", "allergensChipInput", "hiddenAllergens", "allergensSuggestions", 'add');
+  const editAllergensSystem = AllergenChipSystem.init("editAllergensChipContainer", "editAllergensChipInput", "editHiddenAllergens", "editAllergensSuggestions", 'edit');
+
   // ---------- PRICE INPUT VALIDATION ----------
   function restrictToNumeric(input) {
     input.addEventListener('keydown', function(e) {
@@ -255,71 +371,222 @@ document.addEventListener("DOMContentLoaded", () => {
     if (input) restrictToNumeric(input);
   });
 
+  // ========== CATEGORY TYPE MANAGEMENT ==========
+  async function getCategoryType(shortcode) {
+    try {
+      const response = await fetch('/admin/api/categories');
+      const data = await response.json();
+      
+      if (!data.success || !data.data) return 'drink';
+      
+      const category = data.data.find(cat => cat.shortcode === shortcode.toUpperCase());
+      return category?.type || 'drink';
+    } catch (error) {
+      console.error('Error fetching category type:', error);
+      return 'drink';
+    }
+  }
+
+  function togglePricingFields(categoryType, context = 'add') {
+    const drinkId = context === 'edit' ? 'editPriceRowDrink' : 'priceRowDrink';
+    const foodId = context === 'edit' ? 'editPriceRowFood' : 'priceRowFood';
+    const drinkPriceRow = $(drinkId);
+    const foodPriceRow = $(foodId);
+    
+    if (categoryType === 'drink') {
+      if (drinkPriceRow) drinkPriceRow.classList.remove('hidden');
+      if (foodPriceRow) foodPriceRow.classList.add('hidden');
+    } else if (categoryType === 'food') {
+      if (drinkPriceRow) drinkPriceRow.classList.add('hidden');
+      if (foodPriceRow) foodPriceRow.classList.remove('hidden');
+    }
+  }
+
+  function manageFoodVariants(context = 'add') {
+    const variantsList = $(context === 'edit' ? 'editVariantsList' : 'variantsList');
+    const hiddenInput = $(context === 'edit' ? 'editHiddenFoodVariants' : 'hiddenFoodVariants');
+    const addVariantBtn = $(context === 'edit' ? 'editAddVariantBtn' : 'addVariantBtn');
+    
+    let variants = [];
+
+    const renderVariants = () => {
+      if (!variantsList) return;
+      
+      variantsList.innerHTML = variants.map((variant, index) => `
+        <div class="variant-item" data-index="${index}">
+          <input 
+            type="text" 
+            class="variant-name" 
+            value="${variant.name}" 
+            placeholder="e.g., Small, Medium, Large"
+            data-index="${index}"
+          >
+          <input 
+            type="number" 
+            class="variant-price" 
+            value="${variant.price}" 
+            step="0.01" 
+            min="0"
+            placeholder="Price"
+            data-index="${index}"
+          >
+          <button type="button" class="remove-btn" data-index="${index}">Remove</button>
+        </div>
+      `).join('');
+
+      if (hiddenInput) {
+        hiddenInput.value = JSON.stringify(variants);
+      }
+
+      variantsList?.querySelectorAll('.variant-name').forEach(input => {
+        input.addEventListener('change', (e) => {
+          const idx = parseInt(e.target.dataset.index);
+          if (variants[idx]) variants[idx].name = e.target.value;
+          if (hiddenInput) hiddenInput.value = JSON.stringify(variants);
+        });
+      });
+
+      variantsList?.querySelectorAll('.variant-price').forEach(input => {
+        input.addEventListener('change', (e) => {
+          const idx = parseInt(e.target.dataset.index);
+          if (variants[idx]) variants[idx].price = parseFloat(e.target.value) || 0;
+          if (hiddenInput) hiddenInput.value = JSON.stringify(variants);
+        });
+      });
+
+      variantsList?.querySelectorAll('.remove-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const idx = parseInt(btn.dataset.index);
+          variants.splice(idx, 1);
+          renderVariants();
+        });
+      });
+    };
+
+    const addVariant = () => {
+      variants.push({ name: '', price: 0 });
+      renderVariants();
+    };
+
+    const loadVariants = (variantData) => {
+      try {
+        if (Array.isArray(variantData)) {
+          variants = [...variantData];
+        } else if (typeof variantData === 'string') {
+          variants = JSON.parse(variantData);
+        }
+        renderVariants();
+      } catch (error) {
+        console.error('Error loading variants:', error);
+        variants = [];
+      }
+    };
+
+    if (addVariantBtn) {
+      addVariantBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        addVariant();
+      });
+    }
+
+    return { renderVariants, addVariant, loadVariants, getVariants: () => variants };
+  }
+
   // ========== CATEGORY FIELD MANAGEMENT ==========
   const CategoryManager = {
     elements: {
       select: $("categorySelect"),
-      basePriceContainer: $("basePriceContainer"),
-      priceRow: $("priceRow"),
+      drinkPriceRow: $("priceRowDrink"),
+      foodPriceRow: $("priceRowFood"),
       quantityContainer: $("quantityContainer"),
       ingredientsContainer: $("ingredientsContainer"),
       addOnsContainer: $("addOnsContainer")
     },
 
-    toggleFields() {
-      const category = this.elements.select.value;
-      const isPastries = category === "BK";
-      const isDrink = ["CF", "FT", "MT"].includes(category);
+    foodVariantsManager: null,
 
-      // Toggle visibility based on category
-      this.elements.basePriceContainer.classList.toggle("hidden", !isPastries);
-      this.elements.priceRow.classList.toggle("hidden", isPastries);
-      this.elements.quantityContainer.classList.toggle("hidden", !isPastries);
-      this.elements.ingredientsContainer.classList.toggle("hidden", isPastries);
+    async toggleFields() {
+      const shortcode = this.elements.select.value;
+      if (!shortcode) {
+        this.elements.drinkPriceRow.classList.add("hidden");
+        this.elements.foodPriceRow.classList.add("hidden");
+        return;
+      }
+
+      const categoryType = await getCategoryType(shortcode);
+      
+      togglePricingFields(categoryType, 'add');
+
+      const isDrink = categoryType === 'drink';
+      const isFood = categoryType === 'food';
+
+      this.elements.quantityContainer.classList.toggle("hidden", !isFood);
+      this.elements.ingredientsContainer.classList.toggle("hidden", isFood);
       this.elements.addOnsContainer.classList.toggle("hidden", !isDrink);
+
+      if (isFood && !this.foodVariantsManager) {
+        this.foodVariantsManager = manageFoodVariants('add');
+      }
     },
 
     clearChips() {
-      // Clear ingredients
       ChipSystem.ingredients.length = 0;
       $$('.chip').forEach(chip => chip.remove());
       ingredientsSystem.updateHidden();
 
-      // Clear add-ons
       ChipSystem.addOns.length = 0;
       $$('.chip').forEach(chip => chip.remove());
       addOnsSystem.updateHidden();
     },
 
     init() {
-      this.elements.select.addEventListener("change", () => {
-        this.toggleFields();
+      this.elements.select.addEventListener("change", async () => {
+        await this.toggleFields();
         this.clearChips();
       });
-      this.toggleFields(); // Initial state
+      this.toggleFields();
     }
   };
 
   CategoryManager.init();
 
+  // Ensure allergen field is updated before form submission
+  const editForm = document.getElementById("editProductForm");
+  const addForm = document.getElementById("addProductForm");
+
+  if (editForm) {
+    editForm.addEventListener("submit", () => {
+      if (editAllergensSystem && editAllergensSystem.updateHidden) {
+        editAllergensSystem.updateHidden();
+      }
+    });
+  }
+
+  if (addForm) {
+    addForm.addEventListener("submit", () => {
+      if (allergensSystem && allergensSystem.updateHidden) {
+        allergensSystem.updateHidden();
+      }
+    });
+  }
+
   // ---------- EDIT PRODUCT MODAL ----------
   const editModal = document.getElementById("editProductModal");
-  const editForm = document.getElementById("editProductForm");
 
   // Cache DOM elements for better performance
   const editElements = {
     name: document.getElementById("editName"),
     categoryDisplay: document.getElementById("editCategoryDisplay"),
     categoryHidden: document.getElementById("editCategoryHidden"),
-    basePriceContainer: document.getElementById("editBasePriceContainer"),
+    drinkPriceRow: document.getElementById("editPriceRowDrink"),
+    foodPriceRow: document.getElementById("editPriceRowFood"),
     quantityContainer: document.getElementById("editQuantityContainer"),
-    priceRow: document.getElementById("editPriceRow"),
     basePrice: document.getElementById("editBasePrice"),
     quantity: document.getElementById("editQuantity"),
     size16: document.getElementById("editSize16"),
     size22: document.getElementById("editSize22"),
     description: document.getElementById("editDescription"),
-    allergen: document.getElementById("editAllergen"),
     enabled: document.getElementById("editEnabled"),
     imagePreview: document.getElementById("editImagePreview"),
     cancelBtn: document.getElementById("cancelEdit")
@@ -343,17 +610,14 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
       // Reset container visibility
-      editElements.basePriceContainer.style.display = 'none';
-      editElements.quantityContainer.style.display = 'none';
-      editElements.priceRow.style.display = 'none';
+      editElements.drinkPriceRow.style.display = 'none';
+      editElements.foodPriceRow.style.display = 'none';
     }
   };
 
-  // Optimized data population functions
   const populateDrinkFields = (product) => {
-    editElements.basePriceContainer.style.display = 'none';
+    togglePricingFields('drink', 'edit');
     editElements.quantityContainer.style.display = 'none';
-    editElements.priceRow.style.display = 'block';
 
     if (product.Sizes && Array.isArray(product.Sizes)) {
       const size16 = product.Sizes.find(s => (s.Size || s.size) === "16oz");
@@ -366,13 +630,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  const populatePastryFields = (product) => {
-    editElements.basePriceContainer.style.display = 'block';
+  const populateFoodFields = (product) => {
+    togglePricingFields('food', 'edit');
     editElements.quantityContainer.style.display = 'block';
-    editElements.priceRow.style.display = 'none';
 
     editElements.basePrice.value = product.BasePrice || product.basePrice || '';
     editElements.quantity.value = product.Quantity || '';
+
+    if (product.Variants && Array.isArray(product.Variants)) {
+      const variantsManager = manageFoodVariants('edit');
+      variantsManager.loadVariants(product.Variants);
+    }
   };
 
   // Ultra-fast product data loading with minimal DOM manipulation delays
@@ -384,19 +652,34 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await response.json();
       const product = data.product;
 
-      // Handle category-specific fields first for immediate field setup
-      const isPastry = product.Category === "Pastries" || product.Category === "BK";
-      isPastry ? populatePastryFields(product) : populateDrinkFields(product);
+      const categoryType = await getCategoryType(product.Category);
+      
+      if (categoryType === 'food') {
+        populateFoodFields(product);
+      } else {
+        populateDrinkFields(product);
+      }
 
-      // Ultra-fast DOM updates using direct property access and requestAnimationFrame for smooth rendering
       requestAnimationFrame(() => {
-        // Batch all updates in a single animation frame for maximum performance
         editElements.name.value = product.Name || '';
         editElements.categoryDisplay.value = product.Category || '';
         editElements.categoryHidden.value = product.Category || '';
         editElements.description.value = product.Description || product.description || '';
-        editElements.allergen.value = product.Allergen || product.allergen || '';
         editElements.enabled.checked = !!product.isEnabled;
+
+        if (editAllergensSystem && editAllergensSystem.clear) {
+          editAllergensSystem.clear();
+          const allergens = product.Allergens || product.allergens || (product.Allergen ? [product.Allergen] : []);
+          if (Array.isArray(allergens)) {
+            allergens.forEach(allergen => {
+              if (allergen && allergen.trim()) {
+                editAllergensSystem.createChip(allergen.trim());
+              }
+            });
+          } else if (typeof allergens === 'string' && allergens.trim()) {
+            editAllergensSystem.createChip(allergens.trim());
+          }
+        }
 
         const imageSrc = product.imagelink || product.imageLink;
         editElements.imagePreview.innerHTML = imageSrc
@@ -501,12 +784,42 @@ document.addEventListener("DOMContentLoaded", () => {
               const card = document.querySelector(`.product-card[data-id='${this.productId}']`);
               card?.remove();
               ModalManager.hide(this.modal);
+              
+              // Show success feedback
+              const successMsg = document.createElement('div');
+              successMsg.style.cssText = 'position:fixed;top:20px;right:20px;background:#4caf50;color:white;padding:15px 20px;border-radius:8px;z-index:10000;box-shadow:0 4px 12px rgba(0,0,0,0.15);';
+              successMsg.textContent = 'Product deleted successfully!';
+              document.body.appendChild(successMsg);
+              setTimeout(() => successMsg.remove(), 3000);
             } else {
-              alert(data.message || "Failed to delete product.");
+              ModalManager.hide(this.modal);
+              
+              // Show error as modal
+              const errorModal = document.createElement('div');
+              errorModal.className = 'custom-confirm';
+              errorModal.innerHTML = `
+                <div class="confirm-box" style="padding: 40px; text-align: center; border-radius: 12px;">
+                  <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                    <i class="fas fa-exclamation-triangle" style="color: #f44336; font-size: 48px;"></i>
+                  </div>
+                  <div class="toast-message" style="margin-bottom: 30px; font-size: 16px; color: #333; line-height: 1.6;">${data.message || "Failed to delete product."}</div>
+                  <button class="yes-btn" style="width: 100%; padding: 12px; font-size: 14px;">OK</button>
+                </div>
+              `;
+              document.body.appendChild(errorModal);
+              
+              errorModal.querySelector('.yes-btn').addEventListener('click', () => {
+                errorModal.remove();
+              });
+              
+              errorModal.addEventListener('click', (e) => {
+                if (e.target === errorModal) errorModal.remove();
+              });
             }
           } catch (error) {
             console.error('Delete error:', error);
-            alert("Error deleting product.");
+            ModalManager.hide(this.modal);
+            alert("Error deleting product. Please try again.");
           }
         });
 
@@ -577,6 +890,31 @@ document.addEventListener("DOMContentLoaded", () => {
   const openAddBtn = $("openAddModal");
   const cancelAddBtn = $("cancelAdd");
 
-  openAddBtn.addEventListener('click', () => ModalManager.show(addModal));
+  const loadCategoryDropdown = async () => {
+    try {
+      const response = await fetch('/admin/api/categories');
+      const data = await response.json();
+      if (data.success && data.data.length > 0) {
+        const categorySelect = $("categorySelect");
+        const currentValue = categorySelect.value;
+        
+        categorySelect.innerHTML = '<option value="">-- Select Category --</option>';
+        data.data.forEach(cat => {
+          const option = document.createElement('option');
+          option.value = cat.shortcode;
+          option.textContent = cat.name;
+          if (cat.shortcode === currentValue) option.selected = true;
+          categorySelect.appendChild(option);
+        });
+      }
+    } catch (error) {
+      console.error('Failed to load categories:', error);
+    }
+  };
+
+  openAddBtn.addEventListener('click', () => {
+    loadCategoryDropdown();
+    ModalManager.show(addModal);
+  });
   cancelAddBtn.addEventListener('click', () => ModalManager.hide(addModal));
 });

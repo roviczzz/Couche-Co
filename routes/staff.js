@@ -345,13 +345,14 @@ router.get('/menu', async (req, res) => {
     // Using shared DB connection from req.db
     const currentUser = await req.db.collection('users').findOne({ _id: new ObjectId(req.session.user._id) });
     
-    // Fetch menu items, addons, ingredients, active promos, and category recommendations
-    const [menu, addons, ingredients, activePromos, categoryRecommendations] = await Promise.all([
+    // Fetch menu items, addons, ingredients, active promos, category recommendations, and categories
+    const [menu, addons, ingredients, activePromos, categoryRecommendations, categories] = await Promise.all([
       getMenu(req.db),
       req.db.collection('Add-ons').find({ isEnabled: true }).toArray(),
       req.db.collection('Ingredients').find({ isEnabled: true }).toArray(),
       getActiveDiscounts(req.db),
-      req.db.collection('CategoryRecommendations').find().toArray()
+      req.db.collection('CategoryRecommendations').find().toArray(),
+      req.db.collection('Categories').find({ isEnabled: true }).sort({ order: 1 }).toArray()
     ]);
 
     // Merge session data with fresh database data
@@ -368,7 +369,8 @@ router.get('/menu', async (req, res) => {
       addons,
       ingredients,
       activePromos,
-      categoryRecommendations
+      categoryRecommendations,
+      categories: categories || []
     });
   } catch (error) {
     console.error('Staff Menu error:', error);
@@ -1702,6 +1704,12 @@ router.get('/analytics/sales-report-pdf', async (req, res) => {
       return acc;
     }, {});
 
+    const fs = require('fs');
+    const path = require('path');
+    const logoPath = path.join(__dirname, '../public/resources/Blessings-Logo.png');
+    const logoBase64 = fs.readFileSync(logoPath, 'base64');
+    const logoDataUrl = `data:image/png;base64,${logoBase64}`;
+
     // Generate HTML for PDF
     const html = `
 <!DOCTYPE html>
@@ -1831,6 +1839,7 @@ router.get('/analytics/sales-report-pdf', async (req, res) => {
 </head>
 <body>
     <div class="header">
+        <img src="${logoDataUrl}" alt="Blessings Cafe" style="width: 80px; height: auto; margin-bottom: 15px;">
         <div class="logo">Blessings Cafe</div>
         <div class="report-title">${reportTitle}</div>
         <div class="report-meta">
@@ -2538,7 +2547,7 @@ router.post('/stocks', async (req, res) => {
         Amount: parseInt(req.body.Amount),
         Unit: req.body.Unit,
         Category: req.body.Category || 'Add-Ons',
-        Allergen: req.body.Allergen || 'None',
+        Allergens: req.body.Allergens ? (typeof req.body.Allergens === 'string' ? JSON.parse(req.body.Allergens).filter(a => a && a.trim() && a.toLowerCase() !== 'none') : req.body.Allergens) : [],
         BasePrice: parseFloat(req.body.BasePrice) || 10,
         isEnabled: req.body.isEnabled === 'true' || req.body.isEnabled === true || req.body.isEnabled === 'on',
         DeductionQuantityGrams: parseInt(req.body.DeductionQuantityGrams) || 10,
@@ -2557,7 +2566,7 @@ router.post('/stocks', async (req, res) => {
         Amount: parseInt(req.body.Amount),
         Unit: req.body.Unit,
         Category: req.body.Category || 'Ingredients',
-        Allergen: req.body.Allergen || 'None',
+        Allergens: req.body.Allergens ? (typeof req.body.Allergens === 'string' ? JSON.parse(req.body.Allergens).filter(a => a && a.trim() && a.toLowerCase() !== 'none') : req.body.Allergens) : [],
         isEnabled: req.body.isEnabled === 'true' || req.body.isEnabled === true || req.body.isEnabled === 'on',
         isAvailable: req.body.isAvailable === 'true' || req.body.isAvailable === true,
         DeductionQuantityGrams: parseInt(req.body.DeductionQuantityGrams) || 10,
@@ -2609,7 +2618,7 @@ router.post('/stocks/edit/:id', async (req, res) => {
       Name: req.body.Name,
       AmountPerPack: req.body.AmountPerPack,
       Amount: parseInt(req.body.Amount),
-      Allergen: req.body.Allergen,
+      Allergens: req.body.Allergens ? (typeof req.body.Allergens === 'string' ? JSON.parse(req.body.Allergens).filter(a => a && a.trim() && a.toLowerCase() !== 'none') : req.body.Allergens) : [],
       isEnabled: req.body.isEnabled === 'true' || req.body.isEnabled === true,
       DeductionQuantityGrams: parseInt(req.body.DeductionQuantityGrams) || 10,
       lastModified: new Date()

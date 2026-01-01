@@ -504,8 +504,8 @@ router.get('/analytics/orders-by-source', isLoggedIn, ensureAdmin, nocache, asyn
 
 
 // Apply admin check to all OTHER routes (not login/forgot-password)
-router.use(['/dashboard', '/products', '/orders', '/stocks', '/discounts', '/menu', '/settings', '/order', '/messages'], isLoggedIn);
-router.use(['/dashboard', '/products', '/orders', '/stocks', '/discounts', '/menu', '/settings', '/order', '/messages'], ensureAdmin);
+router.use(['/dashboard', '/products', '/orders', '/stocks', '/discounts', '/menu', '/settings', '/order', '/messages', '/categories'], isLoggedIn);
+router.use(['/dashboard', '/products', '/orders', '/stocks', '/discounts', '/menu', '/settings', '/order', '/messages', '/categories'], ensureAdmin);
 
 // Admin redirect route
 router.get('/', (req, res) => {
@@ -836,12 +836,19 @@ router.get('/analytics', nocache, async (req, res) => {
 router.get('/products', nocache, async (req, res) => {
   try {
     const products = await getProducts(req.db);
+    const categoriesCollection = req.db.collection('Categories');
+    const categories = await categoriesCollection
+      .find({ isEnabled: true })
+      .sort({ order: 1 })
+      .toArray();
+
     res.render('admin/products', {
       title: 'Products | Blessings Cafe',
       user: req.session.user,
       currentPage: '/admin/products',
       layout: 'admin/layout',
-      products
+      products,
+      categories: categories || []
     });
   } catch (error) {
     console.error('Products error:', error);
@@ -884,130 +891,147 @@ router.post('/products/add', ensureAdmin, upload.single('imagelink'), async (req
     Ingredients,
     AddOns,
     Quantity,
-    Allergen,
+    Allergens,
     isEnabled,
     BasePrice,
-    description   // ✅ must match the textarea name in the Add Product modal
+    FoodVariants,
+    description
   } = req.body;
 
-  // Map shortcuts to full category names
-  const categoryMap = { CF: "Coffee", MT: "Milktea", FT: "Fruit Tea", BK: "Pastries" };
-  const Category = categoryMap[categoryShortcut] || categoryShortcut || null;
-
-  // Validation
-  if (!Category || !productCode || !Name) {
-    req.flash('error_msg', 'Please select a category, enter a product code, and product name.');
-    return res.redirect('/admin/products');
-  }
-
-  // Automatically append category name for Coffee, Milktea, and Fruit Tea
-  let finalName = Name;
-  if (Category === "Coffee" || Category === "Milktea" || Category === "Fruit Tea") {
-    finalName = `${Name} ${Category}`;
-  }
-
-  const ProductID = `${categoryShortcut.toUpperCase()}-${productCode.toUpperCase()}`;
-
-  // Sizes
-  const Sizes = [];
-  if (size16) Sizes.push({ Size: '16oz', BasePrice: parseFloat(size16) });
-  if (size22) Sizes.push({ Size: '22oz', BasePrice: parseFloat(size22) });
-
-  // Ingredients array - now expecting JSON string of objects with ingredientID and usedGrams
-  let ingredientsArray = [];
-  if (Ingredients) {
-    try {
-      ingredientsArray = JSON.parse(Ingredients);
-      // Validate the structure
-      if (!Array.isArray(ingredientsArray)) {
-        ingredientsArray = [];
-      } else {
-      // Ensure each item has the required properties
-      ingredientsArray = ingredientsArray.filter(item => {
-        if (!item || typeof item !== 'object' || !item.ingredientID) return false;
-        // usedGrams can be a number (for non-Milktea) or an object (for Milktea)
-        const usedGrams = item.usedGrams;
-        if (typeof usedGrams === 'number') return true; // non-Milktea
-        if (typeof usedGrams === 'object' && usedGrams !== null &&
-            typeof usedGrams['16oz'] === 'number' && typeof usedGrams['22oz'] === 'number') return true; // Milktea
-        return false;
-      });
-      }
-    } catch (err) {
-      console.error('Error parsing ingredients JSON:', err);
-      ingredientsArray = [];
-    }
-  }
-
-  // AddOns array - expecting JSON string of objects with addOnID, name, usedGrams16oz, usedGrams22oz
-  let addOnsArray = [];
-  if (AddOns) {
-    try {
-      addOnsArray = JSON.parse(AddOns);
-      // Validate the structure
-      if (!Array.isArray(addOnsArray)) {
-        addOnsArray = [];
-      } else {
-      // Ensure each item has the required properties
-      addOnsArray = addOnsArray.filter(item => {
-        if (!item || typeof item !== 'object' || !item.addOnID || !item.name) return false;
-        // usedGrams16oz and usedGrams22oz must be numbers
-        if (typeof item.usedGrams16oz !== 'number' || typeof item.usedGrams22oz !== 'number') return false;
-        return true;
-      });
-      }
-    } catch (err) {
-      console.error('Error parsing addOns JSON:', err);
-      addOnsArray = [];
-    }
-  }
-
-  // Image handling - save locally
-  let imagelink = 'placeholder';
-
-  if (req.file) {
-    const tempPath = req.file.path;
-    const sanitizedName = finalName.replace(/[^a-zA-Z0-9]/g, '-');
-    const newFilename = `${sanitizedName}-${Date.now()}${path.extname(req.file.originalname)}`;
-    const newPath = path.join(uploadsDir, newFilename);
-    fs.renameSync(tempPath, newPath);
-    imagelink = `https://blessingsateverysip.me/uploads/products/${newFilename}`;
-  }
-
-  // ✅ Build the product document to insert
-  const productData = {
-    ProductID,
-    Name: finalName,
-    description: description || "",        // <-- lowercase key so it matches your textarea name
-    Sizes: Sizes.length > 0 ? Sizes : null,
-    Category,
-    Allergen: Allergen || null,
-    imagelink,
-    isEnabled: isEnabled === 'true'
-  };
-
-  // Add AddOns if provided
-  if (addOnsArray.length > 0) {
-    productData.AddOns = addOnsArray;
-  }
-
-  // Handle ingredients vs quantity based on category
-  if (Category.toLowerCase() === 'pastries') {
-    // For pastries, save Quantity instead of Ingredients
-    if (Quantity && !isNaN(parseInt(Quantity))) {
-      productData.Quantity = parseInt(Quantity);
-    }
-    // Base price for pastries
-    if (!isNaN(parseFloat(BasePrice))) {
-      productData.BasePrice = parseFloat(BasePrice);
-    }
-  } else {
-    // For other categories, save Ingredients
-    productData.Ingredients = ingredientsArray;
-  }
-
   try {
-    // Using shared DB connection from req.db
+    const category = await req.db.collection('Categories').findOne({
+      shortcode: categoryShortcut.toUpperCase()
+    });
+
+    if (!category) {
+      req.flash('error_msg', 'Invalid category. Please select a valid category.');
+      return res.redirect('/admin/products');
+    }
+
+    const Category = category.name;
+    const categoryType = category.type || 'drink';
+
+    if (!Category || !productCode || !Name) {
+      req.flash('error_msg', 'Please select a category, enter a product code, and product name.');
+      return res.redirect('/admin/products');
+    }
+
+    let finalName = Name;
+    if (categoryType === 'drink') {
+      finalName = `${Name} ${Category}`;
+    }
+
+    const ProductID = `${categoryShortcut.toUpperCase()}-${productCode.toUpperCase()}`;
+
+    let allergensArray = [];
+    if (Allergens) {
+      try {
+        allergensArray = JSON.parse(Allergens);
+        if (!Array.isArray(allergensArray)) {
+          allergensArray = [];
+        } else {
+          allergensArray = allergensArray.filter(a => a && a.trim() && a.toLowerCase() !== 'none');
+        }
+      } catch (err) {
+        console.error('Error parsing allergens JSON:', err);
+        allergensArray = [];
+      }
+    }
+
+    let ingredientsArray = [];
+    if (Ingredients && categoryType === 'drink') {
+      try {
+        ingredientsArray = JSON.parse(Ingredients);
+        if (!Array.isArray(ingredientsArray)) {
+          ingredientsArray = [];
+        } else {
+          ingredientsArray = ingredientsArray.filter(item => {
+            if (!item || typeof item !== 'object' || !item.ingredientID) return false;
+            const usedGrams = item.usedGrams;
+            if (typeof usedGrams === 'number') return true;
+            if (typeof usedGrams === 'object' && usedGrams !== null &&
+                typeof usedGrams['16oz'] === 'number' && typeof usedGrams['22oz'] === 'number') return true;
+            return false;
+          });
+        }
+      } catch (err) {
+        console.error('Error parsing ingredients JSON:', err);
+        ingredientsArray = [];
+      }
+    }
+
+    let addOnsArray = [];
+    if (AddOns && categoryType === 'drink') {
+      try {
+        addOnsArray = JSON.parse(AddOns);
+        if (!Array.isArray(addOnsArray)) {
+          addOnsArray = [];
+        } else {
+          addOnsArray = addOnsArray.filter(item => {
+            if (!item || typeof item !== 'object' || !item.addOnID || !item.name) return false;
+            if (typeof item.usedGrams16oz !== 'number' || typeof item.usedGrams22oz !== 'number') return false;
+            return true;
+          });
+        }
+      } catch (err) {
+        console.error('Error parsing addOns JSON:', err);
+        addOnsArray = [];
+      }
+    }
+
+    let imagelink = 'placeholder';
+
+    if (req.file) {
+      const tempPath = req.file.path;
+      const sanitizedName = finalName.replace(/[^a-zA-Z0-9]/g, '-');
+      const newFilename = `${sanitizedName}-${Date.now()}${path.extname(req.file.originalname)}`;
+      const newPath = path.join(uploadsDir, newFilename);
+      fs.renameSync(tempPath, newPath);
+      imagelink = `https://blessingsateverysip.me/uploads/products/${newFilename}`;
+    }
+
+    const productData = {
+      ProductID,
+      Name: finalName,
+      description: description || "",
+      Category,
+      Allergens: allergensArray,
+      imagelink,
+      isEnabled: isEnabled === 'true'
+    };
+
+    if (categoryType === 'drink') {
+      const Sizes = [];
+      if (size16) Sizes.push({ Size: '16oz', BasePrice: parseFloat(size16) });
+      if (size22) Sizes.push({ Size: '22oz', BasePrice: parseFloat(size22) });
+      productData.Sizes = Sizes.length > 0 ? Sizes : null;
+      
+      if (addOnsArray.length > 0) {
+        productData.AddOns = addOnsArray;
+      }
+      if (ingredientsArray.length > 0) {
+        productData.Ingredients = ingredientsArray;
+      }
+    } else if (categoryType === 'food') {
+      if (!isNaN(parseFloat(BasePrice))) {
+        productData.BasePrice = parseFloat(BasePrice);
+      }
+      if (Quantity && !isNaN(parseInt(Quantity))) {
+        productData.Quantity = parseInt(Quantity);
+      }
+      
+      if (FoodVariants) {
+        try {
+          const variants = JSON.parse(FoodVariants);
+          if (Array.isArray(variants) && variants.length > 0) {
+            productData.Variants = variants;
+          }
+        } catch (err) {
+          console.error('Error parsing variants JSON:', err);
+        }
+      }
+    }
+
     await req.db.collection('Menu').insertOne(productData);
 
     req.flash('success_msg', `${Name} has been added to the menu`);
@@ -1119,7 +1143,7 @@ router.get('/api/products/:id', async (req, res) => {
           Name: 1,
           Category: 1,
           description: 1,
-          Allergen: 1,
+          Allergens: 1,
           isEnabled: 1,
           imagelink: 1,
           Sizes: 1,
@@ -1159,15 +1183,11 @@ router.get('/api/products/:id', async (req, res) => {
 // ✅ Edit Product route (with local image upload)
 router.post('/products/edit/:id', ensureAdmin, upload.single('imagelink'), async (req, res) => {
   const { id } = req.params;
-  const { description, Allergen, size16, size22, BasePrice, Quantity } = req.body;
-
-
+  const { description, Allergens, size16, size22, BasePrice, Quantity, FoodVariants } = req.body;
 
   try {
-    // Using shared DB connection from req.db
     const collection = req.db.collection('Menu');
 
-    // Fetch current product
     const existingProduct = await collection.findOne({ _id: new ObjectId(id) });
     if (!existingProduct) {
       req.flash('error_msg', 'Product not found');
@@ -1176,18 +1196,40 @@ router.post('/products/edit/:id', ensureAdmin, upload.single('imagelink'), async
 
     const updateFields = {};
 
-    // Only update description if it was provided and is different
     if (description !== undefined && description !== existingProduct.description) {
       updateFields.description = description || "";
     }
 
-    // Only update allergen if it was provided and is different
-    if (Allergen !== undefined && Allergen !== existingProduct.Allergen) {
-      updateFields.Allergen = Allergen || "";
+    if (Allergens !== undefined) {
+      let allergensArray = [];
+      try {
+        allergensArray = JSON.parse(Allergens);
+        if (!Array.isArray(allergensArray)) {
+          allergensArray = [];
+        } else {
+          allergensArray = allergensArray.filter(a => a && a.trim() && a.toLowerCase() !== 'none');
+        }
+      } catch (err) {
+        console.error('Error parsing allergens JSON:', err);
+        allergensArray = [];
+      }
+      
+      const existingAllergens = existingProduct.Allergens || existingProduct.allergens || (existingProduct.Allergen ? [existingProduct.Allergen] : []);
+      const normalizedExisting = Array.isArray(existingAllergens) ? existingAllergens : (existingAllergens ? [existingAllergens] : []);
+      
+      if (JSON.stringify(allergensArray.sort()) !== JSON.stringify(normalizedExisting.sort())) {
+        updateFields.Allergens = allergensArray;
+      }
     }
 
-    // Update sizes/prices only if they were provided
-    if (size16 !== undefined || size22 !== undefined) {
+    // Get category type to determine pricing structure
+    const category = await req.db.collection('Categories').findOne({
+      name: existingProduct.Category
+    });
+    const categoryType = category?.type || 'drink';
+
+    // Update drink pricing
+    if (categoryType === 'drink' && (size16 !== undefined || size22 !== undefined)) {
       const sizes = [];
       if (size16 !== undefined && size16 !== "") {
         const size16Price = parseFloat(size16);
@@ -1202,7 +1244,6 @@ router.post('/products/edit/:id', ensureAdmin, upload.single('imagelink'), async
         }
       }
 
-      // Only update sizes if they actually changed
       const currentSizes = existingProduct.Sizes || [];
       const sizesChanged = JSON.stringify(sizes.sort((a, b) => a.Size.localeCompare(b.Size))) !==
                           JSON.stringify(currentSizes.sort((a, b) => a.Size.localeCompare(b.Size)));
@@ -1212,29 +1253,39 @@ router.post('/products/edit/:id', ensureAdmin, upload.single('imagelink'), async
       }
     }
 
-    // Update BasePrice only if it was provided and is different
-    if (BasePrice !== undefined && BasePrice !== "") {
-      const basePriceValue = parseFloat(BasePrice);
-      const existingBasePrice = parseFloat(existingProduct.BasePrice) || 0;
-      if (!isNaN(basePriceValue) && basePriceValue !== existingBasePrice) {
-        updateFields.BasePrice = basePriceValue;
+    // Update food pricing
+    if (categoryType === 'food') {
+      if (BasePrice !== undefined && BasePrice !== "") {
+        const basePriceValue = parseFloat(BasePrice);
+        const existingBasePrice = parseFloat(existingProduct.BasePrice) || 0;
+        if (!isNaN(basePriceValue) && basePriceValue !== existingBasePrice) {
+          updateFields.BasePrice = basePriceValue;
+        }
+      }
+
+      if (Quantity !== undefined && Quantity !== "") {
+        const quantityValue = parseInt(Quantity);
+        const existingQuantity = parseInt(existingProduct.Quantity) || 0;
+        if (!isNaN(quantityValue) && quantityValue !== existingQuantity) {
+          updateFields.Quantity = quantityValue;
+        }
+      }
+
+      if (FoodVariants) {
+        try {
+          const variants = JSON.parse(FoodVariants);
+          if (Array.isArray(variants) && variants.length > 0) {
+            updateFields.Variants = variants;
+          }
+        } catch (err) {
+          console.error('Error parsing variants JSON:', err);
+        }
       }
     }
 
-    // Update Quantity only if it was provided and is different
-    if (Quantity !== undefined && Quantity !== "") {
-      const quantityValue = parseInt(Quantity);
-      const existingQuantity = parseInt(existingProduct.Quantity) || 0;
-      if (!isNaN(quantityValue) && quantityValue !== existingQuantity) {
-        updateFields.Quantity = quantityValue;
-      }
-    }
-
-    // ✅ If new image uploaded
     if (req.file) {
       console.log("🖼 New image uploaded to disk");
 
-      // Delete old local image if exists
       if (existingProduct.imagelink && existingProduct.imagelink !== 'placeholder' && existingProduct.imagelink.startsWith('/uploads/products/')) {
         try {
           const oldImagePath = path.join(__dirname, '..', 'public', existingProduct.imagelink);
@@ -1247,7 +1298,6 @@ router.post('/products/edit/:id', ensureAdmin, upload.single('imagelink'), async
         }
       }
 
-      // Rename new image with product name
       const tempPath = req.file.path;
       const sanitizedName = existingProduct.Name.replace(/[^a-zA-Z0-9]/g, '-');
       const newFilename = `${sanitizedName}-${Date.now()}${path.extname(req.file.originalname)}`;
@@ -1256,7 +1306,6 @@ router.post('/products/edit/:id', ensureAdmin, upload.single('imagelink'), async
       updateFields.imagelink = `https://blessingsateverysip.me/uploads/products/${newFilename}`;
     }
 
-    // Only update if there are actual changes
     if (Object.keys(updateFields).length > 0) {
       await collection.updateOne(
         { _id: new ObjectId(id) },
@@ -1332,6 +1381,23 @@ router.post('/delete-product/:id', ensureAdmin, async (req, res) => {
 
     const product = await productCollection.findOne({ _id: new ObjectId(productId) });
     if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
+
+    // Check for pending orders with this product
+    const ordersCollection = req.db.collection('Orders');
+    const productIdentifier = product.ProductID || productId;
+    
+    const pendingOrdersCount = await ordersCollection.countDocuments({
+      'Cart.ProductID': productIdentifier,
+      FulfillmentStatus: { $nin: ['Completed', 'Cancelled'] }
+    });
+
+    if (pendingOrdersCount > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot delete "${product.Name}" - it has ${pendingOrdersCount} pending order(s). Please wait until all orders are completed or cancelled.`,
+        pendingOrdersCount
+      });
+    }
 
     // Delete local image if exists
     if (product.imagelink && product.imagelink !== 'placeholder' && product.imagelink.startsWith('/uploads/products/')) {
@@ -1527,12 +1593,13 @@ router.get('/menu', nocache, async (req, res) => {
     const currentUser = await req.db.collection('users').findOne({ _id: new ObjectId(req.session.user._id) });
     
     // Fetch menu items, addons, ingredients, active promos, and category recommendations
-    const [menuItems, addons, ingredients, activePromos, categoryRecommendations] = await Promise.all([
+    const [menuItems, addons, ingredients, activePromos, categoryRecommendations, categories] = await Promise.all([
       getMenu(req.db),
       req.db.collection('Add-ons').find({ isEnabled: true }).toArray(),
       req.db.collection('Ingredients').find({ isEnabled: true }).toArray(),
       getActiveDiscounts(req.db),
-      req.db.collection('CategoryRecommendations').find().toArray()
+      req.db.collection('CategoryRecommendations').find().toArray(),
+      req.db.collection('Categories').find().toArray()
     ]);
 
     // Merge session data with fresh database data
@@ -1550,7 +1617,8 @@ router.get('/menu', nocache, async (req, res) => {
       addons,
       ingredients,
       activePromos,
-      categoryRecommendations
+      categoryRecommendations,
+      categories
     });
   } catch (error) {
     console.error('Menu error:', error);
@@ -2094,10 +2162,17 @@ router.get('/settings', nocache, async (req, res) => {
       };
     }
 
+    const categoriesCollection = req.db.collection('Categories');
+    const categories = await categoriesCollection
+      .find({ isEnabled: true })
+      .sort({ order: 1 })
+      .toArray();
+
     res.render('admin/settings', {
       title: 'Settings | Blessings Cafe',
       user: user,
       settings: userSettings,
+      categories: categories || [],
       currentPage: '/admin/settings',
       layout: 'admin/layout'
     });
@@ -2385,7 +2460,7 @@ router.post('/stocks', async (req, res) => {
         Amount: parseInt(req.body.Amount),
         Unit: req.body.Unit,
         Category: req.body.Category || 'Add-Ons',
-        Allergen: req.body.Allergen || 'None',
+        Allergens: req.body.Allergens ? (typeof req.body.Allergens === 'string' ? JSON.parse(req.body.Allergens).filter(a => a && a.trim() && a.toLowerCase() !== 'none') : req.body.Allergens) : [],
         BasePrice: parseFloat(req.body.BasePrice) || 10,
         isEnabled: req.body.isEnabled === 'true' || req.body.isEnabled === true || req.body.isEnabled === 'on',
         DeductionQuantityGrams: parseInt(req.body.DeductionQuantityGrams) || 10,
@@ -2405,7 +2480,7 @@ router.post('/stocks', async (req, res) => {
         Amount: parseInt(req.body.Amount),
         Unit: req.body.Unit,
         Category: req.body.Category || 'Ingredients',
-        Allergen: req.body.Allergen || 'None',
+        Allergens: req.body.Allergens ? (typeof req.body.Allergens === 'string' ? JSON.parse(req.body.Allergens).filter(a => a && a.trim() && a.toLowerCase() !== 'none') : req.body.Allergens) : [],
         isEnabled: req.body.isEnabled === 'true' || req.body.isEnabled === true || req.body.isEnabled === 'on',
         isAvailable: req.body.isAvailable === 'true' || req.body.isAvailable === true,
         DeductionQuantityGrams: parseInt(req.body.DeductionQuantityGrams) || 10,
@@ -2709,6 +2784,12 @@ router.get('/analytics/export-performance', async (req, res) => {
     const averageOrders = performanceData.length > 0 ? totalOrders / performanceData.length : 0;
     const profitMargin = totalEarnings > 0 ? ((totalEarnings - totalCosts) / totalEarnings) * 100 : 0;
 
+    const fs = require('fs');
+    const path = require('path');
+    const logoPath = path.join(__dirname, '../public/resources/Blessings-Logo.png');
+    const logoBase64 = fs.readFileSync(logoPath, 'base64');
+    const logoDataUrl = `data:image/png;base64,${logoBase64}`;
+
     // Generate HTML for PDF
     const html = `
 <!DOCTYPE html>
@@ -2824,6 +2905,7 @@ router.get('/analytics/export-performance', async (req, res) => {
 </head>
 <body>
     <div class="header">
+        <img src="${logoDataUrl}" alt="Blessings Cafe" style="width: 80px; height: auto; margin-bottom: 15px;">
         <div class="logo">Blessings Cafe</div>
         <div class="report-title">Sales Performance Report - Last ${days} Days</div>
         <div class="report-meta">
@@ -3326,6 +3408,12 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
       return acc;
     }, {});
 
+    const fs = require('fs');
+    const path = require('path');
+    const logoPath = path.join(__dirname, '../public/resources/Blessings-Logo.png');
+    const logoBase64 = fs.readFileSync(logoPath, 'base64');
+    const logoDataUrl = `data:image/png;base64,${logoBase64}`;
+
     // Generate HTML for PDF
     const html = `
 <!DOCTYPE html>
@@ -3455,6 +3543,7 @@ router.get("/analytics/sales-report-pdf", async (req, res) => {
 </head>
 <body>
     <div class="header">
+        <img src="${logoDataUrl}" alt="Blessings Cafe" style="width: 80px; height: auto; margin-bottom: 15px;">
         <div class="logo">Blessings Cafe</div>
         <div class="report-title">${reportTitle}</div>
         <div class="report-meta">
@@ -4094,6 +4183,262 @@ router.get('/api/feedback', nocache, ensureAdmin, async (req, res) => {
   } catch (error) {
     console.error('Feedback API error:', error);
     res.status(500).json({ success: false, error: 'Failed to fetch feedback' });
+  }
+});
+
+router.get('/categories', nocache, ensureAdmin, async (req, res) => {
+  try {
+    const categories = await req.db.collection('Categories')
+      .find({ isEnabled: true })
+      .sort({ order: 1 })
+      .toArray();
+
+    res.render('admin/categories', {
+      title: 'Category Management | Blessings Cafe',
+      user: req.session.user,
+      currentPage: '/admin/categories',
+      layout: 'admin/layout',
+      categories
+    });
+  } catch (error) {
+    console.error('Categories error:', error);
+    res.status(500).render('error', {
+      title: 'Server Error',
+      message: 'Failed to load categories',
+      status: 500
+    });
+  }
+});
+
+router.get('/api/categories', async (req, res) => {
+  try {
+    const categories = await req.db.collection('Categories')
+      .find({ isEnabled: true })
+      .sort({ order: 1 })
+      .toArray();
+
+    res.json({
+      success: true,
+      data: categories
+    });
+  } catch (error) {
+    console.error('Categories API error:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch categories' });
+  }
+});
+
+router.post('/api/categories/add', ensureAdmin, async (req, res) => {
+  try {
+    const { name, shortcode, description, displayOrder, type } = req.body;
+
+    if (!name || !shortcode) {
+      return res.status(400).json({
+        success: false,
+        error: 'Category name and shortcode are required'
+      });
+    }
+
+    const validTypes = ['drink', 'food'];
+    const categoryType = validTypes.includes(type) ? type : 'drink';
+
+    const existingCategory = await req.db.collection('Categories').findOne({
+      $or: [
+        { name: name.trim() },
+        { shortcode: shortcode.toUpperCase().trim() }
+      ]
+    });
+
+    if (existingCategory) {
+      return res.status(400).json({
+        success: false,
+        error: 'Category with this name or shortcode already exists'
+      });
+    }
+
+    const categoryCount = await req.db.collection('Categories').countDocuments();
+
+    const categoryData = {
+      name: name.trim(),
+      shortcode: shortcode.toUpperCase().trim(),
+      description: description || '',
+      order: displayOrder ? parseInt(displayOrder) : categoryCount + 1,
+      type: categoryType,
+      isEnabled: true,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    const result = await req.db.collection('Categories').insertOne(categoryData);
+
+    res.json({
+      success: true,
+      message: 'Category added successfully',
+      data: {
+        _id: result.insertedId,
+        ...categoryData
+      }
+    });
+  } catch (error) {
+    console.error('Add category error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to add category'
+    });
+  }
+});
+
+router.post('/api/categories/edit/:id', ensureAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, shortcode, description, displayOrder, isEnabled, type } = req.body;
+
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, error: 'Invalid category ID' });
+    }
+
+    if (!name || !shortcode) {
+      return res.status(400).json({
+        success: false,
+        error: 'Category name and shortcode are required'
+      });
+    }
+
+    const validTypes = ['drink', 'food'];
+    const categoryType = validTypes.includes(type) ? type : 'drink';
+
+    const existingCategory = await req.db.collection('Categories').findOne({
+      _id: new ObjectId(id)
+    });
+
+    if (!existingCategory) {
+      return res.status(404).json({ success: false, error: 'Category not found' });
+    }
+
+    const duplicateCheck = await req.db.collection('Categories').findOne({
+      $and: [
+        { _id: { $ne: new ObjectId(id) } },
+        {
+          $or: [
+            { name: name.trim() },
+            { shortcode: shortcode.toUpperCase().trim() }
+          ]
+        }
+      ]
+    });
+
+    if (duplicateCheck) {
+      return res.status(400).json({
+        success: false,
+        error: 'Another category with this name or shortcode already exists'
+      });
+    }
+
+    const updateData = {
+      name: name.trim(),
+      shortcode: shortcode.toUpperCase().trim(),
+      description: description || '',
+      order: displayOrder ? parseInt(displayOrder) : existingCategory.order,
+      type: categoryType,
+      isEnabled: isEnabled !== false,
+      updatedAt: new Date()
+    };
+
+    await req.db.collection('Categories').updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updateData }
+    );
+
+    res.json({
+      success: true,
+      message: 'Category updated successfully',
+      data: {
+        _id: id,
+        ...updateData
+      }
+    });
+  } catch (error) {
+    console.error('Edit category error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update category'
+    });
+  }
+});
+
+router.post('/api/categories/delete/:id', ensureAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, error: 'Invalid category ID' });
+    }
+
+    const category = await req.db.collection('Categories').findOne({
+      _id: new ObjectId(id)
+    });
+
+    if (!category) {
+      return res.status(404).json({ success: false, error: 'Category not found' });
+    }
+
+    const productsWithCategory = await req.db.collection('Menu').countDocuments({
+      Category: category.name
+    });
+
+    if (productsWithCategory > 0) {
+      return res.status(400).json({
+        success: false,
+        error: `Cannot delete category "${category.name}" - it has ${productsWithCategory} product(s) assigned to it`
+      });
+    }
+
+    await req.db.collection('Categories').deleteOne({
+      _id: new ObjectId(id)
+    });
+
+    res.json({
+      success: true,
+      message: 'Category deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete category error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete category'
+    });
+  }
+});
+
+router.post('/api/categories/reorder', ensureAdmin, async (req, res) => {
+  try {
+    const { orders } = req.body;
+
+    if (!Array.isArray(orders)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid orders data'
+      });
+    }
+
+    const bulkOps = orders.map((item, index) => ({
+      updateOne: {
+        filter: { _id: new ObjectId(item.id) },
+        update: { $set: { order: index + 1 } }
+      }
+    }));
+
+    await req.db.collection('Categories').bulkWrite(bulkOps);
+
+    res.json({
+      success: true,
+      message: 'Category order updated successfully'
+    });
+  } catch (error) {
+    console.error('Reorder categories error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to reorder categories'
+    });
   }
 });
 

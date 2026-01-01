@@ -1,9 +1,33 @@
 <link rel="stylesheet" href="/css/menu.css">
 <link rel="stylesheet" href="/css/admin-menu.css">
 
+<style>
+    #promo-select:disabled {
+        background-color: #f5f5f5;
+        color: #999;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+    
+    #senior-pwd-discount-toggle:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+    
+    #senior-pwd-discount-toggle:disabled + .slider {
+        background-color: #ccc;
+        cursor: not-allowed;
+    }
+</style>
+
 <%
-// Group menu items by category
 const grouped = {};
+const categoryTypeMap = {};
+if (typeof categories !== 'undefined' && categories && categories.length > 0) {
+  categories.forEach(cat => {
+    categoryTypeMap[cat.name] = cat.type || 'drink';
+  });
+}
 menuItems.forEach(item => {
     if (!grouped[item.Category]) grouped[item.Category] = [];
     grouped[item.Category].push(item);
@@ -38,7 +62,7 @@ menuItems.forEach(item => {
                 <div class="section-title"><%= category %></div>
                 <div class="products-grid" style="margin-bottom: 20px;">
                     <% grouped[category].forEach(item => { %>
-                        <div tabindex="0" role="button" class="product-card" data-item='<%= JSON.stringify(item) %>' onclick="handleProductClick(JSON.parse(this.dataset.item))">
+                        <div tabindex="0" role="button" class="product-card" data-item='<%= JSON.stringify(item) %>' data-category-type='<%= categoryTypeMap[item.Category] || "drink" %>' onclick="handleProductClick(JSON.parse(this.dataset.item), this.dataset.categoryType)">
                             <div class="product-image">
                                 <% if (item.imagelink && item.imagelink.length > 0) { %>
                                     <img src="<%= getImageUrl(item.imagelink) %>" alt="placeholder image" style="width: 120px; height: 120px; object-fit: cover; border-radius: 12px;">
@@ -80,6 +104,10 @@ menuItems.forEach(item => {
             <div class="total-row" id="promo-discount-row" style="display: none;">
                 <span>Promo Discount:</span>
                 <span id="promo-discount" style="text-align: right; color: #4caf50;">-₱ 0.00</span>
+            </div>
+            <div class="total-row" id="senior-pwd-discount-row" style="display: none;">
+                <span>Senior/PWD Discount:</span>
+                <span id="senior-pwd-discount" style="text-align: right; color: #4caf50;">-₱ 0.00</span>
             </div>
             <div class="total-row">
                 <span>Subtotal</span>
@@ -146,7 +174,7 @@ menuItems.forEach(item => {
         <!-- Promo Availability Section -->
         <div class="promo-availability-section" style="margin-bottom: 20px;">
             <label style="font-weight: bold; display: block; margin-bottom: 6px; color: black;">Available Promotions</label>
-            <select id="promo-select" style="width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; margin-bottom: 8px; cursor: pointer;">
+            <select id="promo-select" style="width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; margin-bottom: 8px; cursor: pointer;" onchange="handlePromoSelection()">
                 <option value="">No promotion selected</option>
                 <% if (activePromos && activePromos.length > 0) { %>
                     <% activePromos.forEach(promo => { %>
@@ -156,6 +184,15 @@ menuItems.forEach(item => {
                     <% }); %>
                 <% } %>
             </select>
+        </div>
+
+        <!-- Senior/PWD Discount Section -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 12px; background: #f9f9f9; border-radius: 6px; border: 1px solid #e0e0e0;">
+            <span style="font-weight: bold; color: black;">Senior/PWD Discount (20%)</span>
+            <label class="switch" style="margin: 0;">
+                <input type="checkbox" id="senior-pwd-discount-toggle" onchange="handleSeniorPWDToggle()">
+                <span class="slider"></span>
+            </label>
         </div>
 
         <div class="payment-section">

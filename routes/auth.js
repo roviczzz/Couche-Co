@@ -5,6 +5,7 @@ const { check, validationResult } = require('express-validator');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const { sendPasswordResetEmail } = require('../utils/passwordResetService');
+const { sendVerificationEmail } = require('../utils/emailService');
 
 
 const SALT_ROUNDS = 12;
@@ -138,6 +139,10 @@ router.post('/register',
       // Hash password
       const hashedPassword = await bcrypt.hash(req.body.password, SALT_ROUNDS);
 
+      // Generate email verification token (valid for 24 hours)
+      const verificationToken = crypto.randomBytes(32).toString('hex');
+      const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
       // Create user object with merged fields
       const fullname = req.body.firstName + ' ' + req.body.lastName;
       const address = req.body.addressLine + ', ' + req.body.city;
@@ -149,15 +154,27 @@ router.post('/register',
         address: address,
         password: hashedPassword,
         role: 'user',
+        emailVerified: false,
+        emailVerificationToken: verificationToken,
+        emailVerificationTokenExpiry: verificationTokenExpiry,
         createdAt: new Date()
       };
 
       // Insert user
-      await req.db.collection('users').insertOne(newUser);
+      const result = await req.db.collection('users').insertOne(newUser);
 
-      // Show success message before redirecting
+      // Send verification email
+      const verificationUrl = `${process.env.APP_URL || 'http://localhost:3000'}/auth/verify-email/${verificationToken}`;
+      const emailResponse = await sendVerificationEmail(req.body.email, fullname, verificationUrl);
+
+      if (!emailResponse.success) {
+        console.error('Failed to send verification email:', emailResponse.error);
+      }
+
+      // Show success message with verification instruction
       res.render('register', {
         success: true,
+        verificationEmailSent: true,
         error: null,
         errors: {},
         formData: {},
@@ -535,6 +552,119 @@ router.post('/unified/login', (req, res) => {
 // Update admin login GET route to use unified login
 router.get('/admin/login', (req, res) => {
   res.redirect('/admin/login');
+});
+
+// Email verification route
+router.get('/verify-email/:token', async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    const user = await req.db.collection('users').findOne({
+      emailVerificationToken: token,
+      emailVerificationTokenExpiry: { $gt: new Date() }
+    });
+
+    if (!user) {
+      return res.render('verify-email', {
+        layout: false,
+        success: false,
+        message: 'Invalid or expired verification link. Please register again or request a new verification email.',
+        email: null
+      });
+    }
+
+    // Update user to mark email as verified
+    await req.db.collection('users').updateOne(
+      { _id: user._id },
+      {
+        $set: { emailVerified: true },
+        $unset: { emailVerificationToken: '', emailVerificationTokenExpiry: '' }
+      }
+    );
+
+    res.render('verify-email', {
+      layout: false,
+      success: true,
+      message: 'Your email has been verified! You can now log in to your account.',
+      email: user.email
+    });
+  } catch (error) {
+    console.error('Email verification error:', error);
+    res.render('verify-email', {
+      layout: false,
+      success: false,
+      message: 'An error occurred during verification. Please try again.',
+      email: null
+    });
+  }
+});
+
+// Resend verification email route
+router.post('/resend-verification', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email is required'
+      });
+    }
+
+    const user = await req.db.collection('users').findOne({ email: email });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    if (user.emailVerified) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email is already verified'
+      });
+    }
+
+    // Generate new verification token
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    // Update user with new token
+    await req.db.collection('users').updateOne(
+      { _id: user._id },
+      {
+        $set: {
+          emailVerificationToken: verificationToken,
+          emailVerificationTokenExpiry: verificationTokenExpiry
+        }
+      }
+    );
+
+    // Send verification email
+    const verificationUrl = `${process.env.APP_URL || 'http://localhost:3000'}/auth/verify-email/${verificationToken}`;
+    const emailResponse = await sendVerificationEmail(user.email, user.fullname, verificationUrl);
+
+    if (!emailResponse.success) {
+      console.error('Failed to send verification email:', emailResponse.error);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to send verification email'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Verification email sent successfully'
+    });
+  } catch (error) {
+    console.error('Resend verification error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to resend verification email'
+    });
+  }
 });
 
 module.exports = router;

@@ -7,8 +7,27 @@ const favicon = require('serve-favicon');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
+const fs = require('fs');
 const cron = require('node-cron');
 const multer = require('multer');
+
+global.appRoot = path.resolve(__dirname);
+
+function base64Encode(file) {
+  return fs.readFileSync(file, { encoding: 'base64' });
+}
+
+function getLogo() {
+  try {
+    const logoPath = path.join(appRoot, 'public/resources/Blessings-Logo.png');
+    return `data:image/png;base64,${base64Encode(logoPath)}`;
+  } catch (error) {
+    console.error('Error encoding logo:', error);
+    return '';
+  }
+}
+
+global.getLogo = getLogo;
 
 const app = express();
 const port = process.env.PORT || 8080;
@@ -343,6 +362,63 @@ async function startServer() {
   try {
     await dbConnection.connect();
     app.locals.db = dbConnection.getDb();
+
+    const db = dbConnection.getDb();
+
+    async function initializeDefaultCategories() {
+      try {
+        const categoriesCollection = db.collection('Categories');
+        const existingCount = await categoriesCollection.countDocuments();
+
+        if (existingCount === 0) {
+          const defaultCategories = [
+            {
+              name: 'Coffee',
+              shortcode: 'CF',
+              description: 'Premium coffee drinks - hot and cold options',
+              order: 1,
+              isEnabled: true,
+              createdAt: new Date(),
+              updatedAt: new Date()
+            },
+            {
+              name: 'Milktea',
+              shortcode: 'MT',
+              description: 'Creamy and delicious milk tea beverages',
+              order: 2,
+              isEnabled: true,
+              createdAt: new Date(),
+              updatedAt: new Date()
+            },
+            {
+              name: 'Fruit Tea',
+              shortcode: 'FT',
+              description: 'Refreshing fruit-based tea drinks',
+              order: 3,
+              isEnabled: true,
+              createdAt: new Date(),
+              updatedAt: new Date()
+            },
+            {
+              name: 'Pastries',
+              shortcode: 'BK',
+              description: 'Fresh baked goods and pastries',
+              order: 4,
+              isEnabled: true,
+              createdAt: new Date(),
+              updatedAt: new Date()
+            }
+          ];
+
+          const result = await categoriesCollection.insertMany(defaultCategories);
+          console.log(`✅ Initialized ${result.insertedCount} default categories`);
+        }
+      } catch (error) {
+        console.error('❌ Error initializing default categories:', error);
+      }
+    }
+
+    await initializeDefaultCategories();
 
 // Helper function for image URLs
 app.locals.getImageUrl = function(imagelink) {

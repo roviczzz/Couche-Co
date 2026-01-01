@@ -29,6 +29,17 @@
         <h1><%= product.Name %></h1>
         <p class="product-description"><%= product.description || 'Delicious drink from Blessings Cafe.' %></p>
 
+        <% 
+          const productAllergens = product.Allergens || product.allergens || (product.Allergen ? [product.Allergen] : []);
+          const allergenArray = Array.isArray(productAllergens) ? productAllergens : (productAllergens ? [productAllergens] : []);
+          const filteredAllergens = allergenArray.filter(a => a && a.trim() && a.toLowerCase() !== 'none');
+        %>
+        <% if (filteredAllergens.length > 0) { %>
+        <div class="allergen-info">
+          <small><strong>Contains:</strong> <%= filteredAllergens.join(', ') %></small>
+        </div>
+        <% } %>
+
         <% if (product.Sizes && product.Sizes.length > 0) { %>
           <div class="sizes-section">
             <div class="size-options">
@@ -46,7 +57,7 @@
           </div>
         <% } %>
 
-        <% if (product.Category !== "Pastries") { %>
+        <% if (categoryType === 'drink') { %>
         <div class="addons-section">
           <h4>Add-ons</h4>
           <div class="addon-options">

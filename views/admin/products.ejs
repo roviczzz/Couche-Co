@@ -1,9 +1,21 @@
 <%
   const grouped = {};
-  products.forEach(item => {
-    if (!grouped[item.Category]) grouped[item.Category] = [];
-    grouped[item.Category].push(item);
+  const categoryMap = {};
+  const categoryTypeMap = {};
+  const categoryNameToTypeMap = {};
+  categories.forEach(cat => {
+    categoryMap[cat.shortcode] = cat.name;
+    categoryTypeMap[cat.shortcode] = cat.type || 'drink';
+    categoryNameToTypeMap[cat.name] = cat.type || 'drink';
   });
+  
+  products.forEach(item => {
+    const categoryName = categoryMap[item.Category] || item.Category;
+    if (!grouped[categoryName]) grouped[categoryName] = [];
+    grouped[categoryName].push(item);
+  });
+  
+  const categoryOrder = categories.length > 0 ? categories.map(c => c.name) : ['Coffee', 'Milktea', 'Fruit Tea', 'Pastries'];
 %>
 <link href="/css/products.css" rel="stylesheet">
 <link href="/css/products-mobile.css" rel="stylesheet">
@@ -15,10 +27,11 @@
   <button id="openAddModal" class="fab-btn">+</button>
 
   <div class="content">
-    <% Object.keys(grouped).forEach(category => { %>
+    <% categoryOrder.forEach(category => { %>
+      <% if (grouped[category]) { %>
       <div class="section-header">
         <div class="section-title"><%= category %></div>
-        <% if (category !== 'Pastries') { %>
+        <% if (categoryNameToTypeMap[category] === 'drink') { %>
         <button type="button" class="addon-recommendation-btn" data-category="<%= category %>" onclick="openAddonRecommendationModal('<%= category %>')">
           Set Add-on Recommendations
         </button>
@@ -45,6 +58,7 @@
           </div>
         <% }) %>
       </div>
+      <% } %>
     <% }) %>
   </div>
 </div>
@@ -62,10 +76,16 @@
           <label class="form-label">Category</label>
           <select class="form-input" name="categoryShortcut" id="categorySelect" required>
             <option value="">-- Select Category --</option>
-            <option value="CF">Coffee</option>
-            <option value="MT">Milktea</option>
-            <option value="FT">Fruit Tea</option>
-            <option value="BK">Pastries</option>
+            <% if (categories && categories.length > 0) { %>
+              <% categories.forEach(cat => { %>
+                <option value="<%= cat.shortcode %>"><%= cat.name %></option>
+              <% }); %>
+            <% } else { %>
+              <option value="CF">Coffee</option>
+              <option value="MT">Milktea</option>
+              <option value="FT">Fruit Tea</option>
+              <option value="BK">Pastries</option>
+            <% } %>
           </select>
         </div>
 
@@ -80,17 +100,37 @@
         </div>
       </div>
 
-      <div id="priceRow" class="form-group">
-        <label class="form-label">Prices</label>
-        <div class="price-row">
-          <input class="form-input" type="number" name="size16" step="0.01" placeholder="16oz">
-          <input class="form-input" type="number" name="size22" step="0.01" placeholder="22oz">
+      <div id="priceRowDrink" class="form-group">
+        <label class="form-label">Drink Sizes & Prices</label>
+        <div class="size-pricing-container">
+          <div class="size-input-group">
+            <label class="size-label">16oz Price</label>
+            <input class="form-input" type="number" name="size16" step="0.01" placeholder="e.g., 75.00" min="0">
+          </div>
+          <div class="size-input-group">
+            <label class="size-label">22oz Price</label>
+            <input class="form-input" type="number" name="size22" step="0.01" placeholder="e.g., 95.00" min="0">
+          </div>
         </div>
       </div>
 
-      <div id="basePriceContainer" class="form-group hidden">
-        <label class="form-label">Base Price (Pastries only)</label>
-        <input class="form-input" type="number" name="BasePrice" step="0.01">
+      <div id="priceRowFood" class="form-group hidden">
+        <div class="food-pricing-container">
+          <div style="margin-bottom: 15px;">
+            <label class="form-label">Base Price</label>
+            <input class="form-input" type="number" name="BasePrice" step="0.01" placeholder="e.g., 150.00" min="0">
+            <small>Price for the main item</small>
+          </div>
+          
+          <div>
+            <label class="form-label">Price Variants</label>
+            <div id="variantsList" class="variants-list"></div>
+            <button type="button" class="btn-secondary" id="addVariantBtn" style="width: 100%; margin-top: 10px;">
+              <i class="fas fa-plus"></i> Add Variant
+            </button>
+          </div>
+          <input type="hidden" name="FoodVariants" id="hiddenFoodVariants">
+        </div>
       </div>
 
       <div id="quantityContainer" class="form-group hidden">
@@ -122,13 +162,15 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label">Allergen (optional)</label>
-        <select class="form-input" name="Allergen">
-          <option value="">-- Select Allergen --</option>
-          <option value="Peanut">Peanut</option>
-          <option value="Tree Nut">Tree Nut</option>
-          <option value="Dairy">Dairy</option>
-        </select>
+        <label class="form-label">Allergens (optional)</label>
+        <div class="chip-container" id="allergensChipContainer">
+          <input type="text" id="allergensChipInput" class="chip-input" placeholder="Type allergen...">
+          <div id="allergensSuggestions"></div>
+        </div>
+        <input type="hidden" name="Allergens" id="hiddenAllergens">
+        <div class="allergen-suggestions-list">
+          <small>Common: Dairy, Nuts, Peanuts, Shellfish, Soy, Gluten, Eggs, Fish, Sesame</small>
+        </div>
       </div>
 
      <div class="form-group">
@@ -177,21 +219,41 @@
         </div>
       </div>
 
-      <div id="editPriceRow" class="form-group">
-        <label class="form-label">Prices</label>
-        <div class="price-row">
-          <input class="form-input" type="number" name="size16" id="editSize16" step="0.01" placeholder="16oz">
-          <input class="form-input" type="number" name="size22" id="editSize22" step="0.01" placeholder="22oz">
+      <div id="editPriceRowDrink" class="form-group">
+        <label class="form-label">Drink Sizes & Prices</label>
+        <div class="size-pricing-container">
+          <div class="size-input-group">
+            <label class="size-label">16oz Price</label>
+            <input class="form-input" type="number" name="size16" id="editSize16" step="0.01" placeholder="e.g., 75.00" min="0">
+          </div>
+          <div class="size-input-group">
+            <label class="size-label">22oz Price</label>
+            <input class="form-input" type="number" name="size22" id="editSize22" step="0.01" placeholder="e.g., 95.00" min="0">
+          </div>
         </div>
       </div>
 
-      <div id="editBasePriceContainer" class="form-group">
-        <label class="form-label">Base Price (Pastries only)</label>
-        <input class="form-input" type="number" name="BasePrice" id="editBasePrice" step="0.01">
+      <div id="editPriceRowFood" class="form-group hidden">
+        <div class="food-pricing-container">
+          <div style="margin-bottom: 15px;">
+            <label class="form-label">Base Price</label>
+            <input class="form-input" type="number" name="BasePrice" id="editBasePrice" step="0.01" placeholder="e.g., 150.00" min="0">
+            <small>Price for the main item</small>
+          </div>
+          
+          <div>
+            <label class="form-label">Price Variants</label>
+            <div id="editVariantsList" class="variants-list"></div>
+            <button type="button" class="btn-secondary" id="editAddVariantBtn" style="width: 100%; margin-top: 10px;">
+              <i class="fas fa-plus"></i> Add Variant
+            </button>
+          </div>
+          <input type="hidden" name="FoodVariants" id="editHiddenFoodVariants">
+        </div>
       </div>
 
       <div id="editQuantityContainer" class="form-group">
-        <label class="form-label">Quantity (Pastries only)</label>
+        <label class="form-label">Quantity (Food only)</label>
         <input class="form-input" type="number" name="Quantity" id="editQuantity" step="1" min="0" placeholder="Enter quantity">
       </div>
 
@@ -201,13 +263,15 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label">Allergen (optional)</label>
-        <select class="form-input" name="Allergen" id="editAllergen">
-          <option value="">-- Select Allergen --</option>
-          <option value="Peanut">Peanut</option>
-          <option value="Tree Nut">Tree Nut</option>
-          <option value="Dairy">Dairy</option>
-        </select>
+        <label class="form-label">Allergens (optional)</label>
+        <div class="chip-container" id="editAllergensChipContainer">
+          <input type="text" id="editAllergensChipInput" class="chip-input" placeholder="Type allergen...">
+          <div id="editAllergensSuggestions"></div>
+        </div>
+        <input type="hidden" name="Allergens" id="editHiddenAllergens">
+        <div class="allergen-suggestions-list">
+          <small>Common: Dairy, Nuts, Peanuts, Shellfish, Soy, Gluten, Eggs, Fish, Sesame</small>
+        </div>
       </div>
 
       <div class="form-group">
@@ -395,3 +459,77 @@ async function saveAddonRecommendations() {
 
 document.getElementById('addonSearchInput')?.addEventListener('input', renderAddonChecklist);
 </script>
+
+<style>
+  .size-pricing-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+  }
+
+  .size-input-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .size-label {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #333;
+  }
+
+  .food-pricing-container {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 6px;
+  }
+
+  .variants-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+
+  .variant-item {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: white;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #e0e0e0;
+  }
+
+  .variant-item input {
+    flex: 1;
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 13px;
+  }
+
+  .variant-item .variant-name {
+    flex: 1;
+  }
+
+  .variant-item .variant-price {
+    flex: 0 0 100px;
+  }
+
+  .variant-item .remove-btn {
+    flex: 0 0 30px;
+    padding: 6px 10px;
+    background: #f44336;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+
+  .variant-item .remove-btn:hover {
+    background: #d32f2f;
+  }
+</style>

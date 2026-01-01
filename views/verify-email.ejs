@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email Verification | Blessings Café</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #f5f3f0 0%, #faf8f6 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      padding: 40px;
+      max-width: 500px;
+      text-align: center;
+    }
+
+    .logo {
+      width: 100px;
+      height: auto;
+      margin-bottom: 30px;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #a05c2f 0%, #8b4a26 100%);
+      color: white;
+      padding: 30px;
+      border-radius: 8px;
+      margin: -40px -40px 30px -40px;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      font-size: 13px;
+      opacity: 0.95;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .content {
+      color: #372b2a;
+    }
+
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      background: #a05c2f;
+      border-radius: 50%;
+      margin: 30px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+    }
+
+    .error-icon {
+      width: 80px;
+      height: 80px;
+      background: #e74c3c;
+      border-radius: 50%;
+      margin: 30px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+    }
+
+    .message {
+      font-size: 16px;
+      line-height: 1.6;
+      color: #372b2a;
+      margin: 20px 0 30px 0;
+    }
+
+    .success-message {
+      background-color: #faf8f6;
+      padding: 20px;
+      border-left: 4px solid #a05c2f;
+      border-radius: 4px;
+      margin: 20px 0 30px 0;
+      text-align: left;
+    }
+
+    .success-message strong {
+      display: block;
+      margin-bottom: 8px;
+      color: #8b4a26;
+    }
+
+    .error-message {
+      background-color: #fadbd8;
+      padding: 20px;
+      border-left: 4px solid #e74c3c;
+      border-radius: 4px;
+      margin: 20px 0 30px 0;
+      text-align: left;
+      color: #c0392b;
+    }
+
+    .button-group {
+      margin: 30px 0;
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 12px 30px;
+      border: none;
+      border-radius: 5px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #a05c2f 0%, #8b4a26 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(160, 92, 47, 0.3);
+    }
+
+    .btn-secondary {
+      background: #f0f0f0;
+      color: #372b2a;
+      border: 2px solid #a05c2f;
+    }
+
+    .btn-secondary:hover {
+      background: #faf8f6;
+    }
+
+    .resend-form {
+      margin: 20px 0;
+    }
+
+    .resend-input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #e8e8e8;
+      border-radius: 5px;
+      font-size: 14px;
+      margin-bottom: 10px;
+      font-family: inherit;
+    }
+
+    .resend-input:focus {
+      outline: none;
+      border-color: #a05c2f;
+      box-shadow: 0 0 0 3px rgba(160, 92, 47, 0.1);
+    }
+
+    .footer {
+      border-top: 1px solid #e8e8e8;
+      padding-top: 20px;
+      margin-top: 30px;
+      color: #999;
+      font-size: 12px;
+    }
+
+    .footer a {
+      color: #a05c2f;
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 30px 20px;
+      }
+
+      .header {
+        margin: -30px -20px 20px -20px;
+        padding: 20px;
+      }
+
+      .header h1 {
+        font-size: 22px;
+      }
+
+      .button-group {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <% if (success) { %>
+      <div class="header">
+        <h1>✓ Email Verified</h1>
+        <p>Account Activated</p>
+      </div>
+
+      <div class="content">
+        <div class="success-icon">✓</div>
+
+        <p class="message"><%= message %></p>
+
+        <div class="success-message">
+          <strong>What's next?</strong>
+          You can now log in with your email address and password to start placing orders at Blessings Cafe.
+        </div>
+
+        <div class="button-group">
+          <a href="/login" class="btn btn-primary">Go to Login</a>
+          <a href="/" class="btn btn-secondary">Back to Home</a>
+        </div>
+      </div>
+    <% } else { %>
+      <div class="header">
+        <h1>Verification Failed</h1>
+        <p>Please Try Again</p>
+      </div>
+
+      <div class="content">
+        <div class="error-icon">✕</div>
+
+        <p class="message"><%= message %></p>
+
+        <div class="error-message">
+          <strong>Need Help?</strong>
+          If you have an account, you can request a new verification email below.
+        </div>
+
+        <form class="resend-form" id="resendForm">
+          <input
+            type="email"
+            class="resend-input"
+            id="resendEmail"
+            placeholder="Enter your email address"
+            <% if (email) { %>value="<%= email %>"<% } %>
+            required
+          >
+          <button type="submit" class="btn btn-primary" style="width: 100%;">
+            Resend Verification Email
+          </button>
+        </form>
+
+        <div class="button-group">
+          <a href="/login" class="btn btn-secondary">Go to Login</a>
+          <a href="/" class="btn btn-secondary">Back to Home</a>
+        </div>
+      </div>
+    <% } %>
+
+    <div class="footer">
+      <p>© <%= new Date().getFullYear() %> Blessings Café. All rights reserved.</p>
+      <p style="margin-top: 8px;">
+        Questions? Contact us at <a href="mailto:support@blessingsateverysip.me">support@blessingsateverysip.me</a>
+      </p>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('resendForm');
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('resendEmail').value;
+        const button = form.querySelector('button');
+        const originalText = button.textContent;
+
+        button.disabled = true;
+        button.textContent = 'Sending...';
+
+        try {
+          const response = await fetch('/auth/resend-verification', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email })
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            alert('Verification email sent! Check your inbox.');
+            button.textContent = 'Email Sent ✓';
+            setTimeout(() => {
+              button.disabled = false;
+              button.textContent = originalText;
+            }, 3000);
+          } else {
+            alert(data.error || 'Failed to send verification email');
+            button.disabled = false;
+            button.textContent = originalText;
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          alert('An error occurred. Please try again.');
+          button.disabled = false;
+          button.textContent = originalText;
+        }
+      });
+    }
+  </script>
+</body>
+</html>

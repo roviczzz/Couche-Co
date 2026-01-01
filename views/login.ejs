@@ -16,6 +16,17 @@
 
             <div class="error login-flash-error" <%= error ? '' : 'style="display: none;"' %>><%= error || '' %></div>
 
+            <% if (unverifiedEmail) { %>
+                <div class="verification-action" style="background-color: #faf8f6; padding: 15px; border-left: 4px solid #d4894c; border-radius: 4px; margin-bottom: 20px; text-align: center;">
+                    <p style="margin: 0 0 10px 0; color: #372b2a; font-size: 14px;">
+                        <strong>Email not verified yet?</strong>
+                    </p>
+                    <button type="button" id="resendBtn" onclick="resendVerificationEmail('<%= unverifiedEmail %>')" style="background: linear-gradient(135deg, #a05c2f 0%, #8b4a26 100%); color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 13px;">
+                        Send Verification Email
+                    </button>
+                </div>
+            <% } %>
+
         <form action="/login" method="post" onsubmit="return validateForm()">
             <div class="form-group">
                 <label for="email">Email</label>
@@ -102,6 +113,44 @@
         }
 
         return true; // Allow submission
+    }
+
+    async function resendVerificationEmail(email) {
+      const button = document.getElementById('resendBtn');
+      if (!button) return;
+
+      button.disabled = true;
+      const originalText = button.textContent;
+      button.textContent = 'Sending...';
+
+      try {
+        const response = await fetch('/auth/resend-verification', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          button.textContent = 'Email Sent ✓';
+          setTimeout(() => {
+            button.disabled = false;
+            button.textContent = originalText;
+          }, 3000);
+        } else {
+          alert(data.error || 'Failed to send verification email');
+          button.disabled = false;
+          button.textContent = originalText;
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+        button.disabled = false;
+        button.textContent = originalText;
+      }
     }
     </script>
 </body>

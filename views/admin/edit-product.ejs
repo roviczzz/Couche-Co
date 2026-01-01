@@ -201,10 +201,6 @@
     <label class="form-label">Category</label>
     <select class="form-input" id="categorySelect" name="Category" required>
       <option value="">-- Select Category --</option>
-      <option value="Coffee" <%= product.Category === 'Coffee' ? 'selected' : '' %>>Coffee</option>
-      <option value="Milktea" <%= product.Category === 'Milktea' ? 'selected' : '' %>>Milktea</option>
-      <option value="Fruit Tea" <%= product.Category === 'Fruit Tea' ? 'selected' : '' %>>Fruit Tea</option>
-      <option value="Pastries" <%= product.Category === 'Pastries' ? 'selected' : '' %>>Pastries</option>
     </select>
 
     <!-- Prices -->
@@ -269,10 +265,34 @@
 </div>
 
 <script>
-  // Category toggle
+  const currentCategory = '<%= product.Category %>';
   const categorySelect = document.getElementById("categorySelect");
   const basePriceContainer = document.getElementById("basePriceContainer");
   const priceRow = document.getElementById("priceRow");
+
+  async function loadCategories() {
+    try {
+      const response = await fetch('/admin/api/categories');
+      const data = await response.json();
+      
+      if (data.success && data.data.length > 0) {
+        categorySelect.innerHTML = '<option value="">-- Select Category --</option>';
+        
+        data.data.forEach(category => {
+          const option = document.createElement('option');
+          option.value = category.name;
+          option.textContent = category.name;
+          if (category.name === currentCategory) {
+            option.selected = true;
+          }
+          categorySelect.appendChild(option);
+        });
+      }
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    }
+    toggleFields();
+  }
 
   function toggleFields() {
     if (categorySelect.value === "Pastries") {
@@ -283,8 +303,9 @@
       priceRow.style.display = "block";
     }
   }
+
   categorySelect.addEventListener("change", toggleFields);
-  window.onload = toggleFields;
+  window.addEventListener('load', loadCategories);
 
   // Ingredient chips + autocomplete
   const ingredientInput = document.getElementById("ingredientInput");

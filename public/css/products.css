@@ -420,8 +420,36 @@ body {
   color: #a0522d;
 }
 
+.allergen-chip {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  padding: 6px 12px;
+}
+
+.allergen-chip .chip-name {
+  color: #856404;
+  font-weight: 600;
+}
+
+.allergen-chip .chip-remove {
+  color: #856404;
+}
+
+.allergen-chip .chip-remove:hover {
+  color: #533f03;
+}
+
+.allergen-suggestions-list {
+  margin-top: 8px;
+}
+
+.allergen-suggestions-list small {
+  color: #666;
+  font-size: 0.85rem;
+}
+
 /* Suggestions dropdown */
-#suggestions, #addOnsSuggestions {
+#suggestions, #addOnsSuggestions, #allergensSuggestions, #editAllergensSuggestions, #ingredientAllergensSuggestions, #addonAllergensSuggestions {
   position: absolute;
   background: #fff;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);

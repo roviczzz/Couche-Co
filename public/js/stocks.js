@@ -86,7 +86,7 @@ function createIngredientRow(data) {
       </div>
     </td>
     <td>Ingredients</td>
-    <td><input type="text" name="Allergen" value="${data.Allergen || ''}" class="table-input" data-field="allergen" data-original="${data.Allergen || ''}" required></td>
+    <td><input type="text" name="Allergens" value="${data.Allergens ? (Array.isArray(data.Allergens) ? data.Allergens.join(', ') : data.Allergens) : (data.Allergen || '')}" class="table-input" data-field="allergen" data-original="${data.Allergens ? (Array.isArray(data.Allergens) ? data.Allergens.join(', ') : data.Allergens) : (data.Allergen || '')}" required></td>
     <td>
       <label class="toggle-switch">
         <input type="checkbox" name="isEnabled" data-field="enabled" data-original="${data.isEnabled || false}" ${data.isEnabled ? 'checked' : ''}>
@@ -133,7 +133,7 @@ function createAddonRow(data) {
       </div>
     </td>
     <td>Add-Ons</td>
-    <td><input type="text" name="Allergen" value="${data.Allergen || ''}" class="table-input" data-field="allergen" data-original="${data.Allergen || ''}" required></td>
+    <td><input type="text" name="Allergens" value="${data.Allergens ? (Array.isArray(data.Allergens) ? data.Allergens.join(', ') : data.Allergens) : (data.Allergen || '')}" class="table-input" data-field="allergen" data-original="${data.Allergens ? (Array.isArray(data.Allergens) ? data.Allergens.join(', ') : data.Allergens) : (data.Allergen || '')}" required></td>
     <td>
       <label class="toggle-switch">
         <input type="checkbox" name="isEnabled" data-field="enabled" data-original="${data.isEnabled || false}" ${data.isEnabled ? 'checked' : ''}>
@@ -154,6 +154,137 @@ function createAddonRow(data) {
 document.addEventListener('DOMContentLoaded', function() {
   console.log(`[2025-10-15 17:45:23] Initializing Enhanced Stock Management System - SEARCH AND SORT FIXED by MathDaenniel`);
   console.log(`[2025-10-15 17:45:23] Repository: roviczzz/Couche-Co by MathDaenniel`);
+
+  // ===============================================
+  // ALLERGEN CHIP SYSTEM FOR STOCKS
+  // ===============================================
+  
+  const AllergenChipSystem = {
+    standardAllergens: ['Dairy', 'Nuts', 'Peanuts', 'Shellfish', 'Soy', 'Gluten', 'Eggs', 'Fish', 'Sesame', 'Wheat', 'Tree Nuts'],
+    
+    init(containerId, inputId, hiddenId, suggestionsId) {
+      const container = document.getElementById(containerId);
+      const input = document.getElementById(inputId);
+      const hidden = document.getElementById(hiddenId);
+      const suggestions = document.getElementById(suggestionsId);
+
+      if (!container || !input || !hidden) return null;
+
+      let allergens = [];
+
+      const updateHidden = () => {
+        hidden.value = JSON.stringify(allergens);
+      };
+
+      const createChip = (allergenName) => {
+        if (!allergenName || allergens.includes(allergenName)) return;
+
+        allergens.push(allergenName);
+        const chip = document.createElement("div");
+        chip.className = "chip allergen-chip";
+        chip.innerHTML = `
+          <span class="chip-name">${allergenName}</span>
+          <span class="chip-remove">&times;</span>
+        `;
+
+        chip.querySelector(".chip-remove").addEventListener("click", () => {
+          const index = allergens.indexOf(allergenName);
+          if (index > -1) allergens.splice(index, 1);
+          chip.remove();
+          updateHidden();
+        });
+
+        container.insertBefore(chip, input);
+        input.value = "";
+        updateHidden();
+      };
+
+      input.addEventListener("input", () => {
+        const query = input.value.trim();
+        suggestions.innerHTML = "";
+        
+        if (query.includes(',')) {
+          const parts = query.split(',').map(s => s.trim()).filter(Boolean);
+          parts.forEach(part => {
+            if (part && !allergens.includes(part)) {
+              const properCase = part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+              createChip(properCase);
+            }
+          });
+          input.value = "";
+          return;
+        }
+
+        const lowerQuery = query.toLowerCase();
+        if (!lowerQuery) return;
+
+        const filtered = this.standardAllergens.filter(allergen => 
+          allergen.toLowerCase().includes(lowerQuery) && !allergens.includes(allergen)
+        );
+
+        filtered.forEach(allergen => {
+          const div = document.createElement("div");
+          div.textContent = allergen;
+          div.className = "suggestion-item";
+          div.addEventListener("click", () => {
+            createChip(allergen);
+            suggestions.innerHTML = "";
+          });
+          suggestions.appendChild(div);
+        });
+      });
+
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          const value = input.value.trim();
+          if (value) {
+            const parts = value.split(',').map(s => s.trim()).filter(Boolean);
+            if (parts.length > 1) {
+              parts.forEach(part => {
+                const properCase = part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+                createChip(properCase);
+              });
+            } else {
+              const properCase = value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+              createChip(properCase);
+            }
+            suggestions.innerHTML = "";
+          }
+        }
+      });
+
+      document.addEventListener("click", (e) => {
+        if (e.target !== input && !suggestions.contains(e.target)) {
+          suggestions.innerHTML = "";
+        }
+      });
+
+      return { 
+        createChip, 
+        updateHidden, 
+        clear: () => {
+          allergens = [];
+          container.querySelectorAll('.allergen-chip').forEach(chip => chip.remove());
+          updateHidden();
+        }
+      };
+    }
+  };
+
+  const ingredientAllergensSystem = AllergenChipSystem.init(
+    "ingredientAllergensChipContainer", 
+    "ingredientAllergensChipInput", 
+    "ingredientHiddenAllergens", 
+    "ingredientAllergensSuggestions"
+  );
+
+  const addonAllergensSystem = AllergenChipSystem.init(
+    "addonAllergensChipContainer", 
+    "addonAllergensChipInput", 
+    "addonHiddenAllergens", 
+    "addonAllergensSuggestions"
+  );
 
   // ===============================================
   // DASHBOARD REFRESH INTEGRATION
@@ -958,7 +1089,7 @@ document.addEventListener('DOMContentLoaded', function() {
       amount = row.querySelector('.amount-pack-group input[name="Amount"]')?.value?.trim();
       unit = row.querySelector('.amount-pack-group select[name="Unit"]')?.value?.trim();
       category = itemType === 'ingredient' ? 'Ingredients' : 'Add-Ons';
-      allergen = row.querySelector('input[name="Allergen"]')?.value?.trim() || 'None';
+      allergen = row.querySelector('input[name="Allergens"]')?.value?.trim() || '';
       enabled = e.target.checked ? 'true' : 'false';
       
       if (!suffix || !name || !amount || !unit) {
@@ -971,12 +1102,14 @@ document.addEventListener('DOMContentLoaded', function() {
       const prefix = itemType === 'ingredient' ? 'ING' : 'AD';
       const fullId = `${prefix}-${suffix}`;
       
+      const allergensArray = allergen ? allergen.split(',').map(a => a.trim()).filter(a => a && a.toLowerCase() !== 'none') : [];
+      
       const data = {
         Name: name,
         Amount: amount,
         AmountPerPack: amountPerPack,
         Category: category,
-        Allergen: allergen,
+        Allergens: allergensArray,
         isEnabled: enabled,
         DeductionQuantityGrams: '10'
       };
@@ -1034,7 +1167,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const name = form.querySelector('input[name="Name"]');
     const amount = form.querySelector('input[name="Amount"]');
     const unit = form.querySelector('select[name="Unit"]');
-    const allergen = form.querySelector('input[name="Allergen"]');
+    const allergen = form.querySelector('input[name="Allergens"][type="hidden"]');
 
     if (!suffix || !suffix.value.trim()) {
       alert('Please enter an ingredient ID suffix');
@@ -1092,7 +1225,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const name = form.querySelector('input[name="Name"]');
     const amount = form.querySelector('input[name="Amount"]');
     const unit = form.querySelector('select[name="Unit"]');
-    const allergen = form.querySelector('input[name="Allergen"]');
+    const allergen = form.querySelector('input[name="Allergens"][type="hidden"]');
 
     if (!suffix || !suffix.value.trim()) {
       alert('Please enter an add-on ID suffix');
@@ -1149,6 +1282,10 @@ document.addEventListener('DOMContentLoaded', function() {
     ingredientModalForm.addEventListener('submit', async function(e) {
       e.preventDefault();
       console.log(`[2025-10-15 17:45:23] Ingredient form submission by MathDaenniel`);
+
+      if (ingredientAllergensSystem && ingredientAllergensSystem.updateHidden) {
+        ingredientAllergensSystem.updateHidden();
+      }
 
       if (!validateIngredientForm(ingredientModalForm)) {
         return;
@@ -1258,7 +1395,7 @@ document.addEventListener('DOMContentLoaded', function() {
             Amount: parseInt(amount),
             AmountPerPack: amountPerPack,
             Unit: unit,
-            Allergen: ingredientModalForm.querySelector('input[name="Allergen"]').value.trim(),
+            Allergens: JSON.parse(ingredientModalForm.querySelector('input[name="Allergens"][type="hidden"]')?.value || '[]'),
             isEnabled: isEnabledValue
           });
           
@@ -1298,6 +1435,10 @@ document.addEventListener('DOMContentLoaded', function() {
     addonModalForm.addEventListener('submit', async function(e) {
       e.preventDefault();
       console.log(`[2025-10-15 17:45:23] Add-on form submission by MathDaenniel`);
+
+      if (addonAllergensSystem && addonAllergensSystem.updateHidden) {
+        addonAllergensSystem.updateHidden();
+      }
 
       if (!validateAddonForm(addonModalForm)) {
         console.log(`[2025-10-15 17:45:23] Add-on form validation failed, preventing submission by MathDaenniel`);
@@ -1413,7 +1554,7 @@ document.addEventListener('DOMContentLoaded', function() {
             Amount: parseInt(amount),
             AmountPerPack: amountPerPack,
             Unit: unit,
-            Allergen: addonModalForm.querySelector('input[name="Allergen"]')?.value?.trim() || 'None',
+            Allergens: JSON.parse(addonModalForm.querySelector('input[name="Allergens"][type="hidden"]')?.value || '[]'),
             isEnabled: isEnabledValue
           });
           
@@ -2007,7 +2148,7 @@ document.addEventListener('DOMContentLoaded', function() {
     amount = row.querySelector('.amount-pack-group input[name="Amount"]')?.value?.trim();
     unit = row.querySelector('.amount-pack-group select[name="Unit"]')?.value?.trim();
     category = itemType === 'ingredient' ? 'Ingredients' : 'Add-Ons';
-    allergen = row.querySelector('input[name="Allergen"]')?.value?.trim() || 'None';
+    allergen = row.querySelector('input[name="Allergens"]')?.value?.trim() || '';
     enabled = row.querySelector('input[name="isEnabled"][type="checkbox"]')?.checked ? 'true' : 'false';
 
     if (!suffix || !name || !amount || !unit) {
@@ -2019,12 +2160,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const prefix = itemType === 'ingredient' ? 'ING' : 'AD';
     const fullId = `${prefix}-${suffix}`;
     
+    const allergensArray = allergen ? allergen.split(',').map(a => a.trim()).filter(a => a && a.toLowerCase() !== 'none') : [];
+    
     const data = {
       Name: name,
       Amount: amount,
       AmountPerPack: amountPerPack,
       Category: category,
-      Allergen: allergen,
+      Allergens: allergensArray,
       isEnabled: enabled,
       DeductionQuantityGrams: '10'
     };
@@ -2158,7 +2301,7 @@ document.addEventListener('DOMContentLoaded', function() {
       form.querySelector('input[name="Name"]').value = row.querySelector('input[name="Name"]').value;
       form.querySelector('input[name="AmountPerPack"]').value = amountPerPack;
       form.querySelector('input[name="Category"]').value = itemType === 'ingredient' ? 'Ingredients' : 'Add-Ons';
-      form.querySelector('input[name="Allergen"]').value = row.querySelector('input[name="Allergen"]').value || 'None';
+      form.querySelector('input[name="Allergens"]').value = row.querySelector('input[name="Allergens"]').value || '';
       form.querySelector('input[name="isEnabled"]').value = row.querySelector('select[name="isEnabled"]').value;
 
       if (silent) {
@@ -2286,7 +2429,7 @@ document.addEventListener('DOMContentLoaded', function() {
           const name = row.querySelector('input[name="Name"]')?.value?.trim();
           const amount = row.querySelector('.amount-pack-group input[name="Amount"]')?.value?.trim();
           const unit = row.querySelector('.amount-pack-group select[name="Unit"]')?.value?.trim();
-          const allergen = row.querySelector('input[name="Allergen"]')?.value?.trim() || 'None';
+          const allergen = row.querySelector('input[name="Allergens"]')?.value?.trim() || '';
           const enabled = row.querySelector('input[name="isEnabled"][type="checkbox"]')?.checked ? 'true' : 'false';
           
           if (!suffix || !name || !amount || !unit) {
@@ -2297,6 +2440,8 @@ document.addEventListener('DOMContentLoaded', function() {
           const amountPerPack = `${amount} ${unit}`;
           const fullId = `ING-${suffix}`;
           
+          const allergensArray = allergen ? allergen.split(',').map(a => a.trim()).filter(a => a && a.toLowerCase() !== 'none') : [];
+          
           const data = {
             IngredientID: fullId,
             IngredientPrefix: 'ING',
@@ -2305,7 +2450,7 @@ document.addEventListener('DOMContentLoaded', function() {
             Amount: amount,
             AmountPerPack: amountPerPack,
             Category: 'Ingredients',
-            Allergen: allergen,
+            Allergens: allergensArray,
             isEnabled: enabled,
             DeductionQuantityGrams: '10'
           };
@@ -2392,7 +2537,7 @@ document.addEventListener('DOMContentLoaded', function() {
           const name = row.querySelector('input[name="Name"]')?.value?.trim();
           const amount = row.querySelector('.amount-pack-group input[name="Amount"]')?.value?.trim();
           const unit = row.querySelector('.amount-pack-group select[name="Unit"]')?.value?.trim();
-          const allergen = row.querySelector('input[name="Allergen"]')?.value?.trim() || 'None';
+          const allergen = row.querySelector('input[name="Allergens"]')?.value?.trim() || '';
           const enabled = row.querySelector('input[name="isEnabled"][type="checkbox"]')?.checked ? 'true' : 'false';
           const basePrice = row.querySelector('input[name="BasePrice"]')?.value?.trim() || '10';
           
@@ -2404,6 +2549,8 @@ document.addEventListener('DOMContentLoaded', function() {
           const amountPerPack = `${amount} ${unit}`;
           const fullId = `AD-${suffix}`;
           
+          const allergensArray = allergen ? allergen.split(',').map(a => a.trim()).filter(a => a && a.toLowerCase() !== 'none') : [];
+          
           const data = {
             AddOnID: fullId,
             AddOnPrefix: 'AD',
@@ -2412,7 +2559,7 @@ document.addEventListener('DOMContentLoaded', function() {
             Amount: amount,
             AmountPerPack: amountPerPack,
             Category: 'Add-Ons',
-            Allergen: allergen,
+            Allergens: allergensArray,
             isEnabled: enabled,
             BasePrice: parseInt(basePrice, 10) || 10,
             DeductionQuantityGrams: '10'

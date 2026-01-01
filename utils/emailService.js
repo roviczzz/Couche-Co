@@ -1,6 +1,7 @@
 const { Resend } = require('resend');
 const QRCode = require('qrcode');
 const path = require('path');
+const fs = require('fs');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -267,10 +268,10 @@ const generateEmailTemplate = (order, customerName) => {
     <body>
       <div class="container">
         <div style="text-align: center; padding: 20px 0;">
-          <img src="cid:logo" alt="Blessings Café" style="width: 120px; height: auto;" />
+          <img src="https://blessingsateverysip.me/resources/Blessings-Logo.png" alt="Blessings Cafe" style="width: 120px; height: auto;" />
         </div>
         <div class="header">
-          <h1>Blessings Café</h1>
+          <h1>Blessings Cafe</h1>
           <p class="header-subtitle">Order Receipt</p>
         </div>
         
@@ -334,9 +335,9 @@ const generateEmailTemplate = (order, customerName) => {
         </div>
 
         <div class="footer">
-          <div class="footer-brand">Blessings Café</div>
+          <div class="footer-brand">Blessings Cafe</div>
           <p>We appreciate your order! Your satisfaction is our priority.</p>
-          <p style="margin-top: 20px; border-top: 1px solid #555; padding-top: 15px;">© ${new Date().getFullYear()} Blessings Café. For inquiries or feedback, please contact us through the website.</p>
+          <p style="margin-top: 20px; border-top: 1px solid #555; padding-top: 15px;">© ${new Date().getFullYear()} Blessings Cafe. For inquiries or feedback, please contact us through the website.</p>
           <p class="footer-note">This is an automated message. Please do not reply directly.</p>
         </div>
       </div>
@@ -386,24 +387,16 @@ const sendOrderReceipt = async (order, customerEmail, customerName) => {
     console.log(`[EMAILSVC] Generating email template`);
     const emailHTML = generateEmailTemplate(order, customerName);
     console.log(`[EMAILSVC] Email template generated (length: ${emailHTML.length})`);
-
-    const logoPath = path.join(__dirname, '../public/resources/Blessings-Logo.png');
-    const fs = require('fs');
-    const logoBase64 = fs.readFileSync(logoPath).toString('base64');
     
     const mailOptions = {
       from: process.env.RESEND_FROM_EMAIL,
       to: customerEmail,
-      subject: `Order Receipt #${order.OrderID} - Blessings Café`,
+      subject: `Order Receipt #${order.OrderID} - Blessings Cafe`,
       html: emailHTML,
       attachments: [
         {
           filename: 'qrcode.png',
           content: qrCodeDataUrl.split(',')[1]
-        },
-        {
-          filename: 'logo.png',
-          content: logoBase64
         }
       ]
     };
@@ -453,9 +446,98 @@ const verifyEmailConnection = async () => {
   }
 };
 
+const sendVerificationEmail = async (userEmail, userName, verificationUrl) => {
+  try {
+    console.log(`[VERIFYEMAIL] Sending verification email to ${userEmail}`);
+
+    if (!process.env.RESEND_API_KEY) {
+      console.error('[VERIFYEMAIL] Resend API key not configured');
+      return {
+        success: false,
+        error: 'Email service not configured'
+      };
+    }
+
+    if (!process.env.RESEND_FROM_EMAIL) {
+      console.error('[VERIFYEMAIL] Resend from email not configured');
+      return {
+        success: false,
+        error: 'Email service not properly configured'
+      };
+    }
+
+    const html = `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f3f0; padding: 20px;">
+        <div style="background-color: #ffffff; border-radius: 8px; padding: 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+          <div style="text-align: center; margin: -40px -40px 20px -40px; padding-top: 20px;">
+            <img src="https://blessingsateverysip.me/resources/Blessings-Logo.png" alt="Blessings Cafe" style="width: 120px; height: auto; margin-bottom: -10px;" />
+          </div>
+          <div style="background: linear-gradient(135deg, #a05c2f 0%, #8b4a26 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; margin: 0 -40px 30px -40px; text-align: center;">
+            <h1 style="margin: 0; font-size: 24px; font-weight: 700;">Verify Your Email</h1>
+            <p style="margin: 8px 0 0 0; font-size: 13px; opacity: 0.95; text-transform: uppercase; letter-spacing: 1px;">Welcome to Blessings Cafe</p>
+          </div>
+
+          <h2 style="color: #372b2a; font-size: 18px; margin-top: 0; margin-bottom: 20px;">Email Verification Required</h2>
+          
+          <p style="color: #372b2a; font-size: 14px; line-height: 1.6; margin-bottom: 15px;">Hello <strong>${userName || 'User'}</strong>,</p>
+          
+          <p style="color: #372b2a; font-size: 14px; line-height: 1.6; margin-bottom: 15px;">Thank you for registering with Blessings Cafe! To complete your registration and unlock your account, please verify your email address by clicking the button below.</p>
+
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${verificationUrl}" style="background: linear-gradient(135deg, #a05c2f 0%, #8b4a26 100%); color: white; padding: 12px 40px; text-decoration: none; border-radius: 5px; font-weight: 600; display: inline-block; font-size: 14px;">Verify Email Address</a>
+          </div>
+
+          <p style="color: #666; font-size: 13px; line-height: 1.6; background-color: #faf8f6; padding: 15px; border-left: 4px solid #a05c2f; border-radius: 4px; margin: 20px 0;">
+            <strong>Link expires in:</strong> 24 hours<br>
+            If you didn't create this account, you can safely ignore this email.
+          </p>
+
+          <hr style="border: none; border-top: 1px solid #e8e8e8; margin: 30px 0;">
+
+          <p style="color: #999; font-size: 12px; text-align: center; margin: 0;">
+            © ${new Date().getFullYear()} Blessings Cafe. All rights reserved.<br>
+            Questions? Contact us at <a href="mailto:support@blessingsateverysip.me" style="color: #a05c2f; text-decoration: none;">support@blessingsateverysip.me</a>
+          </p>
+        </div>
+      </div>
+    `;
+
+    const logoPath = path.join(__dirname, '../public/resources/Blessings-Logo.png');
+    const logoBase64 = fs.readFileSync(logoPath).toString('base64');
+
+    const response = await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL,
+      to: userEmail,
+      subject: 'Verify Your Blessings Cafe Account',
+      html: html
+    });
+
+    if (response.error) {
+      console.error(`❌ [VERIFYEMAIL] Resend error:`, response.error);
+      return {
+        success: false,
+        error: response.error.message || 'Failed to send email'
+      };
+    }
+
+    console.log(`✅ [VERIFYEMAIL] Verification email sent to ${userEmail} (MessageID: ${response.data.id})`);
+    return {
+      success: true,
+      messageId: response.data.id
+    };
+  } catch (error) {
+    console.error(`❌ [VERIFYEMAIL] Error sending verification email:`, error.message);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+};
+
 module.exports = {
   sendOrderReceipt,
   generateEmailTemplate,
   generateQRCode,
-  verifyEmailConnection
+  verifyEmailConnection,
+  sendVerificationEmail
 };
